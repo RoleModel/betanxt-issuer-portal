@@ -1,0 +1,189 @@
+---
+config:
+  theme: mc
+---
+
+erDiagram
+users {
+bigint id PK
+timestamp created_at
+text username UK
+text avatar
+text email
+text type
+text first_name UK
+text last_name UK
+}
+event {
+varchar id PK
+varchar title
+varchar cusip
+date record_date
+date mailing_date
+date meeting_date
+varchar meeting_type
+varchar status
+timestamp created_at
+timestamp updated_at
+varchar ticker
+varchar distribution_type
+varchar transfer_agent
+varchar employee_stock_plans
+varchar plan_administrator
+varchar plan_administrator_contact
+varchar current_phase
+integer overall_completion
+text solicitor
+text solicitor_email
+text plan_administrator_contact_email
+integer meeting_year
+bigint total_shares_outstanding
+numeric quorum_requirement
+}
+phase {
+uuid id PK
+varchar meeting_id FK
+varchar name
+integer order_index
+varchar status
+timestamp created_at
+timestamp updated_at
+}
+task {
+uuid id PK
+uuid phase_id FK
+varchar title
+text description
+varchar status
+date due_date
+varchar owner
+timestamp created_at
+timestamp updated_at
+varchar meeting_id FK
+varchar type
+varchar task_id UK
+integer phase_number
+uuid document FK
+jsonb links
+}
+document {
+uuid id PK
+varchar meeting_id FK
+varchar title
+varchar file_path
+varchar file_type
+integer file_size
+timestamp upload_date
+varchar status
+timestamp created_at
+timestamp updated_at
+text description
+timestamp uploaded_date
+timestamp signed_date
+timestamp authorized_date
+timestamp completed_date
+timestamp in_progress_date
+varchar type
+jsonb history
+uuid task_id FK
+}
+comments {
+bigint id PK
+timestamp created_at
+text comment
+uuid document_id FK
+text user FK
+text first_name FK
+text last_name FK
+varchar document FK
+}
+signature_areas {
+uuid id PK
+uuid document_id FK
+integer page_number
+double_precision x_position
+double_precision y_position
+double_precision width
+double_precision height
+varchar signature_type
+boolean required
+timestamp created_at
+timestamp updated_at
+}
+positions {
+uuid id PK
+varchar meeting_id FK
+text cusip
+text account_type
+text set_key
+text name
+text account_number
+text vote_status
+text control_number
+bigint shares
+bigint shares_voted
+text source
+date date_voted
+text sent_by
+timestamp created_at
+timestamp updated_at
+}
+proposals {
+uuid id PK
+varchar meeting_id FK
+integer proposal_number
+text proposal_title
+text proposal_type
+text proposal_subtype
+text director_name
+integer director_term_years
+text director_class
+integer term_expiration_year
+jsonb frequency_options
+text recommendation
+timestamp created_at
+timestamp updated_at
+}
+position_votes {
+uuid id PK
+uuid position_id FK
+uuid proposal_id FK
+text vote
+bigint shares_voting
+timestamp created_at
+}
+phase_key_dates {
+uuid id PK
+uuid phase_id FK
+varchar date_name
+date date_value
+boolean is_mandatory
+timestamp created_at
+timestamp updated_at
+varchar meeting_id FK
+integer phase_number
+}
+phase_urls {
+uuid id PK
+uuid phase_id FK
+text url
+varchar title
+text description
+timestamp created_at
+timestamp updated_at
+}
+event ||--o{ phase : "has"
+event ||--o{ document : "has"
+event ||--o{ task : "has"
+event ||--o{ positions : "has"
+event ||--o{ proposals : "has"
+event ||--o{ phase_key_dates : "has"
+phase ||--o{ task : "contains"
+phase ||--o{ phase_key_dates : "has"
+phase ||--o{ phase_urls : "has"
+document ||--o{ comments : "has"
+document ||--o{ signature_areas : "has"
+task ||--o{ document : "generates"
+users ||--o{ comments : "writes"
+positions ||--o{ position_votes : "casts"
+proposals ||--o{ position_votes : "receives"
