@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "specs",
+			"name": "Specs"
+		},
+		{
+			"path": "issuer-portal",
+			"name": "Issuer Portal"
+		},
+		{
+			"path": "mock-api-server",
+			"name": "Mock API Server"
+		},
+		{
+			"path": ".",
+			"name": "Root"
+		}
+	],
+	"settings": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"[typescript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+		},
+		"search.useParentIgnoreFiles": true,
+		"editor.formatOnSave": true,
+		"editor.tabSize": 2,
+		"files.eol": "\n",
+		"eslint.useFlatConfig": true,
+	},
+}

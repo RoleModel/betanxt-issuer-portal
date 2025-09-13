@@ -1,0 +1,335 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enums
+enum UserType {
+  SYSTEM_ADMIN
+  ACCOUNT_ADMIN
+  ISSUER_USER
+  SOLICITOR
+  TRANSFER_AGENT
+}
+
+enum MeetingStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ADJOURNED
+}
+
+enum PhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum DocumentStatus {
+  DRAFT
+  UPLOADED
+  IN_PROGRESS
+  SIGNED
+  AUTHORIZED
+  COMPLETED
+}
+
+// Core Models
+model Account {
+  id             String   @id @default(uuid())
+  account        String   @unique
+  name           String   @unique
+  primaryContact String
+  createdAt      DateTime @default(now())
+
+  // Relationships
+  users    User[]
+  meetings Meeting[]
+
+  // Indexes
+  @@map("accounts")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  type      UserType
+  accountId String?
+
+  // Relationships
+  account  Account?  @relation(fields: [accountId], references: [id])
+  comments Comment[]
+
+  @@map("users")
+}
+
+model Meeting {
+  id                             String        @id
+  title                          String
+  cusip                          String
+  ticker                         String
+  recordDate                     DateTime      @db.Date
+  mailingDate                    DateTime      @db.Date
+  meetingDate                    DateTime      @db.Date
+  meetingType                    String
+  meetingYear                    Int
+  status                         MeetingStatus @default(PLANNING)
+  currentPhase                   String
+  overallCompletion              Int           @default(0)
+  distributionType               String
+  transferAgent                  String
+  employeeStockPlans             String?
+  planAdministrator              String?
+  planAdministratorContact       String?
+  planAdministratorContactEmail  String?
+  solicitor                      String?
+  solicitorEmail                 String?
+  totalSharesOutstanding         BigInt
+  quorumRequirement              Decimal       @db.Decimal(5, 2)
+  accountId                      String
+  createdAt                      DateTime      @default(now())
+  updatedAt                      DateTime      @updatedAt
+
+  // Relationships
+  account       Account         @relation(fields: [accountId], references: [id])
+  phases        Phase[]
+  documents     Document[]
+  tasks         Task[]
+  positions     Position[]
+  proposals     Proposal[]
+  phaseKeyDates PhaseKeyDate[]
+
+  // Indexes
+  @@index([cusip])
+  @@index([ticker])
+  @@index([meetingDate])
+  @@index([status])
+  @@map("meetings")
+}
+
+model Phase {
+  id         String      @id @default(uuid())
+  meetingId  String
+  name       String
+  orderIndex Int
+  status     PhaseStatus @default(NOT_STARTED)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relationships
+  meeting       Meeting        @relation(fields: [meetingId], references: [id])
+  tasks         Task[]
+  phaseKeyDates PhaseKeyDate[]
+
+  // Unique constraint
+  @@unique([meetingId, orderIndex])
+  @@map("phases")
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  taskId      String
+  phaseId     String
+  meetingId   String
+  phaseNumber Int
+  title       String
+  description String?    @db.Text
+  type        String
+  status      TaskStatus @default(PENDING)
+  dueDate     DateTime?  @db.Date
+  owner       String
+  documentId  String?
+  links       Json?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relationships
+  phase   Phase   @relation(fields: [phaseId], references: [id])
+  meeting Meeting @relation(fields: [meetingId], references: [id])
+
+  // Unique constraint
+  @@unique([meetingId, taskId])
+  @@index([meetingId])
+  @@index([phaseId])
+  @@map("tasks")
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  meetingId        String
+  taskId           String?
+  title            String
+  description      String?        @db.Text
+  type             String
+  filePath         String
+  fileType         String
+  fileSize         Int
+  status           DocumentStatus @default(DRAFT)
+  uploadDate       DateTime?
+  uploadedDate     DateTime?
+  signedDate       DateTime?
+  authorizedDate   DateTime?
+  completedDate    DateTime?
+  inProgressDate   DateTime?
+  history          Json?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relationships
+  meeting    Meeting     @relation(fields: [meetingId], references: [id])
+  comments   Comment[]
+  signatures Signature[]
+
+  @@index([meetingId])
+  @@map("documents")
+}
+
+model Position {
+  id            String   @id @default(uuid())
+  meetingId     String
+  cusip         String
+  accountType   String
+  setKey        String
+  name          String
+  accountNumber String?
+  voteStatus    String
+  controlNumber String
+  shares        BigInt
+  sharesVoted   BigInt   @default(0)
+  source        String?
+  dateVoted     DateTime? @db.Date
+  sentBy        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  meeting       Meeting        @relation(fields: [meetingId], references: [id])
+  positionVotes PositionVote[]
+
+  // Unique constraint
+  @@unique([meetingId, controlNumber])
+  @@index([meetingId])
+  @@index([controlNumber])
+  @@map("positions")
+}
+
+model Proposal {
+  id                  String   @id @default(uuid())
+  meetingId           String
+  proposalNumber      Int
+  proposalTitle       String
+  proposalType        String
+  proposalSubtype     String?
+  directorName        String?
+  directorTermYears   Int?
+  directorClass       String?
+  termExpirationYear  Int?
+  frequencyOptions    Json?
+  recommendation      String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relationships
+  meeting       Meeting        @relation(fields: [meetingId], references: [id])
+  positionVotes PositionVote[]
+
+  // Unique constraint
+  @@unique([meetingId, proposalNumber])
+  @@index([meetingId])
+  @@index([proposalNumber])
+  @@map("proposals")
+}
+
+model PositionVote {
+  id           String   @id @default(uuid())
+  positionId   String
+  proposalId   String
+  vote         String
+  sharesVoting BigInt
+  createdAt    DateTime @default(now())
+
+  // Relationships
+  position Position @relation(fields: [positionId], references: [id])
+  proposal Proposal @relation(fields: [proposalId], references: [id])
+
+  // Unique constraint
+  @@unique([positionId, proposalId, vote])
+  @@index([positionId])
+  @@index([proposalId])
+  @@map("position_votes")
+}
+
+model PhaseKeyDate {
+  id          String   @id @default(uuid())
+  phaseId     String
+  meetingId   String
+  phaseNumber Int
+  dateName    String
+  dateValue   DateTime @db.Date
+  isMandatory Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  phase   Phase   @relation(fields: [phaseId], references: [id])
+  meeting Meeting @relation(fields: [meetingId], references: [id])
+
+  @@map("phase_key_dates")
+}
+
+model Comment {
+  id         BigInt   @id @default(autoincrement())
+  documentId String
+  userId     String
+  comment    String   @db.Text
+  firstName  String
+  lastName   String
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  document Document @relation(fields: [documentId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}
+
+model Signature {
+  id            String   @id @default(uuid())
+  documentId    String
+  pageNumber    Int
+  xPosition     Float
+  yPosition     Float
+  width         Float
+  height        Float
+  signatureType String
+  required      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@map("signatures")
+}

@@ -1,198 +1,181 @@
-# Claude Context: Issuer Portal
+# Issuer Portal - Claude Code Context
 
-**Project**: BetaNXT Issuer Portal - Corporate Shareholder Meeting Management  
-**Architecture**: Contract-First Design with mock-api-server + issuer-portal  
-**Generated**: 2025-09-12  
-**Version**: 0.1.0
+## Project Overview
 
-## Technology Stack
+**Project**: Issuer Portal - Event Management System  
+**Architecture**: Next.js 14+ Full-Stack Web Application  
+**Language**: TypeScript 5.x with React 18+  
+**Database**: PostgreSQL with Prisma ORM  
+**Authentication**: NextAuth.js with role-based access control  
+**UI Framework**: MUI 7.3.1 with @rolemodel/betanxt-design-system  
+**Testing**: Jest, React Testing Library, Playwright E2E
 
-**Core Technologies**:
-- TypeScript 5.8.2 (strict mode)
-- React 19.0.0 with Next.js 15.4.5
-- Material UI 7.3.2 + MUI X Pro components
-- Node.js 22.15.x runtime
+## Current Feature: New Project Setup (000-new-project-setup)
 
-**Database & APIs**:
-- Supabase (PostgreSQL) for mock data layer
-- OpenAPI 3.0 contracts defining all API interfaces
-- OpenAPI-fetch for type-safe API clients
-- Contract-first design for future backend compatibility
+**Status**: Phase 1 Complete - Design artifacts generated  
+**Branch**: `000-new-project-setup`  
+**Spec**: `/specs/000-new-project-setup/spec.md`
 
-**Testing & Quality**:
-- Cypress 14.2.0 for component testing
-- Playwright for end-to-end testing
-- Jest for contract testing
-- ESLint 9.32.0 + Prettier 3.6.2
+### Key Requirements
+
+- Foundational project structure supporting modular development
+- Role-based authentication with multiple user types
+- Event management CRUD functionality
+- BetaNXT design system integration
+- Responsive design for all device sizes
+- Test-first development approach
+
+### Architecture Decisions
+
+- **Framework**: Next.js 14+ app directory structure
+- **Database**: PostgreSQL with Prisma ORM for type safety
+- **Authentication**: NextAuth.js v5 with custom role handling
+- **State Management**: React Context + useReducer for global state, React Query for server state
+- **Styling**: MUI 7.3.1 components with BetaNXT design system theme
+- **Testing Strategy**: Multi-layer testing (Unit → Integration → E2E)
 
 ## Project Structure
 
 ```
-issuer-portal/
-├── apps/
-│   ├── mock-api-server/          # Backend API with Supabase
-│   │   ├── domain-models/        # Shared data models
-│   │   ├── schemas/              # Database schemas
-│   │   └── supabase/            # Supabase configuration
-│   └── issuer-portal/           # Frontend React app
-│       ├── components/          # UI components
-│       ├── domain-models/       # Shared data models
-│       ├── hooks/              # React hooks
-│       └── utils/              # Utility functions
-└── specs/001-develop-the-issuer/ # Feature specification
-    ├── contracts/openapi.yaml  # API contracts
-    ├── data-model.md           # Domain entities
-    └── quickstart.md          # E2E validation
+src/
+├── app/                 # Next.js 14+ app directory
+│   ├── (auth)/         # Auth route group
+│   ├── (dashboard)/    # Protected dashboard routes
+│   ├── api/            # API routes
+│   ├── globals.css     # Global styles
+│   ├── layout.tsx      # Root layout
+│   └── page.tsx        # Home page
+├── components/         # Shared UI components
+│   ├── ui/            # Design system extensions
+│   ├── forms/         # Form components
+│   └── layout/        # Layout components
+├── lib/               # Core libraries
+│   ├── auth/          # Authentication library
+│   ├── events/        # Event management library
+│   ├── users/         # User management library
+│   └── database/      # Database utilities
+├── types/             # TypeScript type definitions
+├── utils/             # Utility functions
+└── middleware.ts      # Next.js middleware
 ```
 
-## Core Domain Entities
+## Core Entities
 
-**Meeting Event**: Corporate shareholder meeting with 8-phase workflow
-**Meeting Phase**: Sequential stages (Project Launch → Registered Vote Report)  
-**Task**: Action items within each phase requiring completion
-**Document**: Uploaded files (proxy statements, voting materials, reports)
-**User Profile**: Role-based access (issuer, RM, admin, producer)
-**Approval Workflow**: Document and phase approval processes
-**Voting Record**: Real-time and final voting tabulation data
+### User
 
-## Key Features
+- Authentication and role-based access
+- Fields: id, email, name, roleId, isActive, emailVerified
+- Relationships: belongs to Role, creates Events, attends Events
 
-**8-Phase Meeting Process**:
-1. Project Launch & Data Check
-2. Broker Search, Authorizations, and Proxy Card Notice  
-3. Approaching Record Date, Proxy Card Readiness
-4. Shareholder Record File delivery expectations
-5. Pre-Mail Date
-6. Post Mail Date – Pre-Vote & Tabulation Reporting
-7. Tabulation Report & Meeting Details
-8. Registered Vote Report
+### Role
 
-**Core Functionality**:
-- Document upload with drag-and-drop and agenda extraction
-- Real-time voting tabulation (<500ms updates)
-- Role-based dashboards and task management
-- Approval workflows with version control
-- Compliance audit trails and reporting
+- Permission sets and access levels
+- Fields: id, name, description, isActive
+- Default roles: Super Admin, Admin, Event Manager, User
 
-## API Architecture
+### Event
 
-**Contract-First Design**:
-- OpenAPI 3.0 specifications define all endpoints
-- mock-api-server provides temporary implementation
-- OpenAPI-fetch generates type-safe frontend clients
-- Future backends only need OpenAPI compliance
+- Core business entity for event management
+- Fields: id, title, description, startDate, endDate, location, status
+- Statuses: DRAFT, PUBLISHED, CANCELLED, COMPLETED
 
-**Key Endpoints**:
-- `/meetings` - Meeting CRUD operations
-- `/meetings/{id}/phases` - Phase management
-- `/meetings/{id}/documents` - Document handling
-- `/approvals` - Approval workflow management
-- `/meetings/{id}/votes` - Voting and tabulation
+### Permission
 
-## Authentication & Authorization
+- Granular access controls
+- Format: "resource:action" (e.g., "events:create", "users:read")
 
-**Auth0 Integration**:
-- JWT bearer token authentication
-- Role-based access control (4 user types)
-- Session management via @auth0/nextjs-auth0
+## API Design
 
-**User Roles**:
-- **Corporate Issuer**: Manages company meeting tasks
-- **Relationship Manager**: Creates events, provides support
-- **Administrator**: System oversight and operations
-- **Meeting Producer**: Virtual meeting execution
+**Base URL**: `/api`  
+**Authentication**: Bearer JWT tokens  
+**Format**: RESTful JSON API following OpenAPI 3.0 specification
 
-## Performance Requirements
+### Key Endpoints
 
-**Response Times**:
-- Vote submission: <200ms
-- Dashboard updates: <500ms  
-- Document uploads: Progress indication
-- Real-time voting: <1 second latency
+- `POST /api/auth/login` - User authentication
+- `GET /api/users` - List users (paginated)
+- `GET /api/events` - List events with filtering
+- `POST /api/events` - Create new event
+- `POST /api/events/{id}/attendees` - Register for event
 
-**Scale Targets**:
-- 500-1,000 concurrent issuers
-- 100-500 active meetings
-- 10,000 concurrent users during peak
-- 50GB-5TB storage growth projection
+## Development Guidelines
 
-## Constitutional Compliance
+### Code Style
 
-**Simplicity**: 2 projects (frontend + backend), direct framework usage
-**Architecture**: Feature libraries, shared domain models, contract-driven
-**Testing**: RED-GREEN-Refactor cycle, contract tests before implementation
-**Observability**: Structured logging, unified error reporting
-**Versioning**: Semantic versioning with build increments
+- TypeScript strict mode enabled
+- ESLint + Prettier for code formatting
+- Functional components with hooks
+- Custom hooks for business logic
+- Error boundaries for error handling
 
-## Development Workflow
+### Testing Approach
 
-**Contract-First Flow**:
-1. Define OpenAPI specifications for new endpoints
-2. Generate TypeScript types from OpenAPI specs
-3. Generate API clients using OpenAPI-fetch
-4. Write failing contract tests
-5. Implement mock-api-server endpoints
-6. Build frontend components with type-safe clients
-7. Validate with quickstart scenarios
+- **Unit Tests**: Jest + React Testing Library
+- **Integration Tests**: API route testing with test database
+- **E2E Tests**: Playwright for user journey testing
+- **TDD Workflow**: Red-Green-Refactor cycle enforced
 
-**Component Development**:
-- Use Material UI 7.x components as foundation
-- Follow BetaNXT design system patterns
-- Implement responsive design (desktop/tablet)
-- Include accessibility (aria-* attributes)
-- Use theme.vars.palette.primary.main for colors
+### Authentication Flow
+
+1. User submits credentials to `/api/auth/login`
+2. Server validates and returns JWT token
+3. Client stores token and includes in subsequent requests
+4. Middleware validates token and role permissions
+5. Protected routes check user permissions
+
+### Permission System
+
+- Permissions stored as "resource:action" strings
+- Roles have many permissions through junction table
+- Middleware checks permissions for protected routes
+- UI components conditionally render based on permissions
+
+## Design System Integration
+
+**Theme Provider**: MUI ThemeProvider with BetaNXT design system  
+**Component Pattern**: Extend MUI components with design system props  
+**Styling Approach**: CSS-in-JS with emotion for runtime theming  
+**Responsive Design**: MUI breakpoint system with mobile-first approach
+
+### Key Components
+
+- Navigation with role-based menu items
+- Forms with validation and error handling
+- Data tables with sorting and pagination
+- Modal dialogs for CRUD operations
+- Toast notifications for user feedback
 
 ## Recent Changes
 
-**2025-09-12**: Initial project setup and Phase 1 design completion
-- Generated OpenAPI contracts for all core functionality
-- Created comprehensive data model with 8 entities
-- Established contract-first development workflow
-- Set up type-safe API client generation with OpenAPI-fetch
+1. **Phase 0 Complete**: Research decisions documented
+   - Next.js 14+ app directory structure
+   - Prisma ORM for database management
+   - NextAuth.js for authentication
+2. **Phase 1 Complete**: Design artifacts generated
+   - Data model with 7 core entities
+   - OpenAPI specification with 15+ endpoints
+   - Quickstart guide with verification tests
 
-## Common Patterns
+## Next Steps (Phase 2)
 
-**API Client Usage**:
-```typescript
-import { createClient } from 'openapi-fetch'
-import type { paths } from './generated/api-types'
+- Generate detailed task breakdown in `tasks.md`
+- Implement TDD workflow for each component
+- Set up project structure and dependencies
+- Create database schema and seed data
+- Implement authentication system
+- Build core UI components with design system
 
-const client = createClient<paths>({ baseUrl: 'http://localhost:3001' })
-const { data, error } = await client.GET('/meetings')
-```
+## Constitutional Compliance
 
-**Component Structure**:
-```typescript
-import { Grid, Typography, Card } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-
-export function MeetingCard({ meeting }: { meeting: MeetingEvent }) {
-  const theme = useTheme()
-  return (
-    <Card sx={{ p: theme.spacing(2) }}>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Typography variant="h6">{meeting.companyName}</Typography>
-        </Grid>
-      </Grid>
-    </Card>
-  )
-}
-```
-
-**Error Handling**:
-```typescript
-try {
-  const { data, error } = await client.POST('/meetings', { body: meetingData })
-  if (error) {
-    // Handle API error response matching OpenAPI schema
-    console.error(error.message)
-  }
-} catch (e) {
-  // Handle network/client errors
-}
-```
+✅ **Library-First**: Auth, Events, Users as separate modules  
+✅ **CLI Interface**: Each library exposes CLI commands  
+✅ **Test-First**: TDD workflow enforced, tests before implementation  
+✅ **Simplicity**: Minimal projects (2), direct framework usage  
+✅ **Observability**: Structured logging with Winston  
+✅ **Versioning**: MAJOR.MINOR.BUILD format (1.0.0)
 
 ---
 
-*Context updated automatically - preserve manual additions between markers*
+_Last Updated_: September 12, 2025  
+_Feature Branch_: 000-new-project-setup  
+_Phase_: 1 Complete (Design artifacts generated)
