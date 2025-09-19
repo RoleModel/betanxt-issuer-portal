@@ -17,6 +17,7 @@
 
 # misc
 .DS_Store
+**/.DS_Store
 *.pem
 
 # debug
@@ -27,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.local.development
+mock-api-server/.env.development.local
+issuer-portal/.env.development.local
 
 # vercel
 .vercel
@@ -34,3 +38,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# turbo
+.turbo/

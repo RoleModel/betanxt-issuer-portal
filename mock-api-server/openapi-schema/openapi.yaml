@@ -1,0 +1,3147 @@
+openapi: 3.0.3
+info:
+  title: BetaNXT Issuer Portal API
+  description: API for the BetaNXT Issuer Portal - Proxy Voting & Shareholder Meeting Management System
+  version: 1.0.0
+  contact:
+    name: BetaNXT Support
+    email: support@betanxt.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  x-logo:
+    url: https://main--682680c71a469fb00d7bc855.chromatic.com/betanxt-logo-light.svg
+    backgroundColor: '#FFFFFF'
+    altText: 'BetaNXT Issuer Portal Logo'
+    href: https://betanxt.com
+
+servers:
+  - url: http://127.0.0.1:3001/api
+    description: Local Next.js Mock API Server (recommended)
+  - url: http://127.0.0.1:54321/rest/v1
+    description: Local Supabase PostgREST API (direct database access)
+  - url: https://api.issuer-portal.dev/api
+    description: Staging server
+  - url: https://betanxt-issuer-portal.vercel.app/api
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Note: When using Supabase PostgREST, endpoints are auto-generated based on table names.
+  # Table names use snake_case (e.g., position_votes) rather than custom RESTful paths.
+  # All Supabase endpoints support query filters, sorting, pagination, and embedding related data.
+  # See: https://postgrest.org/en/stable/api.html
+
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      operationId: loginUser
+      summary: User login
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: john.doe
+                password:
+                  type: string
+                  minLength: 8
+                  example: SecurePass123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      summary: User logout
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current user profile
+      tags: [Authentication]
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Account Management Endpoints
+  /accounts:
+    get:
+      operationId: listAccounts
+      summary: List accounts
+      tags: [Accounts]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      operationId: createAccount
+      summary: Create new account
+      tags: [Accounts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /accounts/{accountId}:
+    get:
+      operationId: getAccountById
+      summary: Get account by ID
+      tags: [Accounts]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateAccount
+      summary: Update account
+      tags: [Accounts]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      operationId: deleteAccount
+      summary: Delete account
+      tags: [Accounts]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Account deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /accounts/{accountId}/users:
+    get:
+      operationId: listAccountUsers
+      summary: List users for an account
+      tags: [Accounts, Users]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserType'
+      responses:
+        '200':
+          description: Account users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createAccountUser
+      summary: Create new user for an account
+      tags: [Accounts, Users]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Client Management Endpoints
+  /clients:
+    get:
+      operationId: listClients
+      summary: List clients
+      tags: [Clients]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: ticker
+          in: query
+          schema:
+            type: string
+          description: Filter by client ticker
+      responses:
+        '200':
+          description: Clients retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clients:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      operationId: createClient
+      summary: Create new client
+      tags: [Clients]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClientRequest'
+      responses:
+        '201':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clients/{ticker}:
+    get:
+      operationId: getClientByTicker
+      summary: Get client by ticker
+      tags: [Clients]
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The client ticker symbol
+      responses:
+        '200':
+          description: Client retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateClient
+      summary: Update client
+      tags: [Clients]
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The client ticker symbol
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientRequest'
+      responses:
+        '200':
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      operationId: deleteClient
+      summary: Delete client
+      tags: [Clients]
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The client ticker symbol
+      responses:
+        '204':
+          description: Client deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clients/{ticker}/accounts:
+    get:
+      operationId: listClientAccounts
+      summary: List accounts for a client
+      tags: [Clients, Accounts]
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The client ticker symbol
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Client accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # User Management Endpoints
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserType'
+        - name: accountId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      operationId: createUser
+      summary: Create new user
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      operationId: getUserById
+      summary: Get user by ID
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateUser
+      summary: Update user
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      operationId: deleteUser
+      summary: Delete user
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}/accounts:
+    get:
+      operationId: listUserAccounts
+      summary: Get accounts accessible by user
+      description: Returns accounts that a user has access to based on their role and relationships
+      tags: [Users, Accounts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      responses:
+        '200':
+          description: User accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  total:
+                    type: integer
+                    description: Total number of accounts
+                required:
+                  - accounts
+                  - total
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Meeting Management Endpoints
+  /meetings:
+    get:
+      operationId: listMeetings
+      summary: List meetings
+      tags: [Meetings]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/MeetingStatus'
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by client ID
+        - name: meetingYear
+          in: query
+          schema:
+            type: integer
+        - name: cusip
+          in: query
+          schema:
+            type: string
+        - name: ticker
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meetings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meetings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Meeting'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: createMeeting
+      summary: Create new meeting
+      tags: [Meetings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMeetingRequest'
+      responses:
+        '201':
+          description: Meeting created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /meetings/{meetingId}:
+    get:
+      operationId: getMeetingById
+      summary: Get meeting by ID
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meeting retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateMeeting
+      summary: Update meeting
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeetingRequest'
+      responses:
+        '200':
+          description: Meeting updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      operationId: deleteMeeting
+      summary: Delete meeting
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Meeting deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Phase Management Endpoints
+  /meetings/{meetingId}/phases:
+    get:
+      operationId: listPhases
+      summary: List phases for a meeting
+      tags: [Phases]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PhaseStatus'
+      responses:
+        '200':
+          description: Phases retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Phase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createPhase
+      summary: Create new phase
+      tags: [Phases]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePhaseRequest'
+      responses:
+        '201':
+          description: Phase created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Phase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /phases/{id}:
+    get:
+      operationId: getPhaseById
+      summary: Get phase by ID
+      tags: [Phases]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Phase retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Phase'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updatePhase
+      summary: Update phase
+      tags: [Phases]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePhaseRequest'
+      responses:
+        '200':
+          description: Phase updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Phase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Task Management Endpoints
+  /meetings/{meetingId}/tasks:
+    get:
+      operationId: listTasks
+      summary: List tasks for a meeting
+      tags: [Tasks]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: phaseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: owner
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createTask
+      summary: Create new task
+      tags: [Tasks]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /tasks/{id}:
+    get:
+      operationId: getTaskById
+      summary: Get task by ID
+      tags: [Tasks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateTask
+      summary: Update task
+      tags: [Tasks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Document Management Endpoints
+  /meetings/{meetingId}/documents:
+    get:
+      operationId: listDocuments
+      summary: List documents for a meeting
+      tags: [Documents]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DocumentStatus'
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createDocument
+      summary: Create new document
+      tags: [Documents]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentRequest'
+      responses:
+        '201':
+          description: Document created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /documents/{id}:
+    get:
+      operationId: getDocumentById
+      summary: Get document by ID
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateDocument
+      summary: Update document
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDocumentRequest'
+      responses:
+        '200':
+          description: Document updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /documents/{id}/download:
+    get:
+      operationId: downloadDocument
+      summary: Download document file
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Position Management Endpoints (Supabase PostgREST)
+  /positions:
+    get:
+      operationId: listPositions
+      summary: List positions
+      description: |
+        List positions with Supabase PostgREST filters.
+
+        Common usage:
+        - Filter by meeting: `?meetingId=eq.WEN-2024-AGM`
+        - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
+        - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
+        - Include meeting data: `?select=*,meetings(*)`
+        - Include position votes: `?select=*,position_votes(*)`
+        - Order by shares: `?order=shares.desc`
+        - Pagination: `?limit=20&offset=40`
+      tags: [Positions]
+      parameters:
+        - name: meetingId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by meeting ID (e.g., `eq.WEN-2024-AGM`)
+        - name: voteStatus
+          in: query
+          schema:
+            type: string
+          description: Filter by vote status (e.g., `eq.Voted`, `eq.Unvoted`)
+        - name: accountType
+          in: query
+          schema:
+            type: string
+          description: Filter by account type (e.g., `eq.Registered Account`)
+        - name: select
+          in: query
+          schema:
+            type: string
+          description: Specify columns to return and embed related resources
+        - name: order
+          in: query
+          schema:
+            type: string
+          description: Order results (e.g., `shares.desc`, `name.asc`)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Limit number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Number of results to skip for pagination
+      responses:
+        '200':
+          description: Positions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createPosition
+      summary: Create new position
+      tags: [Positions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePositionRequest'
+      responses:
+        '201':
+          description: Position created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Position'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /positions/{id}:
+    get:
+      operationId: getPositionById
+      summary: Get position by ID
+      tags: [Positions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Position retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Position'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updatePosition
+      summary: Update position
+      tags: [Positions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionRequest'
+      responses:
+        '200':
+          description: Position updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Position'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Proposal Management Endpoints
+  /meetings/{meetingId}/proposals:
+    get:
+      operationId: listProposals
+      summary: List proposals for a meeting
+      tags: [Proposals]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: proposalType
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Proposals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proposal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createProposal
+      summary: Create new proposal
+      tags: [Proposals]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProposalRequest'
+      responses:
+        '201':
+          description: Proposal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /proposals/{id}:
+    get:
+      operationId: getProposalById
+      summary: Get proposal by ID
+      tags: [Proposals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Proposal retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      operationId: updateProposal
+      summary: Update proposal
+      tags: [Proposals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProposalRequest'
+      responses:
+        '200':
+          description: Proposal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+
+  # Voting Endpoints (Supabase PostgREST)
+  # Note: Supabase auto-generates endpoints based on table names
+  /position_votes:
+    get:
+      operationId: getPositionVotes
+      summary: Get position votes
+      description: |
+        Get position votes using Supabase PostgREST filters.
+
+        Common usage examples:
+        - Get votes for a position: `?positionId=eq.{uuid}`
+        - Get votes for a proposal: `?proposalId=eq.{uuid}`
+        - Include related data: `?select=*,positions(*),proposals(*)`
+        - Order by date: `?order=createdAt.desc`
+
+        Supabase operators:
+        - `eq` - equals
+        - `neq` - not equals
+        - `gt` - greater than
+        - `gte` - greater than or equal
+        - `lt` - less than
+        - `lte` - less than or equal
+        - `like` - LIKE operator
+        - `ilike` - ILIKE operator
+        - `in` - one of a list of values
+        - `is` - checking for null/not null
+      tags: [Voting]
+      parameters:
+        - name: positionId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by position ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`)
+        - name: proposalId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by proposal ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`)
+        - name: vote
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vote type (e.g., `eq.FOR`, `eq.AGAINST`, `eq.ABSTAIN`)
+        - name: select
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Specify columns and embed related resources (e.g., `*,positions(name,cusip)`)
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Order results (e.g., `createdAt.desc`, `sharesVoting.asc`)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Limit number of results
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of results to skip for pagination
+      responses:
+        '200':
+          description: Position votes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PositionVote'
+          headers:
+            Content-Range:
+              description: Pagination info (e.g., `0-9/100`)
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: createPositionVote
+      summary: Create a position vote
+      description: |
+        Create a new position vote record.
+
+        Note: In Supabase PostgREST, you POST directly to the table endpoint.
+        The positionId should be included in the request body, not the URL path.
+      tags: [Voting]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CastVoteRequest'
+      responses:
+        '201':
+          description: Vote cast successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionVote'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Comments Endpoints
+  /documents/{id}/comments:
+    get:
+      operationId: getDocumentComments
+      summary: Get comments for a document
+      tags: [Comments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: addComment
+      summary: Add comment to a document
+      tags: [Comments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Notification Management Endpoints
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: List user notifications
+      tags: [Notifications]
+      parameters:
+        - name: read
+          in: query
+          description: Filter by read status
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          description: Filter by notification type
+          schema:
+            type: string
+            enum: [info, warning, error, success]
+        - name: priority
+          in: query
+          description: Filter by priority level
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /notifications/{notificationId}/mark-read:
+    patch:
+      operationId: markNotificationRead
+      summary: Mark notification as read
+      tags: [Notifications]
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    # Enums
+    UserType:
+      type: string
+      enum: [ADMIN, ISSUER, RELATIONSHIP_MANAGER]
+
+    MeetingStatus:
+      type: string
+      enum: [ACTIVE, COMPLETE, ADJOURNED]
+
+    PhaseStatus:
+      type: string
+      enum: [IN_PROGRESS, COMPLETE]
+
+    TaskStatus:
+      type: string
+      enum: [INCOMPLETE, COMPLETE, CANCELLED, NEEDS_AUTHORIZATION, AUTHORIZED]
+
+    DocumentStatus:
+      type: string
+      enum: [DRAFT, UPLOADED, IN_PROGRESS, SIGNED, AUTHORIZED, COMPLETED]
+
+    # Core Models
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        primaryContact:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+          description: The client this account belongs to
+        createdAt:
+          type: string
+          format: date-time
+        client:
+          $ref: '#/components/schemas/Client'
+          description: The client this account belongs to (relationship)
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticker:
+          type: string
+          description: Unique ticker symbol for the client
+        companyName:
+          type: string
+          description: Full legal name of the company
+        shortName:
+          type: string
+          description: Short display name for the company
+        industry:
+          type: string
+          nullable: true
+          description: Industry sector
+        description:
+          type: string
+          nullable: true
+          description: Company description
+        website:
+          type: string
+          nullable: true
+          description: Company website URL
+        primaryContact:
+          type: string
+          nullable: true
+          description: Primary contact person
+        primaryContactEmail:
+          type: string
+          format: email
+          nullable: true
+          description: Primary contact email
+        isActive:
+          type: boolean
+          default: true
+          description: Whether the client is active
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        accounts:
+          type: object
+          nullable: true
+          description: JSON array of related account information
+        meetings:
+          type: object
+          nullable: true
+          description: JSON array of related meeting information
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          nullable: true
+          description: 'Legacy password field for seed data - not used with NextAuth'
+        type:
+          $ref: '#/components/schemas/UserType'
+        accountId:
+          type: string
+          format: uuid
+          nullable: true
+        account:
+          $ref: '#/components/schemas/Account'
+
+    Meeting:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        title:
+          type: string
+          example: "2025 Annual Shareholder Meeting"
+        cusip:
+          type: string
+          example: "12345A678"
+        ticker:
+          type: string
+          example: "ACME"
+        preFilingDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-02-15"
+        filingDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-03-01"
+        brokerSearchDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-03-15"
+        recordDate:
+          type: string
+          format: date
+          example: "2025-04-01"
+        mailingDate:
+          type: string
+          format: date
+          example: "2025-04-15"
+        meetingDate:
+          type: string
+          format: date
+          example: "2025-05-15"
+        meetingType:
+          type: string
+        meetingYear:
+          type: integer
+          example: 2025
+        status:
+          $ref: '#/components/schemas/MeetingStatus'
+        currentPhase:
+          type: string
+          example: "Notice & Access"
+        overallCompletion:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 75
+        distributionType:
+          type: string
+          example: "Notice & Access"
+        transferAgent:
+          type: string
+          example: "Computershare Trust Company"
+        employeeStockPlans:
+          type: string
+          nullable: true
+        planAdministrator:
+          type: string
+          nullable: true
+        planAdministratorContact:
+          type: string
+          nullable: true
+        planAdministratorContactEmail:
+          type: string
+          format: email
+          nullable: true
+        solicitor:
+          type: string
+          nullable: true
+        solicitorEmail:
+          type: string
+          format: email
+          nullable: true
+        inspector:
+          type: string
+          nullable: true
+        documentHostingSiteLabel:
+          type: string
+          nullable: true
+          description: Label for document hosting site (e.g., "Document Hosting Site")
+        documentHostingSiteUrl:
+          type: string
+          nullable: true
+          description: URL for document hosting site (e.g., "docs.wen.com")
+        eVoteSiteLabel:
+          type: string
+          nullable: true
+          description: Label for eVote site (e.g., "eVote Site")
+        eVoteSiteUrl:
+          type: string
+          nullable: true
+          description: URL for eVote site (e.g., "vote.wen.com")
+        ivrDialInNumber:
+          type: string
+          nullable: true
+          description: IVR dial-in voting number (e.g., "1-800-555-VOTE")
+        totalSharesOutstanding:
+          type: string
+          format: int64
+        quorumRequirement:
+          type: number
+          format: decimal
+        clientId:
+          type: string
+          format: uuid
+          description: The client this meeting belongs to
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        client:
+          $ref: '#/components/schemas/Client'
+          description: The client this meeting belongs to (relationship)
+
+    Phase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "11111111-2222-3333-4444-555555555555"
+        meetingId:
+          type: string
+          format: uuid
+          x-foreign-key: meeting.id
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        name:
+          type: string
+          example: "Notice & Access"
+        orderIndex:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/PhaseStatus'
+        keyDates:
+          type: object
+          nullable: true
+          properties:
+            startDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2025-03-01"
+            endDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2025-03-31"
+            dueDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2025-03-25"
+            completionDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2025-03-20"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "22222222-3333-4444-5555-666666666666"
+        taskId:
+          type: string
+          example: "T001"
+        phaseId:
+          type: string
+          format: uuid
+          example: "11111111-2222-3333-4444-555555555555"
+        meetingId:
+          type: string
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        phaseNumber:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Prepare proxy statement"
+        description:
+          type: string
+          nullable: true
+          example: "Draft and review the preliminary proxy statement for the annual meeting"
+        type:
+          type: string
+          example: "DOCUMENT_PREPARATION"
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-03-15"
+        owner:
+          type: string
+          example: "Legal Team"
+        documentId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "33333333-4444-5555-6666-777777777777"
+        links:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          type: string
+        filePath:
+          type: string
+        fileType:
+          type: string
+        fileSize:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DocumentStatus'
+        uploadDate:
+          type: string
+          format: date-time
+          nullable: true
+        uploadedDate:
+          type: string
+          format: date-time
+          nullable: true
+        signedDate:
+          type: string
+          format: date-time
+          nullable: true
+        authorizedDate:
+          type: string
+          format: date-time
+          nullable: true
+        completedDate:
+          type: string
+          format: date-time
+          nullable: true
+        inProgressDate:
+          type: string
+          format: date-time
+          nullable: true
+        history:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        meeting:
+          $ref: '#/components/schemas/Meeting'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        signatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/Signature'
+
+    Position:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "44444444-5555-6666-7777-888888888888"
+        meetingId:
+          type: string
+          format: uuid
+          x-foreign-key: meeting.id
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        cusip:
+          type: string
+          example: "12345A678"
+        accountType:
+          type: string
+          example: "BENEFICIAL"
+        setKey:
+          type: string
+          example: "BEN001"
+        name:
+          type: string
+          example: "VANGUARD GROUP INC"
+        accountNumber:
+          type: string
+          nullable: true
+        controlNumber:
+          type: string
+          nullable: true
+        voteStatus:
+          type: string
+          enum: [Voted, Unvoted]
+        shares:
+          type: number
+          format: double
+        sharesVoted:
+          type: number
+          format: double
+        source:
+          type: string
+          nullable: true
+          enum: [WEB, PRINT, IVR]
+        dateVoted:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Proposal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+        meetingId:
+          type: string
+          format: uuid
+          x-foreign-key: meeting.id
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        proposalNumber:
+          type: number
+          format: double
+          example: 1.01
+        proposalTitle:
+          type: string
+          example: "Election of Directors"
+        proposalType:
+          type: string
+          example: "DIRECTOR_ELECTION"
+        proposalSubtype:
+          type: string
+          nullable: true
+          example: "BOARD_MEMBER"
+        directorName:
+          type: string
+          nullable: true
+          example: "John A. Smith"
+        directorTermYears:
+          type: integer
+          nullable: true
+          example: 3
+        directorClass:
+          type: string
+          nullable: true
+        termExpirationYear:
+          type: integer
+          nullable: true
+        frequencyOptions:
+          type: object
+          nullable: true
+        recommendation:
+          type: string
+        # Proposal Result Tracking
+        finalResult:
+          type: string
+          nullable: true
+          enum: ["PASSED", "FAILED", "PENDING"]
+          description: "Final result of the proposal voting"
+          example: "PASSED"
+        totalVotesFor:
+          type: integer
+          nullable: true
+          description: "Total number of votes in favor"
+          example: 150000000
+        totalVotesAgainst:
+          type: integer
+          nullable: true
+          description: "Total number of votes against"
+          example: 25000000
+        totalVotesAbstain:
+          type: integer
+          nullable: true
+          description: "Total number of abstained votes"
+          example: 5000000
+        totalSharesEligible:
+          type: integer
+          nullable: true
+          description: "Total number of shares eligible to vote"
+          example: 200000000
+        forPercentage:
+          type: number
+          format: float
+          nullable: true
+          description: "Percentage of votes in favor"
+          example: 85.7
+        againstPercentage:
+          type: number
+          format: float
+          nullable: true
+          description: "Percentage of votes against"
+          example: 12.5
+        abstainPercentage:
+          type: number
+          format: float
+          nullable: true
+          description: "Percentage of abstained votes"
+          example: 2.5
+        participationRate:
+          type: number
+          format: float
+          nullable: true
+          description: "Overall participation rate"
+          example: 90.0
+        votingCompleted:
+          type: boolean
+          default: false
+          description: "Whether voting on this proposal has been completed"
+        votingCompletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: "When voting was completed"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PositionVote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "55555555-6666-7777-8888-999999999999"
+        positionId:
+          type: string
+          format: uuid
+          x-foreign-key: position.id
+          example: "44444444-5555-6666-7777-888888888888"
+        proposalId:
+          type: string
+          format: uuid
+          x-foreign-key: proposal.id
+          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+        vote:
+          type: string
+          example: "FOR"
+        sharesVoting:
+          type: string
+          format: int64
+          example: "1000000"
+        createdAt:
+          type: string
+          format: date-time
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        documentId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        document:
+          $ref: '#/components/schemas/Document'
+        user:
+          $ref: '#/components/schemas/User'
+
+    Signature:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        pageNumber:
+          type: integer
+        xPosition:
+          type: number
+          format: float
+        yPosition:
+          type: number
+          format: float
+        width:
+          type: number
+          format: float
+        height:
+          type: number
+          format: float
+        signatureType:
+          type: string
+        required:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        document:
+          $ref: '#/components/schemas/Document'
+
+    # Request/Response Models
+    CreateAccountRequest:
+      type: object
+      required: [name, primaryContact, clientId]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        primaryContact:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+          description: The client this account belongs to
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        primaryContact:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+          description: The client this account belongs to
+
+    CreateClientRequest:
+      type: object
+      required: [ticker, companyName, shortName]
+      properties:
+        ticker:
+          type: string
+          minLength: 1
+          maxLength: 10
+          description: Unique ticker symbol for the client
+        companyName:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Full legal name of the company
+        shortName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Short display name for the company
+        industry:
+          type: string
+          maxLength: 100
+          description: Industry sector
+        description:
+          type: string
+          maxLength: 1000
+          description: Company description
+        website:
+          type: string
+          format: uri
+          description: Company website URL
+        primaryContact:
+          type: string
+          maxLength: 100
+          description: Primary contact person
+        primaryContactEmail:
+          type: string
+          format: email
+          description: Primary contact email
+        isActive:
+          type: boolean
+          default: true
+          description: Whether the client is active
+
+    UpdateClientRequest:
+      type: object
+      properties:
+        companyName:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Full legal name of the company
+        shortName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Short display name for the company
+        industry:
+          type: string
+          maxLength: 100
+          description: Industry sector
+        description:
+          type: string
+          maxLength: 1000
+          description: Company description
+        website:
+          type: string
+          format: uri
+          description: Company website URL
+        primaryContact:
+          type: string
+          maxLength: 100
+          description: Primary contact person
+        primaryContactEmail:
+          type: string
+          format: email
+          description: Primary contact email
+        isActive:
+          type: boolean
+          description: Whether the client is active
+
+    CreateUserRequest:
+      type: object
+      required: [username, firstName, lastName, email, password, type]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        type:
+          $ref: '#/components/schemas/UserType'
+        accountId:
+          type: string
+          format: uuid
+
+    CreateAccountUserRequest:
+      type: object
+      required: [username, firstName, lastName, email, password, type]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        type:
+          $ref: '#/components/schemas/UserType'
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        type:
+          $ref: '#/components/schemas/UserType'
+        accountId:
+          type: string
+          format: uuid
+
+    CreateMeetingRequest:
+      type: object
+      required:
+        [
+          id,
+          title,
+          cusip,
+          ticker,
+          recordDate,
+          mailingDate,
+          meetingDate,
+          meetingType,
+          meetingYear,
+          distributionType,
+          transferAgent,
+          totalSharesOutstanding,
+          quorumRequirement,
+          clientId,
+        ]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        cusip:
+          type: string
+        ticker:
+          type: string
+        recordDate:
+          type: string
+          format: date
+        mailingDate:
+          type: string
+          format: date
+        meetingDate:
+          type: string
+          format: date
+        meetingType:
+          type: string
+        meetingYear:
+          type: integer
+        distributionType:
+          type: string
+        transferAgent:
+          type: string
+        employeeStockPlans:
+          type: string
+        planAdministrator:
+          type: string
+        planAdministratorContact:
+          type: string
+        planAdministratorContactEmail:
+          type: string
+          format: email
+        solicitor:
+          type: string
+        solicitorEmail:
+          type: string
+          format: email
+        documentHostingSiteLabel:
+          type: string
+          description: Label for document hosting site
+        documentHostingSiteUrl:
+          type: string
+          description: URL for document hosting site
+        eVoteSiteLabel:
+          type: string
+          description: Label for eVote site
+        eVoteSiteUrl:
+          type: string
+          description: URL for eVote site
+        ivrDialInNumber:
+          type: string
+          description: IVR dial-in voting number
+        totalSharesOutstanding:
+          type: string
+          format: int64
+        quorumRequirement:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+        clientId:
+          type: string
+          format: uuid
+          description: The client this meeting belongs to
+
+    UpdateMeetingRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        recordDate:
+          type: string
+          format: date
+        mailingDate:
+          type: string
+          format: date
+        meetingDate:
+          type: string
+          format: date
+        meetingType:
+          type: string
+        status:
+          $ref: '#/components/schemas/MeetingStatus'
+        currentPhase:
+          type: string
+        overallCompletion:
+          type: integer
+          minimum: 0
+          maximum: 100
+        distributionType:
+          type: string
+        transferAgent:
+          type: string
+        employeeStockPlans:
+          type: string
+        planAdministrator:
+          type: string
+        planAdministratorContact:
+          type: string
+        planAdministratorContactEmail:
+          type: string
+          format: email
+        solicitor:
+          type: string
+        solicitorEmail:
+          type: string
+          format: email
+        documentHostingSiteLabel:
+          type: string
+          description: Label for document hosting site
+        documentHostingSiteUrl:
+          type: string
+          description: URL for document hosting site
+        eVoteSiteLabel:
+          type: string
+          description: Label for eVote site
+        eVoteSiteUrl:
+          type: string
+          description: URL for eVote site
+        ivrDialInNumber:
+          type: string
+          description: IVR dial-in voting number
+        totalSharesOutstanding:
+          type: string
+          format: int64
+        quorumRequirement:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+
+    CreatePhaseRequest:
+      type: object
+      required: [name, orderIndex]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        orderIndex:
+          type: integer
+          minimum: 1
+        keyDates:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+            dueDate:
+              type: string
+              format: date
+
+    UpdatePhaseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        orderIndex:
+          type: integer
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/PhaseStatus'
+        keyDates:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+            dueDate:
+              type: string
+              format: date
+            completionDate:
+              type: string
+              format: date
+
+    CreateTaskRequest:
+      type: object
+      required: [taskId, phaseId, phaseNumber, title, type, owner]
+      properties:
+        taskId:
+          type: string
+        phaseId:
+          type: string
+          format: uuid
+        phaseNumber:
+          type: integer
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+        type:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        owner:
+          type: string
+        documentId:
+          type: string
+          format: uuid
+        links:
+          type: object
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+        type:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        phaseNumber:
+          type: integer
+          minimum: 1
+          maximum: 8
+        dueDate:
+          type: string
+          format: date
+        owner:
+          type: string
+        documentId:
+          type: string
+          format: uuid
+        links:
+          type: object
+
+    CreateDocumentRequest:
+      type: object
+      required: [title, type, file]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+        type:
+          type: string
+        taskId:
+          type: string
+          format: uuid
+        file:
+          type: string
+          format: binary
+
+    UpdateDocumentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/DocumentStatus'
+
+    CreatePositionRequest:
+      type: object
+      required: [meetingId, cusip, accountType, setKey, name, voteStatus, shares]
+      properties:
+        meetingId:
+          type: string
+        cusip:
+          type: string
+        accountType:
+          type: string
+        setKey:
+          type: string
+        name:
+          type: string
+        accountNumber:
+          type: string
+          nullable: true
+        controlNumber:
+          type: string
+          nullable: true
+        voteStatus:
+          type: string
+          enum: [Voted, Unvoted]
+        shares:
+          type: number
+          format: double
+        sharesVoted:
+          type: number
+          format: double
+          default: 0
+        source:
+          type: string
+          nullable: true
+          enum: [WEB, PRINT, IVR]
+        dateVoted:
+          type: string
+          nullable: true
+
+    UpdatePositionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        accountNumber:
+          type: string
+          nullable: true
+        controlNumber:
+          type: string
+          nullable: true
+        voteStatus:
+          type: string
+          enum: [Voted, Unvoted]
+        shares:
+          type: number
+          format: double
+        sharesVoted:
+          type: number
+          format: double
+        source:
+          type: string
+          nullable: true
+          enum: [WEB, PRINT, IVR]
+        dateVoted:
+          type: string
+          nullable: true
+
+    CreateProposalRequest:
+      type: object
+      required: [proposalNumber, proposalTitle, proposalType, recommendation]
+      properties:
+        proposalNumber:
+          type: number
+          format: double
+          minimum: 1
+        proposalTitle:
+          type: string
+          minLength: 5
+          maxLength: 500
+        proposalType:
+          type: string
+        proposalSubtype:
+          type: string
+          nullable: true
+        directorName:
+          type: string
+        directorTermYears:
+          type: integer
+          minimum: 1
+        directorClass:
+          type: string
+        termExpirationYear:
+          type: integer
+        frequencyOptions:
+          type: object
+        recommendation:
+          type: string
+
+    UpdateProposalRequest:
+      type: object
+      properties:
+        proposalTitle:
+          type: string
+          minLength: 5
+          maxLength: 500
+        proposalType:
+          type: string
+        proposalSubtype:
+          type: string
+          nullable: true
+        directorName:
+          type: string
+        directorTermYears:
+          type: integer
+          minimum: 1
+        directorClass:
+          type: string
+        termExpirationYear:
+          type: integer
+        frequencyOptions:
+          type: object
+        recommendation:
+          type: string
+
+    CastVoteRequest:
+      type: object
+      required: [proposalId, vote, sharesVoting]
+      properties:
+        proposalId:
+          type: string
+          format: uuid
+        vote:
+          type: string
+          enum: [FOR, AGAINST, ABSTAIN, WITHHOLD]
+        sharesVoting:
+          type: string
+          format: int64
+
+    CreateCommentRequest:
+      type: object
+      required: [comment]
+      properties:
+        comment:
+          type: string
+          minLength: 1
+          maxLength: 2000
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum: [info, warning, error, success]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        read:
+          type: boolean
+          default: false
+        userId:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+          format: uuid
+          nullable: true
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        actionUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
