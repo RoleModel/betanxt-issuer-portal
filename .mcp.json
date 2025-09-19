@@ -1,13 +1,5 @@
 {
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "supabase-access-token",
-      "description": "Supabase personal access token",
-      "password": true
-    }
-  ],
-  "servers": {
+  "mcpServers": {
     "supabase": {
       "command": "npx",
       "args": [
@@ -20,17 +12,14 @@
         "SUPABASE_ACCESS_TOKEN": "${input:supabase-access-token}"
       }
     },
-    "Figma Dev Mode MCP": {
-      "type": "http",
-      "url": "http://127.0.0.1:3845/mcp"
-    },
     "mui-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "@mui/mcp@latest"
-      ]
+      "args": ["-y", "@mui/mcp@latest"]
+    },
+    "figma-dev-mode-mcp-server": {
+      "type": "http",
+      "url": "http://127.0.0.1:3845/mcp"
     }
   }
 }

@@ -2,3 +2,7 @@ node_modules
 .turbo/
 .next/
 .env.local.development
+mock-api-server/.env.development.local
+issuer-portal/.env.development.local
+.DS_Store
+**/.DS_Store

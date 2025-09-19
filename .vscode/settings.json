@@ -1,8 +1,12 @@
 {
-  "npm.packageManager": "npm",
-  "typescript.preferences.includePackageJsonAutoImports": "on",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "files.eol": "\n"
+  "files.eol": "\n",
+  "npm.packageManager": "npm",
+  "npm.scriptsSidebar.enable": true,
+  "npm.runScripts": true,
+  "npm.script.runType": "npm",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "task.autoDetect": "npm"
 }

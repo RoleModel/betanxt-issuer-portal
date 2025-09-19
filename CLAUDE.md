@@ -1,181 +1,215 @@
-# Issuer Portal - Claude Code Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-**Project**: Issuer Portal - Event Management System  
-**Architecture**: Next.js 14+ Full-Stack Web Application  
-**Language**: TypeScript 5.x with React 18+  
-**Database**: PostgreSQL with Prisma ORM  
-**Authentication**: NextAuth.js with role-based access control  
-**UI Framework**: MUI 7.3.1 with @rolemodel/betanxt-design-system  
-**Testing**: Jest, React Testing Library, Playwright E2E
+**Project**: BetaNXT Issuer Portal - Proxy Voting & Shareholder Meeting Management System
+**Architecture**: Turborepo monorepo with Next.js 15+ applications
+**Language**: TypeScript 5.x with React 18+
+**Database**: PostgreSQL with Supabase (local development)
+**Authentication**: NextAuth.js v4 with role-based access control
+**UI Framework**: MUI 7.3+ with @rolemodel/betanxt-design-system
+**Testing**: Playwright for E2E testing
 
-## Current Feature: New Project Setup (000-new-project-setup)
+## Monorepo Structure
 
-**Status**: Phase 1 Complete - Design artifacts generated  
-**Branch**: `000-new-project-setup`  
-**Spec**: `/specs/000-new-project-setup/spec.md`
+This is a Turborepo workspace with two main applications:
 
-### Key Requirements
+- **issuer-portal/**: Next.js 15 frontend application (port 3000)
+- **mock-api-server/**: Next.js 15 backend API server (port 3001)
+- **supabase/**: Database schema, migrations, and seed data
 
-- Foundational project structure supporting modular development
-- Role-based authentication with multiple user types
-- Event management CRUD functionality
-- BetaNXT design system integration
-- Responsive design for all device sizes
-- Test-first development approach
+## Common Commands
 
-### Architecture Decisions
+### Development
+- `npm run dev` - Start both applications in development mode
+- `npm run build` - Build both applications
+- `npm run lint` - Lint all workspaces
+- `npm run type-check` - Type check all workspaces
+- `npm run test` - Run Playwright tests across workspaces
+- `npm run format` - Format code with Prettier
 
-- **Framework**: Next.js 14+ app directory structure
-- **Database**: PostgreSQL with Prisma ORM for type safety
-- **Authentication**: NextAuth.js v5 with custom role handling
-- **State Management**: React Context + useReducer for global state, React Query for server state
-- **Styling**: MUI 7.3.1 components with BetaNXT design system theme
-- **Testing Strategy**: Multi-layer testing (Unit → Integration → E2E)
+### Database Operations (from mock-api-server/)
+- `npm run supabase:start` - Start local Supabase instance
+- `npm run supabase:stop` - Stop local Supabase instance
+- `npm run supabase:reset` - Reset database with fresh schema and seed data
+- `npm run generate:seeds` - Generate fresh seed data from TypeScript
+- `npm run generate:db-types` - Generate TypeScript types from database schema
+- `npm run full-reset` - Complete reset: schema → seeds → database → types
 
-## Project Structure
+### Schema-Driven Development Workflow
 
+**IMPORTANT**: Always follow this flow when making API changes:
+
+1. **Update OpenAPI spec**: Edit `mock-api-server/openapi-schema/openapi.yaml`
+2. **Generate database schema**: `npm run generate:postgres-schema` (creates SQL migrations)
+3. **Generate seed data**: `npm run generate:seeds` (creates seed.sql)
+4. **Reset database**: `supabase db reset` (applies migrations and seeds)
+5. **Generate types**: `npm run generate:db-types` && `npm run generate:api-types`
+
+### Testing
+- `npm run test` - Run all Playwright tests
+- `npm run test:ui` - Run tests with Playwright UI
+- `npm run test:unit` - Unit tests only
+- `npm run test:integration` - Integration tests only
+- `npm run test:e2e` - End-to-end tests only
+
+## Architecture
+
+### Frontend (issuer-portal/)
+- **Framework**: Next.js 15 with app directory structure
+- **State Management**: React Context + TanStack React Query v4
+- **Authentication**: NextAuth.js v4 with custom role handling
+- **UI Components**: MUI 7.3+ with BetaNXT design system
+- **Forms**: React Hook Form with Zod validation
+- **PDF Handling**: react-pdf for document viewing
+- **Document Signing**: @docuseal integration
+
+### Backend (mock-api-server/)
+- **Framework**: Next.js 15 API routes (serverless functions)
+- **Database**: Supabase PostgreSQL with auto-generated REST API
+- **Schema**: OpenAPI 3.0 specification drives database schema generation
+- **Type Safety**: Full TypeScript types generated from OpenAPI spec
+- **Seeding**: Snaplet/Copycat for realistic test data generation
+
+### Database Design
+- **Core Entities**: User, Client, Account, Meeting, Proposal, Position, Task
+- **Voting System**: Position-based voting with share calculations
+- **Document Management**: Document signatures and status tracking
+- **Notifications**: System notifications for users
+- **Audit Trail**: Comprehensive tracking of all actions
+
+## Path Aliases (issuer-portal/)
+
+```typescript
+"@/*": ["./*"]
+"@/components/*": ["./components/*"]
+"@/utils/*": ["./utils/*"]
+"@/types/*": ["./types/*"]
+"@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
+"@/theme/*": ["./components/mui-styling/theme/*"]
 ```
-src/
-├── app/                 # Next.js 14+ app directory
-│   ├── (auth)/         # Auth route group
-│   ├── (dashboard)/    # Protected dashboard routes
-│   ├── api/            # API routes
-│   ├── globals.css     # Global styles
-│   ├── layout.tsx      # Root layout
-│   └── page.tsx        # Home page
-├── components/         # Shared UI components
-│   ├── ui/            # Design system extensions
-│   ├── forms/         # Form components
-│   └── layout/        # Layout components
-├── lib/               # Core libraries
-│   ├── auth/          # Authentication library
-│   ├── events/        # Event management library
-│   ├── users/         # User management library
-│   └── database/      # Database utilities
-├── types/             # TypeScript type definitions
-├── utils/             # Utility functions
-└── middleware.ts      # Next.js middleware
-```
 
-## Core Entities
+## Code Style Guidelines
 
-### User
+### TypeScript
+- Strict mode enabled in both workspaces
+- Prefer interfaces over types
+- Avoid `any` type assertions
+- Use functional components with hooks
+- No implicit returns in functions
 
-- Authentication and role-based access
-- Fields: id, email, name, roleId, isActive, emailVerified
-- Relationships: belongs to Role, creates Events, attends Events
-
-### Role
-
-- Permission sets and access levels
-- Fields: id, name, description, isActive
-- Default roles: Super Admin, Admin, Event Manager, User
-
-### Event
-
-- Core business entity for event management
-- Fields: id, title, description, startDate, endDate, location, status
-- Statuses: DRAFT, PUBLISHED, CANCELLED, COMPLETED
-
-### Permission
-
-- Granular access controls
-- Format: "resource:action" (e.g., "events:create", "users:read")
-
-## API Design
-
-**Base URL**: `/api`  
-**Authentication**: Bearer JWT tokens  
-**Format**: RESTful JSON API following OpenAPI 3.0 specification
-
-### Key Endpoints
-
-- `POST /api/auth/login` - User authentication
-- `GET /api/users` - List users (paginated)
-- `GET /api/events` - List events with filtering
-- `POST /api/events` - Create new event
-- `POST /api/events/{id}/attendees` - Register for event
-
-## Development Guidelines
-
-### Code Style
-
-- TypeScript strict mode enabled
-- ESLint + Prettier for code formatting
-- Functional components with hooks
+### React Patterns
+- Functional components only
 - Custom hooks for business logic
 - Error boundaries for error handling
+- Minimize useState/useEffect usage
+- Use TanStack Query for server state
 
-### Testing Approach
+### MUI & Design System
+- Use `sx` prop for component styling
+- Don't use Typography inside TableCells
+- Extend MUI components with design system props
+- Implement responsive design with useMediaQuery
+- Support dark mode with useTheme
 
-- **Unit Tests**: Jest + React Testing Library
-- **Integration Tests**: API route testing with test database
-- **E2E Tests**: Playwright for user journey testing
-- **TDD Workflow**: Red-Green-Refactor cycle enforced
+### Import Organization (Prettier)
+```typescript
+// Third-party modules
+import React from 'react'
+// MUI imports
+import { Button } from '@mui/material'
+// Design system imports
+import { Component } from '@rolemodel/betanxt-design-system'
+// Local component imports
+import { Header } from '@/components/Header'
+// Domain model imports
+import { User } from '@/domain-models/User'
+// Relative imports
+import './styles.css'
+```
+
+## Development Constraints
+
+### Important Rules
+- **Don't start servers**: User will start development servers manually
+- **Don't use console.logs**: Unless specifically requested
+- **Optional chaining doesn't work in Figma**: Avoid `?.` in Figma plugin code
+- **Schema-first development**: Always update OpenAPI spec before database changes
+
+### Database Schema Updates
+1. Never manually edit migration files
+2. Always update OpenAPI spec first
+3. Use `generate:postgres-schema` to create migrations
+4. Test with fresh database reset before committing
 
 ### Authentication Flow
+- NextAuth.js handles session management
+- Role-based permissions control UI rendering
+- API routes validate tokens via middleware
+- Users can switch between client contexts
 
-1. User submits credentials to `/api/auth/login`
-2. Server validates and returns JWT token
-3. Client stores token and includes in subsequent requests
-4. Middleware validates token and role permissions
-5. Protected routes check user permissions
+## Key Dependencies
 
-### Permission System
+### Frontend
+- **Next.js 15.5+**: React framework with app directory
+- **MUI 7.3+**: Component library with emotion styling
+- **TanStack Query v4**: Server state management
+- **React Hook Form**: Form handling with Zod validation
+- **NextAuth.js v4**: Authentication and session management
 
-- Permissions stored as "resource:action" strings
-- Roles have many permissions through junction table
-- Middleware checks permissions for protected routes
-- UI components conditionally render based on permissions
+### Backend
+- **Supabase**: PostgreSQL database with auto-generated REST API
+- **OpenAPI Generator**: Schema-driven development
+- **Snaplet**: Realistic test data generation
+- **Playwright**: End-to-end testing framework
 
-## Design System Integration
+## Local Development Setup
 
-**Theme Provider**: MUI ThemeProvider with BetaNXT design system  
-**Component Pattern**: Extend MUI components with design system props  
-**Styling Approach**: CSS-in-JS with emotion for runtime theming  
-**Responsive Design**: MUI breakpoint system with mobile-first approach
+1. **Install dependencies**: `npm install` (from root)
+2. **Start Supabase**: `cd mock-api-server && npm run supabase:start`
+3. **Set up database**: `npm run full-reset` (from mock-api-server/)
+4. **Start applications**: `npm run dev` (from root)
 
-### Key Components
+### Ports
+- Frontend (issuer-portal): http://localhost:3000
+- Backend (mock-api-server): http://localhost:3001
+- Supabase Studio: http://localhost:54323
+- Supabase API: http://localhost:54321
+- Database: postgresql://postgres:postgres@localhost:54322/postgres
 
-- Navigation with role-based menu items
-- Forms with validation and error handling
-- Data tables with sorting and pagination
-- Modal dialogs for CRUD operations
-- Toast notifications for user feedback
+## Testing Strategy
 
-## Recent Changes
+### Playwright Configuration
+- **Unit tests**: Fast, isolated component testing
+- **Integration tests**: API endpoint and database interaction testing
+- **E2E tests**: Full user journey testing across both applications
+- **UI mode**: Visual test runner for debugging
 
-1. **Phase 0 Complete**: Research decisions documented
-   - Next.js 14+ app directory structure
-   - Prisma ORM for database management
-   - NextAuth.js for authentication
-2. **Phase 1 Complete**: Design artifacts generated
-   - Data model with 7 core entities
-   - OpenAPI specification with 15+ endpoints
-   - Quickstart guide with verification tests
+### Test Organization
+- Keep tests close to source code
+- Use page object model for E2E tests
+- Mock external services in integration tests
+- Seed database with consistent test data
 
-## Next Steps (Phase 2)
+## Key Business Logic
 
-- Generate detailed task breakdown in `tasks.md`
-- Implement TDD workflow for each component
-- Set up project structure and dependencies
-- Create database schema and seed data
-- Implement authentication system
-- Build core UI components with design system
+### Proxy Voting System
+- **Clients**: Public companies with shareholder meetings
+- **Accounts**: Institutional investors with multiple positions
+- **Positions**: Shareholdings in specific clients (with vote counts)
+- **Meetings**: Shareholder meetings with proposals to vote on
+- **Votes**: Position-based voting decisions (For/Against/Abstain)
 
-## Constitutional Compliance
-
-✅ **Library-First**: Auth, Events, Users as separate modules  
-✅ **CLI Interface**: Each library exposes CLI commands  
-✅ **Test-First**: TDD workflow enforced, tests before implementation  
-✅ **Simplicity**: Minimal projects (2), direct framework usage  
-✅ **Observability**: Structured logging with Winston  
-✅ **Versioning**: MAJOR.MINOR.BUILD format (1.0.0)
+### Document Workflow
+- **Document Upload**: PDF documents for signature
+- **Signature Collection**: Multiple signers per document
+- **Status Tracking**: Draft → Pending → Completed workflow
+- **Audit Trail**: Full history of document interactions
 
 ---
 
-_Last Updated_: September 12, 2025  
-_Feature Branch_: 000-new-project-setup  
-_Phase_: 1 Complete (Design artifacts generated)
+**Node Version**: 22.15.x (enforced via engines)
+**Package Manager**: npm 10.9.3
+**Last Updated**: September 16, 2025

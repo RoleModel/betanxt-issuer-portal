@@ -1,27 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "globalDependencies": ["**/.env.*local"],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "build:test": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
@@ -30,30 +17,25 @@
     "start": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     },
     "start:test": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "build:test"
-      ]
+      "dependsOn": ["build:test"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
     },
     "test:e2e": {},
     "test:unit": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "docker:build": {
       "cache": false
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {},
     "clean": {
