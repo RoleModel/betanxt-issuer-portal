@@ -149,7 +149,6 @@ docs/                 # Library documentation
 ## Phase 0: Outline & Research
 
 1. **Extract unknowns from Technical Context** above:
-
    - Research Next.js 14+ best practices for full-stack applications
    - Investigate @rolemodel/betanxt-design-system integration patterns
    - Research role-based authentication implementation with NextAuth.js
@@ -178,7 +177,6 @@ docs/                 # Library documentation
 _Prerequisites: research.md complete_
 
 1. **Extract entities from feature spec** → `data-model.md`:
-
    - User: id, email, name, role, createdAt, updatedAt
    - Role: id, name, permissions, description
    - Event: id, title, description, startDate, endDate, createdBy, attendees
@@ -186,7 +184,6 @@ _Prerequisites: research.md complete_
    - Permission: id, name, resource, action
 
 2. **Generate API contracts** from functional requirements:
-
    - Authentication endpoints: POST /api/auth/login, POST /api/auth/logout
    - User management: GET/POST/PUT/DELETE /api/users
    - Event management: GET/POST/PUT/DELETE /api/events
@@ -194,13 +191,11 @@ _Prerequisites: research.md complete_
    - Output OpenAPI schema to `/contracts/`
 
 3. **Generate contract tests** from contracts:
-
    - One test file per endpoint group
    - Assert request/response schemas
    - Tests must fail (no implementation yet)
 
 4. **Extract test scenarios** from user stories:
-
    - Project initialization → quickstart test
    - Role-based access → integration test scenarios
    - Event management → user story validation

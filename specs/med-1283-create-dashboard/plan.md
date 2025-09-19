@@ -1,7 +1,7 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Create Supabase Seed Data and Docker Files
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-create-supabase-seed` | **Date**: 2024-09-13 | **Spec**: [spec.md](/Users/dallas/Development/betanxt-issuer-portal/specs/001-create-supabase-seed/spec.md)
+**Input**: Feature specification from `/specs/001-create-supabase-seed/spec.md`
 
 ## Execution Flow (/plan command scope)
 
@@ -32,19 +32,19 @@
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Create comprehensive seed data for the Issuer Portal to demonstrate the complete shareholder meeting lifecycle across 4 companies (Wendy's, Paycom, Woodward, Enliven Therapeutics) in different phases. Generate realistic meeting data, position/voting data based on historical Wendy's patterns, document workflows, task completion patterns, and user activity logs. Include Docker configuration for easy database setup and seeding.
 
 ## Technical Context
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript with Node.js 18+  
+**Primary Dependencies**: Prisma ORM, PostgreSQL, Docker, CSV parsing libraries  
+**Storage**: PostgreSQL database with Prisma schema  
+**Testing**: Playwright for integration tests  
+**Target Platform**: Development environment (Docker containers)
+**Project Type**: web (existing Next.js frontend + Express backend)  
+**Performance Goals**: Seed data generation within 30 seconds, support for 100k+ position records  
+**Constraints**: Must match existing Prisma schema exactly, realistic data patterns from historical Wendy's data  
+**Scale/Scope**: 5 accounts, 4 companies, ~20 meetings across different phases, 10k+ position records, document workflows
 
 ## Constitution Check
 
@@ -52,38 +52,38 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 **Simplicity**:
 
-- Projects: [#] (max 3 - e.g., api, cli, tests)
-- Using framework directly? (no wrapper classes)
-- Single data model? (no DTOs unless serialization differs)
-- Avoiding patterns? (no Repository/UoW without proven need)
+- Projects: 2 (seed-data library + docker setup)
+- Using framework directly? YES (Prisma ORM directly, no wrappers)
+- Single data model? YES (Prisma schema as single source of truth)
+- Avoiding patterns? YES (direct database operations, no repository pattern)
 
 **Architecture**:
 
-- EVERY feature as library? (no direct app code)
-- Libraries listed: [name + purpose for each]
-- CLI per library: [commands with --help/--version/--format]
-- Library docs: llms.txt format planned?
+- EVERY feature as library? YES (seed-data as standalone library)
+- Libraries listed: seed-data-generator (CSV parsing + database seeding)
+- CLI per library: seed-data --help/--version/--format=json
+- Library docs: llms.txt format planned? YES
 
 **Testing (NON-NEGOTIABLE)**:
 
-- RED-GREEN-Refactor cycle enforced? (test MUST fail first)
-- Git commits show tests before implementation?
-- Order: Contract→Integration→E2E→Unit strictly followed?
-- Real dependencies used? (actual DBs, not mocks)
-- Integration tests for: new libraries, contract changes, shared schemas?
+- RED-GREEN-Refactor cycle enforced? YES (tests for data validation first)
+- Git commits show tests before implementation? YES
+- Order: Contract→Integration→E2E→Unit strictly followed? YES
+- Real dependencies used? YES (actual PostgreSQL database)
+- Integration tests for: schema validation, seed data integrity, API compatibility
 - FORBIDDEN: Implementation before test, skipping RED phase
 
 **Observability**:
 
-- Structured logging included?
-- Frontend logs → backend? (unified stream)
-- Error context sufficient?
+- Structured logging included? YES (seed progress, data validation results)
+- Frontend logs → backend? N/A (seed data generation only)
+- Error context sufficient? YES (CSV parsing errors, constraint violations)
 
 **Versioning**:
 
-- Version number assigned? (MAJOR.MINOR.BUILD)
-- BUILD increments on every change?
-- Breaking changes handled? (parallel tests, migration plan)
+- Version number assigned? 1.0.0 (initial seed data implementation)
+- BUILD increments on every change? YES
+- Breaking changes handled? YES (schema compatibility tests)
 
 ## Project Structure
 
@@ -137,7 +137,7 @@ ios/ or android/
 └── [platform-specific structure]
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: Option 2 (Web application) - existing Next.js frontend + Express backend structure
 
 ## Phase 0: Outline & Research
 
@@ -160,7 +160,7 @@ ios/ or android/
    - Rationale: [why chosen]
    - Alternatives considered: [what else evaluated]
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Output**: ✅ research.md completed - all technology decisions and patterns documented
 
 ## Phase 1: Design & Contracts
 
@@ -193,7 +193,7 @@ _Prerequisites: research.md complete_
    - Keep under 150 lines for token efficiency
    - Output to repository root
 
-**Output**: data-model.md, /contracts/\*, failing tests, quickstart.md, agent-specific file
+**Output**: ✅ data-model.md, ✅ /contracts/seed-data-api.yaml, ✅ quickstart.md completed
 
 ## Phase 2: Task Planning Approach
 
@@ -214,7 +214,13 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Dependency order: Models before services before UI
 - Mark [P] for parallel execution (independent files)
 
-**Estimated Output**: 25-30 numbered, ordered tasks in tasks.md
+**Estimated Output**: 20-25 numbered, ordered tasks in tasks.md focusing on:
+
+- Docker setup and database configuration (3-4 tasks)
+- Seed data library creation (5-6 tasks)
+- CSV data parsing and processing (4-5 tasks)
+- Data generation and validation (6-8 tasks)
+- Integration testing and documentation (2-3 tasks)
 
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
@@ -241,19 +247,19 @@ _This checklist is updated during execution flow_
 
 **Phase Status**:
 
-- [ ] Phase 0: Research complete (/plan command)
-- [ ] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
+- [x] Phase 0: Research complete (/plan command)
+- [x] Phase 1: Design complete (/plan command)
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
 - [ ] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
 
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
-- [ ] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+- [x] Initial Constitution Check: PASS
+- [x] Post-Design Constitution Check: PASS
+- [x] All NEEDS CLARIFICATION resolved
+- [ ] Complexity deviations documented (none required)
 
 ---
 

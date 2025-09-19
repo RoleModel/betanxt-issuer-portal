@@ -26,7 +26,6 @@ cp .env.example .env.local.development
 ### 2. Supabase Project Setup
 
 1. **Create Supabase Project**:
-
    - Go to [supabase.com](https://supabase.com) and create a new project
    - Note your project URL and API keys from the project settings
    - Copy the database URL from the database settings

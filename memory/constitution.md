@@ -26,7 +26,6 @@ III. Test-Driven Quality Assurance
 
 [PRINCIPLE_3_DESCRIPTION]
 
-Component Tests: Cypress for isolated component testing
 E2E Tests: Playwright for full user journey testing
 Different strategies per application: Each app's complexity determines testing approach
 CI Integration: All tests run automatically on PR creation with parallel execution

@@ -4,7 +4,6 @@ Given the Figma link provided as an argument, do this:
 
 1. Take the provided url and use FigmaMCP to extract any components
 2. Read and analyze the file to understand:
-
    - MUI Components
    - Layout and Varaibles
    - Use Mui MCP to understand Mui Implementation details and best practices
@@ -35,7 +34,6 @@ function ChartLegendTableSkeleton() {
 5. Execute the screen and create new components in `/isser-portal/components/{screen-name}/`
 
 6. Verify execution completed:
-
    - Check Progress Tracking shows all phases complete
    - Ensure all required screens and components are generated
    - Confirm no ERROR states in execution
