@@ -1,144 +1,217 @@
 /**
- * Example usage of the API client
- * This file demonstrates how to use the type-safe API client
+ * Example usage of the new openapi-fetch API client
+ * This file demonstrates how to use the type-safe openapi-fetch client
  */
+import { apiClient } from '@/domain-models/apiClient'
 
-import { auth, users, events, roles, apiClient } from './api-client';
-
-// Example: Authentication flow
+// Example: Authentication flow using openapi-fetch
 export const exampleAuthFlow = async () => {
   try {
     // Login
-    const loginResult = await auth.login('user@example.com', 'password123');
-    if (loginResult.error) {
-      console.error('Login failed:', loginResult.error);
-      return;
+    const { data: loginData, error: loginError } = await apiClient.POST('/auth/login', {
+      body: {
+        username: 'john.doe',
+        password: 'password123'
+      }
+    })
+
+    if (loginError) {
+      console.error('Login failed:', loginError)
+      return
     }
 
-    console.log('Login successful:', loginResult.data?.user);
+    console.log('Login successful:', loginData?.user)
 
     // Get current user
-    const currentUser = await auth.getCurrentUser();
-    if (currentUser.data) {
-      console.log('Current user:', currentUser.data);
+    const { data: currentUser, error: userError } = await apiClient.GET('/auth/me')
+    if (userError) {
+      console.error('Failed to get current user:', userError)
+      return
     }
 
-    // Logout
-    await auth.logout();
-    console.log('Logged out successfully');
-  } catch (error) {
-    console.error('Auth flow error:', error);
-  }
-};
+    console.log('Current user:', currentUser)
 
-// Example: User management
+    // Logout
+    const { error: logoutError } = await apiClient.POST('/auth/logout')
+    if (logoutError) {
+      console.error('Logout failed:', logoutError)
+      return
+    }
+
+    console.log('Logged out successfully')
+  } catch (error) {
+    console.error('Auth flow error:', error)
+  }
+}
+
+// Example: User management using openapi-fetch
 export const exampleUserManagement = async () => {
   try {
     // List users with pagination
-    const usersResult = await users.list({
-      page: 1,
-      limit: 10,
-      role: 'admin',
-    });
+    const { data: usersData, error: usersError } = await apiClient.GET('/users', {
+      params: {
+        query: {
+          page: 1,
+          limit: 10
+        }
+      }
+    })
 
-    if (usersResult.data) {
-      console.log('Users:', usersResult.data.users);
-      console.log('Pagination:', usersResult.data.pagination);
+    if (usersError) {
+      console.error('Failed to list users:', usersError)
+      return
     }
+
+    console.log('Users:', usersData?.users)
+    console.log('Pagination:', usersData?.pagination)
 
     // Create a new user
-    const newUserResult = await users.create({
-      email: 'newuser@example.com',
-      name: 'New User',
-      password: 'securepassword',
-      roleId: 'role-uuid-here',
-    });
+    const { data: newUser, error: createError } = await apiClient.POST('/users', {
+      body: {
+        username: 'newuser',
+        firstName: 'New',
+        lastName: 'User',
+        email: 'newuser@example.com',
+        password: 'securepassword',
+        type: 'ISSUER',
+        accountId: 'account-uuid-here'
+      }
+    })
 
-    if (newUserResult.data) {
-      console.log('Created user:', newUserResult.data);
+    if (createError) {
+      console.error('Failed to create user:', createError)
+      return
+    }
 
+    console.log('Created user:', newUser)
+
+    if (newUser?.id) {
       // Update the user
-      const updateResult = await users.update(newUserResult.data.id, {
-        name: 'Updated Name',
-        isActive: true,
-      });
+      const { data: updatedUser, error: updateError } = await apiClient.PUT('/users/{id}', {
+        params: {
+          path: { id: newUser.id }
+        },
+        body: {
+          firstName: 'Updated',
+          lastName: 'Name'
+        }
+      })
 
-      if (updateResult.data) {
-        console.log('Updated user:', updateResult.data);
+      if (updateError) {
+        console.error('Failed to update user:', updateError)
+        return
       }
+
+      console.log('Updated user:', updatedUser)
     }
   } catch (error) {
-    console.error('User management error:', error);
+    console.error('User management error:', error)
   }
-};
+}
 
-// Example: Event management
-export const exampleEventManagement = async () => {
+// Example: Meeting management using openapi-fetch
+export const exampleMeetingManagement = async () => {
   try {
-    // List events with filters
-    const eventsResult = await events.list({
-      page: 1,
-      limit: 20,
-      status: 'ACTIVE',
-      startDate: '2024-01-01T00:00:00Z',
-      endDate: '2024-12-31T23:59:59Z',
-    });
-
-    if (eventsResult.data) {
-      console.log('Events:', eventsResult.data.events);
-    }
-
-    // Create a new event
-    const newEventResult = await events.create({
-      title: 'Annual Shareholder Meeting',
-      description: 'Important annual meeting for all shareholders',
-      startDate: '2024-06-15T10:00:00Z',
-      endDate: '2024-06-15T16:00:00Z',
-      location: 'Corporate Headquarters',
-      maxAttendees: 500,
-      isPublic: false,
-    });
-
-    if (newEventResult.data) {
-      console.log('Created event:', newEventResult.data);
-
-      // Update event status
-      const updateResult = await events.update(newEventResult.data.id, {
-        status: 'ACTIVE',
-      });
-
-      if (updateResult.data) {
-        console.log('Updated event:', updateResult.data);
+    // List meetings with filters
+    const { data: meetingsData, error: meetingsError } = await apiClient.GET('/meetings', {
+      params: {
+        query: {
+          page: 1,
+          limit: 20,
+          status: 'ACTIVE',
+          clientId: 'client-uuid-here',
+          meetingYear: 2024
+        }
       }
+    })
+
+    if (meetingsError) {
+      console.error('Failed to list meetings:', meetingsError)
+      return
+    }
+
+    console.log('Meetings:', meetingsData?.meetings)
+
+    // Create a new meeting
+    const { data: newMeeting, error: createError } = await apiClient.POST('/meetings', {
+      body: {
+        id: 'meeting-2024-001',
+        title: 'Annual Shareholder Meeting 2024',
+        cusip: '12345678',
+        ticker: 'ACME',
+        recordDate: '2024-05-01',
+        mailingDate: '2024-05-15',
+        meetingDate: '2024-06-15',
+        meetingType: 'Annual',
+        meetingYear: 2024,
+        distributionType: 'Electronic',
+        transferAgent: 'Transfer Agent Corp',
+        totalSharesOutstanding: '1000000',
+        quorumRequirement: 50.0,
+        clientId: 'client-uuid-here'
+      }
+    })
+
+    if (createError) {
+      console.error('Failed to create meeting:', createError)
+      return
+    }
+
+    console.log('Created meeting:', newMeeting)
+
+    if (newMeeting?.id) {
+      // Update meeting status
+      const { data: updatedMeeting, error: updateError } = await apiClient.PUT('/meetings/{meetingId}', {
+        params: {
+          path: { meetingId: newMeeting.id }
+        },
+        body: {
+          status: 'ACTIVE',
+          currentPhase: 'Voting',
+          overallCompletion: 75
+        }
+      })
+
+      if (updateError) {
+        console.error('Failed to update meeting:', updateError)
+        return
+      }
+
+      console.log('Updated meeting:', updatedMeeting)
     }
   } catch (error) {
-    console.error('Event management error:', error);
+    console.error('Meeting management error:', error)
   }
-};
+}
 
-// Example: Role management
-export const exampleRoleManagement = async () => {
+// Example: Account management
+export const exampleAccountManagement = async () => {
   try {
-    // List all roles
-    const rolesResult = await roles.list();
-    if (rolesResult.data) {
-      console.log('Available roles:', rolesResult.data);
+    // List all accounts
+    const accountsResult = await apiClient.GET('/accounts', {
+      params: { query: { page: 1, limit: 10 } },
+    })
+
+    if (accountsResult.data) {
+      console.log('Available accounts:', accountsResult.data.accounts)
     }
 
-    // Create a new role
-    const newRoleResult = await roles.create({
-      name: 'Event Manager',
-      description: 'Can manage events and view user data',
-      permissionIds: ['permission-uuid-1', 'permission-uuid-2'],
-    });
+    // Create a new account
+    const newAccountResult = await apiClient.POST('/accounts', {
+      body: {
+        name: 'ACME Corporation',
+        primaryContact: 'John Doe',
+        clientId: 'client-uuid-here',
+      },
+    })
 
-    if (newRoleResult.data) {
-      console.log('Created role:', newRoleResult.data);
+    if (newAccountResult.data) {
+      console.log('Created account:', newAccountResult.data)
     }
   } catch (error) {
-    console.error('Role management error:', error);
+    console.error('Account management error:', error)
   }
-};
+}
 
 // Example: Custom API call using the raw client
 export const exampleCustomApiCall = async () => {
@@ -148,43 +221,76 @@ export const exampleCustomApiCall = async () => {
       params: {
         path: { id: 'user-uuid-here' },
       },
-    });
+    })
 
     if (error) {
-      console.error('API Error:', error);
-      return;
+      console.error('API Error:', error)
+      return
     }
 
-    console.log('User data:', data);
+    console.log('User data:', data)
   } catch (error) {
-    console.error('Custom API call error:', error);
+    console.error('Custom API call error:', error)
   }
-};
+}
 
-// Example: Error handling patterns
+// Example: Error handling patterns with openapi-fetch
 export const exampleErrorHandling = async () => {
   try {
-    const result = await users.getById('non-existent-id');
+    const { data, error, response } = await apiClient.GET('/users/{id}', {
+      params: {
+        path: { id: 'non-existent-id' }
+      }
+    })
 
-    if (result.error) {
-      // Handle different error types
-      switch (result.response.status) {
+    if (error) {
+      // Handle different error types using the response status
+      switch (response.status) {
         case 404:
-          console.log('User not found');
-          break;
+          console.log('User not found')
+          break
         case 401:
-          console.log('Unauthorized - please login');
-          break;
+          console.log('Unauthorized - please login')
+          break
         case 403:
-          console.log('Forbidden - insufficient permissions');
-          break;
+          console.log('Forbidden - insufficient permissions')
+          break
         default:
-          console.log('Unexpected error:', result.error);
+          console.log('Unexpected error:', error)
       }
     } else {
-      console.log('User found:', result.data);
+      console.log('User found:', data)
     }
   } catch (error) {
-    console.error('Network or other error:', error);
+    console.error('Network or other error:', error)
   }
-};
+}
+
+// MIGRATION GUIDE: Converting from old custom API client to openapi-fetch
+//
+// OLD WAY (custom API client):
+// const result = await apiClient.getMeetingById('WEN-2024-AGM')
+// if (result.error) { /* handle error */ }
+// console.log(result.data)
+//
+// NEW WAY (openapi-fetch):
+// const { data, error } = await apiClient.GET('/meetings/{meetingId}', {
+//   params: { path: { meetingId: 'WEN-2024-AGM' } }
+// })
+// if (error) { /* handle error */ }
+// console.log(data)
+//
+// Key differences:
+// 1. Method names: getMeetingById() -> GET('/meetings/{meetingId}', ...)
+// 2. Parameters: (id) -> { params: { path: { meetingId: id } } }
+// 3. Query params: (query) -> { params: { query: {...} } }
+// 4. Request body: (body) -> { body: {...} }
+// 5. Response structure: Same { data, error } pattern
+//
+// Benefits of openapi-fetch:
+// - Full TypeScript type safety based on OpenAPI schema
+// - Automatic inference of request/response types
+// - Zero runtime overhead - types are compile-time only
+// - Better IntelliSense and autocomplete
+// - Industry-standard approach using openapi-fetch
+// - Direct mapping to OpenAPI paths and operations
