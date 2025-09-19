@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test'
 
 test.describe('User Model', () => {
   test('should validate user creation with required fields', async () => {
@@ -11,15 +11,15 @@ test.describe('User Model', () => {
       password: 'hashedPassword123',
       type: 'ISSUER_USER',
       accountId: 'account-uuid-123',
-    };
+    }
 
-    expect(userData.username).toBeDefined();
-    expect(userData.firstName).toBeDefined();
-    expect(userData.lastName).toBeDefined();
-    expect(userData.email).toBeDefined();
-    expect(userData.password).toBeDefined();
-    expect(userData.type).toBeDefined();
-  });
+    expect(userData.username).toBeDefined()
+    expect(userData.firstName).toBeDefined()
+    expect(userData.lastName).toBeDefined()
+    expect(userData.email).toBeDefined()
+    expect(userData.password).toBeDefined()
+    expect(userData.type).toBeDefined()
+  })
 
   test('should enforce unique username constraint', async () => {
     // This test will fail initially until database constraints are implemented
@@ -31,11 +31,11 @@ test.describe('User Model', () => {
       password: 'hashedPassword456',
       type: 'ACCOUNT_ADMIN',
       accountId: 'account-uuid-123',
-    };
+    }
 
     // This should fail when we try to create duplicate usernames
-    expect(duplicateUsername.username).toBe('john.doe');
-  });
+    expect(duplicateUsername.username).toBe('john.doe')
+  })
 
   test('should enforce unique email constraint', async () => {
     // This test will fail initially until database constraints are implemented
@@ -47,11 +47,11 @@ test.describe('User Model', () => {
       password: 'hashedPassword789',
       type: 'SOLICITOR',
       accountId: 'account-uuid-456',
-    };
+    }
 
     // This should fail when we try to create duplicate emails
-    expect(duplicateEmail.email).toBe('john.doe@wendys.com');
-  });
+    expect(duplicateEmail.email).toBe('john.doe@wendys.com')
+  })
 
   test('should validate email format', async () => {
     // This test will fail initially until validation is implemented
@@ -60,9 +60,9 @@ test.describe('User Model', () => {
       'missing@domain',
       '@missing-local.com',
       'spaces in@email.com',
-    ];
+    ]
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email) => {
       const userData = {
         username: 'test.user',
         firstName: 'Test',
@@ -71,12 +71,12 @@ test.describe('User Model', () => {
         password: 'hashedPassword',
         type: 'ISSUER_USER',
         accountId: 'account-uuid-123',
-      };
+      }
 
       // Should fail validation for invalid email formats
-      expect(userData.email).toBe(email);
-    });
-  });
+      expect(userData.email).toBe(email)
+    })
+  })
 
   test('should validate UserType enum values', async () => {
     // This test will fail initially until enum validation is implemented
@@ -86,7 +86,7 @@ test.describe('User Model', () => {
       'ISSUER_USER',
       'SOLICITOR',
       'TRANSFER_AGENT',
-    ];
+    ]
 
     const invalidType = {
       username: 'test.user',
@@ -96,11 +96,11 @@ test.describe('User Model', () => {
       password: 'hashedPassword',
       type: 'INVALID_TYPE', // Invalid enum value
       accountId: 'account-uuid-123',
-    };
+    }
 
     // Should fail validation for invalid user type
-    expect(validTypes).not.toContain(invalidType.type);
-  });
+    expect(validTypes).not.toContain(invalidType.type)
+  })
 
   test('should validate password security requirements', async () => {
     // This test will fail initially until password validation is implemented
@@ -109,9 +109,9 @@ test.describe('User Model', () => {
       '123', // Too short
       'password', // Too common
       'abc', // Too short
-    ];
+    ]
 
-    weakPasswords.forEach(password => {
+    weakPasswords.forEach((password) => {
       const userData = {
         username: 'test.user',
         firstName: 'Test',
@@ -120,12 +120,12 @@ test.describe('User Model', () => {
         password,
         type: 'ISSUER_USER',
         accountId: 'account-uuid-123',
-      };
+      }
 
       // Should fail validation for weak passwords
-      expect(userData.password.length).toBeLessThanOrEqual(8);
-    });
-  });
+      expect(userData.password.length).toBeLessThanOrEqual(8)
+    })
+  })
 
   test('should allow optional accountId for system admins', async () => {
     // This test will fail initially until optional relationship is implemented
@@ -137,12 +137,12 @@ test.describe('User Model', () => {
       password: 'hashedPassword123',
       type: 'SYSTEM_ADMIN',
       accountId: null, // System admins don't belong to specific accounts
-    };
+    }
 
     // System admins should be allowed without accountId
-    expect(systemAdmin.accountId).toBeNull();
-    expect(systemAdmin.type).toBe('SYSTEM_ADMIN');
-  });
+    expect(systemAdmin.accountId).toBeNull()
+    expect(systemAdmin.type).toBe('SYSTEM_ADMIN')
+  })
 
   test('should require accountId for non-system users', async () => {
     // This test will fail initially until validation is implemented
@@ -154,36 +154,36 @@ test.describe('User Model', () => {
       password: 'hashedPassword123',
       type: 'ISSUER_USER', // Non-system user
       accountId: null, // Missing required account
-    };
+    }
 
     // Non-system users should require accountId
-    expect(userWithoutAccount.type).not.toBe('SYSTEM_ADMIN');
-    expect(userWithoutAccount.accountId).toBeNull();
-  });
+    expect(userWithoutAccount.type).not.toBe('SYSTEM_ADMIN')
+    expect(userWithoutAccount.accountId).toBeNull()
+  })
 
   test('should support user relationships', async () => {
     // This test will fail initially until relationships are implemented
-    const userId = 'user-uuid-123';
+    const userId = 'user-uuid-123'
 
     // User should be able to write multiple comments
     const comments = [
       { id: 1, userId, comment: 'First comment' },
       { id: 2, userId, comment: 'Second comment' },
-    ];
+    ]
 
     // User should be able to be primary contact for accounts
     const accounts = [
       { id: 'account-1', primaryContact: userId },
       { id: 'account-2', primaryContact: userId },
-    ];
+    ]
 
-    expect(comments.every(c => c.userId === userId)).toBe(true);
-    expect(accounts.every(a => a.primaryContact === userId)).toBe(true);
-  });
+    expect(comments.every((c) => c.userId === userId)).toBe(true)
+    expect(accounts.every((a) => a.primaryContact === userId)).toBe(true)
+  })
 
   test('should hash passwords before storage', async () => {
     // This test will fail initially until password hashing is implemented
-    const plainPassword = 'mySecretPassword123';
+    const plainPassword = 'mySecretPassword123'
     const userData = {
       username: 'secure.user',
       firstName: 'Secure',
@@ -192,9 +192,9 @@ test.describe('User Model', () => {
       password: plainPassword,
       type: 'ISSUER_USER',
       accountId: 'account-uuid-123',
-    };
+    }
 
     // Password should be hashed, not stored in plain text
-    expect(userData.password).toBe(plainPassword); // This will fail when hashing is implemented
-  });
-});
+    expect(userData.password).toBe(plainPassword) // This will fail when hashing is implemented
+  })
+})

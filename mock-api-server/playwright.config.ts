@@ -1,10 +1,17 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test'
+import * as path from 'path'
+import { fileURLToPath } from 'url'
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
   testDir: './tests',
+  /* Global setup */
+  globalSetup: path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    'tests/setup.ts'
+  ),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -27,16 +34,27 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'api-tests',
-      testDir: './tests',
+      name: 'integration',
+      testDir: './tests/integration',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'unit',
+      testDir: './tests/unit',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'e2e',
+      testDir: './tests/e2e',
       use: { ...devices['Desktop Chrome'] },
     },
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
-  },
-});
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3001',
+  //   reuseExistingServer: true,
+  //   timeout: 60000,
+  // },
+})
