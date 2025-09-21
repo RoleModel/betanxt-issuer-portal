@@ -1821,6 +1821,11 @@ components:
           type: boolean
           default: true
           description: Whether the client is active
+        brandingId:
+          type: integer
+          nullable: true
+          description: Unique branding identifier for document hosting site URLs
+          example: 966152
         createdAt:
           type: string
           format: date-time
@@ -1950,22 +1955,6 @@ components:
         inspector:
           type: string
           nullable: true
-        documentHostingSiteLabel:
-          type: string
-          nullable: true
-          description: Label for document hosting site (e.g., "Document Hosting Site")
-        documentHostingSiteUrl:
-          type: string
-          nullable: true
-          description: URL for document hosting site (e.g., "docs.wen.com")
-        eVoteSiteLabel:
-          type: string
-          nullable: true
-          description: Label for eVote site (e.g., "eVote Site")
-        eVoteSiteUrl:
-          type: string
-          nullable: true
-          description: URL for eVote site (e.g., "vote.wen.com")
         ivrDialInNumber:
           type: string
           nullable: true
@@ -2495,6 +2484,11 @@ components:
           type: boolean
           default: true
           description: Whether the client is active
+        brandingId:
+          type: integer
+          nullable: true
+          description: Unique branding identifier for document hosting site URLs
+          example: 966152
 
     UpdateClientRequest:
       type: object
@@ -2532,6 +2526,11 @@ components:
         isActive:
           type: boolean
           description: Whether the client is active
+        brandingId:
+          type: integer
+          nullable: true
+          description: Unique branding identifier for document hosting site URLs
+          example: 966152
 
     CreateUserRequest:
       type: object
@@ -2667,18 +2666,6 @@ components:
         solicitorEmail:
           type: string
           format: email
-        documentHostingSiteLabel:
-          type: string
-          description: Label for document hosting site
-        documentHostingSiteUrl:
-          type: string
-          description: URL for document hosting site
-        eVoteSiteLabel:
-          type: string
-          description: Label for eVote site
-        eVoteSiteUrl:
-          type: string
-          description: URL for eVote site
         ivrDialInNumber:
           type: string
           description: IVR dial-in voting number
@@ -2739,18 +2726,6 @@ components:
         solicitorEmail:
           type: string
           format: email
-        documentHostingSiteLabel:
-          type: string
-          description: Label for document hosting site
-        documentHostingSiteUrl:
-          type: string
-          description: URL for document hosting site
-        eVoteSiteLabel:
-          type: string
-          description: Label for eVote site
-        eVoteSiteUrl:
-          type: string
-          description: URL for eVote site
         ivrDialInNumber:
           type: string
           description: IVR dial-in voting number

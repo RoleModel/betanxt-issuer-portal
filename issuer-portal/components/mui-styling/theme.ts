@@ -1,9 +1,9 @@
 'use client'
 
 // Import design system types first
-import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
+import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -32,7 +32,7 @@ declare module '@mui/material/styles' {
       PaletteColor,
       PaletteColor,
       PaletteColor,
-      PaletteColor
+      PaletteColor,
     ]
     complete: string
     aquaLight: string
@@ -49,7 +49,7 @@ declare module '@mui/material/styles' {
       PaletteColor,
       PaletteColor,
       PaletteColor,
-      PaletteColor
+      PaletteColor,
     ]
     complete: string
     aquaLight: string
@@ -227,35 +227,32 @@ const issuerOverrides = {
     },
     MuiAppBar: {
       styleOverrides: {
-        root: (theme: Theme) => ({
+        root: ({ theme }: { theme: Theme }) => ({
           boxShadow: 'none',
           '& .MuiToolbar-root': {
-            minHeight: (theme as any).layout?.navbarHeight,
+            minHeight: theme.layout?.navbarHeight,
           },
           '& .MuiTabs-root': {
             opacity: 1,
-            paddingBottom: theme.spacing(0.25),
+            paddingBottom: 4,
           },
           '& .MuiTabs-flexContainer': {
-            height: (theme as any).layout?.navbarHeight,
+            height: theme.layout?.navbarHeight,
           },
           '&.MuiAppBar-root.MuiAppBar-colorSecondary': {
-            backgroundColor: (theme.vars?.palette as any).appBarSecondary
-              ?.defaultFill,
-            color: (theme.vars?.palette as any).appBarSecondary
-              ?.defaultContrast,
+            backgroundColor: theme.vars?.palette.appBarSecondary?.defaultFill,
+            color: theme.vars?.palette.appBarSecondary?.defaultContrast,
             borderBottom: `1px solid ${theme.vars?.palette.divider}`,
             '& .MuiPaper-root': {
               boxShadow: 'none',
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: (theme.vars?.palette as any).appBarSecondary
-                ?.tabIndicator,
+              backgroundColor: theme.vars?.palette.appBarSecondary?.tabIndicator,
               height: 4,
             },
             '& .MuiTab-root ': {
               color: theme.vars?.palette.appBarSecondary?.defaultContrast,
-              transition: `all ${theme.transitions.duration.shorter}ms ease-in`,
+              transition: theme.transitions.create(['color']),
             },
             '& .MuiTab-root:hover ': {
               color: theme.vars?.palette.appBarSecondary?.hover,
@@ -335,8 +332,7 @@ const issuerOverrides = {
             lineHeight: theme.typography.caption.lineHeight,
           },
           '& .MuiTableFooter-root': {
-            backgroundColor:
-              theme.vars?.palette.dataGridPagination.backgroundFill,
+            backgroundColor: theme.vars?.palette.dataGridPagination.backgroundFill,
             ...theme.typography.caption,
             '& .MuiTableCell-root': {
               ...theme.typography.caption,
@@ -350,5 +346,5 @@ const issuerOverrides = {
   },
 }
 
-const mergedOptions = deepmerge(betanxtThemeOptions, issuerOverrides as any)
+const mergedOptions = deepmerge(betanxtThemeOptions, issuerOverrides)
 export const theme = createTheme(mergedOptions)

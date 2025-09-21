@@ -36,24 +36,24 @@ export async function listKeyDatesForMeeting(meetingId: string): Promise<ApiClie
 
     const result: KeyDate[] = []
 
-    // Include meeting-level dates as phaseNumber 0
+    // Include meeting-level dates with correct phase assignments
     if (meeting.pre_filing_date) {
-      result.push({ id: `${meeting.id}-prefiling`, title: 'Pre-Filing Date', date: meeting.pre_filing_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-prefiling`, title: 'Pre-Filing Date', date: meeting.pre_filing_date, phaseNumber: 1 })
     }
     if (meeting.filing_date) {
-      result.push({ id: `${meeting.id}-filing`, title: 'Filing Date', date: meeting.filing_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-filing`, title: 'Filing Date', date: meeting.filing_date, phaseNumber: 1 })
     }
     if (meeting.broker_search_date) {
-      result.push({ id: `${meeting.id}-brokersearch`, title: 'Broker Search Date', date: meeting.broker_search_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-brokersearch`, title: 'Broker Search Date', date: meeting.broker_search_date, phaseNumber: 3 })
     }
     if (meeting.record_date) {
-      result.push({ id: `${meeting.id}-record`, title: 'Record Date', date: meeting.record_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-record`, title: 'Record Date', date: meeting.record_date, phaseNumber: 4 })
     }
     if (meeting.mailing_date) {
-      result.push({ id: `${meeting.id}-mailing`, title: 'Mailing Date', date: meeting.mailing_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-mailing`, title: 'Mailing Date', date: meeting.mailing_date, phaseNumber: 6 })
     }
     if (meeting.meeting_date) {
-      result.push({ id: `${meeting.id}-meeting`, title: 'Meeting Date', date: meeting.meeting_date, phaseNumber: 0 })
+      result.push({ id: `${meeting.id}-meeting`, title: 'Meeting Date', date: meeting.meeting_date, phaseNumber: 8 })
     }
 
     // Phase-level key dates: expect JSONB key_dates with snake_case

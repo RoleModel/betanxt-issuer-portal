@@ -1,53 +1,55 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { getSession, signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
-  TextField,
-  Button,
-  Typography,
-  Alert,
   Container,
-} from '@mui/material';
+  TextField,
+  Typography,
+} from '@mui/material'
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
 
     try {
       const result = await signIn('credentials', {
         username,
         password,
         redirect: false,
-      });
+      })
 
       if (result?.error) {
-        setError('Invalid username or password');
+        setError('Invalid username or password')
       } else {
         // Check if sign in was successful
-        const session = await getSession();
+        const session = await getSession()
         if (session) {
-          router.push('/dashboard');
+          // Let the app handle dynamic client routing
+          router.push('/')
         }
       }
     } catch (err) {
-      setError('An error occurred during login');
+      setError('An error occurred during login')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <Container maxWidth="sm">
@@ -63,7 +65,12 @@ const LoginPage = () => {
             <Typography variant="h4" component="h1" gutterBottom align="center">
               BetaNXT Portal
             </Typography>
-            <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+              sx={{ mb: 3 }}
+            >
               Sign in to access your account
             </Typography>
 
@@ -106,7 +113,7 @@ const LoginPage = () => {
         </Card>
       </Box>
     </Container>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

@@ -11,11 +11,11 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  context: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params
+    const resolvedParams = await context.params
     const meetingId = resolvedParams.meetingId
 
     // Use existing domain model function

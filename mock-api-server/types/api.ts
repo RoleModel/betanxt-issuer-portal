@@ -623,6 +623,11 @@ export interface components {
              * @default true
              */
             isActive: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -707,14 +712,6 @@ export interface components {
             /** Format: email */
             solicitorEmail?: string | null;
             inspector?: string | null;
-            /** @description Label for document hosting site (e.g., "Document Hosting Site") */
-            documentHostingSiteLabel?: string | null;
-            /** @description URL for document hosting site (e.g., "docs.wen.com") */
-            documentHostingSiteUrl?: string | null;
-            /** @description Label for eVote site (e.g., "eVote Site") */
-            eVoteSiteLabel?: string | null;
-            /** @description URL for eVote site (e.g., "vote.wen.com") */
-            eVoteSiteUrl?: string | null;
             /** @description IVR dial-in voting number (e.g., "1-800-555-VOTE") */
             ivrDialInNumber?: string | null;
             /** Format: int64 */
@@ -1091,6 +1088,11 @@ export interface components {
              * @default true
              */
             isActive: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
         };
         UpdateClientRequest: {
             /** @description Full legal name of the company */
@@ -1115,6 +1117,11 @@ export interface components {
             primaryContactEmail?: string;
             /** @description Whether the client is active */
             isActive?: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
         };
         CreateUserRequest: {
             username: string;
@@ -1168,14 +1175,6 @@ export interface components {
             solicitor?: string;
             /** Format: email */
             solicitorEmail?: string;
-            /** @description Label for document hosting site */
-            documentHostingSiteLabel?: string;
-            /** @description URL for document hosting site */
-            documentHostingSiteUrl?: string;
-            /** @description Label for eVote site */
-            eVoteSiteLabel?: string;
-            /** @description URL for eVote site */
-            eVoteSiteUrl?: string;
             /** @description IVR dial-in voting number */
             ivrDialInNumber?: string;
             /** Format: int64 */
@@ -1210,14 +1209,6 @@ export interface components {
             solicitor?: string;
             /** Format: email */
             solicitorEmail?: string;
-            /** @description Label for document hosting site */
-            documentHostingSiteLabel?: string;
-            /** @description URL for document hosting site */
-            documentHostingSiteUrl?: string;
-            /** @description Label for eVote site */
-            eVoteSiteLabel?: string;
-            /** @description URL for eVote site */
-            eVoteSiteUrl?: string;
             /** @description IVR dial-in voting number */
             ivrDialInNumber?: string;
             /** Format: int64 */

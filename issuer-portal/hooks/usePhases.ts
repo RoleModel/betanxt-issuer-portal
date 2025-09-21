@@ -1,0 +1,147 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+
+import { getMeetingPhases } from '@/domain-models/api/meetings'
+
+export interface Phase {
+  id: string
+  meetingId: string
+  name: string
+  orderIndex: number
+  status: 'COMPLETE' | 'ACTIVE' | 'NOT_STARTED'
+  keyDates: {
+    startDate?: string | null
+    endDate?: string | null
+    dueDate?: string | null
+    completionDate?: string | null
+    recordDate?: string | null
+    mailingDate?: string | null
+    meetingDate?: string | null
+    preFilingDate?: string | null
+    filingDate?: string | null
+    brokerSearchDate?: string | null
+  }
+  createdAt?: string | null
+  updatedAt?: string | null
+}
+
+// Removed unused type definitions to fix linter warnings
+
+const asString = (val: unknown): string | null => (typeof val === 'string' ? val : null)
+const asNumber = (val: unknown): number | null =>
+  typeof val === 'number' && Number.isFinite(val) ? val : null
+const asRecord = (val: unknown): Record<string, unknown> | null =>
+  typeof val === 'object' && val !== null ? (val as Record<string, unknown>) : null
+
+const getStr = (obj: Record<string, unknown>, keys: string[]): string | null => {
+  for (const k of keys) {
+    const v = asString(obj[k])
+    if (v !== null) return v
+  }
+  return null
+}
+
+const getNum = (obj: Record<string, unknown>, keys: string[]): number | null => {
+  for (const k of keys) {
+    const v = asNumber(obj[k])
+    if (v !== null) return v
+  }
+  return null
+}
+
+const normalizePhase = (raw: unknown): Phase | null => {
+  const rec = asRecord(raw)
+  if (!rec) return null
+
+  const id = getStr(rec, ['id'])
+  const name = getStr(rec, ['name', 'phase_name'])
+  if (!id || !name) return null
+
+  const meetingId = getStr(rec, ['meetingId', 'meeting_id']) || ''
+  const orderIndex = getNum(rec, ['orderIndex', 'order_index']) ?? 0
+  const rawStatus = getStr(rec, ['status']) || ''
+  const status: Phase['status'] =
+    rawStatus === 'COMPLETE'
+      ? 'COMPLETE'
+      : rawStatus === 'ACTIVE' || rawStatus === 'IN_PROGRESS'
+        ? 'ACTIVE'
+        : 'NOT_STARTED'
+
+  const kdRec = (asRecord(rec['keyDates']) || asRecord(rec['key_dates']) || {}) as Record<
+    string,
+    unknown
+  >
+  const keyDates: Phase['keyDates'] = {
+    startDate: getStr(kdRec, ['startDate', 'start_date']),
+    endDate: getStr(kdRec, ['endDate', 'end_date']),
+    dueDate: getStr(kdRec, ['dueDate', 'due_date']),
+    completionDate: getStr(kdRec, ['completionDate', 'completion_date']),
+    recordDate: getStr(kdRec, ['recordDate', 'record_date']),
+    mailingDate: getStr(kdRec, ['mailingDate', 'mailing_date']),
+    meetingDate: getStr(kdRec, ['meetingDate', 'meeting_date']),
+    preFilingDate: getStr(kdRec, ['preFilingDate', 'pre_filing_date']),
+    filingDate: getStr(kdRec, ['filingDate', 'filing_date']),
+    brokerSearchDate: getStr(kdRec, ['brokerSearchDate', 'broker_search_date']),
+  }
+
+  const createdAt = getStr(rec, ['createdAt', 'created_at'])
+  const updatedAt = getStr(rec, ['updatedAt', 'updated_at'])
+
+  return {
+    id,
+    meetingId,
+    name,
+    orderIndex,
+    status,
+    keyDates,
+    createdAt: createdAt ?? null,
+    updatedAt: updatedAt ?? null,
+  }
+}
+
+const fetchPhases = async (meetingId: string): Promise<Phase[]> => {
+  const result = await getMeetingPhases(meetingId)
+  if (result.error) throw new Error('Failed to fetch phases')
+
+  const items: unknown[] = Array.isArray(result.data) ? (result.data as unknown[]) : []
+  const normalized: Phase[] = []
+  for (const item of items) {
+    const n = normalizePhase(item)
+    if (n) normalized.push(n)
+  }
+  return normalized
+}
+
+export interface UsePhasesResult {
+  phases: Phase[]
+  loading: boolean
+  error: string | null
+  refetch: () => void
+}
+
+export const usePhases = (meetingId?: string): UsePhasesResult => {
+  const [phases, setPhases] = useState<Phase[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const refetch = useCallback(async () => {
+    if (!meetingId) return
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchPhases(meetingId)
+      setPhases(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch phases')
+    } finally {
+      setLoading(false)
+    }
+  }, [meetingId])
+
+  useEffect(() => {
+    void refetch()
+  }, [refetch])
+
+  return { phases, loading, error, refetch }
+}

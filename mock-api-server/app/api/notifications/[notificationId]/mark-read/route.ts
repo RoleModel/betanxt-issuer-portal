@@ -16,12 +16,12 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement markNotificationRead
     // Operation: markNotificationRead
     // This route was auto-generated from OpenAPI spec
-    
+
     return NextResponse.json({ status: 'OK' })
   } catch (error) {
     console.error('Error in PATCH /notifications/{notificationId}/mark-read:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'markNotificationRead'

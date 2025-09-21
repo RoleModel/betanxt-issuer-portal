@@ -1,10 +1,10 @@
 import buildApiClient from '@/domain-models/apiClient'
 import type { paths } from '@/domain-models/generated-schema'
 
-export async function listClients(page?: number, limit?: number) {
+export async function listClients(page?: number, limit?: number): Promise<any> {
   const apiClient = await buildApiClient()
 
-  return await apiClient.GET('/clients', {
+  return await apiClient.GET('/client', {
     params: {
       query: {
         page,
@@ -16,18 +16,18 @@ export async function listClients(page?: number, limit?: number) {
 
 export async function createClient(
   client: paths['/clients']['post']['requestBody']['content']['application/json']
-) {
+): Promise<any> {
   const apiClient = await buildApiClient()
 
-  return await apiClient.POST('/clients', {
+  return await apiClient.POST('/client', {
     body: client,
   })
 }
 
-export async function getClientByTicker(ticker: string) {
+export async function getClientByTicker(ticker: string): Promise<any> {
   const apiClient = await buildApiClient()
 
-  return await apiClient.GET('/clients/{ticker}', {
+  return await apiClient.GET('/client/{ticker}', {
     params: {
       path: { ticker },
     },
@@ -46,10 +46,10 @@ export async function updateClient(
     primaryContactEmail?: string
     isActive?: boolean
   }
-) {
+): Promise<any> {
   const apiClient = await buildApiClient()
 
-  return await apiClient.PUT('/clients/{ticker}', {
+  return await apiClient.PUT('/client/{ticker}', {
     params: {
       path: { ticker },
     },

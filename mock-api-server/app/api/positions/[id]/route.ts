@@ -13,7 +13,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement getPositionById
     // Operation: getPositionById
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Fetch data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in GET /positions/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'getPositionById'
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement updatePosition
     // Operation: updatePosition
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Update data in Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in PUT /positions/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'updatePosition'

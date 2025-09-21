@@ -1,0 +1,170 @@
+'use client'
+
+import GearProcessIcon from '@rolemodel/betanxt-design-system/components/icons/brand/GearProcessIcon'
+import StarBadgeIcon from '@rolemodel/betanxt-design-system/components/icons/brand/StarBadgeIcon'
+import TeamDiscussionIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamDiscussionIcon'
+import Image from 'next/image'
+
+import { Check } from '@mui/icons-material'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Typography,
+  useTheme,
+} from '@mui/material'
+
+import FeatureTile from '@/components/FeatureTile'
+import ProductsLayout from '@/components/layout/ProductLayout'
+import CTACard from '@/components/products/CTACard'
+import { SidebarCard } from '@/components/products/SidebarCard'
+
+export default function DigitalShareholderMeetingsPage() {
+  const theme = useTheme()
+
+  const benefits = [
+    {
+      icon: <StarBadgeIcon accentColor="#ebb322" fontSize="3xl" />,
+      title: 'High-touch service produces successful meetings',
+      description:
+        'Client service is the linchpin of all our solutions. An experienced support professional will work with you to plan, manage and execute your digital meeting - and, if you choose, join you on dry runs and prep calls. In addition, BetaNXT provides technical guidance, ensuring a flawless meeting.',
+    },
+    {
+      icon: <GearProcessIcon accentColor="#ebb322" fontSize="3xl" />,
+      title: 'Customization promotes your brand',
+      description:
+        'Annual meetings are an opportunity to communicate the company&apos;s values and remind shareholders why they&apos;ve invested in you. Capitalize on this with a company-branded meeting website, registration page and emails.',
+    },
+    {
+      icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
+      title: 'Effectively respond to shareholder questions',
+      description:
+        'How effectively you respond to your shareholder&apos;s questions can determine the success of your meeting. DSM helps you achieve this by enabling you to group questions by topic, ensuring the right person addresses the question. You can also prioritize questions and view their status.',
+    },
+  ]
+
+  const features = [
+    {
+      name: 'Effortless registration for both registered and beneficial owners',
+      essential: true,
+    },
+    { name: 'Audio and video meetings supported', essential: true },
+    {
+      name: 'Company-branded event website, registration page and emails',
+      essential: true,
+    },
+    { name: 'Group and prioritize shareholder questions', essential: true },
+    {
+      name: 'View list of registered owners eligible to vote during the meeting',
+      essential: true,
+    },
+    { name: 'Online voting', essential: true },
+    { name: 'Identification of shareholder asking question', essential: true },
+    { name: 'Meeting recording and archive with replays on demand', essential: true },
+    { name: 'Reports with meeting metrics', essential: true },
+    { name: 'Follow-up with shareholders', essential: true },
+  ]
+
+  const leftColumnContent = (
+    <Stack gap={2}>
+      <Typography
+        variant="h1"
+        sx={{
+          fontWeight: 700,
+          mb: 3,
+          color: theme.vars.palette.text.primary,
+        }}
+      >
+        Achieve quorum and proposal passage by generating greater participation
+      </Typography>
+      <Typography variant="body1">
+        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to
+        participate in annual meetings remotely with the same level of access as in-person
+        attendees - they can view, vote, and ask questions. DSM also allows you to shape
+        your meeting to best facilitate your shareholders&apos; engagement with ease of
+        access on any device, real-time voting, questions, polling, and more. Combined
+        with the platform&apos;s Q&A management capabilities, branding options, and
+        high-touch service, DSM is the industry&apos;s most innovative and leading
+        platform.
+      </Typography>
+      <Card>
+        <CardHeader title="Benefits" />
+        <CardContent
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: 2,
+          }}
+        >
+          {benefits.map((benefit, index) => (
+            <FeatureTile
+              key={index}
+              variant="base"
+              title={benefit.title}
+              description={benefit.description}
+              actionText={''}
+              icon={benefit.icon}
+            />
+          ))}
+        </CardContent>
+      </Card>
+      <Image
+        src="/images/Products/_Graphic_.svg"
+        alt="BetaNXT Engage Omni-channel Communication"
+        width={415}
+        height={420}
+        style={{ margin: '0 auto' }}
+      />
+      <Card>
+        <CardHeader title="Features" />
+        <CardContent>
+          <TableContainer>
+            <Table>
+              <TableBody>
+                {features.map((feature, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{feature.name}</TableCell>
+                    <TableCell align="center">
+                      {feature.essential ? <Check color="success" /> : ''}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+      <CTACard />
+    </Stack>
+  )
+
+  const rightColumnContent = (
+    <>
+      <SidebarCard title="DSM Quickstart Guide">
+        <Typography variant="body2" component="p">
+          View the DSM Quickstart Guide for a step-by-step overview of how to run your
+          next virtual shareholder meeting.
+        </Typography>
+      </SidebarCard>
+      <SidebarCard title="Want to Know More?">
+        <Typography variant="body2" component="p">
+          View the DSM Quickstart Guide for a step-by-step overview of how to run your
+          next virtual shareholder meeting.
+        </Typography>
+      </SidebarCard>
+    </>
+  )
+
+  return (
+    <ProductsLayout
+      leftColumnContent={leftColumnContent}
+      rightColumnContent={rightColumnContent}
+    />
+  )
+}

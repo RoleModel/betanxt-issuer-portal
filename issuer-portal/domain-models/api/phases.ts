@@ -1,5 +1,15 @@
 import buildApiClient, { ApiClientReturnType } from '@/domain-models/apiClient'
 
+export async function listPhasesByMeetingId(meetingId: string) {
+  const apiClient = await buildApiClient()
+
+  return await apiClient.GET('/meetings/{meetingId}/phases', {
+    params: {
+      path: { meetingId },
+    },
+  })
+}
+
 export async function createPhase(
   meetingId: string,
   phase: {

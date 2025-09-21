@@ -1,23 +1,8 @@
-# dependencies
 node_modules
-
-# turbo
-.turbo
-
-# next.js
+.turbo/
 .next/
-out/
-
-# environment variables
-.env.local
-.env.*.local
-
-# OS files
-.DS_Store
-
-# TypeScript
-*.tsbuildinfo
-
-# Supabase
-supabase/.branches
-supabase/.temp
+.env.local.development
+mock-api-server/.env.development.local
+issuer-portal/.env.development.local
+*/.DS_Store
+**/*.DS_Store

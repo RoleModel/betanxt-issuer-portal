@@ -24,6 +24,9 @@
       "@/components/*": ["./components/*"],
       "@/utils/*": ["./utils/*"],
       "@/types/*": ["./types/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/contexts/*": ["./contexts/*"],
+      "@/domain-models/*": ["./domain-models/*"],
       "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"],
       "@/theme/*": ["./components/mui-styling/theme/*"]
     }

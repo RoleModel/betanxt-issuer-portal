@@ -13,7 +13,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement getDocumentComments
     // Operation: getDocumentComments
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Fetch data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in GET /documents/{id}/comments:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'getDocumentComments'
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement addComment
     // Operation: addComment
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Insert data into Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in POST /documents/{id}/comments:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'addComment'

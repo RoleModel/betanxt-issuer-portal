@@ -14,6 +14,7 @@ export const seedConfig = {
       primaryContact: 'Mike Chen',
       primaryContactEmail: 'mike.chen@wendys.com',
       isActive: true,
+      brandingId: 966152,
     },
     {
       ticker: 'PAYC',
@@ -25,6 +26,7 @@ export const seedConfig = {
       primaryContact: 'Lisa Rodriguez',
       primaryContactEmail: 'lisa.rodriguez@paycom.com',
       isActive: true,
+      brandingId: 963998,
     },
     {
       ticker: 'WWD',
@@ -36,6 +38,7 @@ export const seedConfig = {
       primaryContact: 'David Kim',
       primaryContactEmail: 'david.kim@woodward.com',
       isActive: true,
+      brandingId: 962713,
     },
     {
       ticker: 'ELVN',
@@ -47,6 +50,7 @@ export const seedConfig = {
       primaryContact: 'Jenny Patel',
       primaryContactEmail: 'jenny.patel@enliven.com',
       isActive: true,
+      brandingId: null,
     },
   ],
 

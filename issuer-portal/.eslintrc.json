@@ -1,11 +1,7 @@
 {
-  "extends": [
-    "next/core-web-vitals"
-  ],
+  "extends": ["next/core-web-vitals"],
   "parser": "@typescript-eslint/parser",
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
@@ -33,9 +29,5 @@
     "react/no-unescaped-entities": "off",
     "@next/next/no-page-custom-font": "off"
   },
-  "ignorePatterns": [
-    ".next/",
-    "node_modules/",
-    "*.js"
-  ]
+  "ignorePatterns": [".next/", "node_modules/", "*.js"]
 }

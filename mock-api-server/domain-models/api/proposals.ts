@@ -1,12 +1,14 @@
 import { type ApiClientReturnType, buildApiClient } from '../apiClient'
 
 export async function listProposals(
-  meetingId?: string
+  meetingId?: string,
+  proposalType?: string
 ): Promise<ApiClientReturnType<any[]>> {
   try {
     const supabase = buildApiClient()
     let query = supabase.from('proposal').select('*')
     if (meetingId) query = query.eq('meeting_id', meetingId)
+    if (proposalType) query = query.eq('proposal_type', proposalType)
     query = query.order('proposal_number', { ascending: true })
     const { data, error } = await query
     if (error)
@@ -49,12 +51,16 @@ export async function listProposals(
   }
 }
 
-export async function createProposal(body: any): Promise<ApiClientReturnType<any>> {
+export async function createProposal(body: any, meetingId?: string): Promise<ApiClientReturnType<any>> {
   try {
     const supabase = buildApiClient()
+
+    // Ensure meetingId is set in the body if provided in the URL
+    const proposalData = meetingId ? { ...body, meeting_id: meetingId } : body
+
     const { data, error } = await supabase
       .from('proposal')
-      .insert([body])
+      .insert([proposalData])
       .select()
       .single()
     if (error)
