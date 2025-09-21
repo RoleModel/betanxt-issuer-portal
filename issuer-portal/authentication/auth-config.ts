@@ -87,16 +87,20 @@ export const config = {
     async session({ session, token }) {
       if (token) {
         session.user.id = token.sub || ''
-        session.user.username = typeof token.username === 'string' ? token.username : undefined
+        session.user.username =
+          typeof token.username === 'string' ? token.username : undefined
         session.user.type = typeof token.type === 'string' ? token.type : undefined
-        session.user.accountId = typeof token.accountId === 'string' ? token.accountId : undefined
-        session.user.client = (token.client &&
+        session.user.accountId =
+          typeof token.accountId === 'string' ? token.accountId : undefined
+        session.user.client =
+          token.client &&
           typeof token.client === 'object' &&
           'id' in token.client &&
           'name' in token.client &&
           typeof token.client.id === 'number' &&
-          typeof token.client.name === 'string') ?
-          { id: token.client.id, name: token.client.name } : null
+          typeof token.client.name === 'string'
+            ? { id: token.client.id, name: token.client.name }
+            : null
         session.user.roles = Array.isArray(token.roles) ? token.roles : []
       }
       return session
@@ -108,4 +112,3 @@ export const config = {
 } satisfies NextAuthConfig
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config)
-

@@ -31,8 +31,7 @@ export function withAuth<T extends {}>(
       })
 
       if (!hasPermissions) {
-        const fallback =
-          options.fallbackPath || userRoutes.defaultLandingPage
+        const fallback = options.fallbackPath || userRoutes.defaultLandingPage
         redirect(`${fallback}?messageCode=access-denied`)
       }
     }

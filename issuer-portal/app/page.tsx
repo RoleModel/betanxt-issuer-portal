@@ -1,45 +1,43 @@
-'use client';
+'use client'
 
-import { useSession, SessionProvider } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { SessionProvider, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+import { LinearProgress } from '@mui/material'
+
+import { ClientProvider, useClient } from '@/contexts/ClientContext'
 
 const HomePageContent = () => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const { currentClient, loading: clientLoading } = useClient()
+  const router = useRouter()
 
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
+    if (status === 'loading' || clientLoading) return // Still loading
 
     if (!session) {
       // Not authenticated, redirect to login
-      router.push('/login');
-    } else {
-      // Authenticated, redirect to dashboard
-      router.push('/dashboard');
+      router.push('/login')
+    } else if (currentClient) {
+      // Authenticated and have a client, redirect to client meeting
+      const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2025`
+      router.push(`/${currentClient.ticker}/meeting/${defaultMeetingId}`)
     }
-  }, [session, status, router]);
+  }, [session, status, router, currentClient, clientLoading])
 
-  // Show loading spinner while checking authentication
-  return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
-    >
-      <CircularProgress />
-    </Box>
-  );
-};
+  // Show loading spinner while checking authentication and client determination
+  return <LinearProgress />
+}
 
 const HomePage = () => {
   return (
     <SessionProvider>
-      <HomePageContent />
+      <ClientProvider>
+        <HomePageContent />
+      </ClientProvider>
     </SessionProvider>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePage

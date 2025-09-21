@@ -30,6 +30,19 @@ export const formatDateForDisplay = (dateString: string): string => {
     year: 'numeric',
   })
 }
+/**
+ * Format a date string for display
+ * @param dateString - The date string to format
+ * @returns Formatted date string
+ */
+export const friendlyDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
 
 /**
  * Check if a date is in the past
