@@ -1,124 +1,134 @@
-# Tasks: Shareholder Proxy Document Management
+# Tasks: Shareholder Proxy Document Management (Revised with OpenAPI Client & Seed Integration)
 
-**Input**: Design documents from `/specs/001-med-1291-documents/`
-**Prerequisites**: plan.md (required), research.md, data-model.md, contracts/, quickstart.md
-
-## Execution Flow (main)
-(Reference only – already executed by /tasks workflow)
+**Input**: `/specs/001-med-1291-documents/` + `mock-api-server/openapi-schema/openapi.yaml` + `supabase/seed.ts`
+**Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md, openapi spec
 
 ## Format
 `[ID] [P?] Description`
-- [P] can run in parallel (different files, no dependency overlap)
-- TDD: All contract & integration tests precede implementation tasks they validate
+- [P] = may run in parallel (different files, no dependency)
+- TDD enforced: tests (contract + integration + seed validation) fail before implementation
 
-## Phase 3.1: Setup & Schema
+## Phase 3.0: OpenAPI Spec Alignment & Client Scaffolding
 
-- [ ] T001 Ensure Supabase local running & env vars extended (`issuer-portal/.env.local`) with document bucket names (e.g. `DOCS_BUCKET=forms`, `PROXY_BUCKET=proxy`, `SUPPORT_BUCKET=supporting`) – no code file
-- [ ] T002 Create storage buckets (manual or migration note) & document in `supabase/seed.sql`
-- [ ] T003 Add database migrations for new tables/enums in `supabase/migrations/` (form_documents, proxy_materials, supporting_documents, document_versions, approval_records, readiness_summaries, enums) – one migration file
-- [ ] T004 [P] Add enum TypeScript declarations mapping to DB enums in `issuer-portal/types/documents.ts`
-- [ ] T005 [P] Add stub digital signature provider interface + stub implementation in `issuer-portal/domain-models/documents/signature/StubSignatureProvider.ts`
-- [ ] T006 Add hashing utility (SHA-256 Base64) in `issuer-portal/domain-models/documents/utils/hash.ts`
-- [ ] T007 Add file validation helper (mime/size per type) in `issuer-portal/domain-models/documents/utils/fileValidation.ts`
+- [ ] T001 Audit current OpenAPI spec for missing document endpoints; add (sign-digital, upload-executed, upload, approve, replace, readiness, history) to `mock-api-server/openapi-schema/openapi.yaml`
+- [ ] T002 Add script `scripts/generate-openapi-types.ts` using `openapi-typescript` to produce `issuer-portal/domain-models/api/generated.ts`
+- [ ] T003 Add dependency `openapi-fetch` (and `openapi-typescript` as dev) in `issuer-portal/package.json`
+- [ ] T004 [P] Implement typed API client wrapper `issuer-portal/domain-models/api/client.ts` (createOpenAPIClient) exporting typed fetchers
+- [ ] T005 [P] Add runtime response validator (narrow assertions) in `issuer-portal/domain-models/api/responseGuard.ts`
+- [ ] T006 Add drift check script `scripts/check-openapi-drift.sh` (compares contracts vs spec paths) & CI docs note
 
-## Phase 3.2: Contract Tests (Failing First)
-Contract files → one test each. Paths: `issuer-portal/tests/contracts/documents/`
+## Phase 3.1: Environment, Buckets & Seed Enhancements
 
-- [ ] T008 [P] Contract test forms digital sign POST `/api/documents/forms/FORM_OF_PROXY/sign-digital` in `issuer-portal/tests/contracts/documents/forms_sign_digital.test.ts`
-- [ ] T009 [P] Contract test forms upload executed POST `/api/documents/forms/VIF/upload-executed` in `issuer-portal/tests/contracts/documents/forms_upload_executed.test.ts`
-- [ ] T010 [P] Contract test generic upload POST `/api/documents/PROXY_STATEMENT/upload` in `issuer-portal/tests/contracts/documents/proxy_upload.test.ts`
-- [ ] T011 [P] Contract test approve POST `/api/documents/PROXY_STATEMENT/{versionId}/approve` in `issuer-portal/tests/contracts/documents/proxy_approve.test.ts`
-- [ ] T012 [P] Contract test replace POST `/api/documents/PROXY_STATEMENT/{approvedVersionId}/replace` in `issuer-portal/tests/contracts/documents/proxy_replace.test.ts`
-- [ ] T013 [P] Contract test readiness GET `/api/documents/readiness?meetingId=` in `issuer-portal/tests/contracts/documents/readiness_get.test.ts`
-- [ ] T014 [P] Contract test history GET `/api/documents/PROXY_STATEMENT/history?meetingId=` in `issuer-portal/tests/contracts/documents/history_get.test.ts`
+- [ ] T007 Ensure Supabase local env & extend `.env.local` with `DOCS_BUCKET=forms`, `PROXY_BUCKET=proxy`, `SUPPORT_BUCKET=supporting`
+- [ ] T008 Create storage buckets (forms/proxy/supporting) & update `supabase/seed.sql` with INSERT or comment describing manual creation
+- [ ] T009 Add DB migrations (tables/enums) in single file under `supabase/migrations/` (form_documents, proxy_materials, supporting_documents, document_versions, approval_records, readiness_summaries + enums)
+- [ ] T010 [P] Add enum TS declarations mapping DB enums in `issuer-portal/types/documents.ts`
+- [ ] T011 [P] Stub digital signature provider + interface in `issuer-portal/domain-models/documents/signature/StubSignatureProvider.ts`
+- [ ] T012 [P] Hash utility (SHA-256 Base64) in `issuer-portal/domain-models/documents/utils/hash.ts`
+- [ ] T013 [P] File validation helper in `issuer-portal/domain-models/documents/utils/fileValidation.ts`
+- [ ] T014 Enhance `supabase/seed.ts` to seed: meeting with 3 form_documents (FORM_GENERATED), one proxy placeholder, readiness_summaries row (all false), and sample supporting doc placeholders
+- [ ] T015 Add seed verification script `scripts/verify-seed-documents.ts` (checks seeded counts, states) failing if mismatch
+
+## Phase 3.2: Contract & Spec Convergence Tests (Failing First)
+
+- [ ] T016 [P] Contract test forms digital sign (imports generated types) `issuer-portal/tests/contracts/documents/forms_sign_digital.test.ts`
+- [ ] T017 [P] Contract test executed form upload `issuer-portal/tests/contracts/documents/forms_upload_executed.test.ts`
+- [ ] T018 [P] Contract test proxy upload `issuer-portal/tests/contracts/documents/proxy_upload.test.ts`
+- [ ] T019 [P] Contract test approve proxy version `issuer-portal/tests/contracts/documents/proxy_approve.test.ts`
+- [ ] T020 [P] Contract test replace proxy version `issuer-portal/tests/contracts/documents/proxy_replace.test.ts`
+- [ ] T021 [P] Contract test readiness `issuer-portal/tests/contracts/documents/readiness_get.test.ts`
+- [ ] T022 [P] Contract test history listing `issuer-portal/tests/contracts/documents/history_get.test.ts`
+- [ ] T023 Add spec drift test `issuer-portal/tests/contracts/openapi_documents_conformance.test.ts` (assert every documents path in contracts exists in generated types)
 
 ## Phase 3.3: Integration Tests (Failing First)
-Scenarios from quickstart. Paths: `issuer-portal/tests/integration/documents/`
 
-- [ ] T015 [P] Integration test end-to-end form digital sign + readiness update in `issuer-portal/tests/integration/documents/forms_digital_sign_flow.test.ts`
-- [ ] T016 [P] Integration test executed form upload (wet-sign) in `issuer-portal/tests/integration/documents/forms_upload_executed_flow.test.ts`
-- [ ] T017 [P] Integration test proxy material approve flow (upload → approve) in `issuer-portal/tests/integration/documents/proxy_approve_flow.test.ts`
-- [ ] T018 [P] Integration test supporting document optional upload in `issuer-portal/tests/integration/documents/supporting_upload_flow.test.ts`
-- [ ] T019 [P] Integration test readiness computation partial vs complete in `issuer-portal/tests/integration/documents/readiness_states.test.ts`
-- [ ] T020 [P] Integration test replace approved proxy material in `issuer-portal/tests/integration/documents/proxy_replace_flow.test.ts`
-- [ ] T021 [P] Integration test history listing ordering & immutability in `issuer-portal/tests/integration/documents/history_listing.test.ts`
+- [ ] T024 [P] Integration digital sign flow + readiness update `issuer-portal/tests/integration/documents/forms_digital_sign_flow.test.ts`
+- [ ] T025 [P] Integration executed form upload flow `issuer-portal/tests/integration/documents/forms_upload_executed_flow.test.ts`
+- [ ] T026 [P] Integration proxy approve flow `issuer-portal/tests/integration/documents/proxy_approve_flow.test.ts`
+- [ ] T027 [P] Integration supporting optional upload `issuer-portal/tests/integration/documents/supporting_upload_flow.test.ts`
+- [ ] T028 [P] Integration readiness partial vs complete `issuer-portal/tests/integration/documents/readiness_states.test.ts`
+- [ ] T029 [P] Integration proxy replace flow `issuer-portal/tests/integration/documents/proxy_replace_flow.test.ts`
+- [ ] T030 [P] Integration history listing immutability `issuer-portal/tests/integration/documents/history_listing.test.ts`
+- [ ] T031 Seed verification test (exec seed then assert readiness false) `issuer-portal/tests/integration/documents/seed_state.test.ts`
 
 ## Phase 3.4: Models & Data Access
 
-- [ ] T022 [P] Implement enum type mappers & shared types in `issuer-portal/domain-models/documents/types.ts`
-- [ ] T023 [P] FormDocument repository functions (create initial, mark executed) in `issuer-portal/domain-models/documents/repositories/FormDocumentsRepo.ts`
-- [ ] T024 [P] ProxyMaterial repository (create placeholder, add version, mark approved) in `issuer-portal/domain-models/documents/repositories/ProxyMaterialsRepo.ts`
-- [ ] T025 [P] SupportingDocument repository (create placeholder, add version) in `issuer-portal/domain-models/documents/repositories/SupportingDocumentsRepo.ts`
-- [ ] T026 [P] DocumentVersions repository (createVersion, listByParent, getHistory) in `issuer-portal/domain-models/documents/repositories/DocumentVersionsRepo.ts`
-- [ ] T027 [P] ApprovalRecords repository in `issuer-portal/domain-models/documents/repositories/ApprovalRecordsRepo.ts`
-- [ ] T028 [P] ReadinessSummary repository (compute + persist) in `issuer-portal/domain-models/documents/repositories/ReadinessRepo.ts`
+- [ ] T032 [P] Enum mappers & shared types `issuer-portal/domain-models/documents/types.ts`
+- [ ] T033 [P] FormDocument repository `issuer-portal/domain-models/documents/repositories/FormDocumentsRepo.ts`
+- [ ] T034 [P] ProxyMaterial repository `issuer-portal/domain-models/documents/repositories/ProxyMaterialsRepo.ts`
+- [ ] T035 [P] SupportingDocument repository `issuer-portal/domain-models/documents/repositories/SupportingDocumentsRepo.ts`
+- [ ] T036 [P] DocumentVersions repository `issuer-portal/domain-models/documents/repositories/DocumentVersionsRepo.ts`
+- [ ] T037 [P] ApprovalRecords repository `issuer-portal/domain-models/documents/repositories/ApprovalRecordsRepo.ts`
+- [ ] T038 [P] ReadinessSummary repository `issuer-portal/domain-models/documents/repositories/ReadinessRepo.ts`
 
 ## Phase 3.5: Services & Domain Logic
 
-- [ ] T029 Orchestrate form digital sign service (generate version hash, create executed version, update FormDocument, emit event) in `issuer-portal/domain-models/documents/services/FormSigningService.ts`
-- [ ] T030 Orchestrate executed form upload service in `issuer-portal/domain-models/documents/services/FormUploadService.ts`
-- [ ] T031 Proxy upload service (validate type, create version, update parent state) in `issuer-portal/domain-models/documents/services/ProxyUploadService.ts`
-- [ ] T032 Proxy approve service (guards, create ApprovalRecord, update parent & readiness) in `issuer-portal/domain-models/documents/services/ProxyApproveService.ts`
-- [ ] T033 Proxy replace service (guards admin, create new version, leave approved version) in `issuer-portal/domain-models/documents/services/ProxyReplaceService.ts`
-- [ ] T034 Supporting upload service in `issuer-portal/domain-models/documents/services/SupportingUploadService.ts`
-- [ ] T035 Readiness compute service (aggregate states, write readiness_summaries) in `issuer-portal/domain-models/documents/services/ReadinessService.ts`
-- [ ] T036 Event dispatcher & typed events definition in `issuer-portal/domain-models/documents/events/DocumentEvents.ts`
-- [ ] T037 Hash & validation integration (use utils in services) update tests
+- [ ] T039 Form digital sign service `issuer-portal/domain-models/documents/services/FormSigningService.ts`
+- [ ] T040 Executed form upload service `issuer-portal/domain-models/documents/services/FormUploadService.ts`
+- [ ] T041 Proxy upload service `issuer-portal/domain-models/documents/services/ProxyUploadService.ts`
+- [ ] T042 Proxy approve service `issuer-portal/domain-models/documents/services/ProxyApproveService.ts`
+- [ ] T043 Proxy replace service `issuer-portal/domain-models/documents/services/ProxyReplaceService.ts`
+- [ ] T044 Supporting upload service `issuer-portal/domain-models/documents/services/SupportingUploadService.ts`
+- [ ] T045 Readiness compute service `issuer-portal/domain-models/documents/services/ReadinessService.ts`
+- [ ] T046 Event dispatcher & typed events `issuer-portal/domain-models/documents/events/DocumentEvents.ts`
+- [ ] T047 Hash & validation integration adjustments across services
 
 ## Phase 3.6: API Route Implementations
-(Implement only after corresponding tests exist failing)
+(Implement only after failing tests exist)
 
-- [ ] T038 Implement forms digital sign route in `issuer-portal/app/api/documents/forms/[formType]/sign-digital/route.ts`
-- [ ] T039 Implement forms upload executed route in `issuer-portal/app/api/documents/forms/[formType]/upload-executed/route.ts`
-- [ ] T040 Implement generic document upload route in `issuer-portal/app/api/documents/[documentType]/upload/route.ts`
-- [ ] T041 Implement approve route in `issuer-portal/app/api/documents/[documentType]/[versionId]/approve/route.ts`
-- [ ] T042 Implement replace route in `issuer-portal/app/api/documents/[documentType]/[approvedVersionId]/replace/route.ts`
-- [ ] T043 Implement readiness get route in `issuer-portal/app/api/documents/readiness/route.ts`
-- [ ] T044 Implement history get route in `issuer-portal/app/api/documents/[documentType]/history/route.ts`
+- [ ] T048 Forms digital sign route `issuer-portal/app/api/documents/forms/[formType]/sign-digital/route.ts`
+- [ ] T049 Forms upload executed route `issuer-portal/app/api/documents/forms/[formType]/upload-executed/route.ts`
+- [ ] T050 Generic document upload route `issuer-portal/app/api/documents/[documentType]/upload/route.ts`
+- [ ] T051 Approve route `issuer-portal/app/api/documents/[documentType]/[versionId]/approve/route.ts`
+- [ ] T052 Replace route `issuer-portal/app/api/documents/[documentType]/[approvedVersionId]/replace/route.ts`
+- [ ] T053 Readiness route `issuer-portal/app/api/documents/readiness/route.ts`
+- [ ] T054 History route `issuer-portal/app/api/documents/[documentType]/history/route.ts`
+- [ ] T055 API client integration test (using openapi-fetch client) `issuer-portal/tests/integration/documents/api_client_roundtrip.test.ts`
 
 ## Phase 3.7: Observability & Integrity
 
-- [ ] T045 Structured event logging (form.generated, form.executed, document.uploaded, document.approved, readiness.computed) in `issuer-portal/domain-models/documents/events/emit.ts`
-- [ ] T046 Add audit metadata fields population (actor, meetingId) where missing across services
-- [ ] T047 Add hashing verification check on retrieval paths (optional fast path) in services
-- [ ] T048 Add error mapping utility (domain errors → HTTP codes) in `issuer-portal/domain-models/documents/utils/errors.ts`
+- [ ] T056 Structured event logging `issuer-portal/domain-models/documents/events/emit.ts`
+- [ ] T057 Populate audit metadata (actor, meetingId) in services
+- [ ] T058 Hash verification on retrieval (optional fast path)
+- [ ] T059 Error mapping utility `issuer-portal/domain-models/documents/utils/errors.ts`
+- [ ] T060 Add OpenAPI examples for document endpoints (request/response) in `mock-api-server/openapi-schema/openapi.yaml`
 
-## Phase 3.8: Polish & Finalization
+## Phase 3.8: Seed & Performance Polish
 
-- [ ] T049 [P] Unit tests for hash & validation utilities in `issuer-portal/tests/unit/documents/utils.test.ts`
-- [ ] T050 [P] Unit tests for readiness service edge cases (partial, missing required) in `issuer-portal/tests/unit/documents/readiness_service.test.ts`
-- [ ] T051 Performance smoke (readiness <150ms, approve <300ms) script in `issuer-portal/tests/perf/documents/perf_smoke.test.ts`
-- [ ] T052 [P] Documentation sync: update `specs/001-med-1291-documents/quickstart.md` with any route nuances discovered
-- [ ] T053 Dead code & duplication pass (remove unused placeholders)
-- [ ] T054 Security review checklist (file type enforcement, size limits, role restrictions) in `specs/001-med-1291-documents/security-review.md`
-- [ ] T055 Final readiness recompute & manual quickstart walkthrough (checklist ticks) no code file
+- [ ] T061 [P] Unit tests hash & validation utils `issuer-portal/tests/unit/documents/utils.test.ts`
+- [ ] T062 [P] Unit tests readiness edge cases `issuer-portal/tests/unit/documents/readiness_service.test.ts`
+- [ ] T063 Performance smoke (readiness <150ms, approve <300ms) `issuer-portal/tests/perf/documents/perf_smoke.test.ts`
+- [ ] T064 [P] Documentation sync quickstart updates `specs/001-med-1291-documents/quickstart.md`
+- [ ] T065 Dead code & duplication cleanup
+- [ ] T066 Security review checklist `specs/001-med-1291-documents/security-review.md`
+- [ ] T067 Final readiness recompute & manual walkthrough (no code)
 
 ## Dependencies Summary
 
-- Setup (T001–T007) before tests needing utilities (tests can stub if earlier) – minimal cross dependency
-- Contract tests (T008–T014) and integration tests (T015–T021) must precede implementation tasks they cover
-- Repositories (T023–T028) before services (T029–T035)
-- Services before API routes (T038–T044)
-- Events (T036) can occur alongside services but before routes use them
-- Observability tasks (T045–T048) after core services but before polish tests verifying logging if any
-- Polish (T049–T055) last
+- Phase 3.0 (T001–T006) precedes any test using generated types
+- Seed & migrations (T007–T015) before integration tests (T024+); contract tests can run with mocked persistence if needed
+- Contract tests (T016–T023) & integration tests (T024–T031) must fail before model/services/routes (T032+)
+- Repositories (T032–T038) before services (T039–T047)
+- Services before routes (T048–T054) & before API client roundtrip (T055)
+- Observability (T056–T060) after core logic but before perf & final polish
+- Seed verification (T031) ensures test baseline
 
-## Parallel Execution Guidance
+## Parallel Execution Examples
 
-Example early parallel batch:
-- T004, T005, T006, T007 (independent utilities)
-- T008–T014 (all contract tests together)
-- T015–T021 (all integration tests together after contract tests if environment stable)
+Early batch candidates:
+- T002, T003, T004, T005 (independent client scaffolding)
+- T010–T013 (utilities + enums)
+- T016–T023 (all contract tests)
+- T024–T031 (integration tests) once seed & migrations complete
 
 ## Validation Checklist
 
-- [ ] All contracts mapped → T008–T014 present
-- [ ] All entities have repository/model tasks → T023–T028
-- [ ] Quickstart scenarios fully covered → T015–T021
-- [ ] TDD ordering preserved (tests before implementation)
-- [ ] Parallel markers only on independent paths
-- [ ] Hashing, file validation, readiness, approvals all have service coverage
-- [ ] Observability events enumerated
-- [ ] Security constraints tasks present (size/type, role)
+- [ ] All document endpoints present in OpenAPI spec (T001) & examples added (T060)
+- [ ] Generated types consumed by contract tests (T016–T023)
+- [ ] Drift script exists (T006) and drift test added (T023)
+- [ ] Seed extended with document baseline (T014) & verified (T015, T031)
+- [ ] Repos/services/routes cover full lifecycle
+- [ ] Observability + error mapping implemented
+- [ ] Security & performance addressed (T063, T066)
 
-Status: READY FOR EXECUTION
+Status: READY FOR EXECUTION (Revised)
