@@ -9,7 +9,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement getCurrentUser
     // Operation: getCurrentUser
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Fetch data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in GET /auth/me:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'getCurrentUser'

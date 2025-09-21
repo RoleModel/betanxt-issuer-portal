@@ -58,3 +58,17 @@ export async function updateProposal(
     body: updates,
   })
 }
+
+export async function listProposals(meetingId?: string) {
+  const apiClient = await buildApiClient()
+
+  if (meetingId) {
+    return await apiClient.GET('/meetings/{meetingId}/proposals', {
+      params: {
+        path: { meetingId },
+      },
+    })
+  }
+
+  return await apiClient.GET('/proposals')
+}

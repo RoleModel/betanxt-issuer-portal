@@ -53,6 +53,7 @@ export async function listMeetings(
     const { data: meetings, error, count } = await query
 
     if (error) {
+      console.error('Supabase query error in listMeetings:', error)
       return {
         data: undefined,
         error: {
@@ -62,37 +63,65 @@ export async function listMeetings(
       }
     }
 
+    // Get unique client IDs for fetching client data
+    const clientIds = [...new Set((meetings || []).map(m => m.client_id).filter(Boolean))]
+
+    // Fetch client data if we have client IDs
+    let clientsData = []
+    if (clientIds.length > 0) {
+      const { data: clients, error: clientError } = await supabase
+        .from('client')
+        .select('id, ticker, company_name, short_name, branding_id')
+        .in('id', clientIds)
+
+      if (!clientError) {
+        clientsData = clients || []
+      }
+    }
+
     // Convert snake_case to camelCase for meetings
-    const convertedMeetings = (meetings || []).map(meeting => ({
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      preFilingDate: meeting.pre_filing_date,
-      filingDate: meeting.filing_date,
-      brokerSearchDate: meeting.broker_search_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      employeeStockPlans: meeting.employee_stock_plans,
-      planAdministrator: meeting.plan_administrator,
-      planAdministratorContact: meeting.plan_administrator_contact,
-      planAdministratorContactEmail: meeting.plan_administrator_contact_email,
-      solicitor: meeting.solicitor,
-      solicitorEmail: meeting.solicitor_email,
-      inspector: meeting.inspector,
-      documentHostingSiteLabel: meeting.document_hosting_site_label,
-      documentHostingSiteUrl: meeting.document_hosting_site_url,
-      eVoteSiteLabel: meeting.e_vote_site_label,
-      eVoteSiteUrl: meeting.e_vote_site_url,
-      ivrDialInNumber: meeting.ivr_dial_in_number,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
-    }))
+    const convertedMeetings = (meetings || []).map(meeting => {
+      const client = clientsData.find(c => c.id === meeting.client_id)
+
+      return {
+        ...meeting,
+        meetingDate: meeting.meeting_date,
+        meetingType: meeting.meeting_type,
+        meetingYear: meeting.meeting_year,
+        clientId: meeting.client_id,
+        recordDate: meeting.record_date,
+        mailingDate: meeting.mailing_date,
+        preFilingDate: meeting.pre_filing_date,
+        filingDate: meeting.filing_date,
+        brokerSearchDate: meeting.broker_search_date,
+        distributionType: meeting.distribution_type,
+        transferAgent: meeting.transfer_agent,
+        employeeStockPlans: meeting.employee_stock_plans,
+        planAdministrator: meeting.plan_administrator,
+        planAdministratorContact: meeting.plan_administrator_contact,
+        planAdministratorContactEmail: meeting.plan_administrator_contact_email,
+        solicitor: meeting.solicitor,
+        solicitorEmail: meeting.solicitor_email,
+        inspector: meeting.inspector,
+        documentHostingSiteLabel: meeting.document_hosting_site_label,
+        documentHostingSiteUrl: meeting.document_hosting_site_url,
+        eVoteSiteLabel: meeting.e_vote_site_label,
+        eVoteSiteUrl: meeting.e_vote_site_url,
+        ivrDialInNumber: meeting.ivr_dial_in_number,
+        totalSharesOutstanding: meeting.total_shares_outstanding,
+        quorumRequirement: meeting.quorum_requirement,
+        createdAt: meeting.created_at,
+        updatedAt: meeting.updated_at,
+        // Convert client data
+        client: client ? {
+          id: client.id,
+          ticker: client.ticker,
+          companyName: client.company_name,
+          shortName: client.short_name,
+          brandingId: client.branding_id
+        } : null
+      }
+    })
 
     return {
       data: {
@@ -213,6 +242,26 @@ export async function getMeetingById(id: string): Promise<ApiClientReturnType<an
       }
     }
 
+    // Fetch client data if meeting has client_id
+    let client = null
+    if (meeting && meeting.client_id) {
+      const { data: clientData, error: clientError } = await supabase
+        .from('client')
+        .select('id, ticker, company_name, short_name, branding_id')
+        .eq('id', meeting.client_id)
+        .single()
+
+      if (!clientError && clientData) {
+        client = {
+          id: clientData.id,
+          ticker: clientData.ticker,
+          companyName: clientData.company_name,
+          shortName: clientData.short_name,
+          brandingId: clientData.branding_id
+        }
+      }
+    }
+
     // Convert snake_case to camelCase
     const convertedMeeting = meeting ? {
       ...meeting,
@@ -222,12 +271,29 @@ export async function getMeetingById(id: string): Promise<ApiClientReturnType<an
       clientId: meeting.client_id,
       recordDate: meeting.record_date,
       mailingDate: meeting.mailing_date,
+      preFilingDate: meeting.pre_filing_date,
+      filingDate: meeting.filing_date,
+      brokerSearchDate: meeting.broker_search_date,
       distributionType: meeting.distribution_type,
       transferAgent: meeting.transfer_agent,
+      employeeStockPlans: meeting.employee_stock_plans,
+      planAdministrator: meeting.plan_administrator,
+      planAdministratorContact: meeting.plan_administrator_contact,
+      planAdministratorContactEmail: meeting.plan_administrator_contact_email,
+      solicitor: meeting.solicitor,
+      solicitorEmail: meeting.solicitor_email,
+      inspector: meeting.inspector,
+      documentHostingSiteLabel: meeting.document_hosting_site_label,
+      documentHostingSiteUrl: meeting.document_hosting_site_url,
+      eVoteSiteLabel: meeting.e_vote_site_label,
+      eVoteSiteUrl: meeting.e_vote_site_url,
+      ivrDialInNumber: meeting.ivr_dial_in_number,
       totalSharesOutstanding: meeting.total_shares_outstanding,
       quorumRequirement: meeting.quorum_requirement,
       createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
+      updatedAt: meeting.updated_at,
+      // Include client data
+      client: client
     } : null
 
     return {

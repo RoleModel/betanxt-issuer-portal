@@ -36,7 +36,7 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/phases:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'listPhases'
@@ -72,7 +72,7 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/phases:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'createPhase'

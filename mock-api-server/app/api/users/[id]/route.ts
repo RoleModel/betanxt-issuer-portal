@@ -32,7 +32,7 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /users/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'getUserById'
@@ -68,7 +68,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /users/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'updateUser'
@@ -101,7 +101,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error in DELETE /users/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'deleteUser'

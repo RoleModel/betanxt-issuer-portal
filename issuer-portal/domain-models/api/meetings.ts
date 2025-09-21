@@ -38,11 +38,16 @@ export async function createMeeting(
 export async function getMeetingById(id: string) {
   const apiClient = await buildApiClient()
 
-  return await apiClient.GET('/meetings/{meetingId}', {
-    params: {
-      path: { meetingId: id },
-    },
-  })
+  try {
+    const result = await apiClient.GET('/meetings/{meetingId}', {
+      params: {
+        path: { meetingId: id },
+      },
+    })
+    return result
+  } catch (error) {
+    throw error
+  }
 }
 
 export async function updateMeeting(

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in GET /accounts/{accountId}/users:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'listAccountUsers'
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // TODO: Implement createAccountUser
     // Operation: createAccountUser
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Insert data into Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in POST /accounts/{accountId}/users:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'createAccountUser'

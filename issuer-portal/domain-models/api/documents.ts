@@ -59,6 +59,16 @@ export async function getDocumentComments(documentId: string) {
   })
 }
 
+export async function listDocumentsByMeetingId(meetingId: string) {
+  const apiClient = await buildApiClient()
+
+  return await apiClient.GET('/meetings/{meetingId}/documents', {
+    params: {
+      path: { meetingId },
+    },
+  })
+}
+
 export async function addComment(
   documentId: string,
   comment: {

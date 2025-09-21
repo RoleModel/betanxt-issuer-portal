@@ -23,7 +23,7 @@ export async function GET(
     const proposalType = searchParams.get('proposalType') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listProposals(meetingId)
+    const { data, error } = await listProposals(meetingId, proposalType)
 
     if (error) {
       return NextResponse.json(
@@ -36,7 +36,7 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/proposals:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'listProposals'
@@ -59,7 +59,7 @@ export async function POST(
     const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createProposal(body)
+    const { data, error } = await createProposal(body, meetingId)
 
     if (error) {
       return NextResponse.json(
@@ -72,7 +72,7 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/proposals:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         operationId: 'createProposal'

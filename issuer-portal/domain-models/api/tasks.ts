@@ -33,6 +33,16 @@ export async function getTaskById(id: string) {
   })
 }
 
+export async function listTasksByMeetingId(meetingId: string) {
+  const apiClient = await buildApiClient()
+
+  return await apiClient.GET('/meetings/{meetingId}/tasks', {
+    params: {
+      path: { meetingId },
+    },
+  })
+}
+
 export async function updateTask(
   id: string,
   updates: {

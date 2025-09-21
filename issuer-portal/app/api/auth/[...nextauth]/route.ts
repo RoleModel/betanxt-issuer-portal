@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth';
-import type { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import Credentials from 'next-auth/providers/credentials';
 
-const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: 'credentials',
       credentials: {
         username: { label: 'Username', type: 'text' },
@@ -33,7 +32,7 @@ const authOptions: NextAuthOptions = {
           }
 
           const user = await response.json();
-          
+
           if (user) {
             return {
               id: user.id,
@@ -77,8 +76,6 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
   },
-};
-
-const handler = NextAuth(authOptions);
+});
 
 export { handler as GET, handler as POST };

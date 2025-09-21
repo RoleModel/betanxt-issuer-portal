@@ -1,10 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.094Z
+// Generated on 2025-09-17T01:20:22.508Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
+// import { supabase } from '@/utils/supabase/client'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json()
@@ -19,7 +20,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     //   .insert(body)
     //   .select()
 
-    return NextResponse.json(body, { status: 201 })
+    return NextResponse.json({
+      message: 'Route /auth/logout POST not yet implemented',
+      operationId: 'logoutUser',
+      method: 'POST',
+      path: '/auth/logout',
+      body,
+    }, { status: 501 }) // 501 Not Implemented
   } catch (error) {
     console.error('Error in POST /auth/logout:', error)
     return NextResponse.json(
