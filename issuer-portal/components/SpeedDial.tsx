@@ -11,6 +11,9 @@ import { SpeedDialProps } from '@mui/material/SpeedDial'
 import SpeedDialAction from '@mui/material/SpeedDialAction'
 import SpeedDialIcon from '@mui/material/SpeedDialIcon'
 
+import SupportContactsPopover from './SupportContactsPopover'
+import IssuerChatbot from './ChatBot/IssuerChatbot'
+
 const actions = [
   {
     icon: (
@@ -37,9 +40,9 @@ const actions = [
 ]
 
 export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => ({
-  position: 'absolute',
+  position: 'fixed',
   bottom: 0,
-  right: theme.spacing(2),
+  right: theme.spacing(4),
   zIndex: 2500,
   alignItems: 'end',
   '& .MuiSpeedDial-actions': {
@@ -59,19 +62,50 @@ export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => 
 }))
 
 export default function IssuerSpeedDial() {
+  const [contactsOpen, setContactsOpen] = React.useState(false)
+  const [chatbotOpen, setChatbotOpen] = React.useState(false)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
+
+  const handleActionClick = (actionName: string) => {
+    if (actionName === 'Contacts') {
+      setContactsOpen(!contactsOpen)
+      setChatbotOpen(false) // Close chatbot if open
+    } else if (actionName === 'AI Assistant') {
+      setChatbotOpen(!chatbotOpen)
+      setContactsOpen(false) // Close contacts if open
+    }
+  }
+
+  const handleContactsClose = () => {
+    setContactsOpen(false)
+  }
+
+  const handleChatbotClose = () => {
+    setChatbotOpen(false)
+  }
+
   return (
     <Box
       sx={(theme) => ({
         position: 'fixed',
         bottom: theme.spacing(7.5),
         right: 0,
-
         transform: 'translateZ(0px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
       })}
     >
+      {/* Support Contacts Popover */}
+      <SupportContactsPopover
+        open={contactsOpen}
+        anchorEl={anchorEl}
+        onClose={handleContactsClose}
+      />
+
+      {/* AI ChatBot */}
+      <IssuerChatbot open={chatbotOpen} onClose={handleChatbotClose} />
+
       <StyledSpeedDial
         ariaLabel="Issuer Support Tools"
         icon={
@@ -90,6 +124,7 @@ export default function IssuerSpeedDial() {
           <SpeedDialAction
             key={action.name}
             icon={action.icon}
+            onClick={() => handleActionClick(action.name)}
             slotProps={{
               fab: {
                 size: 'medium',

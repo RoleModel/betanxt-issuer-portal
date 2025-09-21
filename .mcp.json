@@ -1,5 +1,13 @@
 {
   "mcpServers": {
+    "issuer-portal-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:3000/api/mcp"
+      ]
+    },
     "supabase": {
       "command": "npx",
       "args": [
@@ -15,7 +23,10 @@
     "mui-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@mui/mcp@latest"]
+      "args": [
+        "-y",
+        "@mui/mcp@latest"
+      ]
     },
     "figma-dev-mode-mcp-server": {
       "type": "http",
