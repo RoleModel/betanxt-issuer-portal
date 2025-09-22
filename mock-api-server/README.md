@@ -85,9 +85,14 @@ npm run generate:db-types
 - `types/api.ts` - OpenAPI-generated types for request/response models
 - `utils/supabase/database.types.ts` - Supabase-generated database types
 
-### 4. Domain Models
+### 4. Domain Models (Manual Implementation)
 
-Domain models provide the business logic layer between the database and API routes:
+Domain models provide the business logic layer between the database and API routes. **Unlike types and routes, domain models are manually implemented** to allow for:
+
+- **Custom business logic** (validation, computed fields, side effects)
+- **Field transformations** (snake_case ↔ camelCase mapping)
+- **Error handling** (consistent error response format)
+- **Database optimization** (custom queries, joins, transactions)
 
 ```typescript
 // domain-models/api/tasks.ts
@@ -96,14 +101,32 @@ import { supabase } from '@/utils/supabase/client'
 
 type Task = components['schemas']['Task']
 
-// Transform database snake_case to API camelCase
+// Manual field mapping ensures all OpenAPI fields are included
 function transformTask(dbTask: any): Task {
   return {
+    // Core fields
     id: dbTask.id,
     title: dbTask.title,
+    description: dbTask.description,
+
+    // Foreign keys (snake_case → camelCase)
     meetingId: dbTask.meeting_id,
+    phaseId: dbTask.phase_id,
+    documentId: dbTask.document_id,
+
+    // JSON fields (parsed automatically by Supabase)
     links: dbTask.links,
-    // ... other field mappings
+
+    // Metadata
+    owner: dbTask.owner,
+    status: dbTask.status,
+    type: dbTask.type,
+    dueDate: dbTask.due_date,
+    phaseNumber: dbTask.phase_number,
+
+    // Timestamps
+    createdAt: dbTask.created_at,
+    updatedAt: dbTask.updated_at,
   }
 }
 
@@ -113,9 +136,19 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
     .select('*')
     .eq('meeting_id', meetingId)
 
+  if (error) {
+    return { error: { message: error.message, statusCode: 500 } }
+  }
+
   return { data: data.map(transformTask) }
 }
 ```
+
+**Key Principle**: When adding new fields to the OpenAPI schema:
+1. ✅ Update OpenAPI specification
+2. ✅ Regenerate database schema and types
+3. ✅ **Manually update domain model transformations**
+4. ✅ Add field mappings in create/update functions
 
 ### 5. Auto-Generated API Routes
 

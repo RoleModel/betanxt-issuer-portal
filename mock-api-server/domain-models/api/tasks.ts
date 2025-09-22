@@ -28,6 +28,8 @@ function transformTask(dbTask: any): Task {
     phaseId: dbTask.phase_id,
     phaseNumber: dbTask.phase_number,
     type: dbTask.type,
+    documentId: dbTask.document_id,
+    links: dbTask.links,
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
   }
@@ -88,6 +90,8 @@ export async function createTask(
         phase_id: body.phaseId,
         phase_number: body.phaseNumber,
         type: body.type,
+        document_id: body.documentId,
+        links: body.links,
       })
       .select()
       .single()
@@ -144,6 +148,8 @@ export async function updateTask(
     if (body.phaseId !== undefined) updateData.phase_id = body.phaseId
     if (body.phaseNumber !== undefined) updateData.phase_number = body.phaseNumber
     if (body.type !== undefined) updateData.type = body.type
+    if (body.documentId !== undefined) updateData.document_id = body.documentId
+    if (body.links !== undefined) updateData.links = body.links
 
     const { data, error } = await supabase
       .from('task')
