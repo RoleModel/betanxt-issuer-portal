@@ -213,3 +213,5 @@ import './styles.css'
 **Node Version**: 22.15.x (enforced via engines)
 **Package Manager**: npm 10.9.3
 **Last Updated**: September 16, 2025
+- DO NOT USE ANY type ASSERTIONS
+- Front end doesn't define types
