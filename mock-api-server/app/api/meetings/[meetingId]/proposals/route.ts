@@ -1,11 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.100Z
+// Generated on 2025-09-22T18:38:17.316Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
-import { createProposal, listProposals } from '@/domain-models/api/proposals'
-
-import type { components } from '@/types/api'
+import { listProposals, createProposal } from '@/domain-models/api/proposals'
 
 interface RouteParams {
   meetingId: string
@@ -25,7 +23,7 @@ export async function GET(
     const proposalType = searchParams.get('proposalType') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listProposals(meetingId, proposalType)
+    const { data, error } = await listProposals(meetingId)
 
     if (error) {
       return NextResponse.json(
@@ -38,10 +36,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/proposals:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listProposals',
+        operationId: 'listProposals'
       },
       { status: 500 }
     )
@@ -58,10 +56,10 @@ export async function POST(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['CreateProposalRequest']
+    const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createProposal(meetingId, body)
+    const { data, error } = await createProposal(body)
 
     if (error) {
       return NextResponse.json(
@@ -74,12 +72,13 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/proposals:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createProposal',
+        operationId: 'createProposal'
       },
       { status: 500 }
     )
   }
 }
+

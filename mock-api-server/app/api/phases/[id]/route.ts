@@ -1,11 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.098Z
+// Generated on 2025-09-22T18:38:17.315Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
 import { getPhaseById, updatePhase } from '@/domain-models/api/phases'
-
-import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -34,10 +32,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /phases/{id}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getPhaseById',
+        operationId: 'getPhaseById'
       },
       { status: 500 }
     )
@@ -54,7 +52,7 @@ export async function PUT(
     const id = resolvedParams.id
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['UpdatePhaseRequest']
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await updatePhase(id, body)
@@ -70,12 +68,13 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /phases/{id}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updatePhase',
+        operationId: 'updatePhase'
       },
       { status: 500 }
     )
   }
 }
+

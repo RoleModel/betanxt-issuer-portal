@@ -3,22 +3,16 @@
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
-import { listMeetings, createMeeting } from '@/domain-models/api/meetings'
+import { listClients, createClient } from '@/domain-models/api/clients'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : undefined
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
-    const status = searchParams.get('status') || undefined
-    const clientId = searchParams.get('clientId') || undefined
-    const meetingYear = searchParams.get('meetingYear') ? parseInt(searchParams.get('meetingYear')!, 10) : undefined
-    const cusip = searchParams.get('cusip') || undefined
     const ticker = searchParams.get('ticker') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listMeetings(page, limit, { status, clientId, meetingYear, cusip, ticker })
+    const { data, error } = await listClients(undefined, undefined, ticker)
 
     if (error) {
       return NextResponse.json(
@@ -29,12 +23,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /meetings:', error)
+    console.error('Error in GET /clients:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listMeetings'
+        operationId: 'listClients'
       },
       { status: 500 }
     )
@@ -47,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createMeeting(body)
+    const { data, error } = await createClient(body)
 
     if (error) {
       return NextResponse.json(
@@ -58,12 +52,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /meetings:', error)
+    console.error('Error in POST /clients:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createMeeting'
+        operationId: 'createClient'
       },
       { status: 500 }
     )

@@ -12,7 +12,7 @@ const __dirname = dirname(__filename)
  */
 
 const CORE_TABLES = [
-  'client',
+  'clients',
   'account',
   'user',
   'meeting',

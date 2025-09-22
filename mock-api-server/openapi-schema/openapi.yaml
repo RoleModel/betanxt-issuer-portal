@@ -335,7 +335,7 @@ paths:
                   clients:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Client'
+                      $ref: '#/components/schemas/Clients'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
         '401':
@@ -359,7 +359,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -385,7 +385,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
@@ -414,7 +414,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1293,7 +1293,7 @@ paths:
         '413':
           description: File too large
 
-  /documents/{documentType}/upload:
+  /documents/types/{documentType}/upload:
     post:
       operationId: uploadDocumentVersion
       summary: Upload or create a new document version (proxy or supporting)
@@ -1334,7 +1334,7 @@ paths:
         '413':
           description: File too large
 
-  /documents/{documentType}/{versionId}/approve:
+  /documents/types/{documentType}/{versionId}/approve:
     post:
       operationId: approveDocumentVersion
       summary: Approve a pending proxy material version
@@ -1376,7 +1376,7 @@ paths:
         '409':
           description: Invalid state transition
 
-  /documents/{documentType}/{approvedVersionId}/replace:
+  /documents/types/{documentType}/{versionId}/replace:
     post:
       operationId: replaceApprovedVersion
       summary: Replace an approved proxy material (creates new pending version)
@@ -1387,7 +1387,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: approvedVersionId
+        - name: versionId
           in: path
           required: true
           schema:
@@ -1457,7 +1457,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /documents/{documentType}/history:
+  /documents/types/{documentType}/history:
     get:
       operationId: getDocumentHistory
       summary: Get version history for a document type within a meeting
@@ -2036,7 +2036,7 @@ components:
 
     DocumentStatus:
       type: string
-      enum: [DRAFT, UPLOADED, IN_PROGRESS, SIGNED, AUTHORIZED, COMPLETED]
+      enum: [DRAFT, AWAITING_DRAFT, AWAITING_REVIEW, APPROVED, UPLOADED, IN_PROGRESS, SIGNED, AUTHORIZED, COMPLETED]
 
     # Core Models
     Account:
@@ -2057,10 +2057,10 @@ components:
           type: string
           format: date-time
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: '#/components/schemas/Clients'
           description: The client this account belongs to (relationship)
 
-    Client:
+    Clients:
       type: object
       properties:
         id:
@@ -2255,7 +2255,7 @@ components:
           type: string
           format: date-time
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: '#/components/schemas/Clients'
           description: The client this meeting belongs to (relationship)
 
     Phase:
@@ -2412,6 +2412,10 @@ components:
           format: date-time
           nullable: true
         inProgressDate:
+          type: string
+          format: date-time
+          nullable: true
+        deadline:
           type: string
           format: date-time
           nullable: true

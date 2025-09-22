@@ -1,11 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.096Z
+// Generated on 2025-09-22T18:38:17.314Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
-import { createUser, listUsers } from '@/domain-models/api/users'
-
-import type { components } from '@/types/api'
+import { listUsers, createUser } from '@/domain-models/api/users'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -15,7 +13,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const accountId = searchParams.get('accountId') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listUsers(accountId, type)
+    const { data, error } = await listUsers({ type, accountId })
 
     if (error) {
       return NextResponse.json(
@@ -28,10 +26,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in GET /users:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listUsers',
+        operationId: 'listUsers'
       },
       { status: 500 }
     )
@@ -41,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components['schemas']['CreateUserRequest']
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await createUser(body)
@@ -57,12 +55,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error in POST /users:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createUser',
+        operationId: 'createUser'
       },
       { status: 500 }
     )
   }
 }
+

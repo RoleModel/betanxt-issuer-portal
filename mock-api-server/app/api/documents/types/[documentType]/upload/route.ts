@@ -1,16 +1,20 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.311Z
+// Generated on 2025-09-22T18:38:17.316Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
+
+interface RouteParams {
+  documentType: string
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
     const body = await request.json()
 
-    // TODO: Implement loginUser
-    // Operation: loginUser
+    // TODO: Implement uploadDocumentVersion
+    // Operation: uploadDocumentVersion
     // This route was auto-generated from OpenAPI spec
     
     // Example: Insert data into Supabase
@@ -21,12 +25,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(body, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /auth/login:', error)
+    console.error('Error in POST /documents/types/{documentType}/upload:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'loginUser'
+        operationId: 'uploadDocumentVersion'
       },
       { status: 500 }
     )

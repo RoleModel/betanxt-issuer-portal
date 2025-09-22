@@ -1,15 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.097Z
+// Generated on 2025-09-22T18:38:17.314Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
-import {
-  deleteMeeting,
-  getMeetingById,
-  updateMeeting,
-} from '@/domain-models/api/meetings'
-
-import type { components } from '@/types/api'
+import { getMeetingById, updateMeeting, deleteMeeting } from '@/domain-models/api/meetings'
 
 interface RouteParams {
   meetingId: string
@@ -17,11 +11,11 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await context.params
+    const resolvedParams = await params
     const meetingId = resolvedParams.meetingId
 
     // Use existing domain model function
@@ -38,10 +32,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getMeetingById',
+        operationId: 'getMeetingById'
       },
       { status: 500 }
     )
@@ -58,7 +52,7 @@ export async function PUT(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['UpdateMeetingRequest']
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await updateMeeting(meetingId, body)
@@ -74,10 +68,10 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /meetings/{meetingId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateMeeting',
+        operationId: 'updateMeeting'
       },
       { status: 500 }
     )
@@ -107,12 +101,13 @@ export async function DELETE(
   } catch (error) {
     console.error('Error in DELETE /meetings/{meetingId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteMeeting',
+        operationId: 'deleteMeeting'
       },
       { status: 500 }
     )
   }
 }
+

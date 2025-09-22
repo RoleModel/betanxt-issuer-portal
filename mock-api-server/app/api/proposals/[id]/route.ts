@@ -1,11 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.100Z
+// Generated on 2025-09-22T18:38:17.316Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
 import { getProposalById, updateProposal } from '@/domain-models/api/proposals'
-
-import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -34,10 +32,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /proposals/{id}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getProposalById',
+        operationId: 'getProposalById'
       },
       { status: 500 }
     )
@@ -54,7 +52,7 @@ export async function PUT(
     const id = resolvedParams.id
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['UpdateProposalRequest']
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await updateProposal(id, body)
@@ -70,12 +68,13 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /proposals/{id}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateProposal',
+        operationId: 'updateProposal'
       },
       { status: 500 }
     )
   }
 }
+

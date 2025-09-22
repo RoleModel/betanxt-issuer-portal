@@ -1,9 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.099Z
+// Generated on 2025-09-22T18:38:17.315Z
 // Source: openapi-schema/openapi.yaml
-import { NextRequest, NextResponse } from 'next/server'
 
-import { createDocument, listDocuments } from '@/domain-models/api/documents'
+import { NextRequest, NextResponse } from 'next/server'
+import { listDocuments, createDocument } from '@/domain-models/api/documents'
 
 interface RouteParams {
   meetingId: string
@@ -24,7 +24,7 @@ export async function GET(
     const type = searchParams.get('type') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listDocuments(meetingId, { status, type })
+    const { data, error } = await listDocuments({ meetingId, status, type })
 
     if (error) {
       return NextResponse.json(
@@ -37,36 +37,23 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/documents:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listDocuments',
+        operationId: 'listDocuments'
       },
       { status: 500 }
     )
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
-): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // Extract path parameters
-    const resolvedParams = await params
-    const meetingId = resolvedParams.meetingId
-
     // Parse request body
-    const body = (await request.json()) as {
-      title: string
-      description?: string
-      type: string
-      taskId?: string
-      file: string
-    }
+    const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createDocument(meetingId, body)
+    const { data, error } = await createDocument(body)
 
     if (error) {
       return NextResponse.json(
@@ -79,12 +66,13 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/documents:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createDocument',
+        operationId: 'createDocument'
       },
       { status: 500 }
     )
   }
 }
+

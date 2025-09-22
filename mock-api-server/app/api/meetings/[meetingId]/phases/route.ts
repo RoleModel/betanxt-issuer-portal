@@ -1,9 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.097Z
+// Generated on 2025-09-22T18:38:17.315Z
 // Source: openapi-schema/openapi.yaml
-import { NextRequest, NextResponse } from 'next/server'
 
-import { createPhase, listPhases } from '@/domain-models/api/phases'
+import { NextRequest, NextResponse } from 'next/server'
+import { listPhases, createPhase } from '@/domain-models/api/phases'
 
 interface RouteParams {
   meetingId: string
@@ -20,7 +20,7 @@ export async function GET(
 
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const _status = searchParams.get('status') || undefined
+    const status = searchParams.get('status') || undefined
 
     // Use existing domain model function
     const { data, error } = await listPhases(meetingId)
@@ -36,10 +36,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/phases:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listPhases',
+        operationId: 'listPhases'
       },
       { status: 500 }
     )
@@ -56,11 +56,7 @@ export async function POST(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = (await request.json()) as {
-      name: string
-      orderIndex: number
-      keyDates?: { startDate?: string; endDate?: string; dueDate?: string }
-    }
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await createPhase(meetingId, body)
@@ -76,12 +72,13 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/phases:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createPhase',
+        operationId: 'createPhase'
       },
       { status: 500 }
     )
   }
 }
+

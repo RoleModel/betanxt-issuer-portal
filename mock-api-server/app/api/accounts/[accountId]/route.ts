@@ -1,13 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.095Z
+// Generated on 2025-09-22T18:38:17.313Z
 // Source: openapi-schema/openapi.yaml
-import { NextRequest, NextResponse } from 'next/server'
 
-import {
-  deleteAccount,
-  getAccountById,
-  updateAccount,
-} from '@/domain-models/api/accounts'
+import { NextRequest, NextResponse } from 'next/server'
+import { getAccountById, updateAccount, deleteAccount } from '@/domain-models/api/accounts'
 
 interface RouteParams {
   accountId: string
@@ -36,10 +32,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /accounts/{accountId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getAccountById',
+        operationId: 'getAccountById'
       },
       { status: 500 }
     )
@@ -56,11 +52,7 @@ export async function PUT(
     const accountId = resolvedParams.accountId
 
     // Parse request body
-    const body = (await request.json()) as {
-      name?: string
-      primaryContact?: string
-      clientId?: string
-    }
+    const body = await request.json()
 
     // Use existing domain model function
     const { data, error } = await updateAccount(accountId, body)
@@ -76,10 +68,10 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /accounts/{accountId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateAccount',
+        operationId: 'updateAccount'
       },
       { status: 500 }
     )
@@ -109,12 +101,13 @@ export async function DELETE(
   } catch (error) {
     console.error('Error in DELETE /accounts/{accountId}:', error)
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteAccount',
+        operationId: 'deleteAccount'
       },
       { status: 500 }
     )
   }
 }
+
