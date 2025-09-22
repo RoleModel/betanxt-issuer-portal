@@ -32,7 +32,7 @@ export interface DocumentHistoryEntry {
   userId: string
   userName: string
   timestamp: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 export interface DocumentWithHistory extends Document {
@@ -114,20 +114,20 @@ export async function uploadDocument(
     }
 
     return { data: document, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Failed to upload document' }
   }
 }
 
 // Mock function to delete document
 export async function deleteDocument(
-  documentId: string
+  _documentId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500))
     return { success: true, error: null }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete document' }
   }
 }
@@ -212,7 +212,7 @@ export async function fetchDSMDocuments(
     ]
 
     return { data: documents, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Failed to fetch DSM documents' }
   }
 }
@@ -248,7 +248,7 @@ export async function fetchRegularDocuments(
     ]
 
     return { data: documents, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Failed to fetch regular documents' }
   }
 }
@@ -273,7 +273,7 @@ export async function updateDocumentStatus(
     }
 
     return { data: document, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Failed to update document status' }
   }
 }

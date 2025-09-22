@@ -11,8 +11,8 @@ export const exampleAuthFlow = async () => {
     const { data: loginData, error: loginError } = await apiClient.POST('/auth/login', {
       body: {
         username: 'john.doe',
-        password: 'password123'
-      }
+        password: 'password123',
+      },
     })
 
     if (loginError) {
@@ -52,9 +52,9 @@ export const exampleUserManagement = async () => {
       params: {
         query: {
           page: 1,
-          limit: 10
-        }
-      }
+          limit: 10,
+        },
+      },
     })
 
     if (usersError) {
@@ -74,8 +74,8 @@ export const exampleUserManagement = async () => {
         email: 'newuser@example.com',
         password: 'securepassword',
         type: 'ISSUER',
-        accountId: 'account-uuid-here'
-      }
+        accountId: 'account-uuid-here',
+      },
     })
 
     if (createError) {
@@ -87,15 +87,18 @@ export const exampleUserManagement = async () => {
 
     if (newUser?.id) {
       // Update the user
-      const { data: updatedUser, error: updateError } = await apiClient.PUT('/users/{id}', {
-        params: {
-          path: { id: newUser.id }
-        },
-        body: {
-          firstName: 'Updated',
-          lastName: 'Name'
+      const { data: updatedUser, error: updateError } = await apiClient.PUT(
+        '/users/{id}',
+        {
+          params: {
+            path: { id: newUser.id },
+          },
+          body: {
+            firstName: 'Updated',
+            lastName: 'Name',
+          },
         }
-      })
+      )
 
       if (updateError) {
         console.error('Failed to update user:', updateError)
@@ -113,17 +116,20 @@ export const exampleUserManagement = async () => {
 export const exampleMeetingManagement = async () => {
   try {
     // List meetings with filters
-    const { data: meetingsData, error: meetingsError } = await apiClient.GET('/meetings', {
-      params: {
-        query: {
-          page: 1,
-          limit: 20,
-          status: 'ACTIVE',
-          clientId: 'client-uuid-here',
-          meetingYear: 2024
-        }
+    const { data: meetingsData, error: meetingsError } = await apiClient.GET(
+      '/meetings',
+      {
+        params: {
+          query: {
+            page: 1,
+            limit: 20,
+            status: 'ACTIVE',
+            clientId: 'client-uuid-here',
+            meetingYear: 2024,
+          },
+        },
       }
-    })
+    )
 
     if (meetingsError) {
       console.error('Failed to list meetings:', meetingsError)
@@ -148,8 +154,8 @@ export const exampleMeetingManagement = async () => {
         transferAgent: 'Transfer Agent Corp',
         totalSharesOutstanding: '1000000',
         quorumRequirement: 50.0,
-        clientId: 'client-uuid-here'
-      }
+        clientId: 'client-uuid-here',
+      },
     })
 
     if (createError) {
@@ -161,16 +167,19 @@ export const exampleMeetingManagement = async () => {
 
     if (newMeeting?.id) {
       // Update meeting status
-      const { data: updatedMeeting, error: updateError } = await apiClient.PUT('/meetings/{meetingId}', {
-        params: {
-          path: { meetingId: newMeeting.id }
-        },
-        body: {
-          status: 'ACTIVE',
-          currentPhase: 'Voting',
-          overallCompletion: 75
+      const { data: updatedMeeting, error: updateError } = await apiClient.PUT(
+        '/meetings/{meetingId}',
+        {
+          params: {
+            path: { meetingId: newMeeting.id },
+          },
+          body: {
+            status: 'ACTIVE',
+            currentPhase: 'Voting',
+            overallCompletion: 75,
+          },
         }
-      })
+      )
 
       if (updateError) {
         console.error('Failed to update meeting:', updateError)
@@ -239,8 +248,8 @@ export const exampleErrorHandling = async () => {
   try {
     const { data, error, response } = await apiClient.GET('/users/{id}', {
       params: {
-        path: { id: 'non-existent-id' }
-      }
+        path: { id: 'non-existent-id' },
+      },
     })
 
     if (error) {

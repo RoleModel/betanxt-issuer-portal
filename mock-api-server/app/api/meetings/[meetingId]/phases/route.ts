@@ -1,9 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.097Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listPhases, createPhase } from '@/domain-models/api/phases'
+
+import { createPhase, listPhases } from '@/domain-models/api/phases'
 
 interface RouteParams {
   meetingId: string
@@ -20,7 +20,7 @@ export async function GET(
 
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') || undefined
+    const _status = searchParams.get('status') || undefined
 
     // Use existing domain model function
     const { data, error } = await listPhases(meetingId)
@@ -39,7 +39,7 @@ export async function GET(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listPhases'
+        operationId: 'listPhases',
       },
       { status: 500 }
     )
@@ -56,7 +56,11 @@ export async function POST(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as {
+      name: string
+      orderIndex: number
+      keyDates?: { startDate?: string; endDate?: string; dueDate?: string }
+    }
 
     // Use existing domain model function
     const { data, error } = await createPhase(meetingId, body)
@@ -75,10 +79,9 @@ export async function POST(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createPhase'
+        operationId: 'createPhase',
       },
       { status: 500 }
     )
   }
 }
-

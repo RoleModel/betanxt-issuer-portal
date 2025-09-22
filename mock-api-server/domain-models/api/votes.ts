@@ -1,55 +1,75 @@
-import { type ApiClientReturnType, buildApiClient } from '../apiClient'
+import type { components, paths } from '@/types/api'
+
+import { apiClient } from '../apiClient'
+
+// Use generated types from OpenAPI schema
+type PositionVote = components['schemas']['PositionVote']
+type CastVoteRequest = components['schemas']['CastVoteRequest']
+
+// Helper type for openapi-fetch response
+type ApiResponse<T> = {
+  data?: T
+  error?: {
+    message: string
+    statusCode?: number
+  }
+  response: Response
+}
 
 export async function listPositionVotes(opts?: {
   positionId?: string
   proposalId?: string
-}): Promise<ApiClientReturnType<any[]>> {
-  try {
-    const supabase = buildApiClient()
-    let query = supabase.from('position_vote').select('*')
-    if (opts?.positionId) query = query.eq('position_id', opts.positionId)
-    if (opts?.proposalId) query = query.eq('proposal_id', opts.proposalId)
-    const { data, error } = await query
-    if (error)
-      return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
-      }
-    return { data: data || [], error: undefined }
-  } catch (error) {
+  vote?: string
+}): Promise<ApiResponse<PositionVote[] | undefined>> {
+  const { data, error, response } = await apiClient.GET('/position_votes', {
+    params: {
+      query: {
+        positionId: opts?.positionId,
+        proposalId: opts?.proposalId,
+        vote: opts?.vote,
+      },
+    },
+  })
+
+  if (error) {
     return {
       data: undefined,
       error: {
-        message:
-          error instanceof Error ? error.message : 'Failed to fetch position votes',
-        statusCode: 500,
+        message: error.message || 'Failed to fetch position votes',
+        statusCode: response.status,
       },
+      response,
     }
+  }
+
+  return {
+    data: data || [],
+    error: undefined,
+    response,
   }
 }
 
-export async function createPositionVote(body: any): Promise<ApiClientReturnType<any>> {
-  try {
-    const supabase = buildApiClient()
-    const { data, error } = await supabase
-      .from('position_vote')
-      .insert([body])
-      .select()
-      .single()
-    if (error)
-      return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
-      }
-    return { data, error: undefined }
-  } catch (error) {
+export async function createPositionVote(
+  body: CastVoteRequest
+): Promise<ApiResponse<PositionVote>> {
+  const { data, error, response } = await apiClient.POST('/position_votes', {
+    body,
+  })
+
+  if (error) {
     return {
       data: undefined,
       error: {
-        message:
-          error instanceof Error ? error.message : 'Failed to create position vote',
-        statusCode: 500,
+        message: error.message || 'Failed to create position vote',
+        statusCode: response.status,
       },
+      response,
     }
+  }
+
+  return {
+    data,
+    error: undefined,
+    response,
   }
 }

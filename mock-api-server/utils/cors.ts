@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 export function handleCors() {
   const response = new NextResponse(null, { status: 200 })
   const origin = '*' // Allow all origins in development
-  
+
   response.headers.set('Access-Control-Allow-Origin', origin)
   response.headers.set(
     'Access-Control-Allow-Methods',
@@ -19,7 +19,7 @@ export function handleCors() {
   )
   response.headers.set('Access-Control-Allow-Credentials', 'true')
   response.headers.set('Access-Control-Max-Age', '86400')
-  
+
   return response
 }
 

@@ -1,10 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.094Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     // TODO: Implement getCurrentUser
     // Operation: getCurrentUser
@@ -23,10 +22,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getCurrentUser'
+        operationId: 'getCurrentUser',
       },
       { status: 500 }
     )
   }
 }
-

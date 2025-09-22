@@ -1,30 +1,72 @@
-import { type ApiClientReturnType, buildApiClient } from '../apiClient'
+import type { components } from '@/types/api'
+import { supabase } from '@/utils/supabase/client'
+
+// Use generated types from OpenAPI schema
+type Meeting = components['schemas']['Meeting']
+type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']
+type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
+
+// Helper type for backend responses
+type ApiResponse<T> = {
+  data?: T
+  error?: {
+    message: string
+    statusCode?: number
+  }
+}
+
+// Transform snake_case database fields to camelCase API fields
+function transformMeeting(dbMeeting: any): Meeting {
+  return {
+    id: dbMeeting.id,
+    title: dbMeeting.title,
+    cusip: dbMeeting.cusip,
+    ticker: dbMeeting.ticker,
+    preFilingDate: dbMeeting.pre_filing_date,
+    filingDate: dbMeeting.filing_date,
+    brokerSearchDate: dbMeeting.broker_search_date,
+    recordDate: dbMeeting.record_date,
+    mailingDate: dbMeeting.mailing_date,
+    meetingDate: dbMeeting.meeting_date,
+    meetingType: dbMeeting.meeting_type,
+    meetingYear: dbMeeting.meeting_year,
+    status: dbMeeting.status,
+    currentPhase: dbMeeting.current_phase,
+    overallCompletion: dbMeeting.overall_completion,
+    distributionType: dbMeeting.distribution_type,
+    transferAgent: dbMeeting.transfer_agent,
+    employeeStockPlans: dbMeeting.employee_stock_plans,
+    planAdministrator: dbMeeting.plan_administrator,
+    planAdministratorContact: dbMeeting.plan_administrator_contact,
+    planAdministratorContactEmail: dbMeeting.plan_administrator_contact_email,
+    solicitor: dbMeeting.solicitor,
+    solicitorEmail: dbMeeting.solicitor_email,
+    inspector: dbMeeting.inspector,
+    ivrDialInNumber: dbMeeting.ivr_dial_in_number,
+    totalSharesOutstanding: dbMeeting.total_shares_outstanding,
+    quorumRequirement: dbMeeting.quorum_requirement,
+    clientId: dbMeeting.client_id,
+    createdAt: dbMeeting.created_at,
+    updatedAt: dbMeeting.updated_at,
+    client: dbMeeting.client,
+  }
+}
 
 export async function listMeetings(
   page?: number,
   limit?: number,
   filters?: {
     clientId?: string
-    status?: string
+    status?: components['schemas']['MeetingStatus']
     meetingYear?: number
     cusip?: string
     ticker?: string
   }
 ): Promise<
-  ApiClientReturnType<{
-    meetings: any[]
-    total: number
-    page: number
-    limit: number
-  }>
+  ApiResponse<{ meetings?: Meeting[]; pagination?: components['schemas']['Pagination'] }>
 > {
   try {
-    const supabase = buildApiClient()
-    const currentPage = page || 1
-    const currentLimit = limit || 20
-    const offset = (currentPage - 1) * currentLimit
-
-    let query = supabase.from('meeting').select('*', { count: 'exact' })
+    let query = supabase.from('meeting').select('*')
 
     // Apply filters
     if (filters?.clientId) {
@@ -33,524 +75,191 @@ export async function listMeetings(
     if (filters?.status) {
       query = query.eq('status', filters.status)
     }
-    if (filters?.meetingYear) {
-      query = query.eq('meeting_year', filters.meetingYear)
+    if (filters?.ticker) {
+      query = query.eq('ticker', filters.ticker)
     }
     if (filters?.cusip) {
       query = query.eq('cusip', filters.cusip)
     }
-    if (filters?.ticker) {
-      query = query.eq('ticker', filters.ticker)
+    if (filters?.meetingYear) {
+      const startDate = `${filters.meetingYear}-01-01`
+      const endDate = `${filters.meetingYear}-12-31`
+      query = query.gte('meeting_date', startDate).lte('meeting_date', endDate)
     }
 
-    // Apply ordering and pagination
-    query = query
-      .order('client_id', { ascending: true })
-      .order('meeting_type', { ascending: true })
-      .order('meeting_date', { ascending: true })
-      .range(offset, offset + currentLimit - 1)
+    // Apply pagination
+    if (page && limit) {
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+      query = query.range(from, to)
+    }
 
-    const { data: meetings, error, count } = await query
+    const { data, error } = await query
 
     if (error) {
-      console.error('Supabase query error in listMeetings:', error)
       return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: 500,
-        },
+        error: { message: error.message || 'Failed to fetch meetings' },
       }
     }
-
-    // Get unique client IDs for fetching client data
-    const clientIds = [...new Set((meetings || []).map(m => m.client_id).filter(Boolean))]
-
-    // Fetch client data if we have client IDs
-    let clientsData = []
-    if (clientIds.length > 0) {
-      const { data: clients, error: clientError } = await supabase
-        .from('client')
-        .select('id, ticker, company_name, short_name, branding_id')
-        .in('id', clientIds)
-
-      if (!clientError) {
-        clientsData = clients || []
-      }
-    }
-
-    // Convert snake_case to camelCase for meetings
-    const convertedMeetings = (meetings || []).map(meeting => {
-      const client = clientsData.find(c => c.id === meeting.client_id)
-
-      return {
-        ...meeting,
-        meetingDate: meeting.meeting_date,
-        meetingType: meeting.meeting_type,
-        meetingYear: meeting.meeting_year,
-        clientId: meeting.client_id,
-        recordDate: meeting.record_date,
-        mailingDate: meeting.mailing_date,
-        preFilingDate: meeting.pre_filing_date,
-        filingDate: meeting.filing_date,
-        brokerSearchDate: meeting.broker_search_date,
-        distributionType: meeting.distribution_type,
-        transferAgent: meeting.transfer_agent,
-        employeeStockPlans: meeting.employee_stock_plans,
-        planAdministrator: meeting.plan_administrator,
-        planAdministratorContact: meeting.plan_administrator_contact,
-        planAdministratorContactEmail: meeting.plan_administrator_contact_email,
-        solicitor: meeting.solicitor,
-        solicitorEmail: meeting.solicitor_email,
-        inspector: meeting.inspector,
-        documentHostingSiteLabel: meeting.document_hosting_site_label,
-        documentHostingSiteUrl: meeting.document_hosting_site_url,
-        eVoteSiteLabel: meeting.e_vote_site_label,
-        eVoteSiteUrl: meeting.e_vote_site_url,
-        ivrDialInNumber: meeting.ivr_dial_in_number,
-        totalSharesOutstanding: meeting.total_shares_outstanding,
-        quorumRequirement: meeting.quorum_requirement,
-        createdAt: meeting.created_at,
-        updatedAt: meeting.updated_at,
-        // Convert client data
-        client: client ? {
-          id: client.id,
-          ticker: client.ticker,
-          companyName: client.company_name,
-          shortName: client.short_name,
-          brandingId: client.branding_id
-        } : null
-      }
-    })
 
     return {
       data: {
-        meetings: convertedMeetings,
-        total: count || 0,
-        page: currentPage,
-        limit: currentLimit,
+        meetings: data.map(transformMeeting),
+        pagination: {
+          page: page || 1,
+          limit: limit || data.length,
+          total: data.length,
+        },
       },
-      error: undefined,
     }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to fetch meetings',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function createMeeting(meetingData: any): Promise<ApiClientReturnType<any>> {
+export async function createMeeting(
+  meetingData: CreateMeetingRequest
+): Promise<ApiResponse<Meeting>> {
   try {
-    const supabase = buildApiClient()
-
-    // Validate required fields
-    const requiredFields = [
-      'id',
-      'title',
-      'cusip',
-      'ticker',
-      'recordDate',
-      'mailingDate',
-      'meetingDate',
-      'meetingType',
-      'meetingYear',
-      'distributionType',
-      'transferAgent',
-      'totalSharesOutstanding',
-      'quorumRequirement',
-      'clientId',
-    ]
-    const missingFields = requiredFields.filter((field) => !meetingData[field])
-
-    if (missingFields.length > 0) {
-      return {
-        data: undefined,
-        error: {
-          message: `Missing required fields: ${missingFields.join(', ')}`,
-          statusCode: 400,
-        },
-      }
-    }
-
-    const { data: meeting, error } = await supabase
+    const { data, error } = await supabase
       .from('meeting')
-      .insert([meetingData])
+      .insert(meetingData)
       .select()
       .single()
 
     if (error) {
-      // In mock mode, gracefully fall back to echoing the payload
       return {
-        data: meetingData,
-        error: undefined,
+        error: { message: error.message || 'Failed to create meeting' },
       }
     }
 
-    // Convert snake_case to camelCase
-    const convertedMeeting = meeting ? {
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
-    } : null
-
     return {
-      data: convertedMeeting,
-      error: undefined,
+      data: transformMeeting(data),
     }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to create meeting',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function getMeetingById(id: string): Promise<ApiClientReturnType<any>> {
+export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> {
   try {
-    const supabase = buildApiClient()
-
-    const { data: meeting, error } = await supabase
+    const { data, error } = await supabase
       .from('meeting')
-      .select('*')
+      .select(
+        `
+        *,
+        client:client_id (*)
+      `
+      )
       .eq('id', id)
       .single()
 
     if (error) {
       return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
+        error: { message: error.message || 'Failed to fetch meeting' },
       }
     }
-
-    // Fetch client data if meeting has client_id
-    let client = null
-    if (meeting && meeting.client_id) {
-      const { data: clientData, error: clientError } = await supabase
-        .from('client')
-        .select('id, ticker, company_name, short_name, branding_id')
-        .eq('id', meeting.client_id)
-        .single()
-
-      if (!clientError && clientData) {
-        client = {
-          id: clientData.id,
-          ticker: clientData.ticker,
-          companyName: clientData.company_name,
-          shortName: clientData.short_name,
-          brandingId: clientData.branding_id
-        }
-      }
-    }
-
-    // Convert snake_case to camelCase
-    const convertedMeeting = meeting ? {
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      preFilingDate: meeting.pre_filing_date,
-      filingDate: meeting.filing_date,
-      brokerSearchDate: meeting.broker_search_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      employeeStockPlans: meeting.employee_stock_plans,
-      planAdministrator: meeting.plan_administrator,
-      planAdministratorContact: meeting.plan_administrator_contact,
-      planAdministratorContactEmail: meeting.plan_administrator_contact_email,
-      solicitor: meeting.solicitor,
-      solicitorEmail: meeting.solicitor_email,
-      inspector: meeting.inspector,
-      documentHostingSiteLabel: meeting.document_hosting_site_label,
-      documentHostingSiteUrl: meeting.document_hosting_site_url,
-      eVoteSiteLabel: meeting.e_vote_site_label,
-      eVoteSiteUrl: meeting.e_vote_site_url,
-      ivrDialInNumber: meeting.ivr_dial_in_number,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at,
-      // Include client data
-      client: client
-    } : null
 
     return {
-      data: convertedMeeting,
-      error: undefined,
+      data: transformMeeting(data),
     }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to fetch meeting',
-        statusCode: 500,
       },
     }
   }
 }
 
+// Legacy functions for backwards compatibility - should be updated to use proper OpenAPI endpoints
 export async function getMeetingByIdAndTicker(
   id: string,
   ticker: string
-): Promise<ApiClientReturnType<any>> {
-  try {
-    const supabase = buildApiClient()
-
-    const { data: meeting, error } = await supabase
-      .from('meeting')
-      .select('*')
-      .eq('id', id)
-      .eq('ticker', ticker.toUpperCase())
-      .single()
-
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
-      }
-    }
-
-    // Convert snake_case to camelCase
-    const convertedMeeting = meeting ? {
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
-    } : null
-
-    return {
-      data: convertedMeeting,
-      error: undefined,
-    }
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: error instanceof Error ? error.message : 'Failed to fetch meeting',
-        statusCode: 500,
-      },
-    }
-  }
+): Promise<ApiResponse<Meeting>> {
+  // Use the standard getMeetingById and filter by ticker in the application layer
+  return getMeetingById(id)
 }
 
 export async function updateMeetingByIdAndTicker(
   id: string,
   ticker: string,
-  meetingData: any
-): Promise<ApiClientReturnType<any>> {
-  try {
-    const supabase = buildApiClient()
-
-    const { data: meeting, error } = await supabase
-      .from('meeting')
-      .update({
-        ...meetingData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('ticker', ticker.toUpperCase())
-      .select()
-      .single()
-
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
-      }
-    }
-
-    // Convert snake_case to camelCase
-    const convertedMeeting = meeting ? {
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
-    } : null
-
-    return {
-      data: convertedMeeting,
-      error: undefined,
-    }
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: error instanceof Error ? error.message : 'Failed to update meeting',
-        statusCode: 500,
-      },
-    }
-  }
+  meetingData: UpdateMeetingRequest
+): Promise<ApiResponse<Meeting>> {
+  // Use the standard updateMeeting - ticker validation should be handled in API layer
+  return updateMeeting(id, meetingData)
 }
 
 export async function deleteMeetingByIdAndTicker(
   id: string,
   ticker: string
-): Promise<ApiClientReturnType<void>> {
-  try {
-    const supabase = buildApiClient()
+): Promise<ApiResponse<void>> {
+  // Use the standard deleteMeeting - ticker validation should be handled in API layer
+  return deleteMeeting(id)
+}
 
-    const { error } = await supabase
-      .from('meeting')
-      .delete()
-      .eq('id', id)
-      .eq('ticker', ticker.toUpperCase())
-
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
-      }
-    }
-
-    return {
-      data: undefined,
-      error: undefined,
-    }
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: error instanceof Error ? error.message : 'Failed to delete meeting',
-        statusCode: 500,
-      },
-    }
-  }
+// Helper function for backward compatibility - delegates to phases API
+export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<any[]>> {
+  // Import here to avoid circular dependency
+  const { listPhases } = await import('./phases')
+  return listPhases(meetingId)
 }
 
 export async function updateMeeting(
   id: string,
-  meetingData: any
-): Promise<ApiClientReturnType<any>> {
+  meetingData: UpdateMeetingRequest
+): Promise<ApiResponse<Meeting>> {
   try {
-    const supabase = buildApiClient()
-
-    const { data: meeting, error } = await supabase
+    const { data, error } = await supabase
       .from('meeting')
-      .update({
-        ...meetingData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(meetingData)
       .eq('id', id)
       .select()
       .single()
 
     if (error) {
       return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
+        error: { message: error.message || 'Failed to update meeting' },
       }
     }
 
-    // Convert snake_case to camelCase
-    const convertedMeeting = meeting ? {
-      ...meeting,
-      meetingDate: meeting.meeting_date,
-      meetingType: meeting.meeting_type,
-      meetingYear: meeting.meeting_year,
-      clientId: meeting.client_id,
-      recordDate: meeting.record_date,
-      mailingDate: meeting.mailing_date,
-      distributionType: meeting.distribution_type,
-      transferAgent: meeting.transfer_agent,
-      totalSharesOutstanding: meeting.total_shares_outstanding,
-      quorumRequirement: meeting.quorum_requirement,
-      createdAt: meeting.created_at,
-      updatedAt: meeting.updated_at
-    } : null
-
     return {
-      data: convertedMeeting,
-      error: undefined,
+      data: transformMeeting(data),
     }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to update meeting',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function deleteMeeting(id: string): Promise<ApiClientReturnType<void>> {
+export async function deleteMeeting(id: string): Promise<ApiResponse<void>> {
   try {
-    const supabase = buildApiClient()
-
     const { error } = await supabase.from('meeting').delete().eq('id', id)
 
     if (error) {
       return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
+        error: { message: error.message || 'Failed to delete meeting' },
       }
     }
 
     return {
       data: undefined,
-      error: undefined,
     }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to delete meeting',
-        statusCode: 500,
       },
     }
   }

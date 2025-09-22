@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.098Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listTasks, createTask } from '@/domain-models/api/tasks'
+
+import { createTask, listTasks } from '@/domain-models/api/tasks'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   meetingId: string
@@ -22,7 +24,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const phaseId = searchParams.get('phaseId') || undefined
     const status = searchParams.get('status') || undefined
-    const owner = searchParams.get('owner') || undefined
+    const _owner = searchParams.get('owner') || undefined
 
     // Use existing domain model function
     const { data, error } = await listTasks(meetingId, { phaseId, status })
@@ -38,10 +40,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /meetings/{meetingId}/tasks:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listTasks'
+        operationId: 'listTasks',
       },
       { status: 500 }
     )
@@ -58,7 +60,7 @@ export async function POST(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateTaskRequest']
 
     // Use existing domain model function
     const { data, error } = await createTask(meetingId, body)
@@ -74,13 +76,12 @@ export async function POST(
   } catch (error) {
     console.error('Error in POST /meetings/{meetingId}/tasks:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createTask'
+        operationId: 'createTask',
       },
       { status: 500 }
     )
   }
 }
-

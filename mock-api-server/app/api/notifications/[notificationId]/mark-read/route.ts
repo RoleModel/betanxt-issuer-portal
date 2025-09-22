@@ -1,17 +1,16 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.101Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
 
-interface RouteParams {
+interface _RouteParams {
   notificationId: string
 }
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
   try {
-    // Parse request body
-    const body = await request.json()
+    // Parse request body (Note: mark-read endpoint shouldn't have a body according to OpenAPI spec)
+    const _body = await request.json()
 
     // TODO: Implement markNotificationRead
     // Operation: markNotificationRead
@@ -24,10 +23,9 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'markNotificationRead'
+        operationId: 'markNotificationRead',
       },
       { status: 500 }
     )
   }
 }
-

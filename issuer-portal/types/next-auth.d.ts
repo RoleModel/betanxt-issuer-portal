@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import 'next-auth'
 
 type Client = {
   id: number

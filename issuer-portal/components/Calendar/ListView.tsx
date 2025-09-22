@@ -20,7 +20,7 @@ import { getPhaseColor, theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
-import type { Task, KeyDate } from '@/types/api'
+import type { KeyDate, Task } from '@/types/api'
 import type { ContextMenuPosition } from '@/types/common'
 
 /**
@@ -149,16 +149,18 @@ export const ListView: React.FC<ListViewProps> = ({
       meetingId: dbTask.meetingId,
       taskId: dbTask.taskId || dbTask.id || '',
       documentId: dbTask.documentId || null,
-      documents: undefined,
       links: Array.isArray(dbTask.links)
         ? dbTask.links.map((link: { label?: string; url?: string; action?: string }) => ({
             label: link.label || '',
             url: link.url || '',
-            action: (typeof link.action === 'string' && ['download', 'upload', 'sign', 'authorize', 'external'].includes(link.action) ? link.action : 'external') as Task['links'][number]['action'],
+            action: (typeof link.action === 'string' &&
+            ['download', 'upload', 'sign', 'authorize', 'external'].includes(link.action)
+              ? link.action
+              : 'external') as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
           }))
         : [],
-      createdAt: dbTask.createdAt || null,
-      updatedAt: dbTask.updatedAt || null,
+      createdAt: dbTask.createdAt || undefined,
+      updatedAt: dbTask.updatedAt || undefined,
     }
   }
 
@@ -668,7 +670,7 @@ export const ListView: React.FC<ListViewProps> = ({
                   ...taskToEdit,
                   description: taskToEdit.description ?? '',
                   dueDate: taskToEdit.dueDate || '',
-                  phase_number: taskToEdit.phase_number || taskToEdit.phaseNumber || 1,
+                  phaseNumber: taskToEdit.phaseNumber || 1,
                   links:
                     taskToEdit.links?.map((link) => ({
                       label: link.label,
@@ -686,7 +688,7 @@ export const ListView: React.FC<ListViewProps> = ({
                             | 'download'
                             | 'external'
                             | 'authorize')
-                        : undefined,
+                        : 'external',
                     })) || [],
                   type: [
                     'upload',

@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.099Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
 import { getTaskById, updateTask } from '@/domain-models/api/tasks'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -32,10 +34,10 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /tasks/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getTaskById'
+        operationId: 'getTaskById',
       },
       { status: 500 }
     )
@@ -52,7 +54,7 @@ export async function PUT(
     const id = resolvedParams.id
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdateTaskRequest']
 
     // Use existing domain model function
     const { data, error } = await updateTask(id, body)
@@ -68,13 +70,12 @@ export async function PUT(
   } catch (error) {
     console.error('Error in PUT /tasks/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateTask'
+        operationId: 'updateTask',
       },
       { status: 500 }
     )
   }
 }
-

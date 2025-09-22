@@ -4,10 +4,11 @@ import { listKeyDatesForMeeting } from '@/domain-models/api/keyDates'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { meetingId: string } }
-) {
+  { params }: { params: Promise<{ meetingId: string }> }
+): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    const resolvedParams = await params
+    const { meetingId } = resolvedParams
 
     if (!meetingId) {
       return NextResponse.json({ error: 'Meeting ID is required' }, { status: 400 })
@@ -25,9 +26,6 @@ export async function GET(
     return NextResponse.json(result.data || [])
   } catch (error) {
     console.error('Error in key dates API route:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

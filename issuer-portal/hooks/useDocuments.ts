@@ -2,19 +2,15 @@
 
 import { useCallback, useState } from 'react'
 
-import {
-  addComment,
-  createDocument,
-  downloadDocument,
-  getDocumentById,
-  getDocumentComments,
-  updateDocument,
-} from '@/domain-models/api/documents'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+import { supabase } from '../../supabase/clients'
 
 type Document = components['schemas']['Document']
-
 type Comment = components['schemas']['Comment']
+type CreateDocumentRequest = components['schemas']['CreateDocumentRequest']
+type UpdateDocumentRequest = components['schemas']['UpdateDocumentRequest']
+type CreateCommentRequest = components['schemas']['CreateCommentRequest']
 
 export interface DocumentComment {
   id: string
@@ -26,16 +22,27 @@ export interface DocumentComment {
 export interface UseDocumentsResult {
   loading: boolean
   error: string | null
-  createNewDocument: (meetingId: string, documentData: any) => Promise<Document | null>
+  createNewDocument: (
+    meetingId: string,
+    documentData: CreateDocumentRequest
+  ) => Promise<Document | null>
   getDocument: (id: string) => Promise<Document | null>
-  updateDocumentById: (id: string, updates: any) => Promise<Document | null>
-  downloadDocumentById: (id: string) => Promise<any>
+  updateDocumentById: (
+    id: string,
+    updates: UpdateDocumentRequest
+  ) => Promise<Document | null>
+  downloadDocumentById: (id: string) => Promise<string | null>
   getCommentsForDocument: (documentId: string) => Promise<DocumentComment[]>
   addCommentToDocument: (documentId: string, comment: string) => Promise<void>
-  getTaskDocument: (taskId: string) => Promise<any>
+  getTaskDocument: (taskId: string) => Promise<unknown>
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>
   uploadDocument: (file: File, documentId: string) => Promise<string | null>
   addDocumentHistory: (documentId: string, eventType: string) => Promise<boolean>
+  uploadDSMDocument: (
+    meetingId: string,
+    placeholderTitle: string,
+    file: File
+  ) => Promise<Document | null>
 }
 
 export const useDocuments = (): UseDocumentsResult => {
@@ -43,17 +50,24 @@ export const useDocuments = (): UseDocumentsResult => {
   const [error, setError] = useState<string | null>(null)
 
   const createNewDocument = useCallback(
-    async (meetingId: string, documentData: any): Promise<Document | null> => {
+    async (
+      meetingId: string,
+      documentData: CreateDocumentRequest
+    ): Promise<Document | null> => {
       try {
         setLoading(true)
         setError(null)
 
-        const result = await createDocument(meetingId, documentData)
+        const apiClient = await buildApiClient()
+        const result = await apiClient.POST('/meetings/{meetingId}/documents', {
+          params: { path: { meetingId } },
+          body: documentData,
+        })
         if (result.error) {
           throw new Error('Failed to create document')
         }
 
-        return result.data as Document
+        return result.data || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to create document'
@@ -71,12 +85,15 @@ export const useDocuments = (): UseDocumentsResult => {
       setLoading(true)
       setError(null)
 
-      const result = await getDocumentById(id)
+      const apiClient = await buildApiClient()
+      const result = await apiClient.GET('/documents/{id}', {
+        params: { path: { id } },
+      })
       if (result.error) {
         throw new Error('Failed to get document')
       }
 
-      return result.data as Document
+      return result.data || null
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get document'
       setError(errorMessage)
@@ -87,17 +104,21 @@ export const useDocuments = (): UseDocumentsResult => {
   }, [])
 
   const updateDocumentById = useCallback(
-    async (id: string, updates: any): Promise<Document | null> => {
+    async (id: string, updates: UpdateDocumentRequest): Promise<Document | null> => {
       try {
         setLoading(true)
         setError(null)
 
-        const result = await updateDocument(id, updates)
+        const apiClient = await buildApiClient()
+        const result = await apiClient.PUT('/documents/{id}', {
+          params: { path: { id } },
+          body: updates,
+        })
         if (result.error) {
           throw new Error('Failed to update document')
         }
 
-        return result.data as Document
+        return result.data || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to update document'
@@ -115,12 +136,15 @@ export const useDocuments = (): UseDocumentsResult => {
       setLoading(true)
       setError(null)
 
-      const result = await downloadDocument(id)
+      const apiClient = await buildApiClient()
+      const result = await apiClient.GET('/documents/{id}/download', {
+        params: { path: { id } },
+      })
       if (result.error) {
         throw new Error('Failed to download document')
       }
 
-      return result.data
+      return result.data || null
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to download document'
@@ -137,7 +161,10 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        const result = await getDocumentComments(documentId)
+        const apiClient = await buildApiClient()
+        const result = await apiClient.GET('/documents/{id}/comments', {
+          params: { path: { id: documentId } },
+        })
         if (result.error) {
           throw new Error('Failed to get document comments')
         }
@@ -168,7 +195,11 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        const result = await addComment(documentId, { comment })
+        const apiClient = await buildApiClient()
+        const result = await apiClient.POST('/documents/{id}/comments', {
+          params: { path: { id: documentId } },
+          body: { comment } as CreateCommentRequest,
+        })
         if (result.error) {
           throw new Error('Failed to add comment')
         }
@@ -183,7 +214,7 @@ export const useDocuments = (): UseDocumentsResult => {
     []
   )
 
-  const getTaskDocument = useCallback(async (taskId: string): Promise<any> => {
+  const getTaskDocument = useCallback(async (_taskId: string): Promise<unknown> => {
     try {
       setLoading(true)
       setError(null)
@@ -202,7 +233,7 @@ export const useDocuments = (): UseDocumentsResult => {
   }, [])
 
   const getDocumentsByMeeting = useCallback(
-    async (meetingId: string): Promise<Document[]> => {
+    async (_meetingId: string): Promise<Document[]> => {
       try {
         setLoading(true)
         setError(null)
@@ -225,17 +256,75 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const uploadDocument = useCallback(
-    async (file: File, documentId: string): Promise<string | null> => {
+    async (_file: File, _documentId: string): Promise<string | null> => {
       try {
         setLoading(true)
         setError(null)
 
-        // For now, return placeholder data - these operations will need proper API endpoints
-        console.warn('uploadDocument: Placeholder implementation - needs API endpoint')
-        return null
+        const key = `uploads/${Date.now()}_${_file.name}`
+        const { data, error } = await supabase.storage
+          .from('supporting')
+          .upload(key, _file, {
+            upsert: true,
+            contentType: _file.type || 'application/octet-stream',
+          })
+        if (error || !data) {
+          throw new Error(error?.message || 'Failed to upload file')
+        }
+
+        return data.path || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to upload document'
+        setError(errorMessage)
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
+
+  const uploadDSMDocument = useCallback(
+    async (
+      meetingId: string,
+      placeholderTitle: string,
+      file: File
+    ): Promise<Document | null> => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const key = `supporting/${meetingId}/${Date.now()}_${file.name}`
+        const { data: upData, error: upErr } = await supabase.storage
+          .from('supporting')
+          .upload(key, file, {
+            upsert: true,
+            contentType: file.type || 'application/octet-stream',
+          })
+        if (upErr || !upData) {
+          throw new Error(upErr?.message || 'Failed to upload file')
+        }
+
+        const apiClient = await buildApiClient()
+        const createBody = {
+          title: placeholderTitle,
+          type: 'dsm-document',
+          filePath: upData.path,
+          status: 'UPLOADED',
+        } as unknown as components['schemas']['CreateDocumentRequest']
+
+        const result = await apiClient.POST('/meetings/{meetingId}/documents', {
+          params: { path: { meetingId } },
+          body: createBody,
+        })
+        if (result.error) {
+          throw new Error('Failed to create document record')
+        }
+
+        return (result.data as Document) || null
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to upload document'
         setError(errorMessage)
         return null
       } finally {
@@ -282,5 +371,6 @@ export const useDocuments = (): UseDocumentsResult => {
     getDocumentsByMeeting,
     uploadDocument,
     addDocumentHistory,
+    uploadDSMDocument,
   }
 }

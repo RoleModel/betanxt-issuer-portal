@@ -28,7 +28,7 @@ import TaskContextMenu, {
 
 import type { components } from '@/domain-models/generated-schema'
 
-import type { Task } from '@/types/api'
+type Task = components['schemas']['Task']
 import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
 
 // Task status type for local use
@@ -320,13 +320,14 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       type: (dbTask.type || 'external') as Task['type'],
       taskId: dbTask.taskId || dbTask.id || '',
       documentId: dbTask.documentId || null,
-      links: taskLinks.map((link) => ({
-        label: link.label || '',
-        url: link.url || '',
-        action: link.action as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
-      })),
-      createdAt: dbTask.createdAt || null,
-      updatedAt: dbTask.updatedAt || null,
+      links: taskLinks
+        .map((link) => ({
+          label: link.label || '',
+          url: link.url || '',
+          action: link.action as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
+        })) as unknown as Task['links'],
+      createdAt: dbTask.createdAt || undefined,
+      updatedAt: dbTask.updatedAt || undefined,
     }
   }
 
@@ -368,6 +369,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
   return (
     <Drawer
       anchor="left"
+      elevation={10}
       open={isOpen}
       onClose={onClose}
       keepMounted={false}

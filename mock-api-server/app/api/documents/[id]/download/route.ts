@@ -1,14 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.099Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
 
-interface RouteParams {
+interface _RouteParams {
   id: string
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     // TODO: Implement downloadDocument
     // Operation: downloadDocument
@@ -27,10 +26,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'downloadDocument'
+        operationId: 'downloadDocument',
       },
       { status: 500 }
     )
   }
 }
-

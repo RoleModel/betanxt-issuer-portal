@@ -1,9 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.095Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getAccountById, updateAccount, deleteAccount } from '@/domain-models/api/accounts'
+
+import {
+  deleteAccount,
+  getAccountById,
+  updateAccount,
+} from '@/domain-models/api/accounts'
 
 interface RouteParams {
   accountId: string
@@ -35,7 +39,7 @@ export async function GET(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getAccountById'
+        operationId: 'getAccountById',
       },
       { status: 500 }
     )
@@ -52,7 +56,11 @@ export async function PUT(
     const accountId = resolvedParams.accountId
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as {
+      name?: string
+      primaryContact?: string
+      clientId?: string
+    }
 
     // Use existing domain model function
     const { data, error } = await updateAccount(accountId, body)
@@ -71,7 +79,7 @@ export async function PUT(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateAccount'
+        operationId: 'updateAccount',
       },
       { status: 500 }
     )
@@ -104,10 +112,9 @@ export async function DELETE(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteAccount'
+        operationId: 'deleteAccount',
       },
       { status: 500 }
     )
   }
 }
-

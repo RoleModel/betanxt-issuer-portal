@@ -1,11 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-17T01:20:22.507Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
 // import { supabase } from '@/utils/supabase/client'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
     const body = (await request.json()) as { username?: string; password?: string }
@@ -21,15 +21,12 @@ export async function POST(request: NextRequest) {
         firstName: 'John',
         lastName: 'Doe',
         type: 'user',
-        accountId: 'acc_1'
+        accountId: 'acc_1',
       }
 
       return NextResponse.json(user, { status: 200 })
     } else {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
   } catch (error) {
     console.error('Error in POST /auth/login:', error)
@@ -37,10 +34,9 @@ export async function POST(request: NextRequest) {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'loginUser'
+        operationId: 'loginUser',
       },
       { status: 500 }
     )
   }
 }
-

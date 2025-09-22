@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { getMeetingPhases } from '@/domain-models/api/meetings'
+import buildApiClient from '@/domain-models/apiClient'
 
 export interface Phase {
   id: string
@@ -101,10 +101,13 @@ const normalizePhase = (raw: unknown): Phase | null => {
 }
 
 const fetchPhases = async (meetingId: string): Promise<Phase[]> => {
-  const result = await getMeetingPhases(meetingId)
-  if (result.error) throw new Error('Failed to fetch phases')
+  const apiClient = await buildApiClient()
+  const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
+    params: { path: { meetingId } },
+  })
+  if (error) throw new Error('Failed to fetch phases')
 
-  const items: unknown[] = Array.isArray(result.data) ? (result.data as unknown[]) : []
+  const items: unknown[] = Array.isArray(data) ? (data as unknown[]) : []
   const normalized: Phase[] = []
   for (const item of items) {
     const n = normalizePhase(item)

@@ -32,7 +32,7 @@ const HomePageContent = () => {
 
 const HomePage = () => {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       <ClientProvider>
         <HomePageContent />
       </ClientProvider>

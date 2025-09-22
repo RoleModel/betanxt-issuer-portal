@@ -10,14 +10,16 @@ import TaskAddModal from '@/components/Dialogs/TaskAddDialog'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
 
-import { getTaskById, updateTask } from '@/domain-models/api/tasks'
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
+
 import { useMeeting } from '@/contexts/MeetingContext'
-import type { Task } from '@/types/api'
 
 import { CalendarHeader, type CalendarViewType } from './CalendarHeader'
 import { ListView } from './ListView'
 import { MonthView } from './MonthView'
 
+type Task = components['schemas']['Task']
 
 interface CalendarViewProps {
   meeting?: { id: string; meetingDate?: string | null; title?: string }
@@ -41,7 +43,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const approveTask = useCallback(
     async (taskId: string) => {
       try {
-        const result = await updateTask(taskId, { status: 'COMPLETE' })
+        const apiClient = await buildApiClient()
+        const result = await apiClient.PUT('/tasks/{id}', {
+          params: { path: { id: taskId } },
+          body: { status: 'COMPLETE' },
+        })
 
         if (result.error) {
           throw new Error('Failed to approve task')
@@ -56,7 +62,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     },
     [refreshMeetingData]
   )
-
 
   // View state
   const [view, setView] = useState<CalendarViewType>('month')
@@ -81,7 +86,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleTaskClick = async (taskId: string) => {
     try {
-      const result = await getTaskById(taskId)
+      const apiClient = await buildApiClient()
+      const result = await apiClient.GET('/tasks/{id}', {
+        params: { path: { id: taskId } },
+      })
 
       if (result.error || !result.data) {
         console.error('Task not found:', taskId)
@@ -103,16 +111,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         phaseNumber: apiTask.phaseNumber || 0,
         type: (apiTask.type || 'external') as Task['type'],
         taskId: apiTask.taskId || apiTask.id || '',
-        documentId: apiTask.documentId || null,
-        links: (apiTask.links as Task['links']) || null,
-        createdAt: apiTask.createdAt || null,
-        updatedAt: apiTask.updatedAt || null,
+        documentId: apiTask.documentId || undefined,
+        links: (apiTask.links as Task['links']) || undefined,
+        createdAt: apiTask.createdAt || undefined,
+        updatedAt: apiTask.updatedAt || undefined,
       }
 
       // For approval tasks, open ApprovalDrawer directly
       if (task.type === 'approve') {
         // Use document link from task links if available
-        const documentUrl = task.links?.find(link => link.action === 'download')?.url || ''
+        const documentUrl =
+          task.links?.find((link) => link.action === 'download')?.url || ''
         setApprovalDocumentUrl(documentUrl)
         setApprovalTitle(task.title)
         setApprovalTask(task)

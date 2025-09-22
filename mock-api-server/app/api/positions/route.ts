@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.099Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listPositions, createPosition } from '@/domain-models/api/positions'
+
+import { createPosition, listPositions } from '@/domain-models/api/positions'
+
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -12,13 +14,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const meetingId = searchParams.get('meetingId') || undefined
     const voteStatus = searchParams.get('voteStatus') || undefined
     const accountType = searchParams.get('accountType') || undefined
-    const select = searchParams.get('select') || undefined
+    const _select = searchParams.get('select') || undefined
     const order = searchParams.get('order') || undefined
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
-    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : undefined
+    const limit = searchParams.get('limit')
+      ? parseInt(searchParams.get('limit')!, 10)
+      : undefined
+    const offset = searchParams.get('offset')
+      ? parseInt(searchParams.get('offset')!, 10)
+      : undefined
 
     // Use existing domain model function
-    const { data, error } = await listPositions({ limit, meetingId, voteStatus, accountType, order, offset })
+    const { data, error } = await listPositions({
+      limit,
+      meetingId,
+      voteStatus,
+      accountType,
+      order,
+      offset,
+    })
 
     if (error) {
       return NextResponse.json(
@@ -34,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listPositions'
+        operationId: 'listPositions',
       },
       { status: 500 }
     )
@@ -44,7 +57,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreatePositionRequest']
 
     // Use existing domain model function
     const { data, error } = await createPosition(body)
@@ -63,10 +76,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createPosition'
+        operationId: 'createPosition',
       },
       { status: 500 }
     )
   }
 }
-

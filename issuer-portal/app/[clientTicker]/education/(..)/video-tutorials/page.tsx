@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 
 import { Card, CardContent, Container, Grid } from '@mui/material'
 
-import VideoPlayer from '@/components/video/VideoPlayer'
-import VideoPlaylist from '@/components/video/VideoPlaylist'
+import VideoPlayer from '@/components/Video/VideoPlayer'
+import VideoPlaylist from '@/components/Video/VideoPlaylist'
 
 interface VideoTutorial {
   id: string

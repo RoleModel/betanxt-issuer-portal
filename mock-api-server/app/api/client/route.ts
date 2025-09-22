@@ -1,8 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-17T01:00:47.522Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
+import type { components } from '@/types/api'
+
 // import { supabase } from '@/utils/supabase/client'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -14,14 +16,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Fetch from Supabase directly using REST API
     const supabaseUrl = 'http://localhost:54321/rest/v1/client'
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+    const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
 
-    const response = await fetch(`${supabaseUrl}?select=*&is_active=eq.true&order=company_name`, {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-      },
-    })
+    const response = await fetch(
+      `${supabaseUrl}?select=*&is_active=eq.true&order=company_name`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      }
+    )
 
     if (!response.ok) {
       throw new Error(`Supabase error: ${response.statusText}`)
@@ -73,7 +79,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listClients'
+        operationId: 'listClients',
       },
       { status: 500 }
     )
@@ -83,7 +89,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateClientRequest']
 
     // TODO: Implement createClient
     // Operation: createClient
@@ -95,23 +101,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     //   .insert(body)
     //   .select()
 
-    return NextResponse.json({
-      message: 'Route /client POST not yet implemented',
-      operationId: 'createClient',
-      method: 'POST',
-      path: '/client',
-      body,
-    }, { status: 501 }) // 501 Not Implemented
+    return NextResponse.json(
+      {
+        message: 'Route /client POST not yet implemented',
+        operationId: 'createClient',
+        method: 'POST',
+        path: '/client',
+        body,
+      },
+      { status: 501 }
+    ) // 501 Not Implemented
   } catch (error) {
     console.error('Error in POST /client:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createClient'
+        operationId: 'createClient',
       },
       { status: 500 }
     )
   }
 }
-

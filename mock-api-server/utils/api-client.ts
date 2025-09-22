@@ -19,7 +19,10 @@ export const getAuthToken = (): string | null => authToken
 
 // Convenience methods for common operations
 export const auth = {
-  async login(username: string, password: string): Promise<FetchResponse<paths['/auth/login']['post']>> {
+  async login(
+    username: string,
+    password: string
+  ): Promise<FetchResponse<paths['/auth/login']['post']>> {
     const result = await apiClient.POST('/auth/login', {
       body: { username, password },
     })
@@ -43,7 +46,11 @@ export const auth = {
 }
 
 export const users = {
-  async list(params?: { page?: number; limit?: number; role?: string }): Promise<FetchResponse<paths['/users']['get']>> {
+  async list(params?: {
+    page?: number
+    limit?: number
+    role?: string
+  }): Promise<FetchResponse<paths['/users']['get']>> {
     return await apiClient.GET('/users', {
       params: { query: params },
     })
@@ -134,7 +141,9 @@ export const meetings = {
     })
   },
 
-  async getById(id: string): Promise<FetchResponse<paths['/meetings/{meetingId}']['get']>> {
+  async getById(
+    id: string
+  ): Promise<FetchResponse<paths['/meetings/{meetingId}']['get']>> {
     return await apiClient.GET('/meetings/{meetingId}', {
       params: { path: { meetingId: id } },
     })
@@ -174,7 +183,9 @@ export const meetings = {
     })
   },
 
-  async delete(id: string): Promise<FetchResponse<paths['/meetings/{meetingId}']['delete']>> {
+  async delete(
+    id: string
+  ): Promise<FetchResponse<paths['/meetings/{meetingId}']['delete']>> {
     return await apiClient.DELETE('/meetings/{meetingId}', {
       params: { path: { meetingId: id } },
     })

@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.100Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listProposals, createProposal } from '@/domain-models/api/proposals'
+
+import { createProposal, listProposals } from '@/domain-models/api/proposals'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   meetingId: string
@@ -39,7 +41,7 @@ export async function GET(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listProposals'
+        operationId: 'listProposals',
       },
       { status: 500 }
     )
@@ -56,10 +58,10 @@ export async function POST(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateProposalRequest']
 
     // Use existing domain model function
-    const { data, error } = await createProposal(body, meetingId)
+    const { data, error } = await createProposal(meetingId, body)
 
     if (error) {
       return NextResponse.json(
@@ -75,10 +77,9 @@ export async function POST(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createProposal'
+        operationId: 'createProposal',
       },
       { status: 500 }
     )
   }
 }
-

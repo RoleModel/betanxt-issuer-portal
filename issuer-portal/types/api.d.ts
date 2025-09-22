@@ -2,7 +2,6 @@
  * API Types - Core domain types that match the backend API schema
  * These should be the source of truth and used throughout the application
  */
-
 import type { components } from '@/domain-models/generated-schema'
 
 // Re-export core API types from generated schema as the source of truth
@@ -10,34 +9,9 @@ export type Meeting = components['schemas']['Meeting']
 export type Document = components['schemas']['Document']
 export type Proposal = components['schemas']['Proposal']
 export type Phase = components['schemas']['Phase']
+export type Task = components['schemas']['Task']
 
-// Core domain types with consistent naming
-export interface Task {
-  id: string
-  title: string
-  description: string | null
-  owner: string
-  dueDate: string | null
-  status: TaskStatus
-  meetingId: string
-  phaseId: string
-  phaseNumber: number
-  type: TaskType
-  taskId: string
-  documentId: string | null
-  links: TaskLink[] | null
-  createdAt: string | null
-  updatedAt: string | null
-}
-
-export interface Position {
-  id: string
-  meetingId: string
-  shares: number
-  sharesVoted?: number
-  voteStatus: string
-  source: string
-}
+export type Position = components['schemas']['Position']
 
 export interface KeyDate {
   id: string
@@ -46,33 +20,8 @@ export interface KeyDate {
   phaseNumber: number
 }
 
-// Task-related types
-export type TaskStatus =
-  | 'INCOMPLETE'
-  | 'COMPLETE'
-  | 'CANCELLED'
-  | 'NEEDS_AUTHORIZATION'
-  | 'AUTHORIZED'
-
-export type TaskType =
-  | 'upload'
-  | 'signature'
-  | 'external'
-  | 'authorize'
-  | 'approve'
-
-export interface TaskLink {
-  label: string
-  url: string
-  action: TaskLinkAction
-}
-
-export type TaskLinkAction =
-  | 'download'
-  | 'upload'
-  | 'sign'
-  | 'authorize'
-  | 'external'
+// Re-export task-related types from generated schema
+export type TaskStatus = components['schemas']['TaskStatus']
 
 // Client and Account types
 export interface Client {

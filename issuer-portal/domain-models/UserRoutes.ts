@@ -76,7 +76,7 @@ export class UserRoutes {
 
     // Check if user has all required permissions
     const permissionChecks = await Promise.all(
-      permissions.map((permission) => allowedTo(permission as any))
+      permissions.map((permission) => allowedTo(permission as 'viewDashboard' | 'viewReports' | 'viewMeeting'))
     )
     return permissionChecks.every(Boolean)
   }

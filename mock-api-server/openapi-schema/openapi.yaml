@@ -1088,6 +1088,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Document'
+                  meetingId:
+                    type: string
+                    description: Meeting identifier (redundant with path but useful for backend validation)
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -1204,6 +1207,283 @@ paths:
           $ref: '#/components/responses/NotFound'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  # Phase 1 & 2 Document Workflow Endpoints
+  /documents/forms/{formType}/sign-digital:
+    post:
+      operationId: signFormDigital
+      summary: Digitally sign a generated form
+      tags: [Documents]
+      parameters:
+        - name: formType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [FORM_OF_PROXY, VIF, CONTROLLED_ACCOUNT_REPORT]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meetingId, signerUserId]
+              properties:
+                meetingId:
+                  type: string
+                signerUserId:
+                  type: string
+                  description: User performing the digital signature
+                signatureReason:
+                  type: string
+                  description: Optional reason or context for the signature
+                replaceExisting:
+                  type: boolean
+                  description: If true, replaces any existing signature artifact
+      responses:
+        '200':
+          description: Form executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /documents/forms/{formType}/upload-executed:
+    post:
+      operationId: uploadExecutedForm
+      summary: Upload executed (wet-signed) form PDF
+      tags: [Documents]
+      parameters:
+        - name: formType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [FORM_OF_PROXY, VIF, CONTROLLED_ACCOUNT_REPORT]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file]
+              properties:
+                meetingId:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                  description: Executed (signed) form PDF
+                originalGeneratedId:
+                  type: string
+                  description: If provided, links the upload to a previously generated draft form
+      responses:
+        '201':
+          description: Form executed via upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: File too large
+
+  /documents/{documentType}/upload:
+    post:
+      operationId: uploadDocumentVersion
+      summary: Upload or create a new document version (proxy or supporting)
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ProxyMaterialType or SupportingDocumentType
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file]
+              properties:
+                meetingId:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                  description: Document file content
+                versionNotes:
+                  type: string
+                  description: Optional notes describing the changes or purpose of this version
+      responses:
+        '201':
+          description: Version uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: File too large
+
+  /documents/{documentType}/{versionId}/approve:
+    post:
+      operationId: approveDocumentVersion
+      summary: Approve a pending proxy material version
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: versionId
+
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meetingId]
+              properties:
+                meetingId:
+                  type: string
+                comment:
+                  type: string
+                  description: Optional approval comment
+      responses:
+        '200':
+          description: Version approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Invalid state transition
+
+  /documents/{documentType}/{approvedVersionId}/replace:
+    post:
+      operationId: replaceApprovedVersion
+      summary: Replace an approved proxy material (creates new pending version)
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: approvedVersionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file, reason]
+              properties:
+                meetingId:
+                  type: string
+                reason:
+                  type: string
+                  description: Business justification for replacement
+                file:
+                  type: string
+                  format: binary
+                  description: Replacement document file content
+      responses:
+        '201':
+          description: Replacement version uploaded (previous approved retained)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Invalid state transition
+
+  /documents/readiness:
+    get:
+      operationId: getDocumentsReadiness
+      summary: Get readiness aggregation for a meeting
+      tags: [Documents]
+      parameters:
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Readiness status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phase1Ready:
+                    type: boolean
+                  phase2Ready:
+                    type: boolean
+                  overallReady:
+                    type: boolean
+                  outstandingPhase1:
+                    type: array
+                    items:
+                      type: object
+                  outstandingPhase2:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /documents/{documentType}/history:
+    get:
+      operationId: getDocumentHistory
+      summary: Get version history for a document type within a meeting
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # Position Management Endpoints (Supabase PostgREST)
   /positions:
@@ -1470,7 +1750,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
 
   # Voting Endpoints (Supabase PostgREST)
   # Note: Supabase auto-generates endpoints based on table names
@@ -1874,43 +2153,43 @@ components:
       properties:
         id:
           type: string
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         title:
           type: string
-          example: "2025 Annual Shareholder Meeting"
+          example: '2025 Annual Shareholder Meeting'
         cusip:
           type: string
-          example: "12345A678"
+          example: '12345A678'
         ticker:
           type: string
-          example: "ACME"
+          example: 'ACME'
         preFilingDate:
           type: string
           format: date
           nullable: true
-          example: "2025-02-15"
+          example: '2025-02-15'
         filingDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-01"
+          example: '2025-03-01'
         brokerSearchDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-15"
+          example: '2025-03-15'
         recordDate:
           type: string
           format: date
-          example: "2025-04-01"
+          example: '2025-04-01'
         mailingDate:
           type: string
           format: date
-          example: "2025-04-15"
+          example: '2025-04-15'
         meetingDate:
           type: string
           format: date
-          example: "2025-05-15"
+          example: '2025-05-15'
         meetingType:
           type: string
         meetingYear:
@@ -1920,7 +2199,7 @@ components:
           $ref: '#/components/schemas/MeetingStatus'
         currentPhase:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         overallCompletion:
           type: integer
           minimum: 0
@@ -1928,10 +2207,10 @@ components:
           example: 75
         distributionType:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         transferAgent:
           type: string
-          example: "Computershare Trust Company"
+          example: 'Computershare Trust Company'
         employeeStockPlans:
           type: string
           nullable: true
@@ -1985,15 +2264,15 @@ components:
         id:
           type: string
           format: uuid
-          example: "11111111-2222-3333-4444-555555555555"
+          example: '11111111-2222-3333-4444-555555555555'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         name:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         orderIndex:
           type: integer
           example: 1
@@ -2007,22 +2286,22 @@ components:
               type: string
               format: date
               nullable: true
-              example: "2025-03-01"
+              example: '2025-03-01'
             endDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-31"
+              example: '2025-03-31'
             dueDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-25"
+              example: '2025-03-25'
             completionDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-20"
+              example: '2025-03-20'
         createdAt:
           type: string
           format: date-time
@@ -2036,45 +2315,45 @@ components:
         id:
           type: string
           format: uuid
-          example: "22222222-3333-4444-5555-666666666666"
+          example: '22222222-3333-4444-5555-666666666666'
         taskId:
           type: string
-          example: "T001"
+          example: 'T001'
         phaseId:
           type: string
           format: uuid
-          example: "11111111-2222-3333-4444-555555555555"
+          example: '11111111-2222-3333-4444-555555555555'
         meetingId:
           type: string
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         phaseNumber:
           type: integer
           example: 1
         title:
           type: string
-          example: "Prepare proxy statement"
+          example: 'Prepare proxy statement'
         description:
           type: string
           nullable: true
-          example: "Draft and review the preliminary proxy statement for the annual meeting"
+          example: 'Draft and review the preliminary proxy statement for the annual meeting'
         type:
           type: string
-          example: "DOCUMENT_PREPARATION"
+          example: 'DOCUMENT_PREPARATION'
         status:
           $ref: '#/components/schemas/TaskStatus'
         dueDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-15"
+          example: '2025-03-15'
         owner:
           type: string
-          example: "Legal Team"
+          example: 'Legal Team'
         documentId:
           type: string
           format: uuid
           nullable: true
-          example: "33333333-4444-5555-6666-777777777777"
+          example: '33333333-4444-5555-6666-777777777777'
         links:
           type: object
           nullable: true
@@ -2162,24 +2441,24 @@ components:
         id:
           type: string
           format: uuid
-          example: "44444444-5555-6666-7777-888888888888"
+          example: '44444444-5555-6666-7777-888888888888'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         cusip:
           type: string
-          example: "12345A678"
+          example: '12345A678'
         accountType:
           type: string
-          example: "BENEFICIAL"
+          example: 'BENEFICIAL'
         setKey:
           type: string
-          example: "BEN001"
+          example: 'BEN001'
         name:
           type: string
-          example: "VANGUARD GROUP INC"
+          example: 'VANGUARD GROUP INC'
         accountNumber:
           type: string
           nullable: true
@@ -2215,30 +2494,30 @@ components:
         id:
           type: string
           format: uuid
-          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         proposalNumber:
           type: number
           format: double
           example: 1.01
         proposalTitle:
           type: string
-          example: "Election of Directors"
+          example: 'Election of Directors'
         proposalType:
           type: string
-          example: "DIRECTOR_ELECTION"
+          example: 'DIRECTOR_ELECTION'
         proposalSubtype:
           type: string
           nullable: true
-          example: "BOARD_MEMBER"
+          example: 'BOARD_MEMBER'
         directorName:
           type: string
           nullable: true
-          example: "John A. Smith"
+          example: 'John A. Smith'
         directorTermYears:
           type: integer
           nullable: true
@@ -2258,62 +2537,62 @@ components:
         finalResult:
           type: string
           nullable: true
-          enum: ["PASSED", "FAILED", "PENDING"]
-          description: "Final result of the proposal voting"
-          example: "PASSED"
+          enum: ['PASSED', 'FAILED', 'PENDING']
+          description: 'Final result of the proposal voting'
+          example: 'PASSED'
         totalVotesFor:
           type: integer
           nullable: true
-          description: "Total number of votes in favor"
+          description: 'Total number of votes in favor'
           example: 150000000
         totalVotesAgainst:
           type: integer
           nullable: true
-          description: "Total number of votes against"
+          description: 'Total number of votes against'
           example: 25000000
         totalVotesAbstain:
           type: integer
           nullable: true
-          description: "Total number of abstained votes"
+          description: 'Total number of abstained votes'
           example: 5000000
         totalSharesEligible:
           type: integer
           nullable: true
-          description: "Total number of shares eligible to vote"
+          description: 'Total number of shares eligible to vote'
           example: 200000000
         forPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of votes in favor"
+          description: 'Percentage of votes in favor'
           example: 85.7
         againstPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of votes against"
+          description: 'Percentage of votes against'
           example: 12.5
         abstainPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of abstained votes"
+          description: 'Percentage of abstained votes'
           example: 2.5
         participationRate:
           type: number
           format: float
           nullable: true
-          description: "Overall participation rate"
+          description: 'Overall participation rate'
           example: 90.0
         votingCompleted:
           type: boolean
           default: false
-          description: "Whether voting on this proposal has been completed"
+          description: 'Whether voting on this proposal has been completed'
         votingCompletedAt:
           type: string
           format: date-time
           nullable: true
-          description: "When voting was completed"
+          description: 'When voting was completed'
         createdAt:
           type: string
           format: date-time
@@ -2327,24 +2606,24 @@ components:
         id:
           type: string
           format: uuid
-          example: "55555555-6666-7777-8888-999999999999"
+          example: '55555555-6666-7777-8888-999999999999'
         positionId:
           type: string
           format: uuid
           x-foreign-key: position.id
-          example: "44444444-5555-6666-7777-888888888888"
+          example: '44444444-5555-6666-7777-888888888888'
         proposalId:
           type: string
           format: uuid
           x-foreign-key: proposal.id
-          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
         vote:
           type: string
-          example: "FOR"
+          example: 'FOR'
         sharesVoting:
           type: string
           format: int64
-          example: "1000000"
+          example: '1000000'
         createdAt:
           type: string
           format: date-time
@@ -2858,14 +3137,20 @@ components:
           maxLength: 200
         description:
           type: string
+          nullable: true
+          description: Optional human readable description for the document
         type:
           type: string
+          description: Canonical document type (proxy material or supporting)
         taskId:
           type: string
           format: uuid
+          nullable: true
+          description: Optional task linkage identifier
         file:
           type: string
           format: binary
+          description: Document file content upload
 
     UpdateDocumentRequest:
       type: object

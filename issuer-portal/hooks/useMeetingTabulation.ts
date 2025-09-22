@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { getMeetingById, listMeetings } from '@/domain-models/api/meetings'
-import { getPhaseById, listPhases } from '@/domain-models/api/phases'
-import { listPositions } from '@/domain-models/api/positions'
+import buildApiClient from '@/domain-models/apiClient'
 
 export interface TabulationData {
   meeting_id: string
@@ -44,20 +42,26 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
     setError(null)
 
     try {
+      const apiClient = await buildApiClient()
+
       // Fetch meeting details
-      const meetingResult = await getMeetingById(meetingId)
+      const meetingResult = await apiClient.GET('/meetings/{meetingId}', {
+        params: { path: { meetingId } },
+      })
       if (meetingResult.error) {
         throw new Error('Failed to fetch meeting')
       }
 
-      const meeting = meetingResult.data as any
+      const meeting = meetingResult.data as { title?: string; meetingTitle?: string; date?: string; meetingDate?: string; status?: string }
       if (!meeting) {
         throw new Error('Meeting not found')
       }
 
       // Fetch positions to calculate tabulation
-      const positionsResult = await listPositions({ meetingId })
-      const positions = (positionsResult.data?.positions || []) as any[]
+      const positionsResult = await apiClient.GET('/positions', {
+        params: { query: { meetingId } },
+      })
+      const positions = (positionsResult.data?.positions || []) as Array<{ voteStatus?: string; shares?: number; votingSource?: string }>
 
       // Calculate tabulation summary from positions
       const totalPositions = positions.length
@@ -95,14 +99,16 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       // For active meetings, try to get phase dates
       if (meeting.status !== 'completed') {
         // Fetch phases to find upcoming dates
-        const phasesResult = await listPhases(meetingId)
-        const phases = (phasesResult.data || []) as any[]
+        const phasesResult = await apiClient.GET('/meetings/{meetingId}/phases', {
+          params: { path: { meetingId } },
+        })
+        const phases = (phasesResult.data || []) as Array<{ targetDate?: string }>
 
         // Find the next phase date
         const today = new Date().toISOString().split('T')[0]
         const upcomingPhases = phases
-          .filter((p: any) => p.targetDate && p.targetDate > today)
-          .sort((a: any, b: any) => a.targetDate.localeCompare(b.targetDate))
+          .filter((p) => p.targetDate && p.targetDate > today)
+          .sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''))
 
         if (upcomingPhases.length > 0) {
           setNextPhaseDate(upcomingPhases[0].targetDate)

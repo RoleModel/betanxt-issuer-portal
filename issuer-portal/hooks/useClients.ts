@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { listClients } from '@/domain-models/api/clients'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 export interface Client {
@@ -75,7 +75,9 @@ export const useClients = (): UseClientsResult => {
 
       // If using auth bypass, just fetch all clients directly
       if (bypassAuth) {
-        const result = await listClients()
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/client')
+        const result = { data, error }
 
         if ('error' in result && result.error) {
           throw new Error(
@@ -97,7 +99,9 @@ export const useClients = (): UseClientsResult => {
 
       // For authenticated users, fetch clients they have access to
       // For now, just fetch all clients (can be refined later for user-specific access)
-      const result = await listClients()
+      const apiClient = await buildApiClient()
+      const { data, error } = await apiClient.GET('/clients')
+      const result = { data, error }
 
       if ('error' in result && result.error) {
         const errorMsg = `API Error: ${result.error.message || 'Failed to fetch clients'}`

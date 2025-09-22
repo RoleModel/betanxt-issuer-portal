@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { createTask, getTaskById, updateTask } from '@/domain-models/api/tasks'
 import buildApiClient from '@/domain-models/apiClient'
+
 import type { Task, TaskLinkAction } from '@/types/api'
 
 const fetchTasks = async (meetingId: string): Promise<Task[]> => {
@@ -37,17 +37,17 @@ const fetchTasks = async (meetingId: string): Promise<Task[]> => {
       taskId: task.taskId || task.id!,
       documentId: task.documentId || null,
       links: Array.isArray(task.links)
-        ? task.links.map(
-            (link: { label?: unknown; url?: unknown; action?: unknown }) => {
-              const actionStr = String(link.action ?? 'external')
-              const validActions = ['download', 'upload', 'sign', 'authorize', 'external']
-              return {
-                label: String(link.label ?? ''),
-                url: String(link.url ?? ''),
-                action: (validActions.includes(actionStr) ? actionStr : 'external') as TaskLinkAction,
-              }
+        ? task.links.map((link: { label?: unknown; url?: unknown; action?: unknown }) => {
+            const actionStr = String(link.action ?? 'external')
+            const validActions = ['download', 'upload', 'sign', 'authorize', 'external']
+            return {
+              label: String(link.label ?? ''),
+              url: String(link.url ?? ''),
+              action: (validActions.includes(actionStr)
+                ? actionStr
+                : 'external') as TaskLinkAction,
             }
-          )
+          })
         : null,
       createdAt: task.createdAt || null,
       updatedAt: task.updatedAt || null,
@@ -86,21 +86,25 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
 
   useEffect(() => {
     fetchData()
-  }, [meetingId]) // Only refetch when meetingId changes, not on every fetchData change
+  }, [fetchData]) // Only refetch when meetingId changes, not on every fetchData change
 
   const updateTaskById = useCallback(
     async (id: string, updates: Partial<Task>) => {
       try {
         setError(null)
         // Convert our Task interface fields to API format
-        const apiUpdates: any = {}
+        const apiUpdates: Record<string, unknown> = {}
         if (updates.title !== undefined) apiUpdates.title = updates.title
         if (updates.status !== undefined) apiUpdates.status = updates.status
         if (updates.type !== undefined) apiUpdates.type = updates.type
         if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate
         if (updates.owner !== undefined) apiUpdates.owner = updates.owner
 
-        const result = await updateTask(id, apiUpdates)
+        const apiClient = await buildApiClient()
+        const result = await apiClient.PUT('/tasks/{id}', {
+          params: { path: { id } },
+          body: apiUpdates,
+        })
         if (result.error) {
           throw new Error('Failed to update task')
         }
@@ -131,7 +135,11 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
           owner: task.owner || 'BetaNXT',
         }
 
-        const result = await createTask(meetingIdParam, taskData)
+        const apiClient = await buildApiClient()
+        const result = await apiClient.POST('/meetings/{meetingId}/tasks', {
+          params: { path: { meetingId: meetingIdParam } },
+          body: taskData,
+        })
         if (result.error) {
           throw new Error('Failed to create task')
         }

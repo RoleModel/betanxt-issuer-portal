@@ -1,14 +1,15 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-19T00:30:45.100Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
 
-interface RouteParams {
+import type { components } from '@/types/api'
+
+interface _RouteParams {
   id: string
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     // TODO: Implement getDocumentComments
     // Operation: getDocumentComments
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDocumentComments'
+        operationId: 'getDocumentComments',
       },
       { status: 500 }
     )
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateCommentRequest']
 
     // TODO: Implement addComment
     // Operation: addComment
@@ -56,10 +57,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'addComment'
+        operationId: 'addComment',
       },
       { status: 500 }
     )
   }
 }
-

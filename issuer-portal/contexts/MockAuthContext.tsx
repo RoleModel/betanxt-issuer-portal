@@ -43,11 +43,11 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
         id: session.user.id || '',
         name: session.user.name || '',
         email: session.user.email || '',
-        username: (session.user as any).username || '',
-        type: (session.user as any).type || 'user',
-        accountId: (session.user as any).accountId || '',
-        client: (session.user as any).client || null,
-        roles: (session.user as any).roles || [],
+        username: (session.user as { username?: string }).username || '',
+        type: (session.user as { type?: string }).type || 'user',
+        accountId: (session.user as { accountId?: string }).accountId || '',
+        client: (session.user as { client?: { id: number; name: string } | null }).client || null,
+        roles: (session.user as { roles?: string[] }).roles || [],
       })
     } else {
       setUser(null)

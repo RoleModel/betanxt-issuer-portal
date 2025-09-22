@@ -5,7 +5,7 @@ import { ClientProvider } from '@/contexts/ClientContext'
 
 export default function ClientTickerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       <ClientProvider>
         {children}
       </ClientProvider>

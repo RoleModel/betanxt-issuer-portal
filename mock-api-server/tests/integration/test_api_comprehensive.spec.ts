@@ -106,7 +106,9 @@ test.describe('Comprehensive API Tests', () => {
       expect(Array.isArray(data)).toBe(true)
     })
 
-    test('GET /api/meetings/{meetingId}/tasks with no filters should return all tasks for meeting', async ({ request }) => {
+    test('GET /api/meetings/{meetingId}/tasks with no filters should return all tasks for meeting', async ({
+      request,
+    }) => {
       const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/tasks`)
       expect(response.status()).toBe(200)
 
@@ -120,15 +122,21 @@ test.describe('Comprehensive API Tests', () => {
     test('GET /api/meetings/{meetingId}/documents should return documents for meeting', async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/documents`)
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/documents`
+      )
       expect(response.status()).toBe(200)
 
       const data = await response.json()
       expect(Array.isArray(data)).toBe(true)
     })
 
-    test('GET /api/meetings/{meetingId}/documents with no filters should return all documents for meeting', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/documents`)
+    test('GET /api/meetings/{meetingId}/documents with no filters should return all documents for meeting', async ({
+      request,
+    }) => {
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/documents`
+      )
       expect(response.status()).toBe(200)
 
       const data = await response.json()
@@ -141,15 +149,21 @@ test.describe('Comprehensive API Tests', () => {
     test('GET /api/meetings/{meetingId}/proposals should return proposals for meeting', async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`)
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`
+      )
       expect(response.status()).toBe(200)
 
       const data = await response.json()
       expect(Array.isArray(data)).toBe(true)
     })
 
-    test('GET /api/meetings/{meetingId}/proposals with no filters should return all proposals for meeting', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`)
+    test('GET /api/meetings/{meetingId}/proposals with no filters should return all proposals for meeting', async ({
+      request,
+    }) => {
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`
+      )
       expect(response.status()).toBe(200)
 
       const data = await response.json()
@@ -169,7 +183,9 @@ test.describe('Comprehensive API Tests', () => {
       expect(Array.isArray(data)).toBe(true)
     })
 
-    test('GET /api/meetings/{meetingId}/phases with no filters should return all phases for meeting', async ({ request }) => {
+    test('GET /api/meetings/{meetingId}/phases with no filters should return all phases for meeting', async ({
+      request,
+    }) => {
       const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/phases`)
       expect(response.status()).toBe(200)
 

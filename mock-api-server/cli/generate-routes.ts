@@ -1,11 +1,10 @@
 #!/usr/bin/env tsx
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs'
-import { join } from 'path'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import * as yaml from 'js-yaml'
-
+import { join } from 'path'
+import { dirname } from 'path'
 // Use the actual script directory for relative paths
 import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -62,7 +61,7 @@ function scanDomainModels(): DomainModelMap {
     return domainModels
   }
 
-  const files = readdirSync(domainModelsDir).filter(file => file.endsWith('.ts'))
+  const files = readdirSync(domainModelsDir).filter((file) => file.endsWith('.ts'))
 
   for (const file of files) {
     const filePath = join(domainModelsDir, file)
@@ -71,16 +70,18 @@ function scanDomainModels(): DomainModelMap {
     // Extract exported function names using regex
     const functionMatches = content.match(/export\s+(?:async\s+)?function\s+(\w+)/g)
     if (functionMatches) {
-      const functions = functionMatches.map(match => {
-        const nameMatch = match.match(/function\s+(\w+)/)
-        return nameMatch ? nameMatch[1] : ''
-      }).filter(Boolean)
+      const functions = functionMatches
+        .map((match) => {
+          const nameMatch = match.match(/function\s+(\w+)/)
+          return nameMatch ? nameMatch[1] : ''
+        })
+        .filter(Boolean)
 
       if (functions.length > 0) {
         const moduleName = file.replace('.ts', '')
         domainModels[moduleName] = {
           modulePath: `@/domain-models/api/${moduleName}`,
-          functions
+          functions,
         }
       }
     }
@@ -92,88 +93,91 @@ function scanDomainModels(): DomainModelMap {
 /**
  * Map operation IDs to domain model functions
  */
-function mapOperationsToDomainModels(operationId: string, domainModels: DomainModelMap): { module: string, functionName: string } | null {
+function mapOperationsToDomainModels(
+  operationId: string,
+  domainModels: DomainModelMap
+): { module: string; functionName: string } | null {
   // Common operation ID to function name mappings
   const mappings: Record<string, string> = {
     // Meetings
-    'listMeetings': 'listMeetings',
-    'createMeeting': 'createMeeting',
-    'getMeetingById': 'getMeetingById',
-    'updateMeeting': 'updateMeeting',
-    'deleteMeeting': 'deleteMeeting',
+    listMeetings: 'listMeetings',
+    createMeeting: 'createMeeting',
+    getMeetingById: 'getMeetingById',
+    updateMeeting: 'updateMeeting',
+    deleteMeeting: 'deleteMeeting',
 
     // Phases
-    'listPhases': 'listPhases',
-    'createPhase': 'createPhase',
-    'getPhaseById': 'getPhaseById',
-    'updatePhase': 'updatePhase',
-    'deletePhase': 'deletePhase',
+    listPhases: 'listPhases',
+    createPhase: 'createPhase',
+    getPhaseById: 'getPhaseById',
+    updatePhase: 'updatePhase',
+    deletePhase: 'deletePhase',
 
     // Tasks
-    'listTasks': 'listTasks',
-    'createTask': 'createTask',
-    'getTaskById': 'getTaskById',
-    'updateTask': 'updateTask',
-    'deleteTask': 'deleteTask',
+    listTasks: 'listTasks',
+    createTask: 'createTask',
+    getTaskById: 'getTaskById',
+    updateTask: 'updateTask',
+    deleteTask: 'deleteTask',
 
     // Positions
-    'listPositions': 'listPositions',
-    'createPosition': 'createPosition',
-    'getPositionById': 'getPositionById',
-    'updatePosition': 'updatePosition',
-    'deletePosition': 'deletePosition',
+    listPositions: 'listPositions',
+    createPosition: 'createPosition',
+    getPositionById: 'getPositionById',
+    updatePosition: 'updatePosition',
+    deletePosition: 'deletePosition',
 
     // Documents
-    'listDocuments': 'listDocuments',
-    'createDocument': 'createDocument',
-    'getDocumentById': 'getDocumentById',
-    'updateDocument': 'updateDocument',
-    'deleteDocument': 'deleteDocument',
+    listDocuments: 'listDocuments',
+    createDocument: 'createDocument',
+    getDocumentById: 'getDocumentById',
+    updateDocument: 'updateDocument',
+    deleteDocument: 'deleteDocument',
 
     // Proposals
-    'listProposals': 'listProposals',
-    'createProposal': 'createProposal',
-    'getProposalById': 'getProposalById',
-    'updateProposal': 'updateProposal',
-    'deleteProposal': 'deleteProposal',
+    listProposals: 'listProposals',
+    createProposal: 'createProposal',
+    getProposalById: 'getProposalById',
+    updateProposal: 'updateProposal',
+    deleteProposal: 'deleteProposal',
 
     // Clients
-    'listClients': 'listClients',
-    'createClient': 'createClient',
-    'getClientByTicker': 'getClientByTicker',
-    'updateClient': 'updateClient',
-    'deleteClient': 'deleteClient',
+    listClients: 'listClients',
+    createClient: 'createClient',
+    getClientByTicker: 'getClientByTicker',
+    updateClient: 'updateClient',
+    deleteClient: 'deleteClient',
 
     // Accounts
-    'listAccounts': 'listAccounts',
-    'createAccount': 'createAccount',
-    'getAccountById': 'getAccountById',
-    'updateAccount': 'updateAccount',
-    'deleteAccount': 'deleteAccount',
-    'listAccountUsers': 'listAccountUsers',
+    listAccounts: 'listAccounts',
+    createAccount: 'createAccount',
+    getAccountById: 'getAccountById',
+    updateAccount: 'updateAccount',
+    deleteAccount: 'deleteAccount',
+    listAccountUsers: 'listAccountUsers',
 
     // Users
-    'listUsers': 'listUsers',
-    'createUser': 'createUser',
-    'getUserById': 'getUserById',
-    'updateUser': 'updateUser',
-    'deleteUser': 'deleteUser',
-    'listUserAccounts': 'listUserAccounts',
+    listUsers: 'listUsers',
+    createUser: 'createUser',
+    getUserById: 'getUserById',
+    updateUser: 'updateUser',
+    deleteUser: 'deleteUser',
+    listUserAccounts: 'listUserAccounts',
 
     // Auth
-    'loginUser': 'loginUser',
-    'logoutUser': 'logoutUser',
-    'getCurrentUser': 'getCurrentUser',
+    loginUser: 'loginUser',
+    logoutUser: 'logoutUser',
+    getCurrentUser: 'getCurrentUser',
 
     // Position Votes
-    'listPositionVotes': 'listPositionVotes',
-    'createPositionVote': 'createPositionVote',
-    'updatePositionVote': 'updatePositionVote',
+    listPositionVotes: 'listPositionVotes',
+    createPositionVote: 'createPositionVote',
+    updatePositionVote: 'updatePositionVote',
 
     // Notifications
-    'listNotifications': 'listNotifications',
-    'createNotification': 'createNotification',
-    'markNotificationRead': 'markNotificationRead',
+    listNotifications: 'listNotifications',
+    createNotification: 'createNotification',
+    markNotificationRead: 'markNotificationRead',
   }
 
   const functionName = mappings[operationId]
@@ -184,7 +188,7 @@ function mapOperationsToDomainModels(operationId: string, domainModels: DomainMo
     if (model.functions.includes(functionName)) {
       return {
         module: model.modulePath,
-        functionName
+        functionName,
       }
     }
   }
@@ -221,7 +225,7 @@ function generateRoutes(): void {
   const routes: RouteInfo[] = []
 
   for (const [path, pathItem] of Object.entries(spec.paths)) {
-    const methods = Object.keys(pathItem).filter(method =>
+    const methods = Object.keys(pathItem).filter((method) =>
       ['get', 'post', 'put', 'delete', 'patch'].includes(method.toLowerCase())
     )
 
@@ -244,10 +248,10 @@ function generateRoutes(): void {
 
     routes.push({
       path,
-      methods: methods.map(m => m.toUpperCase()),
+      methods: methods.map((m) => m.toUpperCase()),
       operationIds,
       parameters,
-      responses
+      responses,
     })
   }
 
@@ -273,7 +277,11 @@ function cleanAutoGeneratedRoutes(): void {
   console.log('🔍 Scanning for auto-generated routes to clean...')
 }
 
-function generateRouteFile(route: RouteInfo, apiDir: string, domainModels: DomainModelMap): boolean {
+function generateRouteFile(
+  route: RouteInfo,
+  apiDir: string,
+  domainModels: DomainModelMap
+): boolean {
   try {
     // Convert OpenAPI path to Next.js file structure
     // /meetings/{meetingId}/phases -> meetings/[meetingId]/phases/route.ts
@@ -301,7 +309,12 @@ function generateRouteFile(route: RouteInfo, apiDir: string, domainModels: Domai
   }
 }
 
-function generateDomainModelCall(method: string, functionName: string, params: OpenAPIParameter[], route: RouteInfo): string {
+function generateDomainModelCall(
+  method: string,
+  functionName: string,
+  params: OpenAPIParameter[],
+  route: RouteInfo
+): string {
   let call = `    const { data, error } = await ${functionName}(`
 
   const callParams: string[] = []
@@ -309,16 +322,16 @@ function generateDomainModelCall(method: string, functionName: string, params: O
   // Add parameters based on method and parameters
   if (method === 'GET' && functionName.includes('list')) {
     // List operations typically take page, limit, filters
-    const queryParams = params.filter(p => p.in === 'query')
+    const queryParams = params.filter((p) => p.in === 'query')
 
     // Always include page and limit if they're in query params
-    const hasPage = queryParams.some(p => p.name === 'page')
-    const hasLimit = queryParams.some(p => p.name === 'limit')
+    const hasPage = queryParams.some((p) => p.name === 'page')
+    const hasLimit = queryParams.some((p) => p.name === 'limit')
 
     // Special-case known list function signatures
     if (functionName === 'listPositions') {
       // listPositions expects a single params object including page/limit but not select
-      const allParams = queryParams.map(p => p.name).filter(name => name !== 'select')
+      const allParams = queryParams.map((p) => p.name).filter((name) => name !== 'select')
       const objectProps: string[] = []
       if (hasPage) objectProps.push('page')
       if (hasLimit) objectProps.push('limit')
@@ -331,7 +344,7 @@ function generateDomainModelCall(method: string, functionName: string, params: O
       const pathParams = route.path.match(/\{([^}]+)\}/g)
       const objectProps: string[] = []
       if (pathParams) {
-        const pathParamNames = pathParams.map(match => match.slice(1, -1))
+        const pathParamNames = pathParams.map((match) => match.slice(1, -1))
         for (const paramName of pathParamNames) {
           objectProps.push(paramName)
         }
@@ -342,7 +355,7 @@ function generateDomainModelCall(method: string, functionName: string, params: O
       callParams.push(`{ ${objectProps.join(', ')} }`)
     } else if (functionName === 'listClients') {
       // listClients(page?, limit?, ticker?) — ensure positional args even if missing
-      const hasTicker = queryParams.some(p => p.name === 'ticker')
+      const hasTicker = queryParams.some((p) => p.name === 'ticker')
       callParams.push(hasPage ? 'page' : 'undefined')
       callParams.push(hasLimit ? 'limit' : 'undefined')
       if (hasTicker) {
@@ -352,36 +365,38 @@ function generateDomainModelCall(method: string, functionName: string, params: O
       // listPhases expects meetingId as first parameter
       const pathParams = route.path.match(/\{([^}]+)\}/g)
       if (pathParams) {
-        const pathParamNames = pathParams.map(match => match.slice(1, -1))
+        const pathParamNames = pathParams.map((match) => match.slice(1, -1))
         callParams.push(...pathParamNames)
       }
     } else if (functionName === 'listProposals') {
       // listProposals expects meetingId as first parameter
       const pathParams = route.path.match(/\{([^}]+)\}/g)
       if (pathParams) {
-        const pathParamNames = pathParams.map(match => match.slice(1, -1))
+        const pathParamNames = pathParams.map((match) => match.slice(1, -1))
         callParams.push(...pathParamNames)
       }
     } else if (functionName === 'listTasks') {
       // listTasks(meetingId?: string, opts?: { phaseId?: string; status?: string })
       // Check if we have a meetingId from path parameters
       const pathParams = route.path.match(/\{([^}]+)\}/g)
-      if (pathParams && pathParams.some(p => p.includes('meetingId'))) {
+      if (pathParams && pathParams.some((p) => p.includes('meetingId'))) {
         callParams.push('meetingId')
       }
       // Add options object with query params (excluding owner which isn't supported)
-      const filterParams = queryParams.filter(p => !['page', 'limit', 'owner'].includes(p.name))
+      const filterParams = queryParams.filter(
+        (p) => !['page', 'limit', 'owner'].includes(p.name)
+      )
       if (filterParams.length > 0) {
-        const filters = filterParams.map(p => `${p.name}`).join(', ')
+        const filters = filterParams.map((p) => `${p.name}`).join(', ')
         callParams.push(`{ ${filters} }`)
       }
     } else {
       // Default: page, limit, and a filters object with the rest
       if (hasPage) callParams.push('page')
       if (hasLimit) callParams.push('limit')
-      const filterParams = queryParams.filter(p => !['page', 'limit'].includes(p.name))
+      const filterParams = queryParams.filter((p) => !['page', 'limit'].includes(p.name))
       if (filterParams.length > 0) {
-        const filters = filterParams.map(p => `${p.name}`).join(', ')
+        const filters = filterParams.map((p) => `${p.name}`).join(', ')
         callParams.push(`{ ${filters} }`)
       } else if (hasPage || hasLimit) {
         callParams.push('undefined')
@@ -391,7 +406,7 @@ function generateDomainModelCall(method: string, functionName: string, params: O
     // Operations with path parameters - extract actual parameter names from route
     const pathParams = route.path.match(/\{([^}]+)\}/g)
     if (pathParams) {
-      const pathParamNames = pathParams.map(match => match.slice(1, -1))
+      const pathParamNames = pathParams.map((match) => match.slice(1, -1))
       callParams.push(...pathParamNames)
     }
   }
@@ -399,7 +414,7 @@ function generateDomainModelCall(method: string, functionName: string, params: O
   if (['POST', 'PUT', 'PATCH'].includes(method)) {
     // Special case: createDocument and createProposal only take body parameter
     if (functionName === 'createDocument' || functionName === 'createProposal') {
-      callParams.length = 0  // Clear any path params
+      callParams.length = 0 // Clear any path params
     }
     callParams.push('body')
   }
@@ -415,7 +430,7 @@ function generateRouteContent(route: RouteInfo, domainModels: DomainModelMap): s
 
   // Check if any operations have domain model implementations
   const domainModelImports = new Set<string>()
-  const operationMappings: Record<string, { module: string, functionName: string }> = {}
+  const operationMappings: Record<string, { module: string; functionName: string }> = {}
 
   for (const [method, operationId] of Object.entries(route.operationIds)) {
     const mapping = mapOperationsToDomainModels(operationId, domainModels)
@@ -435,8 +450,8 @@ import { NextRequest, NextResponse } from 'next/server'`
   if (domainModelImports.size > 0) {
     for (const moduleImport of Array.from(domainModelImports)) {
       const functions = Object.values(operationMappings)
-        .filter(op => op.module === moduleImport)
-        .map(op => op.functionName)
+        .filter((op) => op.module === moduleImport)
+        .map((op) => op.functionName)
       const uniqueFunctions = Array.from(new Set(functions))
       content += `\nimport { ${uniqueFunctions.join(', ')} } from '${moduleImport}'`
     }
@@ -466,12 +481,15 @@ import { NextRequest, NextResponse } from 'next/server'`
 
     // Check if we actually need the params parameter
     const methodMapping = operationMappings[method]
-    const willUsePathParams = hasPathParams && methodMapping &&
+    const willUsePathParams =
+      hasPathParams &&
+      methodMapping &&
       (methodMapping.functionName === 'listDocuments' ||
         methodMapping.functionName === 'listPhases' ||
         methodMapping.functionName === 'listProposals' ||
         methodMapping.functionName === 'listTasks' ||
-        (methodMapping.functionName !== 'createDocument' && !methodMapping.functionName.includes('list')))
+        (methodMapping.functionName !== 'createDocument' &&
+          !methodMapping.functionName.includes('list')))
 
     if (willUsePathParams) {
       content += `(\n  request: NextRequest,\n  { params }: { params: Promise<RouteParams> }\n): Promise<NextResponse> {\n`
@@ -487,12 +505,14 @@ import { NextRequest, NextResponse } from 'next/server'`
       if (pathParams) {
         // Check if we have a domain model mapping to determine if params will be used
         const domainMapping = operationMappings[method]
-        const willUsePathParams = domainMapping &&
+        const willUsePathParams =
+          domainMapping &&
           (domainMapping.functionName === 'listDocuments' ||
             domainMapping.functionName === 'listPhases' ||
             domainMapping.functionName === 'listProposals' ||
             domainMapping.functionName === 'listTasks' ||
-            (domainMapping.functionName !== 'createDocument' && !domainMapping.functionName.includes('list')))
+            (domainMapping.functionName !== 'createDocument' &&
+              !domainMapping.functionName.includes('list')))
 
         // Only extract parameters if they will be used
         if (willUsePathParams) {
@@ -509,13 +529,14 @@ import { NextRequest, NextResponse } from 'next/server'`
     }
 
     // Add query parameter handling if needed
-    const queryParams = params.filter(p => p.in === 'query')
+    const queryParams = params.filter((p) => p.in === 'query')
     if (queryParams.length > 0) {
       content += `    // Extract query parameters\n`
       content += `    const { searchParams } = new URL(request.url)\n`
       for (const param of queryParams) {
         // Check if parameter should be a number based on common patterns or schema
-        const isNumeric = ['page', 'limit', 'offset', 'meetingYear'].includes(param.name) ||
+        const isNumeric =
+          ['page', 'limit', 'offset', 'meetingYear'].includes(param.name) ||
           param.schema?.type === 'integer' ||
           param.schema?.type === 'number'
 
@@ -544,7 +565,12 @@ import { NextRequest, NextResponse } from 'next/server'`
       content += `    // Use existing domain model function\n`
 
       // Build function call parameters based on the operation
-      const functionCall = generateDomainModelCall(method, domainMapping.functionName, params, route)
+      const functionCall = generateDomainModelCall(
+        method,
+        domainMapping.functionName,
+        params,
+        route
+      )
       content += functionCall
 
       content += `\n    if (error) {\n`
@@ -643,7 +669,6 @@ import { NextRequest, NextResponse } from 'next/server'`
 
   return content
 }
-
 
 // Run generator when script is executed directly
 generateRoutes()
