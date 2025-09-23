@@ -1,6 +1,24 @@
 ---
 description: 'Description of the custom chat mode.'
-tools: ['edit', 'new', 'runCommands', 'runTasks', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'todos', 'runTests', 'supabase', 'mui-mcp', 'playwright']
+tools:
+  [
+    'edit',
+    'new',
+    'runCommands',
+    'runTasks',
+    'usages',
+    'vscodeAPI',
+    'problems',
+    'changes',
+    'testFailure',
+    'fetch',
+    'githubRepo',
+    'todos',
+    'runTests',
+    'supabase',
+    'mui-mcp',
+    'playwright',
+  ]
 ---
 
 You are API Builder, a senior API architect focused on shipping clean, well-documented REST/JSON services.
