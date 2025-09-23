@@ -12,8 +12,9 @@
 -- TABLES
 --
 -- DROP TABLE IF EXISTS public.account;
+-- DROP TABLE IF EXISTS public.approve_document_version_request;
 -- DROP TABLE IF EXISTS public.cast_vote_request;
--- DROP TABLE IF EXISTS public.client;
+-- DROP TABLE IF EXISTS public.clients;
 -- DROP TABLE IF EXISTS public."comment";
 -- DROP TABLE IF EXISTS public.create_account_request;
 -- DROP TABLE IF EXISTS public.create_account_user_request;
@@ -28,6 +29,7 @@
 -- DROP TABLE IF EXISTS public.create_user_request;
 -- DROP TABLE IF EXISTS public."document";
 -- DROP TABLE IF EXISTS public."error";
+-- DROP TABLE IF EXISTS public.get_documents_readiness_200_response;
 -- DROP TABLE IF EXISTS public.list_account_users_200_response;
 -- DROP TABLE IF EXISTS public.list_accounts_200_response;
 -- DROP TABLE IF EXISTS public.list_clients_200_response;
@@ -45,6 +47,7 @@
 -- DROP TABLE IF EXISTS public."position";
 -- DROP TABLE IF EXISTS public.position_vote;
 -- DROP TABLE IF EXISTS public.proposal;
+-- DROP TABLE IF EXISTS public.sign_form_digital_request;
 -- DROP TABLE IF EXISTS public.signature;
 -- DROP TABLE IF EXISTS public.task;
 -- DROP TABLE IF EXISTS public.update_account_request;
@@ -110,6 +113,17 @@ COMMENT ON COLUMN account.client_id IS 'The client this account belongs to. Orig
 COMMENT ON COLUMN account.created_at IS 'Original param name - createdAt.';
 
 --
+-- Table 'approve_document_version_request' generated from model 'approveDocumentVersionUnderscorerequest'
+--
+CREATE TABLE IF NOT EXISTS public.approve_document_version_request (
+    meeting_id TEXT NOT NULL,
+    "comment" TEXT DEFAULT NULL
+);
+COMMENT ON TABLE approve_document_version_request IS 'Original model name - approveDocumentVersion_request.';
+COMMENT ON COLUMN approve_document_version_request.meeting_id IS 'Original param name - meetingId.';
+COMMENT ON COLUMN approve_document_version_request."comment" IS 'Optional approval comment';
+
+--
 -- Table 'cast_vote_request' generated from model 'CastVoteRequest'
 --
 CREATE TABLE IF NOT EXISTS public.cast_vote_request (
@@ -122,9 +136,9 @@ COMMENT ON COLUMN cast_vote_request.proposal_id IS 'Original param name - propos
 COMMENT ON COLUMN cast_vote_request.shares_voting IS 'Original param name - sharesVoting.';
 
 --
--- Table 'client' generated from model 'Client'
+-- Table 'clients' generated from model 'Clients'
 --
-CREATE TABLE IF NOT EXISTS public.client (
+CREATE TABLE IF NOT EXISTS public.clients (
     "id" TEXT DEFAULT NULL,
     ticker TEXT DEFAULT NULL,
     company_name TEXT DEFAULT NULL,
@@ -135,25 +149,27 @@ CREATE TABLE IF NOT EXISTS public.client (
     primary_contact TEXT DEFAULT NULL,
     primary_contact_email TEXT DEFAULT NULL,
     is_active BOOLEAN DEFAULT 'true',
+    branding_id INTEGER DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
     accounts JSON DEFAULT NULL,
     meetings JSON DEFAULT NULL
 );
-COMMENT ON TABLE client IS 'Original model name - Client.';
-COMMENT ON COLUMN client.ticker IS 'Unique ticker symbol for the client';
-COMMENT ON COLUMN client.company_name IS 'Full legal name of the company. Original param name - companyName.';
-COMMENT ON COLUMN client.short_name IS 'Short display name for the company. Original param name - shortName.';
-COMMENT ON COLUMN client.industry IS 'Industry sector';
-COMMENT ON COLUMN client.description IS 'Company description';
-COMMENT ON COLUMN client.website IS 'Company website URL';
-COMMENT ON COLUMN client.primary_contact IS 'Primary contact person. Original param name - primaryContact.';
-COMMENT ON COLUMN client.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
-COMMENT ON COLUMN client.is_active IS 'Whether the client is active. Original param name - isActive.';
-COMMENT ON COLUMN client.created_at IS 'Original param name - createdAt.';
-COMMENT ON COLUMN client.updated_at IS 'Original param name - updatedAt.';
-COMMENT ON COLUMN client.accounts IS 'JSON array of related account information';
-COMMENT ON COLUMN client.meetings IS 'JSON array of related meeting information';
+COMMENT ON TABLE clients IS 'Original model name - Clients.';
+COMMENT ON COLUMN clients.ticker IS 'Unique ticker symbol for the client';
+COMMENT ON COLUMN clients.company_name IS 'Full legal name of the company. Original param name - companyName.';
+COMMENT ON COLUMN clients.short_name IS 'Short display name for the company. Original param name - shortName.';
+COMMENT ON COLUMN clients.industry IS 'Industry sector';
+COMMENT ON COLUMN clients.description IS 'Company description';
+COMMENT ON COLUMN clients.website IS 'Company website URL';
+COMMENT ON COLUMN clients.primary_contact IS 'Primary contact person. Original param name - primaryContact.';
+COMMENT ON COLUMN clients.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
+COMMENT ON COLUMN clients.is_active IS 'Whether the client is active. Original param name - isActive.';
+COMMENT ON COLUMN clients.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
+COMMENT ON COLUMN clients.created_at IS 'Original param name - createdAt.';
+COMMENT ON COLUMN clients.updated_at IS 'Original param name - updatedAt.';
+COMMENT ON COLUMN clients.accounts IS 'JSON array of related account information';
+COMMENT ON COLUMN clients.meetings IS 'JSON array of related meeting information';
 
 --
 -- Table 'comment' generated from model 'Comment'
@@ -215,7 +231,8 @@ CREATE TABLE IF NOT EXISTS public.create_client_request (
     website TEXT DEFAULT NULL,
     primary_contact VARCHAR(100) DEFAULT NULL,
     primary_contact_email TEXT DEFAULT NULL,
-    is_active BOOLEAN DEFAULT 'true'
+    is_active BOOLEAN DEFAULT 'true',
+    branding_id INTEGER DEFAULT NULL
 );
 COMMENT ON TABLE create_client_request IS 'Original model name - CreateClientRequest.';
 COMMENT ON COLUMN create_client_request.ticker IS 'Unique ticker symbol for the client';
@@ -227,6 +244,7 @@ COMMENT ON COLUMN create_client_request.website IS 'Company website URL';
 COMMENT ON COLUMN create_client_request.primary_contact IS 'Primary contact person. Original param name - primaryContact.';
 COMMENT ON COLUMN create_client_request.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
 COMMENT ON COLUMN create_client_request.is_active IS 'Whether the client is active. Original param name - isActive.';
+COMMENT ON COLUMN create_client_request.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
 
 --
 -- Table 'create_comment_request' generated from model 'CreateCommentRequest'
@@ -257,10 +275,6 @@ CREATE TABLE IF NOT EXISTS public.create_meeting_request (
     plan_administrator_contact_email TEXT DEFAULT NULL,
     solicitor TEXT DEFAULT NULL,
     solicitor_email TEXT DEFAULT NULL,
-    document_hosting_site_label TEXT DEFAULT NULL,
-    document_hosting_site_url TEXT DEFAULT NULL,
-    e_vote_site_label TEXT DEFAULT NULL,
-    e_vote_site_url TEXT DEFAULT NULL,
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT NOT NULL,
     quorum_requirement DECIMAL(20, 9) NOT NULL,
@@ -279,10 +293,6 @@ COMMENT ON COLUMN create_meeting_request.plan_administrator IS 'Original param n
 COMMENT ON COLUMN create_meeting_request.plan_administrator_contact IS 'Original param name - planAdministratorContact.';
 COMMENT ON COLUMN create_meeting_request.plan_administrator_contact_email IS 'Original param name - planAdministratorContactEmail.';
 COMMENT ON COLUMN create_meeting_request.solicitor_email IS 'Original param name - solicitorEmail.';
-COMMENT ON COLUMN create_meeting_request.document_hosting_site_label IS 'Label for document hosting site. Original param name - documentHostingSiteLabel.';
-COMMENT ON COLUMN create_meeting_request.document_hosting_site_url IS 'URL for document hosting site. Original param name - documentHostingSiteUrl.';
-COMMENT ON COLUMN create_meeting_request.e_vote_site_label IS 'Label for eVote site. Original param name - eVoteSiteLabel.';
-COMMENT ON COLUMN create_meeting_request.e_vote_site_url IS 'URL for eVote site. Original param name - eVoteSiteUrl.';
 COMMENT ON COLUMN create_meeting_request.ivr_dial_in_number IS 'IVR dial-in voting number. Original param name - ivrDialInNumber.';
 COMMENT ON COLUMN create_meeting_request.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN create_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';
@@ -425,6 +435,7 @@ CREATE TABLE IF NOT EXISTS public."document" (
     authorized_date TIMESTAMP DEFAULT NULL,
     completed_date TIMESTAMP DEFAULT NULL,
     in_progress_date TIMESTAMP DEFAULT NULL,
+    deadline TIMESTAMP DEFAULT NULL,
     history JSON DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
@@ -456,6 +467,23 @@ CREATE TABLE IF NOT EXISTS public."error" (
     details JSON DEFAULT NULL
 );
 COMMENT ON TABLE "error" IS 'Original model name - Error.';
+
+--
+-- Table 'get_documents_readiness_200_response' generated from model 'getDocumentsReadinessUnderscore200Underscoreresponse'
+--
+CREATE TABLE IF NOT EXISTS public.get_documents_readiness_200_response (
+    phase1_ready BOOLEAN DEFAULT NULL,
+    phase2_ready BOOLEAN DEFAULT NULL,
+    overall_ready BOOLEAN DEFAULT NULL,
+    outstanding_phase1 JSON DEFAULT NULL,
+    outstanding_phase2 JSON DEFAULT NULL
+);
+COMMENT ON TABLE get_documents_readiness_200_response IS 'Original model name - getDocumentsReadiness_200_response.';
+COMMENT ON COLUMN get_documents_readiness_200_response.phase1_ready IS 'Original param name - phase1Ready.';
+COMMENT ON COLUMN get_documents_readiness_200_response.phase2_ready IS 'Original param name - phase2Ready.';
+COMMENT ON COLUMN get_documents_readiness_200_response.overall_ready IS 'Original param name - overallReady.';
+COMMENT ON COLUMN get_documents_readiness_200_response.outstanding_phase1 IS 'Original param name - outstandingPhase1.';
+COMMENT ON COLUMN get_documents_readiness_200_response.outstanding_phase2 IS 'Original param name - outstandingPhase2.';
 
 --
 -- Table 'list_account_users_200_response' generated from model 'listAccountUsersUnderscore200Underscoreresponse'
@@ -566,10 +594,6 @@ CREATE TABLE IF NOT EXISTS public.meeting (
     solicitor TEXT DEFAULT NULL,
     solicitor_email TEXT DEFAULT NULL,
     inspector TEXT DEFAULT NULL,
-    document_hosting_site_label TEXT DEFAULT NULL,
-    document_hosting_site_url TEXT DEFAULT NULL,
-    e_vote_site_label TEXT DEFAULT NULL,
-    e_vote_site_url TEXT DEFAULT NULL,
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
@@ -596,10 +620,6 @@ COMMENT ON COLUMN meeting.plan_administrator IS 'Original param name - planAdmin
 COMMENT ON COLUMN meeting.plan_administrator_contact IS 'Original param name - planAdministratorContact.';
 COMMENT ON COLUMN meeting.plan_administrator_contact_email IS 'Original param name - planAdministratorContactEmail.';
 COMMENT ON COLUMN meeting.solicitor_email IS 'Original param name - solicitorEmail.';
-COMMENT ON COLUMN meeting.document_hosting_site_label IS 'Label for document hosting site (e.g., \&quot;Document Hosting Site\&quot;). Original param name - documentHostingSiteLabel.';
-COMMENT ON COLUMN meeting.document_hosting_site_url IS 'URL for document hosting site (e.g., \&quot;docs.wen.com\&quot;). Original param name - documentHostingSiteUrl.';
-COMMENT ON COLUMN meeting.e_vote_site_label IS 'Label for eVote site (e.g., \&quot;eVote Site\&quot;). Original param name - eVoteSiteLabel.';
-COMMENT ON COLUMN meeting.e_vote_site_url IS 'URL for eVote site (e.g., \&quot;vote.wen.com\&quot;). Original param name - eVoteSiteUrl.';
 COMMENT ON COLUMN meeting.ivr_dial_in_number IS 'IVR dial-in voting number (e.g., \&quot;1-800-555-VOTE\&quot;). Original param name - ivrDialInNumber.';
 COMMENT ON COLUMN meeting.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN meeting.quorum_requirement IS 'Original param name - quorumRequirement.';
@@ -785,6 +805,21 @@ COMMENT ON COLUMN proposal.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN proposal.updated_at IS 'Original param name - updatedAt.';
 
 --
+-- Table 'sign_form_digital_request' generated from model 'signFormDigitalUnderscorerequest'
+--
+CREATE TABLE IF NOT EXISTS public.sign_form_digital_request (
+    meeting_id TEXT NOT NULL,
+    signer_user_id TEXT NOT NULL,
+    signature_reason TEXT DEFAULT NULL,
+    replace_existing BOOLEAN DEFAULT NULL
+);
+COMMENT ON TABLE sign_form_digital_request IS 'Original model name - signFormDigital_request.';
+COMMENT ON COLUMN sign_form_digital_request.meeting_id IS 'Original param name - meetingId.';
+COMMENT ON COLUMN sign_form_digital_request.signer_user_id IS 'User performing the digital signature. Original param name - signerUserId.';
+COMMENT ON COLUMN sign_form_digital_request.signature_reason IS 'Optional reason or context for the signature. Original param name - signatureReason.';
+COMMENT ON COLUMN sign_form_digital_request.replace_existing IS 'If true, replaces any existing signature artifact. Original param name - replaceExisting.';
+
+--
 -- Table 'signature' generated from model 'Signature'
 --
 CREATE TABLE IF NOT EXISTS public.signature (
@@ -863,7 +898,8 @@ CREATE TABLE IF NOT EXISTS public.update_client_request (
     website TEXT DEFAULT NULL,
     primary_contact VARCHAR(100) DEFAULT NULL,
     primary_contact_email TEXT DEFAULT NULL,
-    is_active BOOLEAN DEFAULT NULL
+    is_active BOOLEAN DEFAULT NULL,
+    branding_id INTEGER DEFAULT NULL
 );
 COMMENT ON TABLE update_client_request IS 'Original model name - UpdateClientRequest.';
 COMMENT ON COLUMN update_client_request.company_name IS 'Full legal name of the company. Original param name - companyName.';
@@ -874,6 +910,7 @@ COMMENT ON COLUMN update_client_request.website IS 'Company website URL';
 COMMENT ON COLUMN update_client_request.primary_contact IS 'Primary contact person. Original param name - primaryContact.';
 COMMENT ON COLUMN update_client_request.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
 COMMENT ON COLUMN update_client_request.is_active IS 'Whether the client is active. Original param name - isActive.';
+COMMENT ON COLUMN update_client_request.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
 
 --
 -- Table 'update_document_request' generated from model 'UpdateDocumentRequest'
@@ -905,10 +942,6 @@ CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     plan_administrator_contact_email TEXT DEFAULT NULL,
     solicitor TEXT DEFAULT NULL,
     solicitor_email TEXT DEFAULT NULL,
-    document_hosting_site_label TEXT DEFAULT NULL,
-    document_hosting_site_url TEXT DEFAULT NULL,
-    e_vote_site_label TEXT DEFAULT NULL,
-    e_vote_site_url TEXT DEFAULT NULL,
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL
@@ -927,10 +960,6 @@ COMMENT ON COLUMN update_meeting_request.plan_administrator IS 'Original param n
 COMMENT ON COLUMN update_meeting_request.plan_administrator_contact IS 'Original param name - planAdministratorContact.';
 COMMENT ON COLUMN update_meeting_request.plan_administrator_contact_email IS 'Original param name - planAdministratorContactEmail.';
 COMMENT ON COLUMN update_meeting_request.solicitor_email IS 'Original param name - solicitorEmail.';
-COMMENT ON COLUMN update_meeting_request.document_hosting_site_label IS 'Label for document hosting site. Original param name - documentHostingSiteLabel.';
-COMMENT ON COLUMN update_meeting_request.document_hosting_site_url IS 'URL for document hosting site. Original param name - documentHostingSiteUrl.';
-COMMENT ON COLUMN update_meeting_request.e_vote_site_label IS 'Label for eVote site. Original param name - eVoteSiteLabel.';
-COMMENT ON COLUMN update_meeting_request.e_vote_site_url IS 'URL for eVote site. Original param name - eVoteSiteUrl.';
 COMMENT ON COLUMN update_meeting_request.ivr_dial_in_number IS 'IVR dial-in voting number. Original param name - ivrDialInNumber.';
 COMMENT ON COLUMN update_meeting_request.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN update_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';

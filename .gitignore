@@ -7,3 +7,12 @@ issuer-portal/.env.development.local
 */.DS_Store
 **/*.DS_Store
 .vercel
+supabase/migrations/Model/*
+issuer-portal/playwright-report/index.html
+issuer-portal/test-results/.last-run.json
+mock-api-server/playwright-report/index.html
+supabase/seed.sql
+supabase/migrations/*
+mock-api-server/playwright-report/index.html
+supabase/migrations/.openapi-generator/FILES
+test-results/*

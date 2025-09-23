@@ -1,6 +1,7 @@
 Model/Account.sql
+Model/ApproveDocumentVersionRequest.sql
 Model/CastVoteRequest.sql
-Model/Client.sql
+Model/Clients.sql
 Model/Comment.sql
 Model/CreateAccountRequest.sql
 Model/CreateAccountUserRequest.sql
@@ -16,6 +17,7 @@ Model/CreateUserRequest.sql
 Model/Document.sql
 Model/DocumentStatus.sql
 Model/Error.sql
+Model/GetDocumentsReadiness200Response.sql
 Model/ListAccountUsers200Response.sql
 Model/ListAccounts200Response.sql
 Model/ListClients200Response.sql
@@ -35,6 +37,7 @@ Model/PhaseStatus.sql
 Model/Position.sql
 Model/PositionVote.sql
 Model/Proposal.sql
+Model/SignFormDigitalRequest.sql
 Model/Signature.sql
 Model/Task.sql
 Model/TaskStatus.sql
