@@ -21,9 +21,9 @@ import {
 } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
-import ProductsLayout from '@/components/layout/ProductLayout'
-import CTACard from '@/components/products/CTACard'
-import { SidebarCard } from '@/components/products/SidebarCard'
+import ProductsLayout from '@/components/Layout/ProductLayout'
+import CTACard from '@/components/Products/CTACard'
+import { SidebarCard } from '@/components/Products/SidebarCard'
 
 export default function DigitalShareholderMeetingsPage() {
   const theme = useTheme()

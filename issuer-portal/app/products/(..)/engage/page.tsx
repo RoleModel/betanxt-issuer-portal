@@ -9,7 +9,6 @@ import { useState } from 'react'
 
 import { Check } from '@mui/icons-material'
 import {
-  Box as _Box,
   Card,
   CardContent,
   CardHeader,
@@ -21,13 +20,14 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Box as _Box,
   useTheme,
 } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
-import ProductsLayout from '@/components/layout/ProductLayout'
-import CTACard from '@/components/products/CTACard'
-import { SidebarCard } from '@/components/products/SidebarCard'
+import ProductsLayout from '@/components/Layout/ProductLayout'
+import CTACard from '@/components/Products/CTACard'
+import { SidebarCard } from '@/components/Products/SidebarCard'
 
 interface ContactFormData {
   name: string

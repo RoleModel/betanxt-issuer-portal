@@ -1,9 +1,9 @@
 'use client'
 
+import AnalyticsChartIcon from '@rolemodel/betanxt-design-system/components/icons/brand/AnalyticsChartIcon'
 import React from 'react'
 
 import { Box } from '@mui/material'
-import AnalyticsChartIcon from '@rolemodel/betanxt-design-system/components/icons/brand/AnalyticsChartIcon'
 
 import EmptyState from '@/components/EmptyState'
 

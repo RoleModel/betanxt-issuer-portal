@@ -8,7 +8,7 @@ import GlobeNetworkIcon from '@rolemodel/betanxt-design-system/components/icons/
 import LaptopPlayIcon from '@rolemodel/betanxt-design-system/components/icons/brand/LaptopPlayIcon'
 import TeamGroupIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGroupIcon'
 import TrendingUpIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TrendingUpIcon'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import React from 'react'
 
 import { CallToActionOutlined } from '@mui/icons-material'
@@ -22,9 +22,6 @@ import ScrollContainer from '@/components/ScrollContainer'
 const EducationPageContent = () => {
   const router = useRouter()
   const pathname = usePathname()
-
-  // Extract client ticker from pathname (e.g., "/ELVN/education" -> "ELVN")
-  const clientTicker = pathname.split('/')[1]
 
   const educationPaperItems = React.useMemo(
     () => [
@@ -55,7 +52,7 @@ const EducationPageContent = () => {
         description: "What's shaping proxy events",
         actionText: 'View Trends',
         onClick: () => {
-          router.push(`/${clientTicker}/education/industry-trends`)
+          router.push('/education/industry-trends')
         },
         icon: <TrendingUpIcon fontSize="3xl" />,
       },
@@ -65,7 +62,7 @@ const EducationPageContent = () => {
         description: 'Watch and learn',
         actionText: 'Watch Tutorials',
         onClick: () => {
-          router.push(`/${clientTicker}/education/video-tutorials`)
+          router.push('/education/video-tutorials')
         },
         icon: <LaptopPlayIcon fontSize="3xl" />,
       },
@@ -75,12 +72,12 @@ const EducationPageContent = () => {
         description: 'Quick answers, real clarity',
         actionText: 'View FAQs',
         onClick: () => {
-          router.push(`/${clientTicker}/education/faqs`)
+          router.push('/education/faqs')
         },
         icon: <ChatQuestionIcon fontSize="3xl" />,
       },
     ],
-    [router, clientTicker]
+    [router]
   )
 
   const documentTemplates = React.useMemo(
@@ -166,7 +163,7 @@ const EducationPageContent = () => {
         icon: <TrendingUpIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'primary' as const,
         onClick: () => {
-          router.push(`/${clientTicker}/products/engage`)
+          router.push('/products/engage')
         },
       },
       {
@@ -177,7 +174,7 @@ const EducationPageContent = () => {
         icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'secondary' as const,
         onClick: () => {
-          router.push(`/${clientTicker}/products/inspector-of-elections`)
+          router.push('/products/inspector-of-elections')
         },
       },
       {
@@ -189,7 +186,7 @@ const EducationPageContent = () => {
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'info' as const,
         onClick: () => {
-          router.push(`/${clientTicker}/products/digital-shareholder-meetings`)
+          router.push('/products/digital-shareholder-meetings')
         },
       },
       {
@@ -201,7 +198,7 @@ const EducationPageContent = () => {
         variant: 'default' as const,
       },
     ],
-    [router, clientTicker]
+    [router]
   )
 
   return (

@@ -1,16 +1,18 @@
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import type { Viewport } from 'next'
+import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
 import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type { } from '@mui/material/themeCssVarsAugmentation'
+import type {} from '@mui/material/themeCssVarsAugmentation'
 
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 import BreakpointIndicator from '@/components/utils/BreakpointIndicator'
 
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ClientProvider } from '@/contexts/ClientContext'
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -46,13 +48,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${roboto.variable} ${robotoCondensed.variable}`}>
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider>
-          <ThemeRegistry>
-            {children}
-            {process.env.NODE_ENV === 'development' && <BreakpointIndicator />}
-          </ThemeRegistry>
+          <SessionProvider>
+            <ClientProvider>
+              <ThemeRegistry>
+                {children}
+                {process.env.NODE_ENV === 'development' && <BreakpointIndicator />}
+              </ThemeRegistry>
+            </ClientProvider>
+          </SessionProvider>
         </AppRouterCacheProvider>
+        <SpeedInsights />
       </body>
-      <SpeedInsights />
     </html>
   )
 }

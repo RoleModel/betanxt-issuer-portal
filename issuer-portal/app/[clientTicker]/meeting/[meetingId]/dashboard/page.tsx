@@ -1,14 +1,38 @@
 'use client'
 
-import { Box, Typography } from '@mui/material'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
-import MeetingSection from '@/components/Meeting/MeetingSection'
+import { Box, LinearProgress, Typography } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
+import { usePhases } from '@/hooks/usePhases'
 
-// This handles the Meeting Dashboard route explicitly
+// This handles the Meeting Dashboard route and redirects to the active phase
 export default function MeetingDashboardPage() {
-  const { currentMeeting, getMeetingById, error } = useMeeting()
+  const router = useRouter()
+  const params = useParams()
+  const meetingId = params.meetingId as string
+  const clientTicker = params.clientTicker as string
+  const { error } = useMeeting()
+  const { phases, loading } = usePhases(meetingId)
+
+  useEffect(() => {
+    if (!loading && phases.length > 0) {
+      // Find the active phase
+      const activePhase = phases.find((phase) => phase.status === 'ACTIVE')
+
+      if (activePhase) {
+        // Redirect to the phase-specific route under dashboard
+        router.replace(
+          `/${clientTicker}/meeting/${meetingId}/dashboard/${activePhase.orderIndex}`
+        )
+      } else {
+        // If no active phase, default to phase 1
+        router.replace(`/${clientTicker}/meeting/${meetingId}/dashboard/1`)
+      }
+    }
+  }, [loading, phases, router, clientTicker, meetingId])
 
   if (error) {
     return (
@@ -18,10 +42,10 @@ export default function MeetingDashboardPage() {
     )
   }
 
-  return (
-    <MeetingSection
-      meeting={getMeetingById(currentMeeting?.id || '')}
-      meetingId={currentMeeting?.id}
-    />
-  )
+  if (loading) {
+    return <LinearProgress />
+  }
+
+  // Show loading while determining phase
+  return <LinearProgress />
 }

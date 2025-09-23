@@ -1,7 +1,8 @@
 'use client'
 
 import NextLink from 'next/link'
-import React, { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import {
   Box,
@@ -9,6 +10,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Container,
   LinearProgress,
   Link,
   Table,
@@ -21,7 +23,9 @@ import {
   Typography,
 } from '@mui/material'
 
-import { listMeetings as _listMeetings } from '@/domain-models/api/meetings'
+import Layout from '@/components/Layout/Layout'
+
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type Meeting = components['schemas']['Meeting']
@@ -36,103 +40,84 @@ type Order = 'asc' | 'desc'
 type OrderBy = keyof PastMeetingData
 
 export default function PastMeetingsPage() {
+  const pathname = usePathname()
+  const clientTicker = pathname.split('/')[1]
   const [meetings, setMeetings] = useState<PastMeetingData[]>([])
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState<Order>('desc')
   const [orderBy, setOrderBy] = useState<OrderBy>('meetingDate')
 
-  useEffect(() => {
-    fetchPastMeetings()
-  }, [])
-
-  const fetchPastMeetings = async () => {
+  const fetchPastMeetings = useCallback(async () => {
     try {
       setLoading(true)
 
-      // Fetch completed meetings with their voting data
-      const { data: meetingsData, error: meetingsError } = await supabase
-        .from('meetings')
-        .select('*')
-        .eq('status', 'completed')
-        .order('meeting_date', { ascending: false })
+      // Use openapi-fetch to fetch meetings
+      const apiClient = await buildApiClient()
+      const { data, error } = await apiClient.GET('/meetings', {
+        params: {
+          query: {
+            ticker: clientTicker.toUpperCase(),
+            status: 'COMPLETE',
+          },
+        },
+      })
 
-      if (meetingsError) throw meetingsError
+      if (error) {
+        throw new Error('Failed to fetch meetings')
+      }
 
-      // Fetch voting data for these meetings
-      const { data: votingData, error: votingError } = await supabase.rpc(
-        'get_meeting_participation_data'
-      )
+      // Get meetings array from the paginated response - already filtered by API
+      const completedMeetings = data?.meetings || []
 
-      if (votingError) {
-        // If the RPC doesn't exist, let's query the data manually
-        const meetingIds = meetingsData?.map((m) => m.id) || []
-        const { data: manualVotingData, error: manualError } = await supabase
-          .from('positions')
-          .select(
-            `
-            meeting_id,
-            position_votes(shares_voting)
-          `
-          )
-          .in('meeting_id', meetingIds)
+      // Calculate participation data from actual voting data
+      const meetingsWithParticipation: PastMeetingData[] = await Promise.all(
+        completedMeetings.map(async (meeting) => {
+          try {
+            // Fetch positions for this meeting to calculate participation
+            const positionsResult = await apiClient.GET('/positions', {
+              params: { query: { meetingId: meeting.id } },
+            })
 
-        if (manualError) throw manualError
+            const positions = positionsResult.data || []
 
-        // Group by meeting_id and sum shares
-        const votingByMeeting: Record<
-          string,
-          { totalVotes: number; votingShares: number }
-        > = {}
-        interface VotingPosition {
-          meeting_id: string
-          position_votes?: Array<{ shares_voting: string }>
-        }
+            const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+            const votedShares = positions
+              .filter((p) => p.voteStatus === 'Voted')
+              .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+            const totalVotes = positions.filter((p) => p.voteStatus === 'Voted').length
 
-        manualVotingData?.forEach((position: VotingPosition) => {
-          const meetingId = position.meeting_id
-          if (!votingByMeeting[meetingId]) {
-            votingByMeeting[meetingId] = { totalVotes: 0, votingShares: 0 }
-          }
-          position.position_votes?.forEach((vote) => {
-            votingByMeeting[meetingId].totalVotes += 1
-            votingByMeeting[meetingId].votingShares += parseInt(vote.shares_voting) || 0
-          })
-        })
-
-        // Combine meeting data with voting data
-        const meetingsWithParticipation: PastMeetingData[] = (meetingsData || []).map(
-          (meeting) => {
-            const votingInfo = votingByMeeting[meeting.id] || {
-              totalVotes: 0,
-              votingShares: 0,
-            }
-            const outstandingShares = meeting.total_shares_outstanding || 0
-            const participationPercent =
-              outstandingShares > 0
-                ? Math.round((votingInfo.votingShares / outstandingShares) * 100)
-                : 0
+            const participationPercent = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
 
             return {
               ...meeting,
-              participationPercent,
-              totalVotes: votingInfo.totalVotes,
-              votingShares: votingInfo.votingShares,
+              participationPercent: Math.round(participationPercent * 10) / 10, // Round to 1 decimal
+              totalVotes,
+              votingShares: votedShares,
+            }
+          } catch (posError) {
+            console.error(`Error fetching positions for meeting ${meeting.id}:`, posError)
+            return {
+              ...meeting,
+              participationPercent: 0,
+              totalVotes: 0,
+              votingShares: 0,
             }
           }
-        )
+        })
+      )
 
-        setMeetings(meetingsWithParticipation)
-      } else {
-        // Use RPC data if available
-        setMeetings(votingData || [])
-      }
+      setMeetings(meetingsWithParticipation)
     } catch (error) {
       console.error('Error fetching past meetings:', error)
       setMeetings([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [clientTicker])
+
+  useEffect(() => {
+    fetchPastMeetings()
+  }, [fetchPastMeetings])
 
   const formatDate = (dateString: string) => {
     if (!dateString) return ''
@@ -176,7 +161,7 @@ export default function PastMeetingsPage() {
       let compareB: string | number = b[orderBy as keyof typeof b] as string
 
       // Handle date sorting
-      if (orderBy === 'meeting_date') {
+      if (orderBy === 'meetingDate') {
         compareA = new Date(compareA).getTime()
         compareB = new Date(compareB).getTime()
       }
@@ -202,139 +187,143 @@ export default function PastMeetingsPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardHeader title="Past Meetings" />
-        <CardContent sx={{ p: 0 }}>
-          <TableContainer>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'title'}
-                      direction={orderBy === 'title' ? order : 'asc'}
-                      onClick={() => handleRequestSort('title')}
-                    >
-                      Meeting
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'cusip'}
-                      direction={orderBy === 'cusip' ? order : 'asc'}
-                      onClick={() => handleRequestSort('cusip')}
-                    >
-                      CUSIP
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'meeting_date'}
-                      direction={orderBy === 'meeting_date' ? order : 'asc'}
-                      onClick={() => handleRequestSort('meeting_date')}
-                    >
-                      Date
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'participationPercent'}
-                      direction={orderBy === 'participationPercent' ? order : 'asc'}
-                      onClick={() => handleRequestSort('participationPercent')}
-                    >
-                      Participation
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>Reports</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedMeetings.map((meeting) => (
-                  <TableRow key={meeting.id} hover>
-                    <TableCell>
-                      <Link
-                        component={NextLink}
-                        href={`/meeting/${meeting.id}`}
-                        underline="hover"
-                        color="primary"
-                        sx={{ fontWeight: 500 }}
-                      >
-                        {meeting.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {meeting.cusip || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {meeting.meeting_date ? formatDate(meeting.meeting_date) : 'TBD'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ minWidth: 200 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ flex: 1 }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              mb: 0.5,
-                            }}
+    <Layout navBar={true}>
+      <Container>
+        <Box sx={{ p: 3 }}>
+          <Card>
+            <CardHeader title="Past Meetings" />
+            <CardContent sx={{ p: 0 }}>
+              <TableContainer>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        <TableSortLabel
+                          active={orderBy === 'title'}
+                          direction={orderBy === 'title' ? order : 'asc'}
+                          onClick={() => handleRequestSort('title')}
+                        >
+                          Meeting
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        <TableSortLabel
+                          active={orderBy === 'cusip'}
+                          direction={orderBy === 'cusip' ? order : 'asc'}
+                          onClick={() => handleRequestSort('cusip')}
+                        >
+                          CUSIP
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        <TableSortLabel
+                          active={orderBy === 'meetingDate'}
+                          direction={orderBy === 'meetingDate' ? order : 'asc'}
+                          onClick={() => handleRequestSort('meetingDate')}
+                        >
+                          Date
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        <TableSortLabel
+                          active={orderBy === 'participationPercent'}
+                          direction={orderBy === 'participationPercent' ? order : 'asc'}
+                          onClick={() => handleRequestSort('participationPercent')}
+                        >
+                          Participation
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>Reports</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedMeetings.map((meeting) => (
+                      <TableRow key={meeting.id} hover>
+                        <TableCell>
+                          <Link
+                            component={NextLink}
+                            href={`/${clientTicker}/meeting/${meeting.id}`}
+                            underline="hover"
+                            color="primary"
+                            sx={{ fontWeight: 500 }}
                           >
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {meeting.participationPercent}%
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {formatNumber(meeting.votingShares)}
-                            </Typography>
+                            {meeting.title}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {meeting.cusip || 'N/A'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 200 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  mb: 0.5,
+                                }}
+                              >
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {meeting.participationPercent}%
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {formatNumber(meeting.votingShares)}
+                                </Typography>
+                              </Box>
+                              <LinearProgress
+                                variant="determinate"
+                                value={Math.min(meeting.participationPercent, 100)}
+                                sx={{
+                                  height: 6,
+                                  borderRadius: 3,
+                                  backgroundColor: `var(--mui-palette-divider)`,
+                                  '& .MuiLinearProgress-bar': {
+                                    borderRadius: 3,
+                                    backgroundColor: (theme) => {
+                                      if (meeting.participationPercent >= 50)
+                                        return theme.vars.palette.success.main
+                                      if (meeting.participationPercent < 10)
+                                        return theme.vars.palette.error.main
+                                      return theme.vars.palette.warning.main
+                                    },
+                                  },
+                                }}
+                              />
+                            </Box>
                           </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={Math.min(meeting.participationPercent, 100)}
-                            sx={{
-                              height: 6,
-                              borderRadius: 3,
-                              backgroundColor: `var(--mui-palette-divider)`,
-                              '& .MuiLinearProgress-bar': {
-                                borderRadius: 3,
-                                backgroundColor: (theme) => {
-                                  if (meeting.participationPercent >= 50)
-                                    return theme.vars.palette.success.main
-                                  if (meeting.participationPercent < 10)
-                                    return theme.vars.palette.error.main
-                                  return theme.vars.palette.warning.main
-                                },
-                              },
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="text"
-                        color="primary"
-                        component={NextLink}
-                        href={`/meeting/${meeting.id}/reports`}
-                      >
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="text"
+                            color="primary"
+                            component={NextLink}
+                            href={`/${clientTicker}/meeting/${meeting.id}/reports`}
+                          >
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-          {meetings.length === 0 && !loading && (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography color="text.secondary">No past meetings found.</Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
+              {meetings.length === 0 && !loading && (
+                <Box sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography color="text.secondary">No past meetings found.</Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Box>
+      </Container>
+    </Layout>
   )
 }

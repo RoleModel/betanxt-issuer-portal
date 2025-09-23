@@ -9,9 +9,9 @@ import TeamMeeting2Icon from '@rolemodel/betanxt-design-system/components/icons/
 import { Card, CardContent, CardHeader, Stack, Typography, useTheme } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
-import ProductsLayout from '@/components/layout/ProductLayout'
-import CTACard from '@/components/products/CTACard'
-import { SidebarCard } from '@/components/products/SidebarCard'
+import ProductsLayout from '@/components/Layout/ProductLayout'
+import CTACard from '@/components/Products/CTACard'
+import { SidebarCard } from '@/components/Products/SidebarCard'
 
 export default function EndToEndProxySolutionsPage() {
   const theme = useTheme()

@@ -23,7 +23,7 @@ import {
 
 import StatusChip from '@/components/ui/StatusChip'
 
-import { listMeetings } from '@/domain-models/api/meetings'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type Meeting = components['schemas']['Meeting']
@@ -49,17 +49,22 @@ export default function MeetingsPage() {
 
   const fetchMeetings = async () => {
     try {
-      // Fetch active and upcoming meetings using API
-      const meetingsResult = await listMeetings({
-        ticker: clientTicker,
-        status: 'ACTIVE',
+      // Fetch active and upcoming meetings using openapi-fetch
+      const apiClient = await buildApiClient()
+      const { data, error } = await apiClient.GET('/meetings', {
+        params: {
+          query: {
+            ticker: clientTicker,
+            status: 'ACTIVE',
+          },
+        },
       })
 
-      if (meetingsResult.error) {
+      if (error) {
         throw new Error('Failed to fetch meetings')
       }
 
-      const meetingsData = meetingsResult.data?.meetings ?? []
+      const meetingsData = data?.meetings ?? []
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
