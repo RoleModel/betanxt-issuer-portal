@@ -78,7 +78,9 @@ export default function PastMeetingsPage() {
               params: { query: { meetingId: meeting.id } },
             })
 
-            const positions = positionsResult.data || []
+            // Ensure positions is an array
+            const positionsData = positionsResult.data
+            const positions = Array.isArray(positionsData) ? positionsData : []
 
             const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
             const votedShares = positions
