@@ -38,7 +38,16 @@ const getStatusDisplayText = (
     case undefined:
       return 'Not Uploaded'
     case 'Incomplete':
+    case 'INCOMPLETE':
       return 'Incomplete'
+    case 'NEEDS_AUTHORIZATION':
+      return 'Needs Authorization'
+    case 'COMPLETE':
+      return 'Complete'
+    case 'Unvoted':
+      return 'Unvoted'
+    case 'Voted':
+      return 'Voted'
     // Task statuses - use as-is
     case 'Complete':
     case 'Pending Approval':
@@ -63,6 +72,8 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'completed',
     'Completed',
     'COMPLETE',
+    'Complete',
+    'Voted',
     'Shares Balanced',
     'Mailing Complete',
     'Ordered',
@@ -93,6 +104,9 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'Needs Authorization',
     'NEEDS_AUTHORIZATION',
   ]
+
+  // Grey/Neutral - Default/Incomplete statuses
+  const neutralStatuses = ['Incomplete', 'INCOMPLETE', 'Unvoted', 'Not Started']
 
   // Blue - Info/In Progress statuses
   const infoStatuses = [
@@ -133,6 +147,13 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     return {
       backgroundColor: (theme) => theme.vars.palette.info.main,
       color: (theme) => theme.vars.palette.info.contrastText,
+    }
+  }
+
+  if (neutralStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+    return {
+      backgroundColor: (theme) => theme.vars.palette.action.selected,
+      color: (theme) => theme.vars.palette.text.secondary,
     }
   }
 

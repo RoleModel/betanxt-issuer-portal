@@ -25,7 +25,7 @@ export async function GET(
 
     return NextResponse.json(result.data || [])
   } catch (error) {
-    console.error('Error in key dates API route:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

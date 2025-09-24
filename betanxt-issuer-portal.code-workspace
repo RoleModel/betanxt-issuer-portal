@@ -2,20 +2,23 @@
   "folders": [
     {
       "name": "issuer-repo",
-      "path": "..",
+      "path": ".."
     },
     {
-      "path": "spec",
+      "path": "spec"
     },
     {
-      "path": "../issuer-portal",
+      "path": "../issuer-portal"
     },
     {
-      "path": "../mock-api-server",
+      "path": "../mock-api-server"
     },
     {
-      "path": "../supabase",
+      "path": "../supabase"
     },
+    {
+      "path": "mock-api-server"
+    }
   ],
   "settings": {
     "npm.scriptRunner": "npm",

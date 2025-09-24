@@ -20,20 +20,8 @@ import {
 } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
-import type { Meeting } from '@/types/api'
 import { useTasks } from '@/hooks/useTasks'
 
-type DbTask = {
-  id?: string
-  taskId?: string
-  title?: string
-  type?: TaskType
-  status?: TaskStatus
-  dueDate?: string
-  phaseId?: string
-  meetingId?: string
-  owner?: string
-}
 type TaskStatus =
   | 'Need Authorization'
   | 'Incomplete'

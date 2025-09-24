@@ -42,6 +42,38 @@ export interface WendysTabulationData {
   total: number
 }
 
+export interface CompanyMeetingInfo {
+  company: string
+  cusip: string
+  meetingType: string
+  recordDate: string
+  meetingDate: string
+  cutoffDate?: string
+}
+
+export interface CompanyProposalData {
+  proposalNumber: string
+  proposalTitle: string
+  managementRecommendation: string
+  votesFor: number
+  votesAgainst: number
+  votesAbstain: number
+}
+
+export interface CompanyPositionData {
+  cusip: string
+  accountType: string
+  name: string
+  accountNumber: string | null
+  voteStatus: 'Voted' | 'Unvoted'
+  shares: number
+  sharesVoted: number
+  source: string | null
+  dateVoted: Date | null
+  voteMethod?: string
+  controlNumber?: string
+}
+
 export class CSVProcessor {
   /**
    * Process Wendy's shareholder votes CSV data
@@ -55,7 +87,6 @@ export class CSVProcessor {
         .on('data', (row: unknown) => {
           try {
             if (!isPositionRow(row)) {
-              console.warn('Skipping invalid row (shape mismatch)')
               return
             }
             positions.push({
@@ -71,11 +102,9 @@ export class CSVProcessor {
               dateVoted: this.parseDate(row['Date Voted']),
             })
           } catch (error) {
-            console.warn(`Skipping invalid row:`, row, error)
           }
         })
         .on('end', () => {
-          console.log(`✅ Processed ${positions.length} positions from Wendy's CSV`)
           resolve(positions)
         })
         .on('error', reject)
@@ -96,7 +125,6 @@ export class CSVProcessor {
         .on('data', (row: unknown) => {
           try {
             if (!isTabulationRow(row)) {
-              console.warn('Skipping invalid tabulation row (shape mismatch)')
               return
             }
             tabulation.push({
@@ -108,13 +136,9 @@ export class CSVProcessor {
               total: this.parseNumber(row.Total),
             })
           } catch (error) {
-            console.warn(`Skipping invalid tabulation row:`, row, error)
           }
         })
         .on('end', () => {
-          console.log(
-            `✅ Processed ${tabulation.length} proposals from Wendy's tabulation`
-          )
           resolve(tabulation)
         })
         .on('error', reject)
@@ -183,5 +207,104 @@ export class CSVProcessor {
     } catch {
       return null
     }
+  }
+
+  /**
+   * Process company meeting info CSV
+   */
+  static async processCompanyMeetingInfo(filePath: string): Promise<CompanyMeetingInfo | null> {
+    return new Promise((resolve, reject) => {
+      let meetingInfo: CompanyMeetingInfo | null = null
+      let isFirstRow = true
+
+      createReadStream(filePath)
+        .pipe(csvParser({ headers: true }))
+        .on('data', (row: Record<string, string>) => {
+          if (isFirstRow) {
+            meetingInfo = {
+              company: row['Company'] || row['Issuer'] || '',
+              cusip: row['CUSIP'] || row['Cusip'] || '',
+              meetingType: row['Meeting Type'] || 'Annual Meeting',
+              recordDate: row['Record Date'] || '',
+              meetingDate: row['Meeting Date'] || '',
+              cutoffDate: row['Cutoff Date'] || row['Cut Off Date'] || undefined
+            }
+            isFirstRow = false
+          }
+        })
+        .on('end', () => {
+          resolve(meetingInfo)
+        })
+        .on('error', reject)
+    })
+  }
+
+  /**
+   * Process company proposal CSV
+   */
+  static async processCompanyProposals(filePath: string): Promise<CompanyProposalData[]> {
+    const proposals: CompanyProposalData[] = []
+
+    return new Promise((resolve, reject) => {
+      createReadStream(filePath)
+        .pipe(csvParser({ headers: true }))
+        .on('data', (row: Record<string, string>) => {
+          proposals.push({
+            proposalNumber: row['Proposal Number'] || row['Prop'] || '',
+            proposalTitle: row['Proposal Title'] || row['Proposal'] || row['Description'] || '',
+            managementRecommendation: row['MRV'] || row['Management Recommendation'] || 'For',
+            votesFor: this.parseNumber(row['For'] || row['Votes For'] || '0'),
+            votesAgainst: this.parseNumber(row['Against'] || row['Votes Against'] || '0'),
+            votesAbstain: this.parseNumber(row['Abstain'] || row['Abstentions'] || row['Votes Abstain'] || '0')
+          })
+        })
+        .on('end', () => {
+          resolve(proposals)
+        })
+        .on('error', reject)
+    })
+  }
+
+  /**
+   * Process generic company position data CSV
+   */
+  static async processCompanyPositions(
+    filePath: string,
+    cusip: string,
+    limit?: number
+  ): Promise<CompanyPositionData[]> {
+    const positions: CompanyPositionData[] = []
+    let rowCount = 0
+
+    return new Promise((resolve, reject) => {
+      createReadStream(filePath)
+        .pipe(csvParser({ headers: true }))
+        .on('data', (row: Record<string, string>) => {
+          if (limit && rowCount >= limit) return
+
+          // Skip if no shares
+          const shares = this.parseNumber(row['Shares'] || row['Share Count'] || row['Holdings'] || '0')
+          if (shares === 0) return
+
+          positions.push({
+            cusip: cusip,
+            accountType: row['Account Type'] || row['Type'] || 'Registered Account',
+            name: row['Account'] || row['Account Name'] || row['Name'] || row['Shareholder'] || 'Unknown',
+            accountNumber: row['Account#'] || row['Account Number'] || row['Account'] || null,
+            voteStatus: (row['Status'] || row['Vote Status'] || 'Unvoted') as 'Voted' | 'Unvoted',
+            shares: shares,
+            sharesVoted: this.parseNumber(row['Shares Voted'] || row['Voted Shares'] || '0'),
+            source: row['Source'] || row['Vote Method'] || null,
+            dateVoted: this.parseDate(row['Time Stamp'] || row['Vote Date'] || row['Voted Date'] || ''),
+            voteMethod: row['Vote Method'] || row['Method'] || row['Source'] || undefined,
+            controlNumber: row['Control Number'] || row['Control'] || undefined
+          })
+          rowCount++
+        })
+        .on('end', () => {
+          resolve(positions)
+        })
+        .on('error', reject)
+    })
   }
 }

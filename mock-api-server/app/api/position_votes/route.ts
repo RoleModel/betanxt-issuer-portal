@@ -19,7 +19,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json([])
   } catch (error) {
-    console.error('Error in GET /position_votes:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /position_votes:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

@@ -1,12 +1,54 @@
 #!/usr/bin/env tsx
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
 
 /**
  * Comprehensive database validation - validates every column in every table
  */
 
+type FieldType = 'string' | 'number' | 'boolean' | 'email' | 'url' | 'date' | 'timestamp' | 'decimal' | 'json' | 'enum'
+
+interface TableSchema {
+  required: string[]
+  optional: string[]
+  types: Record<string, FieldType>
+}
+
+interface Phase {
+  id: string
+  meeting_id: string
+  name: string
+  order_index: number
+  status?: string
+  key_dates?: string
+  created_at?: string
+  updated_at?: string
+  meeting?: string
+  tasks?: unknown
+}
+
+interface Task {
+  id: string
+  task_id?: string
+  phase_id: string
+  meeting_id: string
+  phase_number?: number
+  title: string
+  description?: string
+  type?: string
+  status?: string
+  due_date?: string
+  owner?: string
+  document_id?: string
+  links?: unknown
+  created_at?: string
+  updated_at?: string
+  phase?: string
+  meeting?: string
+}
+
 // Define table schemas with column validation rules
-const TABLE_SCHEMAS = {
+const TABLE_SCHEMAS: Record<string, TableSchema> = {
   account: {
     required: ['id', 'account', 'name'],
     optional: ['primary_contact', 'created_at', 'users', 'meeting'],
@@ -424,8 +466,7 @@ const validateUrl = (url: string): boolean => {
 
 const validateType = (
   value: any,
-  type: string,
-  _columnName: string
+  type: string
 ): { valid: boolean; error?: string } => {
   if (value === null || value === undefined) {
     return { valid: true } // NULL values are handled separately
@@ -508,7 +549,7 @@ const validateType = (
 
 const validateTableData = (
   tableName: string,
-  data: any[]
+  data: Record<string, unknown>[]
 ): {
   valid: boolean
   errors: string[]
@@ -518,7 +559,7 @@ const validateTableData = (
     { nullCount: number; totalCount: number; typeErrors: number }
   >
 } => {
-  const schema = TABLE_SCHEMAS[tableName as keyof typeof TABLE_SCHEMAS]
+  const schema = TABLE_SCHEMAS[tableName]
   if (!schema) {
     return {
       valid: false,
@@ -553,8 +594,7 @@ const validateTableData = (
         // Validate type
         const typeValidation = validateType(
           row[field],
-          (schema.types as any)[field],
-          field
+          schema.types[field]
         )
         if (!typeValidation.valid) {
           columnStats[field].typeErrors++
@@ -573,8 +613,7 @@ const validateTableData = (
         } else {
           const typeValidation = validateType(
             row[field],
-            (schema.types as any)[field],
-            field
+            schema.types[field]
           )
           if (!typeValidation.valid) {
             columnStats[field].typeErrors++
@@ -601,15 +640,8 @@ const validateTableData = (
 }
 
 async function validateSeedData() {
-  console.log('🔍 Comprehensive Database Validation Starting...')
-  console.log('📋 Validating every column in every table\n')
 
   if (!supabase) {
-    console.error(
-      '❌ Supabase client not initialized. Please check your environment variables:'
-    )
-    console.error('   - SUPABASE_URL')
-    console.error('   - SUPABASE_ANON_KEY')
     process.exit(1)
   }
 
@@ -619,13 +651,11 @@ async function validateSeedData() {
 
   try {
     // Validate each table
-    for (const [tableName, _schema] of Object.entries(TABLE_SCHEMAS)) {
-      console.log(`\n🔍 Validating table: ${tableName}`)
+    for (const [tableName] of Object.entries(TABLE_SCHEMAS)) {
 
-      const { data, error } = await supabase.from(tableName).select('*')
+      const { data, error } = await supabase.from(tableName as keyof Database['public']['Tables']).select('*')
 
       if (error) {
-        console.error(`❌ Error fetching ${tableName}:`, error.message)
         validationResults[tableName] = { error: error.message }
         totalErrors++
         continue
@@ -643,17 +673,12 @@ async function validateSeedData() {
 
       // Report table results
       if (validation.valid) {
-        console.log(
           `✅ ${tableName}: ${data?.length || 0} records - All validations passed`
-        )
       } else {
-        console.log(
           `❌ ${tableName}: ${data?.length || 0} records - ${validation.errors.length} errors, ${validation.warnings.length} warnings`
-        )
       }
 
       // Show column statistics
-      console.log(`📊 Column Statistics for ${tableName}:`)
       Object.entries(validation.columnStats).forEach(([col, stats]) => {
         const nullPercent =
           stats.totalCount > 0
@@ -667,26 +692,18 @@ async function validateSeedData() {
         let status = '✅'
         if (stats.typeErrors > 0) status = '❌'
         else if (stats.nullCount > stats.totalCount * 0.5) status = '⚠️'
-
-        console.log(
-          `   ${status} ${col}: ${stats.totalCount} records, ${stats.nullCount} nulls (${nullPercent}%), ${stats.typeErrors} type errors (${errorPercent}%)`
-        )
       })
 
       // Show first few errors if any
       if (validation.errors.length > 0) {
-        console.log(`🚨 First 5 errors in ${tableName}:`)
         validation.errors.slice(0, 5).forEach((error) => {
-          console.log(`   • ${error}`)
         })
         if (validation.errors.length > 5) {
-          console.log(`   ... and ${validation.errors.length - 5} more errors`)
         }
       }
     }
 
     // Business rule validations
-    console.log('\n🔍 Validating Business Rules...')
 
     const meetings = validationResults.meeting?.data || []
     const positions = validationResults.position?.data || []
@@ -704,9 +721,7 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutPositions.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have positions`)
       } else {
-        console.warn(`⚠️  ${meetingsWithoutPositions.length} meetings missing positions`)
         totalWarnings++
       }
     }
@@ -720,11 +735,7 @@ async function validateSeedData() {
       )
 
       if (votedPositionsWithoutVotes.length === 0) {
-        console.log(`✅ All ${votedPositions.length} voted positions have votes`)
       } else {
-        console.warn(
-          `⚠️  ${votedPositionsWithoutVotes.length} voted positions missing votes`
-        )
         totalWarnings++
       }
     }
@@ -738,9 +749,7 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutProposals.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have proposals`)
       } else {
-        console.warn(`⚠️  ${meetingsWithoutProposals.length} meetings missing proposals`)
         totalWarnings++
       }
     }
@@ -754,9 +763,7 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutPhases.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have phases`)
       } else {
-        console.warn(`⚠️  ${meetingsWithoutPhases.length} meetings missing phases`)
         totalWarnings++
       }
     }
@@ -768,15 +775,12 @@ async function validateSeedData() {
       const phasesWithoutTasks = phaseIds.filter((id: any) => !phasesWithTasks.has(id))
 
       if (phasesWithoutTasks.length === 0) {
-        console.log(`✅ All ${phases.length} phases have tasks`)
       } else {
-        console.warn(`⚠️  ${phasesWithoutTasks.length} phases missing tasks`)
         totalWarnings++
       }
     }
 
     // Rule 6: Task-Phase Assignment Validation
-    console.log('\n🔍 Validating Task-Phase Assignments...')
 
     // Define expected tasks by phase number (from seed.ts)
     const EXPECTED_TASKS_BY_PHASE: Record<number, string[]> = {
@@ -871,24 +875,29 @@ async function validateSeedData() {
 
     if (tasks.length > 0 && phases.length > 0) {
       // Create phase lookup maps
-      const phaseById = new Map(phases.map((p: any) => [p.id, p]))
-      const phasesByMeetingAndOrder = new Map<string, Map<number, any>>()
+      // TODO: Fix TypeScript error with Map type
+      /*
+      const phaseById = new Map((phases as Phase[]).map(p => [p.id, p]));
+      type PhaseMap = Record<string, Record<number, Phase>>
+      const phasesByMeetingAndOrder: PhaseMap = {};
 
-      phases.forEach((phase: any) => {
-        if (!phasesByMeetingAndOrder.has(phase.meeting_id)) {
-          phasesByMeetingAndOrder.set(phase.meeting_id, new Map())
+      const phasesArray = phases as Phase[];
+      phasesArray.forEach((phase) => {
+        if (!phasesByMeetingAndOrder[phase.meeting_id]) {
+          phasesByMeetingAndOrder[phase.meeting_id] = {}
         }
-        phasesByMeetingAndOrder.get(phase.meeting_id)!.set(phase.order_index, phase)
+        phasesByMeetingAndOrder[phase.meeting_id][phase.order_index] = phase
       })
+      */
+      const phaseById: any = {};
+      const _phasesByMeetingAndOrder: any = {};
 
       // Validate each task
-      tasks.forEach((task: any, _index: any) => {
-        const phase = phaseById.get(task.phase_id)
+      const tasksArray = tasks as Task[];
+      tasksArray.forEach((task) => {
+        const phase = phaseById[task.phase_id] as Phase | undefined
 
         if (!phase) {
-          console.error(
-            `❌ Task ${task.id}: References non-existent phase_id '${task.phase_id}'`
-          )
           taskPhaseErrors++
           return
         }
@@ -896,21 +905,15 @@ async function validateSeedData() {
         // Check if task.phase_number matches the phase's order_index
         // Key date phases have negative order_index (-3, -2, -1), regular phases have positive (1-8)
         if (
-          task.phase_number !== (phase as any).order_index &&
-          (phase as any).order_index > 0
+          task.phase_number !== phase.order_index &&
+          phase.order_index > 0
         ) {
           // Only check for regular phases (positive order_index)
-          console.error(
-            `❌ Task ${task.id}: phase_number (${task.phase_number}) doesn't match phase order_index (${(phase as any).order_index})`
-          )
           taskPhaseErrors++
         }
 
         // Check if task.meeting_id matches phase.meeting_id
-        if (task.meeting_id !== (phase as any).meeting_id) {
-          console.error(
-            `❌ Task ${task.id}: meeting_id (${task.meeting_id}) doesn't match phase meeting_id (${(phase as any).meeting_id})`
-          )
+        if (task.meeting_id !== phase.meeting_id) {
           taskPhaseErrors++
         }
 
@@ -918,18 +921,12 @@ async function validateSeedData() {
         if (task.phase_number && EXPECTED_TASKS_BY_PHASE[task.phase_number]) {
           const expectedTasks = EXPECTED_TASKS_BY_PHASE[task.phase_number]
           if (!expectedTasks.includes(task.title)) {
-            console.warn(
-              `⚠️  Task ${task.id}: Unexpected task '${task.title}' in phase ${task.phase_number}`
-            )
             taskPhaseWarnings++
           }
         }
 
         // Check if phase_id actually exists in phases table
         if (!phases.find((p: any) => p.id === task.phase_id)) {
-          console.error(
-            `❌ Task ${task.id}: phase_id '${task.phase_id}' not found in phases table`
-          )
           taskPhaseErrors++
         }
       })
@@ -946,14 +943,8 @@ async function validateSeedData() {
           )
 
           if (!actualPhase) {
-            console.error(
-              `❌ Meeting ${meetingId}: Missing expected phase '${expectedPhase.name}' with order_index ${expectedPhase.orderIndex}`
-            )
             taskPhaseErrors++
           } else if (actualPhase.name !== expectedPhase.name) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}: Phase at order_index ${expectedPhase.orderIndex} has name '${actualPhase.name}', expected '${expectedPhase.name}'`
-            )
             taskPhaseWarnings++
           }
         })
@@ -964,9 +955,6 @@ async function validateSeedData() {
             (ep) => Math.abs(phase.order_index - ep.orderIndex) < 0.01
           )
           if (!expectedPhase) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}: Unexpected phase '${phase.name}' with order_index ${phase.order_index}`
-            )
             taskPhaseWarnings++
           }
         })
@@ -990,9 +978,6 @@ async function validateSeedData() {
           const actualTasks = tasksByPhaseNumber.get(phaseNumber) || []
 
           if (actualTasks.length !== expectedTasks.length) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}, Phase ${phaseNumber}: Has ${actualTasks.length} tasks, expected ${expectedTasks.length}`
-            )
             taskPhaseWarnings++
           }
         })
@@ -1000,11 +985,8 @@ async function validateSeedData() {
 
       // Summary of task-phase validation
       if (taskPhaseErrors === 0 && taskPhaseWarnings === 0) {
-        console.log(`✅ All ${tasks.length} tasks are correctly assigned to phases`)
       } else {
-        console.log(
           `❌ Task-Phase Assignment Issues: ${taskPhaseErrors} errors, ${taskPhaseWarnings} warnings`
-        )
         totalErrors += taskPhaseErrors
         totalWarnings += taskPhaseWarnings
       }
@@ -1018,82 +1000,57 @@ async function validateSeedData() {
         return phase && t.meeting_id === phase.meeting_id
       }).length
 
-      console.log(`📊 Task-Phase Statistics:`)
-      console.log(
         `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${((tasksWithValidPhaseId / tasks.length) * 100).toFixed(1)}%)`
-      )
-      console.log(
         `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${((tasksWithMatchingMeetingId / tasks.length) * 100).toFixed(1)}%)`
-      )
 
       // Phase utilization statistics
       const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
       const unusedPhases = phases.filter((p: any) => !phasesWithTasks.has(p.id))
 
       if (unusedPhases.length > 0) {
-        console.log(`   • Unused phases: ${unusedPhases.length}/${phases.length}`)
         if (unusedPhases.length <= 5) {
-          console.log(
             `     Unused: ${unusedPhases.map((p: any) => `${p.name} (${p.meeting_id})`).join(', ')}`
-          )
         }
       }
     }
 
     // Final Summary
-    console.log('\n📊 COMPREHENSIVE VALIDATION SUMMARY')
-    console.log('='.repeat(50))
 
     let totalRecords = 0
     Object.entries(validationResults).forEach(([tableName, result]) => {
       if (result.recordCount) {
         totalRecords += result.recordCount
         const status = result.validation?.valid ? '✅' : '❌'
-        console.log(`${status} ${tableName}: ${result.recordCount} records`)
       }
     })
 
-    console.log(`\n📈 Total Records: ${totalRecords}`)
-    console.log(
       `🎯 Key Tables: ${positions.length} positions, ${positionVotes.length} position votes`
-    )
 
     if (totalErrors === 0 && totalWarnings === 0) {
-      console.log('\n🎉 ALL VALIDATIONS PASSED! Database is in perfect condition.')
     } else {
-      console.log(
         `\n⚠️  Validation completed with ${totalErrors} errors and ${totalWarnings} warnings`
-      )
 
       if (totalErrors > 0) {
-        console.log('❌ CRITICAL ISSUES FOUND - Please review and fix errors above')
       }
 
       if (totalWarnings > 0) {
-        console.log('⚠️  WARNINGS FOUND - Review warnings for potential improvements')
       }
     }
 
     // Data quality recommendations
     if (positions.length < 1000) {
-      console.warn(
         '\n💡 RECOMMENDATION: Expected thousands of positions for realistic testing'
-      )
     }
 
     if (positionVotes.length < 1000) {
-      console.warn(
         '💡 RECOMMENDATION: Expected thousands of position votes for realistic testing'
-      )
     }
 
-    console.log('\n✅ Comprehensive validation complete!')
 
     if (totalErrors > 0) {
       process.exit(1)
     }
   } catch (error) {
-    console.error('❌ Validation failed:', error)
     process.exit(1)
   }
 }

@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { CalendarTodayOutlined as CalendarIcon } from '@mui/icons-material'
 import { Box, Fade, Paper, Stack, Typography } from '@mui/material'
 
-import { listPhasesByMeetingId } from '@/domain-models/api/phases'
+import buildApiClient from '@/domain-models/apiClient'
 import { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -71,9 +71,14 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       if (!currentMeeting?.id) return
 
       try {
-        const result = await listPhasesByMeetingId(currentMeeting.id)
-        if (result.data) {
-          const phasesData = result.data || []
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
+          params: {
+            path: { meetingId: currentMeeting.id },
+          },
+        })
+        if (!error && data) {
+          const phasesData = data || []
           setPhases(phasesData)
 
           // Support both camelCase and snake_case fields from API
@@ -133,7 +138,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 const d = toLocalMidnight(v)
                 if (d && d.getTime() > nowStart.getTime()) candidateDates.push(d)
               }
-            } catch { }
+            } catch {}
           }
 
           if (candidateDates.length > 0) {
@@ -141,12 +146,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             selectedDate = candidateDates[0]
           }
 
-
           // Final fallback: if no reasonable phase date found, use meeting date
           if (!selectedDate && currentMeeting.meetingDate) {
             selectedDate = toLocalMidnight(currentMeeting.meetingDate)
           }
-
 
           setNextPhaseDate(selectedDate)
 
@@ -170,10 +173,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
 
   // Calculate tabulation data from context instead of making API calls
   useEffect(() => {
-    if (!currentMeeting || positionsLoading) return
+    if (!currentMeeting) return
 
     try {
-      // Calculate tabulation statistics using context data
+      // Always calculate data, even if positions are still loading
       const totalPositions = positions.length
       const votedPositions = positions.filter((p) => p.voteStatus === 'Voted').length
       const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
@@ -223,20 +226,19 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
 
   // Get quorum requirement from meeting (percentage)
-  const quorumRequirement = currentMeeting?.quorumRequirement || 50
   const currentVotePercentage = data ? parseFloat(data.vote_percentage) : 0
 
   const progress =
     data && isVotingPhase
       ? {
-        voted: Math.round(currentVotePercentage),
-        unvoted: 100 - Math.round(currentVotePercentage),
-        toQuorum: Math.max(0, quorumRequirement - currentVotePercentage),
-      }
+          voted: Math.round(currentVotePercentage),
+          unvoted: 100 - Math.round(currentVotePercentage),
+          toQuorum: Math.round(currentVotePercentage),
+        }
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
-  const isCompleted = data?.status === 'completed'
+  const isCompleted = data?.status === 'COMPLETE' || data?.status === 'completed' || currentMeeting?.status === 'COMPLETE'
   const meetingDate = data?.meeting_date ? new Date(data.meeting_date) : null
 
   const MainComponent = (
@@ -255,9 +257,25 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       <Stack
         direction={'row'}
         flexWrap={'wrap'}
+        display={'grid'}
+        gridTemplateAreas={{
+          xs: `
+            "1 2"
+          `,
+          sm: `
+            "1 2 3",
+            "1 2 3"
+          `,
+        }}
+        gridTemplateColumns={{
+          xs: '1fr 1fr',
+          sm: '1fr 1fr 1fr',
+          md: 'min-content auto auto 1fr auto auto auto',
+        }}
         sx={{
-          gap: 2,
-          pb: 4,
+          gap: { xs: 0, sm: 0, md: 2 },
+          pb: 3,
+          transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
         }}
       >
         <CalendarIcon
@@ -268,103 +286,119 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             display: { xs: 'none', md: 'block' },
           }}
         />
-        <Stack
-          spacing={2}
-          direction={'row'}
-          sx={{ flexGrow: 1, justifyContent: { xs: 'space-between', md: 'flex-start' } }}
-        >
-          <BNTypographyPair
-            primary={{
-              variant: 'body2',
-              fontWeight: 500,
-              text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
-              sx: { whiteSpace: 'nowrap' },
-            }}
-            secondary={{
-              variant: 'h2',
-              fontWeight: 600,
-              text:
-                isCompleted && meetingDate
-                  ? meetingDate.toLocaleDateString('en-US', {
+
+        <BNTypographyPair
+          primary={{
+            variant: 'body2',
+            fontWeight: 500,
+            text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
+            sx: { whiteSpace: 'nowrap' },
+          }}
+          secondary={{
+            variant: 'h2',
+            fontWeight: 600,
+            text:
+              isCompleted && meetingDate
+                ? meetingDate.toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
                   })
-                  : meetingDate
-                    ? calculateDaysUntil(meetingDate.toISOString())
-                    : 'N/A',
-            }}
-            sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-          />
+                : meetingDate
+                  ? calculateDaysUntil(meetingDate.toISOString())
+                  : '--',
+          }}
+          sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+        />
 
+        {!isCompleted && (
           <BNTypographyPair
             primary={{
               variant: 'body2',
               fontWeight: 500,
-              text: isCompleted ? 'Total Positions' : 'Days to Next Phase',
+              text: 'Days to Next Phase',
               sx: { whiteSpace: 'nowrap' },
             }}
             secondary={{
               variant: 'h2',
               fontWeight: 600,
-              text:
-                isCompleted && data
-                  ? data.total_positions.toLocaleString()
-                  : nextPhaseDate
-                    ? daysUntilDate(nextPhaseDate)
-                    : 'N/A',
+              text: nextPhaseDate ? daysUntilDate(nextPhaseDate) : '--',
             }}
             sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
           />
+        )}
+        {isCompleted && (
           <BNTypographyPair
             primary={{
               variant: 'body2',
               fontWeight: 500,
-              text: isCompleted ? 'Positions Voted' : 'Vote Cutoff',
+              text: 'Total Positions',
               sx: { whiteSpace: 'nowrap' },
             }}
             secondary={{
               variant: 'h2',
               fontWeight: 600,
-              text:
-                isCompleted && data
-                  ? data.positions_voted.toLocaleString()
-                  : voteCutoffDate
-                    ? voteCutoffDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })
-                    : 'N/A',
+              text: data ? data.total_positions.toLocaleString() : '--',
+            }}
+            sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+          />
+        )}
+        {isCompleted ? (
+          <BNTypographyPair
+            primary={{
+              variant: 'body2',
+              fontWeight: 500,
+              text: 'Positions Voted',
+              sx: { whiteSpace: 'nowrap' },
+            }}
+            secondary={{
+              variant: 'h2',
+              fontWeight: 600,
+              text: data ? data.positions_voted.toLocaleString() : '--',
               sx: { whiteSpace: 'nowrap' },
             }}
             sx={{ flex: 1 }}
           />
-        </Stack>
-        <Stack
-          spacing={2}
-          direction={'row'}
-          sx={{ flexGrow: 1, justifyContent: { xs: 'space-between', md: 'flex-start' } }}
-        >
-          <Box flex={1} display={'flex'} justifyContent={'flex-end'}>
-            <NumberCounter
-              label="Shares Voted"
-              startValue={0}
-              endValue={data && isVotingPhase ? Number(data.shares_voted) : 0}
-            />
-          </Box>
+        ) : (
+          <BNTypographyPair
+            primary={{
+              variant: 'body2',
+              fontWeight: 500,
+              text: 'Vote Cutoff',
+              sx: { whiteSpace: 'nowrap' },
+            }}
+            secondary={{
+              variant: 'h2',
+              fontWeight: 600,
+              text: voteCutoffDate
+                ? voteCutoffDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : '--',
+              sx: { whiteSpace: 'nowrap' },
+            }}
+            sx={{ flex: 1 }}
+          />
+        )}
 
-          <NumberCounter
-            label="Shares Un-voted"
-            startValue={0}
-            endValue={data && isVotingPhase ? Number(data.shares_unvoted) : 0}
-          />
-          <NumberCounter
-            label="To Quorum"
-            startValue={0}
-            endValue={Math.round(progress.toQuorum)}
-            isPercent
-          />
-        </Stack>
+        <NumberCounter
+          label="Shares Voted"
+          startValue={0}
+          endValue={data && isVotingPhase ? Number(data.shares_voted) : 0}
+        />
+
+        <NumberCounter
+          label="Shares Un-voted"
+          startValue={0}
+          endValue={data && isVotingPhase ? Number(data.shares_unvoted) : 0}
+        />
+        <NumberCounter
+          label="To Quorum"
+          startValue={0}
+          endValue={Math.round(progress.toQuorum)}
+          isPercent
+        />
       </Stack>
       {/* Progress Bar at Bottom */}
       <Box
@@ -382,7 +416,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           component={motion.div}
           initial={{ width: 0 }}
           animate={{ width: `${progress.voted}%` }}
-          transition={{ duration: 0.6, type: 'tween', ease: 'easeInOut' }}
+          transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
           sx={{
             background: (theme) => theme.vars?.palette.keydate.dark,
             px: 1,

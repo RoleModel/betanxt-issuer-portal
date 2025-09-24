@@ -13,6 +13,8 @@ import {
   TableRow,
 } from '@mui/material'
 
+import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+
 interface MeetingInformationCardProps {
   className?: string
   meeting?: {
@@ -40,6 +42,8 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
     <Card
       className={className}
       sx={{
+        gridArea: 'meeting-information',
+        alignSelf: 'start',
         height: '100%',
         backgroundColor: '#f7f5f0',
         borderRadius: 1,
@@ -47,14 +51,12 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
           '0px 1px 6px -1px rgba(0,0,0,0.04), 0px 5px 6px -1px rgba(0,0,0,0.05), 0px 3px 4px -1px rgba(0,0,0,0.08)',
       }}
     >
-      <CardHeader
-        title={"Meeting Information"}
-      />
+      <CardHeader title={'Meeting Information'} />
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Table>
-          <caption>
+          <SROnlyTableCaption>
             Meeting details including type, inspector, and company CUSIP.
-          </caption>
+          </SROnlyTableCaption>
           <TableHead aria-hidden="false" sx={{ visibility: 'hidden', display: 'none' }}>
             <TableRow>
               <TableCell>Label</TableCell>
@@ -71,9 +73,7 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
                   },
                 }}
               >
-                <TableCell>
-                  {info.label}
-                </TableCell>
+                <TableCell>{info.label}</TableCell>
                 <TableCell align="right">{info.value || '—'}</TableCell>
               </TableRow>
             ))}

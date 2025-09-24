@@ -18,7 +18,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json([])
   } catch (error) {
-    console.error('Error in GET /documents/{id}/comments:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -47,7 +47,7 @@ export async function POST(): Promise<NextResponse> {
 
     return NextResponse.json({}, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /documents/{id}/comments:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

@@ -14,6 +14,8 @@ import {
   TableRow,
 } from '@mui/material'
 
+import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+
 interface ContactInfo {
   role: string
   contact: string
@@ -35,36 +37,38 @@ interface EventContactsCardProps {
 const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meeting }) => {
   const contacts: ContactInfo[] = meeting
     ? [
-      {
-        role: 'Transfer Agent',
-        contact: meeting.transferAgent || '',
-      },
-      {
-        role: 'Plan Administrator',
-        contact: meeting.planAdministrator || '',
-        email: meeting.planAdministratorContactEmail,
-      },
-      {
-        role: 'Solicitor Contact Info',
-        contact: meeting.solicitor || '',
-        email: meeting.solicitorEmail,
-      },
-    ]
+        {
+          role: 'Transfer Agent',
+          contact: meeting.transferAgent || '',
+        },
+        {
+          role: 'Plan Administrator',
+          contact: meeting.planAdministrator || '',
+          email: meeting.planAdministratorContactEmail,
+        },
+        {
+          role: 'Solicitor Contact Info',
+          contact: meeting.solicitor || '',
+          email: meeting.solicitorEmail,
+        },
+      ]
     : []
 
   return (
     <Card
       className={className}
       sx={{
+        gridArea: 'event-contacts',
         height: 'auto',
+        alignSelf: 'start',
       }}
     >
-      <CardHeader
-        title={"Event Contacts"}
-      />
+      <CardHeader title={'Event Contacts'} />
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Table>
-          <caption>Transfer Agent and Plan Administrator Information</caption>
+          <SROnlyTableCaption>
+            Transfer Agent and Plan Administrator Information
+          </SROnlyTableCaption>
           <TableHead aria-hidden="false" sx={{ visibility: 'hidden', display: 'none' }}>
             <TableRow>
               <TableCell>Role</TableCell>

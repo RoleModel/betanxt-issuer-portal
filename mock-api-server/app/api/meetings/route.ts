@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /meetings:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /meetings:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

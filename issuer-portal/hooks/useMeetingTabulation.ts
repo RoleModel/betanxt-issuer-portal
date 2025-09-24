@@ -52,7 +52,13 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
         throw new Error('Failed to fetch meeting')
       }
 
-      const meeting = meetingResult.data as { title?: string; meetingTitle?: string; date?: string; meetingDate?: string; status?: string }
+      const meeting = meetingResult.data as {
+        title?: string
+        meetingTitle?: string
+        date?: string
+        meetingDate?: string
+        status?: string
+      }
       if (!meeting) {
         throw new Error('Meeting not found')
       }
@@ -61,7 +67,15 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       const positionsResult = await apiClient.GET('/positions', {
         params: { query: { meetingId } },
       })
-      const positions = (positionsResult.data?.positions || []) as Array<{ voteStatus?: string; shares?: number; votingSource?: string }>
+      // Handle different possible response formats
+      const responseData = positionsResult.data
+      const positions = (Array.isArray(responseData)
+        ? responseData
+        : ((responseData as unknown as { positions?: any[] })?.positions ?? [])) as Array<{
+        voteStatus?: string
+        shares?: number
+        votingSource?: string
+      }>
 
       // Calculate tabulation summary from positions
       const totalPositions = positions.length
@@ -111,12 +125,12 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
           .sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''))
 
         if (upcomingPhases.length > 0) {
-          setNextPhaseDate(upcomingPhases[0].targetDate)
+          setNextPhaseDate(upcomingPhases[0].targetDate || null)
         }
 
         // Set vote cutoff as meeting date
         if (meeting.date || meeting.meetingDate) {
-          setVoteCutoffDate(meeting.date || meeting.meetingDate)
+          setVoteCutoffDate(meeting.date || meeting.meetingDate || null)
         }
       }
     } catch (err) {

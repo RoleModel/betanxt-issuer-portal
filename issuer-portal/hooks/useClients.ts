@@ -18,6 +18,7 @@ export interface Client {
   primary_contact?: string
   primary_contact_email?: string
   is_active?: boolean
+  branding_id?: number
   created_at?: string
   updated_at?: string
   // Added: accounts returned by /clients API (used for filtering meetings by accountId)
@@ -37,27 +38,28 @@ export interface UseClientsResult {
 
 type ApiClient = components['schemas']['Client']
 
-export const transformApiClients = (apiClients: ApiClient[]): Client[] => {
+export const transformApiClients = (apiClients: any[]): Client[] => {
   return apiClients
     .filter(
-      (client) => client.id && client.ticker && (client.companyName || client.shortName)
+      (client) => client.id && client.ticker && (client.company_name || client.companyName || client.short_name || client.shortName)
     )
     .map((client) => ({
       id: client.id as string,
-      name: (client.companyName || client.shortName) as string,
+      name: (client.company_name || client.companyName || client.short_name || client.shortName) as string,
       ticker: client.ticker as string,
-      company_name: client.companyName || undefined,
-      short_name: client.shortName || undefined,
+      company_name: client.company_name || client.companyName || undefined,
+      short_name: client.short_name || client.shortName || undefined,
       industry: (client.industry ?? undefined) as string | undefined,
       description: (client.description ?? undefined) as string | undefined,
       website: (client.website ?? undefined) as string | undefined,
-      primary_contact: (client.primaryContact ?? undefined) as string | undefined,
-      primary_contact_email: (client.primaryContactEmail ?? undefined) as
+      primary_contact: ((client.primary_contact || client.primaryContact) ?? undefined) as string | undefined,
+      primary_contact_email: ((client.primary_contact_email || client.primaryContactEmail) ?? undefined) as
         | string
         | undefined,
-      is_active: client.isActive as boolean | undefined,
-      created_at: client.createdAt || undefined,
-      updated_at: client.updatedAt || undefined,
+      is_active: (client.is_active ?? client.isActive ?? undefined) as boolean | undefined,
+      branding_id: (client.branding_id ?? client.brandingId ?? undefined) as number | undefined,
+      created_at: client.created_at || client.createdAt || undefined,
+      updated_at: client.updated_at || client.updatedAt || undefined,
     }))
 }
 
@@ -76,7 +78,7 @@ export const useClients = (): UseClientsResult => {
       // If using auth bypass, just fetch all clients directly
       if (bypassAuth) {
         const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/client')
+        const { data, error } = await apiClient.GET('/clients')
         const result = { data, error }
 
         if ('error' in result && result.error) {
@@ -85,7 +87,9 @@ export const useClients = (): UseClientsResult => {
           )
         }
 
-        const apiClients: ApiClient[] = result.data?.clients ?? []
+        const apiClients: ApiClient[] = Array.isArray(result.data)
+          ? result.data
+          : (result.data as any)?.clients ?? []
         setClients(transformApiClients(apiClients))
         return
       }
@@ -109,7 +113,10 @@ export const useClients = (): UseClientsResult => {
       }
 
       // Transform the API response to match our Client interface
-      const apiClients: ApiClient[] = result.data?.clients ?? []
+      // The API returns an array directly, not wrapped in a 'clients' property
+      const apiClients: ApiClient[] = Array.isArray(result.data)
+        ? result.data
+        : (result.data as any)?.clients ?? []
       setClients(transformApiClients(apiClients))
     } catch (err) {
       let errorMessage = 'Failed to fetch clients'

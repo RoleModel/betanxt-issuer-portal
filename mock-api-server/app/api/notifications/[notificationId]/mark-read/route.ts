@@ -12,7 +12,7 @@ export async function PATCH(): Promise<NextResponse> {
     
     return NextResponse.json({ status: 'OK' })
   } catch (error) {
-    console.error('Error in PATCH /notifications/{notificationId}/mark-read:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

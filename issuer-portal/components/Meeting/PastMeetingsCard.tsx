@@ -21,8 +21,7 @@ import {
   TableRow,
 } from '@mui/material'
 
-import { listMeetings } from '@/domain-models/api/meetings'
-import { listPositions } from '@/domain-models/api/positions'
+import buildApiClient from '@/domain-models/apiClient'
 
 import { useClient } from '@/contexts/ClientContext'
 
@@ -69,7 +68,10 @@ export default function PastMeetingsCard({ sx = {} }: PastMeetingsCardProps) {
       setLoading(true)
       setError(null)
 
-      const meetingsResult = await listMeetings({ ticker: clientTicker })
+      const apiClient = await buildApiClient()
+      const meetingsResult = await apiClient.GET('/meetings', {
+        params: { query: { ticker: clientTicker, page: 1, limit: 100 } },
+      })
       const meetings = (meetingsResult.data?.meetings || [])
         .filter((m) => m.meetingDate && new Date(m.meetingDate) < new Date())
         .slice(0, 6)
@@ -93,7 +95,9 @@ export default function PastMeetingsCard({ sx = {} }: PastMeetingsCardProps) {
       const sharesEntries = await Promise.all(
         meetings.map(async (m) => {
           try {
-            const posResult = await listPositions({ meetingId: m.id })
+            const posResult = await apiClient.GET('/positions', {
+              params: { query: { meetingId: m.id } },
+            })
             const positions = (posResult.data || []) as Array<{
               shares?: number
               sharesVoted?: number
@@ -102,7 +106,7 @@ export default function PastMeetingsCard({ sx = {} }: PastMeetingsCardProps) {
             const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
             const votedShares = positions
               .filter((p) => (p.voteStatus || '') === 'Voted')
-              .reduce((sum, p) => sum + (p.sharesVoted || 0), 0)
+              .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
             return [m.id, { totalShares, votedShares }] as const
           } catch {
             return [m.id, { totalShares: 0, votedShares: 0 }] as const

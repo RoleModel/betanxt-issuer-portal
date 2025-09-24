@@ -1,7 +1,7 @@
 /**
  * Utility functions for calculating and updating meeting overall completion
  */
-import { buildApiClient } from '@/domain-models/apiClient'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type DbTask = components['schemas']['Task']

@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { Box, Button, Typography, styled } from '@mui/material'
@@ -9,7 +7,7 @@ import StatusChip from '@/components/ui/StatusChip'
 
 import type { Task } from '@/types/api'
 
-import type { Tables } from '../../../supabase/database.types'
+;('use client')
 
 interface TaskItemProps {
   task: Task
@@ -40,10 +38,7 @@ const StyledTaskButton = styled(Button)<{ phasecolor: string }>(
 )
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
-  type DbTaskRow = Tables<'tasks'>
-  type DbTaskStatus = NonNullable<DbTaskRow['status']>
-
-  const transformStatus = (status: DbTaskStatus | string | null): string => {
+  const transformStatus = (status: string | null | undefined): string => {
     if (!status) return 'Incomplete'
     return String(status)
       .replace(/_/g, ' ')
@@ -53,7 +48,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
 
   const statusLabel = transformStatus(task.status)
 
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'No due date'
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
@@ -71,6 +66,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
       onClick={() => onClick?.(task)}
       role="button"
       tabIndex={0}
+      data-testid={`task-card-${task.id}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -92,6 +88,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
         <Typography
           variant="body3"
           fontWeight={500}
+          data-testid="task-title"
           sx={{
             textAlign: 'left',
             overflow: 'hidden',

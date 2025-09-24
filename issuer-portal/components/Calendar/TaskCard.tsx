@@ -1,8 +1,3 @@
-/**
- * TaskCard component for displaying tasks in calendar views
- * Supports both compact (calendar grid) and expanded (list view) modes
- */
-
 'use client'
 
 import React from 'react'
@@ -23,7 +18,6 @@ import {
   CardContent,
   Chip,
   IconButton,
-  Link as MuiLink,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -33,6 +27,11 @@ import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { Task } from '@/types/api'
+
+/**
+ * TaskCard component for displaying tasks in calendar views
+ * Supports both compact (calendar grid) and expanded (list view) modes
+ */
 
 /**
  * TaskCard component for displaying tasks in calendar views
@@ -225,23 +224,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {!isActualKeyDate && (
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <StatusChip
-                status={task.status}
+                status={task.status || null}
                 size="small"
                 sx={{
                   fontSize: '0.7rem',
                   height: 18,
                   ...(isKeyDate
                     ? {
-                      backgroundColor: 'transparent',
-                      color: (theme) => theme.vars?.palette.keydate.contrastText,
-                      border: `1px solid ${theme.vars?.palette.keydate.contrastText}`,
-                    }
+                        backgroundColor: 'transparent',
+                        color: (theme) => theme.vars?.palette.keydate.contrastText,
+                        border: `1px solid ${theme.vars?.palette.keydate.contrastText}`,
+                      }
                     : isMeetingDate
                       ? {
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: 'white',
-                        border: '1px solid white',
-                      }
+                          backgroundColor: 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          border: '1px solid white',
+                        }
                       : {}),
                 }}
               />
@@ -269,9 +268,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         '&:hover': onClick
           ? {
-            transform: 'translateY(-1px)',
-            transition: 'all 0.2s ease-in-out',
-          }
+              transform: 'translateY(-1px)',
+              transition: 'all 0.2s ease-in-out',
+            }
           : {},
       }}
       onClick={onClick}
@@ -304,7 +303,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </Box>
 
           <StatusChip
-            status={task.status}
+            status={task.status || null}
             sx={{
               ml: 2,
             }}
@@ -325,7 +324,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </Typography>
 
         {/* Task metadata */}
-        <Box display="flex" flexWrap="wrap" gap={2} mb={task.links?.length ? 2 : 0}>
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          gap={2}
+          mb={Array.isArray(task.links) && task.links.length ? 2 : 0}
+        >
           {task.dueDate && (
             <Box display="flex" alignItems="center" gap={0.5}>
               <CalendarIcon fontSize="small" color="action" />
@@ -350,7 +354,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </Box>
 
         {/* Action links */}
-        {task.links && task.links.length > 0 && (
+        {Array.isArray(task.links) && task.links.length > 0 && (
           <Box display="flex" flexWrap="wrap" gap={1}>
             {task.links.map((link, index) => (
               <Tooltip key={index} title={link.label}>
@@ -380,35 +384,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         )}
 
         {/* Document links */}
-        {task.documents && task.documents.length > 0 && (
+        {task.documentId && (
           <Box mt={2}>
             <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-              Documents:
+              Document ID: {task.documentId}
             </Typography>
-            <Box display="flex" flexDirection="column" gap={0.5}>
-              {task.documents.map((doc) => (
-                <MuiLink
-                  key={doc.id}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    textDecoration: 'none',
-                    fontSize: '0.875rem',
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalIcon fontSize="small" />
-                  {doc.title}
-                </MuiLink>
-              ))}
-            </Box>
           </Box>
         )}
       </CardContent>

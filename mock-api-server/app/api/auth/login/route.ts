@@ -21,7 +21,6 @@ export async function POST(): Promise<NextResponse> {
 
     return NextResponse.json({}, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /auth/login:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',

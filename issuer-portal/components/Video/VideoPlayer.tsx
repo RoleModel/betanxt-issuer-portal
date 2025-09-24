@@ -107,6 +107,11 @@ export default function VideoPlayer({
         '&:hover .video-controls': {
           opacity: 1,
         },
+        '&:hover .video-play-button': {
+          transform: 'translate(-50%, -50%) scale(1.2)',
+          transformOrigin: 'center',
+          transition: 'transform 0.2s ease-in-out',
+        },
       }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(isPlaying ? false : true)}
@@ -164,6 +169,7 @@ export default function VideoPlayer({
             left: '50%',
             transform: 'translate(-50%, -50%)',
             zIndex: 2,
+            cursor: 'pointer',
           }}
         >
           <IconButton

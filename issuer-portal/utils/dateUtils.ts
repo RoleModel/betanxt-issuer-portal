@@ -62,6 +62,6 @@ export const formatDaysUntil = (days: number): string => {
   if (days === 0) return 'Today'
   if (days === 1) return 'Tomorrow'
   if (days === -1) return 'Yesterday'
-  if (days > 0) return `In ${days} days`
+  if (days > 0) return `${days} Days Until`
   return `${Math.abs(days)} days ago`
 }

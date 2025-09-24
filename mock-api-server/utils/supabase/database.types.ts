@@ -36,7 +36,7 @@ export type Database = {
         }
         Relationships: []
       }
-      client: {
+      clients: {
         Row: {
           accounts: Json | null
           branding_id: number | null

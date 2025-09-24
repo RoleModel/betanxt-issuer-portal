@@ -42,10 +42,6 @@ export default function MeetingDashboardPage() {
     )
   }
 
-  if (loading) {
-    return <LinearProgress />
-  }
-
-  // Show loading while determining phase
+  // Show loading while determining phase or while loading is true
   return <LinearProgress />
 }

@@ -191,7 +191,7 @@ _Ambiguities captured inline using [NEEDS CLARIFICATION] markers._
 
 - **Meeting**: Anchor entity for grouping all Phase 1 and Phase 2 documents.
 - **Form (Phase 1)**: Generated document requiring execution (digital or wet). Attributes: form type, status (FORM GENERATED | EXECUTED), execution method, execution timestamp, version (always 1 unless correction path added), evidence metadata.
-- **Proxy Material (Phase 2 Core)**: Document placeholder with statuses ( UPLOADED | PENDING REVIEW | APPROVED). Includes version history.
+- **Proxy Material (Phase 2 Core)**: Document placeholder with statuses (NOT\_\_UPLOADED | UPLOADED | PENDING REVIEW | APPROVED). Includes version history.
 - **Supporting Document**: Ancillary meeting collateral (Slides, Rules, Statements, Guest list) with status (PLACEHOLDER | STORED) and versions if re-uploaded.
 - **Document Version**: Versioned instance with number, file reference, created timestamp, status.
 - **Approval Record**: Audit record of approval/review actions for proxy materials.

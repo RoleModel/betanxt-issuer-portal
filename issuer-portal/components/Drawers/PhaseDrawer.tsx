@@ -14,9 +14,11 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
   Collapse,
   Divider,
   Drawer,
+  FormControlLabel,
   IconButton,
   LinearProgress,
   Link,
@@ -32,14 +34,20 @@ import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import BNFileDropzone from '@/components/file-upload/BNFileDropzone'
-import StatusChip from '@/components/ui/StatusChip'
+import DrawerTaskItem from '@/components/Drawers/DrawerTaskItem'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
-import type { KeyDate, Task, TaskLink } from '@/types/api'
+import { useClients } from '@/hooks/useClients'
+import { useTasks } from '@/hooks/useTasks'
+import type { KeyDate, Task } from '@/types/api'
 import type { ContextMenuPosition } from '@/types/common'
-import { calculateDaysUntil, formatDaysUntil } from '@/utils/dateUtils'
+import { calculateDaysUntil, formatDaysUntil, friendlyDate } from '@/utils/dateUtils'
+import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
+import { handleFormDownload, handleFormSign } from '@/utils/broadridgeFormHandler'
+import { getDTCCAuthorizationStatus, isIssuerOwnedTask } from '@/utils/taskTransformers'
+import { useParams } from 'next/navigation'
 
 // Phase URL type for UI
 type PhaseUrl = { title: string; description?: string; url?: string }
@@ -57,11 +65,12 @@ type SignatureArea = {
 }
 
 // Swipeable drawer constants
-const drawerBleeding = 56
+const drawerBleeding = 60
 
 // Styled components for swipeable drawer
 const StyledBox = styled('div')(({ theme }) => ({
-  backgroundColor: theme.vars?.palette.background.paper || '#fff',
+  backgroundColor: theme.vars?.palette.background.default,
+
 }))
 
 const Puller = styled('div')(({ theme }) => ({
@@ -85,10 +94,17 @@ interface PhaseDrawerProps {
 }
 
 const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
-  const { open, onClose, phase = 1, onPhaseChange, onTaskClick } = props
+  const { open, onClose, phase = 1, onPhaseChange, onTaskClick: _onTaskClick } = props
 
   // Get active meeting and tasks from context
-  const { currentMeeting, tasks, tasksLoading, refreshMeetingData, keyDates: meetingKeyDates, setCurrentMeeting } = useMeeting()
+  const {
+    currentMeeting,
+    tasks,
+    tasksLoading,
+    refreshMeetingData,
+    keyDates: meetingKeyDates,
+    setCurrentMeeting,
+  } = useMeeting()
 
   // Mobile detection
   const theme = useTheme()
@@ -102,13 +118,29 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     refetch: _refetchPhaseData,
   } = usePhases(currentMeeting?.id)
 
+  // Get client data for form generation
+  const params = useParams()
+  const clientTicker = params?.clientTicker as string
+
+  const { clients } = useClients()
+  const currentClient = clients.find((client) => client.ticker === clientTicker)
+  const { updateTaskById } = useTasks()
+
+  // Create client data for form generation
+  const clientData = useMemo(() => currentClient ? {
+    issuerName: currentClient.company_name || currentClient.short_name || '',
+    contactName: currentClient.primary_contact || '',
+    email: currentClient.primary_contact_email || '',
+  } : undefined, [currentClient])
+
   const [currentView, setCurrentView] = useState<'overview' | 'upload'>('overview')
+  const [authorizedTasks, setAuthorizedTasks] = useState<Set<string>>(new Set())
 
   // Determine current phase from MeetingContext, fallback to prop, then 1
   const currentPhaseNumber = React.useMemo(() => {
     const label = currentMeeting?.currentPhase || `Phase ${phase || 1}`
     const parsed = parseInt(label.replace('Phase ', ''))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : (phase || 1)
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : phase || 1
   }, [currentMeeting?.currentPhase, phase])
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
   const [uploadTaskTitle, setUploadTaskTitle] = useState('')
@@ -137,16 +169,18 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   // Filter tasks for the current phase from context and cast to TaskWithLinks
   // Memoize filtered tasks for performance
-  const phaseTasks = useMemo(() =>
-    tasks.filter((task) => task.phaseNumber === currentPhaseNumber),
+  const phaseTasks = useMemo(
+    () => tasks.filter((task) => task.phaseNumber === currentPhaseNumber),
     [tasks, currentPhaseNumber]
   )
 
   // Get key dates for current phase from MeetingContext
   const keyDates: KeyDate[] = React.useMemo(() => {
-    if (currentPhaseData?.keyDates) {
+
+    // Check if phase data has key dates
+    if (currentPhaseData?.keyDates && Object.keys(currentPhaseData.keyDates).length > 0) {
       // If phase has specific key dates in the phase data, use those
-      return Object.entries(currentPhaseData.keyDates)
+      const result = Object.entries(currentPhaseData.keyDates)
         .filter(([, value]) => value)
         .map(([key, value]) => ({
           id: key,
@@ -154,10 +188,32 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           phaseNumber: currentPhaseNumber,
           date: value as string,
         }))
+      if (result.length > 0) {
+        return result
+      }
     }
 
     // Use key dates from MeetingContext (with correct phase assignments)
-    return meetingKeyDates.filter((kd) => kd.phaseNumber === currentPhaseNumber)
+    // Exclude pre-filing dates as they're typically duplicates
+    const filtered = meetingKeyDates.filter((kd) => {
+      const isPreFiling = kd.title?.toLowerCase().includes('pre-fil') || kd.title?.toLowerCase().includes('prefil')
+      return kd.phaseNumber === currentPhaseNumber && !isPreFiling
+    })
+
+    // If no dates found for the current phase, show dates without phase assignment for debugging
+    if (filtered.length === 0 && meetingKeyDates.length > 0) {
+      // For phase 1, show only filing date (not pre-filing)
+      if (currentPhaseNumber === 1) {
+        const phase1Dates = meetingKeyDates.filter(kd =>
+          kd.title?.toLowerCase().includes('filing') &&
+          !kd.title?.toLowerCase().includes('pre-filing')
+        )
+        if (phase1Dates.length > 0) {
+          return phase1Dates
+        }
+      }
+    }
+    return filtered
   }, [currentPhaseData, meetingKeyDates, currentPhaseNumber])
 
   // URLs would come from phase data if available (currently not in our schema)
@@ -178,51 +234,63 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   }
 
   const handleTaskLinkClick = useCallback(
-    (
-      taskId: string,
-      taskTitle: string,
-      linkLabel: string,
-      linkAction?: string,
-      linkUrl?: string,
-      linkSignatureAreas?: SignatureArea[]
-    ) => {
-      if (linkAction === 'sign') {
-        if (linkUrl) {
-          // Open DocumentViewer with the PDF URL
-          setDocumentUrl(linkUrl)
-          setDocumentTitle(taskTitle)
-          setSignatureAreas(linkSignatureAreas || [])
-          setDocumentViewerOpen(true)
-        } else {
-          // Fallback to original behavior if no URL provided
-          console.log('Attempting to open signature document for task:', taskId)
-          if (onTaskClick) {
-            onTaskClick(taskId)
-            onClose()
+    async (link: TaskLink, taskTitle: string) => {
+
+      switch (link.action) {
+        case 'signature':
+          if (link.url) {
+            setDocumentUrl(link.url)
+            setDocumentTitle(taskTitle)
+            setSignatureAreas([])
+            setDocumentViewerOpen(true)
+          } else if (link.label === 'Sign Form') {
+            await handleFormSign({
+              onDocumentOpen: (documentUrl, documentId, signatureAreas) => {
+                setDocumentUrl(documentUrl)
+                setDocumentTitle(taskTitle)
+                setSignatureAreas(signatureAreas)
+                setDocumentViewerOpen(true)
+              },
+              clientData
+            })
           } else {
-            console.error('onTaskClick function not provided')
           }
-        }
-      } else if (
-        linkAction === 'upload' ||
-        linkLabel.includes('Upload') ||
-        linkLabel.includes('Submit')
-      ) {
-        setUploadTaskTitle(taskTitle)
-        if (isMobile) {
-          setMobileUploadOpen(true)
-        } else {
-          setCurrentView('upload')
-        }
+          break
+
+        case 'upload':
+          setUploadTaskTitle(taskTitle)
+          if (isMobile) {
+            setMobileUploadOpen(true)
+          } else {
+            setCurrentView('upload')
+          }
+          break
+
+        case 'download':
+          if (link.url) {
+            window.open(link.url, '_blank')
+          } else if (link.label === 'Download Form') {
+            await handleFormDownload(clientData)
+          } else {
+          }
+          break
+
+        case 'authorize':
+        case 'external':
+        default:
+          if (link.url) {
+            window.open(link.url, '_blank')
+          }
+          break
       }
     },
-    [onTaskClick, onClose, isMobile]
+    [isMobile, clientData]
   )
 
   const handleTaskApprovalClick = useCallback((task: Task) => {
-    if (task.type === 'approve' && task.links?.[0]?.url) {
+    if (task.type === 'approve' && Array.isArray(task.links) && task.links[0]?.url) {
       setApprovalDocumentUrl(task.links[0].url)
-      setApprovalTitle(task.title)
+      setApprovalTitle(task.title || 'Approval Task')
       setApprovalDrawerOpen(true)
     }
   }, [])
@@ -266,9 +334,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   const handleApprove = useCallback(() => {
     // Handle approval logic here
-    console.log('Document approved:', approvalTitle)
     handleApprovalDrawerClose()
-  }, [approvalTitle, handleApprovalDrawerClose])
+  }, [handleApprovalDrawerClose])
 
   // Context menu handlers - memoized for performance
   const handleTaskRightClick = useCallback((event: React.MouseEvent, task: Task) => {
@@ -294,7 +361,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   const handleTaskView = () => {
     if (selectedTask) {
-      console.log('View task details:', selectedTask)
       // You could open a view-only modal or expand the task details
     }
   }
@@ -308,27 +374,51 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     refreshMeetingData()
   }, [refreshMeetingData])
 
-  const handlePhaseNavigation = useCallback((direction: 'prev' | 'next') => {
-    const maxPhase = 8 // We have 8 phases
-    const next = direction === 'prev' ? Math.max(1, currentPhaseNumber - 1) : Math.min(maxPhase, currentPhaseNumber + 1)
+  const handleAuthorizationChange = useCallback(async (taskId: string, checked: boolean) => {
+    const newStatus = getDTCCAuthorizationStatus(checked)
+    await updateTaskById(taskId, { status: newStatus })
 
-    // Update MeetingContext.currentMeeting.currentPhase so all openers stay in sync
-    if (currentMeeting) {
-      setCurrentMeeting({
-        ...currentMeeting,
-        currentPhase: `Phase ${next}`,
-      } as typeof currentMeeting)
+    if (checked) {
+      setAuthorizedTasks(prev => new Set([...prev, taskId]))
+    } else {
+      setAuthorizedTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
     }
 
-    onPhaseChange?.(next)
-  }, [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange])
+    // Refresh the meeting data to show updated status
+    refreshMeetingData()
+  }, [updateTaskById, refreshMeetingData])
+
+  const handlePhaseNavigation = useCallback(
+    (direction: 'prev' | 'next') => {
+      const maxPhase = 8 // We have 8 phases
+      const next =
+        direction === 'prev'
+          ? Math.max(1, currentPhaseNumber - 1)
+          : Math.min(maxPhase, currentPhaseNumber + 1)
+
+      // Update MeetingContext.currentMeeting.currentPhase so all openers stay in sync
+      if (currentMeeting) {
+        setCurrentMeeting({
+          ...currentMeeting,
+          currentPhase: `Phase ${next}`,
+        } as typeof currentMeeting)
+      }
+
+      onPhaseChange?.(next)
+    },
+    [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange]
+  )
 
   const renderMobileUploadDrawer = () => (
     <>
       <Global
         styles={{
           '.MuiDrawer-root > .MuiPaper-root': {
-            height: `calc(70% - ${drawerBleeding}px)`,
+            height: `100%`,
             overflow: 'visible',
           },
         }}
@@ -344,6 +434,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         ModalProps={{
           disableEnforceFocus: true,
         }}
+        sx={{
+          boxShadow: theme.shadows[10],
+        }}
       >
         <StyledBox
           sx={{
@@ -352,6 +445,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             borderTopLeftRadius: 8,
             borderTopRightRadius: 8,
             visibility: 'visible',
+
+            border: '1px solid',
+            borderColor: theme.vars.palette.divider,
             right: 0,
             left: 0,
             height: drawerBleeding,
@@ -425,7 +521,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           disabled={uploadFiles.length === 0}
           onClick={() => {
             // Handle file submission here
-            console.log('Submitting files:', uploadFiles)
             setUploadFiles([])
             if (isMobile) {
               handleMobileUploadClose()
@@ -529,12 +624,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       {(phaseLoading || tasksLoading) && (
         <LinearProgress
           aria-label="Loading phase data"
+          color={`phase[${currentPhaseNumber}].main` as 'primary'}
           sx={{
             height: 4,
-            backgroundColor: `color-mix(in srgb, ${theme.vars.palette.phase[currentPhaseNumber].main} 50%, transparent)`,
-            '& .MuiLinearProgress-bar': {
-              backgroundColor: theme.vars.palette.phase[currentPhaseNumber].main,
-            },
           }}
         />
       )}
@@ -583,7 +675,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                         variant="caption"
                         sx={{ color: '#CCE5FF', fontSize: '14px', fontWeight: 500 }}
                       >
-                        {keyDate.date}
+                        {friendlyDate(keyDate.date)}
                       </Typography>
                       <Typography
                         variant="h6"
@@ -620,84 +712,76 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             )}
 
             {/* Tasks */}
-            {phaseTasks.map((task) => (
-              <Card
-                key={task.id}
-                onClick={() => {
-                  // If task type is approve, open ApprovalDrawer immediately
-                  if (task.type === 'approve') {
-                    handleTaskApprovalClick(task)
-                  }
-                }}
-                onContextMenu={(e) => handleTaskRightClick(e, task)}
-                sx={(theme) => ({
-                  p: 1.5,
-                  background: theme.vars.palette.tableCellRow.fill,
-                  borderLeft: `5px solid ${phaseColor}`,
-                  boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-                  cursor: task.type === 'approve' ? 'pointer' : 'default',
-                  '&:hover': {
-                    boxShadow: `inset 0px 0px 0px 2px ${theme.vars.palette.action.hover}`,
-                  },
-                })}
-              >
-                <Typography
-                  variant="body3"
-                  fontWeight={500}
-                  sx={{ lineHeight: 1.2, mb: 0.5 }}
-                >
-                  {task.title}
-                </Typography>
+            <Stack spacing={1}>
+              {phaseTasks.map((task) => {
+                const isCompleted = task.status === 'COMPLETE' || authorizedTasks.has(task.id || '')
+                const taskLinks = parseTaskLinks(task.links)
+                const isIssuerOwned = isIssuerOwnedTask(task)
 
-                <Typography
-                  color="text.secondary"
-                  sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', mb: 1 }}
-                >
-                  {task.description}
-                </Typography>
+                return (
+                  <Box key={task.id} onContextMenu={(e) => handleTaskRightClick(e, task)}>
+                    <DrawerTaskItem
+                      task={task}
+                      phaseColor={phaseColor}
+                      isCompleted={isCompleted}
+                      onClick={
+                        task.type === 'approve'
+                          ? () => handleTaskApprovalClick(task)
+                          : undefined
+                      }
+                    />
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <StatusChip
-                    status={task.status}
-                    size="small"
-                    sx={{
-                      fontSize: '13px',
-                      height: 20,
-                    }}
-                  />
-                </Box>
-
-                {task.links && (
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {task.links.map((link: TaskLink, linkIndex: number) => (
-                      <Link
-                        key={linkIndex}
-                        component="button"
-                        underline="always"
-                        onClick={() =>
-                          handleTaskLinkClick(
-                            task.id,
-                            task.title,
-                            link.label,
-                            link.action,
-                            link.url,
-                          )
-                        }
+                    {/* Task description */}
+                    {task.description && (
+                      <Typography
+                        color="text.secondary"
+                        sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', ml: 2, mt: 0.5, mb: 1 }}
                       >
-                        {link.label}
-                      </Link>
-                    ))}
-                  </Stack>
-                )}
-              </Card>
-            ))}
+                        {task.description}
+                      </Typography>
+                    )}
+
+                    {/* DTCC Authorization Checkbox */}
+                    {task.title?.includes('DTCC') && task.title?.includes('Authorization') && (
+                      <Box sx={{ ml: 2, mt: 1, mb: 1 }}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              color="secondary"
+                              checked={isCompleted}
+                              onChange={(e) => handleAuthorizationChange(task.id || '', e.target.checked)}
+                              size="small"
+                            />
+                          }
+                          label="Authorization confirmed"
+                        />
+                      </Box>
+                    )}
+
+                    {/* Task Links - only show for issuer-owned tasks */}
+                    {isIssuerOwned && taskLinks.length > 0 && (
+                      <Box sx={{ ml: 2, mt: 1 }}>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          {taskLinks.map((link: TaskLink, linkIndex: number) => (
+                            <Link
+                              key={linkIndex}
+                              component="button"
+                              underline="always"
+                              onClick={() =>
+                                handleTaskLinkClick(link, task.title || 'Task')
+                              }
+                              sx={{ fontSize: '0.875rem' }}
+                            >
+                              {link.label}
+                            </Link>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                  </Box>
+                )
+              })}
+            </Stack>
 
             {/* URLs Section */}
             {urls.length > 0 && (
@@ -738,7 +822,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       onClose={handleMainDrawerClose}
       keepMounted={false}
       sx={{
-        zIndex: 1300,
+        zIndex: 100,
       }}
       slotProps={{
         paper: {
@@ -806,6 +890,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         pdfUrl={documentUrl}
         title={documentTitle}
         signatureAreas={signatureAreas}
+        documentType="signature"
       />
 
       {/* Approval Drawer */}
@@ -815,10 +900,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         title={approvalTitle}
         pdfUrl={approvalDocumentUrl}
         onApprove={handleApprove}
-        onAddComment={(comment: string) => {
-          console.log('Adding comment:', comment)
-          // TODO: Implement comment addition logic
-        }}
+        onAddComment={(_comment: string) => { }}
       />
 
       {/* Context Menu */}

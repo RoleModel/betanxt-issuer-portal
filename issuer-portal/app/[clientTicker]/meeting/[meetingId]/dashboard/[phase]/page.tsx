@@ -7,6 +7,8 @@ import NoSsr from '@mui/material/NoSsr'
 
 import Phase1Layout from '@/components/Meeting/Phase1Layout'
 import Phase2Layout from '@/components/Meeting/Phase2Layout'
+import Phase3Layout from '@/components/Meeting/Phase3Layout'
+import Phase4Layout from '@/components/Meeting/Phase4Layout'
 import Phase7Layout from '@/components/Meeting/Phase7Layout'
 import Phase8Layout from '@/components/Meeting/Phase8Layout'
 import TabulationTracker from '@/components/Meeting/TabulationTracker'
@@ -23,26 +25,16 @@ export default function PhasePage() {
   const renderPhaseLayout = () => {
     switch (phaseNumber) {
       case 1:
-        return <Phase1Layout meetingId={meetingId} meeting={meeting} />
+        return <NoSsr><Phase1Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} /></NoSsr>
 
       case 2:
-        return <Phase2Layout meetingId={meetingId} meeting={meeting} />
+        return <NoSsr><Phase2Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} /></NoSsr>
 
       case 3:
-        return (
-          <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="h6">Phase 3: Solicitation</Typography>
-            <Typography>Coming soon...</Typography>
-          </Box>
-        )
+        return <NoSsr><Phase3Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} /></NoSsr>
 
       case 4:
-        return (
-          <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="h6">Phase 4: Vote Processing</Typography>
-            <Typography>Coming soon...</Typography>
-          </Box>
-        )
+        return <NoSsr><Phase4Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} /></NoSsr>
 
       case 5:
         return (

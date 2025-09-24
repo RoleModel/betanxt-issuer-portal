@@ -97,7 +97,6 @@ export default SignatureMakerConfig
  * Usage Example:
  *
  * <SignatureMakerConfig
- *   onSave={(signature) => console.log('Signature saved:', signature)}
  *   withTyped={false}
  *   withDrawn={true}
  *   withUpload={false}

@@ -713,9 +713,9 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** @description The client this account belongs to (relationship) */
-            client?: components["schemas"]["Client"];
+            client?: components["schemas"]["Clients"];
         };
-        Client: {
+        Clients: {
             /** Format: uuid */
             id?: string;
             /** @description Unique ticker symbol for the client */
@@ -847,7 +847,7 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             /** @description The client this meeting belongs to (relationship) */
-            client?: components["schemas"]["Client"];
+            client?: components["schemas"]["Clients"];
         };
         Phase: {
             /**
@@ -1864,7 +1864,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        clients?: components["schemas"]["Client"][];
+                        clients?: components["schemas"]["Clients"][];
                         pagination?: components["schemas"]["Pagination"];
                     };
                 };
@@ -1892,7 +1892,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Client"];
+                    "application/json": components["schemas"]["Clients"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -1918,7 +1918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Client"];
+                    "application/json": components["schemas"]["Clients"];
                 };
             };
             401: components["responses"]["Unauthorized"];
@@ -1947,7 +1947,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Client"];
+                    "application/json": components["schemas"]["Clients"];
                 };
             };
             400: components["responses"]["BadRequest"];

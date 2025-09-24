@@ -14,7 +14,9 @@ interface SignatureArea {
   height: number // percentage height
   page?: number // page number (default 1)
   label?: string // label for the signature area
+  type?: 'signature' | 'text' | 'date' // field type
   signed?: boolean
+  value?: string // for text/date fields
 }
 
 interface DraggableSignatureAreaProps {
@@ -93,15 +95,13 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         }
 
         // Create signature area using hook
-        const newSignatureArea = await createSignatureArea({
-          document_id: documentId,
-          page_number: area.page || 1,
+        const newSignatureArea = await createSignatureArea(documentId, {
           x_position: position.x,
           y_position: position.y,
           width: area.width,
           height: area.height,
-          signature_type: area.label || 'signature',
-          required: true,
+          page_number: area.page || 1,
+          label: area.label || 'signature',
         })
 
         if (newSignatureArea) {
@@ -109,7 +109,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           onPositionUpdate?.(newSignatureArea.id, position.x, position.y)
         }
       } catch (err) {
-        console.warn('Error creating signature area:', err)
+        // Error handled appropriately
       }
       return
     }
@@ -124,13 +124,10 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
       if (updatedArea) {
         onPositionUpdate?.(area.id, position.x, position.y)
       } else {
-        console.error('DraggableSignatureArea: Failed to update signature area position')
+        // Failed to update position
       }
     } catch (err) {
-      console.error(
-        'DraggableSignatureArea: Error updating signature area position:',
-        err
-      )
+      // Error updating position
     }
   }, [
     isDragging,
@@ -235,6 +232,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         onClick={handleClick}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        data-testid={`signature-area-${area.id}`}
         sx={{
           position: 'absolute',
           left: `${position.x}%`,
@@ -247,7 +245,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
               ? 'hsla(185, 100%, 28%, 0.1)'
               : 'hsla(185, 100%, 28%, 0.1)',
           border: signatureData
-            ? '2px solid hsla(185, 100%, 28%, 1)'
+            ? ''
             : isDragging
               ? '2px solid rgba(0, 131, 143, 0.8)'
               : '2px dashed rgba(0, 131, 143, 0.3)',

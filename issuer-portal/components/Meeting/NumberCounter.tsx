@@ -5,17 +5,16 @@ import { useEffect, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
-const Container = styled('div')<{ $align?: 'start' | 'center' | 'end' }>(({ theme, $align }) => ({
-  display: 'inline-flex',
+const Container = styled('div')(({ theme }) => ({
+  display: 'flex',
   flexDirection: 'column',
-  alignItems: $align === 'start' ? 'flex-start' : $align === 'center' ? 'center' : 'flex-end',
-  justifyContent: $align === 'start' ? 'flex-start' : $align === 'center' ? 'center' : 'flex-end',
   whiteSpace: 'nowrap',
-  flex: 1,
-  textAlign: 'left',
+  flexGrow: 1,
+  [theme.breakpoints.between('xs', 'sm')]: {
+    alignItems: 'flex-start',
+  },
   [theme.breakpoints.up('md')]: {
-    flex: 0,
-    textAlign: 'right',
+    alignItems: 'flex-end',
   },
 }))
 
@@ -28,7 +27,7 @@ const NumberText = styled(Box)(({ theme }) => ({
 const numberStyle = {
   alignItems: 'baseline',
   font: 'var(--mui-font-h2)',
-  fontVariantNumeric: "tabular-nums",
+  fontVariantNumeric: 'tabular-nums',
 }
 
 export const NumberCounter = ({
@@ -37,7 +36,6 @@ export const NumberCounter = ({
   suffix,
   startValue = 0,
   endValue = 100,
-  align = 'end',
   notation = 'compact',
   compactDisplay = 'short',
 }: {
@@ -46,7 +44,6 @@ export const NumberCounter = ({
   suffix?: string
   startValue?: number
   endValue?: number
-  align?: 'start' | 'center' | 'end'
   notation?: 'compact' | 'standard'
   compactDisplay?: 'short' | 'long'
 }) => {
@@ -62,12 +59,10 @@ export const NumberCounter = ({
     return () => clearTimeout(timer)
   }, [safeEnd])
 
-
-
   return (
     <LayoutGroup>
-      <motion.div layout>
-        <Container $align={align}>
+      <motion.div className="number-counter-wrapper" layout>
+        <Container className="number-counter">
           {label && (
             <Typography variant="body2" component="span" fontWeight={500} display="block">
               {label}
@@ -75,12 +70,14 @@ export const NumberCounter = ({
           )}
           <NumberText>
             <AnimateNumber
-              format={{
-                notation,
-                compactDisplay,
-                minimumFractionDigits: 1,
-                maximumFractionDigits: 1,
-              } as AnimateNumberProps['format']}
+              format={
+                {
+                  notation,
+                  compactDisplay,
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                } as AnimateNumberProps['format']
+              }
               suffix={isPercent ? '%' : suffix}
               style={numberStyle}
             >

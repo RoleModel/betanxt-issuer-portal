@@ -66,6 +66,14 @@ declare module '@mui/material/styles' {
 declare module '@mui/material/LinearProgress' {
   interface LinearProgressPropsColorOverrides {
     phase: true
+    'chartSeries[0].main': true
+    'chartSeries[1].main': true
+    'chartSeries[2].main': true
+    'chartSeries[3].main': true
+    'chartSeries[4].main': true
+    'chartSeries[5].main': true
+    'chartSeries[6].main': true
+    'chartSeries[7].main': true
   }
 }
 
@@ -199,7 +207,7 @@ const issuerOverrides = {
           },
 
           {
-            main: green[700],
+            main: green[500],
             light: green[400],
             dark: green[900],
             contrastText: green[50],
@@ -222,6 +230,16 @@ const issuerOverrides = {
           '&:has(.MuiTable-root)': {
             padding: 0,
           },
+        },
+      },
+    },
+    MuiCard: {
+      defaultProps: {
+        elevation: 5,
+      },
+      styleOverrides: {
+        root: {
+          height: 'auto,',
         },
       },
     },
@@ -280,6 +298,17 @@ const issuerOverrides = {
             'phase[7].main',
           ]
 
+          const chartColors = [
+            'chartSeries[0].main',
+            'chartSeries[1].main',
+            'chartSeries[2].main',
+            'chartSeries[3].main',
+            'chartSeries[4].main',
+            'chartSeries[5].main',
+            'chartSeries[6].main',
+            'chartSeries[7].main',
+          ]
+
           if (ownerState.color && phaseColors.includes(ownerState.color)) {
             // Extract phase index from 'phase[X].main' format
             const phaseMatch = ownerState.color.match(/phase\[(\d+)\]\.main/)
@@ -291,6 +320,21 @@ const issuerOverrides = {
                 backgroundColor: `color-mix(in srgb, ${phaseColor} 20%, transparent)`,
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: phaseColor,
+                },
+              }
+            }
+          }
+
+          if (ownerState.color && chartColors.includes(ownerState.color)) {
+            const match = ownerState.color.match(/chartSeries\[(\d+)\]\.main/)
+            if (match) {
+              const idx = match[1]
+              const chartColor = `var(--mui-palette-chartSeries-${idx}-main)`
+
+              return {
+                backgroundColor: `color-mix(in srgb, ${chartColor} 20%, transparent)`,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: chartColor,
                 },
               }
             }

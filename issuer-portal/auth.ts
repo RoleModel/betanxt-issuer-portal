@@ -12,6 +12,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        // Check if auth bypass is enabled
+        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+          // Return a mock user for development
+          return {
+            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID || 'dev-user-123',
+            name: 'Dev User',
+            email: 'dev@example.com',
+            username: 'devuser',
+            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c', // Wendy's account ID
+            client_ticker: null,
+          }
+        }
+
         if (!credentials?.username || !credentials?.password) {
           return null
         }

@@ -1,0 +1,327 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary "Client and Application Switcher" [ref=e3]:
+      - generic [ref=e4]:
+        - button "Select Client" [ref=e6] [cursor=pointer]:
+          - text: Select Client
+          - img [ref=e8] [cursor=pointer]
+        - button "App Switcher" [ref=e10] [cursor=pointer]:
+          - text: Issuer Portal
+          - img [ref=e12] [cursor=pointer]
+    - banner "Main navigation" [ref=e14]:
+      - generic [ref=e15]:
+        - img "WEN Logo" [ref=e17]
+        - generic [ref=e18]:
+          - navigation [ref=e19]:
+            - tablist "Main navigation tabs" [ref=e21]:
+              - tab "Navigate to Dashboard" [selected] [ref=e22] [cursor=pointer]: Dashboard
+              - tab "Navigate to Past Meetings" [ref=e23] [cursor=pointer]: Past Meetings
+              - tab "Navigate to Reporting" [ref=e24] [cursor=pointer]: Reporting
+              - tab "Navigate to Education" [ref=e25] [cursor=pointer]: Education
+              - tab "Navigate to Products" [ref=e26] [cursor=pointer]: Products
+          - button "Open Menu" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29] [cursor=pointer]: D
+          - button "notifications" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31] [cursor=pointer]:
+              - img [ref=e32] [cursor=pointer]
+              - generic [ref=e34] [cursor=pointer]: "3"
+    - main [ref=e35]:
+      - generic [ref=e36]:
+        - generic [ref=e40]:
+          - tab "Annual Meeting CUSIP 95058W100 Record Date Oct 26 Mailing Date Nov 30 Meeting Date Dec 24 Current Phase Open Phase 1 phase details Overall Completion 0 0% ACTIVE" [selected] [ref=e41]:
+            - generic [ref=e44]:
+              - heading "Annual Meeting" [level=1] [ref=e45]
+              - generic [ref=e47]:
+                - generic [ref=e48]:
+                  - paragraph [ref=e49]: CUSIP
+                  - paragraph [ref=e50]: 95058W100
+                - generic [ref=e51]:
+                  - paragraph [ref=e52]: Record Date
+                  - paragraph [ref=e53]: Oct 26
+                - generic [ref=e54]:
+                  - paragraph [ref=e55]: Mailing Date
+                  - paragraph [ref=e56]: Nov 30
+                - generic [ref=e57]:
+                  - paragraph [ref=e58]: Meeting Date
+                  - paragraph [ref=e59]: Dec 24
+                - generic [ref=e60]:
+                  - paragraph [ref=e61]: Current Phase
+                  - button "Open Phase 1 phase details" [ref=e62] [cursor=pointer]: Phase 1
+                - generic [ref=e63]:
+                  - paragraph [ref=e64]: Overall Completion
+                  - generic [ref=e65]:
+                    - 'progressbar "Overall completion progress: 0%" [ref=e66]'
+                    - paragraph [ref=e68]: 0%
+                - generic [ref=e70]: ACTIVE
+          - tab "Special Meeting Meeting Date Dec 24" [ref=e71]:
+            - generic [ref=e74] [cursor=pointer]:
+              - heading "Special Meeting" [level=1] [ref=e75] [cursor=pointer]
+              - generic [ref=e77] [cursor=pointer]:
+                - paragraph [ref=e78] [cursor=pointer]: Meeting Date
+                - heading "Dec 24" [level=6] [ref=e79] [cursor=pointer]
+        - tablist "Meeting Navigation" [ref=e86]:
+          - tab "Meeting Dashboard" [selected] [ref=e87] [cursor=pointer]
+          - tab "Calendar" [ref=e88] [cursor=pointer]
+          - tab "Documents" [ref=e89] [cursor=pointer]
+          - tab "Mailing" [ref=e90] [cursor=pointer]
+          - tab "Tabulation" [ref=e91] [cursor=pointer]
+          - tab "Reports" [ref=e92] [cursor=pointer]
+          - tab "Agenda" [ref=e93] [cursor=pointer]
+          - tab "Guests/Registrants" [ref=e94] [cursor=pointer]
+      - generic [ref=e97]:
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - img [ref=e100]
+            - generic [ref=e102]:
+              - paragraph [ref=e103]: Days to Meeting
+              - heading "93" [level=2] [ref=e104]
+            - generic [ref=e105]:
+              - paragraph [ref=e106]: Days to Next Phase
+              - heading "34" [level=2] [ref=e107]
+            - generic [ref=e108]:
+              - paragraph [ref=e109]: Vote Cutoff
+              - heading "Dec 22" [level=2] [ref=e110]
+            - generic [ref=e112]:
+              - generic [ref=e113]: Shares Voted
+              - generic [ref=e117]:
+                - generic [ref=e121]:
+                  - generic [ref=e122]: "0"
+                  - generic [ref=e123]:
+                    - generic [ref=e124]: "1"
+                    - generic [ref=e125]: "2"
+                    - generic [ref=e126]: "3"
+                    - generic [ref=e127]: "4"
+                    - generic [ref=e128]: "5"
+                    - generic [ref=e129]: "6"
+                    - generic [ref=e130]: "7"
+                    - generic [ref=e131]: "8"
+                    - generic [ref=e132]: "9"
+                - generic [ref=e134]:
+                  - generic [ref=e136]: .
+                  - generic [ref=e138]:
+                    - generic [ref=e139]: "0"
+                    - generic [ref=e140]:
+                      - generic [ref=e141]: "1"
+                      - generic [ref=e142]: "2"
+                      - generic [ref=e143]: "3"
+                      - generic [ref=e144]: "4"
+                      - generic [ref=e145]: "5"
+                      - generic [ref=e146]: "6"
+                      - generic [ref=e147]: "7"
+                      - generic [ref=e148]: "8"
+                      - generic [ref=e149]: "9"
+            - generic [ref=e151]:
+              - generic [ref=e152]: Shares Un-voted
+              - generic [ref=e156]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: "0"
+                  - generic [ref=e162]:
+                    - generic [ref=e163]: "1"
+                    - generic [ref=e164]: "2"
+                    - generic [ref=e165]: "3"
+                    - generic [ref=e166]: "4"
+                    - generic [ref=e167]: "5"
+                    - generic [ref=e168]: "6"
+                    - generic [ref=e169]: "7"
+                    - generic [ref=e170]: "8"
+                    - generic [ref=e171]: "9"
+                - generic [ref=e173]:
+                  - generic [ref=e175]: .
+                  - generic [ref=e177]:
+                    - generic [ref=e178]: "0"
+                    - generic [ref=e179]:
+                      - generic [ref=e180]: "1"
+                      - generic [ref=e181]: "2"
+                      - generic [ref=e182]: "3"
+                      - generic [ref=e183]: "4"
+                      - generic [ref=e184]: "5"
+                      - generic [ref=e185]: "6"
+                      - generic [ref=e186]: "7"
+                      - generic [ref=e187]: "8"
+                      - generic [ref=e188]: "9"
+            - generic [ref=e190]:
+              - generic [ref=e191]: To Quorum
+              - generic "0.0%" [ref=e194]:
+                - generic [ref=e195]:
+                  - generic [ref=e199]:
+                    - generic [ref=e200]: "0"
+                    - generic [ref=e201]:
+                      - generic [ref=e202]: "1"
+                      - generic [ref=e203]: "2"
+                      - generic [ref=e204]: "3"
+                      - generic [ref=e205]: "4"
+                      - generic [ref=e206]: "5"
+                      - generic [ref=e207]: "6"
+                      - generic [ref=e208]: "7"
+                      - generic [ref=e209]: "8"
+                      - generic [ref=e210]: "9"
+                  - generic [ref=e212]:
+                    - generic [ref=e214]: .
+                    - generic [ref=e216]:
+                      - generic [ref=e217]: "0"
+                      - generic [ref=e218]:
+                        - generic [ref=e219]: "1"
+                        - generic [ref=e220]: "2"
+                        - generic [ref=e221]: "3"
+                        - generic [ref=e222]: "4"
+                        - generic [ref=e223]: "5"
+                        - generic [ref=e224]: "6"
+                        - generic [ref=e225]: "7"
+                        - generic [ref=e226]: "8"
+                        - generic [ref=e227]: "9"
+                - generic [ref=e231]: "%"
+          - generic [ref=e232]:
+            - paragraph [ref=e234]: 0% Voted
+            - paragraph [ref=e236]: 0% Unvoted
+        - generic [ref=e237]:
+          - generic [ref=e239]:
+            - generic [ref=e240]:
+              - heading "Key Dates" [level=3] [ref=e242]
+              - button "Phase Overview" [ref=e244] [cursor=pointer]
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - paragraph [ref=e248]: Pre-Filing
+                - generic [ref=e249]:
+                  - paragraph [ref=e250]: Sep 10
+                  - paragraph [ref=e251]: 13 days ago
+              - generic [ref=e252]:
+                - paragraph [ref=e253]: Filing Date
+                - generic [ref=e254]:
+                  - paragraph [ref=e255]: Nov 16
+                  - paragraph [ref=e256]: In 55 days
+              - generic [ref=e257]:
+                - paragraph [ref=e258]: Broker Search
+                - generic [ref=e259]:
+                  - paragraph [ref=e260]: Oct 5
+                  - paragraph [ref=e261]: In 12 days
+              - generic [ref=e262]:
+                - paragraph [ref=e263]: Record Date
+                - generic [ref=e264]:
+                  - paragraph [ref=e265]: Oct 26
+                  - paragraph [ref=e266]: In 33 days
+              - generic [ref=e267]:
+                - paragraph [ref=e268]: Mailing Date
+                - generic [ref=e269]:
+                  - paragraph [ref=e270]: Nov 30
+                  - paragraph [ref=e271]: In 69 days
+              - generic [ref=e272]:
+                - paragraph [ref=e273]: Meeting Date
+                - generic [ref=e274]:
+                  - paragraph [ref=e275]: Dec 24
+                  - paragraph [ref=e276]: In 93 days
+          - generic [ref=e278]:
+            - generic [ref=e281]: Tasks - Project Launch & Data Check
+            - generic [ref=e283]:
+              - button "DTCC (SPR) Authorization Status The Wendy's Company Aug 26 Needs Authorization" [ref=e285] [cursor=pointer]:
+                - generic [ref=e287] [cursor=pointer]:
+                  - generic [ref=e288] [cursor=pointer]:
+                    - paragraph [ref=e289] [cursor=pointer]: DTCC (SPR) Authorization Status
+                    - paragraph [ref=e290] [cursor=pointer]: The Wendy's Company
+                  - generic [ref=e291] [cursor=pointer]:
+                    - paragraph [ref=e292] [cursor=pointer]: Aug 26
+                    - generic [ref=e294] [cursor=pointer]: Needs Authorization
+              - button "Plan File Request form The Wendy's Company Aug 28 Incomplete" [ref=e296] [cursor=pointer]:
+                - generic [ref=e298] [cursor=pointer]:
+                  - generic [ref=e299] [cursor=pointer]:
+                    - paragraph [ref=e300] [cursor=pointer]: Plan File Request form
+                    - paragraph [ref=e301] [cursor=pointer]: The Wendy's Company
+                  - generic [ref=e302] [cursor=pointer]:
+                    - paragraph [ref=e303] [cursor=pointer]: Aug 28
+                    - generic [ref=e305] [cursor=pointer]: Incomplete
+              - button "Transfer Agent Registered File Request Form The Wendy's Company Aug 31 Incomplete" [ref=e307] [cursor=pointer]:
+                - generic [ref=e309] [cursor=pointer]:
+                  - generic [ref=e310] [cursor=pointer]:
+                    - paragraph [ref=e311] [cursor=pointer]: Transfer Agent Registered File Request Form
+                    - paragraph [ref=e312] [cursor=pointer]: The Wendy's Company
+                  - generic [ref=e313] [cursor=pointer]:
+                    - paragraph [ref=e314] [cursor=pointer]: Aug 31
+                    - generic [ref=e316] [cursor=pointer]: Incomplete
+              - button "Broadridge/ICS Access The Wendy's Company Sep 1 Incomplete" [ref=e318] [cursor=pointer]:
+                - generic [ref=e320] [cursor=pointer]:
+                  - generic [ref=e321] [cursor=pointer]:
+                    - paragraph [ref=e322] [cursor=pointer]: Broadridge/ICS Access
+                    - paragraph [ref=e323] [cursor=pointer]: The Wendy's Company
+                  - generic [ref=e324] [cursor=pointer]:
+                    - paragraph [ref=e325] [cursor=pointer]: Sep 1
+                    - generic [ref=e327] [cursor=pointer]: Incomplete
+            - generic [ref=e328]:
+              - button "View Calendar" [ref=e329] [cursor=pointer]
+              - button "Export Timeline" [ref=e330] [cursor=pointer]
+          - generic [ref=e334]:
+            - button "Document Hosting Site https://www.proxydocs.com/branding/undefined/2025/issuer/" [ref=e336] [cursor=pointer]:
+              - generic [ref=e337] [cursor=pointer]:
+                - heading "Document Hosting Site" [level=5] [ref=e338] [cursor=pointer]
+                - link "https://www.proxydocs.com/branding/undefined/2025/issuer/" [ref=e339]:
+                  - /url: https://www.proxydocs.com/branding/undefined/2025/issuer/
+            - button "eVote Site https://www.proxypush.com/evote/WEN/login" [ref=e341] [cursor=pointer]:
+              - generic [ref=e342] [cursor=pointer]:
+                - heading "eVote Site" [level=5] [ref=e343] [cursor=pointer]
+                - link "https://www.proxypush.com/evote/WEN/login" [ref=e344]:
+                  - /url: https://www.proxypush.com/evote/WEN/login
+            - button "IVR Dial-In 1-800-462-07268" [ref=e346] [cursor=pointer]:
+              - generic [ref=e347] [cursor=pointer]:
+                - heading "IVR Dial-In" [level=5] [ref=e348] [cursor=pointer]
+                - paragraph [ref=e349] [cursor=pointer]: 1-800-462-07268
+          - generic [ref=e351]:
+            - generic [ref=e354]: Event Contacts
+            - table "Transfer Agent and Plan Administrator Information" [ref=e356]:
+              - caption [ref=e357]: Transfer Agent and Plan Administrator Information
+              - rowgroup [ref=e358]:
+                - row "Transfer Agent Fidelity" [ref=e359]:
+                  - cell "Transfer Agent" [ref=e360]
+                  - cell "Fidelity" [ref=e361]:
+                    - generic [ref=e363]: Fidelity
+                - row "Plan Administrator T. Rowe Price jennifer.davis@troweprice.com" [ref=e364]:
+                  - cell "Plan Administrator" [ref=e365]
+                  - cell "T. Rowe Price jennifer.davis@troweprice.com" [ref=e366]:
+                    - generic [ref=e367]:
+                      - generic [ref=e368]: T. Rowe Price
+                      - generic [ref=e369]: jennifer.davis@troweprice.com
+                - row "Solicitor Contact Info D.F. King & Co., Inc. david.king@dfking.com" [ref=e370]:
+                  - cell "Solicitor Contact Info" [ref=e371]
+                  - cell "D.F. King & Co., Inc. david.king@dfking.com" [ref=e372]:
+                    - generic [ref=e373]:
+                      - generic [ref=e374]: D.F. King & Co., Inc.
+                      - generic [ref=e375]: david.king@dfking.com
+          - generic [ref=e377]:
+            - generic [ref=e380]: Meeting Information
+            - table "Meeting details including type, inspector, and company CUSIP." [ref=e382]:
+              - caption [ref=e383]: Meeting details including type, inspector, and company CUSIP.
+              - rowgroup [ref=e384]:
+                - row "Meeting Type Annual Meeting" [ref=e385]:
+                  - cell "Meeting Type" [ref=e386]
+                  - cell "Annual Meeting" [ref=e387]
+                - row "BetaNXT Inspector Sarah Mitchell" [ref=e388]:
+                  - cell "BetaNXT Inspector" [ref=e389]
+                  - cell "Sarah Mitchell" [ref=e390]
+                - row "Company CUSIP(s) 95058W100" [ref=e391]:
+                  - cell "Company CUSIP(s)" [ref=e392]
+                  - cell "95058W100" [ref=e393]
+                - row "Ticker WEN" [ref=e394]:
+                  - cell "Ticker" [ref=e395]
+                  - cell "WEN" [ref=e396]
+                - row "Company Plans 401(k)" [ref=e397]:
+                  - cell "Company Plans" [ref=e398]
+                  - cell "401(k)" [ref=e399]
+    - button "Support contacts" [ref=e400] [cursor=pointer]:
+      - img [ref=e401] [cursor=pointer]
+    - contentinfo [ref=e406]:
+      - generic [ref=e407]:
+        - paragraph [ref=e408]: © 2025 BetaNXT Inc.
+        - separator [ref=e409]
+        - link "Privacy Statement" [ref=e410]:
+          - /url: https://betanxt.com/privacy-policy
+      - link "Go to BetaNXT.com" [ref=e411]:
+        - /url: https://betanxt.com
+        - img "Go to BetaNXT.com" [ref=e412] [cursor=pointer]
+  - complementary "Breakpoint Indicator":
+    - paragraph: "Breakpoint: LG"
+    - paragraph: 1200-1536px
+    - paragraph: "Window: 1280x720"
+  - button "Open Next.js Dev Tools" [ref=e426] [cursor=pointer]:
+    - img [ref=e427] [cursor=pointer]
+  - alert [ref=e432]
+```

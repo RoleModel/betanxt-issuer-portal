@@ -1,4 +1,5 @@
-import React from 'react';
+import React from 'react'
+
 import {
   Avatar,
   Box,
@@ -9,18 +10,18 @@ import {
   ListItemAvatar,
   ListItemText,
   Paper,
+  Popover,
   Typography,
-  Popover
-} from '@mui/material';
+} from '@mui/material'
 
 interface Contact {
-  id: string;
-  name: string;
-  role: string;
-  phone: string;
-  email: string;
-  avatar?: string;
-  initials?: string;
+  id: string
+  name: string
+  role: string
+  phone: string
+  email: string
+  avatar?: string
+  initials?: string
 }
 
 const supportContacts: Contact[] = [
@@ -60,12 +61,12 @@ const supportContacts: Contact[] = [
     avatar: undefined,
     initials: 'CS',
   },
-];
+]
 
 interface SupportContactsPopoverProps {
-  open: boolean;
-  anchorEl: HTMLElement | null;
-  onClose: () => void;
+  open: boolean
+  anchorEl: HTMLElement | null
+  onClose: () => void
 }
 
 export default function SupportContactsPopover({
@@ -128,6 +129,7 @@ export default function SupportContactsPopover({
                   }
                   secondary={
                     <Box
+                      component="span"
                       sx={{
                         display: 'flex',
                         gap: 1.25,
@@ -158,13 +160,11 @@ export default function SupportContactsPopover({
                   }
                 />
               </ListItem>
-              {index < supportContacts.length - 1 && (
-                <Divider sx={{ my: 0 }} />
-              )}
+              {index < supportContacts.length - 1 && <Divider sx={{ my: 0 }} />}
             </React.Fragment>
           ))}
         </List>
       </Paper>
     </Popover>
-  );
+  )
 }

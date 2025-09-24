@@ -1,8 +1,10 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import type { Task, KeyDate } from '@/types/api'
+
 import { shiftWeekendToMonday } from '@/components/Calendar/CalendarUtils'
 import { theme } from '@/components/mui-styling/theme'
+
+import type { KeyDate, Task } from '@/types/api'
 
 interface CombinedItem {
   type: 'task' | 'keyDate'
@@ -20,7 +22,7 @@ interface ExportOptions {
 }
 
 // Phase colors - extracted from theme
-const phaseColors = theme.palette.phase.map(phase => phase.main)
+const phaseColors = theme.palette.phase.map((phase) => phase.main)
 
 // Helper function to load image as base64
 const loadImageAsBase64 = async (imagePath: string): Promise<string> => {
@@ -58,8 +60,12 @@ const loadImageAsBase64 = async (imagePath: string): Promise<string> => {
 async function setupRobotoFont(doc: jsPDF) {
   try {
     // Load Roboto fonts from Google Fonts API
-    const robotoRegularWoff2 = await loadFontAsBase64('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2')
-    const robotoBoldWoff2 = await loadFontAsBase64('https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4.woff2')
+    const robotoRegularWoff2 = await loadFontAsBase64(
+      'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2'
+    )
+    const robotoBoldWoff2 = await loadFontAsBase64(
+      'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4.woff2'
+    )
 
     // Add fonts to jsPDF VFS (Virtual File System)
     doc.addFileToVFS('Roboto-Regular.woff2', robotoRegularWoff2)
@@ -71,9 +77,11 @@ async function setupRobotoFont(doc: jsPDF) {
     // Set default font to Roboto
     doc.setFont('Roboto', 'normal')
 
-    console.log('Roboto font loaded successfully from Google Fonts')
   } catch (error) {
-    console.warn('Failed to load Roboto font from Google Fonts, using Helvetica fallback:', error)
+    console.warn(
+      'Failed to load Roboto font from Google Fonts, using Helvetica fallback:',
+      error
+    )
     // Fallback to helvetica
     doc.setFont('helvetica')
   }
@@ -132,7 +140,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: 'letter'
+    format: 'letter',
   })
 
   // Filter and sort data
@@ -140,35 +148,35 @@ export async function exportTimelineToPdf(options: ExportOptions) {
   let filteredKeyDates = keyDates
 
   if (selectedPhase !== 'all' && typeof selectedPhase === 'number') {
-    filteredTasks = tasks.filter(t => t.phaseNumber === selectedPhase)
-    filteredKeyDates = keyDates.filter(k => k.phaseNumber === selectedPhase)
+    filteredTasks = tasks.filter((t) => t.phaseNumber === selectedPhase)
+    filteredKeyDates = keyDates.filter((k) => k.phaseNumber === selectedPhase)
   }
 
   // Combine and sort items chronologically
   const combinedItems: CombinedItem[] = []
 
   // Add tasks
-  filteredTasks.forEach(task => {
+  filteredTasks.forEach((task) => {
     if (task.dueDate) {
       const displayDate = formatDate(task.dueDate)
       combinedItems.push({
         type: 'task',
         item: task,
         date: parseDateString(displayDate),
-        displayDate
+        displayDate,
       })
     }
   })
 
   // Add key dates
-  filteredKeyDates.forEach(keyDate => {
+  filteredKeyDates.forEach((keyDate) => {
     if (keyDate.date) {
       const displayDate = formatDate(keyDate.date)
       combinedItems.push({
         type: 'keyDate',
         item: keyDate,
         date: parseDateString(displayDate),
-        displayDate
+        displayDate,
       })
     }
   })
@@ -204,7 +212,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
     // Group by phases
     const phaseGroups = new Map<number, CombinedItem[]>()
 
-    combinedItems.forEach(item => {
+    combinedItems.forEach((item) => {
       let phase = 1
       if (item.type === 'task') {
         const task = item.item as Task
@@ -280,7 +288,12 @@ async function addHeader(doc: jsPDF, clientTicker?: string) {
 }
 
 // Generate a table for a phase using autoTable
-function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], startY: number): number {
+function generatePhaseTable(
+  doc: jsPDF,
+  phase: number,
+  items: CombinedItem[],
+  startY: number
+): number {
   const phaseColor = phaseColors[phase - 1]
   const rgb = hexToRgb(phaseColor)
   const pageHeight = doc.internal.pageSize.height
@@ -307,19 +320,13 @@ function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], st
   doc.setTextColor(0, 0, 0)
 
   // Prepare table data - only 2 columns: task/key date name and date
-  const tableData = items.map(item => {
+  const tableData = items.map((item) => {
     if (item.type === 'keyDate') {
       const keyDate = item.item as KeyDate
-      return [
-        keyDate.title,
-        item.displayDate
-      ]
+      return [keyDate.title || 'Untitled Key Date', item.displayDate]
     } else {
       const task = item.item as Task
-      return [
-        task.title,
-        formatDateShort(task.dueDate)
-      ]
+      return [task.title || 'Untitled Task', formatDateShort(task.dueDate || null)]
     }
   })
 
@@ -330,7 +337,7 @@ function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], st
     body: tableData,
     columnStyles: {
       0: { cellWidth: 130 }, // Task/key date name
-      1: { cellWidth: 30, halign: 'right' } // Date column
+      1: { cellWidth: 30, halign: 'right' }, // Date column
     },
     styles: {
       fontSize: 10,
@@ -339,10 +346,10 @@ function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], st
       lineColor: [255, 255, 255], // White lines (invisible)
       lineWidth: 0,
       fillColor: [255, 255, 255], // White background (no zebra striping)
-      font: 'Roboto' // Use Roboto font in tables
+      font: 'Roboto', // Use Roboto font in tables
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255] // Ensure no alternating colors
+      fillColor: [255, 255, 255], // Ensure no alternating colors
     },
     didParseCell: function (data) {
       const item = items[data.row.index]
@@ -355,7 +362,6 @@ function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], st
           data.cell.styles.lineColor = [1, 99, 151]
           data.cell.styles.lineWidth = { left: 1 }
         }
-
       } else {
         // Task styling - white background with colored left border
         const task = item.item as Task
@@ -371,7 +377,7 @@ function generatePhaseTable(doc: jsPDF, phase: number, items: CombinedItem[], st
         }
       }
     },
-    margin: { left: 20, right: 20 }
+    margin: { left: 20, right: 20 },
   })
 
   type JsPDFWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } }
@@ -404,11 +410,13 @@ function formatDateShort(dateStr: string | null): string {
 // Helper to convert hex to RGB
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 0, g: 0, b: 0 }
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 0, g: 0, b: 0 }
 }
 
 // Note: truncateText function removed - HTML tables handle text wrapping automatically

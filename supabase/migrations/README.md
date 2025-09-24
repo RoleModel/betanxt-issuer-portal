@@ -5,43 +5,44 @@ Main goal of this generator is to provide PostgreSQL database DDL script that dr
 [PostgreSQL documentation](https://dev.postgresql.com/doc/)
 
 ## Requirements
-
 - PostgreSQL Server v9.4 or newer
 
 ## OpenAPI Data Type to PostgreSQL data type mapping
 
-| OpenAPI data type                     | OpenAPI data format | Dependent properties                                            | PostgreSQL data types                   | Default PostgreSQL data type            |
-| ------------------------------------- | ------------------- | --------------------------------------------------------------- | --------------------------------------- | --------------------------------------- |
-| `integer`                             | `int32`             | `minimum` / `maximum` / `minimumExclusive` / `maximumExclusive` | `SMALLINT` / `INT` / `BIGINT`           | `INT`                                   |
-| `integer`                             | `int64`             | `minimum` / `maximum` / `minimumExclusive` / `maximumExclusive` | `SMALLINT` / `INT` / `BIGINT`           | `BIGINT`                                |
-| `boolean`                             |                     |                                                                 | `BOOLEAN`                               | `BOOLEAN`                               |
-| `number`                              | `float`             |                                                                 | `DECIMAL`                               | `DECIMAL`                               |
-| `number`                              | `double`            |                                                                 | `DECIMAL`                               | `DECIMAL`                               |
-| `string`                              |                     | `minLength` / `maxLength`                                       | `VARCHAR` / `TEXT`                      | `TEXT`                                  |
-| `string`                              | `byte`              |                                                                 | `BYTEA`                                 | `BYTEA`                                 |
-| `string`                              | `binary`            |                                                                 | `BYTEA`                                 | `BYTEA`                                 |
-| `file`                                |                     |                                                                 | `BYTEA`                                 | `BYTEA`                                 |
-| `string`                              | `date`              |                                                                 | `DATE`                                  | `DATE`                                  |
-| `string`                              | `date-time`         |                                                                 | `TIMESTAMP`                             | `TIMESTAMP`                             |
-| `string`                              | `enum`              |                                                                 | `ENUM`<br>(via separate ENUM data type) | `ENUM`<br>(via separate ENUM data type) |
-| `array`                               |                     |                                                                 | `JSON` / `JSONB` / `TEXT`               | `JSON`                                  |
-| `object`                              |                     |                                                                 | `JSON` / `JSONB` / `TEXT`               | `JSON`                                  |
-| `\Model\User` (referenced definition) |                     |                                                                 | `TEXT`                                  | `TEXT`                                  |
+| OpenAPI data type | OpenAPI data format | Dependent properties | PostgreSQL data types | Default PostgreSQL data type |
+| --- | --- | --- | --- | --- |
+| `integer` | `int32` | `minimum` / `maximum` / `minimumExclusive` / `maximumExclusive` | `SMALLINT` / `INT` / `BIGINT` | `INT` |
+| `integer` | `int64` | `minimum` / `maximum` / `minimumExclusive` / `maximumExclusive` | `SMALLINT` / `INT` / `BIGINT` | `BIGINT` |
+| `boolean` | | | `BOOLEAN` | `BOOLEAN` |
+| `number` | `float` | | `DECIMAL` | `DECIMAL` |
+| `number` | `double` | | `DECIMAL` | `DECIMAL` |
+| `string` | | `minLength` / `maxLength` | `VARCHAR` / `TEXT` | `TEXT` |
+| `string` | `byte` |  | `BYTEA` | `BYTEA` |
+| `string` | `binary` |  | `BYTEA` | `BYTEA` |
+| `file` | |  | `BYTEA` | `BYTEA` |
+| `string` | `date` | | `DATE` | `DATE` |
+| `string` | `date-time` | | `TIMESTAMP` | `TIMESTAMP` |
+| `string` | `enum` | | `ENUM`<br>(via separate ENUM data type) | `ENUM`<br>(via separate ENUM data type) |
+| `array` | | | `JSON` / `JSONB` / `TEXT` | `JSON` |
+| `object` | | | `JSON` / `JSONB` / `TEXT` | `JSON` |
+| `\Model\User` (referenced definition) | | | `TEXT` | `TEXT` |
 
 ## How to use
 
 Produced files:
 
 1. `postgresql_schema.sql` that contains:
-   - `DROP ...` SQL statements for dropping every table and data type generated by this script;
+    
+    - `DROP ...` SQL statements for dropping every table and data type generated by this script;
 
-   - `CREATE ...` SQL statements for creating every table and data types for them (for `ENUM` types).
+    - `CREATE ...` SQL statements for creating every table and data types for them (for `ENUM` types).
 
-   _Note: For safety reasons `DROP ...` SQL statements are commented out by default. Uncomment them before use._
+    *Note: For safety reasons `DROP ...` SQL statements are commented out by default. Uncomment them before use.*
 
-   _Note: `ENUM` data types are implemented by creating separate data types first using command `CREATE TYPE` (one data type for each `ENUM` column). Then created data type is used as data type for table column._
+    *Note: `ENUM` data types are implemented by creating separate data types first using command `CREATE TYPE` (one data type for each `ENUM` column). Then created data type is used as data type for table column.*
 
-2. `postgresql_schema_oauth2.sql` that contains table creation commands for Oauth2-related tables.
+2. `postgresql_schema_oauth2.sql` that contains table creation commands for Oauth2-related tables. 
+    
 3. [Model folder](./Model) contains files with sample SQL queries for each table. Copy-paste them, edit and use.
 
-_Note: Important! Some of SQLs(`INSERT`/`UPDATE`) contains question marks(`?`) which are parameter placeholders. You need to bind values to these params to execute query._
+*Note: Important! Some of SQLs(`INSERT`/`UPDATE`) contains question marks(`?`) which are parameter placeholders. You need to bind values to these params to execute query.*

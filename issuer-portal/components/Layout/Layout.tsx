@@ -3,12 +3,15 @@
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import { PropsWithChildren, Suspense, useMemo } from 'react'
+import React, { PropsWithChildren, Suspense, useMemo } from 'react'
 
+import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
 import { Box } from '@mui/material'
+import Fab from '@mui/material/Fab'
 
 import { BNAppBarClient } from '@/components/Navigation/AppBar'
 import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
+import SupportContactsPopover from '@/components/SupportContactsPopover'
 
 import { useClient } from '@/contexts/ClientContext'
 
@@ -28,6 +31,12 @@ function Layout({
   navBar = true,
   appSwitcher = true,
 }: PropsWithChildren<LayoutProps>) {
+  const [open, setOpen] = React.useState(false)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+    setOpen(!open)
+  }
   const { data: session } = useSession()
   const { currentClient } = useClient()
 
@@ -79,13 +88,32 @@ function Layout({
   return (
     <Suspense fallback={<Loading />}>
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-
-        {appSwitcher && <Box aria-label="Client and Application Switcher" role="complementary"><ClientAppSwitcher currentAppTitle={currentApp} /></Box>}
+        {appSwitcher && (
+          <Box aria-label="Client and Application Switcher" role="complementary">
+            <ClientAppSwitcher currentAppTitle={currentApp} />
+          </Box>
+        )}
         {navBar && <BNAppBarClient user={bnUser} />}
 
         <Box component="main" sx={{ flexGrow: 1, flex: 1 }}>
           {children}
         </Box>
+        <Fab
+          color="primary"
+          aria-label="Support contacts"
+          onClick={handleClick}
+          sx={{ position: 'fixed', bottom: 60, right: 20, zIndex: 5000 }}
+        >
+          {open ? <CloseOutlined /> : <SupportAgentOutlined />}
+        </Fab>
+        <SupportContactsPopover
+          open={open}
+          anchorEl={anchorEl}
+          onClose={() => {
+            setOpen(false)
+            setAnchorEl(null)
+          }}
+        />
         <BNAppFooter />
       </Box>
     </Suspense>

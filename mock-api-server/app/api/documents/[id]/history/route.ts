@@ -30,10 +30,9 @@ export async function GET(
     // Get history for this document
     const history = documentHistory.get(documentId) || []
 
-    console.log(`GET /documents/${documentId}/history - returning ${history.length} events`)
     return NextResponse.json(history)
   } catch (error) {
-    console.error('Error in GET /documents/{id}/history:', error)
+
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -75,11 +74,9 @@ export async function POST(
     currentHistory.push(newEvent)
     documentHistory.set(documentId, currentHistory)
 
-    console.log(`POST /documents/${documentId}/history - added event:`, newEvent.event_type)
-
     return NextResponse.json(newEvent, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /documents/{id}/history:', error)
+
     return NextResponse.json(
       {
         error: 'Internal server error',

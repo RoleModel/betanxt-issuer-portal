@@ -4,7 +4,9 @@
 **Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md, openapi spec
 
 ## Format
+
 `[ID] [P?] Description`
+
 - [P] = may run in parallel (different files, no dependency)
 - TDD enforced: tests (contract + integration + seed validation) fail before implementation
 
@@ -74,6 +76,7 @@
 - [ ] T047 Hash & validation integration adjustments across services
 
 ## Phase 3.6: API Route Implementations
+
 (Implement only after failing tests exist)
 
 - [ ] T048 Forms digital sign route `issuer-portal/app/api/documents/forms/[formType]/sign-digital/route.ts`
@@ -116,6 +119,7 @@
 ## Parallel Execution Examples
 
 Early batch candidates:
+
 - T002, T003, T004, T005 (independent client scaffolding)
 - T010–T013 (utilities + enums)
 - T016–T023 (all contract tests)

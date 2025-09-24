@@ -56,7 +56,7 @@ const filterTasks = (
     const normalizedDesc = (task.description ?? '').toLowerCase()
     const matchesSearch =
       !searchQuery ||
-      task.title.toLowerCase().includes(normalizedQuery) ||
+      (task.title?.toLowerCase().includes(normalizedQuery) ?? false) ||
       normalizedDesc.includes(normalizedQuery)
 
     const matchesStatus = !statusFilter || task.status === statusFilter
@@ -140,25 +140,15 @@ export const ListView: React.FC<ListViewProps> = ({
       dueDate: formattedDate || '',
       owner: dbTask.owner || 'BetaNXT',
       type: ['upload', 'signature', 'external', 'authorize', 'approve'].includes(
-        dbTask.type
+        dbTask.type || ''
       )
-        ? dbTask.type
+        ? dbTask.type || 'external'
         : 'external',
       phaseNumber: dbTask.phaseNumber || 1,
       phaseId: dbTask.phaseId || '',
       meetingId: dbTask.meetingId,
       taskId: dbTask.taskId || dbTask.id || '',
       documentId: dbTask.documentId || null,
-      links: Array.isArray(dbTask.links)
-        ? dbTask.links.map((link: { label?: string; url?: string; action?: string }) => ({
-            label: link.label || '',
-            url: link.url || '',
-            action: (typeof link.action === 'string' &&
-            ['download', 'upload', 'sign', 'authorize', 'external'].includes(link.action)
-              ? link.action
-              : 'external') as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
-          }))
-        : [],
       createdAt: dbTask.createdAt || undefined,
       updatedAt: dbTask.updatedAt || undefined,
     }
@@ -169,20 +159,20 @@ export const ListView: React.FC<ListViewProps> = ({
     title: keyDate.title || '',
     date: keyDate.date
       ? (() => {
-          try {
-            // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
-            const originalDate = new Date(keyDate.date)
-            const adjustedDate = shiftWeekendToMonday(originalDate)
-            return adjustedDate.toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              timeZone: 'UTC',
-            })
-          } catch {
-            return keyDate.date
-          }
-        })()
+        try {
+          // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
+          const originalDate = new Date(keyDate.date)
+          const adjustedDate = shiftWeekendToMonday(originalDate)
+          return adjustedDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'UTC',
+          })
+        } catch {
+          return keyDate.date
+        }
+      })()
       : '',
     phaseNumber: keyDate.phaseNumber || 1,
   })
@@ -280,22 +270,12 @@ export const ListView: React.FC<ListViewProps> = ({
   const handleTaskRightClick = (event: React.MouseEvent, taskId: string) => {
     event.preventDefault()
 
-    console.log('Right-click on task:', {
-      taskId,
-      dbTasksCount: dbTasks.length,
-      sampleDbTasks: dbTasks
-        .slice(0, 3)
-        .map((t) => ({ id: t.id, taskId: t.taskId, title: t.title })),
-    })
-
     // Find the full database task
     const dbTask = dbTasks.find((t) => t.id === taskId || t.taskId === taskId)
     if (!dbTask) {
-      console.log('Could not find dbTask for taskId:', taskId)
       return
     }
 
-    console.log('Found dbTask for context menu:', dbTask)
     setSelectedTaskForContext(dbTask)
     setContextMenuPosition({ x: event.clientX, y: event.clientY })
     setContextMenuOpen(true)
@@ -325,7 +305,6 @@ export const ListView: React.FC<ListViewProps> = ({
   const handleTaskUpdated = (_updatedTask: Task) => {
     // Note: With CalendarContext, updates should trigger a refresh
     // The context will handle the actual data updates
-    // console.log('Task updated:', updatedTask)
     setEditModalOpen(false)
     setTaskToEdit(null)
   }
@@ -338,12 +317,12 @@ export const ListView: React.FC<ListViewProps> = ({
 
   return (
     <Fade in={loaded} timeout={500}>
-      <Box display="flex" height="100%" overflow="auto">
+      <Box display="grid" gridTemplateColumns={{ xs: '160px 1fr', md: '300px 1fr' }} height="100%" overflow="auto">
         {/* Left Sidebar */}
         <Paper
           elevation={0}
           sx={{
-            width: 320,
+            width: '100%',
             borderRight: (theme) =>
               `1px solid ${theme.vars?.palette?.divider || theme.palette.divider}`,
             backgroundColor: (theme) =>
@@ -461,10 +440,10 @@ export const ListView: React.FC<ListViewProps> = ({
         {/* Main Content Area */}
         <Box flex={1} overflow="auto">
           {selectedPhase === 'all' ||
-          (typeof selectedPhase === 'number' &&
-            selectedPhase >= 1 &&
-            selectedPhase <= 8) ? (
-            <Stack p={3} spacing={1}>
+            (typeof selectedPhase === 'number' &&
+              selectedPhase >= 1 &&
+              selectedPhase <= 8) ? (
+            <Stack p={{ xs: 1, md: 3 }} spacing={1}>
               {(() => {
                 // Combine tasks and key dates into a single array with type information
                 const combinedItems: Array<{
@@ -573,13 +552,16 @@ export const ListView: React.FC<ListViewProps> = ({
                         key={task.id}
                         elevation={0}
                         tabIndex={0}
-                        onClick={() => onTaskClick(task.id)}
+                        onClick={() => onTaskClick(task.id || '')}
                         onContextMenu={(e) => {
                           const dbTask = dbTasks.find(
                             (t) => t.taskId === task.id || t.id === task.id
                           )
                           if (dbTask) {
-                            handleTaskRightClick(e, dbTask.id || dbTask.taskId || task.id)
+                            handleTaskRightClick(
+                              e,
+                              dbTask.id || dbTask.taskId || task.id || ''
+                            )
                           }
                         }}
                         sx={{
@@ -602,7 +584,8 @@ export const ListView: React.FC<ListViewProps> = ({
                       >
                         <Box
                           display="flex"
-                          alignItems="center"
+                          alignItems={{ xs: 'flex-start', md: 'center' }}
+                          flexDirection={{ xs: 'column', md: 'row' }}
                           justifyContent="space-between"
                         >
                           <Box flex={1}>
@@ -629,11 +612,14 @@ export const ListView: React.FC<ListViewProps> = ({
                               {task.owner || 'BetaNXT'}
                             </Typography>
                           </Box>
-                          <Box textAlign="right">
+                          <Box textAlign={{ xs: 'left', md: 'right' }}>
                             <Typography variant="body3" fontWeight={500} color="primary">
                               {task.dueDate}
                             </Typography>
-                            <StatusChip status={task.status} size="small" />
+                            <StatusChip
+                              status={task.status || 'INCOMPLETE'}
+                              size="small"
+                            />
                           </Box>
                         </Box>
                       </Paper>
@@ -667,44 +653,26 @@ export const ListView: React.FC<ListViewProps> = ({
           task={
             taskToEdit
               ? {
-                  ...taskToEdit,
-                  description: taskToEdit.description ?? '',
-                  dueDate: taskToEdit.dueDate || '',
-                  phaseNumber: taskToEdit.phaseNumber || 1,
-                  links:
-                    taskToEdit.links?.map((link) => ({
-                      label: link.label,
-                      url: link.url,
-                      action: [
-                        'upload',
-                        'sign',
-                        'download',
-                        'external',
-                        'authorize',
-                      ].includes(link.action)
-                        ? (link.action as
-                            | 'upload'
-                            | 'sign'
-                            | 'download'
-                            | 'external'
-                            | 'authorize')
-                        : 'external',
-                    })) || [],
-                  type: [
-                    'upload',
-                    'signature',
-                    'external',
-                    'authorize',
-                    'approve',
-                  ].includes(taskToEdit.type)
-                    ? (taskToEdit.type as
-                        | 'upload'
-                        | 'signature'
-                        | 'external'
-                        | 'authorize'
-                        | 'approve')
-                    : 'external',
-                }
+                ...taskToEdit,
+                description: taskToEdit.description ?? '',
+                dueDate: taskToEdit.dueDate || '',
+                phaseNumber: taskToEdit.phaseNumber || 1,
+                links: {},
+                type: [
+                  'upload',
+                  'signature',
+                  'external',
+                  'authorize',
+                  'approve',
+                ].includes(taskToEdit.type || '')
+                  ? (taskToEdit.type as
+                    | 'upload'
+                    | 'signature'
+                    | 'external'
+                    | 'authorize'
+                    | 'approve')
+                  : 'external',
+              }
               : null
           }
           onTaskUpdated={handleTaskUpdated}

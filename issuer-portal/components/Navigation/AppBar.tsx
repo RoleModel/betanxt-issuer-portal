@@ -18,8 +18,13 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 
 // Memoized Next.js Link component wrapper for BNAppBar - defined outside to prevent recreation
+interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
+  to: string
+  children: React.ReactNode
+}
+
 const NextLinkComponent = React.memo(
-  React.forwardRef<HTMLAnchorElement, { to: string; children: React.ReactNode; [key: string]: unknown }>(
+  React.forwardRef<HTMLAnchorElement, NextLinkProps>(
     ({ to, children, ...props }, ref) => (
       <Link href={to} prefetch={true} ref={ref} {...props}>
         {children}

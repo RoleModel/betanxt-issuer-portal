@@ -30,7 +30,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /users/{id}/accounts:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

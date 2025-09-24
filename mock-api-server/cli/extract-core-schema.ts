@@ -36,7 +36,6 @@ function extractCoreSchema() {
   try {
     fullSchema = readFileSync(schemaPath, 'utf-8')
   } catch (error) {
-    console.error('Error reading postgresql_schema.sql:', error)
     process.exit(1)
   }
 
@@ -46,7 +45,6 @@ function extractCoreSchema() {
     // Remove old initial schema migrations
     if (file.match(/^\d{14}_initial_schema\.sql$/)) {
       unlinkSync(join(migrationsDir, file))
-      console.log(`🗑️  Removed old migration: ${file}`)
     }
   })
 
@@ -147,14 +145,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
       coreSchema += '\n'
     } else {
-      console.warn(`⚠️ Table '${tableName}' not found in schema`)
     }
   })
 
   // Write the clean schema
   writeFileSync(migrationPath, coreSchema)
-  console.log(`✅ Core schema extracted to ${migrationPath}`)
-  console.log(`📊 Included ${CORE_TABLES.length} core tables`)
 }
 
 // Run the extraction when script is executed directly

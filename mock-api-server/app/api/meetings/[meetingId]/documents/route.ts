@@ -35,7 +35,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /meetings/{meetingId}/documents:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -71,7 +71,7 @@ export async function POST(
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /meetings/{meetingId}/documents:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

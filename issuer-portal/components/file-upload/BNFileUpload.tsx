@@ -1,11 +1,12 @@
+import BNFileDropzone from '@rolemodel/betanxt-design-system/components/file-upload/BNFileDropzone'
 import React, { useCallback, useEffect, useState } from 'react'
 import type { FileRejection } from 'react-dropzone'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Stack } from '@mui/material'
 
-import BNFileDropzone from './BNFileDropzone'
-import BNFilePreview from './BNFilePreview'
+import BNFilePreview from '@/components/file-upload/BNFilePreview'
+
 import type { FileUploadProps, UploadFile } from './types'
 import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from './types'
 

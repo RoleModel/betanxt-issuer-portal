@@ -803,7 +803,7 @@ function transformProposalPerformanceData(proposals: Proposal[]): MappedProposal
         acc[type] = { total: 0, passed: 0, support: [] }
       }
       acc[type].total++
-      if (proposal.finalResult === 'PASSED' || proposal.finalResult === 'Pass') {
+      if (proposal.finalResult === 'PASSED') {
         acc[type].passed++
       }
       // Add vote percentages if available using correct field names

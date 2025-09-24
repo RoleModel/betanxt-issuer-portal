@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
 import { supabase } from '../../supabase/clients'
 
 type Document = components['schemas']['Document']
@@ -15,8 +16,21 @@ type CreateCommentRequest = components['schemas']['CreateCommentRequest']
 export interface DocumentComment {
   id: string
   comment: string
-  createdAt: string
-  userId: string
+  user: string
+  first_name: string
+  last_name: string
+  created_at: string
+  users: {
+    avatar: string | null
+  } | null
+}
+
+export interface DocumentHistoryEvent {
+  id: string
+  event_type: string
+  user: string
+  timestamp: string
+  metadata?: Record<string, any>
 }
 
 export interface UseDocumentsResult {
@@ -38,6 +52,7 @@ export interface UseDocumentsResult {
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>
   uploadDocument: (file: File, documentId: string) => Promise<string | null>
   addDocumentHistory: (documentId: string, eventType: string) => Promise<boolean>
+  getDocumentHistory: (documentId: string) => Promise<DocumentHistoryEvent[]>
   uploadDSMDocument: (
     meetingId: string,
     placeholderTitle: string,
@@ -169,14 +184,8 @@ export const useDocuments = (): UseDocumentsResult => {
           throw new Error('Failed to get document comments')
         }
 
-        // Convert Comment[] to DocumentComment[] to handle type differences
-        const comments = (result.data || []) as Comment[]
-        return comments.map((comment) => ({
-          id: comment.id?.toString() || '',
-          comment: comment.comment || '',
-          createdAt: comment.createdAt || '',
-          userId: comment.userId || '',
-        }))
+        // Return comments as-is since backend now returns CommentWithUser format
+        return (result.data || []) as unknown as DocumentComment[]
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get document comments'
@@ -200,9 +209,11 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { id: documentId } },
           body: { comment } as CreateCommentRequest,
         })
+
         if (result.error) {
           throw new Error('Failed to add comment')
         }
+
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to add comment'
         setError(errorMessage)
@@ -220,7 +231,6 @@ export const useDocuments = (): UseDocumentsResult => {
       setError(null)
 
       // For now, return placeholder data - these operations will need proper API endpoints
-      console.warn('getTaskDocument: Placeholder implementation - needs API endpoint')
       return null
     } catch (err) {
       const errorMessage =
@@ -233,16 +243,47 @@ export const useDocuments = (): UseDocumentsResult => {
   }, [])
 
   const getDocumentsByMeeting = useCallback(
-    async (_meetingId: string): Promise<Document[]> => {
+    async (meetingId: string): Promise<Document[]> => {
       try {
         setLoading(true)
         setError(null)
 
-        // For now, return placeholder data - these operations will need proper API endpoints
-        console.warn(
-          'getDocumentsByMeeting: Placeholder implementation - needs API endpoint'
-        )
-        return []
+        // Fetch documents directly from Supabase
+        const { data, error } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('meeting_id', meetingId)
+
+        if (error) {
+          throw new Error(error.message)
+        }
+
+        // Convert Supabase response to Document type
+        return (data || []).map((doc: any) => ({
+          id: doc.id,
+          meetingId: doc.meeting_id,
+          taskId: doc.task_id,
+          title: doc.title,
+          description: doc.description,
+          type: doc.type,
+          filePath: doc.file_path,
+          fileType: doc.file_type,
+          fileSize: doc.file_size,
+          status: doc.status,
+          uploadDate: doc.upload_date,
+          uploadedDate: doc.uploaded_date,
+          signedDate: doc.signed_date,
+          authorizedDate: doc.authorized_date,
+          completedDate: doc.completed_date,
+          inProgressDate: doc.in_progress_date,
+          deadline: doc.deadline,
+          history: doc.history,
+          createdAt: doc.created_at,
+          updatedAt: doc.updated_at,
+          meeting: undefined,
+          comments: undefined,
+          signatures: undefined,
+        })) as Document[]
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get documents by meeting'
@@ -324,7 +365,8 @@ export const useDocuments = (): UseDocumentsResult => {
 
         return (result.data as Document) || null
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to upload document'
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to upload document'
         setError(errorMessage)
         return null
       } finally {
@@ -340,17 +382,33 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        // For now, return placeholder success - these operations will need proper API endpoints
-        console.warn(
-          'addDocumentHistory: Placeholder implementation - needs API endpoint',
-          { documentId, eventType }
-        )
+        // TODO: Implement document history API endpoint
         return true
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to add document history'
         setError(errorMessage)
         return false
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
+
+  const getDocumentHistory = useCallback(
+    async (documentId: string): Promise<DocumentHistoryEvent[]> => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // TODO: Implement document history API endpoint
+        return []
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to get document history'
+        setError(errorMessage)
+        return []
       } finally {
         setLoading(false)
       }
@@ -371,6 +429,7 @@ export const useDocuments = (): UseDocumentsResult => {
     getDocumentsByMeeting,
     uploadDocument,
     addDocumentHistory,
+    getDocumentHistory,
     uploadDSMDocument,
   }
 }

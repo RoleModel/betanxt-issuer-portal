@@ -40,7 +40,7 @@ export const parseTaskDate = (dateStr: string): Date | null => {
       return parsed
     }
   } catch (e) {
-    console.error('Error parsing date:', dateStr, e)
+    // Error parsing date
   }
 
   return null

@@ -153,6 +153,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
             ? `2px dashed ${theme.vars.palette.divider}`
             : `1px dashed ${theme.vars.palette.divider}`,
         borderRadius: 1,
+        borderColor: theme.vars.palette.primary.main,
         background: getBackgroundColor(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,

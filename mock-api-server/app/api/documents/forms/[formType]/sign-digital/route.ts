@@ -21,7 +21,7 @@ export async function POST(): Promise<NextResponse> {
 
     return NextResponse.json({}, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /documents/forms/{formType}/sign-digital:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

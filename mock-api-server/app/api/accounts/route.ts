@@ -19,7 +19,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /accounts:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /accounts:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

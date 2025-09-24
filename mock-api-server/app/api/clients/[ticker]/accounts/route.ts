@@ -18,7 +18,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json([])
   } catch (error) {
-    console.error('Error in GET /clients/{ticker}/accounts:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

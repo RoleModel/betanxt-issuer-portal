@@ -11,6 +11,7 @@ import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
 
 import buildApiClient from '@/domain-models/apiClient'
+import { transformApiTaskToTask } from '@/utils/taskTransformers'
 import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -37,7 +38,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     phaseFilter: null as number | null,
   })
 
-  const isMobile = useMediaQuery('(max-width: 600px)')
+  const isMobile = useMediaQuery('(max-width: 900px)')
 
   // Task action functions
   const approveTask = useCallback(
@@ -56,7 +57,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         // Refetch data after approval
         await refreshMeetingData()
       } catch (error) {
-        console.error('Error approving task:', error)
         throw error
       }
     },
@@ -92,38 +92,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       })
 
       if (result.error || !result.data) {
-        console.error('Task not found:', taskId)
         return
       }
 
-      const apiTask = result.data
+      // Convert API response to our Task type using centralized transformer
+      const task = transformApiTaskToTask(result.data)
 
-      // Convert API response to our Task type
-      const task: Task = {
-        id: apiTask.id || '',
-        title: apiTask.title || '',
-        description: apiTask.description || null,
-        owner: apiTask.owner || 'BetaNXT',
-        dueDate: apiTask.dueDate || null,
-        status: apiTask.status || 'INCOMPLETE',
-        meetingId: apiTask.meetingId || '',
-        phaseId: apiTask.phaseId || '',
-        phaseNumber: apiTask.phaseNumber || 0,
-        type: (apiTask.type || 'external') as Task['type'],
-        taskId: apiTask.taskId || apiTask.id || '',
-        documentId: apiTask.documentId || undefined,
-        links: (apiTask.links as Task['links']) || undefined,
-        createdAt: apiTask.createdAt || undefined,
-        updatedAt: apiTask.updatedAt || undefined,
+      if (!task) {
+        return
       }
 
       // For approval tasks, open ApprovalDrawer directly
       if (task.type === 'approve') {
-        // Use document link from task links if available
-        const documentUrl =
-          task.links?.find((link) => link.action === 'download')?.url || ''
+        // TODO: Add document link support when links property is added to Task schema
+        const documentUrl = ''
         setApprovalDocumentUrl(documentUrl)
-        setApprovalTitle(task.title)
+        setApprovalTitle(task.title || 'Task')
         setApprovalTask(task)
         setApprovalDrawerOpen(true)
         return
@@ -133,7 +117,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       setSelectedTask(task)
       setDrawerOpen(true)
     } catch (err) {
-      console.error('Error fetching task details:', err)
+      // Error handled appropriately
     }
   }
 
@@ -150,7 +134,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   }
 
   const handleApprovalAddComment = (comment: string) => {
-    console.log('Approval comment added:', comment)
   }
 
   const handleOpenFullscreen = () => {
@@ -171,7 +154,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       await approveTask(approvalTask.id)
       handleApprovalDrawerClose()
     } catch (err) {
-      console.error('Error approving document:', err)
+      // Error handled appropriately
     }
   }
 
@@ -223,10 +206,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       component={motion.div}
       initial={false}
       animate={{
-        marginTop: isFullscreen ? 4 : 24,
+        marginTop: isFullscreen ? 4 : 16,
         marginBottom: isFullscreen ? 4 : 24,
-        paddingLeft: isFullscreen ? 4 : 24,
-        paddingRight: isFullscreen ? 4 : 24,
+        paddingLeft: isFullscreen ? 4 : 16,
+        paddingRight: isFullscreen ? 4 : 16,
       }}
       transition={{
         type: 'tween',

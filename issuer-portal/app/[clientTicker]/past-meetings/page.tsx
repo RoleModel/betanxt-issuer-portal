@@ -79,9 +79,11 @@ export default function PastMeetingsPage() {
             })
 
             // Extract positions array from API response
-            // The API returns { positions: Position[] }
-            const positionsData = positionsResult.data
-            const positions = positionsData?.positions || []
+            // Handle different possible response formats
+            const responseData = positionsResult.data
+            const positions = Array.isArray(responseData)
+              ? (responseData as components['schemas']['Position'][])
+              : ((responseData as unknown as { positions?: components['schemas']['Position'][] })?.positions ?? [])
 
             // Use totalSharesOutstanding from meeting for participation calculation
             const totalSharesOutstanding = parseInt(meeting.totalSharesOutstanding || '0', 10)

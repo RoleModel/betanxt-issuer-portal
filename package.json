@@ -11,17 +11,26 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "start": "turbo run start",
     "test": "turbo run test",
     "clean": "turbo run clean",
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "3.6.2",
-    "turbo": "^2.5.6"
+    "turbo": "^2.5.6",
+    "typescript-eslint": "^8.44.1"
   },
   "engines": {
     "node": ">=22.15.0"
   },
-  "packageManager": "npm@10.9.3"
+  "packageManager": "npm@10.9.3",
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
 }

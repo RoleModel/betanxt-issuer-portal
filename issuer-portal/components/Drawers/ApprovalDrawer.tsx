@@ -45,6 +45,7 @@ interface ApprovalDrawerProps {
   reviewCount?: number
   totalReviews?: number
   onAddComment: (comment: string) => void
+  documentId?: string
 }
 
 interface CommentWithUser {
@@ -70,6 +71,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   reviewCount,
   totalReviews,
   onAddComment,
+  documentId,
 }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [numPages, setNumPages] = useState(1)
@@ -83,7 +85,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   // Get current user from NextAuth
   const { data: session } = useSession()
-  const { getCommentsForDocument: _getCommentsForDocument, addCommentToDocument } = useDocuments()
+  const { getCommentsForDocument: _getCommentsForDocument, addCommentToDocument } =
+    useDocuments()
 
   // Reset state when drawer opens/closes
   React.useEffect(() => {
@@ -94,9 +97,10 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       setShowCommentField(false)
       setComment('')
       setComments([])
-      setCurrentDocumentId(null)
+      // Use passed documentId or generate one for the session
+      setCurrentDocumentId(documentId || `temp-doc-${Date.now()}`)
     }
-  }, [open])
+  }, [open, documentId])
 
   // Fetch document history and comments when drawer opens
   React.useEffect(() => {
@@ -122,15 +126,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           }
 
           const filePathForQuery = getFilePathForQuery(pdfUrl)
-          console.log('ApprovalDrawer URL debug:', {
-            pdfUrl,
-            filePathForQuery,
-            urlType: pdfUrl.includes('/storage/v1/object/public/')
-              ? 'storage'
-              : pdfUrl.startsWith('/docs/')
-                ? 'local'
-                : 'filename',
-          })
 
           // For now, use placeholder data - these operations will need proper API endpoints
           console.warn(
@@ -143,7 +138,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           // Set placeholder data
           setDocumentHistory([])
           setComments([])
-          setCurrentDocumentId('placeholder-doc-id')
+          // Don't override currentDocumentId if already set from props
         } catch (err) {
           console.error('Error loading document data:', err)
         }
@@ -175,11 +170,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   }
 
   const handleFullscreen = () => {
-    console.log('ApprovalDrawer: handleFullscreen called')
-    console.log('ApprovalDrawer: onOpenFullscreen prop:', onOpenFullscreen)
 
     if (onOpenFullscreen) {
-      console.log('ApprovalDrawer: Calling onOpenFullscreen()')
       onOpenFullscreen()
     } else {
       console.warn('ApprovalDrawer: onOpenFullscreen prop is not provided')
@@ -192,7 +184,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   const handleEdit = () => {
     // Handle edit action - could open external editor
-    console.log('Edit document')
   }
 
   const handleView = () => {
@@ -215,20 +206,22 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   }
 
   const handleSubmitComment = async () => {
+
     if (!comment.trim()) {
-      console.error('Comment is empty')
+      console.error('ApprovalDrawer: Comment is empty')
       return
     }
 
     if (!currentDocumentId) {
-      console.error('No document ID available')
+      console.error('ApprovalDrawer: No document ID available')
       return
     }
 
-    if (!session?.user?.username) {
-      console.error('No current user available')
-      return
-    }
+    // Remove the username check for now since NextAuth might not have username
+    // if (!session?.user?.username) {
+    //   console.error('No current user available')
+    //   return
+    // }
 
     try {
       // Use hook to add comment
@@ -238,9 +231,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       const optimisticComment: CommentWithUser = {
         id: `temp-${Date.now()}`,
         comment: comment.trim(),
-        user: session.user.username || '',
-        first_name: (session.user.name || '').split(' ')[0] || '',
-        last_name: (session.user.name || '').split(' ').slice(1).join(' ') || '',
+        user: session?.user?.email || session?.user?.name || 'Current User',
+        first_name: (session?.user?.name || '').split(' ')[0] || 'User',
+        last_name: (session?.user?.name || '').split(' ').slice(1).join(' ') || '',
         created_at: new Date().toISOString(),
         users: null,
       }
@@ -659,7 +652,13 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={showCommentField ? handleSubmitComment : handleAddComment}
+              onClick={() => {
+                if (showCommentField) {
+                  handleSubmitComment()
+                } else {
+                  handleAddComment()
+                }
+              }}
             >
               {showCommentField ? 'Submit Comment' : 'Add Comment'}
             </Button>

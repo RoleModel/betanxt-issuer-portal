@@ -27,6 +27,7 @@
       "@/hooks/*": ["./hooks/*"],
       "@/contexts/*": ["./contexts/*"],
       "@/domain-models/*": ["./domain-models/*"],
+      "@backend/*": ["../mock-api-server/*"],
       "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"],
       "@/theme/*": ["./components/mui-styling/theme/*"]
     }

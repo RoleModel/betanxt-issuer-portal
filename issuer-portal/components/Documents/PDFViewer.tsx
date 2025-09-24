@@ -56,13 +56,17 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       try {
         // Configure PDF.js worker first
         const { pdfjs } = await import('react-pdf')
-        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+        // Try local worker first, fallback to CDN
+        pdfjs.GlobalWorkerOptions.workerSrc =
+          process.env.NODE_ENV === 'development'
+            ? '/images/pdf.worker.min.js'
+            : `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
 
         // Import components with a small delay to allow chunk loading
         await new Promise((resolve) => setTimeout(resolve, 100))
         const pdfComponents = await import('react-pdf')
-        Document = pdfComponents.Document
-        Page = pdfComponents.Page
+        Document = pdfComponents.Document as React.ComponentType<DocumentProps>
+        Page = pdfComponents.Page as React.ComponentType<PageProps>
 
         setIsLoaded(true)
       } catch (err) {
@@ -71,7 +75,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         // Retry up to 3 times with exponential backoff
         if (retryCount < 3) {
           const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
-          console.log(`Retrying PDF component load in ${delay}ms...`)
           setTimeout(() => loadPDFComponents(retryCount + 1), delay)
         } else {
           setError('Failed to load PDF viewer after multiple attempts')
@@ -94,6 +97,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
         <CircularProgress />
+      </Box>
+    )
+  }
+
+  // Don't render if file is empty or invalid
+  // Handle Promise objects (shouldn't happen, but let's be safe)
+  if (file && typeof file === 'object' && 'then' in file) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+        <div>Invalid file type (Promise received)</div>
+      </Box>
+    )
+  }
+
+  if (!file || typeof file !== 'string' || file.trim() === '') {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+        <div>No PDF file specified</div>
       </Box>
     )
   }

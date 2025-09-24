@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import React, { useCallback } from 'react'
 
 import {
@@ -15,15 +16,15 @@ import {
   Typography,
 } from '@mui/material'
 
-import { getPhaseColor, theme } from '@/components/mui-styling/theme'
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
+import { getPhaseColor, theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
-import { useRouter } from 'next/navigation'
-import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
 
 import { useMeeting } from '@/contexts/MeetingContext'
+import { usePhases } from '@/hooks/usePhases'
 import { formatDate } from '@/lib/formats'
 import type { Task } from '@/types/api'
+import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
 
 interface TaskItemProps {
   meetingId?: string
@@ -31,18 +32,28 @@ interface TaskItemProps {
   task: Task
   isClickable: boolean
   phaseColor: string
+  status: string
   onClick: (taskId: string) => void
 }
 
-export function TaskItem({ task, phaseColor, onClick, isClickable }: TaskItemProps) {
+export function TaskItem({ task, phaseColor, onClick, isClickable, status }: TaskItemProps) {
   return (
     <Card
-      className={`task-card-${task.id}`}
+      className={`task-card-${task.id} status-${task.status}`}
       key={task.id}
+      data-testid={`task-card-${task.id}`}
       sx={{
+        gridArea: 'tasks',
+        gridColumn: {
+          xs: '1',
+          sm: '1',
+          md: '1 / span 2',
+          lg: '1 / span 3',
+          xl: '1 / span 4',
+        },
         background: (theme) => theme.vars.palette.tableCellRow.fill,
         borderLeft: `6px solid`,
-        borderLeftColor: phaseColor,
+        borderLeftColor: status === 'COMPLETE' ? theme.vars.palette.complete : phaseColor,
         borderTop: 0,
         borderBottom: 0,
         borderRight: 0,
@@ -55,7 +66,7 @@ export function TaskItem({ task, phaseColor, onClick, isClickable }: TaskItemPro
         },
       }}
     >
-      <CardActionArea onClick={() => onClick(task.id)} disabled={!isClickable}>
+      <CardActionArea onClick={() => onClick(task.id || '')} disabled={!isClickable}>
         <CardContent sx={{ p: 1.5 }}>
           <Box
             sx={{
@@ -69,6 +80,7 @@ export function TaskItem({ task, phaseColor, onClick, isClickable }: TaskItemPro
               <Typography
                 variant="body3"
                 fontWeight={600}
+                data-testid="task-title"
                 sx={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -92,7 +104,7 @@ export function TaskItem({ task, phaseColor, onClick, isClickable }: TaskItemPro
               >
                 {formatDate(task.dueDate || '')}
               </Typography>
-              <StatusChip status={task.status} size="small" />
+              <StatusChip status={task.status ?? null} size="small" />
             </Box>
           </Box>
         </CardContent>
@@ -110,27 +122,45 @@ interface TaskCardProps {
 
 export default function TaskCard({
   meetingId,
-  currentPhase = 1,
+  currentPhase,
+  currentPhaseTitle,
   onClick,
 }: TaskCardProps) {
-
   const { tasks, tasksLoading, keyDates, currentMeeting } = useMeeting()
+  const { phases } = usePhases(meetingId || currentMeeting?.id || '')
+
+  // Determine the current phase from meeting data or prop, default to 1
+  const resolvedCurrentPhase =
+    currentPhase ||
+    (currentMeeting?.currentPhase
+      ? parseInt(currentMeeting.currentPhase.replace('Phase ', '')) || 1
+      : 1)
+
+  // Get the current phase title from phases data
+  const currentPhaseFromData = phases.find(
+    (phase) => phase.orderIndex === resolvedCurrentPhase
+  )
+  const dynamicPhaseTitle =
+    currentPhaseTitle || currentPhaseFromData?.name || `Phase ${resolvedCurrentPhase}`
 
   const displayTasks = tasks.filter(
     (task) =>
-      task.phaseNumber === currentPhase && !['BetaNXT', 'DFIN'].includes(task.owner)
+      task.phaseNumber === resolvedCurrentPhase &&
+      !['BetaNXT', 'DFIN'].includes(task.owner || '')
   )
-  const [open, setOpen] = React.useState(false);
+
+  const [open, setOpen] = React.useState(false)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
 
   const toggleDrawer = (newOpen: boolean) => () => {
-    setOpen(newOpen);
-  };
+    setOpen(newOpen)
+  }
 
   const router = useRouter()
   const handleViewCalendarClick = () => {
-    router.push('calendar')
+    router.push(`/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/calendar`)
   }
+
   const handleTaskClick = (taskId: string) => {
     if (onClick) {
       onClick(taskId)
@@ -151,7 +181,7 @@ export default function TaskCard({
         keyDates: keyDates,
         meetingTitle: currentMeeting.title || 'Meeting Schedule',
         selectedPhase: 'all',
-        clientTicker: currentMeeting.ticker || undefined
+        clientTicker: currentMeeting.ticker || undefined,
       })
     } catch (error) {
       console.error('Error exporting timeline:', error)
@@ -165,7 +195,7 @@ export default function TaskCard({
           gridArea: 'tasks',
         }}
       >
-        <CardHeader title="Tasks - Phase Title" />
+        <CardHeader title={`Tasks - ${dynamicPhaseTitle}`} />
         <CardContent sx={{ p: 2, pt: 0 }}>
           {tasksLoading ? (
             <Stack spacing={1}>
@@ -177,17 +207,19 @@ export default function TaskCard({
           ) : (
             <Stack spacing={1}>
               {displayTasks.map((task) => {
-                const isClickable = task.status !== 'COMPLETE'
-                const phaseColor = getPhaseColor(currentPhase)
+                // Always allow clicking tasks for testing and re-opening purposes
+                const isClickable = true
+                const phaseColor = getPhaseColor(resolvedCurrentPhase)
                 return (
                   <TaskItem
                     key={task.id}
                     meetingId={meetingId}
-                    currentPhase={currentPhase}
+                    currentPhase={resolvedCurrentPhase}
                     task={task}
                     onClick={handleTaskClick}
                     isClickable={isClickable}
                     phaseColor={phaseColor}
+                    status={task.status || 'INCOMPLETE'}
                   />
                 )
               })}

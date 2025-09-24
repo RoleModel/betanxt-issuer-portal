@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 
-import type { Task, TaskLinkAction } from '@/types/api'
+type Task = components['schemas']['Task']
+type CreateTaskRequest = components['schemas']['CreateTaskRequest']
+type TaskLinkAction = 'download' | 'upload' | 'signature' | 'authorize' | 'external'
 
 const fetchTasks = async (meetingId: string): Promise<Task[]> => {
   const apiClient = await buildApiClient()
@@ -19,39 +22,9 @@ const fetchTasks = async (meetingId: string): Promise<Task[]> => {
     throw new Error('Failed to fetch tasks')
   }
 
-  // Transform the API response to match our Task interface
+  // Return the API response directly
   const apiTasks = Array.isArray(result.data) ? result.data : []
-  return apiTasks
-    .filter((task) => task.id && task.title) // Filter out incomplete tasks
-    .map((task) => ({
-      id: task.id!,
-      title: task.title!,
-      description: task.description || null,
-      owner: task.owner || 'BetaNXT',
-      dueDate: task.dueDate || null,
-      status: task.status || 'INCOMPLETE',
-      meetingId: task.meetingId || '',
-      phaseId: task.phaseId || '',
-      phaseNumber: task.phaseNumber || 0,
-      type: (task.type || 'external') as Task['type'],
-      taskId: task.taskId || task.id!,
-      documentId: task.documentId || null,
-      links: Array.isArray(task.links)
-        ? task.links.map((link: { label?: unknown; url?: unknown; action?: unknown }) => {
-            const actionStr = String(link.action ?? 'external')
-            const validActions = ['download', 'upload', 'sign', 'authorize', 'external']
-            return {
-              label: String(link.label ?? ''),
-              url: String(link.url ?? ''),
-              action: (validActions.includes(actionStr)
-                ? actionStr
-                : 'external') as TaskLinkAction,
-            }
-          })
-        : null,
-      createdAt: task.createdAt || null,
-      updatedAt: task.updatedAt || null,
-    }))
+  return apiTasks.filter((task) => task.id && task.title) // Filter out incomplete tasks
 }
 
 export interface UseTasksResult {
@@ -92,13 +65,17 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
     async (id: string, updates: Partial<Task>) => {
       try {
         setError(null)
-        // Convert our Task interface fields to API format
+        // Convert to the correct API format
         const apiUpdates: Record<string, unknown> = {}
         if (updates.title !== undefined) apiUpdates.title = updates.title
-        if (updates.status !== undefined) apiUpdates.status = updates.status
+        if (updates.description !== undefined)
+          apiUpdates.description = updates.description
         if (updates.type !== undefined) apiUpdates.type = updates.type
+        if (updates.status !== undefined) apiUpdates.status = updates.status
         if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate
         if (updates.owner !== undefined) apiUpdates.owner = updates.owner
+        if (updates.documentId !== undefined) apiUpdates.documentId = updates.documentId
+        if (updates.links !== undefined) apiUpdates.links = updates.links
 
         const apiClient = await buildApiClient()
         const result = await apiClient.PUT('/tasks/{id}', {
@@ -123,22 +100,24 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
     async (meetingIdParam: string, task: Partial<Task>) => {
       try {
         setError(null)
-        const taskData = {
-          taskId: task.taskId || '',
-          phaseId: task.phaseId || '',
-          phaseNumber: task.phaseNumber || 1,
-          title: task.title || '',
-          type: (task.type || 'external') as Task['type'],
-          status:
-            (task.status as 'COMPLETE' | 'INCOMPLETE' | 'CANCELLED') || 'INCOMPLETE',
-          dueDate: task.dueDate || undefined,
-          owner: task.owner || 'BetaNXT',
-        }
+        // Convert to the correct API format
+        const taskData: Record<string, unknown> = {}
+        if (task.taskId !== undefined) taskData.taskId = task.taskId
+        if (task.phaseId !== undefined) taskData.phaseId = task.phaseId
+        if (task.phaseNumber !== undefined) taskData.phaseNumber = task.phaseNumber
+        if (task.title !== undefined) taskData.title = task.title
+        if (task.description !== undefined) taskData.description = task.description
+        if (task.type !== undefined) taskData.type = task.type
+        if (task.status !== undefined) taskData.status = task.status
+        if (task.dueDate !== undefined) taskData.dueDate = task.dueDate
+        if (task.owner !== undefined) taskData.owner = task.owner
+        if (task.documentId !== undefined) taskData.documentId = task.documentId
+        if (task.links !== undefined) taskData.links = task.links
 
         const apiClient = await buildApiClient()
         const result = await apiClient.POST('/meetings/{meetingId}/tasks', {
           params: { path: { meetingId: meetingIdParam } },
-          body: taskData,
+          body: taskData as CreateTaskRequest,
         })
         if (result.error) {
           throw new Error('Failed to create task')

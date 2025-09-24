@@ -4,7 +4,6 @@ import { glob } from 'glob'
 import path from 'path'
 
 async function addOptionsHandlers() {
-  console.log('Adding OPTIONS handlers to API routes...')
 
   // Find all route.ts files in the app/api directory
   const routeFiles = await glob('app/api/**/route.ts', {
@@ -18,7 +17,6 @@ async function addOptionsHandlers() {
 
     // Skip if already has OPTIONS handler
     if (content.includes('export async function OPTIONS')) {
-      console.log(`✓ ${file} already has OPTIONS handler`)
       continue
     }
 
@@ -40,10 +38,7 @@ async function addOptionsHandlers() {
       '\n\nexport async function OPTIONS() {\n  return handleCors()\n}\n'
 
     await fs.writeFile(filePath, content)
-    console.log(`✓ Added OPTIONS handler to ${file}`)
   }
 
-  console.log('Done!')
 }
 
-addOptionsHandlers().catch(console.error)

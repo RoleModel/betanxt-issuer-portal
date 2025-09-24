@@ -896,7 +896,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
                     component={Link}
                     href={tabHref}
                     prefetch={true}
-                    onClick={(e) => {
+                    onClick={(_e) => {
                       // Optimistic update - immediately update visual state
                       startTransition(() => {
                         // The actual navigation will happen via Link

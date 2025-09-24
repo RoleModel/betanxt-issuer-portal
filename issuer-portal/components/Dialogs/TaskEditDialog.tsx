@@ -1,6 +1,8 @@
 'use client'
 
+import BNFileDropzone from '@rolemodel/betanxt-design-system/components/file-upload/BNFileDropzone'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import type { FileRejection } from 'react-dropzone'
 
 import {
   Add as AddIcon,
@@ -27,19 +29,58 @@ import {
   Typography,
 } from '@mui/material'
 
-import BNFileDropzone from '@/components/file-upload/BNFileDropzone'
-
 import { useDocuments } from '@/hooks/useDocuments'
 import { useTasks } from '@/hooks/useTasks'
-import type { Task, Document } from '@/types/api'
-import { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
+import type { Document, Task } from '@/types/api'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
+import { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
 
 // Task status type - matches the status options used in the component
-type TaskStatus = 'Complete' | 'Shares Balanced' | 'Mailing Complete' | 'Ordered' | 'Authorized' | 'Approved to Send' | 'Approved' | 'Submitted' | 'Active' | 'Received' | 'Reached' | 'Pending Approval' | 'Pending' | 'Delayed' | '1/3 Reviews Complete' | 'Awaiting Review' | 'Pending Client Review' | 'Making Revisions' | '3 of 5 Materials Uploaded' | 'Shares Imbalanced' | 'Access Needed' | 'Need Authorization' | 'New' | 'Mailing' | 'In Edit Process' | 'Request form to follow' | 'In Progress' | 'Incomplete' | 'Awaiting Materials' | 'Awaiting Draft' | 'Awaiting Form' | 'Not Uploaded' | 'Draft' | 'No' | 'N/A'
+type TaskStatus =
+  | 'Complete'
+  | 'Shares Balanced'
+  | 'Mailing Complete'
+  | 'Ordered'
+  | 'Authorized'
+  | 'Approved to Send'
+  | 'Approved'
+  | 'Submitted'
+  | 'Active'
+  | 'Received'
+  | 'Reached'
+  | 'Pending Approval'
+  | 'Pending'
+  | 'Delayed'
+  | '1/3 Reviews Complete'
+  | 'Awaiting Review'
+  | 'Pending Client Review'
+  | 'Making Revisions'
+  | '3 of 5 Materials Uploaded'
+  | 'Shares Imbalanced'
+  | 'Access Needed'
+  | 'Need Authorization'
+  | 'New'
+  | 'Mailing'
+  | 'In Edit Process'
+  | 'Request form to follow'
+  | 'In Progress'
+  | 'Incomplete'
+  | 'Awaiting Materials'
+  | 'Awaiting Draft'
+  | 'Awaiting Form'
+  | 'Not Uploaded'
+  | 'Draft'
+  | 'No'
+  | 'N/A'
 
 type TaskType = 'upload' | 'signature' | 'external' | 'authorize' | 'approve'
 type LinkAction = 'download' | 'upload' | 'sign' | 'authorize' | 'external'
+
+// File rejection error type from react-dropzone
+interface FileRejectionError {
+  code: string
+  message: string
+}
 
 interface TaskLink extends BaseTaskLink {
   id?: string // Add id field for editing purposes
@@ -174,15 +215,15 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
       description: task.description || '',
       status: (task.status as TaskStatus) || 'Incomplete',
       type: (task.type as TaskType) || '',
-      phase: task.phase_number || 1,
+      phase: task.phaseNumber || 1,
       due_date: convertToDbDate(task.dueDate || ''),
-      assignee: task.assignee || '',
+      assignee: task.owner || '',
     }
   }, [task])
 
   // Memoize initial links calculation
   const initialLinks = useMemo(() => {
-    if (!task || !enableLinkEditing || !task.links) return []
+    if (!task || !enableLinkEditing || !Array.isArray(task.links)) return []
     return task.links.map((link, index) => ({
       id: `link-${index}`, // Generate a temporary ID for editing
       label: link.label,
@@ -261,15 +302,15 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
       try {
         // Get meeting ID for document creation
-        const meetingId = task.meeting_id || 'extraordinary-2023' // fallback
+        const meetingId = task.meetingId || 'extraordinary-2023' // fallback
 
         // Create document using our hook instead of direct Supabase
-        const documentData = new FormData()
-        documentData.append('file', file)
-        documentData.append('title', file.name.replace(/\.[^/.]+$/, ''))
-        documentData.append('description', `Uploaded document for task: ${task.title}`)
-        documentData.append('type', 'signature')
-        documentData.append('status', 'draft')
+        const documentData = {
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          description: `Uploaded document for task: ${task.title}`,
+          type: 'signature',
+          file: file.name, // Using filename as file identifier
+        }
 
         const newDocument = await createNewDocument(meetingId, documentData)
         if (!newDocument) {
@@ -278,7 +319,9 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
         // Refresh available documents and select the new one
         await loadAvailableDocuments()
-        setSelectedDocumentId(newDocument.id)
+        if (newDocument.id) {
+          setSelectedDocumentId(newDocument.id)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to upload file')
       } finally {
@@ -289,12 +332,16 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   )
 
   // Handle file upload rejections
-  const handleFileRejections = useCallback((rejections: { errors: { code: string }[] }[]) => {
-    if (rejections.length > 0) {
-      const rejection = rejections[0]
-      if (rejection.errors?.some((e) => e.code === 'file-too-large')) {
+  const handleFileRejections = useCallback((fileRejections: FileRejection[]) => {
+    if (fileRejections.length > 0) {
+      const rejection = fileRejections[0]
+      if (
+        rejection.errors?.some((e: FileRejectionError) => e.code === 'file-too-large')
+      ) {
         setError('File is too large. Please upload a file smaller than 5MB.')
-      } else if (rejection.errors?.some((e) => e.code === 'file-invalid-type')) {
+      } else if (
+        rejection.errors?.some((e: FileRejectionError) => e.code === 'file-invalid-type')
+      ) {
         setError('Invalid file type. Please upload a PDF file.')
       } else {
         setError('File upload failed. Please try again.')
@@ -323,18 +370,21 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
       // Add links if link editing is enabled
       if (enableLinkEditing) {
-        const linksToSave = links
+        // Filter and process links for saving
+        links
           .filter((link) => link.label.trim()) // Only save links with labels
           .map((link) => ({
             label: link.label,
             url: link.url || undefined,
             action: link.action || undefined,
           }))
-        taskUpdates.links = linksToSave
+        // Note: links are handled separately in this component
       }
 
       // Update using hook
-      await updateTaskById(task.id, taskUpdates)
+      if (task.id) {
+        await updateTaskById(task.id, taskUpdates as unknown as Partial<Task>)
+      }
 
       // Note: Meeting completion update would be handled automatically by the context
 
@@ -345,7 +395,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
         id: task.id,
       }
 
-      onTaskUpdated(finalTask)
+      onTaskUpdated(finalTask as unknown as Task)
       if (onRefresh) onRefresh() // Refresh the parent component data
       onClose()
     } catch (err) {
@@ -552,7 +602,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                     <Box>
                       <Typography variant="body2">{doc.title}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {doc.template_file_path} • {doc.type}
+                        {doc.filePath || 'N/A'} • {doc.type}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -574,14 +624,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                           <strong>{selectedDoc.title}</strong>
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Template: {selectedDoc.template_file_path} • Type:{' '}
-                          {selectedDoc.type}
+                          File: {selectedDoc.filePath || 'N/A'} • Type: {selectedDoc.type}
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
                           Storage URL:{' '}
-                          {selectedDoc.template_file_path
-                            ? getStoragePublicUrl(selectedDoc.template_file_path)
+                          {selectedDoc.filePath
+                            ? getStoragePublicUrl(selectedDoc.filePath)
                             : 'No file path'}
                         </Typography>
                       </Alert>

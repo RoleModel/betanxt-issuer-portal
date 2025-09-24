@@ -21,7 +21,7 @@ import ScrollContainer from '@/components/ScrollContainer'
 
 const EducationPageContent = () => {
   const router = useRouter()
-  const pathname = usePathname()
+  const _pathname = usePathname()
 
   const educationPaperItems = React.useMemo(
     () => [

@@ -1,0 +1,280 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary "Client and Application Switcher" [ref=e3]:
+      - generic [ref=e4]:
+        - button "Select Client" [ref=e6] [cursor=pointer]:
+          - text: Select Client
+          - img [ref=e8] [cursor=pointer]
+        - button "App Switcher" [ref=e10] [cursor=pointer]:
+          - text: Issuer Portal
+          - img [ref=e12] [cursor=pointer]
+    - banner "Main navigation" [ref=e14]:
+      - generic [ref=e15]:
+        - img "WEN Logo" [ref=e17]
+        - generic [ref=e18]:
+          - navigation [ref=e19]:
+            - tablist "Main navigation tabs" [ref=e21]:
+              - tab "Navigate to Dashboard" [selected] [ref=e22] [cursor=pointer]: Dashboard
+              - tab "Navigate to Past Meetings" [ref=e23] [cursor=pointer]: Past Meetings
+              - tab "Navigate to Reporting" [ref=e24] [cursor=pointer]: Reporting
+              - tab "Navigate to Education" [ref=e25] [cursor=pointer]: Education
+              - tab "Navigate to Products" [ref=e26] [cursor=pointer]: Products
+          - button "Open Menu" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29] [cursor=pointer]: D
+          - button "notifications" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31] [cursor=pointer]:
+              - img [ref=e32] [cursor=pointer]
+              - generic [ref=e34] [cursor=pointer]: "3"
+    - main [ref=e35]:
+      - generic [ref=e36]:
+        - generic [ref=e40]:
+          - tab "Annual Meeting CUSIP 95058W100 Record Date Oct 26 Mailing Date Nov 30 Meeting Date Dec 24 Current Phase Open Phase 1 phase details Overall Completion 0 0% ACTIVE" [selected] [ref=e41] [cursor=pointer]:
+            - generic [ref=e44]:
+              - heading "Annual Meeting" [level=1] [ref=e45]
+              - generic [ref=e47]:
+                - generic [ref=e48]:
+                  - paragraph [ref=e49]: CUSIP
+                  - paragraph [ref=e50]: 95058W100
+                - generic [ref=e51]:
+                  - paragraph [ref=e52]: Record Date
+                  - paragraph [ref=e53]: Oct 26
+                - generic [ref=e54]:
+                  - paragraph [ref=e55]: Mailing Date
+                  - paragraph [ref=e56]: Nov 30
+                - generic [ref=e57]:
+                  - paragraph [ref=e58]: Meeting Date
+                  - paragraph [ref=e59]: Dec 24
+                - generic [ref=e60]:
+                  - paragraph [ref=e61]: Current Phase
+                  - button "Open Phase 1 phase details" [ref=e62] [cursor=pointer]: Phase 1
+                - generic [ref=e63]:
+                  - paragraph [ref=e64]: Overall Completion
+                  - generic [ref=e65]:
+                    - 'progressbar "Overall completion progress: 0%" [ref=e66]'
+                    - paragraph [ref=e68]: 0%
+                - generic [ref=e70]: ACTIVE
+          - tab "Special Meeting Meeting Date Dec 24" [ref=e71] [cursor=pointer]:
+            - generic [ref=e74] [cursor=pointer]:
+              - heading "Special Meeting" [level=1] [ref=e75] [cursor=pointer]
+              - generic [ref=e77] [cursor=pointer]:
+                - paragraph [ref=e78] [cursor=pointer]: Meeting Date
+                - heading "Dec 24" [level=6] [ref=e79] [cursor=pointer]
+        - tablist "Meeting Navigation" [ref=e86]:
+          - tab "Meeting Dashboard" [ref=e87] [cursor=pointer]
+          - tab "Calendar" [ref=e88] [cursor=pointer]
+          - tab "Documents" [selected] [ref=e89] [cursor=pointer]
+          - tab "Mailing" [ref=e90] [cursor=pointer]
+          - tab "Tabulation" [ref=e91] [cursor=pointer]
+          - tab "Reports" [ref=e92] [cursor=pointer]
+          - tab "Agenda" [ref=e93] [cursor=pointer]
+          - tab "Guests/Registrants" [ref=e94] [cursor=pointer]
+      - main [ref=e97]:
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e101]: Documents
+            - button "Upload" [ref=e103] [cursor=pointer]:
+              - img [ref=e105] [cursor=pointer]
+              - text: Upload
+          - generic [ref=e107]:
+            - generic [ref=e109]:
+              - generic [ref=e111]:
+                - img [ref=e113]
+                - textbox "Search Documents" [ref=e115]
+                - group
+              - generic "Status Filter" [ref=e117]:
+                - combobox [ref=e118] [cursor=pointer]: All
+                - textbox: All
+                - img
+                - group
+            - table "Event Documents" [ref=e120]:
+              - rowgroup [ref=e121]:
+                - row "Document Added/Updated Status Actions" [ref=e122]:
+                  - columnheader "Document" [ref=e123]
+                  - columnheader "Added/Updated" [ref=e124]
+                  - columnheader "Status" [ref=e125]
+                  - columnheader "Actions" [ref=e126]
+              - rowgroup [ref=e127]:
+                - row "Proxy Statement System Sep 23 Complete —" [ref=e128]:
+                  - cell "Proxy Statement" [ref=e129]:
+                    - generic [ref=e130]:
+                      - img [ref=e132]
+                      - paragraph [ref=e134]: Proxy Statement
+                  - cell "System Sep 23" [ref=e135]:
+                    - generic [ref=e136]:
+                      - paragraph [ref=e137]: System
+                      - paragraph [ref=e138]: Sep 23
+                  - cell "Complete" [ref=e139]:
+                    - generic [ref=e141]: Complete
+                  - cell "—" [ref=e142]
+                - row "Proxy Card System Sep 23 SIGNED —" [ref=e143]:
+                  - cell "Proxy Card" [ref=e144]:
+                    - generic [ref=e145]:
+                      - img [ref=e147]
+                      - paragraph [ref=e149]: Proxy Card
+                  - cell "System Sep 23" [ref=e150]:
+                    - generic [ref=e151]:
+                      - paragraph [ref=e152]: System
+                      - paragraph [ref=e153]: Sep 23
+                  - cell "SIGNED" [ref=e154]:
+                    - generic [ref=e156]: SIGNED
+                  - cell "—" [ref=e157]
+                - row "Annual Report System Sep 23 UPLOADED —" [ref=e158]:
+                  - cell "Annual Report" [ref=e159]:
+                    - generic [ref=e160]:
+                      - img [ref=e162]
+                      - paragraph [ref=e164]: Annual Report
+                  - cell "System Sep 23" [ref=e165]:
+                    - generic [ref=e166]:
+                      - paragraph [ref=e167]: System
+                      - paragraph [ref=e168]: Sep 23
+                  - cell "UPLOADED" [ref=e169]:
+                    - generic [ref=e171]: UPLOADED
+                  - cell "—" [ref=e172]
+              - rowgroup [ref=e173]:
+                - 'row "Rows per page: 5 1–3 of 3 Go to previous page Go to next page" [ref=e174]':
+                  - 'cell "Rows per page: 5 1–3 of 3 Go to previous page Go to next page" [ref=e175]':
+                    - generic [ref=e176]:
+                      - paragraph [ref=e177]: "Rows per page:"
+                      - generic [ref=e178]:
+                        - combobox "rows per page" [ref=e179] [cursor=pointer]:
+                          - option "5" [selected]
+                          - option "10"
+                          - option "25"
+                          - option "All"
+                        - img
+                      - paragraph [ref=e180]: 1–3 of 3
+                      - generic [ref=e181]:
+                        - button "Go to previous page" [disabled]:
+                          - img
+                        - button "Go to next page" [disabled]:
+                          - img
+        - generic [ref=e182]:
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]: Digital Shareholder Meeting Documents
+                - generic [ref=e188]: 0 of 5 Materials Uploaded
+              - button "Upload" [ref=e190] [cursor=pointer]
+            - table [ref=e193]:
+              - rowgroup [ref=e194]:
+                - row "Thumbnail Document Added/Updated Status Actions" [ref=e195]:
+                  - columnheader "Thumbnail" [ref=e196]
+                  - columnheader "Document" [ref=e197]
+                  - columnheader "Added/Updated" [ref=e198]
+                  - columnheader "Status" [ref=e199]
+                  - columnheader "Actions" [ref=e200]
+              - rowgroup [ref=e201]:
+                - row "Static Slide or Presentation — Not Uploaded Upload" [ref=e202]:
+                  - cell [ref=e203]:
+                    - img [ref=e205]
+                  - cell "Static Slide or Presentation" [ref=e207]:
+                    - paragraph [ref=e208]: Static Slide or Presentation
+                  - cell "—" [ref=e209]:
+                    - paragraph [ref=e210]: —
+                  - cell "Not Uploaded" [ref=e211]:
+                    - generic [ref=e213]: Not Uploaded
+                  - cell "Upload" [ref=e214]:
+                    - button "Upload" [ref=e215] [cursor=pointer]
+                - row "Documents to Display — Not Uploaded Upload" [ref=e216]:
+                  - cell [ref=e217]:
+                    - img [ref=e219]
+                  - cell "Documents to Display" [ref=e221]:
+                    - paragraph [ref=e222]: Documents to Display
+                  - cell "—" [ref=e223]:
+                    - paragraph [ref=e224]: —
+                  - cell "Not Uploaded" [ref=e225]:
+                    - generic [ref=e227]: Not Uploaded
+                  - cell "Upload" [ref=e228]:
+                    - button "Upload" [ref=e229] [cursor=pointer]
+                - row "Speaker List — Not Uploaded Upload" [ref=e230]:
+                  - cell [ref=e231]:
+                    - img [ref=e233]
+                  - cell "Speaker List" [ref=e235]:
+                    - paragraph [ref=e236]: Speaker List
+                  - cell "—" [ref=e237]:
+                    - paragraph [ref=e238]: —
+                  - cell "Not Uploaded" [ref=e239]:
+                    - generic [ref=e241]: Not Uploaded
+                  - cell "Upload" [ref=e242]:
+                    - button "Upload" [ref=e243] [cursor=pointer]
+                - row "Guest Link Registration — Not Uploaded Upload" [ref=e244]:
+                  - cell [ref=e245]:
+                    - img [ref=e247]
+                  - cell "Guest Link Registration" [ref=e249]:
+                    - paragraph [ref=e250]: Guest Link Registration
+                  - cell "—" [ref=e251]:
+                    - paragraph [ref=e252]: —
+                  - cell "Not Uploaded" [ref=e253]:
+                    - generic [ref=e255]: Not Uploaded
+                  - cell "Upload" [ref=e256]:
+                    - button "Upload" [ref=e257] [cursor=pointer]
+                - row "2025 Virtual Annual Meeting Rules of Conduct — Not Uploaded Upload" [ref=e258]:
+                  - cell [ref=e259]:
+                    - img [ref=e261]
+                  - cell "2025 Virtual Annual Meeting Rules of Conduct" [ref=e263]:
+                    - paragraph [ref=e264]: 2025 Virtual Annual Meeting Rules of Conduct
+                  - cell "—" [ref=e265]:
+                    - paragraph [ref=e266]: —
+                  - cell "Not Uploaded" [ref=e267]:
+                    - generic [ref=e269]: Not Uploaded
+                  - cell "Upload" [ref=e270]:
+                    - button "Upload" [ref=e271] [cursor=pointer]
+                - row "Forward Looking Statements — Not Uploaded Upload" [ref=e272]:
+                  - cell [ref=e273]:
+                    - img [ref=e275]
+                  - cell "Forward Looking Statements" [ref=e277]:
+                    - paragraph [ref=e278]: Forward Looking Statements
+                  - cell "—" [ref=e279]:
+                    - paragraph [ref=e280]: —
+                  - cell "Not Uploaded" [ref=e281]:
+                    - generic [ref=e283]: Not Uploaded
+                  - cell "Upload" [ref=e284]:
+                    - button "Upload" [ref=e285] [cursor=pointer]
+              - rowgroup [ref=e286]:
+                - 'row "Rows per page: 6 1–6 of 6 Go to previous page Go to next page" [ref=e287]':
+                  - 'cell "Rows per page: 6 1–6 of 6 Go to previous page Go to next page" [ref=e288]':
+                    - generic [ref=e289]:
+                      - paragraph [ref=e290]: "Rows per page:"
+                      - generic [ref=e291]:
+                        - combobox "rows per page" [ref=e292] [cursor=pointer]:
+                          - option "6" [selected]
+                          - option "10"
+                          - option "25"
+                          - option "All"
+                        - img
+                      - paragraph [ref=e293]: 1–6 of 6
+                      - generic [ref=e294]:
+                        - button "Go to previous page" [disabled]:
+                          - img
+                        - button "Go to next page" [disabled]:
+                          - img
+          - generic [ref=e296]:
+            - generic [ref=e298]:
+              - paragraph [ref=e299]: Document Hosting Site
+              - paragraph [ref=e300]: Verify all shareholder facing sites, you will use the test control number (123456782) to enter the voting site. Once approved, sites will be made active in conjunction with the filing mailing date.
+              - generic [ref=e302]: Incomplete
+            - generic [ref=e303]:
+              - button "View Site" [ref=e304] [cursor=pointer]
+              - button "Request Revision" [ref=e305] [cursor=pointer]
+    - button "Support contacts" [ref=e306] [cursor=pointer]:
+      - img [ref=e307] [cursor=pointer]
+    - contentinfo [ref=e312]:
+      - generic [ref=e313]:
+        - paragraph [ref=e314]: © 2025 BetaNXT Inc.
+        - separator [ref=e315]
+        - link "Privacy Statement" [ref=e316] [cursor=pointer]:
+          - /url: https://betanxt.com/privacy-policy
+      - link "Go to BetaNXT.com" [ref=e317] [cursor=pointer]:
+        - /url: https://betanxt.com
+        - img "Go to BetaNXT.com" [ref=e318] [cursor=pointer]
+  - complementary "Breakpoint Indicator":
+    - paragraph: "Breakpoint: LG"
+    - paragraph: 1200-1536px
+    - paragraph: "Window: 1280x720"
+  - button "Open Next.js Dev Tools" [ref=e332] [cursor=pointer]:
+    - img [ref=e333] [cursor=pointer]
+  - alert [ref=e336]
+```

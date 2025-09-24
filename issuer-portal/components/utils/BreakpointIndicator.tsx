@@ -43,8 +43,8 @@ const BreakpointIndicatorComponent: React.FC = () => {
       aria-label="Breakpoint Indicator"
       sx={{
         position: 'fixed',
-        bottom: 16,
-        right: 16,
+        bottom: 100,
+        left: 16,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         color: 'white',
         padding: '8px 12px',

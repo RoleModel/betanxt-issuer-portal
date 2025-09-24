@@ -3,6 +3,7 @@
 import BNFileDropzone from '@rolemodel/betanxt-design-system/components/file-upload/BNFileDropzone'
 import BNFilePreview from '@rolemodel/betanxt-design-system/components/file-upload/BNFilePreview'
 import FileUploadDialog from '@rolemodel/betanxt-design-system/components/file-upload/FileUploadDialog'
+import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import type { FileRejection } from 'react-dropzone'
 
@@ -11,11 +12,14 @@ import {
   Box,
   Button,
   Card,
+  Checkbox,
   Drawer,
+  FormControlLabel,
   IconButton,
   Link,
   Stack,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 
 import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
@@ -28,8 +32,19 @@ import TaskContextMenu, {
 
 import type { components } from '@/domain-models/generated-schema'
 
-type Task = components['schemas']['Task']
+import { useClients } from '@/hooks/useClients'
+import { useDocuments } from '@/hooks/useDocuments'
+import { useTasks } from '@/hooks/useTasks'
+import {
+  handleFormDownload,
+  handleFormSign,
+} from '@/utils/broadridgeFormHandler'
 import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
+import { isDTCCAuthorizationTask, getDTCCAuthorizationStatus } from '@/utils/taskTransformers'
+import { jsPDF } from 'jspdf'
+import { supabase } from '../../../supabase/clients'
+
+type Task = components['schemas']['Task']
 
 // Task status type for local use
 type _TaskStatus = 'COMPLETE' | 'INCOMPLETE' | 'NEEDS_AUTHORIZATION'
@@ -59,6 +74,10 @@ interface TaskDrawerProps {
 }
 
 const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpdate }) => {
+  const params = useParams()
+  const { clients } = useClients()
+  const { updateTaskById } = useTasks()
+  const { createNewDocument, addDocumentHistory, addCommentToDocument } = useDocuments()
   const [uploadFiles, setUploadFiles] = useState<
     {
       id: string
@@ -68,7 +87,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       error?: string
     }[]
   >([])
-  const [isOpen, setIsOpen] = useState(false)
   const [hasUnsupportedFiles, setHasUnsupportedFiles] = useState(false)
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [documentUrl, setDocumentUrl] = useState<string>('')
@@ -79,12 +97,21 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
   const [approvalTitle, setApprovalTitle] = useState<string>('')
   const [taskLinks, setTaskLinks] = useState<TaskLink[]>([])
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
+
+  // Get current client data based on URL params
+  const currentClient = clients.find((client) => client.ticker === params.clientTicker)
   const [contextMenuPosition, setContextMenuPosition] =
     useState<ContextMenuPosition | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [taskPhaseNumber, setTaskPhaseNumber] = useState<number>(1)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [currentTask, setCurrentTask] = useState<DbTask | Task | null>(null)
+  const [dtccAuthorized, setDtccAuthorized] = useState(false)
+  const [pdfFormState, setPdfFormState] = useState<{
+    formFields: Record<string, string>
+    signatures: Record<string, string>
+  }>({ formFields: {}, signatures: {} })
+  const [isSubmittingTask, setIsSubmittingTask] = useState(false)
 
   // Update current task when prop changes
   useEffect(() => {
@@ -107,19 +134,11 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           return
         }
 
-        // Check for sign action link in regular tasks
-        if (fetchedLinks.length > 0) {
-          const signLink = fetchedLinks.find((link: TaskLink) => link.action === 'sign')
-          if (signLink?.url) {
-            // Open DocumentViewer directly for sign tasks
-            setDocumentUrl(signLink.url)
-            setDocumentViewerOpen(true)
-            // Close the task drawer since we're opening document viewer
-            onClose()
-            return
-          }
+        // Signature actions are handled by link clicks within the drawer
+        // No need to auto-open DocumentViewer
 
-          // Check for approve type tasks
+        // Check for approve type tasks
+        if (fetchedLinks.length > 0) {
           if (taskToUse?.type === 'approve') {
             const firstLink = fetchedLinks[0]
             if (firstLink?.url) {
@@ -143,9 +162,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     }
   }, [open, task, currentTask, onClose])
 
-  useEffect(() => {
-    setIsOpen(open)
-  }, [open])
 
   const handleFilesSelected = (newFiles: File[]) => {
     const uploadFileObjects = newFiles.map((file) => ({
@@ -171,41 +187,86 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
   }
 
   const handleLinkClick = async (link: TaskLinkWithSignature) => {
-    if (link.action === 'sign') {
-      // For sign actions, try to use the link URL or find a default document
-      const documentUrl = link.url || 'proxy-statement.pdf' // fallback URL
-      setDocumentUrl(documentUrl)
 
-      // TODO: Fetch signature areas from API when document endpoints are available
-      try {
-        // For now, use mock signature areas
-        const mockDocumentId = `doc-${documentUrl.replace(/[^a-zA-Z0-9]/g, '-')}`
-        setCurrentDocumentId(mockDocumentId)
-
-        // Mock signature areas for demonstration
-        const mockSignatureAreas = [
-          {
-            id: 'sig-1',
-            x: 100,
-            y: 200,
-            width: 200,
-            height: 50,
-            page: 1,
-            label: 'Signature',
-            signed: false,
-          },
-        ]
-        setSignatureAreas(mockSignatureAreas)
-
-        console.log('Mock signature areas loaded for:', documentUrl)
-      } catch (error) {
-        console.error('Error loading signature areas:', error)
-        setSignatureAreas([])
+    // Create client data for Broadridge form
+    const clientData = currentClient
+      ? {
+        issuerName: currentClient.company_name || currentClient.short_name || '',
+        contactName: currentClient.primary_contact || '',
+        email: currentClient.primary_contact_email || '',
       }
+      : undefined
 
-      setDocumentViewerOpen(true)
-    } else if (link.url) {
-      window.open(link.url, '_blank')
+    switch (link.action) {
+      case 'download':
+        if (link.label === 'Download Form') {
+          await handleFormDownload(clientData)
+        } else if (link.url) {
+          window.open(link.url, '_blank')
+        }
+        break
+
+      case 'signature':
+        if (link.label === 'Sign Form') {
+          // Handle Broadridge form signing - open DocumentViewer, keep TaskDrawer open
+          await handleFormSign({
+            onDocumentOpen: (documentUrl, documentId, signatureAreas) => {
+              setDocumentUrl(documentUrl)
+              setCurrentDocumentId(documentId)
+              setSignatureAreas(signatureAreas)
+              setDocumentViewerOpen(true)
+              // Keep TaskDrawer open so both are visible
+            },
+            clientData,
+          })
+        } else {
+          // Handle general document signing - open full DocumentViewer
+          const documentUrl = link.url || 'proxy-statement.pdf' // fallback URL
+          setDocumentUrl(documentUrl)
+
+          // TODO: Fetch signature areas from API when document endpoints are available
+          try {
+            // For now, use mock signature areas
+            const mockDocumentId = `doc-${documentUrl.replace(/[^a-zA-Z0-9]/g, '-')}`
+            setCurrentDocumentId(mockDocumentId)
+
+            // Mock signature areas for demonstration
+            const mockSignatureAreas = [
+              {
+                id: 'sig-1',
+                x: 100,
+                y: 200,
+                width: 200,
+                height: 50,
+                page: 1,
+                label: 'Signature',
+                signed: false,
+              },
+            ]
+            setSignatureAreas(mockSignatureAreas)
+
+          } catch (error) {
+            console.error('Error loading signature areas:', error)
+            setSignatureAreas([])
+          }
+
+          setDocumentViewerOpen(true)
+          onClose() // Close drawer for full-screen document viewing
+        }
+        break
+
+      case 'upload':
+        // Upload action is handled by the BNFileDropzone component
+        // No direct action needed here - the UI is already shown
+        break
+
+      case 'authorize':
+      case 'external':
+      default:
+        if (link.url) {
+          window.open(link.url, '_blank')
+        }
+        break
     }
   }
 
@@ -214,6 +275,153 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     setDocumentUrl('')
     setSignatureAreas([])
     setCurrentDocumentId('')
+  }
+
+  // Generate filled PDF with form data and signatures
+  const generateFilledPDF = async (taskTitle: string): Promise<Blob> => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'letter',
+    })
+
+    // Add header
+    doc.setFontSize(16)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`${taskTitle} - Completed`, 20, 20)
+
+    // Add form fields data
+    let yPosition = 40
+    doc.setFontSize(12)
+    doc.text('Form Fields:', 20, yPosition)
+    yPosition += 10
+
+    Object.entries(pdfFormState.formFields).forEach(([fieldId, value]) => {
+      if (value) {
+        doc.text(`${fieldId}: ${value}`, 25, yPosition)
+        yPosition += 8
+      }
+    })
+
+    // Add signatures data
+    if (Object.keys(pdfFormState.signatures).length > 0) {
+      yPosition += 10
+      doc.text('Signatures:', 20, yPosition)
+      yPosition += 10
+
+      Object.entries(pdfFormState.signatures).forEach(([areaId, signature]) => {
+        if (signature) {
+          doc.text(`${areaId}: [Signed]`, 25, yPosition)
+          yPosition += 8
+        }
+      })
+    }
+
+    // Add completion timestamp
+    yPosition += 10
+    doc.text(`Completed: ${new Date().toLocaleString()}`, 20, yPosition)
+
+    return doc.output('blob')
+  }
+
+  // Handle task submission with PDF state
+  const handleTaskSubmit = async () => {
+
+    if (!currentTask && !task) {
+      return
+    }
+
+    const taskToSubmit = currentTask || task
+    if (!taskToSubmit) {
+      return
+    }
+
+
+    try {
+      setIsSubmittingTask(true)
+
+      // Generate filled PDF
+      const pdfBlob = await generateFilledPDF(taskToSubmit.title || 'Task')
+
+      // Upload PDF to Supabase storage
+      const fileName = `${taskToSubmit.id}-completed-${Date.now()}.pdf`
+      const filePath = `task-completions/${fileName}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('supporting')
+        .upload(filePath, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: false
+        })
+
+      if (uploadError) {
+        throw new Error(`Failed to upload PDF: ${uploadError.message}`)
+      }
+
+      // Create document record for the submitted task
+      const documentData = {
+        title: `${taskToSubmit.title} - Completed`,
+        description: `Document completed for task: ${taskToSubmit.title}`,
+        type: 'task-completion',
+        file: uploadData.path, // Point to the actual stored PDF
+        taskId: taskToSubmit.taskId || taskToSubmit.id,
+      }
+
+      // Create document record in the meeting
+      if (taskToSubmit.meetingId) {
+        const newDocument = await createNewDocument(taskToSubmit.meetingId, documentData)
+        if (newDocument && newDocument.id) {
+          // Add history entry for document completion
+          await addDocumentHistory(newDocument.id, 'Task Completed')
+        }
+      }
+
+      // Update task status to COMPLETE
+      if (taskToSubmit.id) {
+        await updateTaskById(taskToSubmit.id, { status: 'COMPLETE' })
+      }
+
+      // Update local task state
+      const updatedTask = { ...taskToSubmit, status: 'COMPLETE' as const }
+      setCurrentTask(updatedTask)
+
+      // Notify parent component
+      if (onTaskUpdate) {
+        onTaskUpdate(updatedTask as DbTask)
+      }
+
+      // Clear files and close drawer
+      setUploadFiles([])
+      onClose()
+    } catch (error) {
+      console.error('Error submitting task:', error)
+      // TODO: Show error message to user
+    } finally {
+      setIsSubmittingTask(false)
+    }
+  }
+
+  // Callback to receive PDF state from DocumentViewer
+  const handlePdfStateChange = (formFields: Record<string, string>, signatures: Record<string, string>) => {
+    setPdfFormState({ formFields, signatures })
+  }
+
+  // Handle adding comments to the task/document
+  const handleAddComment = async (comment: string) => {
+    if (!comment.trim()) return
+
+    try {
+      // If we have a document ID, add comment to the document
+      if (currentDocumentId) {
+        await addCommentToDocument(currentDocumentId, comment)
+      } else {
+        // If no document ID, we could add task-level comments
+        // For now, just log the comment as a placeholder
+        // TODO: Implement task-level comments API when available
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error)
+    }
   }
 
   const handleApprovalDrawerClose = () => {
@@ -280,13 +488,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       // TODO: Replace with actual document upload API when available
       // For now, simulate file upload success
 
-      console.log(
-        'Mock document upload for task:',
-        task.id,
-        'files:',
-        files.map((f) => f.name)
-      )
-
       // Simulate upload delay
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -297,7 +498,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         originalFile: file,
       }))
 
-      console.log('Mock documents uploaded successfully:', mockUploadResults)
     } catch (error) {
       console.error('Error uploading documents:', error)
       throw error
@@ -320,12 +520,11 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       type: (dbTask.type || 'external') as Task['type'],
       taskId: dbTask.taskId || dbTask.id || '',
       documentId: dbTask.documentId || null,
-      links: taskLinks
-        .map((link) => ({
-          label: link.label || '',
-          url: link.url || '',
-          action: link.action as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
-        })) as unknown as Task['links'],
+      links: taskLinks.map((link) => ({
+        label: link.label || '',
+        url: link.url || '',
+        action: link.action as 'download' | 'upload' | 'sign' | 'authorize' | 'external',
+      })) as unknown as Task['links'],
       createdAt: dbTask.createdAt || undefined,
       updatedAt: dbTask.updatedAt || undefined,
     }
@@ -350,7 +549,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       phaseNumber: updatedTask.phaseNumber,
       type: updatedTask.type,
       documentId: updatedTask.documentId,
-      links: (updatedTask.links as unknown as DbTask['links']),
+      links: updatedTask.links as unknown as DbTask['links'],
       createdAt: updatedTask.createdAt || undefined,
       updatedAt: updatedTask.updatedAt || undefined,
     }
@@ -366,32 +565,63 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     setEditModalOpen(false)
   }
 
+  const handleDtccAuthorizationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked
+    setDtccAuthorized(checked)
+
+    // Update task status in backend
+    const taskToUpdate = currentTask || task
+    if (taskToUpdate && taskToUpdate.id) {
+      const newStatus = getDTCCAuthorizationStatus(checked)
+
+      // Update task status in backend
+      await updateTaskById(taskToUpdate.id, { status: newStatus })
+
+      // Update local task state
+      const updatedTask = { ...taskToUpdate, status: newStatus }
+      setCurrentTask(updatedTask)
+
+      // Notify parent component
+      if (onTaskUpdate) {
+        onTaskUpdate(updatedTask as DbTask)
+      }
+    }
+  }
+
+  const isMobile = useMediaQuery('(max-width: 500px)')
+
   return (
     <Drawer
-      anchor="left"
+      anchor={isMobile ? 'bottom' : 'left'}
       elevation={10}
-      open={isOpen}
+      open={open}
       onClose={onClose}
-      keepMounted={false}
+      data-testid="task-drawer"
+      transitionDuration={{ appear: 200, enter: 200, exit: 200 }}
       sx={{
         borderRadius: '0px 4px 4px 0px',
         overflow: 'hidden',
       }}
       ModalProps={{
+        keepMounted: true,
         disableEnforceFocus: true,
         disableAutoFocus: true,
         disableRestoreFocus: true,
       }}
       slotProps={{
+        transition: {
+          timeout: 200,
+        },
         paper: {
           sx: {
             borderRadius: '0px 4px 4px 0px',
+            transition: 'transform 2s ease-in-out',
           },
         },
       }}
     >
       {currentTask || task ? (
-        <Stack sx={{ height: '100%', width: 550 }}>
+        <Stack sx={{ height: '100vh', width: { xs: '100vw', md: 550 } }}>
           {/* Header */}
           <Box
             sx={(theme) => ({
@@ -458,11 +688,31 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                   />
                 </Box>
 
+                {/* DTCC Authorization Checkbox */}
+                {isDTCCAuthorizationTask(currentTask || task) && (
+                  <Box sx={{ mt: 1 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          color="secondary"
+                          checked={dtccAuthorized || (currentTask || task)?.status === 'COMPLETE'}
+                          onChange={handleDtccAuthorizationChange}
+                          size="small"
+                        />
+                      }
+                      label="Authorization confirmed"
+                    />
+                  </Box>
+                )}
+
                 {taskLinks.length > 0 && (
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     {taskLinks.map((link, linkIndex) => {
-                      // Make sign actions clickable even without direct URL if task has documents
-                      const isClickable = link.url || link.action === 'sign'
+                      // Make sign and download actions clickable even without direct URL
+                      const isClickable =
+                        link.url ||
+                        link.action === 'signature' ||
+                        link.action === 'download'
 
                       return isClickable ? (
                         <Link
@@ -486,18 +736,10 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                 )}
               </Card>
 
-              {/* Upload Area - Only show for upload type tasks, not authorize tasks */}
+              {/* Upload Area - Show when task has download action links */}
               {(() => {
-                const taskType = (currentTask || task)?.type
-                console.log('TaskDrawer: Task type check:', {
-                  taskType,
-                  currentTaskType: currentTask?.type,
-                  propTaskType: task?.type,
-                })
-                // Check for various possible upload type representations
-                const isUploadType = taskType === 'upload' || taskType === 'UPLOAD'
-                console.log('TaskDrawer: Is upload type?', isUploadType)
-                return isUploadType
+                const hasDownload = taskLinks.some((link) => link.action === 'download')
+                return hasDownload
               })() && (
                   <Box>
                     <BNFileDropzone
@@ -539,65 +781,84 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             </Stack>
           </Box>
 
-          {/* Footer with Send Button - Only show for upload type tasks, not authorize tasks */}
-          {(() => {
-            const taskType = (currentTask || task)?.type
-            console.log('TaskDrawer: Footer check:', {
-              taskType,
-              currentTaskType: currentTask?.type,
-              propTaskType: task?.type,
-            })
-            // Check for various possible upload type representations
-            return taskType === 'upload' || taskType === 'UPLOAD'
-          })() && (
-              <Box
-                sx={{
-                  pt: 2,
-                  px: 3,
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  borderTop: '1px solid rgba(31, 30, 28, 0.12)',
-                }}
+          {/* Footer with Send Button - Show when task has download action links */}
+          {taskLinks.some((link) => link.action === 'download') && (
+            <Box
+              sx={{
+                pt: 2,
+                px: 3,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                borderTop: '1px solid rgba(31, 30, 28, 0.12)',
+              }}
+            >
+              <Button
+                variant="contained"
+                size="large"
+                disabled={
+                  (uploadFiles.length === 0 && currentTask?.type !== 'signature') ||
+                  isSubmittingTask
+                }
+                onClick={handleTaskSubmit}
               >
-                <Button
-                  variant="contained"
-                  size="large"
-                  disabled={uploadFiles.length === 0}
-                  onClick={() => {
-                    // Handle file submission here
-                    setUploadFiles([])
-                    onClose()
-                  }}
-                >
-                  Submit {uploadFiles.length > 0 ? `(${uploadFiles.length})` : ''}
-                </Button>
-              </Box>
-            )}
+                {isSubmittingTask
+                  ? 'Submitting...'
+                  : currentTask?.type === 'signature'
+                    ? 'Submit Signed Document'
+                    : `Submit ${uploadFiles.length > 0 ? `(${uploadFiles.length})` : ''}`
+                }
+              </Button>
+            </Box>
+          )}
         </Stack>
       ) : null}
 
       {/* Document Viewer Modal */}
       <DocumentViewer
-        task={
-          (currentTask || task) && (currentTask || task)?.type === 'signature'
-            ? {
+        {...(documentViewerOpen && documentUrl
+          ? {
+            // Use legacy props when we have a generated document URL (like Broadridge form)
+            open: documentViewerOpen,
+            onClose: handleDocumentViewerClose,
+            pdfUrl: documentUrl,
+            title: approvalTitle || (currentTask || task)?.title || 'Document',
+            signatureAreas: signatureAreas,
+            documentId: currentDocumentId,
+            taskId: (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
+            task: (currentTask || task) ? {
               id: (currentTask || task)?.id || '',
-              task_id: (currentTask || task)?.taskId,
+              task_id: (currentTask || task)?.taskId || (currentTask || task)?.id,
               title: (currentTask || task)?.title || 'Document',
               type: (currentTask || task)?.type,
               meeting_id: (currentTask || task)?.meetingId,
+            } : undefined,
+            documentType: 'signature', // Ensure signature buttons show up
+            onPdfStateChange: handlePdfStateChange,
+          }
+          : (currentTask || task) && documentViewerOpen
+            ? {
+              // Use task-based props for regular document tasks
+              task: {
+                id: (currentTask || task)?.id || '',
+                task_id: (currentTask || task)?.taskId || (currentTask || task)?.id,
+                title: (currentTask || task)?.title || 'Document',
+                type: (currentTask || task)?.type,
+                meeting_id: (currentTask || task)?.meetingId,
+              },
+              taskId: (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
+              onSuccess: handleDocumentViewerClose,
+              onPdfStateChange: handlePdfStateChange,
             }
-            : null
-        }
-        onSuccess={handleDocumentViewerClose}
-        // Legacy props for backward compatibility
-        open={documentViewerOpen}
-        onClose={handleDocumentViewerClose}
-        pdfUrl={documentUrl || approvalDocumentUrl}
-        title={approvalTitle || (currentTask || task)?.title || 'Document'}
-        signatureAreas={signatureAreas}
-        documentId={currentDocumentId}
-        taskId={(currentTask || task)?.taskId || undefined}
+            : {
+              // Fallback to legacy props
+              open: documentViewerOpen,
+              onClose: handleDocumentViewerClose,
+              pdfUrl: approvalDocumentUrl,
+              title: approvalTitle || 'Document',
+              signatureAreas: signatureAreas,
+              documentId: currentDocumentId,
+              onPdfStateChange: handlePdfStateChange,
+            })}
       />
 
       {/* Approval Drawer */}
@@ -608,9 +869,8 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         pdfUrl={approvalDocumentUrl}
         onApprove={handleApprove}
         onOpenFullscreen={handleOpenFullscreen}
-        onAddComment={() => {
-          // TODO: Implement comment addition logic
-        }}
+        onAddComment={handleAddComment}
+        documentId={currentDocumentId}
       />
 
       {/* Task Context Menu */}

@@ -5,570 +5,245 @@
 
 export interface paths {
   '/auth/login': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
     /** User login */
     post: operations['loginUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/auth/logout': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
     /** User logout */
     post: operations['logoutUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/auth/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get current user profile */
     get: operations['getCurrentUser']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/accounts': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List accounts */
     get: operations['listAccounts']
-    put?: never
     /** Create new account */
     post: operations['createAccount']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/accounts/{accountId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get account by ID */
     get: operations['getAccountById']
     /** Update account */
     put: operations['updateAccount']
-    post?: never
     /** Delete account */
     delete: operations['deleteAccount']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/accounts/{accountId}/users': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List users for an account */
     get: operations['listAccountUsers']
-    put?: never
     /** Create new user for an account */
     post: operations['createAccountUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/clients': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List clients */
     get: operations['listClients']
-    put?: never
     /** Create new client */
     post: operations['createClient']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/clients/{ticker}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get client by ticker */
     get: operations['getClientByTicker']
     /** Update client */
     put: operations['updateClient']
-    post?: never
     /** Delete client */
     delete: operations['deleteClient']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/clients/{ticker}/accounts': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List accounts for a client */
     get: operations['listClientAccounts']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/users': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List users */
     get: operations['listUsers']
-    put?: never
     /** Create new user */
     post: operations['createUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/users/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get user by ID */
     get: operations['getUserById']
     /** Update user */
     put: operations['updateUser']
-    post?: never
     /** Delete user */
     delete: operations['deleteUser']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/users/{id}/accounts': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /**
      * Get accounts accessible by user
      * @description Returns accounts that a user has access to based on their role and relationships
      */
     get: operations['listUserAccounts']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List meetings */
     get: operations['listMeetings']
-    put?: never
     /** Create new meeting */
     post: operations['createMeeting']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings/{meetingId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get meeting by ID */
     get: operations['getMeetingById']
     /** Update meeting */
     put: operations['updateMeeting']
-    post?: never
     /** Delete meeting */
     delete: operations['deleteMeeting']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings/{meetingId}/phases': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List phases for a meeting */
     get: operations['listPhases']
-    put?: never
     /** Create new phase */
     post: operations['createPhase']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/phases/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get phase by ID */
     get: operations['getPhaseById']
     /** Update phase */
     put: operations['updatePhase']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings/{meetingId}/tasks': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List tasks for a meeting */
     get: operations['listTasks']
-    put?: never
     /** Create new task */
     post: operations['createTask']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/tasks/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get task by ID */
     get: operations['getTaskById']
     /** Update task */
     put: operations['updateTask']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings/{meetingId}/documents': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List documents for a meeting */
     get: operations['listDocuments']
-    put?: never
     /** Create new document */
     post: operations['createDocument']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/documents/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get document by ID */
     get: operations['getDocumentById']
     /** Update document */
     put: operations['updateDocument']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/documents/{id}/download': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Download document file */
     get: operations['downloadDocument']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
+  }
+  '/documents/forms/{formType}/sign-digital': {
+    /** Digitally sign a generated form */
+    post: operations['signFormDigital']
+  }
+  '/documents/forms/{formType}/upload-executed': {
+    /** Upload executed (wet-signed) form PDF */
+    post: operations['uploadExecutedForm']
+  }
+  '/documents/types/{documentType}/upload': {
+    /** Upload or create a new document version (proxy or supporting) */
+    post: operations['uploadDocumentVersion']
+  }
+  '/documents/types/{documentType}/{versionId}/approve': {
+    /** Approve a pending proxy material version */
+    post: operations['approveDocumentVersion']
+  }
+  '/documents/types/{documentType}/{versionId}/replace': {
+    /** Replace an approved proxy material (creates new pending version) */
+    post: operations['replaceApprovedVersion']
+  }
+  '/documents/readiness': {
+    /** Get readiness aggregation for a meeting */
+    get: operations['getDocumentsReadiness']
+  }
+  '/documents/types/{documentType}/history': {
+    /** Get version history for a document type within a meeting */
+    get: operations['getDocumentHistory']
   }
   '/positions': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /**
      * List positions
      * @description List positions with Supabase PostgREST filters.
      *
-     *     Common usage:
-     *     - Filter by meeting: `?meetingId=eq.WEN-2024-AGM`
-     *     - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
-     *     - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
-     *     - Include meeting data: `?select=*,meetings(*)`
-     *     - Include position votes: `?select=*,position_votes(*)`
-     *     - Order by shares: `?order=shares.desc`
-     *     - Pagination: `?limit=20&offset=40`
-     *
+     * Common usage:
+     * - Filter by meeting: `?meetingId=eq.WEN-2024-AGM`
+     * - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
+     * - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
+     * - Include meeting data: `?select=*,meetings(*)`
+     * - Include position votes: `?select=*,position_votes(*)`
+     * - Order by shares: `?order=shares.desc`
+     * - Pagination: `?limit=20&offset=40`
      */
     get: operations['listPositions']
-    put?: never
     /** Create new position */
     post: operations['createPosition']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/positions/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get position by ID */
     get: operations['getPositionById']
     /** Update position */
     put: operations['updatePosition']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/meetings/{meetingId}/proposals': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List proposals for a meeting */
     get: operations['listProposals']
-    put?: never
     /** Create new proposal */
     post: operations['createProposal']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/proposals/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get proposal by ID */
     get: operations['getProposalById']
     /** Update proposal */
     put: operations['updateProposal']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/position_votes': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /**
      * Get position votes
      * @description Get position votes using Supabase PostgREST filters.
      *
-     *     Common usage examples:
-     *     - Get votes for a position: `?positionId=eq.{uuid}`
-     *     - Get votes for a proposal: `?proposalId=eq.{uuid}`
-     *     - Include related data: `?select=*,positions(*),proposals(*)`
-     *     - Order by date: `?order=createdAt.desc`
+     * Common usage examples:
+     * - Get votes for a position: `?positionId=eq.{uuid}`
+     * - Get votes for a proposal: `?proposalId=eq.{uuid}`
+     * - Include related data: `?select=*,positions(*),proposals(*)`
+     * - Order by date: `?order=createdAt.desc`
      *
-     *     Supabase operators:
-     *     - `eq` - equals
-     *     - `neq` - not equals
-     *     - `gt` - greater than
-     *     - `gte` - greater than or equal
-     *     - `lt` - less than
-     *     - `lte` - less than or equal
-     *     - `like` - LIKE operator
-     *     - `ilike` - ILIKE operator
-     *     - `in` - one of a list of values
-     *     - `is` - checking for null/not null
-     *
+     * Supabase operators:
+     * - `eq` - equals
+     * - `neq` - not equals
+     * - `gt` - greater than
+     * - `gte` - greater than or equal
+     * - `lt` - less than
+     * - `lte` - less than or equal
+     * - `like` - LIKE operator
+     * - `ilike` - ILIKE operator
+     * - `in` - one of a list of values
+     * - `is` - checking for null/not null
      */
     get: operations['getPositionVotes']
-    put?: never
     /**
      * Create a position vote
      * @description Create a new position vote record.
      *
-     *     Note: In Supabase PostgREST, you POST directly to the table endpoint.
-     *     The positionId should be included in the request body, not the URL path.
-     *
+     * Note: In Supabase PostgREST, you POST directly to the table endpoint.
+     * The positionId should be included in the request body, not the URL path.
      */
     post: operations['createPositionVote']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/documents/{id}/comments': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** Get comments for a document */
     get: operations['getDocumentComments']
-    put?: never
     /** Add comment to a document */
     post: operations['addComment']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/notifications': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     /** List user notifications */
     get: operations['listNotifications']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
   }
   '/notifications/{notificationId}/mark-read': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
     /** Mark notification as read */
     patch: operations['markNotificationRead']
-    trace?: never
   }
 }
+
 export type webhooks = Record<string, never>
+
 export interface components {
   schemas: {
     /** @enum {string} */
@@ -587,6 +262,9 @@ export interface components {
     /** @enum {string} */
     DocumentStatus:
       | 'DRAFT'
+      | 'AWAITING_DRAFT'
+      | 'AWAITING_REVIEW'
+      | 'APPROVED'
       | 'UPLOADED'
       | 'IN_PROGRESS'
       | 'SIGNED'
@@ -633,7 +311,7 @@ export interface components {
        * @description Whether the client is active
        * @default true
        */
-      isActive: boolean
+      isActive?: boolean
       /**
        * @description Unique branding identifier for document hosting site URLs
        * @example 966152
@@ -644,9 +322,9 @@ export interface components {
       /** Format: date-time */
       updatedAt?: string
       /** @description JSON array of related account information */
-      accounts?: Record<string, never> | null
+      accounts?: Record<string, unknown> | null
       /** @description JSON array of related meeting information */
-      meetings?: Record<string, never> | null
+      meetings?: Record<string, unknown> | null
     }
     User: {
       /** Format: uuid */
@@ -820,7 +498,7 @@ export interface components {
        * @example 33333333-4444-5555-6666-777777777777
        */
       documentId?: string | null
-      links?: Record<string, never> | null
+      links?: Record<string, unknown> | null
       /** Format: date-time */
       createdAt?: string
       /** Format: date-time */
@@ -851,7 +529,9 @@ export interface components {
       completedDate?: string | null
       /** Format: date-time */
       inProgressDate?: string | null
-      history?: Record<string, never> | null
+      /** Format: date-time */
+      deadline?: string | null
+      history?: Record<string, unknown> | null
       /** Format: date-time */
       createdAt?: string
       /** Format: date-time */
@@ -923,7 +603,7 @@ export interface components {
       directorTermYears?: number | null
       directorClass?: string | null
       termExpirationYear?: number | null
-      frequencyOptions?: Record<string, never> | null
+      frequencyOptions?: Record<string, unknown> | null
       recommendation?: string
       /**
        * @description Final result of the proposal voting
@@ -979,7 +659,7 @@ export interface components {
        * @description Whether voting on this proposal has been completed
        * @default false
        */
-      votingCompleted: boolean
+      votingCompleted?: boolean
       /**
        * Format: date-time
        * @description When voting was completed
@@ -1098,7 +778,7 @@ export interface components {
        * @description Whether the client is active
        * @default true
        */
-      isActive: boolean
+      isActive?: boolean
       /**
        * @description Unique branding identifier for document hosting site URLs
        * @example 966152
@@ -1284,11 +964,19 @@ export interface components {
     }
     CreateDocumentRequest: {
       title: string
-      description?: string
+      /** @description Optional human readable description for the document */
+      description?: string | null
+      /** @description Canonical document type (proxy material or supporting) */
       type: string
-      /** Format: uuid */
-      taskId?: string
-      /** Format: binary */
+      /**
+       * Format: uuid
+       * @description Optional task linkage identifier
+       */
+      taskId?: string | null
+      /**
+       * Format: binary
+       * @description Document file content upload
+       */
       file: string
     }
     UpdateDocumentRequest: {
@@ -1312,7 +1000,7 @@ export interface components {
        * Format: double
        * @default 0
        */
-      sharesVoted: number
+      sharesVoted?: number
       /** @enum {string|null} */
       source?: 'WEB' | 'PRINT' | 'IVR' | null
       dateVoted?: string | null
@@ -1376,7 +1064,7 @@ export interface components {
       /** @enum {string} */
       priority?: 'low' | 'medium' | 'high' | 'critical'
       /** @default false */
-      read: boolean
+      read?: boolean
       /** Format: uuid */
       userId?: string
       /** Format: uuid */
@@ -1406,58 +1094,45 @@ export interface components {
   responses: {
     /** @description Bad request */
     BadRequest: {
-      headers: {
-        [name: string]: unknown
-      }
       content: {
         'application/json': components['schemas']['Error']
       }
     }
     /** @description Unauthorized */
     Unauthorized: {
-      headers: {
-        [name: string]: unknown
-      }
       content: {
         'application/json': components['schemas']['Error']
       }
     }
     /** @description Forbidden */
     Forbidden: {
-      headers: {
-        [name: string]: unknown
-      }
       content: {
         'application/json': components['schemas']['Error']
       }
     }
     /** @description Not found */
     NotFound: {
-      headers: {
-        [name: string]: unknown
-      }
       content: {
         'application/json': components['schemas']['Error']
       }
     }
   }
   parameters: {
-    PageParam: number
-    LimitParam: number
+    PageParam?: number
+    LimitParam?: number
   }
   requestBodies: never
   headers: never
   pathItems: never
 }
+
 export type $defs = Record<string, never>
+
+export type external = Record<string, never>
+
 export interface operations {
+  /** User login */
   loginUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': {
@@ -1471,9 +1146,6 @@ export interface operations {
     responses: {
       /** @description Login successful */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             user?: components['schemas']['User']
@@ -1486,20 +1158,11 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /** User logout */
   logoutUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
     responses: {
       /** @description Logout successful */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             /** @example Logged out successfully */
@@ -1510,20 +1173,11 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /** Get current user profile */
   getCurrentUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
     responses: {
       /** @description User profile retrieved */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['User']
         }
@@ -1531,23 +1185,17 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /** List accounts */
   listAccounts: {
     parameters: {
       query?: {
         page?: components['parameters']['PageParam']
         limit?: components['parameters']['LimitParam']
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             accounts?: components['schemas']['Account'][]
@@ -1559,13 +1207,8 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Create new account */
   createAccount: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CreateAccountRequest']
@@ -1574,9 +1217,6 @@ export interface operations {
     responses: {
       /** @description Account created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Account']
         }
@@ -1586,22 +1226,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get account by ID */
   getAccountById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         accountId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Account retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Account']
         }
@@ -1610,14 +1244,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update account */
   updateAccount: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         accountId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -1627,9 +1259,6 @@ export interface operations {
     responses: {
       /** @description Account updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Account']
         }
@@ -1640,29 +1269,24 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Delete account */
   deleteAccount: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         accountId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Account deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
+        content: never
       }
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
       404: components['responses']['NotFound']
     }
   }
+  /** List users for an account */
   listAccountUsers: {
     parameters: {
       query?: {
@@ -1670,19 +1294,13 @@ export interface operations {
         limit?: components['parameters']['LimitParam']
         type?: components['schemas']['UserType']
       }
-      header?: never
       path: {
         accountId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Account users retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             users?: components['schemas']['User'][]
@@ -1695,14 +1313,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new user for an account */
   createAccountUser: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         accountId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -1712,9 +1328,6 @@ export interface operations {
     responses: {
       /** @description User created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['User']
         }
@@ -1725,6 +1338,7 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List clients */
   listClients: {
     parameters: {
       query?: {
@@ -1733,17 +1347,10 @@ export interface operations {
         /** @description Filter by client ticker */
         ticker?: string
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Clients retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             clients?: components['schemas']['Client'][]
@@ -1755,13 +1362,8 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Create new client */
   createClient: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CreateClientRequest']
@@ -1770,9 +1372,6 @@ export interface operations {
     responses: {
       /** @description Client created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Client']
         }
@@ -1782,23 +1381,17 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get client by ticker */
   getClientByTicker: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         /** @description The client ticker symbol */
         ticker: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Client retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Client']
         }
@@ -1807,15 +1400,13 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update client */
   updateClient: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         /** @description The client ticker symbol */
         ticker: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -1825,9 +1416,6 @@ export interface operations {
     responses: {
       /** @description Client updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Client']
         }
@@ -1838,50 +1426,39 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Delete client */
   deleteClient: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         /** @description The client ticker symbol */
         ticker: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Client deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
+        content: never
       }
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
       404: components['responses']['NotFound']
     }
   }
+  /** List accounts for a client */
   listClientAccounts: {
     parameters: {
       query?: {
         page?: components['parameters']['PageParam']
         limit?: components['parameters']['LimitParam']
       }
-      header?: never
       path: {
         /** @description The client ticker symbol */
         ticker: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Client accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             accounts?: components['schemas']['Account'][]
@@ -1894,6 +1471,7 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List users */
   listUsers: {
     parameters: {
       query?: {
@@ -1902,17 +1480,10 @@ export interface operations {
         type?: components['schemas']['UserType']
         accountId?: string
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Users retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             users?: components['schemas']['User'][]
@@ -1924,13 +1495,8 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Create new user */
   createUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CreateUserRequest']
@@ -1939,9 +1505,6 @@ export interface operations {
     responses: {
       /** @description User created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['User']
         }
@@ -1951,22 +1514,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get user by ID */
   getUserById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description User retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['User']
         }
@@ -1975,14 +1532,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update user */
   updateUser: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -1992,9 +1547,6 @@ export interface operations {
     responses: {
       /** @description User updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['User']
         }
@@ -2005,46 +1557,37 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Delete user */
   deleteUser: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description User deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
+        content: never
       }
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
       404: components['responses']['NotFound']
     }
   }
+  /**
+   * Get accounts accessible by user
+   * @description Returns accounts that a user has access to based on their role and relationships
+   */
   listUserAccounts: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         /** @description The ID of the user */
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description User accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             accounts: components['schemas']['Account'][]
@@ -2058,6 +1601,7 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List meetings */
   listMeetings: {
     parameters: {
       query?: {
@@ -2070,17 +1614,10 @@ export interface operations {
         cusip?: string
         ticker?: string
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Meetings retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             meetings?: components['schemas']['Meeting'][]
@@ -2091,13 +1628,8 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /** Create new meeting */
   createMeeting: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CreateMeetingRequest']
@@ -2106,9 +1638,6 @@ export interface operations {
     responses: {
       /** @description Meeting created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Meeting']
         }
@@ -2118,22 +1647,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get meeting by ID */
   getMeetingById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Meeting retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Meeting']
         }
@@ -2142,14 +1665,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update meeting */
   updateMeeting: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2159,9 +1680,6 @@ export interface operations {
     responses: {
       /** @description Meeting updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Meeting']
         }
@@ -2172,47 +1690,36 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Delete meeting */
   deleteMeeting: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Meeting deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
+        content: never
       }
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
       404: components['responses']['NotFound']
     }
   }
+  /** List phases for a meeting */
   listPhases: {
     parameters: {
       query?: {
         status?: components['schemas']['PhaseStatus']
       }
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Phases retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Phase'][]
         }
@@ -2221,14 +1728,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new phase */
   createPhase: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2238,9 +1743,6 @@ export interface operations {
     responses: {
       /** @description Phase created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Phase']
         }
@@ -2250,22 +1752,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get phase by ID */
   getPhaseById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Phase retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Phase']
         }
@@ -2274,14 +1770,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update phase */
   updatePhase: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2291,9 +1785,6 @@ export interface operations {
     responses: {
       /** @description Phase updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Phase']
         }
@@ -2304,6 +1795,7 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List tasks for a meeting */
   listTasks: {
     parameters: {
       query?: {
@@ -2311,19 +1803,13 @@ export interface operations {
         status?: components['schemas']['TaskStatus']
         owner?: string
       }
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Tasks retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Task'][]
         }
@@ -2332,14 +1818,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new task */
   createTask: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2349,9 +1833,6 @@ export interface operations {
     responses: {
       /** @description Task created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Task']
         }
@@ -2361,22 +1842,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get task by ID */
   getTaskById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Task retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Task']
         }
@@ -2385,14 +1860,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update task */
   updateTask: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2402,9 +1875,6 @@ export interface operations {
     responses: {
       /** @description Task updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Task']
         }
@@ -2415,25 +1885,20 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List documents for a meeting */
   listDocuments: {
     parameters: {
       query?: {
         status?: components['schemas']['DocumentStatus']
         type?: string
       }
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Documents retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Document'][]
         }
@@ -2442,14 +1907,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new document */
   createDocument: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2459,9 +1922,6 @@ export interface operations {
     responses: {
       /** @description Document created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Document']
         }
@@ -2471,22 +1931,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get document by ID */
   getDocumentById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Document retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Document']
         }
@@ -2495,14 +1949,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update document */
   updateDocument: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2512,9 +1964,6 @@ export interface operations {
     responses: {
       /** @description Document updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Document']
         }
@@ -2525,22 +1974,16 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Download document file */
   downloadDocument: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Document file */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/octet-stream': string
         }
@@ -2549,6 +1992,230 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Digitally sign a generated form */
+  signFormDigital: {
+    parameters: {
+      path: {
+        formType: 'FORM_OF_PROXY' | 'VIF' | 'CONTROLLED_ACCOUNT_REPORT'
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          meetingId: string
+          /** @description User performing the digital signature */
+          signerUserId: string
+          /** @description Optional reason or context for the signature */
+          signatureReason?: string
+          /** @description If true, replaces any existing signature artifact */
+          replaceExisting?: boolean
+        }
+      }
+    }
+    responses: {
+      /** @description Form executed */
+      200: {
+        content: {
+          'application/json': components['schemas']['Document']
+        }
+      }
+      400: components['responses']['BadRequest']
+      404: components['responses']['NotFound']
+    }
+  }
+  /** Upload executed (wet-signed) form PDF */
+  uploadExecutedForm: {
+    parameters: {
+      path: {
+        formType: 'FORM_OF_PROXY' | 'VIF' | 'CONTROLLED_ACCOUNT_REPORT'
+      }
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          meetingId: string
+          /**
+           * Format: binary
+           * @description Executed (signed) form PDF
+           */
+          file: string
+          /** @description If provided, links the upload to a previously generated draft form */
+          originalGeneratedId?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Form executed via upload */
+      201: {
+        content: {
+          'application/json': components['schemas']['Document']
+        }
+      }
+      400: components['responses']['BadRequest']
+      /** @description File too large */
+      413: {
+        content: never
+      }
+    }
+  }
+  /** Upload or create a new document version (proxy or supporting) */
+  uploadDocumentVersion: {
+    parameters: {
+      path: {
+        documentType: string
+      }
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          meetingId: string
+          /**
+           * Format: binary
+           * @description Document file content
+           */
+          file: string
+          /** @description Optional notes describing the changes or purpose of this version */
+          versionNotes?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Version uploaded */
+      201: {
+        content: {
+          'application/json': components['schemas']['Document']
+        }
+      }
+      400: components['responses']['BadRequest']
+      /** @description File too large */
+      413: {
+        content: never
+      }
+    }
+  }
+  /** Approve a pending proxy material version */
+  approveDocumentVersion: {
+    parameters: {
+      path: {
+        documentType: string
+        versionId: string
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          meetingId: string
+          /** @description Optional approval comment */
+          comment?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Version approved */
+      200: {
+        content: {
+          'application/json': components['schemas']['Document']
+        }
+      }
+      400: components['responses']['BadRequest']
+      /** @description Invalid state transition */
+      409: {
+        content: never
+      }
+    }
+  }
+  /** Replace an approved proxy material (creates new pending version) */
+  replaceApprovedVersion: {
+    parameters: {
+      path: {
+        documentType: string
+        versionId: string
+      }
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          meetingId: string
+          /** @description Business justification for replacement */
+          reason: string
+          /**
+           * Format: binary
+           * @description Replacement document file content
+           */
+          file: string
+        }
+      }
+    }
+    responses: {
+      /** @description Replacement version uploaded (previous approved retained) */
+      201: {
+        content: {
+          'application/json': components['schemas']['Document']
+        }
+      }
+      400: components['responses']['BadRequest']
+      /** @description Invalid state transition */
+      409: {
+        content: never
+      }
+    }
+  }
+  /** Get readiness aggregation for a meeting */
+  getDocumentsReadiness: {
+    parameters: {
+      query: {
+        meetingId: string
+      }
+    }
+    responses: {
+      /** @description Readiness status */
+      200: {
+        content: {
+          'application/json': {
+            phase1Ready?: boolean
+            phase2Ready?: boolean
+            overallReady?: boolean
+            outstandingPhase1?: Record<string, never>[]
+            outstandingPhase2?: Record<string, never>[]
+          }
+        }
+      }
+      400: components['responses']['BadRequest']
+    }
+  }
+  /** Get version history for a document type within a meeting */
+  getDocumentHistory: {
+    parameters: {
+      query: {
+        meetingId: string
+      }
+      path: {
+        documentType: string
+      }
+    }
+    responses: {
+      /** @description Version history */
+      200: {
+        content: {
+          'application/json': components['schemas']['Document'][]
+        }
+      }
+      404: components['responses']['NotFound']
+    }
+  }
+  /**
+   * List positions
+   * @description List positions with Supabase PostgREST filters.
+   *
+   * Common usage:
+   * - Filter by meeting: `?meetingId=eq.WEN-2024-AGM`
+   * - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
+   * - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
+   * - Include meeting data: `?select=*,meetings(*)`
+   * - Include position votes: `?select=*,position_votes(*)`
+   * - Order by shares: `?order=shares.desc`
+   * - Pagination: `?limit=20&offset=40`
+   */
   listPositions: {
     parameters: {
       query?: {
@@ -2567,17 +2234,10 @@ export interface operations {
         /** @description Number of results to skip for pagination */
         offset?: number
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Positions retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Position'][]
         }
@@ -2586,13 +2246,8 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new position */
   createPosition: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CreatePositionRequest']
@@ -2601,9 +2256,6 @@ export interface operations {
     responses: {
       /** @description Position created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Position']
         }
@@ -2613,22 +2265,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get position by ID */
   getPositionById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Position retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Position']
         }
@@ -2637,14 +2283,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update position */
   updatePosition: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2654,9 +2298,6 @@ export interface operations {
     responses: {
       /** @description Position updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Position']
         }
@@ -2667,24 +2308,19 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** List proposals for a meeting */
   listProposals: {
     parameters: {
       query?: {
         proposalType?: string
       }
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Proposals retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Proposal'][]
         }
@@ -2693,14 +2329,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Create new proposal */
   createProposal: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         meetingId: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2710,9 +2344,6 @@ export interface operations {
     responses: {
       /** @description Proposal created successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Proposal']
         }
@@ -2722,22 +2353,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get proposal by ID */
   getProposalById: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Proposal retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Proposal']
         }
@@ -2746,14 +2371,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Update proposal */
   updateProposal: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2763,9 +2386,6 @@ export interface operations {
     responses: {
       /** @description Proposal updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Proposal']
         }
@@ -2776,6 +2396,28 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /**
+   * Get position votes
+   * @description Get position votes using Supabase PostgREST filters.
+   *
+   * Common usage examples:
+   * - Get votes for a position: `?positionId=eq.{uuid}`
+   * - Get votes for a proposal: `?proposalId=eq.{uuid}`
+   * - Include related data: `?select=*,positions(*),proposals(*)`
+   * - Order by date: `?order=createdAt.desc`
+   *
+   * Supabase operators:
+   * - `eq` - equals
+   * - `neq` - not equals
+   * - `gt` - greater than
+   * - `gte` - greater than or equal
+   * - `lt` - less than
+   * - `lte` - less than or equal
+   * - `like` - LIKE operator
+   * - `ilike` - ILIKE operator
+   * - `in` - one of a list of values
+   * - `is` - checking for null/not null
+   */
   getPositionVotes: {
     parameters: {
       query?: {
@@ -2794,18 +2436,13 @@ export interface operations {
         /** @description Number of results to skip for pagination */
         offset?: number
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Position votes retrieved successfully */
       200: {
         headers: {
           /** @description Pagination info (e.g., `0-9/100`) */
           'Content-Range'?: string
-          [name: string]: unknown
         }
         content: {
           'application/json': components['schemas']['PositionVote'][]
@@ -2814,13 +2451,14 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /**
+   * Create a position vote
+   * @description Create a new position vote record.
+   *
+   * Note: In Supabase PostgREST, you POST directly to the table endpoint.
+   * The positionId should be included in the request body, not the URL path.
+   */
   createPositionVote: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
     requestBody: {
       content: {
         'application/json': components['schemas']['CastVoteRequest']
@@ -2829,9 +2467,6 @@ export interface operations {
     responses: {
       /** @description Vote cast successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['PositionVote']
         }
@@ -2841,22 +2476,16 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** Get comments for a document */
   getDocumentComments: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Comments retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Comment'][]
         }
@@ -2865,14 +2494,12 @@ export interface operations {
       404: components['responses']['NotFound']
     }
   }
+  /** Add comment to a document */
   addComment: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         id: string
       }
-      cookie?: never
     }
     requestBody: {
       content: {
@@ -2882,9 +2509,6 @@ export interface operations {
     responses: {
       /** @description Comment added successfully */
       201: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Comment']
         }
@@ -2894,6 +2518,7 @@ export interface operations {
       403: components['responses']['Forbidden']
     }
   }
+  /** List user notifications */
   listNotifications: {
     parameters: {
       query?: {
@@ -2906,17 +2531,10 @@ export interface operations {
         page?: components['parameters']['PageParam']
         limit?: components['parameters']['LimitParam']
       }
-      header?: never
-      path?: never
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Notifications retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': {
             data?: components['schemas']['Notification'][]
@@ -2927,22 +2545,16 @@ export interface operations {
       401: components['responses']['Unauthorized']
     }
   }
+  /** Mark notification as read */
   markNotificationRead: {
     parameters: {
-      query?: never
-      header?: never
       path: {
         notificationId: string
       }
-      cookie?: never
     }
-    requestBody?: never
     responses: {
       /** @description Notification marked as read */
       200: {
-        headers: {
-          [name: string]: unknown
-        }
         content: {
           'application/json': components['schemas']['Notification']
         }

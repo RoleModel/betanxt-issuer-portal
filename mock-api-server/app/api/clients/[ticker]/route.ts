@@ -30,7 +30,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /clients/{ticker}:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -66,7 +66,7 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PUT /clients/{ticker}:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -99,7 +99,7 @@ export async function DELETE(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in DELETE /clients/{ticker}:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

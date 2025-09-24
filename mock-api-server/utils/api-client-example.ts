@@ -16,31 +16,24 @@ export const exampleAuthFlow = async () => {
     })
 
     if (loginError) {
-      console.error('Login failed:', loginError)
       return
     }
 
-    console.log('Login successful:', loginData?.user)
 
     // Get current user
     const { data: currentUser, error: userError } = await apiClient.GET('/auth/me')
     if (userError) {
-      console.error('Failed to get current user:', userError)
       return
     }
 
-    console.log('Current user:', currentUser)
 
     // Logout
     const { error: logoutError } = await apiClient.POST('/auth/logout')
     if (logoutError) {
-      console.error('Logout failed:', logoutError)
       return
     }
 
-    console.log('Logged out successfully')
   } catch (error) {
-    console.error('Auth flow error:', error)
   }
 }
 
@@ -58,12 +51,9 @@ export const exampleUserManagement = async () => {
     })
 
     if (usersError) {
-      console.error('Failed to list users:', usersError)
       return
     }
 
-    console.log('Users:', usersData?.users)
-    console.log('Pagination:', usersData?.pagination)
 
     // Create a new user
     const { data: newUser, error: createError } = await apiClient.POST('/users', {
@@ -79,11 +69,9 @@ export const exampleUserManagement = async () => {
     })
 
     if (createError) {
-      console.error('Failed to create user:', createError)
       return
     }
 
-    console.log('Created user:', newUser)
 
     if (newUser?.id) {
       // Update the user
@@ -101,14 +89,11 @@ export const exampleUserManagement = async () => {
       )
 
       if (updateError) {
-        console.error('Failed to update user:', updateError)
         return
       }
 
-      console.log('Updated user:', updatedUser)
     }
   } catch (error) {
-    console.error('User management error:', error)
   }
 }
 
@@ -132,11 +117,9 @@ export const exampleMeetingManagement = async () => {
     )
 
     if (meetingsError) {
-      console.error('Failed to list meetings:', meetingsError)
       return
     }
 
-    console.log('Meetings:', meetingsData?.meetings)
 
     // Create a new meeting
     const { data: newMeeting, error: createError } = await apiClient.POST('/meetings', {
@@ -159,11 +142,9 @@ export const exampleMeetingManagement = async () => {
     })
 
     if (createError) {
-      console.error('Failed to create meeting:', createError)
       return
     }
 
-    console.log('Created meeting:', newMeeting)
 
     if (newMeeting?.id) {
       // Update meeting status
@@ -182,14 +163,11 @@ export const exampleMeetingManagement = async () => {
       )
 
       if (updateError) {
-        console.error('Failed to update meeting:', updateError)
         return
       }
 
-      console.log('Updated meeting:', updatedMeeting)
     }
   } catch (error) {
-    console.error('Meeting management error:', error)
   }
 }
 
@@ -202,7 +180,6 @@ export const exampleAccountManagement = async () => {
     })
 
     if (accountsResult.data) {
-      console.log('Available accounts:', accountsResult.data.accounts)
     }
 
     // Create a new account
@@ -215,10 +192,8 @@ export const exampleAccountManagement = async () => {
     })
 
     if (newAccountResult.data) {
-      console.log('Created account:', newAccountResult.data)
     }
   } catch (error) {
-    console.error('Account management error:', error)
   }
 }
 
@@ -233,13 +208,10 @@ export const exampleCustomApiCall = async () => {
     })
 
     if (error) {
-      console.error('API Error:', error)
       return
     }
 
-    console.log('User data:', data)
   } catch (error) {
-    console.error('Custom API call error:', error)
   }
 }
 
@@ -256,22 +228,16 @@ export const exampleErrorHandling = async () => {
       // Handle different error types using the response status
       switch (response.status) {
         case 404:
-          console.log('User not found')
           break
         case 401:
-          console.log('Unauthorized - please login')
           break
         case 403:
-          console.log('Forbidden - insufficient permissions')
           break
         default:
-          console.log('Unexpected error:', error)
       }
     } else {
-      console.log('User found:', data)
     }
   } catch (error) {
-    console.error('Network or other error:', error)
   }
 }
 
@@ -280,14 +246,12 @@ export const exampleErrorHandling = async () => {
 // OLD WAY (custom API client):
 // const result = await apiClient.getMeetingById('WEN-2024-AGM')
 // if (result.error) { /* handle error */ }
-// console.log(result.data)
 //
 // NEW WAY (openapi-fetch):
 // const { data, error } = await apiClient.GET('/meetings/{meetingId}', {
 //   params: { path: { meetingId: 'WEN-2024-AGM' } }
 // })
 // if (error) { /* handle error */ }
-// console.log(data)
 //
 // Key differences:
 // 1. Method names: getMeetingById() -> GET('/meetings/{meetingId}', ...)

@@ -29,7 +29,6 @@ export function CTACard() {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle form submission
-    console.log('Contact form submitted:', contactForm)
   }
 
   return (

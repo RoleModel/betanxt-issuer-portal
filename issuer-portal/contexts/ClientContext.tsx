@@ -197,17 +197,33 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Update current client state immediately
     setCurrentClient(client)
 
-    // Navigate to an appropriate meeting for the selected client using ticker-based routing
-    // Use the client's ticker to generate the default meeting ID dynamically
+    // Navigate to the equivalent page for the selected client using ticker-based routing
     if (client.ticker) {
-      const defaultMeetingId = `${client.ticker.toLowerCase()}-annual-meeting-2025`
+      let newPath: string
 
-      // Extract current route (everything after /[TICKER]/meeting/meetingId)
-      const currentPath = pathname.replace(/^\/[A-Z]{2,5}\/meeting\/[^/]+/, '')
-      const newPath =
-        currentPath === ''
-          ? `/${client.ticker}/meeting/${defaultMeetingId}`
-          : `/${client.ticker}/meeting/${defaultMeetingId}${currentPath}`
+      // Check the current route type and navigate to the equivalent page for the new client
+      if (pathname.includes('/past-meetings')) {
+        // For past-meetings page, navigate to the new client's past-meetings
+        newPath = `/${client.ticker}/past-meetings`
+      } else if (pathname.startsWith('/education')) {
+        // Education pages are now at root level - stay on the same education page
+        // No navigation needed when switching clients on education pages
+        return
+      } else if (pathname.startsWith('/products')) {
+        // Products pages are now at root level - stay on the same products page
+        // No navigation needed when switching clients on products pages
+        return
+      } else if (pathname.includes('/meeting/')) {
+        // For meeting pages, extract the current route part after meetingId
+        const meetingMatch = pathname.match(/^\/[A-Z]{2,5}\/meeting\/[^/]+(.*)$/)
+        const routeAfterMeeting = meetingMatch ? meetingMatch[1] : ''
+        const defaultMeetingId = `${client.ticker.toLowerCase()}-annual-meeting-2025`
+        newPath = `/${client.ticker}/meeting/${defaultMeetingId}${routeAfterMeeting}`
+      } else {
+        // Default fallback: navigate to the client's default meeting
+        const defaultMeetingId = `${client.ticker.toLowerCase()}-annual-meeting-2025`
+        newPath = `/${client.ticker}/meeting/${defaultMeetingId}`
+      }
 
       router.replace(newPath)
     }

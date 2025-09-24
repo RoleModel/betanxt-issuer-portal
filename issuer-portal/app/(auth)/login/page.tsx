@@ -3,6 +3,7 @@
 import { getSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 
 import {
   Alert,
@@ -10,6 +11,8 @@ import {
   Button,
   Card,
   CardContent,
+  CardActions,
+  CardMedia,
   Container,
   TextField,
   Typography,
@@ -60,33 +63,30 @@ const LoginPage = () => {
         alignItems="center"
         minHeight="100vh"
       >
-        <Card sx={{ width: '100%', maxWidth: 400 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              BetaNXT Portal
-            </Typography>
+        <Card sx={{ width: '100%', maxWidth: 500 }}>
+
+          <CardMedia sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4, mt: 2 }}>
+            <BNLogo height={36} />
+          </CardMedia>
+
+
+
+          <form onSubmit={handleSubmit}>
             <Typography
               variant="body1"
               color="text.secondary"
               align="center"
               sx={{ mb: 3 }}
             >
-              Sign in to access your account
+              Welcome to the BetaNXT Issuer Portal
             </Typography>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit}>
+            <CardContent>
               <TextField
                 fullWidth
                 label="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                margin="normal"
+                margin="dense"
                 required
                 autoFocus
               />
@@ -96,20 +96,27 @@ const LoginPage = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
+                margin="dense"
                 required
               />
+            </CardContent>
+            {error && (
+              <CardContent>
+                <Alert severity="error">
+                  {error}
+                </Alert>
+              </CardContent>
+            )}
+            <CardActions>
               <Button
                 type="submit"
-                fullWidth
                 variant="contained"
                 disabled={isLoading}
-                sx={{ mt: 3, mb: 2 }}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
-            </form>
-          </CardContent>
+            </CardActions>
+          </form>
         </Card>
       </Box>
     </Container>

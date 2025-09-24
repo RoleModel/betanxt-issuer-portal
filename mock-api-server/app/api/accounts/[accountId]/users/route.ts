@@ -30,7 +30,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /accounts/{accountId}/users:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -59,7 +59,7 @@ export async function POST(): Promise<NextResponse> {
 
     return NextResponse.json({}, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /accounts/{accountId}/users:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

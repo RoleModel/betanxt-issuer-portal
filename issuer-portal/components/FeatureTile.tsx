@@ -3,18 +3,20 @@
 import NextLink from 'next/link'
 import React from 'react'
 
-import { Box, Card, Link, Typography } from '@mui/material'
+import { Box, Card, Link, SxProps, Typography } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 
 interface FeatureTileProps {
   title: string
-  description: string | React.ReactNode
-  actionText: string
-  icon: React.ReactNode
+  description?: string | React.ReactNode
+  actionText?: string
+  iconSize?: string
+  icon?: React.ReactNode
   titleVariant?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
   variant?: 'default' | 'primary' | 'secondary' | 'info' | 'base'
   onClick?: () => void
   href?: string
+  sx?: SxProps
 }
 
 export function FeatureTile({
@@ -22,10 +24,12 @@ export function FeatureTile({
   description,
   actionText,
   icon,
+  iconSize = '48px',
   titleVariant = 'h1',
   variant = 'default',
   onClick,
   href,
+  sx,
 }: FeatureTileProps) {
   const getVariantStyles = (variant: string) => {
     switch (variant) {
@@ -75,6 +79,7 @@ export function FeatureTile({
       elevation={0}
       variant="outlined"
       sx={{
+        ...sx,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -87,10 +92,10 @@ export function FeatureTile({
         '&:hover':
           href || onClick
             ? {
-                transform: 'translateY(-2px)',
-                backgroundColor: variantStyles.hoverBackgroundColor,
-                color: variantStyles.hoverColor,
-              }
+              transform: 'translateY(-2px)',
+              backgroundColor: variantStyles.hoverBackgroundColor,
+              color: variantStyles.hoverColor,
+            }
             : {},
       }}
       onClick={href && !onClick ? undefined : onClick}
@@ -108,9 +113,10 @@ export function FeatureTile({
       >
         <Box
           sx={{
+            fontSize: iconSize,
             mb: 0.25,
             color: variantStyles.color,
-            '& .MuiSvgIcon-root path:not([stroke])': {
+            '& .MuiSvgIcon-root path:[stroke-width="2"]': {
               stroke: variantStyles.color,
             },
           }}

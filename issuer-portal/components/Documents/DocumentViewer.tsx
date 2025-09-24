@@ -2,13 +2,17 @@
 
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   Close as CloseIcon,
   CommentOutlined as CommentIcon,
   History as HistoryIcon,
   Update as UpdateIcon,
+} from '@mui/icons-material'
+import {
+  ChevronLeftOutlined as ChevronLeftIcon,
+  ChevronRightOutlined as ChevronRightIcon,
 } from '@mui/icons-material'
 import {
   AppBar,
@@ -34,6 +38,7 @@ import {
 import { TransitionProps } from '@mui/material/transitions'
 
 import DraggableSignatureArea from '@/components/Documents/DraggableSignatureArea'
+import { FormFieldArea } from '@/components/Documents/FormFieldArea'
 import PDFViewer from '@/components/Documents/PDFViewer'
 import FileUploadDialog from '@/components/file-upload/FileUploadDialog'
 
@@ -56,7 +61,9 @@ interface SignatureArea {
   height: number // percentage height
   page?: number // page number (default 1)
   label?: string // label for the signature area
+  type?: 'signature' | 'text' | 'date' // field type (default 'signature')
   signed?: boolean
+  value?: string // for text/date fields
 }
 
 interface CommentWithUser {
@@ -98,6 +105,7 @@ interface DocumentViewerProps {
   onSubmitSuccess?: () => void
   onApproveSite?: () => Promise<void>
   onRequestRevision?: () => void
+  onPdfStateChange?: (formFields: Record<string, string>, signatures: Record<string, string>) => void
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -129,10 +137,14 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   onSubmitSuccess,
   onApproveSite,
   onRequestRevision,
+  onPdfStateChange,
 }) => {
   // Task-based state management
   const [open, setOpen] = useState(false)
   const [internalSignatureData, setInternalSignatureData] = useState<string>('')
+  const [signatureDataMap, setSignatureDataMap] = useState<Record<string, string>>({})
+  const [currentSignatureAreaId, setCurrentSignatureAreaId] = useState<string | null>(null)
+  const [formFieldValues, setFormFieldValues] = useState<Record<string, string>>({})
   const [documentData, setDocumentData] = useState<{
     url: string
     title: string
@@ -165,12 +177,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     addCommentToDocument,
     uploadDocument,
     addDocumentHistory,
+    getDocumentHistory,
   } = useDocuments()
   const { updateSignatureArea } = useSignatureAreas()
 
   // Handle task-based document fetching
   useEffect(() => {
-    if (!task || task.type !== 'signature') {
+    if (!task) {
       setOpen(false)
       setDocumentData(null)
       return
@@ -182,89 +195,145 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         const document = await getTaskDocument(task.id)
 
         if (!document) {
-          console.warn('No document found for task:', task.id)
-          setDocumentData(null)
-          setOpen(false)
-          return
+          // Don't close, proceed with fallback PDF for signature tasks
         }
 
-        // Process the document if found
-        if (document) {
-          let areas: SignatureArea[] = []
+        // Process the document if found, or use fallback
+        // Use document data if available, otherwise use fallback
+        let areas: SignatureArea[] = []
 
-          if (document.signature_areas && document.signature_areas.length > 0) {
-            // Remove duplicates based on id
-            const uniqueAreas = document.signature_areas.filter(
-              (area: SignatureArea, index: number, self: SignatureArea[]) =>
-                index === self.findIndex((a: SignatureArea) => a.id === area.id)
-            )
+        if (
+          document &&
+          typeof document === 'object' &&
+          'signature_areas' in document &&
+          Array.isArray(document.signature_areas) &&
+          document.signature_areas.length > 0
+        ) {
+          // Remove duplicates based on id
+          const uniqueAreas = document.signature_areas.filter(
+            (area: SignatureArea, index: number, self: SignatureArea[]) =>
+              index === self.findIndex((a: SignatureArea) => a.id === area.id)
+          )
 
-            areas = uniqueAreas.map(
-              (area: {
-                id: string
-                x_position: number
-                y_position: number
-                width: number
-                height: number
-                page_number: number
-                signature_type?: string
-              }) => ({
-                id: area.id,
-                x: area.x_position,
-                y: area.y_position,
-                width: area.width,
-                height: area.height,
-                page: area.page_number,
-                label:
-                  area.signature_type === 'electronic'
-                    ? 'Click to sign'
-                    : area.signature_type || 'Click to sign',
-                signed: false,
-              })
-            )
-          } else {
-            // Default signature area - only add if no areas exist
-            areas = [
-              {
-                id: 'temp-signature-area',
-                x: 20,
-                y: 80,
-                width: 25,
-                height: 8,
-                page: 1,
-                label: 'Click to sign',
-                signed: false,
-              },
-            ]
-          }
-
-          // Construct the proper URL for the document
-          let documentUrl = document.url || document.file_path || '/test-pdf.pdf'
-
-          // If file_path is just a filename and not a full URL, construct Supabase storage URL
-          if (
-            documentUrl &&
-            !isStorageUrl(documentUrl) &&
-            !documentUrl.startsWith('/') &&
-            documentUrl.endsWith('.pdf')
-          ) {
-            documentUrl = getStoragePublicUrl(documentUrl)
-          }
-
-          // Only open if we have a valid PDF URL
-          if (
-            documentUrl &&
-            (documentUrl.endsWith('.pdf') || documentUrl.includes('/test-pdf'))
-          ) {
-            setCurrentDocumentId(document.id)
-            setDocumentData({
-              url: documentUrl,
-              title: task.title || document.title,
-              signatureAreas: areas,
+          areas = uniqueAreas.map(
+            (area: {
+              id: string
+              x_position: number
+              y_position: number
+              width: number
+              height: number
+              page_number: number
+              signature_type?: string
+            }) => ({
+              id: area.id,
+              x: area.x_position,
+              y: area.y_position,
+              width: area.width,
+              height: area.height,
+              page: area.page_number,
+              label:
+                area.signature_type === 'electronic'
+                  ? 'Click to sign'
+                  : area.signature_type || 'Click to sign',
+              signed: false,
             })
-            setLocalSignatureAreas(areas)
-            setOpen(true)
-          }
+          )
+        } else {
+          // Default signature areas for common form fields
+          areas = [
+            {
+              id: 'temp-signature-area-1',
+              x: 20,
+              y: 75,
+              width: 25,
+              height: 5,
+              page: 1,
+              label: 'Signature',
+              type: 'signature',
+              signed: false,
+            },
+            {
+              id: 'temp-text-area-1',
+              x: 50,
+              y: 75,
+              width: 25,
+              height: 5,
+              page: 1,
+              label: 'Print Name',
+              type: 'text',
+              signed: false,
+            },
+            {
+              id: 'temp-date-area-1',
+              x: 20,
+              y: 82,
+              width: 15,
+              height: 5,
+              page: 1,
+              label: 'Date',
+              type: 'date',
+              signed: false,
+            },
+          ]
+        }
+
+        // Construct the proper URL for the document
+        let documentUrl =
+          (document &&
+            typeof document === 'object' &&
+            'url' in document &&
+            typeof document.url === 'string'
+            ? document.url
+            : undefined) ||
+          (document &&
+            typeof document === 'object' &&
+            'file_path' in document &&
+            typeof document.file_path === 'string'
+            ? document.file_path
+            : undefined)
+
+        // If no document URL is found, use a default PDF for demonstration
+        if (!documentUrl) {
+          documentUrl = '/documents/proxy-guide-2025-250204.pdf'
+        }
+
+        // If file_path is just a filename and not a full URL, construct Supabase storage URL
+        if (
+          documentUrl &&
+          !isStorageUrl(documentUrl) &&
+          !documentUrl.startsWith('/') &&
+          documentUrl.endsWith('.pdf')
+        ) {
+          documentUrl = getStoragePublicUrl(documentUrl)
+        }
+
+        // Only open if we have a valid PDF URL
+        if (
+          documentUrl &&
+          (documentUrl.endsWith('.pdf') || documentUrl.includes('/test-pdf'))
+        ) {
+          setCurrentDocumentId(
+            document &&
+              typeof document === 'object' &&
+              'id' in document &&
+              typeof document.id === 'string'
+              ? document.id
+              : ''
+          )
+          setDocumentData({
+            url: documentUrl,
+            title:
+              task.title ||
+              (document &&
+                typeof document === 'object' &&
+                'title' in document &&
+                typeof document.title === 'string'
+                ? document.title
+                : 'Document'),
+            signatureAreas: areas,
+          })
+          setLocalSignatureAreas(areas)
+          setOpen(true)
         }
       } catch (error) {
         console.error('Error fetching task document:', error)
@@ -274,21 +343,36 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     fetchTaskDocument()
   }, [task, getTaskDocument])
 
-  // Determine which props to use (task-based or legacy)
-  const actualOpen = task ? open : (legacyOpen ?? false)
-  const actualOnClose = task ? () => setOpen(false) : legacyOnClose
-  const actualPdfUrl = task ? documentData?.url : pdfUrl
-  const actualTitle = task ? documentData?.title : title
-  const actualSignatureData = task ? internalSignatureData : signatureData
+  // Determine which props to use (legacy props take absolute priority when provided)
+  const actualOpen = legacyOpen !== undefined ? legacyOpen : task ? open : false
+  const actualOnClose = useMemo(
+    () => legacyOnClose ||
+      (task
+        ? () => {
+          setOpen(false)
+        }
+        : undefined),
+    [legacyOnClose, task, setOpen]
+  )
+  const actualPdfUrl = pdfUrl ? pdfUrl : task ? documentData?.url : undefined
+  const actualTitle = title ? title : task ? documentData?.title : undefined
+  const actualSignatureData = signatureData
+    ? signatureData
+    : task
+      ? internalSignatureData
+      : undefined
 
   const handleTaskSubmitSuccess = useCallback(async () => {
+
     if (task) {
       try {
-        await updateTaskById(task.id, { status: 'COMPLETE' })
+        const result = await updateTaskById(task.id, { status: 'COMPLETE' })
 
         onSuccess?.()
         setOpen(false)
-      } catch {}
+      } catch (error) {
+        console.error('DocumentViewer: Error in handleTaskSubmitSuccess:', error)
+      }
     } else {
       onSubmitSuccess?.()
     }
@@ -305,16 +389,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     [task, onSignatureInsert]
   )
 
-  // Sync signature areas when props change
+  // Sync signature areas when props change (prioritize legacy props)
   useEffect(() => {
+    const areasToUse =
+      signatureAreas.length > 0 ? signatureAreas : documentData?.signatureAreas || []
     // Only update if the arrays are actually different
-    if (
-      JSON.stringify(prevSignatureAreasRef.current) !== JSON.stringify(signatureAreas)
-    ) {
-      setLocalSignatureAreas(signatureAreas)
-      prevSignatureAreasRef.current = signatureAreas
+    if (JSON.stringify(prevSignatureAreasRef.current) !== JSON.stringify(areasToUse)) {
+      setLocalSignatureAreas(areasToUse)
+      prevSignatureAreasRef.current = areasToUse
     }
-  }, [signatureAreas])
+  }, [signatureAreas, documentData?.signatureAreas])
 
   const handlePositionUpdate = useCallback(
     async (areaId: string, x: number, y: number) => {
@@ -355,6 +439,33 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     [updateSignatureArea]
   )
 
+  const handleFormFieldChange = useCallback((areaId: string, value: string) => {
+    setFormFieldValues((prev) => ({
+      ...prev,
+      [areaId]: value,
+    }))
+    // Also update the area's value in local state
+    setLocalSignatureAreas((prev) =>
+      prev.map((area) => (area.id === areaId ? { ...area, value } : area))
+    )
+  }, [])
+
+  // Notify parent of PDF state changes (with stable callback to prevent infinite loops)
+  const lastStateRef = useRef({ formFieldValues: {}, signatureDataMap: {} })
+  useEffect(() => {
+    // Only call if state actually changed
+    const currentState = { formFieldValues, signatureDataMap }
+    const lastState = lastStateRef.current
+
+    const formFieldsChanged = JSON.stringify(currentState.formFieldValues) !== JSON.stringify(lastState.formFieldValues)
+    const signaturesChanged = JSON.stringify(currentState.signatureDataMap) !== JSON.stringify(lastState.signatureDataMap)
+
+    if ((formFieldsChanged || signaturesChanged) && onPdfStateChange) {
+      onPdfStateChange(formFieldValues, signatureDataMap)
+      lastStateRef.current = currentState
+    }
+  }, [formFieldValues, signatureDataMap, onPdfStateChange])
+
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
     setIsLoading(false)
@@ -369,34 +480,32 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     const loadDocumentHistory = async () => {
       if (actualOpen && (documentId || actualPdfUrl)) {
         try {
-          // Use hook to get document (placeholder for now)
-          console.warn(
-            'loadDocumentHistory: Using placeholder data - needs proper document lookup API'
-          )
-
-          // Set placeholder values until proper API is implemented
-          if (documentId) {
-            setCurrentDocumentId(documentId)
-          } else {
-            setCurrentDocumentId('temp-doc-id')
+          // Set document ID for API calls
+          const docId = documentId || currentDocumentId || 'temp-doc-id'
+          if (!currentDocumentId) {
+            setCurrentDocumentId(docId)
           }
 
-          setDocumentHistory([])
+          // Load document history using API
+          const history = await getDocumentHistory(docId)
+          setDocumentHistory(history.map(event => ({
+            event_type: event.event_type,
+            user: event.user,
+            timestamp: event.timestamp,
+          })))
 
           // Load comments using hook
-          if (currentDocumentId) {
-            const comments = await getCommentsForDocument(currentDocumentId)
-            const transformedComments = comments.map((comment) => ({
-              id: comment.id,
-              comment: comment.comment,
-              user: comment.userId,
-              first_name: '',
-              last_name: '',
-              created_at: comment.createdAt,
-              users: null,
-            })) as CommentWithUser[]
-            setComments(transformedComments)
-          }
+          const comments = await getCommentsForDocument(docId)
+          const transformedComments = comments.map((comment) => ({
+            id: comment.id,
+            comment: comment.comment,
+            user: comment.user,
+            first_name: '',
+            last_name: '',
+            created_at: comment.created_at,
+            users: null,
+          })) as CommentWithUser[]
+          setComments(transformedComments)
         } catch (error) {
           console.error('Error loading document history:', error)
         }
@@ -404,7 +513,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
 
     loadDocumentHistory()
-  }, [actualOpen, documentId, actualPdfUrl, currentDocumentId, getCommentsForDocument])
+  }, [actualOpen, documentId, actualPdfUrl, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const goToPrevPage = useCallback(() => {
     setPageNumber((prev) => Math.max(prev - 1, 1))
@@ -414,7 +523,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setPageNumber((prev) => Math.min(prev + 1, numPages || 1))
   }, [numPages])
 
-  const handleCustomSignature = useCallback(() => {
+  const handleCustomSignature = useCallback((areaId: string) => {
+    setCurrentSignatureAreaId(areaId)
     // Open signature modal on top of document viewer
     setSignatureModalOpen(true)
   }, [])
@@ -425,40 +535,74 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   const handleSignatureModalInsert = useCallback(
     (signature: string) => {
-      // Pass signature data to parent component
+      // Store signature data for the specific area
+      if (currentSignatureAreaId) {
+        setSignatureDataMap((prev) => ({
+          ...prev,
+          [currentSignatureAreaId]: signature,
+        }))
+      }
+      // Also update the single signature data for backward compatibility
       handleTaskSignatureInsert(signature)
       setSignatureModalOpen(false)
+      setCurrentSignatureAreaId(null)
     },
-    [handleTaskSignatureInsert]
+    [currentSignatureAreaId, handleTaskSignatureInsert]
   )
 
   const handleSubmitSignedForm = useCallback(async () => {
+
     try {
       // Add "Signed" history entry
       if (currentDocumentId) {
         const success = await addDocumentHistory(currentDocumentId, 'Signed')
+
         if (success) {
-          // Refresh document history (placeholder)
-          console.warn('Document history refresh: Using placeholder - needs proper API')
-          setDocumentHistory([])
+          // Refresh document history by fetching latest data
+          const history = await getDocumentHistory(currentDocumentId)
+          setDocumentHistory(history.map(event => ({
+            event_type: event.event_type,
+            user: event.user,
+            timestamp: event.timestamp,
+          })))
         }
+      } else {
       }
 
       // Update task status to Complete
-      if (taskId) {
+      const taskIdToUpdate = taskId || task?.id
+
+      if (taskIdToUpdate) {
         try {
-          await updateTaskById(taskId, { status: 'COMPLETE' })
-          // Note: onTaskStatusChange may need to be updated to work with the new task system
-          // await onTaskStatusChange(taskId)
+          await updateTaskById(taskIdToUpdate, { status: 'COMPLETE' })
         } catch (error) {
-          console.error('Error updating task status:', error)
+          console.error('DocumentViewer: Error updating task status:', error)
         }
+      } else {
       }
 
-      // Call the submit success handler
+      // Call the submit success handler which will close the dialog
       handleTaskSubmitSuccess()
-    } catch {}
-  }, [handleTaskSubmitSuccess, currentDocumentId, taskId, addDocumentHistory, updateTaskById])
+
+      // Also ensure we close the dialog directly
+      if (actualOnClose) {
+        actualOnClose()
+      }
+    } catch (error) {
+      console.error('DocumentViewer: Error in handleSubmitSignedForm:', error)
+    }
+  }, [
+    handleTaskSubmitSuccess,
+    currentDocumentId,
+    taskId,
+    addDocumentHistory,
+    getDocumentHistory,
+    updateTaskById,
+    actualOnClose,
+    formFieldValues,
+    signatureDataMap,
+    task,
+  ])
 
   const handleUploadSignedDocument = useCallback(() => {
     setUploadDialogOpen(true)
@@ -515,15 +659,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }
 
   const handleSubmitComment = async () => {
+
     if (!comment.trim()) {
       return
     }
 
     if (!currentDocumentId) {
-      return
-    }
-
-    if (!session?.user?.username) {
       return
     }
 
@@ -535,12 +676,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       const newComment = {
         id: `temp_${Date.now()}`,
         comment: comment.trim(),
-        user: session.user.username || '',
-        first_name: (session.user.name || '').split(' ')[0] || '',
-        last_name: (session.user.name || '').split(' ').slice(1).join(' ') || '',
+        user: session?.user?.email || 'current-user',
+        first_name: (session?.user?.name || '').split(' ')[0] || 'User',
+        last_name: (session?.user?.name || '').split(' ').slice(1).join(' ') || '',
         created_at: new Date().toISOString(),
         users: null,
       }
+
 
       // Add new comment to the bottom of the list (chronological order)
       setComments((prev) => [...prev, newComment])
@@ -548,7 +690,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       setComment('')
       setShowCommentField(false)
     } catch (error) {
-      console.error('Error adding comment:', error)
+      console.error('DocumentViewer: Error adding comment:', error)
     }
   }
 
@@ -569,17 +711,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         setUploadDialogOpen(false)
 
-        // Refresh document history (placeholder)
-        console.warn(
-          'Document history refresh after upload: Using placeholder - needs proper API'
-        )
-        setDocumentHistory([])
+        // Refresh document history by fetching latest data
+        const history = await getDocumentHistory(currentDocumentId)
+        setDocumentHistory(history.map(event => ({
+          event_type: event.event_type,
+          user: event.user,
+          timestamp: event.timestamp,
+        })))
       } catch (error) {
         console.error('Error uploading files:', error)
         throw error
       }
     },
-    [currentDocumentId, uploadDocument]
+    [currentDocumentId, uploadDocument, getDocumentHistory]
   )
 
   return (
@@ -587,6 +731,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       open={actualOpen}
       onClose={actualOnClose}
       fullScreen
+      data-testid="document-viewer"
       slots={{
         transition: Transition,
       }}
@@ -648,7 +793,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Button
                   variant="outlined"
                   color="inherit"
-                  onClick={() => window.open(actualPdfUrl, '_blank')}
+                  onClick={() => {
+                    // Create a download link and click it
+                    if (actualPdfUrl) {
+                      const downloadLink = document.createElement('a')
+                      downloadLink.href = actualPdfUrl
+                      downloadLink.download = `${actualTitle || 'document'}.pdf`
+                      downloadLink.click()
+                    }
+                  }}
                   sx={{
                     color: (theme) => theme.vars.palette.common.white,
                     borderColor: (theme) => theme.vars.palette.common.white,
@@ -661,77 +814,77 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   Download
                 </Button>
                 {(documentType === 'signature' ||
-                  (task && task.type === 'signature')) && (
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={handleUploadSignedDocument}
-                    sx={{
-                      color: (theme) => theme.vars.palette.common.white,
-                      borderColor: (theme) => theme.vars.palette.common.white,
-                      '&:hover': {
+                  (task && (task.type === 'signature' || task.type === 'Document' || task.type === 'Authorization'))) && (
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      onClick={handleUploadSignedDocument}
+                      sx={{
+                        color: (theme) => theme.vars.palette.common.white,
                         borderColor: (theme) => theme.vars.palette.common.white,
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    Upload Signed Document
-                  </Button>
-                )}
+                        '&:hover': {
+                          borderColor: (theme) => theme.vars.palette.common.white,
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      Upload Signed Document
+                    </Button>
+                  )}
 
                 {(documentType === 'signature' ||
-                  (task && task.type === 'signature')) && (
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={handleSubmitSignedForm}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: (theme) => theme.vars.palette.success.light,
-                      },
-                    }}
-                  >
-                    Submit
-                  </Button>
-                )}
+                  (task && (task.type === 'signature' || task.type === 'Document' || task.type === 'Authorization'))) && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleSubmitSignedForm}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: (theme) => theme.vars.palette.success.light,
+                        },
+                      }}
+                    >
+                      Submit
+                    </Button>
+                  )}
               </>
             )}
 
             {/* PDF Navigation */}
             {!isWebsiteView && numPages && numPages > 1 && (
               <>
-                <Button
-                  variant="text"
+                <IconButton
                   color="inherit"
                   onClick={goToPrevPage}
                   disabled={pageNumber <= 1}
                   sx={{
-                    color: (theme) => theme.vars.palette.common.white,
-                    minWidth: 'auto',
-                    px: 1,
+                    '&.Mui-disabled': {
+                      color: (theme) => theme.vars.palette.common.white,
+                      opacity: 0.5,
+                    },
                   }}
                 >
-                  ‹
-                </Button>
+                  <ChevronLeftIcon />
+                </IconButton>
                 <Typography
                   variant="body2"
                   sx={{ color: (theme) => theme.vars.palette.common.white, mx: 1 }}
                 >
                   {pageNumber} / {numPages}
                 </Typography>
-                <Button
-                  variant="text"
+                <IconButton
                   color="inherit"
                   onClick={goToNextPage}
                   disabled={pageNumber >= numPages}
                   sx={{
-                    color: (theme) => theme.vars.palette.common.white,
-                    minWidth: 'auto',
-                    px: 1,
+                    '&.Mui-disabled': {
+                      color: (theme) => theme.vars.palette.common.white,
+                      opacity: 0.5,
+                    },
                   }}
                 >
-                  ›
-                </Button>
+                  <ChevronRightIcon />
+                </IconButton>
               </>
             )}
 
@@ -764,34 +917,59 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'flex-start',
-            p: { xs: 1, sm: 3 },
+            p: { xs: 1, sm: 2 },
             overflow: 'auto',
+            background: 'var(--mui-palette-background-default)',
           }}
         >
           {isWebsiteView ? (
             // Website iframe view
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 1,
-                boxShadow: (theme) => theme.shadows[4],
-                overflow: 'hidden',
-              }}
-            >
-              <iframe
-                src={actualPdfUrl}
-                style={{
+            actualPdfUrl ? (
+              <Box
+                sx={{
                   width: '100%',
                   height: '100%',
-                  border: 'none',
+                  borderRadius: 1,
+                  boxShadow: (theme) => theme.shadows[4],
+                  overflow: 'hidden',
                 }}
-                title={actualTitle || 'Website View'}
-              />
-            </Box>
+              >
+                <iframe
+                  src={actualPdfUrl}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                  }}
+                  title={actualTitle || 'Website View'}
+                />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  color: 'text.secondary',
+                }}
+              >
+                <Typography variant="body2">No URL provided for website view</Typography>
+              </Box>
+            )
           ) : (
             // PDF viewer
-            <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                pt: 2,
+              }}
+            >
               {isLoading && (
                 <Box
                   sx={{
@@ -807,33 +985,90 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               )}
 
               {/* React-PDF Document Viewer */}
-              <Box sx={{ position: 'relative', display: 'flex', justifySelf: 'center' }}>
-                <PDFViewer
-                  file={actualPdfUrl || ''}
-                  pageNumber={pageNumber}
-                  width={Math.min(
-                    800,
-                    typeof window !== 'undefined' ? window.innerWidth - 400 : 800
+              <Box
+                sx={{
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'flex-start',
+                  width: '100%',
+                  maxWidth: '100%',
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'relative',
+                    maxWidth: '100%',
+                    boxShadow: 3,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    background: 'white',
+                  }}
+                >
+                  {actualPdfUrl ? (
+                    <PDFViewer
+                      file={actualPdfUrl}
+                      pageNumber={pageNumber}
+                      width={Math.min(
+                        800,
+                        typeof window !== 'undefined'
+                          ? window.innerWidth - (showComments || showHistory ? 500 : 100)
+                          : 800
+                      )}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                      onLoadError={onDocumentLoadError}
+                    />
+                  ) : (
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      minHeight={400}
+                    >
+                      <div>No PDF URL available</div>
+                    </Box>
                   )}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  onLoadError={onDocumentLoadError}
-                />
 
-                {/* Signature Area Overlays - positioned relative to the Page */}
-                {localSignatureAreas
-                  .filter((area) => (area.page || 1) === pageNumber)
-                  .map((area) => {
-                    return (
-                      <DraggableSignatureArea
-                        key={area.id}
-                        area={area}
-                        signatureData={actualSignatureData}
-                        documentId={currentDocumentId || ''}
-                        onClick={handleCustomSignature}
-                        onPositionUpdate={handlePositionUpdate}
-                      />
-                    )
-                  })}
+                  {/* Signature and Form Field Area Overlays - positioned relative to the Page */}
+                  {localSignatureAreas
+                    .filter((area) => (area.page || 1) === pageNumber)
+                    .map((area) => {
+                      // Check if this is a form field (text or date) based on type or label
+                      const fieldType = area.type ||
+                        (area.label?.toLowerCase().includes('print name') ? 'text' :
+                          area.label?.toLowerCase().includes('name') && !area.label?.toLowerCase().includes('signature') ? 'text' :
+                            area.label?.toLowerCase().includes('date') ? 'date' :
+                              'signature')
+
+                      if (fieldType === 'text' || fieldType === 'date') {
+                        // Render form field for text/date inputs
+                        return (
+                          <FormFieldArea
+                            key={area.id}
+                            area={{
+                              ...area,
+                              type: fieldType as 'text' | 'date',
+                              value: formFieldValues[area.id] || area.value || '',
+                            }}
+                            onValueChange={handleFormFieldChange}
+                          />
+                        )
+                      } else {
+                        // Render signature area for signatures
+                        const areaSignatureData = signatureDataMap[area.id] || actualSignatureData
+                        return (
+                          <DraggableSignatureArea
+                            key={area.id}
+                            area={area}
+                            signatureData={areaSignatureData}
+                            documentId={currentDocumentId || ''}
+                            onClick={() => handleCustomSignature(area.id)}
+                            onPositionUpdate={handlePositionUpdate}
+                          />
+                        )
+                      }
+                    })}
+                </Box>
               </Box>
             </Box>
           )}

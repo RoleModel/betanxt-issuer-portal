@@ -30,7 +30,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /positions/{id}:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -66,7 +66,7 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PUT /positions/{id}:', error)
+
     return NextResponse.json(
       { 
         error: 'Internal server error',

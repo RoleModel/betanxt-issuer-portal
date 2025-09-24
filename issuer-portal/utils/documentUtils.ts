@@ -57,7 +57,7 @@ export function getFileExtension(filename: string): string {
 
 // Check if file type is supported
 export function isSupportedFileType(filename: string): boolean {
-  const supportedTypes = ['pdf', 'doc', 'docx', 'txt']
+  const supportedTypes = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt']
   const extension = getFileExtension(filename).toLowerCase()
   return supportedTypes.includes(extension)
 }
@@ -91,16 +91,28 @@ export function calculateSignatureArea(position: {
   return position.width * position.height
 }
 
-// Mock function to upload document
+// Upload document to Supabase storage
 export async function uploadDocument(
-  file: File
+  file: File,
+  meetingId?: string,
+  documentType: 'dsm' | 'regular' = 'regular'
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
     if (!isSupportedFileType(file.name)) {
       return { data: null, error: 'File type not supported' }
+    }
+
+    // Import storage utility dynamically to avoid SSR issues
+    const { uploadFileToStorage, createStorageFolder } = await import('./supabaseStorage')
+
+    // Create folder path if meetingId is provided
+    const folder = meetingId ? createStorageFolder(meetingId, documentType) : undefined
+
+    // Upload to Supabase storage
+    const uploadResult = await uploadFileToStorage(file, folder)
+
+    if (uploadResult.error || !uploadResult.data) {
+      return { data: null, error: uploadResult.error || 'Upload failed' }
     }
 
     const document: Document = {
@@ -110,25 +122,42 @@ export async function uploadDocument(
       status: 'draft',
       size: file.size,
       uploadedAt: new Date().toISOString(),
-      url: URL.createObjectURL(file), // In real app, this would be from cloud storage
+      url: uploadResult.data.publicUrl || uploadResult.data.fullPath,
     }
 
     return { data: document, error: null }
-  } catch {
-    return { data: null, error: 'Failed to upload document' }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to upload document'
+    }
   }
 }
 
-// Mock function to delete document
+// Delete document from storage
 export async function deleteDocument(
-  _documentId: string
+  documentId: string,
+  storagePath?: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    if (storagePath) {
+      // Import storage utility dynamically to avoid SSR issues
+      const { deleteFileFromStorage } = await import('./supabaseStorage')
+
+      const result = await deleteFileFromStorage(storagePath)
+      if (result.error) {
+        return { success: false, error: result.error }
+      }
+    }
+
+    // Here you would also delete from your database
+    // For now, just simulate success
     return { success: true, error: null }
-  } catch {
-    return { success: false, error: 'Failed to delete document' }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete document'
+    }
   }
 }
 
