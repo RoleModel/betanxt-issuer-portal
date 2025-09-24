@@ -1,8 +1,8 @@
 'use client'
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import NextLink from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
@@ -46,7 +46,7 @@ interface MeetingTab {
   client: string
 }
 
-const activeNavigationTabs = [
+const navigationTabs = [
   { label: 'Meeting Dashboard', route: '/dashboard' },
   { label: 'Calendar', route: '/calendar' },
   { label: 'Documents', route: '/documents' },
@@ -55,13 +55,6 @@ const activeNavigationTabs = [
   { label: 'Reports', route: '/reports' },
   { label: 'Agenda', route: '/agenda' },
   { label: 'Guests/Registrants', route: '/guests' },
-]
-
-const pastMeetingNavigationTabs = [
-  { label: 'Meeting Dashboard', route: '/dashboard' },
-  { label: 'Documents', route: '/documents' },
-  { label: 'Tabulation', route: '/tabulation' },
-  { label: 'Reports', route: '/reports' },
 ]
 
 const ScrollButton = styled(IconButton, {
@@ -90,11 +83,13 @@ const ScrollButton = styled(IconButton, {
 }))
 
 export const EventTabs = React.memo((): React.ReactElement => {
+  const router = useRouter()
   const pathname = usePathname()
   const [activeMeetingTab, setActiveMeetingTab] = useState(0)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const lastClickTime = useRef<number>(0)
   // const { openDrawer } = usePhaseDrawer()
   const { meetings, isLoading: loading, currentMeeting: activeMeeting } = useMeeting()
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
@@ -121,23 +116,12 @@ export const EventTabs = React.memo((): React.ReactElement => {
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)
 
-  // Use all navigation tabs for both active and past meetings
-  const navigationTabs = activeNavigationTabs
-
   // Get active tab from current pathname
   // Extract the route part after /[ticker]/meeting/[meetingId]
   const currentRoute = pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, '')
 
-  // Handle the new dashboard/[phase] URL structure
-  // If we're on a phase page (/dashboard/1, /dashboard/2, etc.), consider it the dashboard tab
-  const normalizedRoute = currentRoute.match(/^\/dashboard(\/\d+)?$/)
-    ? '/dashboard'
-    : currentRoute
-
-  // Find the active tab based on current route - all sub tabs should be functional
   const activeTab =
-    navigationTabs.find((tab) => tab.route === normalizedRoute)?.label ||
-    'Meeting Dashboard'
+    navigationTabs.find((tab) => tab.route === currentRoute)?.label || 'Meeting Dashboard'
 
   // Handle URL-based meeting selection for past meetings
   useEffect(() => {
@@ -193,30 +177,19 @@ export const EventTabs = React.memo((): React.ReactElement => {
     client: currentClient?.company_name ?? '',
   })
 
-  // Show meetings based on current context (meetings are already filtered by ticker in MeetingContext)
+  // Show only active meetings (meetings are already filtered by ticker in MeetingContext)
   const transformedMeetings: {
     tab: MeetingTab
     src: components['schemas']['Meeting']
   }[] = (() => {
     // Ensure meetings is an array before filtering
     const meetingsArray = meetings || []
-
-    // If we're viewing a specific meeting from URL (including past meetings), include it
-    // Otherwise, show only active meetings
-    if (currentMeeting && currentMeeting.status !== 'ACTIVE') {
-      // For past meetings, show only the current meeting being viewed
-      return [currentMeeting].map((meeting) => ({
-        tab: mapToMeetingTab(meeting),
-        src: meeting,
-      }))
-    } else {
-      // For active context, show all active meetings
-      const activeMeetings = meetingsArray.filter((meeting) => meeting.status === 'ACTIVE')
-      return activeMeetings.map((meeting) => ({
-        tab: mapToMeetingTab(meeting),
-        src: meeting,
-      }))
-    }
+    // Filter to only show active meetings
+    const activeMeetings = meetingsArray.filter((meeting) => meeting.status === 'ACTIVE')
+    return activeMeetings.map((meeting) => ({
+      tab: mapToMeetingTab(meeting),
+      src: meeting,
+    }))
   })()
 
   // Sync activeMeetingTab with current meeting
@@ -231,6 +204,22 @@ export const EventTabs = React.memo((): React.ReactElement => {
     }
   }, [currentMeeting, transformedMeetings, activeMeetingTab])
 
+  const handleTabClick = (tabLabel: string) => {
+    // Debounce rapid clicks (250ms minimum between clicks)
+    const now = Date.now()
+    if (now - lastClickTime.current < 250) {
+      return
+    }
+    lastClickTime.current = now
+
+    const tab = navigationTabs.find((t) => t.label === tabLabel)
+    if (tab && currentMeeting && currentClient?.ticker) {
+      const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
+
+      // Use router.push for client-side navigation
+      router.push(route, { scroll: false })
+    }
+  }
 
   // Helper function to scroll to active tab
   const scrollToActiveTab = useCallback(() => {
@@ -442,186 +431,207 @@ export const EventTabs = React.memo((): React.ReactElement => {
     const isActive = currentMeeting?.id === meeting.id
     const _isPastMeeting = meeting.status === 'COMPLETE'
 
-    // Build the target URL for this meeting (use meeting's ticker)
-    const ticker = meeting.ticker
+    // Build the target URL for this meeting (use current client ticker)
+    const ticker = currentClient?.ticker
     const meetingId = meeting.id
+    const currentPath = pathname.replace(/\/[^/]+\/meeting\/[^/]+/, '')
+    const targetPath =
+      currentPath === ''
+        ? `/${ticker}/meeting/${meetingId}`
+        : `/${ticker}/meeting/${meetingId}${currentPath}`
 
-    // Always redirect to dashboard which will then redirect to the correct active phase for this meeting
-    const targetPath = `/${ticker}/meeting/${meetingId}/dashboard`
-
-    const style = {
-      textDecoration: 'none',
-      display: 'flex',
-      flexDirection: 'row',
-      height: 110,
-      cursor: isActive ? 'default' : 'pointer',
-      overflowX: 'hidden',
-      backgroundColor: isActive
-        ? `var(--mui-palette-background-default)`
-        : `light-dark(var(--mui-palette-common-white), var(--mui-palette-common-black))`,
-      color: isActive
-        ? `var(--mui-palette-primary-main)`
-        : `var(--mui-palette-text-secondary)`,
-      position: 'relative',
-      borderRight: `1px solid var(--mui-palette-divider)`,
-      minWidth: 'fit-content',
-      transition: `color 0.3s ease-in-out`,
-      '& > *': {
-        textDecoration: 'none',
-      },
-      '&:hover': {
-        color: `var(--mui-palette-primary-main)`,
-      },
-    }
+    // removed nested state; using top-level phaseDrawerOpen
 
     return (
-      <NextLink
-        role="tab"
-        aria-selected={isActive}
-        tabIndex={0}
-        data-tab-index={index}
+      <Box
+        component={Link}
         key={index}
         href={targetPath}
-        passHref
-        style={{ textDecoration: 'none' }}
+        data-tab-index={index}
+        tabIndex={0}
+        role="tab"
+        aria-selected={isActive}
+        sx={(theme) => ({
+          textDecoration: 'none',
+          display: 'flex',
+          flexDirection: 'row',
+          height: 110,
+          cursor: isActive ? 'default' : 'pointer',
+          overflowX: 'hidden',
+          backgroundColor: isActive
+            ? theme.vars.palette.background.default
+            : theme.vars.palette.common.white,
+          ...theme.applyStyles('dark', {
+            backgroundColor: isActive
+              ? theme.vars.palette.background.default
+              : theme.vars.palette.common.black,
+          }),
+          color: isActive
+            ? theme.vars.palette.primary.main
+            : theme.vars.palette.text.secondary,
+          position: 'relative',
+          borderRight: `1px solid ${theme.vars.palette.divider}`,
+          minWidth: 'fit-content',
+          transition: theme.transitions.create(['color']),
+          '&:hover': {
+            color: theme.vars.palette.primary.main,
+          },
+        })}
       >
-        <Box sx={{ ...style }}>
-          <Box
-            sx={(theme) => ({
-              px: theme.spacing(2),
-              pt: theme.spacing(1.5),
-            })}
-          >
-            <Stack>
-              <Typography
-                variant="h1"
-                component="h1"
-                noWrap
-                sx={{
-                  fontFamily:
-                    'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '2rem',
-                  lineHeight: 1.125,
-                  letterSpacing: '0.47%',
-                  color: 'inherit',
-                  mb: 1,
-                  fontDisplay: 'swap', // Ensure font swapping for faster render
+        <Box
+          sx={(theme) => ({
+            px: theme.spacing(2),
+            pt: theme.spacing(1.5),
+          })}
+        >
+          <Stack>
+            <Typography
+              variant="h1"
+              component="h1"
+              sx={{
+                fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                fontWeight: 500,
+                fontSize: '2rem',
+                lineHeight: 1.125,
+                letterSpacing: '0.47%',
+                color: 'inherit',
+                mb: 1,
+                fontDisplay: 'swap', // Ensure font swapping for faster render
+              }}
+            >
+              {meeting.title}
+            </Typography>
+
+            {isActive && (
+              <Grow
+                in={isActive}
+                timeout={{
+                  enter: 300,
+                  exit: 200,
                 }}
+                unmountOnExit
+                style={{ transformOrigin: '0 0 0' }}
               >
-                {meeting.title}
-              </Typography>
+                <Box sx={{ display: 'flex', color: 'text.primary' }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <BNTypographyPair
+                      sx={{
+                        whiteSpace: 'nowrap',
+                      }}
+                      primary={{
+                        color: 'text.secondary',
+                        variant: 'caption',
+                        fontWeight: 500,
+                        text: 'CUSIP',
+                      }}
+                      secondary={{
+                        variant: 'body3',
+                        fontWeight: 500,
+                        text: meeting.cusip,
+                      }}
+                    />
+                    <BNTypographyPair
+                      sx={{
+                        whiteSpace: 'nowrap',
+                      }}
+                      primary={{
+                        color: 'text.secondary',
+                        variant: 'caption',
+                        fontWeight: 500,
+                        text: 'Record Date',
+                      }}
+                      secondary={{
+                        variant: 'body3',
+                        fontWeight: 500,
+                        text: meeting.recordDate,
+                      }}
+                    />
+                    <BNTypographyPair
+                      sx={{
+                        whiteSpace: 'nowrap',
+                      }}
+                      primary={{
+                        color: 'text.secondary',
+                        variant: 'caption',
+                        fontWeight: 500,
+                        text: 'Mailing Date',
+                      }}
+                      secondary={{
+                        variant: 'body3',
+                        fontWeight: 500,
+                        text: meeting.mailingDate,
+                      }}
+                    />
+                    <BNTypographyPair
+                      sx={{
+                        whiteSpace: 'nowrap',
+                      }}
+                      primary={{
+                        color: 'text.secondary',
+                        variant: 'caption',
+                        fontWeight: 500,
+                        text: 'Meeting Date',
+                      }}
+                      secondary={{
+                        variant: 'body3',
+                        fontWeight: 500,
+                        text: meeting.meetingDate,
+                      }}
+                    />
 
-              {isActive && (
-                <Grow
-                  in={isActive}
-                  timeout={{
-                    enter: 300,
-                    exit: 200,
-                  }}
-                  unmountOnExit
-                  style={{ transformOrigin: '0 0 0' }}
-                >
-                  <Box sx={{ display: 'flex', color: 'text.primary' }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <BNTypographyPair
+                    <Stack>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        noWrap
                         sx={{
-                          whiteSpace: 'nowrap',
-                        }}
-                        primary={{
-                          color: 'text.secondary',
-                          variant: 'caption',
                           fontWeight: 500,
-                          text: 'CUSIP',
                         }}
-                        secondary={{
-                          variant: 'body3',
-                          fontWeight: 500,
-                          text: meeting.cusip,
+                      >
+                        Current Phase
+                      </Typography>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        aria-label={`Open ${meeting.currentPhase} phase details`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setDrawerPhase(currentPhase)
+                          togglePhaseDrawer(true)()
                         }}
-                      />
-                      <BNTypographyPair
-                        sx={{
-                          whiteSpace: 'nowrap',
-                        }}
-                        primary={{
-                          color: 'text.secondary',
-                          variant: 'caption',
-                          fontWeight: 500,
-                          text: 'Record Date',
-                        }}
-                        secondary={{
-                          variant: 'body3',
-                          fontWeight: 500,
-                          text: meeting.recordDate,
-                        }}
-                      />
-                      <BNTypographyPair
-                        sx={{
-                          whiteSpace: 'nowrap',
-                        }}
-                        primary={{
-                          color: 'text.secondary',
-                          variant: 'caption',
-                          fontWeight: 500,
-                          text: 'Mailing Date',
-                        }}
-                        secondary={{
-                          variant: 'body3',
-                          fontWeight: 500,
-                          text: meeting.mailingDate,
-                        }}
-                      />
-                      <BNTypographyPair
-                        sx={{
-                          whiteSpace: 'nowrap',
-                        }}
-                        primary={{
-                          color: 'text.secondary',
-                          variant: 'caption',
-                          fontWeight: 500,
-                          text: 'Meeting Date',
-                        }}
-                        secondary={{
-                          variant: 'body3',
-                          fontWeight: 500,
-                          text: meeting.meetingDate,
-                        }}
-                      />
-
-                      <Stack>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          noWrap
-                          sx={{
-                            fontWeight: 500,
-                          }}
-                        >
-                          Current Phase
-                        </Typography>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          aria-label={`Open ${meeting.currentPhase} phase details`}
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault()
                             e.stopPropagation()
                             setDrawerPhase(currentPhase)
                             togglePhaseDrawer(true)()
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              setDrawerPhase(currentPhase)
-                              togglePhaseDrawer(true)()
-                            }
-                          }}
-                          sx={{
-                            fontWeight: 600,
+                          }
+                        }}
+                        sx={{
+                          fontWeight: 600,
+                          color:
+                            theme.vars.palette.phase[
+                              parseInt(
+                                (meeting.currentPhase || 'Phase 1').replace('Phase ', '')
+                              ) - 1
+                            ].main,
+                          cursor: 'pointer',
+                          fontSize: 'inherit',
+                          lineHeight: 1.5,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                          '&:focus': {
+                            outline: `2px solid ${theme.vars.palette.primary.main}`,
+                            outlineOffset: 2,
+                          },
+                          ...theme.applyStyles('dark', {
                             color:
                               theme.vars.palette.phase[
                                 parseInt(
@@ -630,125 +640,101 @@ export const EventTabs = React.memo((): React.ReactElement => {
                                     ''
                                   )
                                 ) - 1
-                              ].main,
-                            cursor: 'pointer',
-                            fontSize: 'inherit',
-                            lineHeight: 1.5,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            textDecoration: 'none',
-                            '&:hover': {
-                              textDecoration: 'underline',
-                            },
-                            '&:focus': {
-                              outline: `2px solid ${theme.vars.palette.primary.main}`,
-                              outlineOffset: 2,
-                            },
-                            ...theme.applyStyles('dark', {
-                              color:
-                                theme.vars.palette.phase[
-                                  parseInt(
-                                    (meeting.currentPhase || 'Phase 1').replace(
-                                      'Phase ',
-                                      ''
-                                    )
-                                  ) - 1
-                                ].light,
-                            }),
-                          }}
-                        >
-                          {meeting.currentPhase}
-                        </Typography>
-                      </Stack>
+                              ].light,
+                          }),
+                        }}
+                      >
+                        {meeting.currentPhase}
+                      </Typography>
+                    </Stack>
 
-                      <Stack sx={{ minWidth: 120 }}>
+                    <Stack sx={{ minWidth: 120 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        noWrap
+                        sx={{
+                          fontWeight: 500,
+                        }}
+                      >
+                        Overall Completion
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          minHeight: (theme) => theme.spacing(3),
+                        }}
+                      >
+                        <LinearProgress
+                          variant="determinate"
+                          color="primary"
+                          value={meeting.overallCompletion || 0}
+                          aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
+                          sx={{
+                            flex: 1,
+                            height: (theme) => theme.spacing(0.5),
+                          }}
+                        />
                         <Typography
                           variant="caption"
-                          color="text.secondary"
-                          noWrap
                           sx={{
-                            fontWeight: 500,
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
                           }}
                         >
-                          Overall Completion
+                          {meeting.overallCompletion || 0}%
                         </Typography>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2,
-                            minHeight: (theme) => theme.spacing(3),
-                          }}
-                        >
-                          <LinearProgress
-                            variant="determinate"
-                            color="primary"
-                            value={meeting.overallCompletion || 0}
-                            aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
-                            sx={{
-                              flex: 1,
-                              height: (theme) => theme.spacing(0.5),
-                            }}
-                          />
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              fontWeight: 600,
-                              fontSize: '0.75rem',
-                            }}
-                          >
-                            {meeting.overallCompletion || 0}%
-                          </Typography>
-                        </Box>
-                      </Stack>
-
-                      <StatusChip status={meeting.status || 'Unknown'} size="small" />
+                      </Box>
                     </Stack>
-                  </Box>
-                </Grow>
-              )}
 
-              {!isActive && (
-                // Inactive tab shows only meeting date
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Stack sx={{ alignItems: 'flex-end' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '0.75rem',
-                        lineHeight: 1.5,
-                        letterSpacing: '3.33%',
-                        color: 'inherit',
-                      }}
-                    >
-                      Meeting Date
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '0.875rem',
-                        lineHeight: 1.286,
-                        letterSpacing: '0.71%',
-                        color: 'inherit',
-                      }}
-                    >
-                      {meeting.meetingDate}
-                    </Typography>
+                    <StatusChip status={meeting.status || 'Unknown'} size="small" />
                   </Stack>
                 </Box>
-              )}
-            </Stack>
-          </Box>
+              </Grow>
+            )}
+
+            {!isActive && (
+              // Inactive tab shows only meeting date
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                }}
+              >
+                <Stack sx={{ alignItems: 'flex-end' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '0.75rem',
+                      lineHeight: 1.5,
+                      letterSpacing: '3.33%',
+                      color: 'inherit',
+                    }}
+                  >
+                    Meeting Date
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '0.875rem',
+                      lineHeight: 1.286,
+                      letterSpacing: '0.71%',
+                      color: 'inherit',
+                    }}
+                  >
+                    {meeting.meetingDate}
+                  </Typography>
+                </Stack>
+              </Box>
+            )}
+          </Stack>
         </Box>
-      </NextLink>
+      </Box>
     )
   }
 
@@ -904,22 +890,24 @@ export const EventTabs = React.memo((): React.ReactElement => {
               sx={{ position: 'relative' }}
             >
               {navigationTabs.map((tab) => {
-                const isActive = activeTab === tab.label
-                const tabHref = currentMeeting && currentClient?.ticker
-                  ? `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
-                  : '#'
-
                 return (
                   <Tab
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    component={NextLink}
-                    href={tabHref}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (currentMeeting) {
+                        handleTabClick(tab.label)
+                      }
+                    }}
+                    component="button"
                     sx={(theme) => ({
-                      color: isActive
-                        ? 'var(--mui-palette-primary-main)'
-                        : 'var(--mui-palette-text-secondary)',
+                      color:
+                        activeTab === tab.label
+                          ? 'var(--mui-palette-primary-main)'
+                          : 'var(--mui-palette-text-secondary)',
                       fontWeight: 500,
                       fontSize: '0.875rem',
                       textTransform: 'none',
@@ -928,7 +916,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
                       minWidth: 'fit-content',
                       borderRadius: 0,
                       cursor: 'pointer',
-                      textDecoration: 'none',
                       '&:hover': {
                         backgroundColor: 'transparent',
                         color: theme.vars?.palette.primary.main,
