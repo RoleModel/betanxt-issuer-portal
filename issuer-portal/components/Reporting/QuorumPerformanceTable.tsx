@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   CircularProgress,
   Table,
   TableBody,
@@ -25,6 +24,9 @@ interface QuorumData {
   actualShares: number
   quorumMet: boolean
   participationRate: number
+  daysToQuorum: number | null
+  earlyVotesPct: number
+  lateVotesPct: number
 }
 
 interface QuorumPerformanceTableProps {
@@ -38,6 +40,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   loading = false,
   title = 'Quorum Performance',
 }) => {
+
   if (loading) {
     return (
       <Card>
@@ -64,45 +67,42 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
     )
   }
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat().format(Math.round(num))
-  }
+  // no-op helpers removed
 
   return (
     <Card>
       <CardHeader title={title} />
       <CardContent>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Meeting</TableCell>
-                <TableCell align="right">Required Shares</TableCell>
-                <TableCell align="right">Actual Shares</TableCell>
-                <TableCell align="center">Status</TableCell>
-                <TableCell align="right">Participation</TableCell>
+                <TableCell>Event</TableCell>
+                <TableCell align="right">Days to Quorum</TableCell>
+                <TableCell align="right">Early Votes %</TableCell>
+                <TableCell align="right">Late Votes % (1 wk)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row) => (
-                <TableRow key={row.meetingId}>
-                  <TableCell component="th" scope="row">
-                    <Typography variant="body2" noWrap>
-                      {row.meetingTitle}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">{formatNumber(row.requiredShares)}</TableCell>
-                  <TableCell align="right">{formatNumber(row.actualShares)}</TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={row.quorumMet ? 'Met' : 'Not Met'}
-                      color={row.quorumMet ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="right">{row.participationRate.toFixed(1)}%</TableCell>
-                </TableRow>
-              ))}
+              {data.map((row, index) => {
+                // Extract year from meetingId (format: ticker-type-year)
+                const yearMatch = row.meetingId.match(/(\d{4})$/)
+                const year = yearMatch ? yearMatch[1] : ''
+                const displayTitle = year ? `${row.meetingTitle} ${year}` : row.meetingTitle
+
+                return (
+                  <TableRow key={`${row.meetingId}-${index}`}>
+                    <TableCell component="th" scope="row">
+                      <Typography variant="body2" noWrap>
+                        {displayTitle}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">{row.daysToQuorum ?? '--'}</TableCell>
+                    <TableCell align="right">{row.earlyVotesPct.toFixed(1)}%</TableCell>
+                    <TableCell align="right">{row.lateVotesPct.toFixed(1)}%</TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </TableContainer>

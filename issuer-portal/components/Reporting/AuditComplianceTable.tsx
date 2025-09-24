@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   CircularProgress,
   Table,
   TableBody,
@@ -15,16 +14,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from '@mui/material'
 
 interface AuditComplianceData {
-  meetingId: string
-  meetingTitle: string
-  complianceScore: number
-  issues: string[]
-  materialsCompliant: boolean
+  event: string
+  materialsSent: string
+  inspectorCertified: string
+  universalProxy: string
+  finalCertified: string
 }
 
 interface AuditComplianceTableProps {
@@ -64,61 +62,33 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
     )
   }
 
-  const getComplianceColor = (score: number) => {
-    if (score >= 90) return 'success'
-    if (score >= 70) return 'warning'
-    return 'error'
-  }
-
   return (
     <Card>
       <CardHeader title={title} />
       <CardContent>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Meeting</TableCell>
-                <TableCell align="center">Compliance Score</TableCell>
-                <TableCell align="center">Materials</TableCell>
-                <TableCell>Issues</TableCell>
+                <TableCell>Event</TableCell>
+                <TableCell>Materials Sent</TableCell>
+                <TableCell>Inspector Certified</TableCell>
+                <TableCell>Universal Proxy</TableCell>
+                <TableCell>Final Certified</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row) => (
-                <TableRow key={row.meetingId}>
+              {data.map((row, index) => (
+                <TableRow key={index}>
                   <TableCell component="th" scope="row">
                     <Typography variant="body2" noWrap>
-                      {row.meetingTitle}
+                      {row.event}
                     </Typography>
                   </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={`${row.complianceScore}%`}
-                      color={getComplianceColor(row.complianceScore)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={row.materialsCompliant ? 'Compliant' : 'Issues'}
-                      color={row.materialsCompliant ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {row.issues.length > 0 ? (
-                      <Tooltip title={row.issues.join(', ')}>
-                        <Typography variant="body2" noWrap>
-                          {row.issues.length} issue{row.issues.length !== 1 ? 's' : ''}
-                        </Typography>
-                      </Tooltip>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        None
-                      </Typography>
-                    )}
-                  </TableCell>
+                  <TableCell>{row.materialsSent}</TableCell>
+                  <TableCell>{row.inspectorCertified}</TableCell>
+                  <TableCell>{row.universalProxy}</TableCell>
+                  <TableCell>{row.finalCertified}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

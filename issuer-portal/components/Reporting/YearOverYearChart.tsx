@@ -3,7 +3,18 @@
 import React from 'react'
 
 import { Box, CircularProgress, Typography } from '@mui/material'
-import { LineChart } from '@mui/x-charts'
+import {
+  ChartDataProvider,
+  BarPlot,
+  LinePlot,
+  ChartsXAxis,
+  ChartsYAxis,
+  ChartsGrid,
+  ChartsLegend,
+  ChartsTooltip,
+  MarkPlot,
+  ChartsSurface
+} from '@mui/x-charts'
 
 interface YearOverYearData {
   year: number
@@ -52,45 +63,81 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
     )
   }
 
-  const years = data.map((item) => item.year)
+  const years = data.map((item) => String(item.year))
   const participationRates = data.map((item) => item.participationRate)
-  const proposalCounts = data.map((item) => item.proposalsCount)
   const passedCounts = data.map((item) => item.passedCount)
+  const failedCounts = data.map((item) => item.failedCount)
 
   return (
-    <LineChart
-      height={300}
+    <ChartDataProvider
+      // The configuration of the chart
       series={[
         {
-          data: participationRates,
-          label: 'Participation Rate (%)',
-          yAxisKey: 'leftAxis',
-        },
-        {
-          data: proposalCounts,
-          label: 'Total Proposals',
-          yAxisKey: 'rightAxis',
-        },
-        {
+          type: 'bar',
           data: passedCounts,
-          label: 'Passed Proposals',
-          yAxisKey: 'rightAxis',
+          label: 'Passed',
+          color: 'var(--mui-palette-chartSeries-1-main)',
+          yAxisId: 'leftAxis'
         },
+        {
+          type: 'bar',
+          data: failedCounts,
+          label: 'Failed',
+          color: 'var(--mui-palette-chartSeries-5-main)',
+          yAxisId: 'leftAxis'
+        },
+        {
+          type: 'line',
+          data: participationRates,
+          label: 'Participation %',
+          color: 'var(--mui-palette-chartSeries-8-main)',
+          curve: 'catmullRom',
+          showMark: false,
+          yAxisId: 'rightAxis'
+        }
       ]}
-      xAxis={[{ data: years, scaleType: 'point' }]}
+      xAxis={[{
+        scaleType: 'band',
+        data: years,
+        id: 'x-axis-id'
+      }]}
       yAxis={[
-        { id: 'leftAxis', scaleType: 'linear' },
-        { id: 'rightAxis', scaleType: 'linear' },
-      ]}
-      margin={{ left: 60, right: 60, top: 10, bottom: 40 }}
-      grid={{ vertical: true, horizontal: true }}
-      slotProps={{
-        legend: {
-          direction: 'horizontal',
-          position: { vertical: 'bottom', horizontal: 'center' },
+        {
+          id: 'leftAxis',
+          scaleType: 'linear',
+          label: 'Proposals',
+          min: 0
         },
-      }}
-    />
+        {
+          id: 'rightAxis',
+          scaleType: 'linear',
+          label: 'Participation %',
+          min: 0,
+          max: 100,
+          width: 100,
+          valueFormatter: (value) => `${value}%`
+        }
+      ]}
+      height={300}
+      margin={{ left: 10, right: 60, top: 0, bottom: 0 }}
+    >
+      <ChartsSurface>
+        <ChartsGrid vertical horizontal />
+        <BarPlot />
+        <LinePlot />
+        <MarkPlot />
+        <ChartsXAxis axisId="x-axis-id" />
+        <ChartsYAxis axisId="leftAxis" position="left" />
+        <ChartsYAxis axisId="rightAxis" position="right" />
+        <ChartsTooltip />
+
+      </ChartsSurface>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+        <ChartsLegend
+          direction="horizontal"
+        />
+      </Box>
+    </ChartDataProvider>
   )
 }
 

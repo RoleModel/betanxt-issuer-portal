@@ -2,14 +2,15 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
-import { PieChart } from '@mui/x-charts'
+import { Box, CircularProgress, Typography } from '@mui/material'
+import { BarChart } from '@mui/x-charts'
 
 interface ParticipationData {
-  webVoting: number
-  printVoting: number
-  ivrVoting: number
-  totalVotes: number
+  meetings: Array<{
+    event: string
+    participationRate: number
+    meetingYear: number
+  }>
 }
 
 interface ParticipationChartProps {
@@ -23,7 +24,6 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   loading = false,
   title: _title = 'Voting Method Distribution',
 }) => {
-  const _theme = useTheme()
 
   if (loading) {
     return (
@@ -43,7 +43,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
     )
   }
 
-  if (!data || data.totalVotes === 0) {
+  if (!data || !data.meetings || data.meetings.length === 0) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" height={300}>
         <Typography variant="body1" color="text.secondary">
@@ -53,29 +53,51 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
     )
   }
 
-  const chartData = [
-    { id: 0, value: data.webVoting, label: 'Web Voting' },
-    { id: 1, value: data.printVoting, label: 'Print Voting' },
-    { id: 2, value: data.ivrVoting, label: 'IVR Voting' },
-  ].filter((item) => item.value > 0)
+  // Normalize dataset to use dataKey mapping (avoids index misalignment in tooltips/hover)
+  // Aggregate by year to avoid duplicate year labels
+  const aggByYear = data.meetings.reduce((acc, m) => {
+    const y = String(m.meetingYear)
+    const next = acc.get(y) || { sum: 0, count: 0 }
+    next.sum += m.participationRate
+    next.count += 1
+    acc.set(y, next)
+    return acc
+  }, new Map<string, { sum: number; count: number }>())
+
+  const years = Array.from(aggByYear.keys()).sort((a, b) => Number(a) - Number(b))
+  const values = years.map((y) => {
+    const { sum, count } = aggByYear.get(y) as { sum: number; count: number }
+    return sum / Math.max(1, count)
+  })
+  const indices = years.map((_, i) => i)
 
   return (
     <Box height={300}>
-      <PieChart
+      <BarChart
+        dataset={undefined}
+        grid={{ horizontal: true, vertical: true }}
+        xAxis={[
+          {
+            scaleType: 'band',
+            data: indices,
+            valueFormatter: (v) => years[typeof v === 'number' ? v : Number(v)] ?? '',
+          },
+        ]}
+        yAxis={[
+          {
+            label: 'Delta in Participation %',
+            min: 0,
+            max: 100,
+          },
+        ]}
         series={[
           {
-            data: chartData,
-            highlightScope: { fade: 'global', highlight: 'item' },
-            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+            data: values,
+            valueFormatter: (v: number | null) => (v == null ? '' : `${v.toFixed(1)}%`),
+            color: 'var(--mui-palette-chartSeries-4-main)',
           },
         ]}
         height={300}
-        slotProps={{
-          legend: {
-            direction: 'column',
-            position: { vertical: 'middle', horizontal: 'end' },
-          },
-        }}
       />
     </Box>
   )

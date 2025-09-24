@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
 
 interface DirectorPerformanceData {
@@ -24,8 +24,6 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
   loading = false,
   title: _title = 'Director Performance',
 }) => {
-  const theme = useTheme()
-
   if (loading) {
     return (
       <Box
@@ -77,19 +75,19 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
         {
           data: forPercentageData,
           label: 'For',
-          color: theme.palette.success?.main || '#4caf50',
+          color: 'var(--mui-palette-chartSeries-1-main)',
           stack: 'votes',
         },
         {
           data: againstPercentageData,
           label: 'Against',
-          color: theme.palette.error?.main || '#f44336',
+          color: 'var(--mui-palette-chartSeries-5-main)',
           stack: 'votes',
         },
         {
           data: abstainPercentageData,
           label: 'Abstain',
-          color: theme.palette.warning?.main || '#ff9800',
+          color: 'var(--mui-palette-chartSeries-2-main)',
           stack: 'votes',
         },
       ]}
@@ -111,7 +109,7 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
           tickNumber: 11,
         },
       ]}
-      margin={{ left: 120, right: 10, top: 10, bottom: 40 }}
+      margin={{ left: 150, right: 30, top: 10, bottom: 10 }}
       grid={{ vertical: true, horizontal: true }}
       slotProps={{
         legend: {

@@ -25,6 +25,7 @@ function transformPosition(dbPosition: any): Position {
     sharesVoted: dbPosition.shares_voted,
     voteStatus: dbPosition.vote_status,
     votingSource: dbPosition.voting_source,
+    dateVoted: dbPosition.date_voted,
     createdAt: dbPosition.created_at,
     updatedAt: dbPosition.updated_at,
     account: dbPosition.account,
