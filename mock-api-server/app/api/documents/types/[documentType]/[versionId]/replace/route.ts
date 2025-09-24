@@ -1,30 +1,25 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.316Z
+// Generated on 2025-09-24T18:54:16.941Z
 // Source: openapi-schema/openapi.yaml
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-interface RouteParams {
-  documentType: string
-  versionId: string
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
-    // Parse request body
-    const body = await request.json()
-
     // TODO: Implement replaceApprovedVersion
     // Operation: replaceApprovedVersion
     // This route was auto-generated from OpenAPI spec
     
+    // Parse request body
+    // const body = await request.json()
+
     // Example: Insert data into Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
     //   .insert(body)
     //   .select()
 
-    return NextResponse.json(body, { status: 201 })
+    return NextResponse.json({}, { status: 201 })
   } catch (error) {
     console.error('Error in POST /documents/types/{documentType}/{versionId}/replace:', error)
     return NextResponse.json(

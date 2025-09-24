@@ -1,4 +1,4 @@
-import type { components, paths } from '@/types/api'
+import type { components } from '@/types/api'
 
 import { apiClient } from '../apiClient'
 

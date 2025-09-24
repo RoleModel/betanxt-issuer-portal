@@ -66,17 +66,18 @@ export async function listPhases(
 
 export async function createPhase(
   meetingId: string,
-  body: CreatePhaseRequest
+  body: unknown
 ): Promise<ApiResponse<Phase>> {
   try {
+    const request = body as CreatePhaseRequest
     const { data, error } = await supabase
       .from('phase')
       .insert({
         meeting_id: meetingId,
-        name: body.name,
-        order_index: body.orderIndex,
-        status: body.status,
-        key_dates: body.keyDates,
+        name: request.name,
+        order_index: request.orderIndex,
+        status: 'NOT_STARTED',
+        key_dates: request.keyDates ? JSON.stringify(request.keyDates) : null,
       })
       .select()
       .single()
@@ -123,14 +124,15 @@ export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
 
 export async function updatePhase(
   id: string,
-  body: UpdatePhaseRequest
+  body: unknown
 ): Promise<ApiResponse<Phase>> {
   try {
+    const request = body as UpdatePhaseRequest
     const updateData: any = {}
-    if (body.name !== undefined) updateData.name = body.name
-    if (body.orderIndex !== undefined) updateData.order_index = body.orderIndex
-    if (body.status !== undefined) updateData.status = body.status
-    if (body.keyDates !== undefined) updateData.key_dates = body.keyDates
+    if (request.name !== undefined) updateData.name = request.name
+    if (request.orderIndex !== undefined) updateData.order_index = request.orderIndex
+    if (request.status !== undefined) updateData.status = request.status
+    if (request.keyDates !== undefined) updateData.key_dates = JSON.stringify(request.keyDates)
 
     const { data, error } = await supabase
       .from('phase')

@@ -1,4 +1,4 @@
-import type { components, paths } from '@/types/api'
+import type { components } from '@/types/api'
 
 import { apiClient } from '../apiClient'
 
@@ -50,10 +50,10 @@ export async function listPositionVotes(opts?: {
 }
 
 export async function createPositionVote(
-  body: CastVoteRequest
+  body: unknown
 ): Promise<ApiResponse<PositionVote>> {
   const { data, error, response } = await apiClient.POST('/position_votes', {
-    body,
+    body: body as CastVoteRequest,
   })
 
   if (error) {

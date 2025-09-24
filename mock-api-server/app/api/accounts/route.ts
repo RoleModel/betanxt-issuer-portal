@@ -1,11 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.313Z
+// Generated on 2025-09-24T18:54:16.938Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { listAccounts, createAccount } from '@/domain-models/api/accounts'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     // Use existing domain model function
     const { data, error } = await listAccounts()

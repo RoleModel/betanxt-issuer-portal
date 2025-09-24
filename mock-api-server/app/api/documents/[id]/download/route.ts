@@ -1,14 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.315Z
+// Generated on 2025-09-24T18:54:16.941Z
 // Source: openapi-schema/openapi.yaml
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-interface RouteParams {
-  id: string
-}
-
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     // TODO: Implement downloadDocument
     // Operation: downloadDocument

@@ -75,23 +75,25 @@ export async function listTasks(
 
 export async function createTask(
   meetingId: string,
-  body: CreateTaskRequest
+  body: unknown
 ): Promise<ApiResponse<Task>> {
   try {
+    const request = body as CreateTaskRequest
     const { data, error } = await supabase
       .from('task')
       .insert({
         meeting_id: meetingId,
-        title: body.title,
-        description: body.description,
-        due_date: body.dueDate,
-        owner: body.owner,
-        status: body.status,
-        phase_id: body.phaseId,
-        phase_number: body.phaseNumber,
-        type: body.type,
-        document_id: body.documentId,
-        links: body.links,
+        task_id: request.taskId,
+        title: request.title,
+        description: request.description,
+        due_date: request.dueDate,
+        owner: request.owner,
+        status: 'TODO',
+        phase_id: request.phaseId,
+        phase_number: request.phaseNumber,
+        type: request.type,
+        document_id: request.documentId,
+        links: request.links,
       })
       .select()
       .single()
@@ -136,20 +138,20 @@ export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
 
 export async function updateTask(
   id: string,
-  body: UpdateTaskRequest
+  body: unknown
 ): Promise<ApiResponse<Task>> {
   try {
+    const request = body as UpdateTaskRequest
     const updateData: any = {}
-    if (body.title !== undefined) updateData.title = body.title
-    if (body.description !== undefined) updateData.description = body.description
-    if (body.dueDate !== undefined) updateData.due_date = body.dueDate
-    if (body.owner !== undefined) updateData.owner = body.owner
-    if (body.status !== undefined) updateData.status = body.status
-    if (body.phaseId !== undefined) updateData.phase_id = body.phaseId
-    if (body.phaseNumber !== undefined) updateData.phase_number = body.phaseNumber
-    if (body.type !== undefined) updateData.type = body.type
-    if (body.documentId !== undefined) updateData.document_id = body.documentId
-    if (body.links !== undefined) updateData.links = body.links
+    if (request.title !== undefined) updateData.title = request.title
+    if (request.description !== undefined) updateData.description = request.description
+    if (request.dueDate !== undefined) updateData.due_date = request.dueDate
+    if (request.owner !== undefined) updateData.owner = request.owner
+    if (request.status !== undefined) updateData.status = request.status
+    if (request.phaseNumber !== undefined) updateData.phase_number = request.phaseNumber
+    if (request.type !== undefined) updateData.type = request.type
+    if (request.documentId !== undefined) updateData.document_id = request.documentId
+    if (request.links !== undefined) updateData.links = request.links
 
     const { data, error } = await supabase
       .from('task')

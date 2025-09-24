@@ -1,4 +1,4 @@
-import type { components, paths } from '@/types/api'
+import type { components } from '@/types/api'
 
 import { apiClient } from '../apiClient'
 
@@ -50,10 +50,10 @@ export async function listAccounts(
 }
 
 export async function createAccount(
-  accountData: CreateAccountRequest
+  accountData: unknown
 ): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.POST('/accounts', {
-    body: accountData,
+    body: accountData as CreateAccountRequest,
   })
 
   if (error) {
@@ -101,13 +101,13 @@ export async function getAccountById(id: string): Promise<ApiResponse<Account>> 
 
 export async function updateAccount(
   id: string,
-  accountData: UpdateAccountRequest
+  accountData: unknown
 ): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.PUT('/accounts/{accountId}', {
     params: {
       path: { accountId: id },
     },
-    body: accountData,
+    body: accountData as UpdateAccountRequest,
   })
 
   if (error) {

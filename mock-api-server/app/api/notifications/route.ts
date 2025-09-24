@@ -1,17 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.317Z
+// Generated on 2025-09-24T18:54:16.942Z
 // Source: openapi-schema/openapi.yaml
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
-    // Extract query parameters
-    const { searchParams } = new URL(request.url)
-    const read = searchParams.get('read') || undefined
-    const type = searchParams.get('type') || undefined
-    const priority = searchParams.get('priority') || undefined
-
     // TODO: Implement listNotifications
     // Operation: listNotifications
     // This route was auto-generated from OpenAPI spec

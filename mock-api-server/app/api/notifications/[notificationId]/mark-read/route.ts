@@ -1,18 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.317Z
+// Generated on 2025-09-24T18:54:16.942Z
 // Source: openapi-schema/openapi.yaml
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-interface RouteParams {
-  notificationId: string
-}
-
-export async function PATCH(request: NextRequest): Promise<NextResponse> {
+export async function PATCH(): Promise<NextResponse> {
   try {
-    // Parse request body
-    const body = await request.json()
-
     // TODO: Implement markNotificationRead
     // Operation: markNotificationRead
     // This route was auto-generated from OpenAPI spec

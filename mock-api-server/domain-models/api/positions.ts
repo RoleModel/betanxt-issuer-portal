@@ -20,15 +20,19 @@ function transformPosition(dbPosition: any): Position {
   return {
     id: dbPosition.id,
     meetingId: dbPosition.meeting_id,
-    accountId: dbPosition.account_id,
+    cusip: dbPosition.cusip,
+    accountType: dbPosition.account_type,
+    setKey: dbPosition.set_key,
+    name: dbPosition.name,
+    accountNumber: dbPosition.account_number,
+    controlNumber: dbPosition.control_number,
+    voteStatus: dbPosition.vote_status,
     shares: dbPosition.shares,
     sharesVoted: dbPosition.shares_voted,
-    voteStatus: dbPosition.vote_status,
-    votingSource: dbPosition.voting_source,
+    source: dbPosition.source,
     dateVoted: dbPosition.date_voted,
     createdAt: dbPosition.created_at,
     updatedAt: dbPosition.updated_at,
-    account: dbPosition.account,
   }
 }
 
@@ -51,7 +55,7 @@ export async function listPositions(params?: {
       query = query.eq('meeting_id', params.meetingId)
     }
     if (params?.voteStatus) {
-      query = query.eq('vote_status', params.voteStatus)
+      query = query.eq('vote_status', params.voteStatus as any)
     }
 
     // Apply pagination
@@ -89,18 +93,25 @@ export async function listPositions(params?: {
 }
 
 export async function createPosition(
-  body: CreatePositionRequest
+  body: unknown
 ): Promise<ApiResponse<Position>> {
   try {
+    const request = body as CreatePositionRequest
     const { data, error } = await supabase
       .from('position')
       .insert({
-        meeting_id: body.meetingId,
-        account_id: body.accountId,
-        shares: body.shares,
-        shares_voted: body.sharesVoted,
-        vote_status: body.voteStatus,
-        voting_source: body.votingSource,
+        meeting_id: request.meetingId,
+        cusip: request.cusip,
+        account_type: request.accountType,
+        set_key: request.setKey,
+        name: request.name,
+        account_number: request.accountNumber,
+        control_number: request.controlNumber,
+        vote_status: request.voteStatus,
+        shares: request.shares,
+        shares_voted: request.sharesVoted || 0,
+        source: request.source,
+        date_voted: request.dateVoted,
       })
       .select()
       .single()
@@ -151,16 +162,19 @@ export async function getPositionById(id: string): Promise<ApiResponse<Position>
 
 export async function updatePosition(
   id: string,
-  body: UpdatePositionRequest
+  body: unknown
 ): Promise<ApiResponse<Position>> {
   try {
+    const request = body as UpdatePositionRequest
     const updateData: any = {}
-    if (body.meetingId !== undefined) updateData.meeting_id = body.meetingId
-    if (body.accountId !== undefined) updateData.account_id = body.accountId
-    if (body.shares !== undefined) updateData.shares = body.shares
-    if (body.sharesVoted !== undefined) updateData.shares_voted = body.sharesVoted
-    if (body.voteStatus !== undefined) updateData.vote_status = body.voteStatus
-    if (body.votingSource !== undefined) updateData.voting_source = body.votingSource
+    if (request.name !== undefined) updateData.name = request.name
+    if (request.accountNumber !== undefined) updateData.account_number = request.accountNumber
+    if (request.controlNumber !== undefined) updateData.control_number = request.controlNumber
+    if (request.shares !== undefined) updateData.shares = request.shares
+    if (request.sharesVoted !== undefined) updateData.shares_voted = request.sharesVoted
+    if (request.voteStatus !== undefined) updateData.vote_status = request.voteStatus
+    if (request.source !== undefined) updateData.source = request.source
+    if (request.dateVoted !== undefined) updateData.date_voted = request.dateVoted
 
     const { data, error } = await supabase
       .from('position')

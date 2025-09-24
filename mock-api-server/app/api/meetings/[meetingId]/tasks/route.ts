@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.315Z
+// Generated on 2025-09-24T18:54:16.940Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -22,7 +22,6 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const phaseId = searchParams.get('phaseId') || undefined
     const status = searchParams.get('status') || undefined
-    const owner = searchParams.get('owner') || undefined
 
     // Use existing domain model function
     const { data, error } = await listTasks(meetingId, { phaseId, status })

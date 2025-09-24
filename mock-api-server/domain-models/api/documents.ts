@@ -27,7 +27,7 @@ function transformDocument(dbDocument: any): Document {
     type: dbDocument.type,
     status: dbDocument.status,
     taskId: dbDocument.task_id,
-    file: dbDocument.file,
+    filePath: dbDocument.file_path,
     createdAt: dbDocument.created_at,
     updatedAt: dbDocument.updated_at,
   }
@@ -40,7 +40,6 @@ function transformComment(dbComment: any): Comment {
     comment: dbComment.comment,
     userId: dbComment.user_id,
     createdAt: dbComment.created_at,
-    updatedAt: dbComment.updated_at,
   }
 }
 
@@ -87,18 +86,19 @@ export async function listDocuments(
 
 export async function createDocument(
   meetingId: string,
-  body: CreateDocumentRequest
+  body: unknown
 ): Promise<ApiResponse<Document>> {
   try {
+    const request = body as CreateDocumentRequest
     const { data, error } = await supabase
       .from('document')
       .insert({
         meeting_id: meetingId,
-        title: body.title,
-        description: body.description,
-        type: body.type,
-        task_id: body.taskId,
-        file: body.file,
+        title: request.title,
+        description: request.description,
+        type: request.type,
+        task_id: request.taskId,
+        file_path: request.file,
         status: 'DRAFT',
       })
       .select()
@@ -150,14 +150,14 @@ export async function getDocumentById(id: string): Promise<ApiResponse<Document>
 
 export async function updateDocument(
   id: string,
-  body: UpdateDocumentRequest
+  body: unknown
 ): Promise<ApiResponse<Document>> {
   try {
+    const request = body as UpdateDocumentRequest
     const updateData: any = {}
-    if (body.title !== undefined) updateData.title = body.title
-    if (body.description !== undefined) updateData.description = body.description
-    if (body.status !== undefined) updateData.status = body.status
-    if (body.file !== undefined) updateData.file = body.file
+    if (request.title !== undefined) updateData.title = request.title
+    if (request.description !== undefined) updateData.description = request.description
+    if (request.status !== undefined) updateData.status = request.status
 
     const { data, error } = await supabase
       .from('document')
@@ -192,11 +192,18 @@ export async function listDocumentsByMeetingId(
 
 export async function getDocumentComments(
   documentId: string
-): Promise<ApiResponse<Comment[]>> {
+): Promise<ApiResponse<any[]>> {
   try {
     const { data, error } = await supabase
       .from('comment')
-      .select('*')
+      .select(`
+        *,
+        users:user_id (
+          first_name,
+          last_name,
+          avatar
+        )
+      `)
       .eq('document_id', documentId)
       .order('created_at', { ascending: true })
 
@@ -206,8 +213,21 @@ export async function getDocumentComments(
       }
     }
 
+    // Transform to match DocumentViewer's CommentWithUser interface
+    const transformedComments = (data || []).map((dbComment: any) => ({
+      id: dbComment.id?.toString() || '',
+      comment: dbComment.comment || '',
+      user: dbComment.user_id || 'Unknown User',
+      first_name: dbComment.users?.first_name || 'Unknown',
+      last_name: dbComment.users?.last_name || 'User',
+      created_at: dbComment.created_at || new Date().toISOString(),
+      users: {
+        avatar: dbComment.users?.avatar || null
+      }
+    }))
+
     return {
-      data: data.map(transformComment),
+      data: transformedComments,
     }
   } catch (error) {
     return {
@@ -220,7 +240,8 @@ export async function getDocumentComments(
 
 export async function addComment(
   documentId: string,
-  body: CreateCommentRequest
+  body: CreateCommentRequest,
+  userId?: string
 ): Promise<ApiResponse<Comment>> {
   try {
     const { data, error } = await supabase
@@ -228,7 +249,7 @@ export async function addComment(
       .insert({
         document_id: documentId,
         comment: body.comment,
-        user_id: 'current-user', // TODO: Get from session
+        user_id: userId || 'ce4b0ac1-095c-5e6f-a301-e489723079a3', // Default to Dev User
       })
       .select()
       .single()
@@ -255,7 +276,7 @@ export async function downloadDocument(id: string): Promise<ApiResponse<string>>
   try {
     const { data, error } = await supabase
       .from('document')
-      .select('file')
+      .select('file_path')
       .eq('id', id)
       .single()
 
@@ -266,7 +287,7 @@ export async function downloadDocument(id: string): Promise<ApiResponse<string>>
     }
 
     return {
-      data: data.file || '',
+      data: data.file_path || '',
     }
   } catch (error) {
     return {

@@ -122,12 +122,12 @@ export async function listMeetings(
 }
 
 export async function createMeeting(
-  meetingData: CreateMeetingRequest
+  meetingData: unknown
 ): Promise<ApiResponse<Meeting>> {
   try {
     const { data, error } = await supabase
       .from('meeting')
-      .insert(meetingData)
+      .insert(meetingData as CreateMeetingRequest)
       .select()
       .single()
 
@@ -215,12 +215,12 @@ export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<a
 
 export async function updateMeeting(
   id: string,
-  meetingData: UpdateMeetingRequest
+  meetingData: unknown
 ): Promise<ApiResponse<Meeting>> {
   try {
     const { data, error } = await supabase
       .from('meeting')
-      .update(meetingData)
+      .update(meetingData as UpdateMeetingRequest)
       .eq('id', id)
       .select()
       .single()

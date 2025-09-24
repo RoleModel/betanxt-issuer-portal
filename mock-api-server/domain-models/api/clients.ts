@@ -1,9 +1,9 @@
-import type { components, paths } from '@/types/api'
+import type { components } from '@/types/api'
 
 import { apiClient } from '../apiClient'
 
 // Use generated types from OpenAPI schema
-type Client = components['schemas']['Client']
+type Client = components['schemas']['Clients']
 type CreateClientRequest = components['schemas']['CreateClientRequest']
 type UpdateClientRequest = components['schemas']['UpdateClientRequest']
 
@@ -53,10 +53,10 @@ export async function listClients(
 }
 
 export async function createClient(
-  clientData: CreateClientRequest
+  clientData: unknown
 ): Promise<ApiResponse<Client>> {
   const { data, error, response } = await apiClient.POST('/clients', {
-    body: clientData,
+    body: clientData as CreateClientRequest,
   })
 
   if (error) {
@@ -104,13 +104,13 @@ export async function getClientByTicker(ticker: string): Promise<ApiResponse<Cli
 
 export async function updateClient(
   ticker: string,
-  clientData: UpdateClientRequest
+  clientData: unknown
 ): Promise<ApiResponse<Client>> {
   const { data, error, response } = await apiClient.PUT('/clients/{ticker}', {
     params: {
       path: { ticker },
     },
-    body: clientData,
+    body: clientData as UpdateClientRequest,
   })
 
   if (error) {

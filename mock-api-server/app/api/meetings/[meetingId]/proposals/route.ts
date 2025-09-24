@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.316Z
+// Generated on 2025-09-24T18:54:16.941Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,10 +17,6 @@ export async function GET(
     // Extract path parameters
     const resolvedParams = await params
     const meetingId = resolvedParams.meetingId
-
-    // Extract query parameters
-    const { searchParams } = new URL(request.url)
-    const proposalType = searchParams.get('proposalType') || undefined
 
     // Use existing domain model function
     const { data, error } = await listProposals(meetingId)
@@ -59,7 +55,7 @@ export async function POST(
     const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createProposal(body)
+    const { data, error } = await createProposal(meetingId, body)
 
     if (error) {
       return NextResponse.json(

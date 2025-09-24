@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.316Z
+// Generated on 2025-09-24T18:54:16.941Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,7 +12,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const meetingId = searchParams.get('meetingId') || undefined
     const voteStatus = searchParams.get('voteStatus') || undefined
     const accountType = searchParams.get('accountType') || undefined
-    const select = searchParams.get('select') || undefined
     const order = searchParams.get('order') || undefined
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
     const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : undefined

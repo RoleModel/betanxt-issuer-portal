@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.315Z
+// Generated on 2025-09-24T18:54:16.940Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -24,7 +24,7 @@ export async function GET(
     const type = searchParams.get('type') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listDocuments({ meetingId, status, type })
+    const { data, error } = await listDocuments(meetingId, { status, type })
 
     if (error) {
       return NextResponse.json(
@@ -47,13 +47,20 @@ export async function GET(
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+): Promise<NextResponse> {
   try {
+    // Extract path parameters
+    const resolvedParams = await params
+    const meetingId = resolvedParams.meetingId
+
     // Parse request body
     const body = await request.json()
 
     // Use existing domain model function
-    const { data, error } = await createDocument(body)
+    const { data, error } = await createDocument(meetingId, body)
 
     if (error) {
       return NextResponse.json(

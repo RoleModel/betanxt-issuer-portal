@@ -1,22 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.316Z
+// Generated on 2025-09-24T18:54:16.942Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createPositionVote } from '@/domain-models/api/votes'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
-    // Extract query parameters
-    const { searchParams } = new URL(request.url)
-    const positionId = searchParams.get('positionId') || undefined
-    const proposalId = searchParams.get('proposalId') || undefined
-    const vote = searchParams.get('vote') || undefined
-    const select = searchParams.get('select') || undefined
-    const order = searchParams.get('order') || undefined
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
-    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : undefined
-
     // TODO: Implement getPositionVotes
     // Operation: getPositionVotes
     // This route was auto-generated from OpenAPI spec

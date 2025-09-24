@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.314Z
+// Generated on 2025-09-24T18:54:16.939Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const accountId = searchParams.get('accountId') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listUsers({ type, accountId })
+    const { data, error } = await listUsers(accountId, type)
 
     if (error) {
       return NextResponse.json(

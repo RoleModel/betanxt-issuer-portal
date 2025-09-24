@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-22T18:38:17.314Z
+// Generated on 2025-09-24T18:54:16.940Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -18,7 +18,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const ticker = searchParams.get('ticker') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listMeetings(page, limit, { status, clientId, meetingYear, cusip, ticker })
+    const { data, error } = await listMeetings(page, limit, {
+      status: status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined,
+      clientId,
+      meetingYear,
+      cusip,
+      ticker
+    })
 
     if (error) {
       return NextResponse.json(
