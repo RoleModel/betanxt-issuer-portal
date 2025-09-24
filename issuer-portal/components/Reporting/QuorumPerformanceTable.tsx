@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CircularProgress,
+  Link as MuiLink,
   Table,
   TableBody,
   TableCell,
@@ -16,6 +17,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+
+import NextLink from 'next/link'
 
 interface QuorumData {
   meetingId: string
@@ -33,12 +36,14 @@ interface QuorumPerformanceTableProps {
   data: QuorumData[]
   loading?: boolean
   title?: string
+  clientTicker?: string
 }
 
 const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   data,
   loading = false,
   title = 'Quorum Performance',
+  clientTicker = '',
 }) => {
 
   if (loading) {
@@ -78,7 +83,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>
-                <TableCell align="right">Days to Quorum</TableCell>
+                <TableCell padding="none" align="right">Days to Quorum</TableCell>
                 <TableCell align="right">Early Votes %</TableCell>
                 <TableCell align="right">Late Votes % (1 wk)</TableCell>
               </TableRow>
@@ -93,9 +98,17 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                 return (
                   <TableRow key={`${row.meetingId}-${index}`}>
                     <TableCell component="th" scope="row">
-                      <Typography variant="body2" noWrap>
-                        {displayTitle}
-                      </Typography>
+                      {clientTicker ? (
+                        <MuiLink component={NextLink} href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}>
+                          <Typography variant="body2" noWrap>
+                            {displayTitle}
+                          </Typography>
+                        </MuiLink>
+                      ) : (
+                        <Typography variant="body2" noWrap>
+                          {displayTitle}
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="right">{row.daysToQuorum ?? '--'}</TableCell>
                     <TableCell align="right">{row.earlyVotesPct.toFixed(1)}%</TableCell>

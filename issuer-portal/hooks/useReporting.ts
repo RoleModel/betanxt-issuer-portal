@@ -117,6 +117,7 @@ interface MappedProposalPerformanceData {
 
 interface MappedAuditComplianceData {
   event: string
+  meetingId?: string
   materialsSent: string
   inspectorCertified: string
   universalProxy: string
@@ -850,6 +851,7 @@ function transformAuditComplianceData(auditComplianceData: AuditComplianceData[]
 
     return {
       event: eventTitle,
+      meetingId: item.meetingId,
       materialsSent: item.materialsCompliant ? 'Yes' : 'No',
       inspectorCertified: item.complianceScore >= 75 ? 'Yes' : 'No',
       universalProxy: (item.issues || []).length === 0 ? 'Yes' : 'No',

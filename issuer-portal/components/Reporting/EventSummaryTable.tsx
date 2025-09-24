@@ -120,7 +120,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
       <CardHeader title={title} />
       <CardContent>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>

@@ -294,7 +294,7 @@ export default function ReportingPage() {
 
         <Grid size={{ xs: 12, lg: 5 }}>
           <Suspense fallback={<ChartSkeleton />}>
-            <Card>
+            <Card sx={{ height: '100%' }}>
               <CardHeader title="Participation" />
               <CardContent>
                 <ParticipationChart
@@ -399,11 +399,11 @@ export default function ReportingPage() {
 
         {/* Third Row - Audit & Compliance and Quorum Performance Tables */}
         <Grid size={{ xs: 12, lg: 6.5 }}>
-          <AuditComplianceTable data={mappedAuditComplianceData} />
+          <AuditComplianceTable data={mappedAuditComplianceData} clientTicker={clientTicker} />
         </Grid>
 
         <Grid size={{ xs: 12, lg: 5.5 }}>
-          <QuorumPerformanceTable data={mappedQuorumPerformanceData} />
+          <QuorumPerformanceTable data={mappedQuorumPerformanceData} clientTicker={clientTicker} />
         </Grid>
       </Grid>
     </Container>

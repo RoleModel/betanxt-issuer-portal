@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CircularProgress,
+  Link as MuiLink,
   Table,
   TableBody,
   TableCell,
@@ -17,8 +18,11 @@ import {
   Typography,
 } from '@mui/material'
 
+import NextLink from 'next/link'
+
 interface AuditComplianceData {
   event: string
+  meetingId?: string
   materialsSent: string
   inspectorCertified: string
   universalProxy: string
@@ -29,12 +33,14 @@ interface AuditComplianceTableProps {
   data: AuditComplianceData[]
   loading?: boolean
   title?: string
+  clientTicker?: string
 }
 
 const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
   data,
   loading = false,
   title = 'Audit & Compliance',
+  clientTicker = '',
 }) => {
   if (loading) {
     return (
@@ -81,9 +87,17 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
               {data.map((row, index) => (
                 <TableRow key={index}>
                   <TableCell component="th" scope="row">
-                    <Typography variant="body2" noWrap>
-                      {row.event}
-                    </Typography>
+                    {row.meetingId && clientTicker ? (
+                      <MuiLink component={NextLink} href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}>
+                        <Typography variant="body2" noWrap>
+                          {row.event}
+                        </Typography>
+                      </MuiLink>
+                    ) : (
+                      <Typography variant="body2" noWrap>
+                        {row.event}
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell>{row.materialsSent}</TableCell>
                   <TableCell>{row.inspectorCertified}</TableCell>
