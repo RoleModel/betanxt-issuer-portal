@@ -39,7 +39,11 @@ interface BNAppBarWrapperProps {
   user?: User
 }
 
-export const BNAppBarClient = React.memo(function BNAppBarClientComponent(props: BNAppBarWrapperProps) {
+export function BNAppBarClient(props: BNAppBarWrapperProps) {
+  return <BNAppBarClientMemo {...props} />
+}
+
+const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(props: BNAppBarWrapperProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
