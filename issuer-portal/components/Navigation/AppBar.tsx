@@ -17,20 +17,17 @@ import NotificationPopper, {
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 
-// Memoized Next.js Link component wrapper for BNAppBar
-const NextLinkComponent = ({
-  to,
-  children,
-  ...props
-}: {
-  to: string
-  children: React.ReactNode
-  [key: string]: unknown
-}) => (
-  <Link href={to} prefetch={true} {...props}>
-    {children}
-  </Link>
+// Memoized Next.js Link component wrapper for BNAppBar - defined outside to prevent recreation
+const NextLinkComponent = React.memo(
+  React.forwardRef<HTMLAnchorElement, { to: string; children: React.ReactNode; [key: string]: unknown }>(
+    ({ to, children, ...props }, ref) => (
+      <Link href={to} prefetch={true} ref={ref} {...props}>
+        {children}
+      </Link>
+    )
+  )
 )
+NextLinkComponent.displayName = 'NextLinkComponent'
 
 interface BNAppBarWrapperProps {
   title?: string
@@ -42,7 +39,7 @@ interface BNAppBarWrapperProps {
   user?: User
 }
 
-export function BNAppBarClient(props: BNAppBarWrapperProps) {
+export const BNAppBarClient = React.memo(function BNAppBarClientComponent(props: BNAppBarWrapperProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -138,12 +135,12 @@ export function BNAppBarClient(props: BNAppBarWrapperProps) {
       {
         label: 'Education',
         value: 'education',
-        to: `${tickerPrefix}/education`,
+        to: '/education',
       },
       {
         label: 'Products',
         value: 'products',
-        to: `${tickerPrefix}/products`,
+        to: '/products',
       },
     ]
 
@@ -159,12 +156,10 @@ export function BNAppBarClient(props: BNAppBarWrapperProps) {
     if (/^\/[A-Z]+\/meeting\/[^/]+\/reports$/.test(pathname)) return 'meeting'
     // Match ticker-scoped reporting
     if (/^\/[A-Z]+\/reporting$/.test(pathname)) return 'reporting'
-    // Root sections (and subroutes) - handle both with and without ticker prefix
-    if (pathname === '/education' || pathname.startsWith('/education/') ||
-        /^\/[A-Z]+\/education/.test(pathname))
+    // Root sections (and subroutes) - education and products are now at root level
+    if (pathname === '/education' || pathname.startsWith('/education/'))
       return 'education'
-    if (pathname === '/products' || pathname.startsWith('/products/') ||
-        /^\/[A-Z]+\/products/.test(pathname))
+    if (pathname === '/products' || pathname.startsWith('/products/'))
       return 'products'
     // For home, meeting, and ticker-based meeting pages, use meeting
     if (
@@ -369,6 +364,6 @@ export function BNAppBarClient(props: BNAppBarWrapperProps) {
       menuItems={menuItems}
     />
   )
-}
+})
 
 export { BNAppBar }

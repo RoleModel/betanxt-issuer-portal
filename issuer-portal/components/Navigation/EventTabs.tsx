@@ -3,7 +3,7 @@
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState, startTransition } from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
@@ -89,7 +89,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const lastClickTime = useRef<number>(0)
   // const { openDrawer } = usePhaseDrawer()
   const { meetings, isLoading: loading, currentMeeting: activeMeeting } = useMeeting()
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
@@ -115,6 +114,16 @@ export const EventTabs = React.memo((): React.ReactElement => {
 
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)
+
+  // Prefetch all navigation tabs for instant switching
+  useEffect(() => {
+    if (currentMeeting && currentClient?.ticker) {
+      navigationTabs.forEach((tab) => {
+        const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
+        router.prefetch(route)
+      })
+    }
+  }, [currentMeeting, currentClient, router])
 
   // Get active tab from current pathname
   // Extract the route part after /[ticker]/meeting/[meetingId]
@@ -204,22 +213,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
     }
   }, [currentMeeting, transformedMeetings, activeMeetingTab])
 
-  const handleTabClick = (tabLabel: string) => {
-    // Debounce rapid clicks (250ms minimum between clicks)
-    const now = Date.now()
-    if (now - lastClickTime.current < 250) {
-      return
-    }
-    lastClickTime.current = now
-
-    const tab = navigationTabs.find((t) => t.label === tabLabel)
-    if (tab && currentMeeting && currentClient?.ticker) {
-      const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
-
-      // Use router.push for client-side navigation
-      router.push(route, { scroll: false })
-    }
-  }
 
   // Helper function to scroll to active tab
   const scrollToActiveTab = useCallback(() => {
@@ -890,27 +883,33 @@ export const EventTabs = React.memo((): React.ReactElement => {
               sx={{ position: 'relative' }}
             >
               {navigationTabs.map((tab) => {
+                const isActive = activeTab === tab.label
+                const tabHref = currentMeeting && currentClient?.ticker
+                  ? `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
+                  : '#'
+
                 return (
                   <Tab
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
+                    component={Link}
+                    href={tabHref}
+                    prefetch={true}
                     onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (currentMeeting) {
-                        handleTabClick(tab.label)
-                      }
+                      // Optimistic update - immediately update visual state
+                      startTransition(() => {
+                        // The actual navigation will happen via Link
+                      })
                     }}
-                    component="button"
                     sx={(theme) => ({
-                      color:
-                        activeTab === tab.label
-                          ? 'var(--mui-palette-primary-main)'
-                          : 'var(--mui-palette-text-secondary)',
+                      color: isActive
+                        ? 'var(--mui-palette-primary-main)'
+                        : 'var(--mui-palette-text-secondary)',
                       fontWeight: 500,
                       fontSize: '0.875rem',
                       textTransform: 'none',
+                      textDecoration: 'none',
                       px: 2,
                       py: 1.125,
                       minWidth: 'fit-content',
