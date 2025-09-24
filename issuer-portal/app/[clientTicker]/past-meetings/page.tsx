@@ -78,17 +78,26 @@ export default function PastMeetingsPage() {
               params: { query: { meetingId: meeting.id } },
             })
 
-            // Ensure positions is an array
+            // Extract positions array from API response
+            // The API returns { positions: Position[] }
             const positionsData = positionsResult.data
-            const positions = Array.isArray(positionsData) ? positionsData : []
+            const positions = positionsData?.positions || []
 
-            const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
-            const votedShares = positions
-              .filter((p) => p.voteStatus === 'Voted')
-              .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+            // Use totalSharesOutstanding from meeting for participation calculation
+            const totalSharesOutstanding = parseInt(meeting.totalSharesOutstanding || '0', 10)
+
+            // Calculate voted shares using sharesVoted field
+            const votedShares = positions.reduce((sum, p) => {
+              // Use sharesVoted if available, otherwise 0
+              const shares = p.sharesVoted || 0
+              return sum + shares
+            }, 0)
+
             const totalVotes = positions.filter((p) => p.voteStatus === 'Voted').length
 
-            const participationPercent = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+            const participationPercent = totalSharesOutstanding > 0
+              ? (votedShares / totalSharesOutstanding) * 100
+              : 0
 
             return {
               ...meeting,
