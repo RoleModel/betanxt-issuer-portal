@@ -3,7 +3,7 @@
     {
       "name": "Root",
       "path": "."
-    }
+    },
     {
       "name": "Supabase",
       "path": "supabase"
