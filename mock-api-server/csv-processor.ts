@@ -275,29 +275,56 @@ export class CSVProcessor {
   ): Promise<CompanyPositionData[]> {
     const positions: CompanyPositionData[] = []
     let rowCount = 0
+    let totalRows = 0
 
     return new Promise((resolve, reject) => {
+      let headers: string[] = []
+      let isFirstRow = true
+
       createReadStream(filePath)
-        .pipe(csvParser({ headers: true }))
-        .on('data', (row: Record<string, string>) => {
+        .pipe(csvParser({ headers: false }))
+        .on('data', (row: any) => {
+          if (isFirstRow) {
+            // Parse headers manually, filtering out empty columns
+            headers = Object.values(row).map((h: any) => String(h).trim()).filter(h => h !== '')
+            isFirstRow = false
+            return
+          }
+
+          totalRows++
+
+          // Convert array row to object using our headers
+          const rowObj: Record<string, string> = {}
+          let headerIndex = 0
+          Object.values(row).forEach((val: any, idx: number) => {
+            // Skip empty header positions
+            if (Object.values(row)[idx] !== '') {
+              if (headers[headerIndex]) {
+                rowObj[headers[headerIndex]] = String(val)
+              }
+              headerIndex++
+            }
+          })
+
+
           if (limit && rowCount >= limit) return
 
           // Skip if no shares
-          const shares = this.parseNumber(row['Shares'] || row['Share Count'] || row['Holdings'] || '0')
+          const shares = this.parseNumber(rowObj['Shares'] || rowObj['Share Count'] || rowObj['Holdings'] || '0')
           if (shares === 0) return
 
           positions.push({
             cusip: cusip,
-            accountType: row['Account Type'] || row['Type'] || 'Registered Account',
-            name: row['Account'] || row['Account Name'] || row['Name'] || row['Shareholder'] || 'Unknown',
-            accountNumber: row['Account#'] || row['Account Number'] || row['Account'] || null,
-            voteStatus: (row['Status'] || row['Vote Status'] || 'Unvoted') as 'Voted' | 'Unvoted',
+            accountType: rowObj['Account Type'] || rowObj['Type'] || 'Registered Account',
+            name: rowObj['Account'] || rowObj['Account Name'] || rowObj['Name'] || rowObj['Shareholder'] || 'Unknown',
+            accountNumber: rowObj['Account#'] || rowObj['Account Number'] || rowObj['Account'] || null,
+            voteStatus: (rowObj['Status'] || rowObj['Vote Status'] || 'Unvoted') as 'Voted' | 'Unvoted',
             shares: shares,
-            sharesVoted: this.parseNumber(row['Shares Voted'] || row['Voted Shares'] || '0'),
-            source: row['Source'] || row['Vote Method'] || null,
-            dateVoted: this.parseDate(row['Time Stamp'] || row['Vote Date'] || row['Voted Date'] || ''),
-            voteMethod: row['Vote Method'] || row['Method'] || row['Source'] || undefined,
-            controlNumber: row['Control Number'] || row['Control'] || undefined
+            sharesVoted: this.parseNumber(rowObj['Shares Voted'] || rowObj['Voted Shares'] || '0'),
+            source: rowObj['Source'] || rowObj['Vote Method'] || null,
+            dateVoted: this.parseDate(rowObj['Time Stamp'] || rowObj['Vote Date'] || rowObj['Voted Date'] || ''),
+            voteMethod: rowObj['Vote Method'] || rowObj['Method'] || rowObj['Source'] || undefined,
+            controlNumber: rowObj['Control Number'] || rowObj['Control'] || undefined
           })
           rowCount++
         })

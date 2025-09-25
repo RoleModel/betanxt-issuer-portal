@@ -673,9 +673,13 @@ async function validateSeedData() {
 
       // Report table results
       if (validation.valid) {
+        console.log(
           `✅ ${tableName}: ${data?.length || 0} records - All validations passed`
+        )
       } else {
+        console.log(
           `❌ ${tableName}: ${data?.length || 0} records - ${validation.errors.length} errors, ${validation.warnings.length} warnings`
+        )
       }
 
       // Show column statistics
@@ -696,9 +700,12 @@ async function validateSeedData() {
 
       // Show first few errors if any
       if (validation.errors.length > 0) {
+        console.log('   First 5 errors:')
         validation.errors.slice(0, 5).forEach((error) => {
+          console.log(`     - ${error}`)
         })
         if (validation.errors.length > 5) {
+          console.log(`     ... and ${validation.errors.length - 5} more errors`)
         }
       }
     }
@@ -721,7 +728,11 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutPositions.length === 0) {
+        console.log('✅ Business Rule 1: All meetings have positions')
       } else {
+        console.log(
+          `⚠️  Business Rule 1: ${meetingsWithoutPositions.length} meetings without positions`
+        )
         totalWarnings++
       }
     }
@@ -735,7 +746,11 @@ async function validateSeedData() {
       )
 
       if (votedPositionsWithoutVotes.length === 0) {
+        console.log('✅ Business Rule 2: All voted positions have position votes')
       } else {
+        console.log(
+          `⚠️  Business Rule 2: ${votedPositionsWithoutVotes.length} voted positions without votes`
+        )
         totalWarnings++
       }
     }
@@ -749,7 +764,11 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutProposals.length === 0) {
+        console.log('✅ Business Rule 3: All meetings have proposals')
       } else {
+        console.log(
+          `⚠️  Business Rule 3: ${meetingsWithoutProposals.length} meetings without proposals`
+        )
         totalWarnings++
       }
     }
@@ -763,7 +782,11 @@ async function validateSeedData() {
       )
 
       if (meetingsWithoutPhases.length === 0) {
+        console.log('✅ Business Rule 4: All meetings have phases')
       } else {
+        console.log(
+          `⚠️  Business Rule 4: ${meetingsWithoutPhases.length} meetings without phases`
+        )
         totalWarnings++
       }
     }
@@ -775,7 +798,11 @@ async function validateSeedData() {
       const phasesWithoutTasks = phaseIds.filter((id: any) => !phasesWithTasks.has(id))
 
       if (phasesWithoutTasks.length === 0) {
+        console.log('✅ Business Rule 5: All phases have tasks')
       } else {
+        console.log(
+          `⚠️  Business Rule 5: ${phasesWithoutTasks.length} phases without tasks`
+        )
         totalWarnings++
       }
     }
@@ -932,7 +959,7 @@ async function validateSeedData() {
       })
 
       // Validate phase structure for each meeting
-      const meetingIds = [...new Set(phases.map((p: any) => p.meeting_id))]
+      const meetingIds = Array.from(new Set(phases.map((p: any) => p.meeting_id)))
       meetingIds.forEach((meetingId: any) => {
         const meetingPhases = phases.filter((p: any) => p.meeting_id === meetingId)
 
@@ -985,8 +1012,11 @@ async function validateSeedData() {
 
       // Summary of task-phase validation
       if (taskPhaseErrors === 0 && taskPhaseWarnings === 0) {
+        console.log('✅ Task-Phase Assignment: All validations passed')
       } else {
+        console.log(
           `❌ Task-Phase Assignment Issues: ${taskPhaseErrors} errors, ${taskPhaseWarnings} warnings`
+        )
         totalErrors += taskPhaseErrors
         totalWarnings += taskPhaseWarnings
       }
@@ -995,21 +1025,28 @@ async function validateSeedData() {
       const tasksWithValidPhaseId = tasks.filter((t: any) =>
         phases.find((p: any) => p.id === t.phase_id)
       ).length
-      const tasksWithMatchingMeetingId = tasks.filter((t: any) => {
+      const tasksWithMatchingMeetingId: number = tasks.filter((t: any) => {
         const phase = phases.find((p: any) => p.id === t.phase_id)
         return phase && t.meeting_id === phase.meeting_id
       }).length
 
+      console.log(
         `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${((tasksWithValidPhaseId / tasks.length) * 100).toFixed(1)}%)`
+      )
+      console.log(
         `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${((tasksWithMatchingMeetingId / tasks.length) * 100).toFixed(1)}%)`
+      )
 
       // Phase utilization statistics
       const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
       const unusedPhases = phases.filter((p: any) => !phasesWithTasks.has(p.id))
 
       if (unusedPhases.length > 0) {
+        console.log(`   • Phases with no tasks: ${unusedPhases.length}/${phases.length}`)
         if (unusedPhases.length <= 5) {
+          console.log(
             `     Unused: ${unusedPhases.map((p: any) => `${p.name} (${p.meeting_id})`).join(', ')}`
+          )
         }
       }
     }
@@ -1017,33 +1054,48 @@ async function validateSeedData() {
     // Final Summary
 
     let totalRecords = 0
+    console.log('\n📊 Summary by Table:')
     Object.entries(validationResults).forEach(([tableName, result]) => {
       if (result.recordCount) {
         totalRecords += result.recordCount
         const status = result.validation?.valid ? '✅' : '❌'
+        console.log(
+          `   ${status} ${tableName}: ${result.recordCount} records`
+        )
       }
     })
 
+    console.log(
       `🎯 Key Tables: ${positions.length} positions, ${positionVotes.length} position votes`
+    )
 
     if (totalErrors === 0 && totalWarnings === 0) {
+      console.log('\n✅ All validations passed successfully!')
     } else {
+      console.log(
         `\n⚠️  Validation completed with ${totalErrors} errors and ${totalWarnings} warnings`
+      )
 
       if (totalErrors > 0) {
+        console.log('❌ Please fix the errors above before proceeding')
       }
 
       if (totalWarnings > 0) {
+        console.log('⚠️  Review warnings for potential issues')
       }
     }
 
     // Data quality recommendations
     if (positions.length < 1000) {
+      console.log(
         '\n💡 RECOMMENDATION: Expected thousands of positions for realistic testing'
+      )
     }
 
     if (positionVotes.length < 1000) {
+      console.log(
         '💡 RECOMMENDATION: Expected thousands of position votes for realistic testing'
+      )
     }
 
 

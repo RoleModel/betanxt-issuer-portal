@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.940Z
+// Generated on 2025-09-25T18:35:57.314Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { listMeetings, createMeeting } from '@/domain-models/api/meetings'
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -18,13 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const ticker = searchParams.get('ticker') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listMeetings(page, limit, {
-      status: status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined,
-      clientId,
-      meetingYear,
-      cusip,
-      ticker
-    })
+    const { data, error } = await listMeetings(page, limit, { status, clientId, meetingYear, cusip, ticker })
 
     if (error) {
       return NextResponse.json(
@@ -35,7 +30,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -50,7 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateMeetingRequest']
 
     // Use existing domain model function
     const { data, error } = await createMeeting(body)
@@ -64,7 +58,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

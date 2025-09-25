@@ -520,6 +520,17 @@ import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/ser
     }
   }
 
+  // Determine if we will emit typed request bodies for any method
+  const willEmitTypedBody = route.methods.some((method) => {
+    const mapping = operationMappings[method]
+    if (!mapping) return false
+    return ['POST', 'PUT', 'PATCH'].includes(method) && /^(create|update)[A-Z]/.test(mapping.functionName)
+  })
+
+  if (willEmitTypedBody) {
+    content += `\nimport type { components } from '@/types/api'`
+  }
+
   content += `\n\n`
 
   // Add type imports if needed
@@ -639,7 +650,16 @@ import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/ser
     // Add request body handling for POST/PUT/PATCH only if we have a domain mapping
     if (['POST', 'PUT', 'PATCH'].includes(method) && domainMapping) {
       content += `    // Parse request body\n`
-      content += `    const body = await request.json()\n\n`
+
+      // Infer request schema type from function name (create*/update*)
+      const fn = domainMapping.functionName
+      const match = fn.match(/^(create|update)([A-Z].*)$/)
+      if (match) {
+        const reqType = `${match[1] === 'create' ? 'Create' : 'Update'}${match[2]}Request`
+        content += `    const body = (await request.json()) as components['schemas']['${reqType}']\n\n`
+      } else {
+        content += `    const body = await request.json()\n\n`
+      }
     }
 
     if (domainMapping) {

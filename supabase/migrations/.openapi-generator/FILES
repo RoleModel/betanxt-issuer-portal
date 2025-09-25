@@ -1,4 +1,5 @@
 Model/Account.sql
+Model/AddDocumentHistoryRequest.sql
 Model/ApproveDocumentVersionRequest.sql
 Model/CastVoteRequest.sql
 Model/Clients.sql
@@ -15,6 +16,7 @@ Model/CreateProposalRequest.sql
 Model/CreateTaskRequest.sql
 Model/CreateUserRequest.sql
 Model/Document.sql
+Model/DocumentHistory.sql
 Model/DocumentStatus.sql
 Model/Error.sql
 Model/GetDocumentsReadiness200Response.sql

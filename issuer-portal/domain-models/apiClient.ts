@@ -5,16 +5,16 @@ import type { paths } from './generated-schema'
 
 export type ApiClientReturnType<T> =
   | {
-      data: T
-      error: undefined
-    }
+    data: T
+    error: undefined
+  }
   | {
-      data: undefined
-      error: {
-        message: string
-        statusCode?: number
-      }
+    data: undefined
+    error: {
+      message: string
+      statusCode?: number
     }
+  }
 
 export const buildApiClient = async () => {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'

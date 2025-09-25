@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.937Z
+// Generated on 2025-09-25T18:35:57.311Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextResponse } from 'next/server'

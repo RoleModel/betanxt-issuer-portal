@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.939Z
+// Generated on 2025-09-25T18:35:57.314Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { listUsers, createUser } from '@/domain-models/api/users'
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const accountId = searchParams.get('accountId') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listUsers(accountId, type)
+    const { data, error } = await listUsers({ type, accountId })
 
     if (error) {
       return NextResponse.json(
@@ -24,7 +25,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateUserRequest']
 
     // Use existing domain model function
     const { data, error } = await createUser(body)
@@ -53,7 +53,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

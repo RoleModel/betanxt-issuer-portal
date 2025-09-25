@@ -652,6 +652,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/documents/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get event history for a specific document */
+        get: operations["getDocumentEvents"];
+        put?: never;
+        /** Add event to document history */
+        post: operations["addDocumentEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications": {
         parameters: {
             query?: never;
@@ -962,6 +980,13 @@ export interface components {
             /** Format: date-time */
             deadline?: string | null;
             history?: Record<string, never> | null;
+            /** @description User who approved the document */
+            approvedBy?: string | null;
+            /**
+             * Format: date-time
+             * @description When the document was approved
+             */
+            approvedAt?: string | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1162,6 +1187,24 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             document?: components["schemas"]["Document"];
+        };
+        DocumentHistory: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            documentId?: string;
+            /** @enum {string} */
+            eventType?: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+            /** Format: uuid */
+            userId?: string;
+            userName?: string;
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt?: string;
+            document?: components["schemas"]["Document"];
+            user?: components["schemas"]["User"];
         };
         CreateAccountRequest: {
             name: string;
@@ -3269,6 +3312,64 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    getDocumentEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event history retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentHistory"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addDocumentEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+                    metadata?: {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Event added successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentHistory"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     listNotifications: {

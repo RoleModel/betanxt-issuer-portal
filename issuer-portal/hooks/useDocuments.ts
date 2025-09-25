@@ -3,9 +3,10 @@
 import { useCallback, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
+import { documentRepository } from '@/domain-models/documentRepository'
 import type { components } from '@/domain-models/generated-schema'
 
-import { supabase } from '../../supabase/clients'
+import { getBrowserSupabase } from '@/lib/browserSupabase'
 
 type Document = components['schemas']['Document']
 type Comment = components['schemas']['Comment']
@@ -47,10 +48,16 @@ export interface UseDocumentsResult {
   ) => Promise<Document | null>
   downloadDocumentById: (id: string) => Promise<string | null>
   getCommentsForDocument: (documentId: string) => Promise<DocumentComment[]>
-  addCommentToDocument: (documentId: string, comment: string) => Promise<void>
+  addCommentToDocument: (documentId: string, comment: string, userInfo?: { firstName?: string; lastName?: string; userId?: string }) => Promise<void>
   getTaskDocument: (taskId: string) => Promise<unknown>
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>
-  uploadDocument: (file: File, documentId: string) => Promise<string | null>
+  uploadDocument: (file: File, documentId: string, meetingId?: string, documentTitle?: string) => Promise<string | null>
+  uploadDocumentVersion: (
+    meetingId: string,
+    documentType: string,
+    file: File,
+    versionNotes?: string
+  ) => Promise<Document | null>
   addDocumentHistory: (documentId: string, eventType: string) => Promise<boolean>
   getDocumentHistory: (documentId: string) => Promise<DocumentHistoryEvent[]>
   uploadDSMDocument: (
@@ -199,7 +206,7 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const addCommentToDocument = useCallback(
-    async (documentId: string, comment: string): Promise<void> => {
+    async (documentId: string, comment: string, userInfo?: { firstName?: string; lastName?: string; userId?: string }): Promise<void> => {
       try {
         setLoading(true)
         setError(null)
@@ -207,13 +214,17 @@ export const useDocuments = (): UseDocumentsResult => {
         const apiClient = await buildApiClient()
         const result = await apiClient.POST('/documents/{id}/comments', {
           params: { path: { id: documentId } },
-          body: { comment } as CreateCommentRequest,
+          body: {
+            comment,
+            firstName: userInfo?.firstName,
+            lastName: userInfo?.lastName,
+            userId: userInfo?.userId
+          } as CreateCommentRequest,
         })
 
         if (result.error) {
           throw new Error('Failed to add comment')
         }
-
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to add comment'
         setError(errorMessage)
@@ -247,43 +258,7 @@ export const useDocuments = (): UseDocumentsResult => {
       try {
         setLoading(true)
         setError(null)
-
-        // Fetch documents directly from Supabase
-        const { data, error } = await supabase
-          .from('documents')
-          .select('*')
-          .eq('meeting_id', meetingId)
-
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        // Convert Supabase response to Document type
-        return (data || []).map((doc: any) => ({
-          id: doc.id,
-          meetingId: doc.meeting_id,
-          taskId: doc.task_id,
-          title: doc.title,
-          description: doc.description,
-          type: doc.type,
-          filePath: doc.file_path,
-          fileType: doc.file_type,
-          fileSize: doc.file_size,
-          status: doc.status,
-          uploadDate: doc.upload_date,
-          uploadedDate: doc.uploaded_date,
-          signedDate: doc.signed_date,
-          authorizedDate: doc.authorized_date,
-          completedDate: doc.completed_date,
-          inProgressDate: doc.in_progress_date,
-          deadline: doc.deadline,
-          history: doc.history,
-          createdAt: doc.created_at,
-          updatedAt: doc.updated_at,
-          meeting: undefined,
-          comments: undefined,
-          signatures: undefined,
-        })) as Document[]
+        return await documentRepository.listByMeeting(meetingId)
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get documents by meeting'
@@ -297,26 +272,195 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const uploadDocument = useCallback(
-    async (_file: File, _documentId: string): Promise<string | null> => {
+    async (_file: File, _documentId: string, _meetingId?: string, _documentTitle?: string): Promise<string | null> => {
+      console.log('uploadDocument called with:', {
+        fileName: _file.name,
+        fileSize: _file.size,
+        documentId: _documentId,
+        meetingId: _meetingId,
+        documentTitle: _documentTitle
+      })
+
       try {
         setLoading(true)
         setError(null)
 
-        const key = `uploads/${Date.now()}_${_file.name}`
-        const { data, error } = await supabase.storage
-          .from('supporting')
-          .upload(key, _file, {
-            upsert: true,
-            contentType: _file.type || 'application/octet-stream',
-          })
-        if (error || !data) {
-          throw new Error(error?.message || 'Failed to upload file')
-        }
+        // Convert file to base64 and update/create document
+        const reader = new FileReader()
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(_file)
+        })
 
-        return data.path || null
+        console.log('Base64 data generated, length:', base64Data.length)
+
+        const apiClient = await buildApiClient()
+
+        // Check if this is a temporary document ID (for generated forms)
+        const isTemporaryId = _documentId.includes('broadridge-form-') ||
+          _documentId.includes('plan-file-request-') ||
+          _documentId.includes('transfer-agent-request-') ||
+          // Treat MeetingDocuments placeholders as temporary/new
+          _documentId === 'draft-proxy-statement' ||
+          _documentId === 'proxy-card' ||
+          _documentId === 'notice-access-form' ||
+          _documentId === 'temp-doc-id' ||
+          _documentId.startsWith('doc-') ||
+          _documentId.startsWith('temp-')
+
+        console.log('Is temporary ID:', isTemporaryId)
+
+        // Decide target status: placeholders should become AWAITING_REVIEW (ready for approval),
+        // certain special forms remain SIGNED; otherwise default to AWAITING_REVIEW
+        const isPhase2Placeholder =
+          _documentId === 'draft-proxy-statement' ||
+          _documentId === 'proxy-card' ||
+          _documentId === 'notice-access-form'
+        const isExplicitSignedForm =
+          _documentId.includes('broadridge') ||
+          _documentId.includes('plan-file-request') ||
+          _documentId.includes('transfer-agent-request') ||
+          (_documentTitle ? _documentTitle.includes('(Signed)') : false)
+        const desiredStatus = (isPhase2Placeholder ? 'AWAITING_REVIEW' : (isExplicitSignedForm ? 'SIGNED' : 'AWAITING_REVIEW')) as components['schemas']['Document']['status']
+
+        if (isTemporaryId) {
+          // For temporary documents, create a new document record
+          // Use the meeting ID passed in, or extract from URL
+          let meetingId = _meetingId
+
+          if (!meetingId) {
+            // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
+            const tickerPathMatch = window.location.pathname.match(/\/[^/]+\/meeting\/([^/]+)/)
+            if (tickerPathMatch) {
+              meetingId = tickerPathMatch[1]
+            }
+          }
+
+          // Fallback to a default if no meeting ID found
+          if (!meetingId) {
+            console.warn('No meeting ID provided or found in URL, using default')
+            meetingId = 'default-meeting'
+          }
+
+          // Determine document type from ID or use provided title
+          let docType = 'signed-form'
+          let title = _documentTitle || 'Signed Document'
+
+          // Override with specific form types if detected
+          if (_documentId.includes('broadridge')) {
+            docType = 'broadridge-form'
+            title = 'Broadridge Corporate Issuer Profile Form (Signed)'
+          } else if (_documentId.includes('plan-file-request')) {
+            docType = 'plan-file-request'
+            title = 'Plan File Request Form (Signed)'
+          } else if (_documentId.includes('transfer-agent-request')) {
+            docType = 'transfer-agent-request'
+            title = 'Transfer Agent Request Form (Signed)'
+          } else if (_documentTitle) {
+            // Detect form type from title as well
+            if (_documentTitle.toLowerCase().includes('plan file request')) {
+              docType = 'plan-file-request'
+              title = 'Plan File Request Form (Signed)'
+            } else if (_documentTitle.toLowerCase().includes('transfer agent')) {
+              docType = 'transfer-agent-request'
+              title = 'Transfer Agent Request Form (Signed)'
+            } else {
+              // Use provided title and append (Signed) if not already present
+              title = _documentTitle.includes('(Signed)') ? _documentTitle : `${_documentTitle} (Signed)`
+            }
+          }
+
+          // Map MeetingDocuments placeholder IDs to canonical types/titles when possible
+          if (_documentId === 'draft-proxy-statement') {
+            docType = 'proxy-statement'
+            title = _documentTitle || 'Draft Proxy Statement'
+          } else if (_documentId === 'proxy-card') {
+            docType = 'proxy-card'
+            title = _documentTitle || 'Proxy Card'
+          } else if (_documentId === 'notice-access-form') {
+            docType = 'notice-and-access'
+            title = _documentTitle || 'Notice and Access Form'
+          }
+
+          console.log('Creating new document with meeting ID:', meetingId)
+          const result = await apiClient.POST('/meetings/{meetingId}/documents', {
+            params: { path: { meetingId } },
+            body: {
+              title,
+              type: docType,
+              file: base64Data,
+            } as components['schemas']['CreateDocumentRequest'],
+          })
+
+          console.log('Create document API response:', result)
+
+          if (result.error || !result.data) {
+            console.error('Document creation error:', result.error || 'No data returned')
+            throw new Error('Failed to create signed document')
+          }
+
+          // If desiredStatus differs from default, update status in a follow-up call
+          if (result.data?.id && desiredStatus) {
+            await apiClient.PUT('/documents/{id}', {
+              params: { path: { id: result.data.id } },
+              body: { status: desiredStatus } as components['schemas']['UpdateDocumentRequest'],
+            })
+          }
+
+          // Return the new document ID
+          console.log('Returning document ID:', result.data.id || _documentId)
+          return result.data.id || _documentId
+        } else {
+          // For existing documents, update them
+          const result = await apiClient.PUT('/documents/{id}', {
+            params: { path: { id: _documentId } },
+            body: {
+              filePath: base64Data,
+              status: desiredStatus,
+            } as components['schemas']['UpdateDocumentRequest'],
+          })
+
+          if (result.error) {
+            console.error('Document update error:', result.error)
+            throw new Error('Failed to save signed document')
+          }
+
+          // Return the document ID as the path for compatibility
+          return _documentId
+        }
       } catch (err) {
+        console.error('uploadDocument error:', err)
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to upload document'
+        setError(errorMessage)
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
+
+  const uploadDocumentVersion = useCallback(
+    async (
+      meetingId: string,
+      documentType: string,
+      file: File,
+      versionNotes?: string
+    ): Promise<Document | null> => {
+      try {
+        setLoading(true)
+        setError(null)
+        return await documentRepository.uploadVersion({
+          meetingId,
+          documentType,
+          file,
+          versionNotes,
+        })
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to upload document version'
         setError(errorMessage)
         return null
       } finally {
@@ -336,22 +480,19 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        const key = `supporting/${meetingId}/${Date.now()}_${file.name}`
-        const { data: upData, error: upErr } = await supabase.storage
-          .from('supporting')
-          .upload(key, file, {
-            upsert: true,
-            contentType: file.type || 'application/octet-stream',
-          })
-        if (upErr || !upData) {
-          throw new Error(upErr?.message || 'Failed to upload file')
-        }
+        // Convert file to base64 data URI
+        const reader = new FileReader()
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
 
         const apiClient = await buildApiClient()
         const createBody = {
           title: placeholderTitle,
           type: 'dsm-document',
-          filePath: upData.path,
+          filePath: base64Data,
           status: 'UPLOADED',
         } as unknown as components['schemas']['CreateDocumentRequest']
 
@@ -382,7 +523,19 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        // TODO: Implement document history API endpoint
+        const apiClient = await buildApiClient()
+        const result = await apiClient.POST('/documents/{id}/events', {
+          params: { path: { id: documentId } },
+          body: {
+            eventType: eventType as any,
+            metadata: {}
+          }
+        })
+
+        if (result.error) {
+          throw new Error('Failed to add document history')
+        }
+
         return true
       } catch (err) {
         const errorMessage =
@@ -402,8 +555,23 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
-        // TODO: Implement document history API endpoint
-        return []
+        const apiClient = await buildApiClient()
+        const result = await apiClient.GET('/documents/{id}/events', {
+          params: { path: { id: documentId } }
+        })
+
+        if (result.error) {
+          throw new Error('Failed to get document history')
+        }
+
+        // Transform the response to match our interface
+        return (result.data || []).map((event: any) => ({
+          id: event.id,
+          event_type: event.eventType || event.event_type,
+          user: event.userName || event.user_name || 'Unknown User',
+          timestamp: event.createdAt || event.created_at,
+          metadata: event.metadata || {}
+        }))
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get document history'
@@ -428,6 +596,7 @@ export const useDocuments = (): UseDocumentsResult => {
     getTaskDocument,
     getDocumentsByMeeting,
     uploadDocument,
+    uploadDocumentVersion,
     addDocumentHistory,
     getDocumentHistory,
     uploadDSMDocument,

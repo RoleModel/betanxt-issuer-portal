@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.940Z
+// Generated on 2025-09-25T18:35:57.314Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getMeetingById, updateMeeting, deleteMeeting } from '@/domain-models/api/meetings'
+import type { components } from '@/types/api'
 
 interface RouteParams {
   meetingId: string
@@ -30,7 +31,6 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -52,7 +52,7 @@ export async function PUT(
     const meetingId = resolvedParams.meetingId
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdateMeetingRequest']
 
     // Use existing domain model function
     const { data, error } = await updateMeeting(meetingId, body)
@@ -66,7 +66,6 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -99,7 +98,6 @@ export async function DELETE(
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

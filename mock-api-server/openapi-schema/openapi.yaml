@@ -1925,6 +1925,69 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /documents/{id}/events:
+    get:
+      operationId: getDocumentEvents
+      summary: Get event history for a specific document
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: addDocumentEvent
+      summary: Add event to document history
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventType]
+              properties:
+                eventType:
+                  type: string
+                  enum: [CREATED, UPLOADED, VIEWED, DOWNLOADED, SIGNED, APPROVED, REJECTED, COMMENTED, UPDATED, DELETED]
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Event added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # Notification Management Endpoints
   /notifications:
     get:
@@ -2422,6 +2485,15 @@ components:
         history:
           type: object
           nullable: true
+        approvedBy:
+          type: string
+          nullable: true
+          description: User who approved the document
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the document was approved
         createdAt:
           type: string
           format: date-time
@@ -2438,6 +2510,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Signature'
+
 
     Position:
       type: object
@@ -2693,6 +2766,34 @@ components:
           format: date-time
         document:
           $ref: '#/components/schemas/Document'
+
+    DocumentHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum: [CREATED, UPLOADED, VIEWED, DOWNLOADED, SIGNED, APPROVED, REJECTED, COMMENTED, UPDATED, DELETED]
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        document:
+          $ref: '#/components/schemas/Document'
+        user:
+          $ref: '#/components/schemas/User'
 
     # Request/Response Models
     CreateAccountRequest:

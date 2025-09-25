@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.941Z
+// Generated on 2025-09-25T18:35:57.315Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { listPositions, createPosition } from '@/domain-models/api/positions'
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -28,7 +29,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreatePositionRequest']
 
     // Use existing domain model function
     const { data, error } = await createPosition(body)
@@ -57,7 +57,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

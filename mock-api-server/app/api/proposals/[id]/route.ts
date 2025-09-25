@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.941Z
+// Generated on 2025-09-25T18:35:57.315Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getProposalById, updateProposal } from '@/domain-models/api/proposals'
+import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -30,7 +31,6 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -52,7 +52,7 @@ export async function PUT(
     const id = resolvedParams.id
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdateProposalRequest']
 
     // Use existing domain model function
     const { data, error } = await updateProposal(id, body)
@@ -66,7 +66,6 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

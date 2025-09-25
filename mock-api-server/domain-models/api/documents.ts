@@ -93,13 +93,14 @@ export async function createDocument(
     const { data, error } = await supabase
       .from('document')
       .insert({
+        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         meeting_id: meetingId,
         title: request.title,
         description: request.description,
         type: request.type,
         task_id: request.taskId,
-        file_path: request.file,
-        status: 'DRAFT',
+        file_path: request.filePath || request.file,
+        status: request.status || 'DRAFT',
       })
       .select()
       .single()
@@ -158,6 +159,7 @@ export async function updateDocument(
     if (request.title !== undefined) updateData.title = request.title
     if (request.description !== undefined) updateData.description = request.description
     if (request.status !== undefined) updateData.status = request.status
+    if (request.filePath !== undefined) updateData.file_path = request.filePath
 
     const { data, error } = await supabase
       .from('document')

@@ -27,7 +27,8 @@
     "full-reset": "npm run generate:postgres-schema && npm run generate:seeds && supabase db reset && npm run generate:db-types && npm run generate:api-types",
     "generate:api-types": "openapi-typescript ./openapi-schema/openapi.yaml -o ./types/api.ts",
     "generate:api-routes": "npx tsx cli/generate-routes.ts",
-    "generate:all": "npm run generate:api-types && npm run generate:api-routes"
+    "generate:all": "npm run generate:api-types && npm run generate:api-routes",
+    "setup:storage": "tsx scripts/ensure-documents-bucket.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.3",

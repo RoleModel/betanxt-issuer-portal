@@ -12,6 +12,7 @@
 -- TABLES
 --
 -- DROP TABLE IF EXISTS public.account;
+-- DROP TABLE IF EXISTS public.add_document_history_request;
 -- DROP TABLE IF EXISTS public.approve_document_version_request;
 -- DROP TABLE IF EXISTS public.cast_vote_request;
 -- DROP TABLE IF EXISTS public.clients;
@@ -28,6 +29,7 @@
 -- DROP TABLE IF EXISTS public.create_task_request;
 -- DROP TABLE IF EXISTS public.create_user_request;
 -- DROP TABLE IF EXISTS public."document";
+-- DROP TABLE IF EXISTS public.document_history;
 -- DROP TABLE IF EXISTS public."error";
 -- DROP TABLE IF EXISTS public.get_documents_readiness_200_response;
 -- DROP TABLE IF EXISTS public.list_account_users_200_response;
@@ -65,9 +67,11 @@
 --
 -- TYPES
 --
+-- DROP TYPE IF EXISTS add_document_history_request_event_type;
 -- DROP TYPE IF EXISTS cast_vote_request_vote;
 -- DROP TYPE IF EXISTS create_position_request_vote_status;
 -- DROP TYPE IF EXISTS create_position_request_source;
+-- DROP TYPE IF EXISTS document_history_event_type;
 -- DROP TYPE IF EXISTS notification_type;
 -- DROP TYPE IF EXISTS notification_priority;
 -- DROP TYPE IF EXISTS position_vote_status;
@@ -82,9 +86,11 @@
 --
 -- TYPES
 --
+CREATE TYPE add_document_history_request_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
 CREATE TYPE cast_vote_request_vote AS ENUM('FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD');
 CREATE TYPE create_position_request_vote_status AS ENUM('Voted', 'Unvoted');
 CREATE TYPE create_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
+CREATE TYPE document_history_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
 CREATE TYPE notification_type AS ENUM('info', 'warning', 'error', 'success');
 CREATE TYPE notification_priority AS ENUM('low', 'medium', 'high', 'critical');
 CREATE TYPE position_vote_status AS ENUM('Voted', 'Unvoted');
@@ -111,6 +117,16 @@ COMMENT ON TABLE account IS 'Original model name - Account.';
 COMMENT ON COLUMN account.primary_contact IS 'Original param name - primaryContact.';
 COMMENT ON COLUMN account.client_id IS 'The client this account belongs to. Original param name - clientId.';
 COMMENT ON COLUMN account.created_at IS 'Original param name - createdAt.';
+
+--
+-- Table 'add_document_history_request' generated from model 'addDocumentHistoryUnderscorerequest'
+--
+CREATE TABLE IF NOT EXISTS public.add_document_history_request (
+    event_type add_document_history_request_event_type NOT NULL,
+    metadata JSON DEFAULT NULL
+);
+COMMENT ON TABLE add_document_history_request IS 'Original model name - addDocumentHistory_request.';
+COMMENT ON COLUMN add_document_history_request.event_type IS 'Original param name - eventType.';
 
 --
 -- Table 'approve_document_version_request' generated from model 'approveDocumentVersionUnderscorerequest'
@@ -437,6 +453,8 @@ CREATE TABLE IF NOT EXISTS public."document" (
     in_progress_date TIMESTAMP DEFAULT NULL,
     deadline TIMESTAMP DEFAULT NULL,
     history JSON DEFAULT NULL,
+    approved_by TEXT DEFAULT NULL,
+    approved_at TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
     meeting TEXT DEFAULT NULL,
@@ -455,8 +473,31 @@ COMMENT ON COLUMN "document".signed_date IS 'Original param name - signedDate.';
 COMMENT ON COLUMN "document".authorized_date IS 'Original param name - authorizedDate.';
 COMMENT ON COLUMN "document".completed_date IS 'Original param name - completedDate.';
 COMMENT ON COLUMN "document".in_progress_date IS 'Original param name - inProgressDate.';
+COMMENT ON COLUMN "document".approved_by IS 'User who approved the document. Original param name - approvedBy.';
+COMMENT ON COLUMN "document".approved_at IS 'When the document was approved. Original param name - approvedAt.';
 COMMENT ON COLUMN "document".created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN "document".updated_at IS 'Original param name - updatedAt.';
+
+--
+-- Table 'document_history' generated from model 'DocumentHistory'
+--
+CREATE TABLE IF NOT EXISTS public.document_history (
+    "id" TEXT DEFAULT NULL,
+    document_id TEXT DEFAULT NULL,
+    event_type document_history_event_type DEFAULT NULL,
+    user_id TEXT DEFAULT NULL,
+    user_name TEXT DEFAULT NULL,
+    metadata JSON DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT NULL,
+    "document" TEXT DEFAULT NULL,
+    "user" TEXT DEFAULT NULL
+);
+COMMENT ON TABLE document_history IS 'Original model name - DocumentHistory.';
+COMMENT ON COLUMN document_history.document_id IS 'Original param name - documentId.';
+COMMENT ON COLUMN document_history.event_type IS 'Original param name - eventType.';
+COMMENT ON COLUMN document_history.user_id IS 'Original param name - userId.';
+COMMENT ON COLUMN document_history.user_name IS 'Original param name - userName.';
+COMMENT ON COLUMN document_history.created_at IS 'Original param name - createdAt.';
 
 --
 -- Table 'error' generated from model 'Error'

@@ -1,5 +1,5 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-24T18:54:16.942Z
+// Generated on 2025-09-25T18:35:57.316Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextResponse } from 'next/server'
@@ -12,7 +12,6 @@ export async function PATCH(): Promise<NextResponse> {
     
     return NextResponse.json({ status: 'OK' })
   } catch (error) {
-
     return NextResponse.json(
       { 
         error: 'Internal server error',

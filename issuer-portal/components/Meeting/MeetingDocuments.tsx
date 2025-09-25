@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
-import FileUploadDialog from '@/components/file-upload/FileUploadDialog'
+import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -133,6 +133,8 @@ export default function MeetingDocuments({
         return {
           ...placeholder,
           ...uploadedDoc,
+          // Preserve placeholder status if uploaded doc is missing or falsy
+          status: (uploadedDoc as Document).status || placeholder.status,
           // Keep placeholder name for display consistency
           name: placeholder.name,
           // Preserve placeholder info for display
@@ -164,7 +166,9 @@ export default function MeetingDocuments({
 
     try {
       for (const file of files) {
-        await uploadDocument(file, selectedDocumentId)
+        const placeholder = requiredDocuments.find((d) => d.id === selectedDocumentId)
+        const documentTitle = placeholder ? placeholder.name : undefined
+        await uploadDocument(file, selectedDocumentId, meetingId, documentTitle)
       }
       // Refresh documents after upload
       await fetchDocuments()
@@ -183,7 +187,7 @@ export default function MeetingDocuments({
     setOpen(false)
   }
 
-  const onAddComment = (comment: string) => {
+  const onAddComment = (_comment: string) => {
   }
 
   const getStatusChip = (status: Document['status']) => {
@@ -205,14 +209,28 @@ export default function MeetingDocuments({
   }
 
   const getActionButton = (document: Document) => {
-    switch (document.status) {
-      case 'AWAITING_DRAFT':
-      case 'DRAFT':
-        return (
-          <Button variant="text" onClick={() => handleUpload(document.id || '')}>
-            Upload
-          </Button>
-        )
+    // If there is no file yet, always show Upload
+    if (!document?.filePath) {
+      return (
+        <Button variant="text" onClick={() => handleUpload(document.id || selectedDocumentId || '')}>
+          Upload
+        </Button>
+      )
+    }
+
+    // Derive a resilient status for action logic
+    const effectiveStatus = (document.status || (document.filePath ? 'UPLOADED' : 'AWAITING_DRAFT')) as
+      | 'AWAITING_DRAFT'
+      | 'DRAFT'
+      | 'AWAITING_REVIEW'
+      | 'UPLOADED'
+      | 'IN_PROGRESS'
+      | 'SIGNED'
+      | 'AUTHORIZED'
+      | 'COMPLETED'
+      | 'APPROVED'
+
+    switch (effectiveStatus) {
       case 'AWAITING_REVIEW':
       case 'UPLOADED':
       case 'IN_PROGRESS':
@@ -226,8 +244,14 @@ export default function MeetingDocuments({
       case 'COMPLETED':
       case 'APPROVED':
         return null
+      case 'AWAITING_DRAFT':
+      case 'DRAFT':
       default:
-        return null
+        return (
+          <Button variant="text" onClick={() => handleUpload(document.id || selectedDocumentId || '')}>
+            Upload
+          </Button>
+        )
     }
   }
 
