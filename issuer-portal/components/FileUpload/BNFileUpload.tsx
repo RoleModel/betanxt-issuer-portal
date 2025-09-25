@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { Stack } from '@mui/material'
 
-import BNFilePreview from '@/components/file-upload/BNFilePreview'
+import BNFilePreview from '@/components/FileUpload/BNFilePreview'
 
 import type { FileUploadProps, UploadFile } from './types'
 import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from './types'
@@ -63,10 +63,10 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
           prevFiles.map((f) =>
             f.id === fileId
               ? {
-                  ...f,
-                  status: 'error' as const,
-                  error: error instanceof Error ? error.message : 'Upload failed',
-                }
+                ...f,
+                status: 'error' as const,
+                error: error instanceof Error ? error.message : 'Upload failed',
+              }
               : f
           )
         )

@@ -70,14 +70,29 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
           acc['text/csv'] = ['.csv']
           acc['application/csv'] = ['.csv']
           break
-        default:
-          // For any other file types, create a generic accept rule
-          // This ensures drag & drop works for all specified file types
-          if (!acc['*/*']) {
-            acc['*/*'] = []
+        default: {
+          // Extend mapping for additional known types
+          switch (type) {
+            case '.txt':
+              acc['text/plain'] = ['.txt']
+              break
+            case '.png':
+              acc['image/png'] = ['.png']
+              break
+            case '.jpg':
+            case '.jpeg':
+              acc['image/jpeg'] = ['.jpg', '.jpeg']
+              break
+            case '.zip':
+              acc['application/zip'] = ['.zip']
+              break
+            default:
+              // Skip unknown types instead of adding an invalid '*/*' rule
+              // This avoids react-dropzone accept validation errors
+              break
           }
-          acc['*/*'].push(type)
           break
+        }
       }
       return acc
     },
@@ -173,7 +188,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
         <Box width={40} height={40} sx={{ transform: 'rotate(-90deg)' }} />
       </Box>
 
-      <Typography variant="body3">
+      <Typography align="center" variant="body3">
         <Link
           underline="always"
           sx={{
