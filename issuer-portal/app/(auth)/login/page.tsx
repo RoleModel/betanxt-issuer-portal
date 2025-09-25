@@ -55,7 +55,7 @@ const LoginPage = () => {
   }
 
   return (
-    <Container maxWidth="sm">
+    <Container component="main" maxWidth="sm">
       <Box
         display="flex"
         flexDirection="column"

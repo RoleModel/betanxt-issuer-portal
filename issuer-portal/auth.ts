@@ -89,20 +89,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.type = (user as any).type
-        token.account_id = (user as any).account_id
-        token.client_ticker = (user as any).client_ticker
-        token.username = (user as any).username
+        token.type = user.type
+        token.account_id = user.account_id
+        token.client_ticker = user.client_ticker
+        token.username = user.username
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.sub || ''
-        ;(session.user as any).type = token.type
-        ;(session.user as any).account_id = token.account_id
-        ;(session.user as any).client_ticker = token.client_ticker
-        ;(session.user as any).username = token.username
+        session.user.type = token.type
+        session.user.account_id = token.account_id
+        session.user.client_ticker = token.client_ticker
+        session.user.username = token.username
       }
       return session
     },
