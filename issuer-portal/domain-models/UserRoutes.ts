@@ -1,6 +1,6 @@
 import type { Session } from 'next-auth'
 
-import { allowedTo, type Permission } from '@/authorization/permissions'
+import { type Permission, allowedTo } from '@/authorization/permissions'
 
 const defaultLandingPages = [
   { path: '/meeting', permissions: ['viewDashboard'] },
@@ -76,9 +76,7 @@ export class UserRoutes {
 
     // Check if user has all required permissions
     const permissionChecks = await Promise.all(
-      permissions.map((permission) =>
-        allowedTo(permission as Permission)
-      )
+      permissions.map((permission) => allowedTo(permission as Permission))
     )
     return permissionChecks.every(Boolean)
   }

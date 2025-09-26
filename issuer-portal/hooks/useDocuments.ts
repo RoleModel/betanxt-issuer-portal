@@ -48,10 +48,19 @@ export interface UseDocumentsResult {
   ) => Promise<Document | null>
   downloadDocumentById: (id: string) => Promise<string | null>
   getCommentsForDocument: (documentId: string) => Promise<DocumentComment[]>
-  addCommentToDocument: (documentId: string, comment: string, userInfo?: { firstName?: string; lastName?: string; userId?: string }) => Promise<void>
+  addCommentToDocument: (
+    documentId: string,
+    comment: string,
+    userInfo?: { firstName?: string; lastName?: string; userId?: string }
+  ) => Promise<void>
   getTaskDocument: (taskId: string) => Promise<unknown>
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>
-  uploadDocument: (file: File, documentId: string, meetingId?: string, documentTitle?: string) => Promise<string | null>
+  uploadDocument: (
+    file: File,
+    documentId: string,
+    meetingId?: string,
+    documentTitle?: string
+  ) => Promise<string | null>
   uploadDocumentVersion: (
     meetingId: string,
     documentType: string,
@@ -206,7 +215,11 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const addCommentToDocument = useCallback(
-    async (documentId: string, comment: string, userInfo?: { firstName?: string; lastName?: string; userId?: string }): Promise<void> => {
+    async (
+      documentId: string,
+      comment: string,
+      userInfo?: { firstName?: string; lastName?: string; userId?: string }
+    ): Promise<void> => {
       try {
         setLoading(true)
         setError(null)
@@ -218,7 +231,7 @@ export const useDocuments = (): UseDocumentsResult => {
             comment,
             firstName: userInfo?.firstName,
             lastName: userInfo?.lastName,
-            userId: userInfo?.userId
+            userId: userInfo?.userId,
           } as CreateCommentRequest,
         })
 
@@ -272,20 +285,72 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const uploadDocument = useCallback(
-    async (_file: File, _documentId: string, _meetingId?: string, _documentTitle?: string): Promise<string | null> => {
+    async (
+      _file: File,
+      _documentId: string,
+      _meetingId?: string,
+      _documentTitle?: string
+    ): Promise<string | null> => {
       console.log('uploadDocument called with:', {
         fileName: _file.name,
         fileSize: _file.size,
         documentId: _documentId,
         meetingId: _meetingId,
-        documentTitle: _documentTitle
+        documentTitle: _documentTitle,
       })
 
       try {
         setLoading(true)
         setError(null)
 
-        // Convert file to base64 and update/create document
+        // Check if documentId is actually a filename (from MeetingDocuments)
+        const isFilename =
+          _documentId.includes('.') &&
+          !_documentId.includes('/') &&
+          !_documentId.includes('-form-') &&
+          !_documentId.includes('temp-')
+
+        // For new documents from MeetingDocuments, use the new upload API route
+        if (isFilename && _meetingId) {
+          const formData = new FormData()
+          formData.append('file', _file)
+          formData.append('meetingId', _meetingId)
+
+          // Determine document type from filename
+          const fileName = _file.name.toLowerCase()
+          let documentType = 'general'
+
+          if (fileName.includes('proxy') && fileName.includes('statement')) {
+            documentType = 'proxy-statement'
+          } else if (fileName.includes('proxy') && fileName.includes('card')) {
+            documentType = 'proxy-card'
+          } else if (fileName.includes('notice') || fileName.includes('access')) {
+            documentType = 'notice-and-access'
+          } else if (fileName.includes('broadridge')) {
+            documentType = 'broadridge-form'
+          } else if (fileName.includes('plan') && fileName.includes('file')) {
+            documentType = 'plan-file-request'
+          } else if (fileName.includes('transfer') && fileName.includes('agent')) {
+            documentType = 'transfer-agent-request'
+          }
+
+          // Upload via the new API route
+          const response = await fetch(`/api/documents/types/${documentType}/upload`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Upload failed: ${errorText}`)
+          }
+
+          const result = await response.json()
+          console.log('Upload successful:', result)
+          return result.id || result.storagePath || 'success'
+        }
+
+        // Convert file to base64 for legacy document updates
         const reader = new FileReader()
         const base64Data = await new Promise<string>((resolve, reject) => {
           reader.onload = () => resolve(reader.result as string)
@@ -298,31 +363,25 @@ export const useDocuments = (): UseDocumentsResult => {
         const apiClient = await buildApiClient()
 
         // Check if this is a temporary document ID (for generated forms)
-        const isTemporaryId = _documentId.includes('broadridge-form-') ||
+        const isTemporaryId =
+          _documentId.includes('broadridge-form-') ||
           _documentId.includes('plan-file-request-') ||
           _documentId.includes('transfer-agent-request-') ||
-          // Treat MeetingDocuments placeholders as temporary/new
-          _documentId === 'draft-proxy-statement' ||
-          _documentId === 'proxy-card' ||
-          _documentId === 'notice-access-form' ||
           _documentId === 'temp-doc-id' ||
           _documentId.startsWith('doc-') ||
           _documentId.startsWith('temp-')
 
         console.log('Is temporary ID:', isTemporaryId)
 
-        // Decide target status: placeholders should become AWAITING_REVIEW (ready for approval),
-        // certain special forms remain SIGNED; otherwise default to AWAITING_REVIEW
-        const isPhase2Placeholder =
-          _documentId === 'draft-proxy-statement' ||
-          _documentId === 'proxy-card' ||
-          _documentId === 'notice-access-form'
+        // Decide target status: certain special forms remain SIGNED; otherwise default to AWAITING_REVIEW
         const isExplicitSignedForm =
           _documentId.includes('broadridge') ||
           _documentId.includes('plan-file-request') ||
           _documentId.includes('transfer-agent-request') ||
           (_documentTitle ? _documentTitle.includes('(Signed)') : false)
-        const desiredStatus = (isPhase2Placeholder ? 'AWAITING_REVIEW' : (isExplicitSignedForm ? 'SIGNED' : 'AWAITING_REVIEW')) as components['schemas']['Document']['status']
+        const desiredStatus = (
+          isExplicitSignedForm ? 'SIGNED' : 'AWAITING_REVIEW'
+        ) as components['schemas']['Document']['status']
 
         if (isTemporaryId) {
           // For temporary documents, create a new document record
@@ -331,7 +390,9 @@ export const useDocuments = (): UseDocumentsResult => {
 
           if (!meetingId) {
             // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
-            const tickerPathMatch = window.location.pathname.match(/\/[^/]+\/meeting\/([^/]+)/)
+            const tickerPathMatch = window.location.pathname.match(
+              /\/[^/]+\/meeting\/([^/]+)/
+            )
             if (tickerPathMatch) {
               meetingId = tickerPathMatch[1]
             }
@@ -367,20 +428,10 @@ export const useDocuments = (): UseDocumentsResult => {
               title = 'Transfer Agent Request Form (Signed)'
             } else {
               // Use provided title and append (Signed) if not already present
-              title = _documentTitle.includes('(Signed)') ? _documentTitle : `${_documentTitle} (Signed)`
+              title = _documentTitle.includes('(Signed)')
+                ? _documentTitle
+                : `${_documentTitle} (Signed)`
             }
-          }
-
-          // Map MeetingDocuments placeholder IDs to canonical types/titles when possible
-          if (_documentId === 'draft-proxy-statement') {
-            docType = 'proxy-statement'
-            title = _documentTitle || 'Draft Proxy Statement'
-          } else if (_documentId === 'proxy-card') {
-            docType = 'proxy-card'
-            title = _documentTitle || 'Proxy Card'
-          } else if (_documentId === 'notice-access-form') {
-            docType = 'notice-and-access'
-            title = _documentTitle || 'Notice and Access Form'
           }
 
           console.log('Creating new document with meeting ID:', meetingId)
@@ -404,7 +455,9 @@ export const useDocuments = (): UseDocumentsResult => {
           if (result.data?.id && desiredStatus) {
             await apiClient.PUT('/documents/{id}', {
               params: { path: { id: result.data.id } },
-              body: { status: desiredStatus } as components['schemas']['UpdateDocumentRequest'],
+              body: {
+                status: desiredStatus,
+              } as components['schemas']['UpdateDocumentRequest'],
             })
           }
 
@@ -528,8 +581,8 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { id: documentId } },
           body: {
             eventType: eventType as any,
-            metadata: {}
-          }
+            metadata: {},
+          },
         })
 
         if (result.error) {
@@ -557,21 +610,44 @@ export const useDocuments = (): UseDocumentsResult => {
 
         const apiClient = await buildApiClient()
         const result = await apiClient.GET('/documents/{id}/events', {
-          params: { path: { id: documentId } }
+          params: { path: { id: documentId } },
         })
 
         if (result.error) {
           throw new Error('Failed to get document history')
         }
 
-        // Transform the response to match our interface
-        return (result.data || []).map((event: any) => ({
-          id: event.id,
-          event_type: event.eventType || event.event_type,
-          user: event.userName || event.user_name || 'Unknown User',
-          timestamp: event.createdAt || event.created_at,
-          metadata: event.metadata || {}
-        }))
+        // Transform the response to match our interface with runtime guards
+        const raw = Array.isArray(result.data) ? result.data : []
+        return raw
+          .map((eventObjRaw) => eventObjRaw as Record<string, unknown>)
+          .map((eventObj) => {
+            const id = String(
+              (eventObj as Record<string, unknown>).id ?? crypto.randomUUID()
+            )
+            const event_type = String(
+              (eventObj as Record<string, unknown>).eventType ||
+                (eventObj as Record<string, unknown>).event_type ||
+                'UNKNOWN'
+            )
+            const user = String(
+              (eventObj as Record<string, unknown>).userName ||
+                (eventObj as Record<string, unknown>).user_name ||
+                'Unknown User'
+            )
+            const timestamp = String(
+              (eventObj as Record<string, unknown>).createdAt ||
+                (eventObj as Record<string, unknown>).created_at ||
+                new Date().toISOString()
+            )
+            const metadata = ((): Record<string, unknown> | undefined => {
+              const md = (eventObj as Record<string, unknown>).metadata
+              return typeof md === 'object' && md !== null
+                ? (md as Record<string, unknown>)
+                : undefined
+            })()
+            return { id, event_type, user, timestamp, metadata }
+          })
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get document history'

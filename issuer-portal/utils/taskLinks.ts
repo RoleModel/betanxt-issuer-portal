@@ -15,7 +15,7 @@ function isTaskLink(obj: unknown): obj is TaskLink {
   )
 }
 
-export function parseTaskLinks(json: unknown): TaskLink[] {
+export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
   // Handle null/undefined
   if (!json) return []
 
@@ -39,14 +39,32 @@ export function parseTaskLinks(json: unknown): TaskLink[] {
   }
 
   // Auto-add upload link when there's a download link
-  const hasDownloadLink = links.some(link => link.action === 'download')
-  const hasUploadLink = links.some(link => link.action === 'upload')
+  const hasDownloadLink = links.some((link) => link.action === 'download')
+  const hasUploadLink = links.some((link) => link.action === 'upload')
 
   if (hasDownloadLink && !hasUploadLink) {
     links.push({
       label: 'Upload Document',
       action: 'upload',
-      url: ''
+      url: '',
+    })
+  }
+
+  // Auto-add Sign Form link for specific form tasks that have a download link
+  const hasSignLink = links.some(
+    (link) => link.action === 'signature' || link.action === 'sign'
+  )
+  const isFormTask =
+    taskTitle &&
+    (taskTitle.includes('Plan File Request') ||
+      taskTitle.includes('Transfer Agent') ||
+      taskTitle.includes('Broadridge'))
+
+  if (hasDownloadLink && !hasSignLink && isFormTask) {
+    links.push({
+      label: 'Sign Form',
+      action: 'signature',
+      url: '',
     })
   }
 

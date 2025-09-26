@@ -1,17 +1,14 @@
 // @ts-check
-
 import createBundleAnalyzer from '@next/bundle-analyzer'
 
 const withBundleAnalyzer = createBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
-});
-
-
+})
 
 const nextConfig = () => {
   /**
    * @type {import('next').NextConfig}
-  **/
+   **/
 
   const config = {
     experimental: {
@@ -48,10 +45,11 @@ const nextConfig = () => {
     NEXT_PUBLIC_BYPASS_AUTH: process.env.NEXT_PUBLIC_BYPASS_AUTH,
     NEXT_PUBLIC_BYPASS_USER_ID: process.env.NEXT_PUBLIC_BYPASS_USER_ID,
     NEXT_PUBLIC_BYPASS_USER_ROLE: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE,
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+    NEXT_PUBLIC_API_BASE_URL:
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
   }
 
   return config
 }
 
-export default withBundleAnalyzer(nextConfig);
+export default withBundleAnalyzer(nextConfig)

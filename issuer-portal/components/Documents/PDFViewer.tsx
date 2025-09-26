@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-// Import react-pdf CSS only when component is used
+import dynamic from 'next/dynamic'
+import React, { useEffect, useRef, useState } from 'react'
+// Import CSS for react-pdf
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
@@ -9,26 +10,13 @@ import { Box, CircularProgress } from '@mui/material'
 
 import './react-pdf.css'
 
-// Type definitions for react-pdf components
-interface DocumentProps {
-  file: string
-  className?: string
-  onLoadSuccess?: (pdf: { numPages: number }) => void
-  onLoadError?: (error: Error) => void
-  loading?: React.ReactNode
-  children: React.ReactNode
-}
+// Dynamically import react-pdf components with SSR disabled
+const Document = dynamic(() => import('react-pdf').then((mod) => mod.Document), {
+  ssr: false,
+  loading: () => null, // Remove loading spinner from dynamic import
+})
 
-interface PageProps {
-  pageNumber: number
-  width?: number
-  renderTextLayer?: boolean
-  renderAnnotationLayer?: boolean
-}
-
-// Dynamic import for PDF components to avoid SSR issues
-let Document: React.ComponentType<DocumentProps> | null = null
-let Page: React.ComponentType<PageProps> | null = null
+const Page = dynamic(() => import('react-pdf').then((mod) => mod.Page), { ssr: false })
 
 interface PDFViewerProps {
   file: string
@@ -47,97 +35,176 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   onLoadSuccess,
   onLoadError,
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isWorkerReady, setIsWorkerReady] = useState(false)
+  const [isPdfLoaded, setIsPdfLoaded] = useState(false)
+  const [actualWidth, setActualWidth] = useState<number | null>(null)
+  const hasInitialized = useRef(false)
+
+  // Store the width immediately when it changes
+  useEffect(() => {
+    setActualWidth(width)
+  }, [width])
 
   useEffect(() => {
-    // Only load PDF.js on client side with retry logic
-    const loadPDFComponents = async (retryCount = 0) => {
-      try {
-        // Configure PDF.js worker first
-        const { pdfjs } = await import('react-pdf')
-        // Try local worker first, fallback to CDN
-        pdfjs.GlobalWorkerOptions.workerSrc =
-          process.env.NODE_ENV === 'development'
-            ? '/images/pdf.worker.min.js'
-            : `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
-
-        // Import components with a small delay to allow chunk loading
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        const pdfComponents = await import('react-pdf')
-        Document = pdfComponents.Document as React.ComponentType<DocumentProps>
-        Page = pdfComponents.Page as React.ComponentType<PageProps>
-
-        setIsLoaded(true)
-      } catch (err) {
-        console.error('Failed to load PDF components:', err)
-
-        // Retry up to 3 times with exponential backoff
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
-          setTimeout(() => loadPDFComponents(retryCount + 1), delay)
-        } else {
-          setError('Failed to load PDF viewer after multiple attempts')
-        }
-      }
+    // Initialize PDF.js worker only once
+    if (typeof window !== 'undefined' && !hasInitialized.current) {
+      hasInitialized.current = true
+      import('react-pdf')
+        .then(({ pdfjs }) => {
+          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`
+          setIsWorkerReady(true)
+        })
+        .catch(() => {
+          // Try fallback worker URL silently
+          import('react-pdf').then(({ pdfjs }) => {
+            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+            setIsWorkerReady(true)
+          })
+        })
     }
-
-    loadPDFComponents()
   }, [])
 
-  if (error) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <div>Error loading PDF: {error}</div>
-      </Box>
-    )
+  // Reset loaded state when file changes
+  useEffect(() => {
+    setIsPdfLoaded(false)
+  }, [file])
+
+  const handleLoadSuccess = (pdf: { numPages: number }) => {
+    setIsPdfLoaded(true)
+    if (onLoadSuccess) {
+      onLoadSuccess(pdf)
+    }
   }
 
-  if (!isLoaded || !Document || !Page) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <CircularProgress />
-      </Box>
-    )
+  const handleLoadError = (error: Error) => {
+    setIsPdfLoaded(false)
+    if (onLoadError) {
+      onLoadError(error)
+    }
   }
 
-  // Don't render if file is empty or invalid
-  // Handle Promise objects (shouldn't happen, but let's be safe)
-  if (file && typeof file === 'object' && 'then' in file) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <div>Invalid file type (Promise received)</div>
-      </Box>
-    )
-  }
+  // Validate file prop
+  const isValidFile = file && typeof file === 'string' && file.trim() !== ''
 
-  if (!file || typeof file !== 'string' || file.trim() === '') {
+  if (!isValidFile) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box
+        style={{
+          width: width,
+          minHeight: width * 1.294,
+          backgroundColor: '#f5f5f5',
+          borderRadius: '4px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <div>No PDF file specified</div>
       </Box>
     )
   }
 
-  return (
-    <Document
-      file={file}
-      className={className}
-      onLoadSuccess={onLoadSuccess}
-      onLoadError={onLoadError}
-      loading={
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+  // Wait for worker and width to be ready
+  if (!isWorkerReady || actualWidth === null) {
+    // Use default width if actualWidth is not yet available
+    const defaultWidth = width
+    return (
+      <Box
+        style={{
+          position: 'relative',
+          width: defaultWidth,
+          minHeight: defaultWidth * 1.294,
+          backgroundColor: '#f5f5f5',
+          borderRadius: '4px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  // Pre-load PDF while showing spinner with consistent dimensions
+  if (!isPdfLoaded) {
+    return (
+      <Box
+        style={{
+          position: 'relative',
+          width: actualWidth,
+          minHeight: actualWidth * 1.294,
+        }}
+      >
+        {/* Maintain aspect ratio of US Letter (8.5:11) */}
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#f5f5f5',
+            borderRadius: '4px',
+          }}
+        >
           <CircularProgress />
         </Box>
-      }
-    >
-      <Page
-        pageNumber={pageNumber}
-        width={width}
-        renderTextLayer={false}
-        renderAnnotationLayer={false}
-      />
-    </Document>
+        {/* Hidden Document component to trigger PDF loading with actual width */}
+        <Box style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
+          <Document
+            file={file}
+            onLoadSuccess={handleLoadSuccess}
+            onLoadError={handleLoadError}
+          >
+            <Page pageNumber={pageNumber} width={actualWidth} />
+          </Document>
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 5s ease-in-out' }}>
+      <Document
+        file={file}
+        className={className}
+        onLoadSuccess={handleLoadSuccess}
+        onLoadError={handleLoadError}
+        loading={null}
+        error={
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight={400}
+            sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 5s ease-in-out' }}
+          >
+            <div>Failed to load PDF document</div>
+          </Box>
+        }
+      >
+        <Page
+          pageNumber={pageNumber}
+          width={actualWidth}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+          error={
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              minHeight={400}
+            >
+              <div>Failed to render page {pageNumber}</div>
+            </Box>
+          }
+        />
+      </Document>
+    </Box>
   )
 }
 

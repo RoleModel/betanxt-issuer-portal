@@ -1,6 +1,7 @@
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
-import { cacheFn, CACHE_TAGS } from '@/lib/caching'
+
+import { CACHE_TAGS, cacheFn } from '@/lib/caching'
 
 type Position = components['schemas']['Position']
 

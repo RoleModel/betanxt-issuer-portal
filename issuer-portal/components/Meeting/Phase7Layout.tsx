@@ -5,7 +5,7 @@ import TeamPresentationIcon from '@rolemodel/betanxt-design-system/components/ic
 import dynamic from 'next/dynamic'
 import React, { Suspense } from 'react'
 
-import { Box, Grid, Skeleton } from '@mui/material'
+import { Box, Grid, Skeleton, Stack } from '@mui/material'
 
 import DigitalShareholderMeetingCard from '@/components/Meeting/DigitalShareholderMeetingCard'
 
@@ -57,7 +57,12 @@ export default function Phase7Layout({ meetingId, meeting }: Phase7LayoutProps) 
         <KeyDatesCard meeting={meeting} />
       </Suspense>
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }} display="flex" flexDirection="column" gap={3}>
+        <Grid
+          size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
+          display="flex"
+          flexDirection="column"
+          gap={3}
+        >
           <DigitalShareholderMeetingCard meetingId={meetingId} />
           <Grid container spacing={3} direction={{ sm: 'column', md: 'row' }}>
             <Grid size={{ sm: 12, md: 12, lg: 6 }}>
@@ -80,7 +85,12 @@ export default function Phase7Layout({ meetingId, meeting }: Phase7LayoutProps) 
             </Grid>
           </Grid>
         </Grid>
-        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }} display="flex" flexDirection="column" gap={3}>
+        <Grid
+          size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
+          display="flex"
+          flexDirection="column"
+          gap={3}
+        >
           <MeetingRolesCard meetingId={meetingId} />
           <PreviewLinksCard />
         </Grid>
@@ -90,19 +100,24 @@ export default function Phase7Layout({ meetingId, meeting }: Phase7LayoutProps) 
           <VotingTabulationTable
             proposals={proposals}
             loading={votingLoading}
-            onViewTabulation={() => {
-            }}
+            onViewTabulation={() => {}}
           />
         </Grid>
-        <Grid container size={{ xs: 12, sm: 6, md: 12, lg: 3 }} spacing={3} display="flex" flexDirection="row" alignSelf="flex-start">
-          <Grid container direction="column" size={{ xs: 12, sm: 6, md: 12 }} spacing={3}>
+        <Grid
+          container
+          size={{ xs: 12, sm: 6, md: 12, lg: 3 }}
+          spacing={3}
+          display="flex"
+          flexDirection="row"
+          alignSelf="flex-start"
+        >
+          <Stack direction="column" spacing={3}>
             <FeatureTile
               title="Registered Holder Mailing Affidavit"
               titleVariant="h2"
               actionText="Download"
               variant="default"
-              onClick={() => {
-              }}
+              onClick={() => {}}
             />
             <FeatureTile
               title="Tabulation Report"
@@ -110,20 +125,15 @@ export default function Phase7Layout({ meetingId, meeting }: Phase7LayoutProps) 
               titleVariant="h2"
               actionText="Download"
               variant="primary"
-              onClick={() => {
-              }}
+              onClick={() => {}}
             />
-          </Grid>
+          </Stack>
 
           <Grid size={{ xs: 12, sm: 6, md: 12 }}>
-
             <SharesVotedChart meetingId={meetingId} loading={votingLoading} />
           </Grid>
         </Grid>
-
       </Grid>
     </Box>
   )
 }
-
-

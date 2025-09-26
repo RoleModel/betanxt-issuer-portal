@@ -1,7 +1,7 @@
 'use client'
 
-import React, { Suspense, lazy, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
+import React, { Suspense, useMemo, useState } from 'react'
 
 import {
   Alert,
@@ -13,29 +13,23 @@ import {
   MenuItem,
   Skeleton,
   TextField,
-  Typography,
 } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import AuditComplianceTable from '@/components/Reporting/AuditComplianceTable'
-import ChartToggle, { type ChartView } from '@/components/Reporting/ChartToggle'
+import ChartInView from '@/components/Reporting/ChartInView'
+import ChartToggle from '@/components/Reporting/ChartToggle'
+// Re-export ChartView type via inline type import (keeps original usage intact)
+import type { ChartView } from '@/components/Reporting/ChartToggle'
+import DirectorPerformanceChart from '@/components/Reporting/DirectorPerformanceChart'
 import EventSummaryTable from '@/components/Reporting/EventSummaryTable'
+import IndividualDirectorChart from '@/components/Reporting/IndividualDirectorChart'
+import ParticipationChart from '@/components/Reporting/ParticipationChart'
 import ProposalPerformanceTable from '@/components/Reporting/ProposalPerformanceTable'
 import QuorumPerformanceTable from '@/components/Reporting/QuorumPerformanceTable'
+import YearOverYearChart from '@/components/Reporting/YearOverYearChart'
 
 import { useReporting } from '@/hooks/useReporting'
-
-
-
-// Lazy load ALL chart components for better performance
-const ParticipationChart = lazy(() => import('@/components/Reporting/ParticipationChart'))
-const YearOverYearChart = lazy(() => import('@/components/Reporting/YearOverYearChart'))
-const DirectorPerformanceChart = lazy(
-  () => import('@/components/Reporting/DirectorPerformanceChart')
-)
-const IndividualDirectorChart = lazy(
-  () => import('@/components/Reporting/IndividualDirectorChart')
-)
 
 // Reusable chart loading skeleton
 const ChartSkeleton = () => (
@@ -66,7 +60,6 @@ export default function ReportingPage() {
 
   // Get reporting data from hook
   const { data: reportingData, loading, error } = useReporting(clientTicker)
-
 
   // Client-side state for interactive features - MUST be called before any early returns
   const [selectedMeeting, setSelectedMeeting] = useState<string>('')
@@ -101,51 +94,58 @@ export default function ReportingPage() {
     )
 
     // Group proposals by year (extract year from meeting ID)
-    const proposalsByYear = directorProposals.reduce((acc, proposal) => {
-      // Extract year from meetingId (format: ticker-type-year)
-      const yearMatch = proposal.meetingId?.match(/\d{4}$/)
-      const year = yearMatch ? parseInt(yearMatch[0]) : null
+    const proposalsByYear = directorProposals.reduce(
+      (acc, proposal) => {
+        // Extract year from meetingId (format: ticker-type-year)
+        const yearMatch = proposal.meetingId?.match(/\d{4}$/)
+        const year = yearMatch ? parseInt(yearMatch[0]) : null
 
-      if (year) {
-        if (!acc[year]) {
-          acc[year] = []
+        if (year) {
+          if (!acc[year]) {
+            acc[year] = []
+          }
+          acc[year].push(proposal)
         }
-        acc[year].push(proposal)
-      }
-      return acc
-    }, {} as Record<number, typeof directorProposals>)
+        return acc
+      },
+      {} as Record<number, typeof directorProposals>
+    )
 
     // Calculate average percentages for each year
-    return Object.entries(proposalsByYear).map(([yearStr, proposals]) => {
-      const year = parseInt(yearStr)
+    return Object.entries(proposalsByYear)
+      .map(([yearStr, proposals]) => {
+        const year = parseInt(yearStr)
 
-      // Calculate average voting percentages for this year
-      let totalFor = 0
-      let totalAgainst = 0
-      let totalAbstain = 0
-      let totalVotes = 0
+        // Calculate average voting percentages for this year
+        let totalFor = 0
+        let totalAgainst = 0
+        let totalAbstain = 0
+        let totalVotes = 0
 
-      proposals.forEach(p => {
-        const forVotes = p.totalVotesFor || 0
-        const againstVotes = p.totalVotesAgainst || 0
-        const abstainVotes = p.totalVotesAbstain || 0
-        const votes = forVotes + againstVotes + abstainVotes
+        proposals.forEach((p) => {
+          const forVotes = p.totalVotesFor || 0
+          const againstVotes = p.totalVotesAgainst || 0
+          const abstainVotes = p.totalVotesAbstain || 0
+          const votes = forVotes + againstVotes + abstainVotes
 
-        if (votes > 0) {
-          totalFor += forVotes
-          totalAgainst += againstVotes
-          totalAbstain += abstainVotes
-          totalVotes += votes
+          if (votes > 0) {
+            totalFor += forVotes
+            totalAgainst += againstVotes
+            totalAbstain += abstainVotes
+            totalVotes += votes
+          }
+        })
+
+        return {
+          year,
+          forPercentage: totalVotes > 0 ? Math.round((totalFor / totalVotes) * 100) : 0,
+          againstPercentage:
+            totalVotes > 0 ? Math.round((totalAgainst / totalVotes) * 100) : 0,
+          abstainPercentage:
+            totalVotes > 0 ? Math.round((totalAbstain / totalVotes) * 100) : 0,
         }
       })
-
-      return {
-        year,
-        forPercentage: totalVotes > 0 ? Math.round((totalFor / totalVotes) * 100) : 0,
-        againstPercentage: totalVotes > 0 ? Math.round((totalAgainst / totalVotes) * 100) : 0,
-        abstainPercentage: totalVotes > 0 ? Math.round((totalAbstain / totalVotes) * 100) : 0,
-      }
-    }).sort((a, b) => a.year - b.year)
+      .sort((a, b) => a.year - b.year)
   }, [reportingData, selectedDirector])
 
   // Filter director performance data by selected meeting
@@ -154,29 +154,33 @@ export default function ReportingPage() {
 
     // Get director proposals for the selected meeting only
     const meetingProposals = (reportingData.proposals || []).filter(
-      (p) => p.meetingId === selectedMeeting && (
-        p.proposalType === 'Director Election' ||
-        p.directorName ||
-        /director/i.test(p.proposalTitle || '')
-      )
+      (p) =>
+        p.meetingId === selectedMeeting &&
+        (p.proposalType === 'Director Election' ||
+          p.directorName ||
+          /director/i.test(p.proposalTitle || ''))
     )
 
     // Group by director and calculate percentages
-    const directorMap = new Map<string, {
-      directorName: string
-      forVotes: number
-      againstVotes: number
-      abstainVotes: number
-      totalVotes: number
-    }>()
+    const directorMap = new Map<
+      string,
+      {
+        directorName: string
+        forVotes: number
+        againstVotes: number
+        abstainVotes: number
+        totalVotes: number
+      }
+    >()
 
     meetingProposals.forEach((proposal) => {
-      const directorName = proposal.directorName ||
-        extractDirectorName(proposal.proposalTitle || '')
+      const directorName =
+        proposal.directorName || extractDirectorName(proposal.proposalTitle || '')
 
       if (!directorName) return
 
-      const totalVotes = (proposal.totalVotesFor || 0) +
+      const totalVotes =
+        (proposal.totalVotesFor || 0) +
         (proposal.totalVotesAgainst || 0) +
         (proposal.totalVotesAbstain || 0)
 
@@ -214,24 +218,25 @@ export default function ReportingPage() {
     if (!reportingData) return []
     const availableMeetings = reportingData.availableMeetings || []
 
-    return availableMeetings.filter(meeting => {
+    return availableMeetings.filter((meeting) => {
       // Check if this meeting has any director proposals WITH vote data
-      const hasDirectorProposals = (reportingData.proposals || []).some(
-        (p) => {
-          if (p.meetingId !== meeting.id) return false
+      const hasDirectorProposals = (reportingData.proposals || []).some((p) => {
+        if (p.meetingId !== meeting.id) return false
 
-          const isDirectorProposal = p.proposalType === 'Director Election' ||
-            p.directorName ||
-            /director/i.test(p.proposalTitle || '')
+        const isDirectorProposal =
+          p.proposalType === 'Director Election' ||
+          p.directorName ||
+          /director/i.test(p.proposalTitle || '')
 
-          // Check if there are actual votes (not just null values)
-          const hasVotes = (p.totalVotesFor || 0) +
+        // Check if there are actual votes (not just null values)
+        const hasVotes =
+          (p.totalVotesFor || 0) +
             (p.totalVotesAgainst || 0) +
-            (p.totalVotesAbstain || 0) > 0
+            (p.totalVotesAbstain || 0) >
+          0
 
-          return isDirectorProposal && hasVotes
-        }
-      )
+        return isDirectorProposal && hasVotes
+      })
       return hasDirectorProposals
     })
   }, [reportingData])
@@ -245,37 +250,17 @@ export default function ReportingPage() {
 
   if (error) {
     return (
-      <Container maxWidth="xl" sx={{ p: 3 }}>
+      <Container component="main" maxWidth="xl" sx={{ p: 3 }}>
         <Alert severity="error">{String(error)}</Alert>
       </Container>
     )
   }
 
-  if (loading) {
-    return (
-      <Container maxWidth="xl" sx={{ p: 3 }}>
-        <Typography variant="h6" color="text.secondary">
-          Loading reporting data...
-        </Typography>
-      </Container>
-    )
-  }
+  const availableDirectors = reportingData?.availableDirectors ?? []
 
-  if (!reportingData) {
-    return (
-      <Container maxWidth="xl" sx={{ p: 3 }}>
-        <Typography variant="h6" color="text.secondary">
-          No reporting data available for {clientTicker}
-        </Typography>
-      </Container>
-    )
-  }
-
-  const {
-    availableDirectors,
-  } = reportingData
   return (
     <Container
+      component="main"
       maxWidth="xl"
       sx={{
         p: {
@@ -324,86 +309,114 @@ export default function ReportingPage() {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 6 }}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <Card
-              sx={{
-                height: 'auto',
-                opacity: isDirectorLoading || isIndividualLoading ? 0.7 : 1,
-              }}
-            >
-              <CardHeader
-                title="Director Performance"
-                action={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <ChartToggle value={chartView} onChange={setChartView} />
-                    {chartView === 'aggregate' ? (
-                      <TextField
-                        select
-                        size="small"
-                        label="Event"
-                        value={selectedMeeting}
-                        onChange={(e) => handleMeetingChange(e.target.value)}
-                        sx={{ minWidth: 200 }}
-                        disabled={isDirectorLoading}
-                      >
-                        {meetingsWithDirectors.map((meeting) => {
-                          // Extract year from meetingId (format: ticker-type-year)
-                          const yearMatch = meeting.id.match(/(\d{4})$/)
-                          const year = yearMatch ? yearMatch[1] : ''
-                          const displayTitle = year ? `${meeting.title} ${year}` : meeting.title
-                          return (
-                            <MenuItem key={meeting.id} value={meeting.id}>
-                              {displayTitle}
-                            </MenuItem>
-                          )
-                        })}
-                      </TextField>
-                    ) : (
-                      <TextField
-                        select
-                        size="small"
-                        value={selectedDirector}
-                        label="Director"
-                        onChange={(e) => handleDirectorChange(e.target.value)}
-                        sx={{ minWidth: 200 }}
-                        disabled={isIndividualLoading}
-                      >
-                        {availableDirectors.map((director) => (
-                          <MenuItem key={director} value={director}>
-                            {director}
+          <Card
+            sx={{
+              height: 'auto',
+              opacity: isDirectorLoading || isIndividualLoading ? 0.7 : 1,
+            }}
+          >
+            <CardHeader
+              title="Director Performance"
+              action={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <ChartToggle value={chartView} onChange={setChartView} />
+                  {chartView === 'aggregate' ? (
+                    <TextField
+                      select
+                      size="small"
+                      label="Event"
+                      value={selectedMeeting}
+                      onChange={(e) => handleMeetingChange(e.target.value)}
+                      sx={{ minWidth: 200 }}
+                      disabled={isDirectorLoading}
+                    >
+                      {meetingsWithDirectors.map((meeting) => {
+                        // Extract year from meetingId (format: ticker-type-year)
+                        const yearMatch = meeting.id.match(/(\d{4})$/)
+                        const year = yearMatch ? yearMatch[1] : ''
+                        const displayTitle = year
+                          ? `${meeting.title} ${year}`
+                          : meeting.title
+                        return (
+                          <MenuItem key={meeting.id} value={meeting.id}>
+                            {displayTitle}
                           </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  </Box>
-                }
-              />
-              <CardContent>
-                {chartView === 'aggregate' ? (
-                  <DirectorPerformanceChart data={directorPerformanceData || []} />
-                ) : (
-                  <IndividualDirectorChart
-                    directorName={selectedDirector || ''}
-                    data={mappedIndividualDirectorData}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </Suspense>
+                        )
+                      })}
+                    </TextField>
+                  ) : (
+                    <TextField
+                      select
+                      size="small"
+                      value={selectedDirector}
+                      label="Director"
+                      onChange={(e) => handleDirectorChange(e.target.value)}
+                      sx={{ minWidth: 200 }}
+                      disabled={isIndividualLoading}
+                    >
+                      {availableDirectors.map((director) => (
+                        <MenuItem key={director} value={director}>
+                          {director}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                </Box>
+              }
+            />
+            <CardContent>
+              {chartView === 'aggregate' ? (
+                <ChartInView>
+                  {(visible) =>
+                    visible ? (
+                      <DirectorPerformanceChart data={directorPerformanceData || []} />
+                    ) : (
+                      <ChartSkeleton />
+                    )
+                  }
+                </ChartInView>
+              ) : (
+                <ChartInView>
+                  {(visible) =>
+                    visible ? (
+                      <IndividualDirectorChart
+                        directorName={selectedDirector || ''}
+                        data={mappedIndividualDirectorData}
+                      />
+                    ) : (
+                      <ChartSkeleton />
+                    )
+                  }
+                </ChartInView>
+              )}
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* Proposal Performance Table */}
         <Grid size={{ xs: 12 }}>
-          <ProposalPerformanceTable data={mappedProposalPerformanceData} />
+          <Suspense fallback={<ChartSkeleton />}>
+            <ProposalPerformanceTable data={mappedProposalPerformanceData} />
+          </Suspense>
         </Grid>
 
         {/* Third Row - Audit & Compliance and Quorum Performance Tables */}
         <Grid size={{ xs: 12, lg: 6.5 }}>
-          <AuditComplianceTable data={mappedAuditComplianceData} clientTicker={clientTicker} />
+          <Suspense fallback={<ChartSkeleton />}>
+            <AuditComplianceTable
+              data={mappedAuditComplianceData}
+              clientTicker={clientTicker}
+            />
+          </Suspense>
         </Grid>
 
         <Grid size={{ xs: 12, lg: 5.5 }}>
-          <QuorumPerformanceTable data={mappedQuorumPerformanceData} clientTicker={clientTicker} />
+          <Suspense fallback={<ChartSkeleton />}>
+            <QuorumPerformanceTable
+              data={mappedQuorumPerformanceData}
+              clientTicker={clientTicker}
+            />
+          </Suspense>
         </Grid>
       </Grid>
     </Container>

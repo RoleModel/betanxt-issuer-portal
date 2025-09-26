@@ -18,43 +18,47 @@ interface Phase1LayoutProps {
   phase?: number
 }
 
-export default function Phase1Layout({ meetingId, meeting, phase = 1 }: Phase1LayoutProps) {
+export default function Phase1Layout({
+  meetingId,
+  meeting,
+  phase = 1,
+}: Phase1LayoutProps) {
   return (
-    <Grid container spacing={3}>
-      <Grid size={{ xs: 12, md: 12 }}>
-        <Suspense>
+    <Suspense>
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 12 }}>
           <KeyDatesCard meeting={meeting} />
-        </Suspense>
+        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <TaskCard meetingId={meetingId} currentPhase={phase} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <DocumentHostingCard meeting={meeting} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <EventContactsCard
+            meeting={{
+              transferAgent: meeting?.transferAgent || undefined,
+              planAdministrator: meeting?.planAdministrator || undefined,
+              planAdministratorContactEmail:
+                meeting?.planAdministratorContactEmail || undefined,
+              solicitor: meeting?.solicitor || undefined,
+              solicitorEmail: meeting?.solicitorEmail || undefined,
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <MeetingInformationCard
+            meeting={{
+              meetingType: meeting?.meetingType || undefined,
+              inspector: meeting?.inspector ?? undefined,
+              cusip: meeting?.cusip || undefined,
+              ticker: meeting?.ticker || undefined,
+              employeeStockPlans: meeting?.employeeStockPlans || undefined,
+            }}
+          />
+        </Grid>
       </Grid>
-      <Grid size={{ xs: 12, md: 8 }}>
-        <TaskCard meetingId={meetingId} currentPhase={phase} />
-      </Grid>
-      <Grid size={{ xs: 12, md: 4 }}>
-        <DocumentHostingCard meeting={meeting} />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <EventContactsCard
-          meeting={{
-            transferAgent: meeting?.transferAgent || undefined,
-            planAdministrator: meeting?.planAdministrator || undefined,
-            planAdministratorContactEmail:
-              meeting?.planAdministratorContactEmail || undefined,
-            solicitor: meeting?.solicitor || undefined,
-            solicitorEmail: meeting?.solicitorEmail || undefined,
-          }}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <MeetingInformationCard
-          meeting={{
-            meetingType: meeting?.meetingType || undefined,
-            inspector: meeting?.inspector ?? undefined,
-            cusip: meeting?.cusip || undefined,
-            ticker: meeting?.ticker || undefined,
-            employeeStockPlans: meeting?.employeeStockPlans || undefined,
-          }}
-        />
-      </Grid>
-    </Grid>
+    </Suspense>
   )
 }

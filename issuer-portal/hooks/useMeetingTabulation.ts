@@ -69,9 +69,11 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       })
       // Handle different possible response formats
       const responseData = positionsResult.data
-      const positions = (Array.isArray(responseData)
-        ? responseData
-        : ((responseData as unknown as { positions?: any[] })?.positions ?? [])) as Array<{
+      const positions = (
+        Array.isArray(responseData)
+          ? responseData
+          : ((responseData as unknown as { positions?: any[] })?.positions ?? [])
+      ) as Array<{
         voteStatus?: string
         shares?: number
         votingSource?: string

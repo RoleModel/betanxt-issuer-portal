@@ -15,6 +15,7 @@ export default function ProductLayout({
 }: ProductLayoutProps) {
   return (
     <Container
+      component="main"
       maxWidth={false}
       sx={{
         my: {

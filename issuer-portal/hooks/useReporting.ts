@@ -166,12 +166,12 @@ const fetcher = async (clientTicker: string) => {
     }
 
     // Filter out future meetings (keep current year and past)
-    const allMeetings = (meetingsResponse.data.meetings || []).filter(
-      (meeting) => {
-        const meetingYear = meeting.meetingYear || (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
-        return meetingYear && meetingYear <= currentYear
-      }
-    )
+    const allMeetings = (meetingsResponse.data.meetings || []).filter((meeting) => {
+      const meetingYear =
+        meeting.meetingYear ||
+        (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
+      return meetingYear && meetingYear <= currentYear
+    })
 
     // Most meetings should already be completed from the API calls, but filter just in case
     // For now, let's be more permissive to see all meetings in reporting
@@ -195,15 +195,14 @@ const fetcher = async (clientTicker: string) => {
     )
     const positionPromises = meetingIds.map(async (id) => {
       try {
-        const result = await apiClient
-          .GET('/positions', {
-            params: {
-              query: {
-                meetingId: `${id}`,
-                limit: 4000
-              }
-            }
-          })
+        const result = await apiClient.GET('/positions', {
+          params: {
+            query: {
+              meetingId: `${id}`,
+              limit: 4000,
+            },
+          },
+        })
 
         return result
       } catch (error) {
@@ -224,8 +223,13 @@ const fetcher = async (clientTicker: string) => {
         | undefined
       let list: (Proposal & { meetingId?: string })[] = []
       if (Array.isArray(data)) list = data
-      if (!Array.isArray(data) && data && Array.isArray((data as { proposals?: Proposal[] }).proposals)) {
-        list = ((data as { proposals?: (Proposal & { meetingId?: string })[] }).proposals) || []
+      if (
+        !Array.isArray(data) &&
+        data &&
+        Array.isArray((data as { proposals?: Proposal[] }).proposals)
+      ) {
+        list =
+          (data as { proposals?: (Proposal & { meetingId?: string })[] }).proposals || []
       }
       return list.map((p) => ({ ...p, meetingId: p.meetingId ?? mid })) as Proposal[]
     })
@@ -277,7 +281,11 @@ const fetcher = async (clientTicker: string) => {
     let mappedAuditComplianceData: MappedAuditComplianceData[] = []
 
     try {
-      mappedEventSummary = transformEventSummaryData(completedMeetings, allProposals, allPositions)
+      mappedEventSummary = transformEventSummaryData(
+        completedMeetings,
+        allProposals,
+        allPositions
+      )
     } catch (error) {
       mappedEventSummary = []
     }
@@ -306,7 +314,6 @@ const fetcher = async (clientTicker: string) => {
       id: m.id || '',
       title: m.title || 'Untitled Meeting',
     }))
-
 
     const result = {
       meetings: completedMeetings,
@@ -351,7 +358,7 @@ export function useReporting(clientTicker: string) {
 // Helper calculation functions
 function calculateDirectorPerformance(proposals: Proposal[]): DirectorPerformanceData[] {
   // Log unique proposal types
-  const uniqueTypes = [...new Set(proposals.map(p => p.proposalType))].filter(Boolean)
+  const uniqueTypes = [...new Set(proposals.map((p) => p.proposalType))].filter(Boolean)
 
   const directorProposals = proposals.filter(
     (p) =>
@@ -362,7 +369,6 @@ function calculateDirectorPerformance(proposals: Proposal[]): DirectorPerformanc
       /Director/i.test(p.proposalTitle || '') ||
       /Elect/i.test(p.proposalTitle || '')
   )
-
 
   const directorMap = new Map<string, DirectorPerformanceData>()
 
@@ -437,7 +443,6 @@ function calculateYearOverYearData(
 ): YearOverYearData[] {
   const yearMap = new Map<number, YearOverYearData>()
 
-
   meetings.forEach((meeting) => {
     if (!meeting.meetingDate) return
 
@@ -455,11 +460,15 @@ function calculateYearOverYearData(
 
     existing.proposalsCount += meetingProposals.length
     existing.passedCount += meetingProposals.filter((p) => {
-      const fr = (p as unknown as { finalResult?: string; final_result?: string }).finalResult ?? (p as unknown as { final_result?: string }).final_result
+      const fr =
+        (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
+        (p as unknown as { final_result?: string }).final_result
       return fr === 'PASSED'
     }).length
     existing.failedCount += meetingProposals.filter((p) => {
-      const fr = (p as unknown as { finalResult?: string; final_result?: string }).finalResult ?? (p as unknown as { final_result?: string }).final_result
+      const fr =
+        (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
+        (p as unknown as { final_result?: string }).final_result
       return fr === 'FAILED'
     }).length
 
@@ -500,19 +509,22 @@ function calculateEventSummaryData(
   }
 
   const meetingProposals = proposals.filter(
-    (p) => (
-      (p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
-      (p as unknown as { meeting_id?: string }).meeting_id
-    ) === latestMeeting.id
+    (p) =>
+      ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
+        (p as unknown as { meeting_id?: string }).meeting_id) === latestMeeting.id
   )
   const meetingPositions = positions.filter((p) => p.meetingId === latestMeeting.id)
 
   const passedProposals = meetingProposals.filter((p) => {
-    const fr = (p as unknown as { finalResult?: string; final_result?: string }).finalResult ?? (p as unknown as { final_result?: string }).final_result
+    const fr =
+      (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
+      (p as unknown as { final_result?: string }).final_result
     return fr === 'PASSED'
   }).length
   const failedProposals = meetingProposals.filter((p) => {
-    const fr = (p as unknown as { finalResult?: string; final_result?: string }).finalResult ?? (p as unknown as { final_result?: string }).final_result
+    const fr =
+      (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
+      (p as unknown as { final_result?: string }).final_result
     return fr === 'FAILED'
   }).length
 
@@ -520,7 +532,10 @@ function calculateEventSummaryData(
     latestMeeting.totalSharesOutstanding || '0',
     10
   )
-  const actualShares = meetingPositions.reduce((sum, pos) => sum + (pos.sharesVoted || 0), 0)
+  const actualShares = meetingPositions.reduce(
+    (sum, pos) => sum + (pos.sharesVoted || 0),
+    0
+  )
   const participationRate =
     totalSharesOutstandingNum > 0 ? (actualShares / totalSharesOutstandingNum) * 100 : 0
 
@@ -544,10 +559,9 @@ function calculateAuditComplianceData(
 ): AuditComplianceData[] {
   return meetings.map((meeting) => {
     const meetingProposals = proposals.filter(
-      (p) => (
-        (p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
-        (p as unknown as { meeting_id?: string }).meeting_id
-      ) === meeting.id
+      (p) =>
+        ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
+          (p as unknown as { meeting_id?: string }).meeting_id) === meeting.id
     )
     const issues: string[] = []
 
@@ -570,7 +584,10 @@ function calculateAuditComplianceData(
 function calculateQuorumData(meetings: Meeting[], positions: Position[]): QuorumData[] {
   return meetings.map((meeting) => {
     const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
-    const actualShares = meetingPositions.reduce((sum, pos) => sum + (pos.sharesVoted || 0), 0)
+    const actualShares = meetingPositions.reduce(
+      (sum, pos) => sum + (pos.sharesVoted || 0),
+      0
+    )
 
     const totalSharesOutstandingNum = Number.parseInt(
       meeting.totalSharesOutstanding || '0',
@@ -680,17 +697,24 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
 }
 
 // UI Transformation functions
-function transformEventSummaryData(meetings: Meeting[], proposals: Proposal[] = [], positions: Position[] = []): MappedEventSummary[] {
+function transformEventSummaryData(
+  meetings: Meeting[],
+  proposals: Proposal[] = [],
+  positions: Position[] = []
+): MappedEventSummary[] {
   if (!meetings || meetings.length === 0) {
     return []
   }
 
   // Pre-aggregate proposals by meeting id (support camelCase and snake_case)
   const proposalsByMeeting = proposals.reduce((acc, p) => {
-    const key = ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
-      (p as unknown as { meeting_id?: string }).meeting_id) || ''
+    const key =
+      ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
+        (p as unknown as { meeting_id?: string }).meeting_id) ||
+      ''
     if (!key) return acc
-    const fr = (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
+    const fr =
+      (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
       (p as unknown as { final_result?: string }).final_result
     const bucket = acc.get(key) || { total: 0, passed: 0 }
     bucket.total += 1
@@ -711,16 +735,25 @@ function transformEventSummaryData(meetings: Meeting[], proposals: Proposal[] = 
       const meetingType = meeting.meetingType || 'Annual'
 
       // Get meeting-specific data
-      const proposalAgg = proposalsByMeeting.get(meeting.id || '') || { total: 0, passed: 0 }
+      const proposalAgg = proposalsByMeeting.get(meeting.id || '') || {
+        total: 0,
+        passed: 0,
+      }
       const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
 
       // Calculate participation rate using shares_voted (not shares)
-      const totalSharesOutstandingNum = Number.parseInt(meeting.totalSharesOutstanding || '0', 10)
+      const totalSharesOutstandingNum = Number.parseInt(
+        meeting.totalSharesOutstanding || '0',
+        10
+      )
       const actualShares = meetingPositions.reduce((sum, pos) => {
         const sharesVoted = Number(pos.sharesVoted) || 0
         return sum + sharesVoted
       }, 0)
-      const participationRate = totalSharesOutstandingNum > 0 ? (actualShares / totalSharesOutstandingNum) * 100 : 0
+      const participationRate =
+        totalSharesOutstandingNum > 0
+          ? (actualShares / totalSharesOutstandingNum) * 100
+          : 0
 
       // Calculate proposal outcomes
       const passedProposals = proposalAgg.passed
@@ -741,22 +774,26 @@ function transformEventSummaryData(meetings: Meeting[], proposals: Proposal[] = 
         quorum: quorumMet ? 'Yes' : 'No',
         participation: `${participationRate.toFixed(1)}%`,
         numProposals: totalProposals,
-        outcome: totalProposals > 0 ? `${passedProposals}/${totalProposals} Passed` : 'No Proposals',
+        outcome:
+          totalProposals > 0
+            ? `${passedProposals}/${totalProposals} Passed`
+            : 'No Proposals',
         meetingYear: typeof year === 'number' ? year : parseInt(year.toString(), 10) || 0,
       }
 
       results.push(result)
-
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   return results
 }
 
-function transformYearOverYearData(yearOverYearData: YearOverYearData[]): MappedYearOverYear[] {
+function transformYearOverYearData(
+  yearOverYearData: YearOverYearData[]
+): MappedYearOverYear[] {
   return yearOverYearData.map((y) => ({
-    year: typeof y.year === 'string' ? parseInt(y.year, 10) : (y.year as unknown as number),
+    year:
+      typeof y.year === 'string' ? parseInt(y.year, 10) : (y.year as unknown as number),
     participationRate: y.participationRate,
     proposalsCount: y.proposalsCount,
     passedCount: y.passedCount,
@@ -764,7 +801,9 @@ function transformYearOverYearData(yearOverYearData: YearOverYearData[]): Mapped
   }))
 }
 
-function transformProposalPerformanceData(proposals: Proposal[]): MappedProposalPerformanceData[] {
+function transformProposalPerformanceData(
+  proposals: Proposal[]
+): MappedProposalPerformanceData[] {
   if (!proposals) return []
 
   // Group proposals by type and calculate performance metrics
@@ -814,7 +853,9 @@ function transformProposalPerformanceData(proposals: Proposal[]): MappedProposal
   })
 }
 
-function transformAuditComplianceData(auditComplianceData: AuditComplianceData[]): MappedAuditComplianceData[] {
+function transformAuditComplianceData(
+  auditComplianceData: AuditComplianceData[]
+): MappedAuditComplianceData[] {
   return auditComplianceData.map((item) => {
     // Extract year from meetingId (format: ticker-type-year)
     const yearMatch = item.meetingId.match(/(\d{4})$/)

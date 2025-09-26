@@ -1,28 +1,16 @@
-'use client'
+// Server component wrapper for Documents listing; underlying heavy UI is client-only.
+import React from 'react'
 
-import dynamic from 'next/dynamic'
-import React, { Suspense } from 'react'
+import DocumentsClientWrapper from '@/components/Documents/DocumentsClientWrapper'
 
-import { LinearProgress } from '@mui/material'
+// Optionally control ISR at the segment level (60s heuristic for listing updates)
+export const revalidate = 60
 
-import { useMeeting } from '@/contexts/MeetingContext'
+interface PageProps {
+  params: Promise<{ clientTicker: string; meetingId: string }>
+}
 
-// Dynamic import for the heavy documents component
-const DocumentsComponent = dynamic(
-  () => import('@/components/Documents/DocumentsSection'),
-  {
-    ssr: false,
-  }
-)
-
-export default function DocumentsPage() {
-  const { currentMeeting, getMeetingById: _getMeetingById } = useMeeting()
-
-  return (
-    <Suspense fallback={<LinearProgress />}>
-      <DocumentsComponent
-        params={Promise.resolve({ meetingId: `${currentMeeting?.id ?? ''}` })}
-      />
-    </Suspense>
-  )
+export default async function DocumentsPage({ params }: PageProps) {
+  const { meetingId } = await params
+  return <DocumentsClientWrapper meetingId={meetingId} />
 }

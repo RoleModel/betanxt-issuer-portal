@@ -1,4 +1,5 @@
 import type { components } from '@/domain-models/generated-schema'
+
 import type { Task } from '@/types/api'
 
 type ApiTask = components['schemas']['Task']
@@ -83,5 +84,5 @@ export function isIssuerOwnedTask(task: Task | null | undefined): boolean {
  * Get the appropriate status for a DTCC Authorization task based on checkbox state
  */
 export function getDTCCAuthorizationStatus(isChecked: boolean): Task['status'] {
-  return isChecked ? 'COMPLETE' : 'NEEDS_AUTHORIZATION'
+  return isChecked ? 'AUTHORIZED' : 'NEEDS_AUTHORIZATION'
 }

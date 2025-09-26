@@ -29,11 +29,10 @@ export function cacheFn<Fn extends (...args: any[]) => Promise<any>>( // eslint-
   return async (...args: Parameters<Fn>): Promise<Awaited<ReturnType<Fn>>> => {
     const builtTags = tagBuilder(...args)
     const key = JSON.stringify(['cacheFn', fn.name || 'anon', args])
-    const cached = nextUnstableCache(
-      async () => fn(...args),
-      [key],
-      { tags: builtTags, revalidate: options.revalidate ?? 60 }
-    )
+    const cached = nextUnstableCache(async () => fn(...args), [key], {
+      tags: builtTags,
+      revalidate: options.revalidate ?? 60,
+    })
     return cached() as Promise<Awaited<ReturnType<Fn>>>
   }
 }

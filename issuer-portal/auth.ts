@@ -62,7 +62,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ]
 
         const user = testUsers.find(
-          (u) => u.username === credentials.username && credentials.password === 'password'
+          (u) =>
+            u.username === credentials.username && credentials.password === 'password'
         )
 
         if (user) {

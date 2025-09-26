@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { Box, TextField, Typography } from '@mui/material'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
 interface FormFieldAreaProps {
   area: {
@@ -165,7 +165,7 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
             textOverflow: 'ellipsis',
           }}
         >
-          {value || (area.label || 'Click to enter')}
+          {value || area.label || 'Click to enter'}
         </Typography>
       </Box>
     )

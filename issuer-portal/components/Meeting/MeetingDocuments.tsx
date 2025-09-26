@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
+import { EmptyState } from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
@@ -34,66 +35,38 @@ interface MeetingDocumentsProps {
 export default function MeetingDocuments({
   documents: propDocuments,
   meetingId,
-  meeting,
+  meeting: _meeting,
 }: MeetingDocumentsProps) {
   const router = useRouter()
   const { getDocumentsByMeeting, uploadDocument } = useDocuments()
   const [documents, setDocuments] = useState<Document[]>(propDocuments || [])
   const [open, setOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
   const [pdfUrl, setPdfUrl] = useState('')
-
-  // Calculate fallback deadline based on meeting date and document type
-  const calculateFallbackDeadline = (documentType: string) => {
-    if (!meeting?.meetingDate) return null
-
-    const meetingDate = new Date(meeting.meetingDate)
-
-    switch (documentType) {
-      case 'Draft Proxy Statement':
-      case 'Proxy Card':
-        // 30 days before meeting
-        const proxyDeadline = new Date(meetingDate)
-        proxyDeadline.setDate(meetingDate.getDate() - 30)
-        return proxyDeadline.toISOString()
-      case 'Notice and Access Form':
-        // 20 days before meeting
-        const noticeDeadline = new Date(meetingDate)
-        noticeDeadline.setDate(meetingDate.getDate() - 20)
-        return noticeDeadline.toISOString()
-      default:
-        return null
-    }
-  }
-
-  // Define the required Phase 2 documents as placeholders
-  const requiredDocuments = [
-    {
-      id: 'draft-proxy-statement',
-      name: 'Draft Proxy Statement',
-      type: 'PDF',
-      status: 'AWAITING_DRAFT' as const,
-    },
-    {
-      id: 'proxy-card',
-      name: 'Proxy Card',
-      type: 'PDF',
-      status: 'AWAITING_DRAFT' as const,
-    },
-    {
-      id: 'notice-access-form',
-      name: 'Notice and Access Form',
-      type: 'PDF',
-      status: 'AWAITING_REVIEW' as const,
-    },
-  ]
 
   const fetchDocuments = useCallback(async () => {
     if (!meetingId) return
     try {
       const fetchedDocuments = await getDocumentsByMeeting(meetingId)
-      setDocuments(fetchedDocuments)
+      // For Phase 2 dashboard, show only Phase 2 specific documents
+      // These are the proxy materials that need review/approval
+      const phase2DocTypes = ['draft-proxy-statement', 'proxy-card', 'notice-access-form']
+      const filteredDocuments = fetchedDocuments.filter((doc) => {
+        const docType = doc.type || doc.fileType || ''
+        // Include documents that are Phase 2 proxy materials
+        return (
+          phase2DocTypes.includes(docType) ||
+          // Also include general uploaded documents that aren't task-specific
+          (!doc.taskId &&
+            ![
+              'signed-form',
+              'transfer-agent-request',
+              'plan-file-request',
+              'task-completion',
+            ].includes(docType))
+        )
+      })
+      setDocuments(filteredDocuments)
     } catch (error) {
       console.error('Failed to fetch documents:', error)
     }
@@ -106,69 +79,22 @@ export default function MeetingDocuments({
     }
   }, [meetingId, fetchDocuments])
 
-  // Merge required placeholders with actual uploaded documents
-  const getDisplayDocuments = () => {
-    return requiredDocuments.map((placeholder) => {
-      // Check if there's an uploaded document for this placeholder
-      let uploadedDoc = null
-
-      if (placeholder.name === 'Draft Proxy Statement') {
-        uploadedDoc = documents.find((doc) =>
-          doc.title?.toLowerCase().includes('proxy statement')
-        )
-      } else if (placeholder.name === 'Proxy Card') {
-        uploadedDoc = documents.find((doc) =>
-          doc.title?.toLowerCase().includes('proxy card')
-        )
-      } else if (placeholder.name === 'Notice and Access Form') {
-        uploadedDoc = documents.find(
-          (doc) =>
-            doc.title?.toLowerCase().includes('notice') ||
-            doc.title?.toLowerCase().includes('access')
-        )
-      }
-
-      if (uploadedDoc) {
-        // Use the uploaded document but keep placeholder structure for UI
-        return {
-          ...placeholder,
-          ...uploadedDoc,
-          // Preserve placeholder status if uploaded doc is missing or falsy
-          status: (uploadedDoc as Document).status || placeholder.status,
-          // Keep placeholder name for display consistency
-          name: placeholder.name,
-          // Preserve placeholder info for display
-          placeholderId: placeholder.id,
-        }
-      }
-
-      // If no uploaded document, add fallback deadline to placeholder
-      return {
-        ...placeholder,
-        deadline: calculateFallbackDeadline(placeholder.name),
-      }
-    })
-  }
-
   const handleViewAllDocuments = () => {
     if (meetingId) {
       router.push(`/meeting/${meetingId}/documents`)
     }
   }
 
-  const handleUpload = (documentId: string) => {
-    setSelectedDocumentId(documentId)
+  const handleUpload = () => {
     setUploadDialogOpen(true)
   }
 
   const handleFileUpload = async (files: File[]) => {
-    if (!selectedDocumentId || files.length === 0) return
+    if (files.length === 0) return
 
     try {
       for (const file of files) {
-        const placeholder = requiredDocuments.find((d) => d.id === selectedDocumentId)
-        const documentTitle = placeholder ? placeholder.name : undefined
-        await uploadDocument(file, selectedDocumentId, meetingId, documentTitle)
+        await uploadDocument(file, file.name, meetingId)
       }
       // Refresh documents after upload
       await fetchDocuments()
@@ -187,8 +113,7 @@ export default function MeetingDocuments({
     setOpen(false)
   }
 
-  const onAddComment = (_comment: string) => {
-  }
+  const onAddComment = (_comment: string) => {}
 
   const getStatusChip = (status: Document['status']) => {
     const statusConfig = {
@@ -209,17 +134,7 @@ export default function MeetingDocuments({
   }
 
   const getActionButton = (document: Document) => {
-    // If there is no file yet, always show Upload
-    if (!document?.filePath) {
-      return (
-        <Button variant="text" onClick={() => handleUpload(document.id || selectedDocumentId || '')}>
-          Upload
-        </Button>
-      )
-    }
-
-    // Derive a resilient status for action logic
-    const effectiveStatus = (document.status || (document.filePath ? 'UPLOADED' : 'AWAITING_DRAFT')) as
+    const effectiveStatus = document.status as
       | 'AWAITING_DRAFT'
       | 'DRAFT'
       | 'AWAITING_REVIEW'
@@ -244,14 +159,8 @@ export default function MeetingDocuments({
       case 'COMPLETED':
       case 'APPROVED':
         return null
-      case 'AWAITING_DRAFT':
-      case 'DRAFT':
       default:
-        return (
-          <Button variant="text" onClick={() => handleUpload(document.id || selectedDocumentId || '')}>
-            Upload
-          </Button>
-        )
+        return null
     }
   }
 
@@ -259,51 +168,85 @@ export default function MeetingDocuments({
     <Card>
       <CardHeader title={'Documents'} />
       <CardContent>
-        <TableContainer>
-          <Table>
-            <SROnlyTableCaption>Meeting Documents</SROnlyTableCaption>
-            <TableHead sx={{ visibility: 'hidden', display: 'none' }}>
-              <TableRow>
-                <TableCell>Document</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {getDisplayDocuments().map((document) => (
-                <TableRow key={document.id}>
-                  <TableCell>
-                    <Box>
-                      <Typography fontWeight={500}>{document.name}</Typography>
-                      {document.deadline && (
-                        <Typography color="text.secondary">
-                          Deadline:{' '}
-                          {new Date(document.deadline).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography color="text.secondary">
-                      {document.type || 'PDF'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{getStatusChip(document.status)}</TableCell>
-                  <TableCell align="right">{getActionButton(document)}</TableCell>
+        {documents.length === 0 ? (
+          <EmptyState
+            title="No documents uploaded yet"
+            description="Documents will appear here once they are uploaded for this meeting."
+          />
+        ) : (
+          <TableContainer>
+            <Table>
+              <SROnlyTableCaption>Meeting Documents</SROnlyTableCaption>
+              <TableHead sx={{ visibility: 'hidden', display: 'none' }}>
+                <TableRow>
+                  <TableCell>Document</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Action</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {documents.map((document) => (
+                  <TableRow key={document.id}>
+                    <TableCell>
+                      <Box>
+                        <Typography fontWeight={500}>
+                          {document.title || 'Untitled'}
+                        </Typography>
+                        {document.uploadedDate && (
+                          <Typography color="text.secondary">
+                            Uploaded:{' '}
+                            {new Date(document.uploadedDate).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography color="text.secondary">
+                        {(() => {
+                          const docType = document.type || document.fileType || 'PDF'
+                          // Map document types to display names
+                          const typeMapping: Record<string, string> = {
+                            'signed-form': 'Broadridge/ICS Access',
+                            'transfer-agent-request': 'Transfer Agent Request Form',
+                            'plan-file-request': 'Plan File Request Form',
+                            'draft-proxy-statement': 'Draft Proxy Statement',
+                            'proxy-card': 'Proxy Card',
+                            'notice-access-form': 'Notice and Access Form',
+                            HOSTING_SITE: 'Document Hosting Site',
+                            'task-completion': 'Completed Task Document',
+                            general: 'General Document',
+                            PDF: 'PDF Document',
+                          }
+                          return typeMapping[docType] || docType
+                        })()}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{getStatusChip(document.status)}</TableCell>
+                    <TableCell align="right">{getActionButton(document)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button variant="outlined" onClick={handleViewAllDocuments} disabled={!meetingId}>
-          View All Documents
+        <Button variant="contained" onClick={handleUpload} disabled={!meetingId}>
+          Upload Document
         </Button>
+        {documents.length > 0 && (
+          <Button
+            variant="outlined"
+            onClick={handleViewAllDocuments}
+            disabled={!meetingId}
+          >
+            View All Documents
+          </Button>
+        )}
       </CardActions>
       <ApprovalDrawer
         title="Approve Document"
@@ -319,10 +262,8 @@ export default function MeetingDocuments({
         onUpload={handleFileUpload}
         onUploadSuccess={() => {
           setUploadDialogOpen(false)
-          setSelectedDocumentId(null)
         }}
         meetingId={meetingId}
-        preSelectedDocumentId={selectedDocumentId || undefined}
       />
     </Card>
   )

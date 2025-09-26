@@ -36,7 +36,7 @@ class DefaultDocumentRepository implements DocumentRepository {
 
     const supabase = getBrowserSupabase()
     const { data, error } = await supabase
-      .from('documents')
+      .from('document')
       .select('*')
       .eq('meeting_id', meetingId)
     if (error) {
@@ -56,7 +56,7 @@ class DefaultDocumentRepository implements DocumentRepository {
     }
     const supabase = getBrowserSupabase()
     const { data, error } = await supabase
-      .from('documents')
+      .from('document')
       .select('*')
       .eq('id', id)
       .maybeSingle()

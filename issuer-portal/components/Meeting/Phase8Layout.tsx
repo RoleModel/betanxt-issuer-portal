@@ -1,13 +1,16 @@
 'use client'
-import React from 'react'
-import { Card, CardContent, Grid, Stack } from '@mui/material'
+
+import { PdfIcon } from '@rolemodel/betanxt-design-system/components/icons/PdfIcon'
+import ChartBarsIcon from '@rolemodel/betanxt-design-system/components/icons/brand/ChartBarsIcon'
 import PersonArmsUpIcon from '@rolemodel/betanxt-design-system/components/icons/brand/PersonArmsUpIcon'
-import TargetBullsEyeIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TargetBullsEyeIcon'
+import React from 'react'
+
+import { Card, CardContent, Grid, Stack } from '@mui/material'
+import { Container } from '@mui/material'
+
 import FeatureTile from '@/components/FeatureTile'
 
 import type { Meeting } from '@/types/api'
-import { PdfIcon } from '@rolemodel/betanxt-design-system/components/icons/PdfIcon'
-import { Container } from '@mui/material'
 
 interface Phase8LayoutProps {
   meetingId?: string
@@ -16,7 +19,7 @@ interface Phase8LayoutProps {
 
 export default function Phase7Layout({ meeting }: Phase8LayoutProps) {
   return (
-    <Container>
+    <Container component="main">
       <Stack spacing={3}>
         <FeatureTile
           title={`Congratulations on the Completion of your ${meeting?.meetingYear} ${meeting?.meetingType}!`}
@@ -29,9 +32,8 @@ export default function Phase7Layout({ meeting }: Phase8LayoutProps) {
               variant="info"
               description="We would love to hear from you! With every Meeting, we at BetaNXT are always looking for ways to improve your expereince and get your feedback on how your Meeting went this year. Please take a moment to complete this Post-Meeting survey to help us continue better assisting you in the future!"
               actionText="Take Survey"
-              icon={<TargetBullsEyeIcon fontSize="4xl" />}
-              onClick={() => {
-              }}
+              icon={<ChartBarsIcon fontSize="4xl" />}
+              onClick={() => {}}
             />
           </CardContent>
         </Card>

@@ -216,7 +216,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           width: '100%',
           height: '100%',
           backgroundImage: `url(${signatureData})`,
-          backgroundSize: '100%',
+          backgroundSize: '80%',
           backgroundPosition: 'left center',
           backgroundRepeat: 'no-repeat',
         }}

@@ -1,6 +1,7 @@
 'use client'
 
 import { Global } from '@emotion/react'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useMemo, useState } from 'react'
 import type { FileRejection } from 'react-dropzone'
 
@@ -14,11 +15,9 @@ import {
   Button,
   Card,
   CardContent,
-  Checkbox,
   Collapse,
   Divider,
   Drawer,
-  FormControlLabel,
   IconButton,
   LinearProgress,
   Link,
@@ -33,21 +32,26 @@ import { styled, useTheme } from '@mui/material/styles'
 import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
-import BNFileDropzone from '@/components/file-upload/BNFileDropzone'
 import DrawerTaskItem from '@/components/Drawers/DrawerTaskItem'
+import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
 import { useMeeting } from '@/contexts/MeetingContext'
-import { usePhases } from '@/hooks/usePhases'
 import { useClients } from '@/hooks/useClients'
-import { useTasks } from '@/hooks/useTasks'
+import { usePhases } from '@/hooks/usePhases'
 import type { KeyDate, Task } from '@/types/api'
 import type { ContextMenuPosition } from '@/types/common'
-import { calculateDaysUntil, formatDaysUntil, friendlyDate } from '@/utils/dateUtils'
-import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
 import { handleFormDownload, handleFormSign } from '@/utils/broadridgeFormHandler'
-import { getDTCCAuthorizationStatus, isIssuerOwnedTask } from '@/utils/taskTransformers'
-import { useParams } from 'next/navigation'
+import { calculateDaysUntil, formatDaysUntil, friendlyDate } from '@/utils/dateUtils'
+import {
+  handleFormDownload as handlePlanFormDownload,
+  handleFormSign as handlePlanFormSign,
+} from '@/utils/planFileRequestForm'
+import { TaskLink } from '@/utils/taskLinks'
+import {
+  handleFormDownload as handleTransferAgentDownload,
+  handleFormSign as handleTransferAgentSign,
+} from '@/utils/transferAgentRequestForm'
 
 // Phase URL type for UI
 type PhaseUrl = { title: string; description?: string; url?: string }
@@ -70,7 +74,6 @@ const drawerBleeding = 60
 // Styled components for swipeable drawer
 const StyledBox = styled('div')(({ theme }) => ({
   backgroundColor: theme.vars?.palette.background.default,
-
 }))
 
 const Puller = styled('div')(({ theme }) => ({
@@ -124,17 +127,21 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   const { clients } = useClients()
   const currentClient = clients.find((client) => client.ticker === clientTicker)
-  const { updateTaskById } = useTasks()
 
   // Create client data for form generation
-  const clientData = useMemo(() => currentClient ? {
-    issuerName: currentClient.company_name || currentClient.short_name || '',
-    contactName: currentClient.primary_contact || '',
-    email: currentClient.primary_contact_email || '',
-  } : undefined, [currentClient])
+  const clientData = useMemo(
+    () =>
+      currentClient
+        ? {
+            issuerName: currentClient.company_name || currentClient.short_name || '',
+            contactName: currentClient.primary_contact || '',
+            email: currentClient.primary_contact_email || '',
+          }
+        : undefined,
+    [currentClient]
+  )
 
   const [currentView, setCurrentView] = useState<'overview' | 'upload'>('overview')
-  const [authorizedTasks, setAuthorizedTasks] = useState<Set<string>>(new Set())
 
   // Determine current phase from MeetingContext, fallback to prop, then 1
   const currentPhaseNumber = React.useMemo(() => {
@@ -176,7 +183,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   // Get key dates for current phase from MeetingContext
   const keyDates: KeyDate[] = React.useMemo(() => {
-
     // Check if phase data has key dates
     if (currentPhaseData?.keyDates && Object.keys(currentPhaseData.keyDates).length > 0) {
       // If phase has specific key dates in the phase data, use those
@@ -194,9 +200,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     }
 
     // Use key dates from MeetingContext (with correct phase assignments)
-    // Exclude pre-filing dates as they're typically duplicates
+    // Exclude pre-filing dates
     const filtered = meetingKeyDates.filter((kd) => {
-      const isPreFiling = kd.title?.toLowerCase().includes('pre-fil') || kd.title?.toLowerCase().includes('prefil')
+      const title = kd.title?.toLowerCase() || ''
+      const isPreFiling =
+        title.includes('pre-fil') ||
+        title.includes('prefil') ||
+        title === 'pre filing date' ||
+        title === 'pre-filing date'
       return kd.phaseNumber === currentPhaseNumber && !isPreFiling
     })
 
@@ -204,10 +215,15 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     if (filtered.length === 0 && meetingKeyDates.length > 0) {
       // For phase 1, show only filing date (not pre-filing)
       if (currentPhaseNumber === 1) {
-        const phase1Dates = meetingKeyDates.filter(kd =>
-          kd.title?.toLowerCase().includes('filing') &&
-          !kd.title?.toLowerCase().includes('pre-filing')
-        )
+        const phase1Dates = meetingKeyDates.filter((kd) => {
+          const title = kd.title?.toLowerCase() || ''
+          return (
+            title.includes('filing') &&
+            !title.includes('pre-filing') &&
+            !title.includes('pre filing') &&
+            !title.includes('prefiling')
+          )
+        })
         if (phase1Dates.length > 0) {
           return phase1Dates
         }
@@ -235,6 +251,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   const handleTaskLinkClick = useCallback(
     async (link: TaskLink, taskTitle: string) => {
+      // Check which type of form task this is
+      const isPlanFileRequestTask = taskTitle?.includes('Plan File Request')
+      const isTransferAgentTask = taskTitle?.includes('Transfer Agent')
 
       switch (link.action) {
         case 'signature':
@@ -244,14 +263,20 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             setSignatureAreas([])
             setDocumentViewerOpen(true)
           } else if (link.label === 'Sign Form') {
-            await handleFormSign({
+            // Use appropriate handler based on task type
+            const signHandler = isPlanFileRequestTask
+              ? handlePlanFormSign
+              : isTransferAgentTask
+                ? handleTransferAgentSign
+                : handleFormSign
+            await signHandler({
               onDocumentOpen: (documentUrl, documentId, signatureAreas) => {
                 setDocumentUrl(documentUrl)
                 setDocumentTitle(taskTitle)
                 setSignatureAreas(signatureAreas)
                 setDocumentViewerOpen(true)
               },
-              clientData
+              clientData,
             })
           } else {
           }
@@ -270,7 +295,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           if (link.url) {
             window.open(link.url, '_blank')
           } else if (link.label === 'Download Form') {
-            await handleFormDownload(clientData)
+            // Use appropriate handler based on task type
+            if (isPlanFileRequestTask) {
+              await handlePlanFormDownload(clientData)
+            } else if (isTransferAgentTask) {
+              await handleTransferAgentDownload(clientData)
+            } else {
+              await handleFormDownload(clientData)
+            }
           } else {
           }
           break
@@ -373,24 +405,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     // Refresh meeting data (including tasks) after task update
     refreshMeetingData()
   }, [refreshMeetingData])
-
-  const handleAuthorizationChange = useCallback(async (taskId: string, checked: boolean) => {
-    const newStatus = getDTCCAuthorizationStatus(checked)
-    await updateTaskById(taskId, { status: newStatus })
-
-    if (checked) {
-      setAuthorizedTasks(prev => new Set([...prev, taskId]))
-    } else {
-      setAuthorizedTasks(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(taskId)
-        return newSet
-      })
-    }
-
-    // Refresh the meeting data to show updated status
-    refreshMeetingData()
-  }, [updateTaskById, refreshMeetingData])
 
   const handlePhaseNavigation = useCallback(
     (direction: 'prev' | 'next') => {
@@ -714,9 +728,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             {/* Tasks */}
             <Stack spacing={1}>
               {phaseTasks.map((task) => {
-                const isCompleted = task.status === 'COMPLETE' || authorizedTasks.has(task.id || '')
-                const taskLinks = parseTaskLinks(task.links)
-                const isIssuerOwned = isIssuerOwnedTask(task)
+                const isCompleted = task.status === 'COMPLETE'
 
                 return (
                   <Box key={task.id} onContextMenu={(e) => handleTaskRightClick(e, task)}>
@@ -729,55 +741,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                           ? () => handleTaskApprovalClick(task)
                           : undefined
                       }
+                      onStatusUpdate={handleTaskUpdated}
+                      onLinkClick={handleTaskLinkClick}
                     />
-
-                    {/* Task description */}
-                    {task.description && (
-                      <Typography
-                        color="text.secondary"
-                        sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', ml: 2, mt: 0.5, mb: 1 }}
-                      >
-                        {task.description}
-                      </Typography>
-                    )}
-
-                    {/* DTCC Authorization Checkbox */}
-                    {task.title?.includes('DTCC') && task.title?.includes('Authorization') && (
-                      <Box sx={{ ml: 2, mt: 1, mb: 1 }}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              color="secondary"
-                              checked={isCompleted}
-                              onChange={(e) => handleAuthorizationChange(task.id || '', e.target.checked)}
-                              size="small"
-                            />
-                          }
-                          label="Authorization confirmed"
-                        />
-                      </Box>
-                    )}
-
-                    {/* Task Links - only show for issuer-owned tasks */}
-                    {isIssuerOwned && taskLinks.length > 0 && (
-                      <Box sx={{ ml: 2, mt: 1 }}>
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
-                          {taskLinks.map((link: TaskLink, linkIndex: number) => (
-                            <Link
-                              key={linkIndex}
-                              component="button"
-                              underline="always"
-                              onClick={() =>
-                                handleTaskLinkClick(link, task.title || 'Task')
-                              }
-                              sx={{ fontSize: '0.875rem' }}
-                            >
-                              {link.label}
-                            </Link>
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
                   </Box>
                 )
               })}
@@ -817,7 +783,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   return (
     <Drawer
       anchor="left"
-      elevation={0}
+      elevation={20}
       open={open}
       onClose={handleMainDrawerClose}
       keepMounted={false}
@@ -827,7 +793,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       slotProps={{
         paper: {
           sx: {
-            width: 'auto',
             height: '100%',
             borderRadius: '0px 4px 4px 0px',
             boxShadow:
@@ -858,7 +823,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         }}
       >
         {/* Overview Content */}
-        <Box sx={{ width: { xs: '100%', sm: 550 }, height: '100%' }}>
+        <Box className="overview-content" sx={{ height: '100%' }}>
           {renderOverviewSection()}
         </Box>
 
@@ -900,7 +865,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         title={approvalTitle}
         pdfUrl={approvalDocumentUrl}
         onApprove={handleApprove}
-        onAddComment={(_comment: string) => { }}
+        onAddComment={(_comment: string) => {}}
       />
 
       {/* Context Menu */}

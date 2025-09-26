@@ -45,6 +45,33 @@
         "cwd": "${workspaceFolder}/mock-api-server"
       },
       "group": "build"
+    },
+    {
+      "label": "start-monorepo-dev",
+      "dependsOn": ["start-issuer-portal", "start-api-server"],
+      "problemMatcher": []
+    },
+    {
+      "label": "start-issuer-portal",
+      "type": "shell",
+      "command": "npm run dev --workspace issuer-portal",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "split",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "start-api-server",
+      "type": "shell",
+      "command": "npm run dev --workspace mock-api-server",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "split",
+        "reveal": "always"
+      }
     }
   ]
 }

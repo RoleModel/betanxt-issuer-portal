@@ -1,5 +1,5 @@
 // Basic navigation smoke test to ensure the Next.js app boots.
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 // Adjust path if a default clientTicker landing page differs.
 // Using root '/' which should redirect or render a landing/shell.

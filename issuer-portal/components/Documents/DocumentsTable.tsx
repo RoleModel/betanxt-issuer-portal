@@ -4,6 +4,7 @@ import React from 'react'
 
 import {
   Box,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -21,6 +22,8 @@ import StatusChip from '@/components/ui/StatusChip'
 import { components } from '@/domain-models/generated-schema'
 
 import { formatDate } from '@/lib/formats'
+import { getDocumentActionLabel } from '@/utils/documentUtils'
+import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
 
 type Document = components['schemas']['Document']
 
@@ -52,10 +55,10 @@ export default function DocumentsTable(props: DocumentsTableProps) {
 
   return (
     <TableContainer data-testid="documents-table">
-      <Table size="small" sx={{ minWidth: 500 }} aria-label="Event Documents">
+      <Table sx={{ minWidth: 500 }} aria-label="Event Documents">
         <TableHead>
           <TableRow>
-            <TableCell sx={{ p: 2 }}>Document</TableCell>
+            <TableCell>Document</TableCell>
             <TableCell>Added/Updated</TableCell>
             <TableCell sx={{ width: '200px' }}>Status</TableCell>
             <TableCell align="right">Actions</TableCell>
@@ -67,7 +70,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
             : documents
           ).map((doc) => (
             <TableRow key={doc.id}>
-              <TableCell>
+              <TableCell size="small">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <DocumentThumbnail
                     filePath={doc.filePath}
@@ -78,7 +81,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                   </Typography>
                 </Box>
               </TableCell>
-              <TableCell>
+              <TableCell size="small">
                 <Box>
                   <Typography>System</Typography>
                   <Typography>
@@ -86,10 +89,27 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                   </Typography>
                 </Box>
               </TableCell>
-              <TableCell>
+              <TableCell size="small">
                 <StatusChip status={(doc.status ?? null) as string | null} />
               </TableCell>
-              <TableCell align="right">—</TableCell>
+              <TableCell size="small" align="right">
+                <Button
+                  variant="text"
+                  data-testid={`document-action-${doc.id}`}
+                  onClick={() => {
+                    if (doc.filePath) onOpenDocument?.(doc)
+                  }}
+                  disabled={!doc.filePath}
+                >
+                  {getDocumentActionLabel({
+                    status:
+                      typeof doc.status === 'string'
+                        ? (doc.status as ExtendedDocumentStatus)
+                        : undefined,
+                    filePath: doc.filePath,
+                  })}
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
           {emptyRows > 0 && (

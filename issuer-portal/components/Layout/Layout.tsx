@@ -87,7 +87,13 @@ function Layout({
 
   return (
     <Suspense fallback={<Loading />}>
-      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {appSwitcher && (
           <Box aria-label="Client and Application Switcher" role="complementary">
             <ClientAppSwitcher currentAppTitle={currentApp} />
@@ -95,14 +101,12 @@ function Layout({
         )}
         {navBar && <BNAppBarClient user={bnUser} />}
 
-        <Box component="main" sx={{ flexGrow: 1, flex: 1 }}>
-          {children}
-        </Box>
+        <Box sx={{ flexGrow: 1, flex: 1 }}>{children}</Box>
         <Fab
           color="primary"
           aria-label="Support contacts"
           onClick={handleClick}
-          sx={{ position: 'fixed', bottom: 60, right: 20, zIndex: 5000 }}
+          sx={{ position: 'fixed', bottom: 60, right: 20, zIndex: 50 }}
         >
           {open ? <CloseOutlined /> : <SupportAgentOutlined />}
         </Fab>

@@ -36,13 +36,21 @@ import { components } from '@/domain-models/generated-schema'
 
 import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
+import { ExtendedDocumentStatus } from '@/utils/documentUtils'
 
 /**
  * Documents page for managing meeting documents
  * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
  */
 
-type Document = components['schemas']['Document']
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+type Document = Omit<components['schemas']['Document'], 'status'> & {
+  status?: ExtendedDocumentStatus
+}
 
 /**
  * Documents page for managing meeting documents
@@ -61,7 +69,7 @@ const DocumentViewer = dynamic(() => import('@/components/Documents/DocumentView
 })
 
 const FileUploadDialog = dynamic(
-  () => import('@/components/file-upload/FileUploadDialog'),
+  () => import('@/components/FileUpload/FileUploadDialog'),
   {
     loading: () => <LinearProgress />,
     ssr: false,
@@ -119,6 +127,29 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   useEffect(() => {
     if (currentMeeting?.id) {
       refreshDocuments(currentMeeting.id)
+    }
+  }, [currentMeeting?.id, refreshDocuments])
+
+  // Refresh documents when page gains focus or becomes visible
+  useEffect(() => {
+    const handleFocus = () => {
+      if (currentMeeting?.id) {
+        refreshDocuments(currentMeeting.id)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentMeeting?.id) {
+        refreshDocuments(currentMeeting.id)
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [currentMeeting?.id, refreshDocuments])
 
@@ -191,6 +222,12 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   }
 
   const handleDocumentAction = (doc: Document) => {
+    // If this is a placeholder DSM document not yet uploaded, route to upload
+    if (doc.status === 'NOT_UPLOADED') {
+      setSelectedDsmDocument(doc)
+      setUploadDialogOpen(true)
+      return
+    }
     setSelectedDocument(doc)
     setApprovalDrawerOpen(true)
   }
@@ -244,7 +281,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   return (
     <>
       <Suspense fallback={<LinearProgress />}>
-        <Container maxWidth="xl">
+        <Container component="main" maxWidth="xl">
           <Box
             component="main"
             display="flex"
@@ -333,10 +370,19 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     setUploadDialogOpen(true)
                   }}
                   placeholders={[
-                    { id: 'placeholder-static-slide', title: 'Static Slide or Presentation' },
-                    { id: 'placeholder-documents-display', title: 'Documents to Display' },
+                    {
+                      id: 'placeholder-static-slide',
+                      title: 'Static Slide or Presentation',
+                    },
+                    {
+                      id: 'placeholder-documents-display',
+                      title: 'Documents to Display',
+                    },
                     { id: 'placeholder-speaker-list', title: 'Speaker List' },
-                    { id: 'placeholder-guest-registration', title: 'Guest Link Registration' },
+                    {
+                      id: 'placeholder-guest-registration',
+                      title: 'Guest Link Registration',
+                    },
                     {
                       id: 'placeholder-rules',
                       title: '2025 Virtual Annual Meeting Rules of Conduct',
@@ -364,7 +410,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => { }}
+          onAddComment={() => {}}
         />
       )}
 

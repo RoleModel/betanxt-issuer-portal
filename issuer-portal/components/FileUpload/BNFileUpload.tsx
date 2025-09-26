@@ -63,10 +63,10 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
           prevFiles.map((f) =>
             f.id === fileId
               ? {
-                ...f,
-                status: 'error' as const,
-                error: error instanceof Error ? error.message : 'Upload failed',
-              }
+                  ...f,
+                  status: 'error' as const,
+                  error: error instanceof Error ? error.message : 'Upload failed',
+                }
               : f
           )
         )

@@ -1,17 +1,17 @@
 'use client'
 
+import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 import { getSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 
 import {
   Alert,
   Box,
   Button,
   Card,
-  CardContent,
   CardActions,
+  CardContent,
   CardMedia,
   Container,
   TextField,
@@ -64,12 +64,17 @@ const LoginPage = () => {
         minHeight="100vh"
       >
         <Card sx={{ width: '100%', maxWidth: 500 }}>
-
-          <CardMedia sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4, mt: 2 }}>
+          <CardMedia
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 4,
+              mt: 2,
+            }}
+          >
             <BNLogo height={36} />
           </CardMedia>
-
-
 
           <form onSubmit={handleSubmit}>
             <Typography
@@ -102,17 +107,11 @@ const LoginPage = () => {
             </CardContent>
             {error && (
               <CardContent>
-                <Alert severity="error">
-                  {error}
-                </Alert>
+                <Alert severity="error">{error}</Alert>
               </CardContent>
             )}
             <CardActions>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isLoading}
-              >
+              <Button type="submit" variant="contained" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </CardActions>

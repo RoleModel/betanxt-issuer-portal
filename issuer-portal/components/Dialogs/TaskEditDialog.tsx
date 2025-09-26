@@ -58,7 +58,7 @@ type TaskStatus =
   | '3 of 5 Materials Uploaded'
   | 'Shares Imbalanced'
   | 'Access Needed'
-  | 'Need Authorization'
+  | 'Needs Authorization'
   | 'New'
   | 'Mailing'
   | 'In Edit Process'
@@ -120,7 +120,7 @@ const statusOptions: TaskStatus[] = [
   // Error/Action needed statuses (red)
   'Shares Imbalanced',
   'Access Needed',
-  'Need Authorization',
+  'Needs Authorization',
   // Info/In Progress statuses (blue)
   'New',
   'Mailing',

@@ -1,10 +1,44 @@
 // Document utility functions
 
+// API document statuses (see generated-schema.ts)
+export type DocumentStatus =
+  | 'DRAFT'
+  | 'AWAITING_DRAFT'
+  | 'AWAITING_REVIEW'
+  | 'APPROVED'
+  | 'UPLOADED'
+  | 'IN_PROGRESS'
+  | 'SIGNED'
+  | 'AUTHORIZED'
+  | 'COMPLETED'
+
+// Extended status used only client-side for placeholder DSM documents that have no file yet.
+export type ExtendedDocumentStatus = DocumentStatus | 'NOT_UPLOADED'
+
+// Export an ordered array of the valid document status values for reuse (e.g. UI helpers)
+export const DOCUMENT_STATUS_VALUES: DocumentStatus[] = [
+  'DRAFT',
+  'AWAITING_DRAFT',
+  'AWAITING_REVIEW',
+  'APPROVED',
+  'UPLOADED',
+  'IN_PROGRESS',
+  'SIGNED',
+  'AUTHORIZED',
+  'COMPLETED',
+]
+
+// Include extended placeholder statuses separately so we don't leak them into persistence logic.
+export const EXTENDED_DOCUMENT_STATUS_VALUES: ExtendedDocumentStatus[] = [
+  ...DOCUMENT_STATUS_VALUES,
+  'NOT_UPLOADED',
+]
+
 export interface Document {
   id: string
   name: string
   type: string
-  status: 'draft' | 'pending' | 'signed' | 'completed'
+  status: ExtendedDocumentStatus
   size: number
   uploadedAt: string
   url?: string
@@ -57,7 +91,17 @@ export function getFileExtension(filename: string): string {
 
 // Check if file type is supported
 export function isSupportedFileType(filename: string): boolean {
-  const supportedTypes = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt']
+  const supportedTypes = [
+    'pdf',
+    'doc',
+    'docx',
+    'xls',
+    'xlsx',
+    'ppt',
+    'pptx',
+    'csv',
+    'txt',
+  ]
   const extension = getFileExtension(filename).toLowerCase()
   return supportedTypes.includes(extension)
 }
@@ -119,7 +163,7 @@ export async function uploadDocument(
       id: generateDocumentId(),
       name: file.name,
       type: getFileExtension(file.name),
-      status: 'draft',
+      status: 'DRAFT',
       size: file.size,
       uploadedAt: new Date().toISOString(),
       url: uploadResult.data.publicUrl || uploadResult.data.fullPath,
@@ -129,7 +173,7 @@ export async function uploadDocument(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to upload document'
+      error: error instanceof Error ? error.message : 'Failed to upload document',
     }
   }
 }
@@ -156,41 +200,73 @@ export async function deleteDocument(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete document'
+      error: error instanceof Error ? error.message : 'Failed to delete document',
     }
   }
 }
 
 // Get document status color for UI
-export function getDocumentStatusColor(status: Document['status']): string {
+export function getDocumentStatusColor(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case 'draft':
+    case 'NOT_UPLOADED':
       return 'grey'
-    case 'pending':
+    case 'DRAFT':
+    case 'AWAITING_DRAFT':
+      return 'grey'
+    case 'AWAITING_REVIEW':
       return 'warning'
-    case 'signed':
+    case 'APPROVED':
+    case 'AUTHORIZED':
+      return 'primary'
+    case 'UPLOADED':
+    case 'IN_PROGRESS':
       return 'info'
-    case 'completed':
+    case 'SIGNED':
+      return 'secondary'
+    case 'COMPLETED':
       return 'success'
     default:
       return 'default'
   }
 }
 
-// Get document status label
-export function getDocumentStatusLabel(status: Document['status']): string {
+export function getDocumentStatusLabel(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case 'draft':
+    case 'NOT_UPLOADED':
+      return 'Not Uploaded'
+    case 'DRAFT':
       return 'Draft'
-    case 'pending':
-      return 'Pending Signature'
-    case 'signed':
+    case 'AWAITING_DRAFT':
+      return 'Awaiting Draft'
+    case 'AWAITING_REVIEW':
+      return 'Awaiting Review'
+    case 'APPROVED':
+      return 'Approved'
+    case 'UPLOADED':
+      return 'Uploaded'
+    case 'IN_PROGRESS':
+      return 'In Progress'
+    case 'SIGNED':
       return 'Signed'
-    case 'completed':
+    case 'AUTHORIZED':
+      return 'Authorized'
+    case 'COMPLETED':
       return 'Completed'
     default:
       return 'Unknown'
   }
+}
+
+export function getDocumentActionLabel(doc: {
+  status?: ExtendedDocumentStatus
+  url?: string
+  filePath?: string
+}): string {
+  const hasFile = !!(doc.url || doc.filePath)
+  if (doc.status === 'NOT_UPLOADED') return 'Upload'
+  if (!hasFile) return 'Upload'
+  if (doc.status === 'AWAITING_REVIEW') return 'Review'
+  return 'View'
 }
 
 // Build a public URL for a stored document path (Supabase storage)
@@ -200,9 +276,14 @@ export function getStoragePublicUrl(filePath: string): string {
 
   // Get the base Supabase URL from environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+  // Always ensure path starts with the 'documents/' bucket unless already specified
+  const normalized = filePath.replace(/^\/+/, '')
+  const withBucket = normalized.startsWith('documents/')
+    ? normalized
+    : `documents/${normalized}`
 
-  // Build the storage URL - using the s3 endpoint for Supabase storage
-  return `${supabaseUrl}/storage/v1/s3/${filePath}`
+  // Build the public object URL (not the S3 proxy) so it works in browsers
+  return `${supabaseUrl}/storage/v1/object/public/${withBucket}`
 }
 
 // Simple URL detector used by UI code
@@ -210,99 +291,311 @@ export function isStorageUrl(pathOrUrl: string): boolean {
   return /^https?:\/\//i.test(pathOrUrl)
 }
 
-// Mock function to fetch DSM documents
+// Fetch DSM documents for a meeting (category = 'DSM')
 export async function fetchDSMDocuments(
   meetingId: string
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
+  // Helper to map raw rows to DocumentWithHistory
+  const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
+    rows.map((rowRaw) => {
+      const row = rowRaw as Record<string, unknown>
+      const rowId = String(row.id ?? `doc_${Math.random().toString(36).slice(2)}`)
+      const historyRaw = row.history as unknown
+      const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
+        ? (historyRaw as unknown[])
+            .filter(
+              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
+            )
+            .map((h) => ({
+              id: String(h.id ?? `${rowId}_hist_${Math.random().toString(36).slice(2)}`),
+              documentId: String(h.documentId ?? rowId ?? ''),
+              action: String(h.action ?? 'UNKNOWN'),
+              userId: String(h.userId ?? (h as Record<string, unknown>).user_id ?? ''),
+              userName: String(
+                h.userName ??
+                  (h as Record<string, unknown>).user_name ??
+                  (h as Record<string, unknown>).user ??
+                  'Unknown User'
+              ),
+              timestamp: String(
+                h.timestamp ??
+                  (h as Record<string, unknown>).created_at ??
+                  new Date().toISOString()
+              ),
+              details:
+                typeof (h as Record<string, unknown>).details === 'object' &&
+                (h as Record<string, unknown>).details !== null
+                  ? ((h as Record<string, unknown>).details as Record<string, unknown>)
+                  : undefined,
+            }))
+        : []
+      return {
+        id: rowId,
+        name: String(row.title ?? 'Untitled'),
+        type: String((row.type as string) ?? (row.file_type as string) ?? 'pdf'),
+        status: String(row.status ?? 'DRAFT') as DocumentStatus,
+        size: Number(row.file_size ?? 0),
+        uploadedAt: String(
+          (row.uploaded_date as string) ||
+            (row.updated_at as string) ||
+            (row.created_at as string) ||
+            new Date().toISOString()
+        ),
+        url: typeof row.file_path === 'string' ? row.file_path : undefined,
+        history: historyArray,
+      }
+    })
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    // Mock DSM documents
-    const documents: DocumentWithHistory[] = [
-      {
-        id: `dsm_${meetingId}_1`,
-        name: 'Definitive Proxy Statement.pdf',
-        type: 'pdf',
-        status: 'completed',
-        size: 2048576,
-        uploadedAt: new Date().toISOString(),
-        history: [
-          {
-            id: 'hist_1',
-            documentId: `dsm_${meetingId}_1`,
-            action: 'uploaded',
-            userId: 'user_1',
-            userName: 'John Doe',
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      },
-    ]
-
-    return { data: documents, error: null }
-  } catch {
-    return { data: null, error: 'Failed to fetch DSM documents' }
+    // Try OpenAPI client first
+    const { apiClient } = await import('../domain-models/api/client')
+    // Using defined path: GET /meetings/{meetingId}/documents with query params
+    const resp = await apiClient.GET('/meetings/{meetingId}/documents', {
+      params: { path: { meetingId }, query: { type: 'DSM' } },
+    })
+    if (!resp.error && resp.data) {
+      // Assume API already returns proper shape; minimally adapt
+      const adapted = Array.isArray(resp.data)
+        ? resp.data.map((d) => {
+            const r = d as Record<string, unknown>
+            return {
+              id: String(r.id),
+              name: String(r.title ?? r.name ?? 'Untitled'),
+              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
+              status: String(r.status ?? 'DRAFT') as DocumentStatus,
+              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+              uploadedAt: String(
+                (r.uploadedDate as string) ||
+                  (r.uploaded_date as string) ||
+                  (r.updatedAt as string) ||
+                  (r.updated_at as string) ||
+                  (r.createdAt as string) ||
+                  (r.created_at as string) ||
+                  new Date().toISOString()
+              ),
+              url: (r.filePath as string) || (r.file_path as string),
+              history: Array.isArray(r.history)
+                ? (r.history as DocumentHistoryEntry[])
+                : [],
+            }
+          })
+        : []
+      return { data: adapted, error: null }
+    }
+  } catch (apiErr) {
+    // Swallow to fallback
+  }
+  try {
+    // Fallback: direct Supabase query (legacy path)
+    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { data, error } = await supabase
+      .from('document')
+      .select(
+        'id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history'
+      )
+      .eq('meeting_id', meetingId)
+      .like('type', '%DSM%')
+      .order('updated_at', { ascending: false })
+    if (error) return { data: null, error: error.message }
+    if (!data) return { data: [], error: null }
+    return { data: mapRows(data as unknown[]), error: null }
+  } catch (e) {
+    return {
+      data: null,
+      error: e instanceof Error ? e.message : 'Failed to fetch DSM documents',
+    }
   }
 }
 
-// Mock function to fetch regular documents
+// Fetch non-DSM (regular) documents for a meeting
 export async function fetchRegularDocuments(
   meetingId: string
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
+  const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
+    rows.map((rowRaw) => {
+      const row = rowRaw as Record<string, unknown>
+      const rowId = String(row.id ?? `doc_${Math.random().toString(36).slice(2)}`)
+      const historyRaw = row.history as unknown
+      const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
+        ? (historyRaw as unknown[])
+            .filter(
+              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
+            )
+            .map((h) => ({
+              id: String(h.id ?? `${rowId}_hist_${Math.random().toString(36).slice(2)}`),
+              documentId: String(h.documentId ?? rowId ?? ''),
+              action: String(h.action ?? 'UNKNOWN'),
+              userId: String(h.userId ?? (h as Record<string, unknown>).user_id ?? ''),
+              userName: String(
+                h.userName ??
+                  (h as Record<string, unknown>).user_name ??
+                  (h as Record<string, unknown>).user ??
+                  'Unknown User'
+              ),
+              timestamp: String(
+                h.timestamp ??
+                  (h as Record<string, unknown>).created_at ??
+                  new Date().toISOString()
+              ),
+              details:
+                typeof (h as Record<string, unknown>).details === 'object' &&
+                (h as Record<string, unknown>).details !== null
+                  ? ((h as Record<string, unknown>).details as Record<string, unknown>)
+                  : undefined,
+            }))
+        : []
+      return {
+        id: rowId,
+        name: String(row.title ?? 'Untitled'),
+        type: String((row.type as string) ?? (row.file_type as string) ?? 'pdf'),
+        status: String(row.status ?? 'DRAFT') as DocumentStatus,
+        size: Number(row.file_size ?? 0),
+        uploadedAt: String(
+          (row.uploaded_date as string) ||
+            (row.updated_at as string) ||
+            (row.created_at as string) ||
+            new Date().toISOString()
+        ),
+        url: typeof row.file_path === 'string' ? row.file_path : undefined,
+        history: historyArray,
+      }
+    })
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    // Mock regular documents
-    const documents: DocumentWithHistory[] = [
-      {
-        id: `reg_${meetingId}_1`,
-        name: 'Meeting Agenda.pdf',
-        type: 'pdf',
-        status: 'draft',
-        size: 1024512,
-        uploadedAt: new Date().toISOString(),
-        history: [
-          {
-            id: 'hist_2',
-            documentId: `reg_${meetingId}_1`,
-            action: 'created',
-            userId: 'user_2',
-            userName: 'Jane Smith',
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      },
-    ]
-
-    return { data: documents, error: null }
-  } catch {
-    return { data: null, error: 'Failed to fetch regular documents' }
+    const { apiClient } = await import('../domain-models/api/client')
+    const resp = await apiClient.GET('/meetings/{meetingId}/documents', {
+      params: { path: { meetingId } },
+    })
+    if (!resp.error && resp.data) {
+      const adapted = Array.isArray(resp.data)
+        ? resp.data.map((d) => {
+            const r = d as Record<string, unknown>
+            return {
+              id: String(r.id),
+              name: String(r.title ?? r.name ?? 'Untitled'),
+              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
+              status: String(r.status ?? 'DRAFT') as DocumentStatus,
+              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+              uploadedAt: String(
+                (r.uploadedDate as string) ||
+                  (r.uploaded_date as string) ||
+                  (r.updatedAt as string) ||
+                  (r.updated_at as string) ||
+                  (r.createdAt as string) ||
+                  (r.created_at as string) ||
+                  new Date().toISOString()
+              ),
+              url: (r.filePath as string) || (r.file_path as string),
+              history: Array.isArray(r.history)
+                ? (r.history as DocumentHistoryEntry[])
+                : [],
+            }
+          })
+        : []
+      return { data: adapted, error: null }
+    }
+  } catch (apiErr) {
+    // Fallback to direct query
+  }
+  try {
+    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { data, error } = await supabase
+      .from('document')
+      .select(
+        'id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history'
+      )
+      .eq('meeting_id', meetingId)
+      .order('updated_at', { ascending: false })
+    if (error) return { data: null, error: error.message }
+    if (!data) return { data: [], error: null }
+    return { data: mapRows(data as unknown[]), error: null }
+  } catch (e) {
+    return {
+      data: null,
+      error: e instanceof Error ? e.message : 'Failed to fetch regular documents',
+    }
   }
 }
 
-// Mock function to update document status
+// Update document status in persistence layer
 export async function updateDocumentStatus(
   documentId: string,
   status: Document['status']
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
-
-    // Mock updated document
-    const document: Document = {
-      id: documentId,
-      name: 'Updated Document.pdf',
-      type: 'pdf',
-      status,
-      size: 1024000,
-      uploadedAt: new Date().toISOString(),
+    // Never attempt to persist placeholder status
+    const persistStatus = status === 'NOT_UPLOADED' ? 'DRAFT' : status
+    // Attempt OpenAPI call first
+    try {
+      const { apiClient } = await import('../domain-models/api/client')
+      // PUT /documents/{id}
+      const resp = await apiClient.PUT('/documents/{id}', {
+        params: { path: { id: documentId } },
+        body: { status: persistStatus as DocumentStatus },
+      })
+      if (!resp.error && resp.data) {
+        const d = resp.data as Record<string, unknown>
+        return {
+          data: {
+            id: String(d.id ?? documentId),
+            name: String(d.title ?? d.name ?? 'Untitled'),
+            type: String((d.type as string) ?? (d.fileType as string) ?? 'pdf'),
+            status: String(d.status ?? persistStatus) as DocumentStatus,
+            size: Number((d.fileSize as number) ?? (d.file_size as number) ?? 0),
+            uploadedAt: String(
+              (d.uploadedDate as string) ||
+                (d.uploaded_date as string) ||
+                (d.updatedAt as string) ||
+                (d.updated_at as string) ||
+                (d.createdAt as string) ||
+                (d.created_at as string) ||
+                new Date().toISOString()
+            ),
+            url: (d.filePath as string) || (d.file_path as string),
+          },
+          error: null,
+        }
+      }
+    } catch (apiErr) {
+      // fall through to direct update
+    }
+    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { data, error } = await supabase
+      .from('document')
+      .update({ status: persistStatus })
+      .eq('id', documentId)
+      .select(
+        'id,title,type,status,file_size,file_type,file_path,updated_at,created_at,uploaded_date'
+      )
+      .single()
+    if (error) {
+      return { data: null, error: error.message }
     }
 
-    return { data: document, error: null }
-  } catch {
-    return { data: null, error: 'Failed to update document status' }
+    if (!data) {
+      return { data: null, error: 'Failed to update document status' }
+    }
+
+    const d = data as Record<string, unknown>
+    return {
+      data: {
+        id: String(d.id ?? documentId),
+        name: String(d.title ?? d.name ?? 'Untitled'),
+        type: String((d.type as string) ?? (d.file_type as string) ?? 'pdf'),
+        status: String(d.status ?? persistStatus) as DocumentStatus,
+        size: Number(d.file_size ?? 0),
+        uploadedAt: String(
+          (d.uploaded_date as string) ||
+            (d.updated_at as string) ||
+            (d.created_at as string) ||
+            new Date().toISOString()
+        ),
+        url: typeof d.file_path === 'string' ? d.file_path : undefined,
+      },
+      error: null,
+    }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to update document status',
+    }
   }
 }

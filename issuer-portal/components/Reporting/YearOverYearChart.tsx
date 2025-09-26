@@ -4,16 +4,16 @@ import React from 'react'
 
 import { Box, CircularProgress, Typography } from '@mui/material'
 import {
-  ChartDataProvider,
   BarPlot,
-  LinePlot,
-  ChartsXAxis,
-  ChartsYAxis,
+  ChartDataProvider,
   ChartsGrid,
   ChartsLegend,
+  ChartsSurface,
   ChartsTooltip,
+  ChartsXAxis,
+  ChartsYAxis,
+  LinePlot,
   MarkPlot,
-  ChartsSurface
 } from '@mui/x-charts'
 
 interface YearOverYearData {
@@ -53,16 +53,6 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
     )
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
-        <Typography variant="body1" color="text.secondary">
-          No year over year data available
-        </Typography>
-      </Box>
-    )
-  }
-
   const years = data.map((item) => String(item.year))
   const participationRates = data.map((item) => item.participationRate)
   const passedCounts = data.map((item) => item.passedCount)
@@ -77,14 +67,14 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           data: passedCounts,
           label: 'Passed',
           color: 'var(--mui-palette-chartSeries-1-main)',
-          yAxisId: 'leftAxis'
+          yAxisId: 'leftAxis',
         },
         {
           type: 'bar',
           data: failedCounts,
           label: 'Failed',
           color: 'var(--mui-palette-chartSeries-5-main)',
-          yAxisId: 'leftAxis'
+          yAxisId: 'leftAxis',
         },
         {
           type: 'line',
@@ -93,20 +83,22 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           color: 'var(--mui-palette-chartSeries-8-main)',
           curve: 'catmullRom',
           showMark: false,
-          yAxisId: 'rightAxis'
-        }
+          yAxisId: 'rightAxis',
+        },
       ]}
-      xAxis={[{
-        scaleType: 'band',
-        data: years,
-        id: 'x-axis-id'
-      }]}
+      xAxis={[
+        {
+          scaleType: 'band',
+          data: years,
+          id: 'x-axis-id',
+        },
+      ]}
       yAxis={[
         {
           id: 'leftAxis',
           scaleType: 'linear',
           label: 'Proposals',
-          min: 0
+          min: 0,
         },
         {
           id: 'rightAxis',
@@ -115,8 +107,8 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           min: 0,
           max: 100,
           width: 100,
-          valueFormatter: (value) => `${value}%`
-        }
+          valueFormatter: (value) => `${value}%`,
+        },
       ]}
       height={300}
       margin={{ left: 10, right: 60, top: 0, bottom: 0 }}
@@ -130,12 +122,9 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <ChartsYAxis axisId="leftAxis" position="left" />
         <ChartsYAxis axisId="rightAxis" position="right" />
         <ChartsTooltip />
-
       </ChartsSurface>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-        <ChartsLegend
-          direction="horizontal"
-        />
+        <ChartsLegend direction="horizontal" />
       </Box>
     </ChartDataProvider>
   )

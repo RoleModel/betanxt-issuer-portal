@@ -1,9 +1,9 @@
 import crypto from 'crypto'
+import { revalidateTag } from 'next/cache'
 import { NextRequest } from 'next/server'
 
-import { DOCUMENTS_BUCKET, getServerSupabase } from '@/lib/serverSupabase'
-import { revalidateTag } from 'next/cache'
 import { CACHE_TAGS } from '@/lib/caching'
+import { DOCUMENTS_BUCKET, getServerSupabase } from '@/lib/serverSupabase'
 
 export const runtime = 'nodejs'
 

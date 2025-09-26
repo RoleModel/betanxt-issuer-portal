@@ -1,27 +1,10 @@
 'use client'
 
-import NextLink from 'next/link'
+import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Container,
-  LinearProgress,
-  Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-  Typography,
-} from '@mui/material'
+import { Box, Container, LinearProgress } from '@mui/material'
 
 import Layout from '@/components/Layout/Layout'
 
@@ -38,6 +21,27 @@ interface PastMeetingData extends Meeting {
 
 type Order = 'asc' | 'desc'
 type OrderBy = keyof PastMeetingData
+
+// Define the props for PastMeetingsTable to satisfy TypeScript
+interface PastMeetingsTableProps {
+  clientTicker: string
+  order: Order
+  orderBy: OrderBy
+  onRequestSort: (property: OrderBy) => void
+  meetings: PastMeetingData[]
+  rawMeetingsCount: number
+  loading: boolean
+  formatDate: (dateString: string) => string
+  formatNumber: (num: number) => string
+}
+
+// Separate heavy table section into dynamic child to defer large MUI table bundle
+const PastMeetingsTable = dynamic<PastMeetingsTableProps>(
+  () => import('./pastMeetingsTableSection'),
+  {
+    ssr: false,
+  }
+)
 
 export default function PastMeetingsPage() {
   const pathname = usePathname()
@@ -83,10 +87,17 @@ export default function PastMeetingsPage() {
             const responseData = positionsResult.data
             const positions = Array.isArray(responseData)
               ? (responseData as components['schemas']['Position'][])
-              : ((responseData as unknown as { positions?: components['schemas']['Position'][] })?.positions ?? [])
+              : ((
+                  responseData as unknown as {
+                    positions?: components['schemas']['Position'][]
+                  }
+                )?.positions ?? [])
 
             // Use totalSharesOutstanding from meeting for participation calculation
-            const totalSharesOutstanding = parseInt(meeting.totalSharesOutstanding || '0', 10)
+            const totalSharesOutstanding = parseInt(
+              meeting.totalSharesOutstanding || '0',
+              10
+            )
 
             // Calculate voted shares using sharesVoted field
             const votedShares = positions.reduce((sum, p) => {
@@ -97,9 +108,10 @@ export default function PastMeetingsPage() {
 
             const totalVotes = positions.filter((p) => p.voteStatus === 'Voted').length
 
-            const participationPercent = totalSharesOutstanding > 0
-              ? (votedShares / totalSharesOutstanding) * 100
-              : 0
+            const participationPercent =
+              totalSharesOutstanding > 0
+                ? (votedShares / totalSharesOutstanding) * 100
+                : 0
 
             return {
               ...meeting,
@@ -201,140 +213,19 @@ export default function PastMeetingsPage() {
 
   return (
     <Layout navBar={true}>
-      <Container>
+      <Container maxWidth="xl" component="main">
         <Box sx={{ p: 3 }}>
-          <Card>
-            <CardHeader title="Past Meetings" />
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer>
-                <Table stickyHeader>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                        <TableSortLabel
-                          active={orderBy === 'title'}
-                          direction={orderBy === 'title' ? order : 'asc'}
-                          onClick={() => handleRequestSort('title')}
-                        >
-                          Meeting
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                        <TableSortLabel
-                          active={orderBy === 'cusip'}
-                          direction={orderBy === 'cusip' ? order : 'asc'}
-                          onClick={() => handleRequestSort('cusip')}
-                        >
-                          CUSIP
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                        <TableSortLabel
-                          active={orderBy === 'meetingDate'}
-                          direction={orderBy === 'meetingDate' ? order : 'asc'}
-                          onClick={() => handleRequestSort('meetingDate')}
-                        >
-                          Date
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                        <TableSortLabel
-                          active={orderBy === 'participationPercent'}
-                          direction={orderBy === 'participationPercent' ? order : 'asc'}
-                          onClick={() => handleRequestSort('participationPercent')}
-                        >
-                          Participation
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 600, py: 2 }}>Reports</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sortedMeetings.map((meeting) => (
-                      <TableRow key={meeting.id} hover>
-                        <TableCell>
-                          <Link
-                            component={NextLink}
-                            href={`/${clientTicker}/meeting/${meeting.id}`}
-                            underline="hover"
-                            color="primary"
-                            sx={{ fontWeight: 500 }}
-                          >
-                            {meeting.title}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {meeting.cusip || 'N/A'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell sx={{ minWidth: 200 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ flex: 1 }}>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  mb: 0.5,
-                                }}
-                              >
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {meeting.participationPercent}%
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {formatNumber(meeting.votingShares)}
-                                </Typography>
-                              </Box>
-                              <LinearProgress
-                                variant="determinate"
-                                value={Math.min(meeting.participationPercent, 100)}
-                                sx={{
-                                  height: 6,
-                                  borderRadius: 3,
-                                  backgroundColor: `var(--mui-palette-divider)`,
-                                  '& .MuiLinearProgress-bar': {
-                                    borderRadius: 3,
-                                    backgroundColor: (theme) => {
-                                      if (meeting.participationPercent >= 50)
-                                        return theme.vars.palette.success.main
-                                      if (meeting.participationPercent < 10)
-                                        return theme.vars.palette.error.main
-                                      return theme.vars.palette.warning.main
-                                    },
-                                  },
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="text"
-                            color="primary"
-                            component={NextLink}
-                            href={`/${clientTicker}/meeting/${meeting.id}/reports`}
-                          >
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              {meetings.length === 0 && !loading && (
-                <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography color="text.secondary">No past meetings found.</Typography>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+          <PastMeetingsTable
+            clientTicker={clientTicker}
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={handleRequestSort}
+            meetings={sortedMeetings}
+            rawMeetingsCount={meetings.length}
+            loading={loading}
+            formatDate={formatDate}
+            formatNumber={formatNumber}
+          />
         </Box>
       </Container>
     </Layout>

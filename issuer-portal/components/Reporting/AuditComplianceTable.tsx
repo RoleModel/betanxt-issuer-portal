@@ -1,5 +1,6 @@
 'use client'
 
+import NextLink from 'next/link'
 import React from 'react'
 
 import {
@@ -17,8 +18,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-
-import NextLink from 'next/link'
 
 interface AuditComplianceData {
   event: string
@@ -88,7 +87,10 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
                 <TableRow key={index}>
                   <TableCell component="th" scope="row">
                     {row.meetingId && clientTicker ? (
-                      <MuiLink component={NextLink} href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}>
+                      <MuiLink
+                        component={NextLink}
+                        href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
+                      >
                         <Typography variant="body2" noWrap>
                           {row.event}
                         </Typography>

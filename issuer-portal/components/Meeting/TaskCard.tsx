@@ -36,7 +36,15 @@ interface TaskItemProps {
   onClick: (taskId: string) => void
 }
 
-export function TaskItem({ task, phaseColor, onClick, isClickable, status }: TaskItemProps) {
+export function TaskItem({
+  task,
+  phaseColor,
+  onClick,
+  isClickable,
+  status,
+}: TaskItemProps) {
+  const isComplete = status === 'COMPLETE'
+
   return (
     <Card
       className={`task-card-${task.id} status-${task.status}`}
@@ -51,9 +59,12 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
           lg: '1 / span 3',
           xl: '1 / span 4',
         },
-        background: (theme) => theme.vars.palette.tableCellRow.fill,
+        background: (theme) =>
+          isComplete
+            ? theme.vars.palette.background.default
+            : theme.vars.palette.tableCellRow.fill,
         borderLeft: `6px solid`,
-        borderLeftColor: status === 'COMPLETE' ? theme.vars.palette.complete : phaseColor,
+        borderLeftColor: isComplete ? theme.vars.palette.complete : phaseColor,
         borderTop: 0,
         borderBottom: 0,
         borderRight: 0,
@@ -86,11 +97,25 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   mb: 0.25,
+                  opacity: isComplete ? 0.5 : 1,
+                  textDecoration: isComplete ? 'line-through' : 'none',
+                  textDecorationColor: 'inherit',
+                  textDecorationThickness: '2px',
                 }}
               >
                 {task.title}
               </Typography>
-              <Typography variant="caption">{task.owner}</Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  opacity: isComplete ? 0.5 : 1,
+                  textDecoration: isComplete ? 'line-through' : 'none',
+                  textDecorationColor: 'inherit',
+                  textDecorationThickness: '2px',
+                }}
+              >
+                {task.owner}
+              </Typography>
             </Box>
             <Box
               sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}
@@ -100,6 +125,10 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
                 fontWeight={600}
                 sx={{
                   mb: 0.25,
+                  opacity: isComplete ? 0.5 : 1,
+                  textDecoration: isComplete ? 'line-through' : 'none',
+                  textDecorationColor: 'inherit',
+                  textDecorationThickness: '2px',
                 }}
               >
                 {formatDate(task.dueDate || '')}
@@ -126,7 +155,8 @@ export default function TaskCard({
   currentPhaseTitle,
   onClick,
 }: TaskCardProps) {
-  const { tasks, tasksLoading, keyDates, currentMeeting } = useMeeting()
+  const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } =
+    useMeeting()
   const { phases } = usePhases(meetingId || currentMeeting?.id || '')
 
   // Determine the current phase from meeting data or prop, default to 1
@@ -143,11 +173,43 @@ export default function TaskCard({
   const dynamicPhaseTitle =
     currentPhaseTitle || currentPhaseFromData?.name || `Phase ${resolvedCurrentPhase}`
 
-  const displayTasks = tasks.filter(
-    (task) =>
-      task.phaseNumber === resolvedCurrentPhase &&
-      !['BetaNXT', 'DFIN'].includes(task.owner || '')
-  )
+  const displayTasks = tasks.filter((task) => {
+    // Exclude BetaNXT and DFIN tasks
+    if (['BetaNXT', 'DFIN'].includes(task.owner || '')) {
+      return false
+    }
+
+    // For Phase 2, include incomplete Phase 1 carry-over tasks
+    if (resolvedCurrentPhase === 2) {
+      // Include Phase 2 tasks
+      if (task.phaseNumber === 2) return true
+
+      // Include incomplete Phase 1 tasks that carry over
+      const carryOverTitles = [
+        'DTCC (SPR) Authorization Status',
+        'DTCC authorization',
+        'Plan File Request form',
+        'Transfer Agent Registered File Request Form',
+        'Broadridge/ICS Access',
+      ]
+
+      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title || '')) {
+        // Only show if not complete
+        const incompleteStatuses = [
+          'INCOMPLETE',
+          'NEEDS_AUTHORIZATION',
+          'PENDING_AUTHORIZATION',
+          'SUBMITTED_AWAITING_RECORD_DATE',
+        ]
+        return incompleteStatuses.includes(task.status || 'INCOMPLETE')
+      }
+
+      return false
+    }
+
+    // For other phases, just show tasks from that phase
+    return task.phaseNumber === resolvedCurrentPhase
+  })
 
   const [open, setOpen] = React.useState(false)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
@@ -235,7 +297,17 @@ export default function TaskCard({
           </Button>
         </CardActions>
       </Card>
-      <TaskDrawer open={open} onClose={toggleDrawer(false)} task={selectedTask} />
+      <TaskDrawer
+        open={open}
+        onClose={toggleDrawer(false)}
+        task={selectedTask}
+        onTaskUpdate={async (updatedTask) => {
+          // Update the selected task
+          setSelectedTask(updatedTask)
+          // Refresh meeting data to update all tasks in the UI
+          await refreshMeetingData()
+        }}
+      />
     </>
   )
 }

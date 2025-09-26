@@ -8,21 +8,28 @@ import type { Theme } from '@mui/material/styles'
 
 interface FeatureTileProps {
   title: string
+  subtitle?: string
   description?: string | React.ReactNode
   actionText?: string
-  iconSize?: string
   icon?: React.ReactNode
+  iconSize?: '24px' | '32px' | '48px' | '64px' | '96px'
   titleVariant?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
   variant?: 'default' | 'primary' | 'secondary' | 'info' | 'base'
   onClick?: () => void
   href?: string
+  flex?: boolean
+  height?: string
   sx?: SxProps
+  pdfUrl?: string
 }
 
 export function FeatureTile({
   title,
+  subtitle,
   description,
   actionText,
+  flex,
+  height,
   icon,
   iconSize = '48px',
   titleVariant = 'h1',
@@ -80,9 +87,10 @@ export function FeatureTile({
       variant="outlined"
       sx={{
         ...sx,
-        height: '100%',
         display: 'flex',
+        flex: flex ? '1 0 0%' : '0 0 auto',
         flexDirection: 'column',
+        height: height || undefined,
         backgroundColor: variantStyles.backgroundColor,
         borderRadius: 1,
         pt: 2,
@@ -113,10 +121,16 @@ export function FeatureTile({
       >
         <Box
           sx={{
+            mb: 1,
+            height: iconSize,
+            width: iconSize,
             fontSize: iconSize,
-            mb: 0.25,
             color: variantStyles.color,
-            '& .MuiSvgIcon-root path:[stroke-width="2"]': {
+            '& .MuiSvgIcon-root': {
+              height: iconSize,
+              width: iconSize,
+            },
+            '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
               stroke: variantStyles.color,
             },
           }}
@@ -136,7 +150,17 @@ export function FeatureTile({
         >
           {title}
         </Typography>
-
+        {subtitle && (
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'secondary.main',
+              fontWeight: 600,
+            }}
+          >
+            {subtitle}
+          </Typography>
+        )}
         <Box
           sx={(theme) => ({
             color: variantStyles.color,

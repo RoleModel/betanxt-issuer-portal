@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import FileUploadDialog from '@/components/file-upload/FileUploadDialog'
+import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import { useDocuments } from '@/contexts/DocumentContext'
@@ -101,7 +101,10 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
     setUploadDialogOpen(true)
   }
 
-  const handleUploadComplete = async (files: File[], associations?: { [fileId: string]: string }) => {
+  const handleUploadComplete = async (
+    files: File[],
+    associations?: { [fileId: string]: string }
+  ) => {
     if (!meetingId) return
     try {
       // Create associations based on upload type to link to DSM placeholders

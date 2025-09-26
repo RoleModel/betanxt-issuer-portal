@@ -65,13 +65,6 @@ const industryTrends = [
   },
 ]
 
-
-
-
-
-
-
-
 export default function IndustryTrendsPage() {
   return (
     <Box sx={{ p: { xs: 1, sm: 3 } }}>

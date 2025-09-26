@@ -61,12 +61,22 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             variant="body3"
             underline="hover"
             color="link"
-            href={isEducation ? '/education' : isProducts ? '/products' : `${tickerPrefix}/${segments[baseIndex]}`}
+            href={
+              isEducation
+                ? '/education'
+                : isProducts
+                  ? '/products'
+                  : `${tickerPrefix}/${segments[baseIndex]}`
+            }
           >
             {getParentTitle()}
           </MuiLink>
           {childSegments.map((seg, idx) => {
-            const basePath = isEducation ? '/education' : isProducts ? '/products' : `${tickerPrefix}/${segments[baseIndex]}`
+            const basePath = isEducation
+              ? '/education'
+              : isProducts
+                ? '/products'
+                : `${tickerPrefix}/${segments[baseIndex]}`
             const href = `${basePath}/${childSegments.slice(0, idx + 1).join('/')}`
             const isLast = idx === childSegments.length - 1
             const label = toTitle(seg)

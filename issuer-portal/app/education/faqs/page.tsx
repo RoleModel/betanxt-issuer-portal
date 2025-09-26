@@ -87,7 +87,7 @@ const FAQsPage: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ p: 3 }}>
+    <Container component="main" maxWidth="lg" sx={{ p: 3 }}>
       {faqs.map((faq, index) => (
         <Accordion
           key={index}
@@ -99,7 +99,9 @@ const FAQsPage: React.FC = () => {
             aria-controls={`panel-${index}-content`}
             id={`panel-${index}-header`}
           >
-            <Typography component="span">{faq.question}</Typography>
+            <Typography variant="body2" component="span">
+              {faq.question}
+            </Typography>
           </AccordionSummary>
           <AccordionDetails>{faq.answer}</AccordionDetails>
         </Accordion>

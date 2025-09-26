@@ -5,7 +5,7 @@ import { motion } from 'motion/react'
 import React, { useEffect, useState } from 'react'
 
 import { CalendarTodayOutlined as CalendarIcon } from '@mui/icons-material'
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material'
+import { Box, Paper, Stack, Typography } from '@mui/material'
 
 import buildApiClient from '@/domain-models/apiClient'
 import { components } from '@/domain-models/generated-schema'
@@ -238,7 +238,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
-  const isCompleted = data?.status === 'COMPLETE' || data?.status === 'completed' || currentMeeting?.status === 'COMPLETE'
+  const isCompleted =
+    data?.status === 'COMPLETE' ||
+    data?.status === 'completed' ||
+    currentMeeting?.status === 'COMPLETE'
   const meetingDate = data?.meeting_date ? new Date(data.meeting_date) : null
 
   const MainComponent = (
@@ -463,13 +466,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     </Paper>
   )
 
-  return (
-    <>
-      <Fade in={!positionsLoading} timeout={500}>
-        {MainComponent}
-      </Fade>
-    </>
-  )
+  return <>{MainComponent}</>
 }
 
 export default TabulationTracker

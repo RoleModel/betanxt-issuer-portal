@@ -10,9 +10,7 @@ import { MeetingProvider } from '@/contexts/MeetingContext'
 export default function ReportingLayout({ children }: { children: React.ReactNode }) {
   return (
     <MeetingProvider>
-      <Layout navBar={true}>
-        {children}
-      </Layout>
+      <Layout navBar={true}>{children}</Layout>
     </MeetingProvider>
   )
 }

@@ -2,17 +2,17 @@
 
 import React, { Suspense } from 'react'
 
+import { CalendarMonthOutlined } from '@mui/icons-material'
 import { Grid } from '@mui/material'
 
+import FeatureTile from '@/components/FeatureTile'
+import DocumentHostingCard from '@/components/Meeting/DocumentHostingCard'
 import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
 import TaskCard from '@/components/Meeting/TaskCard'
-import DocumentHostingCard from '@/components/Meeting/DocumentHostingCard'
-import FeatureTile from '@/components/FeatureTile'
-import { CalendarMonthOutlined } from '@mui/icons-material'
-import { friendlyDate } from '@/utils/dateUtils'
 
 import type { Document, Meeting } from '@/types/api'
+import { friendlyDate } from '@/utils/dateUtils'
 
 interface Phase4LayoutProps {
   meetingId?: string
@@ -21,8 +21,14 @@ interface Phase4LayoutProps {
   phase?: number
 }
 
-export default function Phase4Layout({ meetingId, meeting, phase = 4 }: Phase4LayoutProps) {
-  const materialsDate = meeting?.meetingDate ? new Date(new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000) : null
+export default function Phase4Layout({
+  meetingId,
+  meeting,
+  phase = 4,
+}: Phase4LayoutProps) {
+  const materialsDate = meeting?.meetingDate
+    ? new Date(new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000)
+    : null
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 12 }}>

@@ -17,9 +17,14 @@ function createTempPdf(filename: string): string {
 // - After upload, documents table refreshes and displays new file name
 // If selectors differ in implementation, adjust data-testid markers accordingly.
 
-test('upload DSM placeholder document and verify appearance', async ({ page, context }) => {
+test('upload DSM placeholder document and verify appearance', async ({
+  page,
+  context,
+}) => {
   // Navigate directly to documents page (MeetingContext should lazy resolve)
-  await page.goto('http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents', { waitUntil: 'domcontentloaded' })
+  await page.goto('http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents', {
+    waitUntil: 'domcontentloaded',
+  })
 
   // Retry logic: attempt to reload a few times if heading not present (handle transient 500s)
   let attempts = 0

@@ -1,6 +1,7 @@
 // Playwright smoke test for documentRepository domain model.
 // Ensures import graph works and backend absence doesn't hard-fail.
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { documentRepository } from '@/domain-models/documentRepository'
 
 // Skip automatically if repository throws (e.g., backend not running).

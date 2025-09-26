@@ -1,21 +1,31 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+
 import {
   Box,
   Card,
   CardActionArea,
   CardContent,
-  Typography,
   Checkbox,
   FormControlLabel,
+  Link,
+  Stack,
+  Typography,
 } from '@mui/material'
+
 import StatusChip from '@/components/ui/StatusChip'
-import { formatDate } from '@/lib/formats'
-import { useTasks } from '@/hooks/useTasks'
+
 import { useMeeting } from '@/contexts/MeetingContext'
+import { useTasks } from '@/hooks/useTasks'
+import { formatDate } from '@/lib/formats'
 import type { Task } from '@/types/api'
-import { isDTCCAuthorizationTask, getDTCCAuthorizationStatus } from '@/utils/taskTransformers'
+import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
+import {
+  getDTCCAuthorizationStatus,
+  isDTCCAuthorizationTask,
+  isIssuerOwnedTask,
+} from '@/utils/taskTransformers'
 
 interface DrawerTaskItemProps {
   task: Task
@@ -23,6 +33,7 @@ interface DrawerTaskItemProps {
   isCompleted?: boolean
   onClick?: () => void
   onStatusUpdate?: (task: Task) => void
+  onLinkClick?: (link: TaskLink, taskTitle: string) => void
 }
 
 export default function DrawerTaskItem({
@@ -30,7 +41,8 @@ export default function DrawerTaskItem({
   phaseColor,
   isCompleted = false,
   onClick,
-  onStatusUpdate
+  onStatusUpdate,
+  onLinkClick,
 }: DrawerTaskItemProps) {
   const { updateTaskById } = useTasks()
   const { refreshMeetingData } = useMeeting()
@@ -40,7 +52,9 @@ export default function DrawerTaskItem({
     setIsAuthorized(task.status === 'COMPLETE')
   }, [task.status])
 
-  const handleAuthorizationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAuthorizationChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const checked = event.target.checked
     setIsAuthorized(checked)
 
@@ -60,12 +74,17 @@ export default function DrawerTaskItem({
   }
 
   const isDTCCAuthorization = isDTCCAuthorizationTask(task)
+  const taskLinks = parseTaskLinks(task.links, task.title)
+  const isIssuerOwned = isIssuerOwnedTask(task)
 
   return (
     <Card
-      sx={{
+      sx={(theme) => ({
         borderLeft: `6px solid`,
         borderLeftColor: isCompleted ? 'complete' : phaseColor,
+        backgroundColor: isCompleted
+          ? 'background.paper'
+          : `${theme.vars.palette.tableCellRow.fill}`,
         borderTop: 0,
         borderBottom: 0,
         borderRight: 0,
@@ -76,7 +95,7 @@ export default function DrawerTaskItem({
         '&:hover': {
           boxShadow: `0px 0px 0px 1px inset ${phaseColor}`,
         },
-      }}
+      })}
     >
       <CardActionArea onClick={onClick} disabled={!onClick}>
         <CardContent sx={{ p: 1.5 }}>
@@ -118,6 +137,17 @@ export default function DrawerTaskItem({
               <StatusChip status={task.status ?? null} size="small" />
             </Box>
           </Box>
+          {/* Task description */}
+          {task.description && (
+            <Typography
+              color="text.secondary"
+              sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', mt: 1 }}
+            >
+              {task.description}
+            </Typography>
+          )}
+
+          {/* DTCC Authorization Checkbox */}
           {isDTCCAuthorization && (
             <Box sx={{ mt: 1 }}>
               <FormControlLabel
@@ -133,6 +163,28 @@ export default function DrawerTaskItem({
                 label="Authorization confirmed"
                 sx={{ fontSize: '0.875rem' }}
               />
+            </Box>
+          )}
+
+          {/* Task Links - only show for issuer-owned tasks */}
+          {isIssuerOwned && taskLinks.length > 0 && onLinkClick && (
+            <Box sx={{ mt: 1 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {taskLinks.map((link: TaskLink, linkIndex: number) => (
+                  <Link
+                    key={linkIndex}
+                    component="button"
+                    underline="always"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onLinkClick(link, task.title || 'Task')
+                    }}
+                    sx={{ fontSize: '0.875rem' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </Stack>
             </Box>
           )}
         </CardContent>

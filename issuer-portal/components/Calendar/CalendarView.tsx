@@ -11,10 +11,10 @@ import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { transformApiTaskToTask } from '@/utils/taskTransformers'
 import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
+import { transformApiTaskToTask } from '@/utils/taskTransformers'
 
 import { CalendarHeader, type CalendarViewType } from './CalendarHeader'
 import { ListView } from './ListView'
@@ -133,8 +133,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setApprovalTask(null)
   }
 
-  const handleApprovalAddComment = (comment: string) => {
-  }
+  const handleApprovalAddComment = (_comment: string) => {}
 
   const handleOpenFullscreen = () => {
     // Close the approval drawer
@@ -304,7 +303,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </Box>
       </Box>
 
-      <TaskDrawer open={drawerOpen} onClose={handleDrawerClose} task={selectedTask} />
+      <TaskDrawer
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        task={selectedTask}
+        onTaskUpdate={async (updatedTask) => {
+          // Update the selected task
+          setSelectedTask(updatedTask)
+          // Refresh meeting data to update all tasks in the UI
+          await refreshMeetingData()
+        }}
+      />
 
       <ApprovalDrawer
         open={approvalDrawerOpen}

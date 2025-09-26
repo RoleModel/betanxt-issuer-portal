@@ -17,7 +17,11 @@ interface Phase2LayoutProps {
   phase?: number
 }
 
-export default function Phase2Layout({ meetingId, meeting, phase = 2 }: Phase2LayoutProps) {
+export default function Phase2Layout({
+  meetingId,
+  meeting,
+  phase = 2,
+}: Phase2LayoutProps) {
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 12 }}>

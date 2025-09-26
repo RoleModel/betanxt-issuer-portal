@@ -113,10 +113,7 @@ export default function DocumentHostingCard({
   const sites = [hostingSite, eVoteSite, ivrNumber]
 
   return (
-    <Card
-      className={className}
-      sx={{ height: 'auto', gridArea: 'documentLinks' }}
-    >
+    <Card className={className} sx={{ height: 'auto', gridArea: 'documentLinks' }}>
       <CardContent>
         <Stack spacing={1.5}>
           {sites.map((site, index) => (

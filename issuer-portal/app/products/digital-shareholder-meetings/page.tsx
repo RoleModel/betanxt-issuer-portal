@@ -114,13 +114,19 @@ export default function DigitalShareholderMeetingsPage() {
           ))}
         </CardContent>
       </Card>
-      <Image
-        src="/images/Products/_Graphic_.svg"
-        alt="BetaNXT Engage Omni-channel Communication"
-        width={415}
-        height={420}
-        style={{ margin: '0 auto' }}
-      />
+      <Card>
+        <CardContent
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Image
+            src="/images/Products/_Graphic_.svg"
+            alt="BetaNXT Engage Omni-channel Communication"
+            width={415}
+            height={420}
+            style={{ margin: '0 auto' }}
+          />
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader title="Features" />
         <CardContent>

@@ -1,14 +1,14 @@
 'use client'
 
-import { SessionProvider, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { LinearProgress } from '@mui/material'
 
-import { ClientProvider, useClient } from '@/contexts/ClientContext'
+import { useClient } from '@/contexts/ClientContext'
 
-const HomePageContent = () => {
+export default function HomePage() {
   const { data: session, status } = useSession()
   const { currentClient, loading: clientLoading } = useClient()
   const router = useRouter()
@@ -29,15 +29,3 @@ const HomePageContent = () => {
   // Show loading spinner while checking authentication and client determination
   return <LinearProgress />
 }
-
-const HomePage = () => {
-  return (
-    <SessionProvider refetchOnWindowFocus={false}>
-      <ClientProvider>
-        <HomePageContent />
-      </ClientProvider>
-    </SessionProvider>
-  )
-}
-
-export default HomePage

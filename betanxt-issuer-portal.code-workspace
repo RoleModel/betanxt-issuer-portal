@@ -2,23 +2,23 @@
   "folders": [
     {
       "name": "Root",
-      "path": "."
+      "path": ".",
     },
     {
       "name": "Supabase",
-      "path": "supabase"
+      "path": "supabase",
     },
     {
       "name": "Mock Server",
-      "path": "mock-api-server"
+      "path": "mock-api-server",
     },
     {
       "name": "Issuer Portal",
-      "path": "issuer-portal"
+      "path": "issuer-portal",
     },
     {
       "name": "Specs",
-      "path": "specs"
+      "path": "specs",
     },
   ],
   "settings": {

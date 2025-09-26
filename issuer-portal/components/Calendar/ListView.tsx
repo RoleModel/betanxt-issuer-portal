@@ -159,20 +159,20 @@ export const ListView: React.FC<ListViewProps> = ({
     title: keyDate.title || '',
     date: keyDate.date
       ? (() => {
-        try {
-          // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
-          const originalDate = new Date(keyDate.date)
-          const adjustedDate = shiftWeekendToMonday(originalDate)
-          return adjustedDate.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-          })
-        } catch {
-          return keyDate.date
-        }
-      })()
+          try {
+            // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
+            const originalDate = new Date(keyDate.date)
+            const adjustedDate = shiftWeekendToMonday(originalDate)
+            return adjustedDate.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            })
+          } catch {
+            return keyDate.date
+          }
+        })()
       : '',
     phaseNumber: keyDate.phaseNumber || 1,
   })
@@ -317,7 +317,12 @@ export const ListView: React.FC<ListViewProps> = ({
 
   return (
     <Fade in={loaded} timeout={500}>
-      <Box display="grid" gridTemplateColumns={{ xs: '160px 1fr', md: '300px 1fr' }} height="100%" overflow="auto">
+      <Box
+        display="grid"
+        gridTemplateColumns={{ xs: '160px 1fr', md: '300px 1fr' }}
+        height="100%"
+        overflow="auto"
+      >
         {/* Left Sidebar */}
         <Paper
           elevation={0}
@@ -440,9 +445,9 @@ export const ListView: React.FC<ListViewProps> = ({
         {/* Main Content Area */}
         <Box flex={1} overflow="auto">
           {selectedPhase === 'all' ||
-            (typeof selectedPhase === 'number' &&
-              selectedPhase >= 1 &&
-              selectedPhase <= 8) ? (
+          (typeof selectedPhase === 'number' &&
+            selectedPhase >= 1 &&
+            selectedPhase <= 8) ? (
             <Stack p={{ xs: 1, md: 3 }} spacing={1}>
               {(() => {
                 // Combine tasks and key dates into a single array with type information
@@ -653,26 +658,26 @@ export const ListView: React.FC<ListViewProps> = ({
           task={
             taskToEdit
               ? {
-                ...taskToEdit,
-                description: taskToEdit.description ?? '',
-                dueDate: taskToEdit.dueDate || '',
-                phaseNumber: taskToEdit.phaseNumber || 1,
-                links: {},
-                type: [
-                  'upload',
-                  'signature',
-                  'external',
-                  'authorize',
-                  'approve',
-                ].includes(taskToEdit.type || '')
-                  ? (taskToEdit.type as
-                    | 'upload'
-                    | 'signature'
-                    | 'external'
-                    | 'authorize'
-                    | 'approve')
-                  : 'external',
-              }
+                  ...taskToEdit,
+                  description: taskToEdit.description ?? '',
+                  dueDate: taskToEdit.dueDate || '',
+                  phaseNumber: taskToEdit.phaseNumber || 1,
+                  links: {},
+                  type: [
+                    'upload',
+                    'signature',
+                    'external',
+                    'authorize',
+                    'approve',
+                  ].includes(taskToEdit.type || '')
+                    ? (taskToEdit.type as
+                        | 'upload'
+                        | 'signature'
+                        | 'external'
+                        | 'authorize'
+                        | 'approve')
+                    : 'external',
+                }
               : null
           }
           onTaskUpdated={handleTaskUpdated}

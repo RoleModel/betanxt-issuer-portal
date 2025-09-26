@@ -31,8 +31,17 @@ import {
 import PDFViewer from '@/components/Documents/PDFViewer'
 import StatusChip, { type UnifiedStatus } from '@/components/ui/StatusChip'
 
-import { useDocuments } from '@/hooks/useDocuments'
-import { type DocumentHistoryEntry } from '@/utils/documentUtils'
+import {
+  type DocumentComment,
+  type DocumentHistoryEvent,
+  useDocuments,
+} from '@/hooks/useDocuments'
+
+interface DocumentHistoryEntryUI {
+  action: string
+  userName: string
+  timestamp: string
+}
 
 interface ApprovalDrawerProps {
   open: boolean
@@ -77,7 +86,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   const [numPages, setNumPages] = useState(1)
   const [showHistory, setShowHistory] = useState(false)
   const [showComments, setShowComments] = useState(false)
-  const [documentHistory, setDocumentHistory] = useState<DocumentHistoryEntry[]>([])
+  const [documentHistory, setDocumentHistory] = useState<DocumentHistoryEntryUI[]>([])
   const [comments, setComments] = useState<CommentWithUser[]>([])
   const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null)
   const [comment, setComment] = useState('')
@@ -85,7 +94,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   // Get current user from NextAuth
   const { data: session } = useSession()
-  const { getCommentsForDocument: _getCommentsForDocument, addCommentToDocument } =
+  const { getCommentsForDocument, addCommentToDocument, getDocumentHistory } =
     useDocuments()
 
   // Reset state when drawer opens/closes
@@ -96,7 +105,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       setShowComments(false)
       setShowCommentField(false)
       setComment('')
-      setComments([])
+      // Don't clear comments here - they will be loaded in the next useEffect
       // Use passed documentId or generate one for the session
       setCurrentDocumentId(documentId || `temp-doc-${Date.now()}`)
     }
@@ -105,48 +114,42 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   // Fetch document history and comments when drawer opens
   React.useEffect(() => {
     const loadDocumentData = async () => {
-      if (open && pdfUrl) {
+      if (open && currentDocumentId) {
         try {
-          // Extract filename from URL if it's a full Supabase Storage URL
-          const getFilePathForQuery = (url: string) => {
-            if (url.includes('/storage/v1/object/public/')) {
-              // Extract filename from Supabase Storage URL
-              return url.split('/').pop() || url
-            }
-            if (url.startsWith('/docs/')) {
-              // Extract filename from local path
-              return url.replace('/docs/', '')
-            }
-            // Handle any other path-like URLs by extracting the filename
-            if (url.includes('/')) {
-              return url.split('/').pop() || url
-            }
-            // Already a filename
-            return url
-          }
-
-          const filePathForQuery = getFilePathForQuery(pdfUrl)
-
-          // For now, use placeholder data - these operations will need proper API endpoints
-          console.warn(
-            'ApprovalDrawer: loadDocumentData - Placeholder implementation - needs API endpoint',
-            {
-              filePathForQuery,
-            }
+          // Load comments for the document
+          const fetchedComments = await getCommentsForDocument(currentDocumentId)
+          // Map comments with safe fallbacks but preserve typing
+          const transformedComments: CommentWithUser[] = fetchedComments.map(
+            (c: DocumentComment) => ({
+              id: c.id,
+              comment: c.comment,
+              user: c.user,
+              first_name: c.first_name,
+              last_name: c.last_name,
+              created_at: c.created_at,
+              users: c.users ?? { avatar: null },
+            })
           )
+          setComments(transformedComments)
 
-          // Set placeholder data
-          setDocumentHistory([])
-          setComments([])
-          // Don't override currentDocumentId if already set from props
+          const history = await getDocumentHistory(currentDocumentId)
+          const transformedHistory: DocumentHistoryEntryUI[] = history.map(
+            (h: DocumentHistoryEvent) => ({
+              action: h.event_type,
+              userName: h.user,
+              timestamp: h.timestamp,
+            })
+          )
+          setDocumentHistory(transformedHistory)
         } catch (err) {
           console.error('Error loading document data:', err)
+          // Don't clear existing comments or history on error
         }
       }
     }
 
     loadDocumentData()
-  }, [open, pdfUrl])
+  }, [open, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(Math.min(Math.max(1, newPage), numPages))
@@ -170,7 +173,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   }
 
   const handleFullscreen = () => {
-
     if (onOpenFullscreen) {
       onOpenFullscreen()
     } else {
@@ -206,7 +208,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   }
 
   const handleSubmitComment = async () => {
-
     if (!comment.trim()) {
       console.error('ApprovalDrawer: Comment is empty')
       return
@@ -225,7 +226,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
     try {
       // Use hook to add comment
-      await addCommentToDocument(currentDocumentId, comment.trim())
+      await addCommentToDocument(currentDocumentId, comment.trim(), {
+        // TODO: Add user information from session
+      })
 
       // Create optimistic comment for immediate UI update
       const optimisticComment: CommentWithUser = {

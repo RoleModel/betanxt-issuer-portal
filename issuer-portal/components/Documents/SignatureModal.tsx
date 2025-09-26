@@ -385,7 +385,6 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
     (activeTab === 0 && hasSignature) ||
     (activeTab === 1 && typedSignature.trim().length > 0)
 
-
   return (
     <Dialog
       open={open}

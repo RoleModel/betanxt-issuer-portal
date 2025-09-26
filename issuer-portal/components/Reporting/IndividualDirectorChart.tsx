@@ -53,10 +53,10 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
 
   // Sort data by year and extract series
   const sortedData = [...data].sort((a, b) => a.year - b.year)
-  const years = sortedData.map(d => d.year)
-  const forVotes = sortedData.map(d => d.forPercentage)
-  const againstVotes = sortedData.map(d => d.againstPercentage)
-  const abstainVotes = sortedData.map(d => d.abstainPercentage)
+  const years = sortedData.map((d) => d.year)
+  const forVotes = sortedData.map((d) => d.forPercentage)
+  const againstVotes = sortedData.map((d) => d.againstPercentage)
+  const abstainVotes = sortedData.map((d) => d.abstainPercentage)
 
   return (
     <Box>

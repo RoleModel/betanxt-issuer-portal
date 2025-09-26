@@ -3,7 +3,7 @@
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useRef, useState, startTransition } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
@@ -18,6 +18,7 @@ import {
   Tabs,
   Typography,
   styled,
+  useMediaQuery,
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
@@ -28,10 +29,8 @@ import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
-// import { usePhaseDrawer } from '@/contexts/PhaseDrawerContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
 
-// View-model for meetings used in tabs
 interface MeetingTab {
   id: string
   title: string
@@ -89,17 +88,14 @@ export const EventTabs = React.memo((): React.ReactElement => {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  // const { openDrawer } = usePhaseDrawer()
   const { meetings, isLoading: loading, currentMeeting: activeMeeting } = useMeeting()
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
-
-  // Phase drawer state (lifted to top-level scope)
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
-  // Get meeting ID from URL if activeMeeting is not set
   const meetingIdFromUrl = pathname.match(/\/meeting\/([^/]+)/)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const currentPhase = (() => {
     const label = currentMeeting?.currentPhase || 'Phase 1'
@@ -163,9 +159,9 @@ export const EventTabs = React.memo((): React.ReactElement => {
       return isNaN(date.getTime())
         ? dateString
         : date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        })
+            month: 'short',
+            day: 'numeric',
+          })
     } catch {
       return dateString || ''
     }
@@ -186,14 +182,25 @@ export const EventTabs = React.memo((): React.ReactElement => {
     client: currentClient?.company_name ?? '',
   })
 
-  // Show only active meetings (meetings are already filtered by ticker in MeetingContext)
+  // Show only active meetings OR the currently selected past meeting
   const transformedMeetings: {
     tab: MeetingTab
     src: components['schemas']['Meeting']
   }[] = (() => {
     // Ensure meetings is an array before filtering
     const meetingsArray = meetings || []
-    // Filter to only show active meetings
+
+    // If we have a current meeting that's COMPLETE (past meeting), only show that one
+    if (currentMeeting && currentMeeting.status === 'COMPLETE') {
+      return [
+        {
+          tab: mapToMeetingTab(currentMeeting),
+          src: currentMeeting,
+        },
+      ]
+    }
+
+    // Otherwise, filter to only show active meetings
     const activeMeetings = meetingsArray.filter((meeting) => meeting.status === 'ACTIVE')
     return activeMeetings.map((meeting) => ({
       tab: mapToMeetingTab(meeting),
@@ -212,7 +219,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
       }
     }
   }, [currentMeeting, transformedMeetings, activeMeetingTab])
-
 
   // Helper function to scroll to active tab
   const scrollToActiveTab = useCallback(() => {
@@ -389,8 +395,12 @@ export const EventTabs = React.memo((): React.ReactElement => {
         position: 'relative',
         flex: '0 1 auto',
         borderRight: `1px solid ${theme.vars.palette.divider}`,
+        borderLeft: `1px solid ${theme.vars.palette.divider}`,
         minWidth: theme.spacing(30),
         overflowX: 'hidden',
+        '&:last-child': {
+          borderLeft: 'none',
+        },
       })}
     >
       <Box
@@ -448,7 +458,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
           textDecoration: 'none',
           display: 'flex',
           flexDirection: 'row',
-          height: 110,
+          height: isMobile ? 'auto' : 110,
           cursor: isActive ? 'default' : 'pointer',
           overflowX: 'hidden',
           backgroundColor: isActive
@@ -495,7 +505,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
               {meeting.title}
             </Typography>
 
-            {isActive && (
+            {isActive && !isMobile && (
               <Grow
                 in={isActive}
                 timeout={{
@@ -688,7 +698,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
               </Grow>
             )}
 
-            {!isActive && (
+            {!isActive && !isMobile && (
               // Inactive tab shows only meeting date
               <Box
                 sx={{
@@ -747,7 +757,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
         >
           <Box sx={{ px: 3 }}>
             <Stack direction="row">
-              {[1, 2, 3].map((index) => renderSkeletonTab(index))}
+              {[1, 2].map((index) => renderSkeletonTab(index))}
             </Stack>
           </Box>
         </Paper>
@@ -778,15 +788,15 @@ export const EventTabs = React.memo((): React.ReactElement => {
   }
 
   return (
-    <Box>
+    <Box component="nav">
       {/* Meeting Tabs Section */}
       <Paper
         sx={{
           borderBottom: '1px solid',
-          borderColor: (theme) => theme.vars.palette.divider,
+          borderColor: 'divider',
           borderRadius: 0,
           boxShadow: 'none',
-          backgroundColor: (theme) => theme.vars.palette.appBarSecondary.defaultFill,
+          backgroundColor: 'appBarSecondary.defaultFill',
           position: 'relative', // Add relative positioning
           '& .MuiPaper-root': {
             borderRadius: 0,
@@ -794,8 +804,8 @@ export const EventTabs = React.memo((): React.ReactElement => {
         }}
       >
         <Box sx={{ position: 'relative' }}>
-          {/* Left Scroll Button */}
-          {canScrollLeft && currentMeeting && currentMeeting.status !== 'COMPLETE' && (
+          {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
+          {canScrollLeft && transformedMeetings.length > 1 && (
             <ScrollButton
               direction="left"
               onClick={scrollLeft}
@@ -805,8 +815,8 @@ export const EventTabs = React.memo((): React.ReactElement => {
             </ScrollButton>
           )}
 
-          {/* Right Scroll Button */}
-          {canScrollRight && currentMeeting && currentMeeting.status !== 'COMPLETE' && (
+          {/* Right Scroll Button - Only show for active meetings with multiple tabs */}
+          {canScrollRight && transformedMeetings.length > 1 && (
             <ScrollButton
               direction="right"
               onClick={scrollRight}
@@ -880,27 +890,28 @@ export const EventTabs = React.memo((): React.ReactElement => {
               allowScrollButtonsMobile
               scrollButtons="auto"
               aria-label="Meeting Navigation"
-              sx={{ position: 'relative' }}
+              sx={{ position: 'relative', pointerEvents: 'auto' }}
             >
               {navigationTabs.map((tab) => {
                 const isActive = activeTab === tab.label
-                const tabHref = currentMeeting && currentClient?.ticker
-                  ? `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
-                  : '#'
+                // Use ticker from currentMeeting if available, fallback to currentClient
+                const ticker = currentMeeting?.ticker || currentClient?.ticker
+                const tabHref =
+                  currentMeeting && ticker
+                    ? `/${ticker}/meeting/${currentMeeting.id}${tab.route}`
+                    : '#'
 
                 return (
                   <Tab
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    component={Link}
-                    href={tabHref}
-                    prefetch={true}
-                    onClick={(_e) => {
-                      // Optimistic update - immediately update visual state
-                      startTransition(() => {
-                        // The actual navigation will happen via Link
-                      })
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (tabHref !== '#') {
+                        router.push(tabHref)
+                      }
                     }}
                     sx={(theme) => ({
                       color: isActive
@@ -915,6 +926,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
                       minWidth: 'fit-content',
                       borderRadius: 0,
                       cursor: 'pointer',
+                      pointerEvents: 'auto',
                       '&:hover': {
                         backgroundColor: 'transparent',
                         color: theme.vars?.palette.primary.main,

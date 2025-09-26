@@ -85,7 +85,11 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         // Upload each file to Supabase storage
         const uploadPromises = files.map(async (file, index) => {
           const isDsmType = documentType === 'dsm-document'
-          const result = await uploadToStorage(file, meetingId, isDsmType ? 'dsm' : 'regular')
+          const result = await uploadToStorage(
+            file,
+            meetingId,
+            isDsmType ? 'dsm' : 'regular'
+          )
 
           if (result.error) {
             throw new Error(`Failed to upload ${file.name}: ${result.error}`)
@@ -104,7 +108,6 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         })
 
         const uploadResults = await Promise.all(uploadPromises)
-
 
         // Create mock documents in the state for immediate UI feedback
         const mockDocuments = uploadResults.map((result, index) => {

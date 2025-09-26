@@ -226,11 +226,14 @@ const issuerOverrides = {
   components: {
     MuiCardContent: {
       styleOverrides: {
-        root: {
+        root: ({ theme }: { theme: Theme }) => ({
           '&:has(.MuiTable-root)': {
             padding: 0,
           },
-        },
+          [theme.breakpoints.down('md')]: {
+            padding: theme.spacing(1),
+          },
+        }),
       },
     },
     MuiCard: {
@@ -238,9 +241,13 @@ const issuerOverrides = {
         elevation: 5,
       },
       styleOverrides: {
-        root: {
-          height: 'auto,',
-        },
+        root: ({ theme }: { theme: Theme }) => ({
+          height: 'auto',
+          [theme.breakpoints.down('md')]: {
+            boxShadow: 'none',
+            border: `solid 1px ${theme.vars?.palette.divider}`,
+          },
+        }),
       },
     },
     MuiAppBar: {

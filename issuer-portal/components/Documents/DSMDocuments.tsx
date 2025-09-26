@@ -24,7 +24,13 @@ import StatusChip from '@/components/ui/StatusChip'
 
 import { components } from '@/domain-models/generated-schema'
 
-type Document = components['schemas']['Document']
+import { getDocumentActionLabel } from '@/utils/documentUtils'
+
+type ApiDocument = components['schemas']['Document']
+// Extend with local placeholder status for UI only
+type Document = Omit<ApiDocument, 'status'> & {
+  status?: ApiDocument['status'] | 'NOT_UPLOADED'
+}
 
 type DSMDocumentsProps = {
   dsmDocuments: Document[]
@@ -79,11 +85,13 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
       }
     } else {
       // Return placeholder as "Not Uploaded"
-      return {
+      const placeholderDoc: Document = {
         id: placeholder.id,
         title: placeholder.title,
-        status: 'NOT_UPLOADED' as unknown as Document['status'],
-      } as Document
+        status: 'NOT_UPLOADED',
+        // Minimal required optional API fields left undefined intentionally
+      }
+      return placeholderDoc
     }
   })
 
@@ -107,7 +115,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
 
       <CardContent sx={{ p: 0 }}>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Thumbnail</TableCell>
@@ -120,42 +128,51 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
             <TableBody>
               {(dsmRowsPerPage > 0
                 ? mergedRows.slice(
-                  dsmPage * dsmRowsPerPage,
-                  dsmPage * dsmRowsPerPage + dsmRowsPerPage
-                )
+                    dsmPage * dsmRowsPerPage,
+                    dsmPage * dsmRowsPerPage + dsmRowsPerPage
+                  )
                 : mergedRows
               ).map((doc) => (
                 <TableRow key={doc.id}>
-                  <TableCell>
+                  <TableCell size="small">
                     <DocumentThumbnail
-                      filePath={doc.filePath}
-                      onClick={doc.filePath ? () => onOpenDocument(doc) : undefined}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography>{doc.title}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography color="text.secondary">{doc.updatedAt || '—'}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <StatusChip
-                      status={
-                        (doc.filePath ? (doc.status ?? null) : 'Not Uploaded') as
-                        | string
-                        | null
+                      filePath={doc.filePath ?? (doc as { url?: string }).url}
+                      onClick={
+                        (doc.filePath ?? (doc as { url?: string }).url)
+                          ? () => onOpenDocument(doc)
+                          : undefined
                       }
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell size="small">
+                    <Typography>{doc.title}</Typography>
+                  </TableCell>
+                  <TableCell size="small">
+                    <Typography color="text.secondary">{doc.updatedAt || '—'}</Typography>
+                  </TableCell>
+                  <TableCell size="small">
+                    <StatusChip
+                      status={
+                        (doc.filePath ? (doc.status ?? null) : 'NOT_UPLOADED') as
+                          | string
+                          | null
+                      }
+                    />
+                  </TableCell>
+                  <TableCell size="small" align="right">
                     <Button
                       variant="text"
+                      data-testid={`dsm-document-action-${doc.id}`}
                       onClick={() => {
                         if (!doc.filePath) onOpenUploadFor(doc)
                         else onOpenDocument(doc)
                       }}
                     >
-                      {!doc.filePath ? 'Upload' : 'View'}
+                      {getDocumentActionLabel({
+                        status: doc.status || undefined,
+                        filePath: doc.filePath,
+                        url: doc.filePath || undefined,
+                      })}
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -250,7 +250,6 @@ export const useMeetingData = (
   meetingId?: string,
   meeting?: Meeting
 ): UseMeetingDataResult => {
-
   const swrKey = meetingId ? `/meeting-data/${meetingId}` : null
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -271,7 +270,6 @@ export const useMeetingData = (
       errorRetryCount: 0,
     }
   )
-
 
   return {
     data: data

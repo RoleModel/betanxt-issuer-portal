@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
-const Container = styled('div')(({ theme }) => ({
+const Container = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   whiteSpace: 'nowrap',
@@ -62,7 +62,7 @@ export const NumberCounter = ({
   return (
     <LayoutGroup>
       <motion.div className="number-counter-wrapper" layout>
-        <Container className="number-counter">
+        <Container layout className="number-counter">
           {label && (
             <Typography variant="body2" component="span" fontWeight={500} display="block">
               {label}

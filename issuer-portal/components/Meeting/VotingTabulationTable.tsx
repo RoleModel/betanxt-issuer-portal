@@ -10,7 +10,6 @@ import {
   CardContent,
   CardHeader,
   LinearProgress,
-  styled,
   Table,
   TableBody,
   TableCell,
@@ -18,6 +17,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  styled,
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
@@ -57,7 +57,6 @@ export default function VotingTabulationTable({
     )
   }
 
-
   const TotalsRow = styled('tr')(({ theme }) => [
     {
       backgroundColor: theme.vars?.palette.grey[50],
@@ -65,7 +64,7 @@ export default function VotingTabulationTable({
     theme.applyStyles('dark', {
       backgroundColor: theme.vars?.palette.grey[900],
     }),
-  ]);
+  ])
 
   return (
     <Card>
@@ -110,11 +109,6 @@ export default function VotingTabulationTable({
                       <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                         {proposal.proposalNumber}. {proposal.description}
                       </Typography>
-                      {proposal.directorName && (
-                        <Typography variant="caption" color="text.secondary">
-                          {proposal.directorName}
-                        </Typography>
-                      )}
                     </Box>
                   </TableCell>
 
@@ -303,7 +297,6 @@ export default function VotingTabulationTable({
                         }}
                       />
                       <LinearProgress
-                        color="chartSeries[2].main"
                         variant="determinate"
                         value={
                           proposals.reduce(
@@ -320,6 +313,6 @@ export default function VotingTabulationTable({
           </Table>
         </TableContainer>
       </CardContent>
-    </Card >
+    </Card>
   )
 }

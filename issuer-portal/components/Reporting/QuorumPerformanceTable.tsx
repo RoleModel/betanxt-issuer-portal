@@ -1,5 +1,6 @@
 'use client'
 
+import NextLink from 'next/link'
 import React from 'react'
 
 import {
@@ -17,8 +18,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-
-import NextLink from 'next/link'
 
 interface QuorumData {
   meetingId: string
@@ -45,7 +44,6 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   title = 'Quorum Performance',
   clientTicker = '',
 }) => {
-
   if (loading) {
     return (
       <Card>
@@ -83,7 +81,9 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>
-                <TableCell padding="none" align="right">Days to Quorum</TableCell>
+                <TableCell padding="none" align="right">
+                  Days to Quorum
+                </TableCell>
                 <TableCell align="right">Early Votes %</TableCell>
                 <TableCell align="right">Late Votes % (1 wk)</TableCell>
               </TableRow>
@@ -93,13 +93,18 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                 // Extract year from meetingId (format: ticker-type-year)
                 const yearMatch = row.meetingId.match(/(\d{4})$/)
                 const year = yearMatch ? yearMatch[1] : ''
-                const displayTitle = year ? `${row.meetingTitle} ${year}` : row.meetingTitle
+                const displayTitle = year
+                  ? `${row.meetingTitle} ${year}`
+                  : row.meetingTitle
 
                 return (
                   <TableRow key={`${row.meetingId}-${index}`}>
                     <TableCell component="th" scope="row">
                       {clientTicker ? (
-                        <MuiLink component={NextLink} href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}>
+                        <MuiLink
+                          component={NextLink}
+                          href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
+                        >
                           <Typography variant="body2" noWrap>
                             {displayTitle}
                           </Typography>
