@@ -1,5 +1,5 @@
 Model/Account.sql
-Model/AddDocumentHistoryRequest.sql
+Model/AddDocumentEventRequest.sql
 Model/ApproveDocumentVersionRequest.sql
 Model/CastVoteRequest.sql
 Model/Clients.sql

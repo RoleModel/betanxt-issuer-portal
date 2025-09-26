@@ -92,9 +92,7 @@ export async function listPositions(params?: {
   }
 }
 
-export async function createPosition(
-  body: unknown
-): Promise<ApiResponse<Position>> {
+export async function createPosition(body: unknown): Promise<ApiResponse<Position>> {
   try {
     const request = body as CreatePositionRequest
     const { data, error } = await supabase
@@ -168,8 +166,10 @@ export async function updatePosition(
     const request = body as UpdatePositionRequest
     const updateData: any = {}
     if (request.name !== undefined) updateData.name = request.name
-    if (request.accountNumber !== undefined) updateData.account_number = request.accountNumber
-    if (request.controlNumber !== undefined) updateData.control_number = request.controlNumber
+    if (request.accountNumber !== undefined)
+      updateData.account_number = request.accountNumber
+    if (request.controlNumber !== undefined)
+      updateData.control_number = request.controlNumber
     if (request.shares !== undefined) updateData.shares = request.shares
     if (request.sharesVoted !== undefined) updateData.shares_voted = request.sharesVoted
     if (request.voteStatus !== undefined) updateData.vote_status = request.voteStatus

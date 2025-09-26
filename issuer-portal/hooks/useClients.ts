@@ -36,31 +36,44 @@ export interface UseClientsResult {
   refetch: () => Promise<void>
 }
 
-type ApiClient = components['schemas']['Client']
+type ApiClient = components['schemas']['Clients']
 
-export const transformApiClients = (apiClients: any[]): Client[] => {
+export const transformApiClients = (apiClients: ApiClient[]): Client[] => {
   return apiClients
     .filter(
-      (client) => client.id && client.ticker && (client.company_name || client.companyName || client.short_name || client.shortName)
+      (client) => {
+        // Handle both camelCase (from schema) and snake_case (from actual API)
+        const hasId = client.id
+        const hasTicker = client.ticker
+        const hasName = client.companyName || client.shortName ||
+                       (client as any).company_name || (client as any).short_name
+        return hasId && hasTicker && hasName
+      }
     )
-    .map((client) => ({
-      id: client.id as string,
-      name: (client.company_name || client.companyName || client.short_name || client.shortName) as string,
-      ticker: client.ticker as string,
-      company_name: client.company_name || client.companyName || undefined,
-      short_name: client.short_name || client.shortName || undefined,
-      industry: (client.industry ?? undefined) as string | undefined,
-      description: (client.description ?? undefined) as string | undefined,
-      website: (client.website ?? undefined) as string | undefined,
-      primary_contact: ((client.primary_contact || client.primaryContact) ?? undefined) as string | undefined,
-      primary_contact_email: ((client.primary_contact_email || client.primaryContactEmail) ?? undefined) as
-        | string
-        | undefined,
-      is_active: (client.is_active ?? client.isActive ?? undefined) as boolean | undefined,
-      branding_id: (client.branding_id ?? client.brandingId ?? undefined) as number | undefined,
-      created_at: client.created_at || client.createdAt || undefined,
-      updated_at: client.updated_at || client.updatedAt || undefined,
-    }))
+    .map((client) => {
+      // Handle both camelCase and snake_case fields
+      const apiClient = client as any
+      return {
+        id: client.id as string,
+        name: (client.companyName || client.shortName ||
+               apiClient.company_name || apiClient.short_name) as string,
+        ticker: client.ticker as string,
+        company_name: client.companyName || apiClient.company_name || undefined,
+        short_name: client.shortName || apiClient.short_name || undefined,
+        industry: (client.industry ?? apiClient.industry ?? undefined) as string | undefined,
+        description: (client.description ?? apiClient.description ?? undefined) as string | undefined,
+        website: (client.website ?? apiClient.website ?? undefined) as string | undefined,
+        primary_contact: (client.primaryContact ?? apiClient.primary_contact ?? undefined) as string | undefined,
+        primary_contact_email: (client.primaryContactEmail ?? apiClient.primary_contact_email ?? undefined) as
+          | string
+          | undefined,
+        is_active: (client.isActive ?? apiClient.is_active ?? undefined) as boolean | undefined,
+        branding_id: (client.brandingId ?? apiClient.branding_id ?? undefined) as number | undefined,
+        created_at: client.createdAt || apiClient.created_at || undefined,
+        updated_at: client.updatedAt || apiClient.updated_at || undefined,
+        accounts: apiClient.accounts || client.accounts || undefined,
+      }
+    })
 }
 
 export const useClients = (): UseClientsResult => {
@@ -89,7 +102,9 @@ export const useClients = (): UseClientsResult => {
 
         const apiClients: ApiClient[] = Array.isArray(result.data)
           ? result.data
-          : (result.data as any)?.clients ?? []
+          : (result.data && typeof result.data === 'object' && 'clients' in result.data && Array.isArray(result.data.clients))
+            ? result.data.clients
+            : []
         setClients(transformApiClients(apiClients))
         return
       }
@@ -116,7 +131,9 @@ export const useClients = (): UseClientsResult => {
       // The API returns an array directly, not wrapped in a 'clients' property
       const apiClients: ApiClient[] = Array.isArray(result.data)
         ? result.data
-        : (result.data as any)?.clients ?? []
+        : (result.data && typeof result.data === 'object' && 'clients' in result.data && Array.isArray(result.data.clients))
+          ? result.data.clients
+          : []
       setClients(transformApiClients(apiClients))
     } catch (err) {
       let errorMessage = 'Failed to fetch clients'

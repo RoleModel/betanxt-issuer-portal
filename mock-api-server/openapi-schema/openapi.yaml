@@ -1972,7 +1972,19 @@ paths:
               properties:
                 eventType:
                   type: string
-                  enum: [CREATED, UPLOADED, VIEWED, DOWNLOADED, SIGNED, APPROVED, REJECTED, COMMENTED, UPDATED, DELETED]
+                  enum:
+                    [
+                      CREATED,
+                      UPLOADED,
+                      VIEWED,
+                      DOWNLOADED,
+                      SIGNED,
+                      APPROVED,
+                      REJECTED,
+                      COMMENTED,
+                      UPDATED,
+                      DELETED,
+                    ]
                 metadata:
                   type: object
                   additionalProperties: true
@@ -2095,11 +2107,34 @@ components:
 
     TaskStatus:
       type: string
-      enum: [INCOMPLETE, COMPLETE, CANCELLED, NEEDS_AUTHORIZATION, AUTHORIZED]
+      enum:
+        [
+          INCOMPLETE,
+          COMPLETE,
+          CANCELLED,
+          NEEDS_AUTHORIZATION,
+          AUTHORIZED,
+          PENDING_AUTHORIZATION,
+          WAITING_FOR_FORM_RETURN,
+          AUTHORIZATION_NEEDED,
+          SUBMITTED_AWAITING_RECORD_DATE,
+          REQUEST_FORM_TO_FOLLOW,
+        ]
 
     DocumentStatus:
       type: string
-      enum: [DRAFT, AWAITING_DRAFT, AWAITING_REVIEW, APPROVED, UPLOADED, IN_PROGRESS, SIGNED, AUTHORIZED, COMPLETED]
+      enum:
+        [
+          DRAFT,
+          AWAITING_DRAFT,
+          AWAITING_REVIEW,
+          APPROVED,
+          UPLOADED,
+          IN_PROGRESS,
+          SIGNED,
+          AUTHORIZED,
+          COMPLETED,
+        ]
 
     # Core Models
     Account:
@@ -2511,7 +2546,6 @@ components:
           items:
             $ref: '#/components/schemas/Signature'
 
-
     Position:
       type: object
       properties:
@@ -2778,7 +2812,19 @@ components:
           format: uuid
         eventType:
           type: string
-          enum: [CREATED, UPLOADED, VIEWED, DOWNLOADED, SIGNED, APPROVED, REJECTED, COMMENTED, UPDATED, DELETED]
+          enum:
+            [
+              CREATED,
+              UPLOADED,
+              VIEWED,
+              DOWNLOADED,
+              SIGNED,
+              APPROVED,
+              REJECTED,
+              COMMENTED,
+              UPDATED,
+              DELETED,
+            ]
         userId:
           type: string
           format: uuid

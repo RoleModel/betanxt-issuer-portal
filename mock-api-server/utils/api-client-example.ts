@@ -19,22 +19,18 @@ export const exampleAuthFlow = async () => {
       return
     }
 
-
     // Get current user
     const { data: currentUser, error: userError } = await apiClient.GET('/auth/me')
     if (userError) {
       return
     }
 
-
     // Logout
     const { error: logoutError } = await apiClient.POST('/auth/logout')
     if (logoutError) {
       return
     }
-
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // Example: User management using openapi-fetch
@@ -54,7 +50,6 @@ export const exampleUserManagement = async () => {
       return
     }
 
-
     // Create a new user
     const { data: newUser, error: createError } = await apiClient.POST('/users', {
       body: {
@@ -71,7 +66,6 @@ export const exampleUserManagement = async () => {
     if (createError) {
       return
     }
-
 
     if (newUser?.id) {
       // Update the user
@@ -91,10 +85,8 @@ export const exampleUserManagement = async () => {
       if (updateError) {
         return
       }
-
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // Example: Meeting management using openapi-fetch
@@ -120,7 +112,6 @@ export const exampleMeetingManagement = async () => {
       return
     }
 
-
     // Create a new meeting
     const { data: newMeeting, error: createError } = await apiClient.POST('/meetings', {
       body: {
@@ -145,7 +136,6 @@ export const exampleMeetingManagement = async () => {
       return
     }
 
-
     if (newMeeting?.id) {
       // Update meeting status
       const { data: updatedMeeting, error: updateError } = await apiClient.PUT(
@@ -165,10 +155,8 @@ export const exampleMeetingManagement = async () => {
       if (updateError) {
         return
       }
-
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // Example: Account management
@@ -193,8 +181,7 @@ export const exampleAccountManagement = async () => {
 
     if (newAccountResult.data) {
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // Example: Custom API call using the raw client
@@ -210,9 +197,7 @@ export const exampleCustomApiCall = async () => {
     if (error) {
       return
     }
-
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // Example: Error handling patterns with openapi-fetch
@@ -237,8 +222,7 @@ export const exampleErrorHandling = async () => {
       }
     } else {
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // MIGRATION GUIDE: Converting from old custom API client to openapi-fetch

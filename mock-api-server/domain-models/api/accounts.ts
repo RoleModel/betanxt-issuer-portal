@@ -49,9 +49,7 @@ export async function listAccounts(
   }
 }
 
-export async function createAccount(
-  accountData: unknown
-): Promise<ApiResponse<Account>> {
+export async function createAccount(accountData: unknown): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.POST('/accounts', {
     body: accountData as CreateAccountRequest,
   })

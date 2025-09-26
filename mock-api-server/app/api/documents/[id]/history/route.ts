@@ -1,7 +1,6 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-22T18:38:17.317Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteParams {
@@ -32,12 +31,11 @@ export async function GET(
 
     return NextResponse.json(history)
   } catch (error) {
-
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDocumentHistory'
+        operationId: 'getDocumentHistory',
       },
       { status: 500 }
     )
@@ -58,7 +56,7 @@ export async function POST(
   try {
     const resolvedParams = await params
     const documentId = resolvedParams.id
-    const body = await request.json() as HistoryEventRequest
+    const body = (await request.json()) as HistoryEventRequest
 
     // Create a new history event
     const newEvent: HistoryEvent = {
@@ -76,12 +74,11 @@ export async function POST(
 
     return NextResponse.json(newEvent, { status: 201 })
   } catch (error) {
-
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'addDocumentHistory'
+        operationId: 'addDocumentHistory',
       },
       { status: 500 }
     )

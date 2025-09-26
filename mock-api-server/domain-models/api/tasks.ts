@@ -136,14 +136,11 @@ export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
   }
 }
 
-export async function updateTask(
-  id: string,
-  body: unknown
-): Promise<ApiResponse<Task>> {
+export async function updateTask(id: string, body: unknown): Promise<ApiResponse<Task>> {
   try {
     const request = body as UpdateTaskRequest
     const updateData: any = {
-      updated_at: new Date().toISOString() // Always update timestamp
+      updated_at: new Date().toISOString(), // Always update timestamp
     }
     if (request.title !== undefined) updateData.title = request.title
     if (request.description !== undefined) updateData.description = request.description
@@ -155,8 +152,6 @@ export async function updateTask(
     if (request.documentId !== undefined) updateData.document_id = request.documentId
     if (request.links !== undefined) updateData.links = request.links
 
-    console.log('Updating task in database:', { id, updateData })
-
     const { data, error } = await supabase
       .from('task')
       .update(updateData)
@@ -164,16 +159,12 @@ export async function updateTask(
       .select()
       .single()
 
-    console.log('Database update result:', { data, error })
-
     if (error) {
-      console.error('Database update error:', error)
       return {
         error: { message: error.message || 'Failed to update task' },
       }
     }
 
-    console.log('Task updated successfully:', transformTask(data))
     return {
       data: transformTask(data),
     }

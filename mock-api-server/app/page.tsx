@@ -6,8 +6,12 @@ export default function HomePage(): JSX.Element {
       <h1>Mock API Server</h1>
       <p>This is an API-only server. Available endpoints:</p>
       <ul>
-        <li><code>GET /api/health</code> - Health check endpoint</li>
-        <li><code>GET /api</code> - API documentation</li>
+        <li>
+          <code>GET /api/health</code> - Health check endpoint
+        </li>
+        <li>
+          <code>GET /api</code> - API documentation
+        </li>
       </ul>
       <p>For full API documentation, please check the OpenAPI specification.</p>
     </div>

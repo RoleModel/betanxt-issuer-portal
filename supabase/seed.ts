@@ -1072,18 +1072,8 @@ const main = async () => {
       },
     ],
     2: [
-      { title: 'DTCC authorization', type: 'Authorization', owner: 'issuer' },
-      {
-        title: 'Broadridge/ICS Access',
-        type: 'Authorization',
-        owner: 'issuer',
-      },
-      {
-        title: 'Transfer Agent Registered File Request Form',
-        type: 'Document',
-        owner: 'issuer',
-      },
-      { title: 'Plan File Request form', type: 'Document', owner: 'issuer' },
+      // These are carry-over tasks from Phase 1 - they should be the SAME task instances
+      // We'll remove them from here and handle carry-over in the application logic
     ],
     3: [
       { title: 'TA Registered File', type: 'File Upload', owner: 'issuer' },
@@ -1621,13 +1611,17 @@ const main = async () => {
     // Store comments to add later (after all documents are inserted)
     if (status === 'Revision Requested') {
       hostingSiteComments.push({
-        id: copycat.int(`revision-comment-${hostingSiteDocId}`, { min: 1000000, max: 9999999 }),
+        id: copycat.int(`revision-comment-${hostingSiteDocId}`, {
+          min: 1000000,
+          max: 9999999,
+        }),
         documentId: hostingSiteDocId,
         userId: userIds[0],
-        comment: 'REVISION REQUEST: Please update the company logo and fix the voting button alignment on mobile devices.',
+        comment:
+          'REVISION REQUEST: Please update the company logo and fix the voting button alignment on mobile devices.',
         firstName: 'John',
         lastName: 'Doe',
-        createdAt: DateTime.now().minus({ days: 2 }).toISO()
+        createdAt: DateTime.now().minus({ days: 2 }).toISO(),
       })
     }
 
@@ -1640,7 +1634,7 @@ const main = async () => {
         comment: 'Site looks good. All links are working correctly.',
         firstName: 'Sarah',
         lastName: 'Johnson',
-        createdAt: createdAt
+        createdAt: createdAt,
       })
     }
   })
@@ -1648,7 +1642,7 @@ const main = async () => {
   // Add comments after all documents are inserted
   sqlStatements.push('')
   sqlStatements.push('-- Insert hosting site comments')
-  hostingSiteComments.forEach(comment => {
+  hostingSiteComments.forEach((comment) => {
     sqlStatements.push(
       `INSERT INTO "comment"(` +
         `id, document_id, user_id, comment, first_name, last_name, created_at) VALUES (` +

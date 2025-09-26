@@ -1,9 +1,14 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-25T18:35:57.314Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getMeetingById, updateMeeting, deleteMeeting } from '@/domain-models/api/meetings'
+
+import {
+  deleteMeeting,
+  getMeetingById,
+  updateMeeting,
+} from '@/domain-models/api/meetings'
+
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -32,10 +37,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getMeetingById'
+        operationId: 'getMeetingById',
       },
       { status: 500 }
     )
@@ -67,10 +72,10 @@ export async function PUT(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateMeeting'
+        operationId: 'updateMeeting',
       },
       { status: 500 }
     )
@@ -99,13 +104,12 @@ export async function DELETE(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteMeeting'
+        operationId: 'deleteMeeting',
       },
       { status: 500 }
     )
   }
 }
-

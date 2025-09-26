@@ -121,9 +121,7 @@ export async function listMeetings(
   }
 }
 
-export async function createMeeting(
-  meetingData: unknown
-): Promise<ApiResponse<Meeting>> {
+export async function createMeeting(meetingData: unknown): Promise<ApiResponse<Meeting>> {
   try {
     const { data, error } = await supabase
       .from('meeting')

@@ -128,6 +128,8 @@ export type Database = {
       }
       document: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           authorized_date: string | null
           comments: Json | null
           completed_date: string | null
@@ -153,6 +155,8 @@ export type Database = {
           uploaded_date: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           authorized_date?: string | null
           comments?: Json | null
           completed_date?: string | null
@@ -178,6 +182,8 @@ export type Database = {
           uploaded_date?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           authorized_date?: string | null
           comments?: Json | null
           completed_date?: string | null
@@ -201,6 +207,36 @@ export type Database = {
           updated_at?: string | null
           upload_date?: string | null
           uploaded_date?: string | null
+        }
+        Relationships: []
+      }
+      document_history: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          event_type: Database['public']['Enums']['document_history_event_type']
+          id: string
+          metadata: Json | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          event_type: Database['public']['Enums']['document_history_event_type']
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          event_type?: Database['public']['Enums']['document_history_event_type']
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+          user_name?: string | null
         }
         Relationships: []
       }
@@ -314,12 +350,12 @@ export type Database = {
           id: string | null
           meeting_id: string | null
           message: string | null
-          priority: Database["public"]["Enums"]["notification_priority"] | null
+          priority: Database['public']['Enums']['notification_priority'] | null
           read: boolean | null
           read_at: string | null
           task_id: string | null
           title: string | null
-          type: Database["public"]["Enums"]["notification_type"] | null
+          type: Database['public']['Enums']['notification_type'] | null
           user_id: string | null
         }
         Insert: {
@@ -329,12 +365,12 @@ export type Database = {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
         Update: {
@@ -344,12 +380,12 @@ export type Database = {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
         Relationships: []
@@ -401,11 +437,9 @@ export type Database = {
           set_key: string | null
           shares: number | null
           shares_voted: number | null
-          source: Database["public"]["Enums"]["position_source"] | null
+          source: Database['public']['Enums']['position_source'] | null
           updated_at: string | null
-          vote_status:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status: Database['public']['Enums']['position_vote_status'] | null
         }
         Insert: {
           account_number?: string | null
@@ -420,11 +454,9 @@ export type Database = {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
         Update: {
           account_number?: string | null
@@ -439,11 +471,9 @@ export type Database = {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
         Relationships: []
       }
@@ -482,9 +512,7 @@ export type Database = {
           director_class: string | null
           director_name: string | null
           director_term_years: number | null
-          final_result:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage: number | null
           frequency_options: Json | null
           id: string | null
@@ -511,9 +539,7 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -540,9 +566,7 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -615,7 +639,7 @@ export type Database = {
           description: string | null
           document_id: string | null
           due_date: string | null
-          id: string | null
+          id: string
           links: Json | null
           meeting_id: string | null
           owner: string | null
@@ -632,7 +656,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string | null
+          id?: string
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -649,7 +673,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string | null
+          id?: string
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -707,16 +731,38 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      cast_vote_request_vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD"
-      create_position_request_source: "WEB" | "PRINT" | "IVR"
-      create_position_request_vote_status: "Voted" | "Unvoted"
-      notification_priority: "low" | "medium" | "high" | "critical"
-      notification_type: "info" | "warning" | "error" | "success"
-      position_source: "WEB" | "PRINT" | "IVR"
-      position_vote_status: "Voted" | "Unvoted"
-      proposal_final_result: "PASSED" | "FAILED" | "PENDING"
-      update_position_request_source: "WEB" | "PRINT" | "IVR"
-      update_position_request_vote_status: "Voted" | "Unvoted"
+      add_document_history_request_event_type:
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
+      create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      create_position_request_vote_status: 'Voted' | 'Unvoted'
+      document_history_event_type:
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      notification_priority: 'low' | 'medium' | 'high' | 'critical'
+      notification_type: 'info' | 'warning' | 'error' | 'success'
+      position_source: 'WEB' | 'PRINT' | 'IVR'
+      position_vote_status: 'Voted' | 'Unvoted'
+      proposal_final_result: 'PASSED' | 'FAILED' | 'PENDING'
+      update_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      update_position_request_vote_status: 'Voted' | 'Unvoted'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -724,33 +770,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -759,23 +805,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -784,23 +830,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -809,52 +855,75 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      cast_vote_request_vote: ["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"],
-      create_position_request_source: ["WEB", "PRINT", "IVR"],
-      create_position_request_vote_status: ["Voted", "Unvoted"],
-      notification_priority: ["low", "medium", "high", "critical"],
-      notification_type: ["info", "warning", "error", "success"],
-      position_source: ["WEB", "PRINT", "IVR"],
-      position_vote_status: ["Voted", "Unvoted"],
-      proposal_final_result: ["PASSED", "FAILED", "PENDING"],
-      update_position_request_source: ["WEB", "PRINT", "IVR"],
-      update_position_request_vote_status: ["Voted", "Unvoted"],
+      add_document_history_request_event_type: [
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
+      ],
+      cast_vote_request_vote: ['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'],
+      create_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      create_position_request_vote_status: ['Voted', 'Unvoted'],
+      document_history_event_type: [
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
+      ],
+      notification_priority: ['low', 'medium', 'high', 'critical'],
+      notification_type: ['info', 'warning', 'error', 'success'],
+      position_source: ['WEB', 'PRINT', 'IVR'],
+      position_vote_status: ['Voted', 'Unvoted'],
+      proposal_final_result: ['PASSED', 'FAILED', 'PENDING'],
+      update_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      update_position_request_vote_status: ['Voted', 'Unvoted'],
     },
   },
 } as const
-

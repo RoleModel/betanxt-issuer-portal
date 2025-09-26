@@ -132,7 +132,8 @@ export async function updatePhase(
     if (request.name !== undefined) updateData.name = request.name
     if (request.orderIndex !== undefined) updateData.order_index = request.orderIndex
     if (request.status !== undefined) updateData.status = request.status
-    if (request.keyDates !== undefined) updateData.key_dates = JSON.stringify(request.keyDates)
+    if (request.keyDates !== undefined)
+      updateData.key_dates = JSON.stringify(request.keyDates)
 
     const { data, error } = await supabase
       .from('phase')

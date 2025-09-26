@@ -99,8 +99,8 @@ export async function createDocument(
         description: request.description,
         type: request.type,
         task_id: request.taskId,
-        file_path: request.filePath || request.file,
-        status: request.status || 'DRAFT',
+        file_path: request.file,
+        status: 'DRAFT',
       })
       .select()
       .single()
@@ -159,7 +159,6 @@ export async function updateDocument(
     if (request.title !== undefined) updateData.title = request.title
     if (request.description !== undefined) updateData.description = request.description
     if (request.status !== undefined) updateData.status = request.status
-    if (request.filePath !== undefined) updateData.file_path = request.filePath
 
     const { data, error } = await supabase
       .from('document')
@@ -198,14 +197,16 @@ export async function getDocumentComments(
   try {
     const { data, error } = await supabase
       .from('comment')
-      .select(`
+      .select(
+        `
         *,
         users:user_id (
           first_name,
           last_name,
           avatar
         )
-      `)
+      `
+      )
       .eq('document_id', documentId)
       .order('created_at', { ascending: true })
 
@@ -224,8 +225,8 @@ export async function getDocumentComments(
       last_name: dbComment.users?.last_name || 'User',
       created_at: dbComment.created_at || new Date().toISOString(),
       users: {
-        avatar: dbComment.users?.avatar || null
-      }
+        avatar: dbComment.users?.avatar || null,
+      },
     }))
 
     return {

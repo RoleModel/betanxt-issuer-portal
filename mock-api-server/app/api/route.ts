@@ -4,6 +4,6 @@ export async function GET(): Promise<NextResponse> {
   return NextResponse.json({
     message: 'Mock API Server',
     status: 'running',
-    endpoints: '/api/*'
+    endpoints: '/api/*',
   })
 }

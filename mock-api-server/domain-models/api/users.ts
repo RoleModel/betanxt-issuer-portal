@@ -98,10 +98,7 @@ export async function getUserById(id: string): Promise<ApiResponse<User>> {
   }
 }
 
-export async function updateUser(
-  id: string,
-  body: unknown
-): Promise<ApiResponse<User>> {
+export async function updateUser(id: string, body: unknown): Promise<ApiResponse<User>> {
   const { data, error, response } = await apiClient.PUT('/users/{id}', {
     params: {
       path: { id },

@@ -25,10 +25,7 @@ export async function listProposals(
   proposalType?: string
 ): Promise<ApiResponse<Proposal[]>> {
   try {
-    let query = supabase
-      .from('proposal')
-      .select('*')
-      .eq('meeting_id', meetingId)
+    let query = supabase.from('proposal').select('*').eq('meeting_id', meetingId)
 
     if (proposalType) {
       query = query.eq('proposal_type', proposalType)
@@ -238,15 +235,24 @@ export async function updateProposal(
   try {
     const request = body as UpdateProposalRequest
     const updateData: any = {}
-    if (request.proposalTitle !== undefined) updateData.proposal_title = request.proposalTitle
-    if (request.proposalType !== undefined) updateData.proposal_type = request.proposalType
-    if (request.proposalSubtype !== undefined) updateData.proposal_subtype = request.proposalSubtype
-    if (request.directorName !== undefined) updateData.director_name = request.directorName
-    if (request.directorTermYears !== undefined) updateData.director_term_years = request.directorTermYears
-    if (request.directorClass !== undefined) updateData.director_class = request.directorClass
-    if (request.termExpirationYear !== undefined) updateData.term_expiration_year = request.termExpirationYear
-    if (request.frequencyOptions !== undefined) updateData.frequency_options = request.frequencyOptions
-    if (request.recommendation !== undefined) updateData.recommendation = request.recommendation
+    if (request.proposalTitle !== undefined)
+      updateData.proposal_title = request.proposalTitle
+    if (request.proposalType !== undefined)
+      updateData.proposal_type = request.proposalType
+    if (request.proposalSubtype !== undefined)
+      updateData.proposal_subtype = request.proposalSubtype
+    if (request.directorName !== undefined)
+      updateData.director_name = request.directorName
+    if (request.directorTermYears !== undefined)
+      updateData.director_term_years = request.directorTermYears
+    if (request.directorClass !== undefined)
+      updateData.director_class = request.directorClass
+    if (request.termExpirationYear !== undefined)
+      updateData.term_expiration_year = request.termExpirationYear
+    if (request.frequencyOptions !== undefined)
+      updateData.frequency_options = request.frequencyOptions
+    if (request.recommendation !== undefined)
+      updateData.recommendation = request.recommendation
 
     const { data, error } = await supabase
       .from('proposal')

@@ -1,8 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-25T18:35:57.314Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
 import { listUserAccounts } from '@/domain-models/api/accounts'
 
 interface RouteParams {
@@ -31,13 +31,12 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listUserAccounts'
+        operationId: 'listUserAccounts',
       },
       { status: 500 }
     )
   }
 }
-

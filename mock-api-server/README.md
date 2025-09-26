@@ -62,6 +62,7 @@ npm run generate:postgres-schema
 ```
 
 This creates:
+
 - **Tables**: Based on schema components
 - **Relationships**: Foreign keys from component references
 - **Types**: PostgreSQL enums and custom types
@@ -82,6 +83,7 @@ npm run generate:db-types
 ```
 
 **Outputs**:
+
 - `types/api.ts` - OpenAPI-generated types for request/response models
 - `utils/supabase/database.types.ts` - Supabase-generated database types
 
@@ -145,6 +147,7 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
 ```
 
 **Key Principle**: When adding new fields to the OpenAPI schema:
+
 1. ✅ Update OpenAPI specification
 2. ✅ Regenerate database schema and types
 3. ✅ **Manually update domain model transformations**
@@ -180,6 +183,7 @@ The frontend uses `openapi-fetch` for type-safe API calls:
 ```typescript
 // Frontend usage (issuer-portal)
 import createClient from 'openapi-fetch'
+
 import type { paths } from '@/domain-models/generated-schema'
 
 const client = createClient<paths>({ baseUrl: 'http://localhost:3001' })
@@ -188,8 +192,8 @@ const client = createClient<paths>({ baseUrl: 'http://localhost:3001' })
 const { data, error } = await client.GET('/meetings/{meetingId}/tasks', {
   params: {
     path: { meetingId: 'meeting-123' },
-    query: { status: 'INCOMPLETE' }
-  }
+    query: { status: 'INCOMPLETE' },
+  },
 })
 
 // data is typed as Task[] automatically
@@ -198,21 +202,25 @@ const { data, error } = await client.GET('/meetings/{meetingId}/tasks', {
 ## Key Benefits
 
 ### 🔄 **Single Source of Truth**
+
 - OpenAPI spec defines both API contracts and database schema
 - Changes in one place propagate everywhere automatically
 - No schema drift between frontend, backend, and database
 
 ### 🛡️ **Full Type Safety**
+
 - Compile-time validation of API calls
 - TypeScript types generated from authoritative source
 - Eliminates runtime type errors
 
 ### ⚡ **Rapid Development**
+
 - New endpoints: Update OpenAPI → regenerate → done
 - Automatic route generation eliminates boilerplate
 - Seed data generation creates realistic test scenarios
 
 ### 🧪 **Reliable Testing**
+
 - Deterministic seed data for consistent test results
 - Schema validation ensures API compliance
 - Integration tests verify full request/response cycle
@@ -247,6 +255,7 @@ npm run generate:routes
 ## Available Scripts
 
 ### Code Generation
+
 - `npm run generate:postgres-schema` - Generate PostgreSQL schema from OpenAPI
 - `npm run generate:seeds` - Generate TypeScript seed data
 - `npm run generate:db-types` - Generate database types from Supabase
@@ -254,6 +263,7 @@ npm run generate:routes
 - `npm run full-reset` - Complete regeneration: schema → seeds → database → types
 
 ### Database Operations
+
 - `npm run supabase:start` - Start local Supabase instance
 - `npm run supabase:stop` - Stop local Supabase instance
 - `npm run supabase:reset` - Reset database with migrations and seeds
@@ -345,20 +355,20 @@ All endpoints follow RESTful conventions and return JSON responses. Authenticati
 
 ```typescript
 // Get all clients
-GET /api/client
+GET / api / client
 // Response: Client[]
 
 // Get client by ticker
-GET /api/client/{ticker}
+GET / api / client / { ticker }
 // Response: Client
 
 // List accounts
-GET /api/accounts
+GET / api / accounts
 // Response: Account[]
 
 // Get account with users
-GET /api/accounts/{accountId}
-GET /api/accounts/{accountId}/users
+GET / api / accounts / { accountId }
+GET / api / accounts / { accountId } / users
 ```
 
 ### 📋 **Meeting Management**
@@ -406,6 +416,7 @@ PUT /api/tasks/{taskId}
 ```
 
 **Task Links Structure**:
+
 ```json
 {
   "id": "task-123",
@@ -470,11 +481,11 @@ POST /api/position_votes
 
 ```typescript
 // Get user notifications
-GET /api/notifications
+GET / api / notifications
 // Response: Notification[]
 
 // Mark notification as read
-POST /api/notifications/{notificationId}/mark-read
+POST / api / notifications / { notificationId } / mark - read
 // Response: Notification
 ```
 
@@ -482,11 +493,11 @@ POST /api/notifications/{notificationId}/mark-read
 
 ```typescript
 // List phases for meeting
-GET /api/meetings/{meetingId}/phases
+GET / api / meetings / { meetingId } / phases
 // Response: Phase[]
 
 // Get phase details
-GET /api/phases/{phaseId}
+GET / api / phases / { phaseId }
 // Response: Phase
 ```
 
@@ -495,6 +506,7 @@ GET /api/phases/{phaseId}
 ### Core Business Entities
 
 #### **Client → Account → User Hierarchy**
+
 ```
 Client (Company)
 ├── Account (Department/Division)
@@ -504,6 +516,7 @@ Client (Company)
 ```
 
 #### **Meeting Workflow Structure**
+
 ```
 Meeting
 ├── Phases (1-8: Planning → Execution → Closing)
@@ -516,6 +529,7 @@ Meeting
 ```
 
 #### **Voting System**
+
 ```
 Position (Shareholder holding)
 ├── PositionVote (Vote on specific proposal)
@@ -589,8 +603,8 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
     return {
       error: {
         message: error instanceof Error ? error.message : 'Unknown error',
-        statusCode: 500
-      }
+        statusCode: 500,
+      },
     }
   }
 }
@@ -603,11 +617,12 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
 ```typescript
 // 1. Import generated types
 import createClient from 'openapi-fetch'
+
 import type { paths } from '@/domain-models/generated-schema'
 
 // 2. Create client with base URL
 const client = createClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
 })
 
 // 3. Make type-safe requests
@@ -616,14 +631,14 @@ const { data, error } = await client.GET('/meetings/{meetingId}/tasks', {
     path: { meetingId },
     query: {
       phaseId: 'phase-1',
-      status: 'INCOMPLETE'
-    }
-  }
+      status: 'INCOMPLETE',
+    },
+  },
 })
 
 // data is automatically typed as Task[]
 if (data) {
-  data.forEach(task => {
+  data.forEach((task) => {
     console.log(task.title) // TypeScript knows this exists
     console.log(task.links) // TypeScript knows this is TaskLink[]
   })
@@ -676,7 +691,7 @@ const updateTask = useMutation({
   mutationFn: async (params: { taskId: string; updates: UpdateTaskRequest }) => {
     const { data, error } = await client.PUT('/tasks/{id}', {
       params: { path: { id: params.taskId } },
-      body: params.updates
+      body: params.updates,
     })
 
     if (error) throw new Error(error.message)
@@ -685,7 +700,7 @@ const updateTask = useMutation({
   onSuccess: () => {
     // Invalidate relevant queries
     queryClient.invalidateQueries({ queryKey: ['tasks'] })
-  }
+  },
 })
 
 // Usage
@@ -693,10 +708,8 @@ updateTask.mutate({
   taskId: 'task-123',
   updates: {
     status: 'COMPLETE',
-    links: [
-      { label: 'Download Report', action: 'download', url: '/reports/final.pdf' }
-    ]
-  }
+    links: [{ label: 'Download Report', action: 'download', url: '/reports/final.pdf' }],
+  },
 })
 ```
 
@@ -728,12 +741,12 @@ function generateTaskLinks(title: string, type: string): TaskLink[] {
     links.push({
       label: 'Download Form',
       action: 'download',
-      url: ''
+      url: '',
     })
     links.push({
       label: 'Sign Form',
       action: 'signature',
-      url: ''
+      url: '',
     })
   }
 
@@ -755,7 +768,7 @@ function generateTaskLinks(title: string, type: string): TaskLink[] {
 
 ```typescript
 // tests/integration/test_api_comprehensive.spec.ts
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Task Management API', () => {
   test('should list tasks with links', async ({ request }) => {
@@ -763,7 +776,7 @@ test.describe('Task Management API', () => {
     expect(response.ok()).toBeTruthy()
 
     const tasks = await response.json()
-    const broadridgeTask = tasks.find(t => t.title.includes('Broadridge'))
+    const broadridgeTask = tasks.find((t) => t.title.includes('Broadridge'))
 
     expect(broadridgeTask).toBeDefined()
     expect(broadridgeTask.links).toHaveLength(2)
@@ -774,10 +787,8 @@ test.describe('Task Management API', () => {
   test('should update task links', async ({ request }) => {
     const updateResponse = await request.put('/api/tasks/task-123', {
       data: {
-        links: [
-          { label: 'New Link', action: 'external', url: 'https://example.com' }
-        ]
-      }
+        links: [{ label: 'New Link', action: 'external', url: 'https://example.com' }],
+      },
     })
 
     expect(updateResponse.ok()).toBeTruthy()
@@ -794,7 +805,7 @@ test.describe('Database Schema Validation', () => {
   test('should maintain referential integrity', async ({ request }) => {
     // Test foreign key constraints
     const invalidTask = await request.post('/api/meetings/invalid-id/tasks', {
-      data: { title: 'Test Task', phaseId: 'nonexistent-phase' }
+      data: { title: 'Test Task', phaseId: 'nonexistent-phase' },
     })
 
     expect(invalidTask.status()).toBe(400)
@@ -802,7 +813,7 @@ test.describe('Database Schema Validation', () => {
 
   test('should validate enum constraints', async ({ request }) => {
     const invalidStatus = await request.put('/api/tasks/task-123', {
-      data: { status: 'INVALID_STATUS' }
+      data: { status: 'INVALID_STATUS' },
     })
 
     expect(invalidStatus.status()).toBe(400)
@@ -821,17 +832,17 @@ test.describe('Database Schema Validation', () => {
 export async function completeTask(taskId: string): Promise<ApiResponse<Task>> {
   // Business logic: Auto-complete phase when all tasks done
   const task = await getTaskById(taskId)
-  if (!task.data) return { error: { message: 'Task not found' }}
+  if (!task.data) return { error: { message: 'Task not found' } }
 
   // Update task status
   const updatedTask = await updateTask(taskId, { status: 'COMPLETE' })
 
   // Check if phase is complete
   const phaseTasks = await listTasks(task.data.meetingId, {
-    phaseId: task.data.phaseId
+    phaseId: task.data.phaseId,
   })
 
-  const allComplete = phaseTasks.data?.every(t => t.status === 'COMPLETE')
+  const allComplete = phaseTasks.data?.every((t) => t.status === 'COMPLETE')
   if (allComplete) {
     await updatePhase(task.data.phaseId, { status: 'COMPLETE' })
   }
@@ -844,13 +855,15 @@ export async function completeTask(taskId: string): Promise<ApiResponse<Task>> {
 
 ```typescript
 // domain-models/api/voting.ts
-export async function castVotes(votes: CastVoteRequest[]): Promise<ApiResponse<PositionVote[]>> {
+export async function castVotes(
+  votes: CastVoteRequest[]
+): Promise<ApiResponse<PositionVote[]>> {
   const { data, error } = await supabase.rpc('cast_votes_transaction', {
-    votes_data: votes
+    votes_data: votes,
   })
 
   // PostgreSQL function handles atomicity
-  if (error) return { error: { message: error.message }}
+  if (error) return { error: { message: error.message } }
   return { data: data.map(transformPositionVote) }
 }
 ```
@@ -864,13 +877,15 @@ export async function castVotes(votes: CastVoteRequest[]): Promise<ApiResponse<P
 export async function getMeetingWithDetails(meetingId: string) {
   const { data, error } = await supabase
     .from('meeting')
-    .select(`
+    .select(
+      `
       *,
       phases:phase(*),
       tasks:task(*),
       proposals:proposal(*),
       documents:document(*)
-    `)
+    `
+    )
     .eq('id', meetingId)
     .single()
 
@@ -901,7 +916,7 @@ export async function listMeetingsPaginated(cursor?: string, limit = 20) {
 const cache = new Map<string, { data: any; expiry: number }>()
 
 export function withCache<T>(key: string, ttl: number) {
-  return function(fn: () => Promise<T>) {
+  return function (fn: () => Promise<T>) {
     return async (): Promise<T> => {
       const cached = cache.get(key)
       if (cached && Date.now() < cached.expiry) {
@@ -916,9 +931,10 @@ export function withCache<T>(key: string, ttl: number) {
 }
 
 // Usage
-export const getCachedClients = withCache('clients', 5 * 60 * 1000)(
-  () => supabase.from('clients').select('*')
-)
+export const getCachedClients = withCache(
+  'clients',
+  5 * 60 * 1000
+)(() => supabase.from('clients').select('*'))
 ```
 
 # Troubleshooting Guide
@@ -930,6 +946,7 @@ export const getCachedClients = withCache('clients', 5 * 60 * 1000)(
 **Symptoms**: TaskDrawer shows empty links array
 **Cause**: Missing field mapping in domain model transformation
 **Solution**:
+
 ```typescript
 // Ensure transformTask includes links field
 function transformTask(dbTask: any): Task {
@@ -945,6 +962,7 @@ function transformTask(dbTask: any): Task {
 **Symptoms**: TypeScript errors with openapi-fetch calls
 **Cause**: Outdated generated types
 **Solution**:
+
 ```bash
 # Regenerate all types
 npm run generate:api-types
@@ -956,6 +974,7 @@ npm run generate:db-types
 **Symptoms**: Supabase client connection failures
 **Cause**: Environment variables or local Supabase not running
 **Solution**:
+
 ```bash
 # Check Supabase status
 npx supabase status
@@ -970,6 +989,7 @@ npx supabase start
 **Symptoms**: Database and API types out of sync
 **Cause**: Manual schema changes without regeneration
 **Solution**:
+
 ```bash
 # Full reset workflow
 npm run generate:postgres-schema
@@ -1025,8 +1045,8 @@ export function performanceMiddleware(req: NextRequest) {
   return new Response(JSON.stringify(data), {
     headers: {
       'X-Response-Time': `${Date.now() - start}ms`,
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   })
 }
 ```

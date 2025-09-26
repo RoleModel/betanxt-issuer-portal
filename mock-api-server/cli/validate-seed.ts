@@ -6,7 +6,17 @@ import type { Database } from '@/utils/supabase/database.types'
  * Comprehensive database validation - validates every column in every table
  */
 
-type FieldType = 'string' | 'number' | 'boolean' | 'email' | 'url' | 'date' | 'timestamp' | 'decimal' | 'json' | 'enum'
+type FieldType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'email'
+  | 'url'
+  | 'date'
+  | 'timestamp'
+  | 'decimal'
+  | 'json'
+  | 'enum'
 
 interface TableSchema {
   required: string[]
@@ -464,10 +474,7 @@ const validateUrl = (url: string): boolean => {
   }
 }
 
-const validateType = (
-  value: any,
-  type: string
-): { valid: boolean; error?: string } => {
+const validateType = (value: any, type: string): { valid: boolean; error?: string } => {
   if (value === null || value === undefined) {
     return { valid: true } // NULL values are handled separately
   }
@@ -592,10 +599,7 @@ const validateTableData = (
         errors.push(`Row ${index + 1}: Required field '${field}' is missing or empty`)
       } else {
         // Validate type
-        const typeValidation = validateType(
-          row[field],
-          schema.types[field]
-        )
+        const typeValidation = validateType(row[field], schema.types[field])
         if (!typeValidation.valid) {
           columnStats[field].typeErrors++
           errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`)
@@ -611,10 +615,7 @@ const validateTableData = (
         if (row[field] === null || row[field] === undefined) {
           columnStats[field].nullCount++
         } else {
-          const typeValidation = validateType(
-            row[field],
-            schema.types[field]
-          )
+          const typeValidation = validateType(row[field], schema.types[field])
           if (!typeValidation.valid) {
             columnStats[field].typeErrors++
             errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`)
@@ -640,7 +641,6 @@ const validateTableData = (
 }
 
 async function validateSeedData() {
-
   if (!supabase) {
     process.exit(1)
   }
@@ -652,8 +652,9 @@ async function validateSeedData() {
   try {
     // Validate each table
     for (const [tableName] of Object.entries(TABLE_SCHEMAS)) {
-
-      const { data, error } = await supabase.from(tableName as keyof Database['public']['Tables']).select('*')
+      const { data, error } = await supabase
+        .from(tableName as keyof Database['public']['Tables'])
+        .select('*')
 
       if (error) {
         validationResults[tableName] = { error: error.message }
@@ -916,11 +917,11 @@ async function validateSeedData() {
         phasesByMeetingAndOrder[phase.meeting_id][phase.order_index] = phase
       })
       */
-      const phaseById: any = {};
-      const _phasesByMeetingAndOrder: any = {};
+      const phaseById: any = {}
+      const _phasesByMeetingAndOrder: any = {}
 
       // Validate each task
-      const tasksArray = tasks as Task[];
+      const tasksArray = tasks as Task[]
       tasksArray.forEach((task) => {
         const phase = phaseById[task.phase_id] as Phase | undefined
 
@@ -931,10 +932,7 @@ async function validateSeedData() {
 
         // Check if task.phase_number matches the phase's order_index
         // Key date phases have negative order_index (-3, -2, -1), regular phases have positive (1-8)
-        if (
-          task.phase_number !== phase.order_index &&
-          phase.order_index > 0
-        ) {
+        if (task.phase_number !== phase.order_index && phase.order_index > 0) {
           // Only check for regular phases (positive order_index)
           taskPhaseErrors++
         }
@@ -1059,9 +1057,7 @@ async function validateSeedData() {
       if (result.recordCount) {
         totalRecords += result.recordCount
         const status = result.validation?.valid ? '✅' : '❌'
-        console.log(
-          `   ${status} ${tableName}: ${result.recordCount} records`
-        )
+        console.log(`   ${status} ${tableName}: ${result.recordCount} records`)
       }
     })
 
@@ -1097,7 +1093,6 @@ async function validateSeedData() {
         '💡 RECOMMENDATION: Expected thousands of position votes for realistic testing'
       )
     }
-
 
     if (totalErrors > 0) {
       process.exit(1)

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
@@ -124,11 +124,9 @@ interface MappedAuditComplianceData {
   finalCertified: string
 }
 
-const fetcher = async (key: string) => {
+const fetcher = async (clientTicker: string) => {
   try {
-    const [, clientTicker] = key.split('|')
-
-
+    // ticker provided directly by SWR
     // Fetch all meetings for the ticker
     const apiClient = await buildApiClient()
     const currentYear = new Date().getFullYear()
@@ -337,43 +335,17 @@ const fetcher = async (key: string) => {
 }
 
 export function useReporting(clientTicker: string) {
-  const [data, setData] = useState<ReportingData | undefined>(undefined)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<unknown>(undefined)
-
-  // Force refresh by clearing data when clientTicker changes
-  React.useEffect(() => {
-    setData(undefined)
-    setLoading(true)
-    setError(undefined)
-  }, [clientTicker])
-
-  useEffect(() => {
-    if (!clientTicker) return
-
-    const fetchData = async () => {
-      setLoading(true)
-      setError(undefined)
-      try {
-        // Call fetcher directly without any caching
-        const result = await fetcher(`reporting-fresh|${clientTicker}`)
-        setData(result)
-      } catch (err) {
-        setError(err)
-      } finally {
-        setLoading(false)
-      }
+  const { data, error, isLoading } = useSWR(
+    clientTicker ? ['reporting', clientTicker] : null,
+    ([, ticker]) => fetcher(ticker as string),
+    {
+      dedupingInterval: 60_000,
+      revalidateOnFocus: false,
+      keepPreviousData: true,
     }
+  )
 
-    // Add a small delay to ensure logs are visible
-    setTimeout(fetchData, 100)
-  }, [clientTicker])
-
-  return {
-    data,
-    loading,
-    error,
-  }
+  return { data, loading: isLoading, error }
 }
 
 // Helper calculation functions

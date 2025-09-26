@@ -1,14 +1,14 @@
 ---
-applyTo: 
-  - "mock-api-server/domain-models/**/*"
-  - "mock-api-server/app/api/**/*"
-  - "mock-api-server/openapi-schema/**/*"
-  - "supabase/**/*"
-  - "issuer-portal/domain-models/**/*"
-  - "issuer-portal/hooks/**/*"
-  - "**/*seed*"
-  - "**/*migration*"
-  - "**/*database*"
+applyTo:
+  - 'mock-api-server/domain-models/**/*'
+  - 'mock-api-server/app/api/**/*'
+  - 'mock-api-server/openapi-schema/**/*'
+  - 'supabase/**/*'
+  - 'issuer-portal/domain-models/**/*'
+  - 'issuer-portal/hooks/**/*'
+  - '**/*seed*'
+  - '**/*migration*'
+  - '**/*database*'
 ---
 
 # Data and API Instructions
@@ -63,7 +63,7 @@ supabase db reset
 # Generate database types
 npm run generate:db-types
 
-# Generate API types  
+# Generate API types
 npx openapi-typescript ./openapi-schema/openapi.yaml -o ./types/api.ts
 ```
 
@@ -79,14 +79,14 @@ function transformTask(dbTask: DatabaseRow): Task {
     title: dbTask.title,
     // MUST ADD: New field mapping for priority
     priority: dbTask.priority,
-    
+
     // Foreign keys (snake_case → camelCase)
     meetingId: dbTask.meeting_id,
     phaseId: dbTask.phase_id,
-    
+
     // JSON fields
     links: dbTask.links,
-    
+
     // Timestamps
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
@@ -110,7 +110,7 @@ Client (1) ──→ (N) Meeting
 Meeting (1) ──→ (N) Phase
 Phase (1) ──→ (N) Task
 Meeting (1) ──→ (N) Position
-Meeting (1) ──→ (N) Proposal  
+Meeting (1) ──→ (N) Proposal
 Position (1) ──→ (N) PositionVote
 Proposal (1) ──→ (N) PositionVote
 Meeting (1) ──→ (N) Document
@@ -127,20 +127,20 @@ export function transformEntity(dbEntity: DatabaseRow): ApiEntity {
     id: dbEntity.id,
     title: dbEntity.title,
     status: dbEntity.status,
-    
+
     // 2. Foreign key mappings (snake_case → camelCase)
     meetingId: dbEntity.meeting_id,
     userId: dbEntity.user_id,
-    
+
     // 3. Date field mappings
     createdAt: dbEntity.created_at,
     updatedAt: dbEntity.updated_at,
     dueDate: dbEntity.due_date,
-    
+
     // 4. JSON field mappings (parsed automatically by Supabase)
     links: dbEntity.links,
     metadata: dbEntity.metadata,
-    
+
     // 5. Computed/derived fields
     displayName: `${dbEntity.first_name} ${dbEntity.last_name}`,
   }
@@ -179,8 +179,8 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
     return {
       error: {
         message: error instanceof Error ? error.message : 'Unknown error',
-        statusCode: 500
-      }
+        statusCode: 500,
+      },
     }
   }
 }
@@ -235,7 +235,7 @@ const clients = Array.from({ length: 4 }, (_, i) => ({
 }))
 
 // Generate related data with foreign key relationships
-const meetings = clients.flatMap((client, clientIndex) => 
+const meetings = clients.flatMap((client, clientIndex) =>
   Array.from({ length: 3 }, (_, meetingIndex) => {
     const seedValue = clientIndex * 100 + meetingIndex
     return {
@@ -262,12 +262,12 @@ function generateTaskLinks(title: string, type: string): TaskLink[] {
     links.push({
       label: 'Download Form',
       action: 'download',
-      url: ''
+      url: '',
     })
     links.push({
-      label: 'Sign Form', 
+      label: 'Sign Form',
       action: 'signature',
-      url: ''
+      url: '',
     })
   }
 
@@ -276,7 +276,7 @@ function generateTaskLinks(title: string, type: string): TaskLink[] {
     links.push({
       label: 'Upload Document',
       action: 'upload',
-      url: ''
+      url: '',
     })
   }
 
@@ -322,7 +322,7 @@ CREATE UNIQUE INDEX idx_task_meeting_phase ON task(meeting_id, phase_id, title);
 ALTER TABLE task ADD COLUMN priority TEXT DEFAULT 'MEDIUM';
 
 -- Add enum constraint
-ALTER TABLE task ADD CONSTRAINT task_priority_check 
+ALTER TABLE task ADD CONSTRAINT task_priority_check
   CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'));
 
 -- Add foreign key relationship
@@ -339,6 +339,7 @@ UPDATE task SET priority = 'HIGH' WHERE due_date < NOW() + INTERVAL '1 day';
 ```typescript
 // File: issuer-portal/hooks/useTasks.ts
 import useSWR from 'swr'
+
 import { apiClient } from '@/domain-models/apiClient'
 
 export function useTasks(meetingId: string, phaseId?: string) {
@@ -348,10 +349,10 @@ export function useTasks(meetingId: string, phaseId?: string) {
       const { data, error } = await apiClient.GET('/meetings/{meetingId}/tasks', {
         params: {
           path: { meetingId },
-          query: phaseId ? { phaseId } : {}
-        }
+          query: phaseId ? { phaseId } : {},
+        },
       })
-      
+
       if (error) throw new Error('Failed to fetch tasks')
       return data
     }
@@ -361,7 +362,7 @@ export function useTasks(meetingId: string, phaseId?: string) {
     tasks: data,
     isLoading: !error && !data,
     error,
-    mutate
+    mutate,
   }
 }
 ```
@@ -371,18 +372,19 @@ export function useTasks(meetingId: string, phaseId?: string) {
 ```typescript
 // File: issuer-portal/domain-models/apiClient.ts
 import createClient from 'openapi-fetch'
+
 import type { paths } from './generated-schema'
 
 export const apiClient = createClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
 })
 
 // Usage in components
 const { data: tasks } = await apiClient.GET('/meetings/{meetingId}/tasks', {
   params: {
     path: { meetingId: 'meeting-123' },
-    query: { status: 'INCOMPLETE', phaseId: 'phase-1' }
-  }
+    query: { status: 'INCOMPLETE', phaseId: 'phase-1' },
+  },
 })
 // tasks is automatically typed as Task[]
 ```
@@ -393,7 +395,9 @@ const { data: tasks } = await apiClient.GET('/meetings/{meetingId}/tasks', {
 
 ```typescript
 // Handle Supabase errors consistently
-export async function createTask(taskData: CreateTaskRequest): Promise<ApiResponse<Task>> {
+export async function createTask(
+  taskData: CreateTaskRequest
+): Promise<ApiResponse<Task>> {
   try {
     const { data, error } = await supabase
       .from('task')
@@ -407,13 +411,17 @@ export async function createTask(taskData: CreateTaskRequest): Promise<ApiRespon
 
     if (error) {
       // Handle specific error types
-      if (error.code === '23505') { // Unique violation
-        return { error: { message: 'Task with this title already exists', statusCode: 409 } }
+      if (error.code === '23505') {
+        // Unique violation
+        return {
+          error: { message: 'Task with this title already exists', statusCode: 409 },
+        }
       }
-      if (error.code === '23503') { // Foreign key violation
+      if (error.code === '23503') {
+        // Foreign key violation
         return { error: { message: 'Invalid meeting or phase ID', statusCode: 400 } }
       }
-      
+
       return { error: { message: error.message, statusCode: 500 } }
     }
 
@@ -422,8 +430,8 @@ export async function createTask(taskData: CreateTaskRequest): Promise<ApiRespon
     return {
       error: {
         message: error instanceof Error ? error.message : 'Unknown error',
-        statusCode: 500
-      }
+        statusCode: 500,
+      },
     }
   }
 }
@@ -466,15 +474,11 @@ const { data } = await supabase
 
 ```typescript
 // Use SWR with appropriate cache keys and revalidation
-const { data: meeting } = useSWR(
-  ['meeting', meetingId],
-  () => fetchMeeting(meetingId),
-  {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    dedupingInterval: 60000, // 1 minute
-  }
-)
+const { data: meeting } = useSWR(['meeting', meetingId], () => fetchMeeting(meetingId), {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: true,
+  dedupingInterval: 60000, // 1 minute
+})
 ```
 
 ## Critical Rules

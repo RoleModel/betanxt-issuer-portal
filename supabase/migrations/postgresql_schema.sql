@@ -12,7 +12,7 @@
 -- TABLES
 --
 -- DROP TABLE IF EXISTS public.account;
--- DROP TABLE IF EXISTS public.add_document_history_request;
+-- DROP TABLE IF EXISTS public.add_document_event_request;
 -- DROP TABLE IF EXISTS public.approve_document_version_request;
 -- DROP TABLE IF EXISTS public.cast_vote_request;
 -- DROP TABLE IF EXISTS public.clients;
@@ -67,7 +67,7 @@
 --
 -- TYPES
 --
--- DROP TYPE IF EXISTS add_document_history_request_event_type;
+-- DROP TYPE IF EXISTS add_document_event_request_event_type;
 -- DROP TYPE IF EXISTS cast_vote_request_vote;
 -- DROP TYPE IF EXISTS create_position_request_vote_status;
 -- DROP TYPE IF EXISTS create_position_request_source;
@@ -86,7 +86,7 @@
 --
 -- TYPES
 --
-CREATE TYPE add_document_history_request_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
+CREATE TYPE add_document_event_request_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
 CREATE TYPE cast_vote_request_vote AS ENUM('FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD');
 CREATE TYPE create_position_request_vote_status AS ENUM('Voted', 'Unvoted');
 CREATE TYPE create_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
@@ -119,14 +119,14 @@ COMMENT ON COLUMN account.client_id IS 'The client this account belongs to. Orig
 COMMENT ON COLUMN account.created_at IS 'Original param name - createdAt.';
 
 --
--- Table 'add_document_history_request' generated from model 'addDocumentHistoryUnderscorerequest'
+-- Table 'add_document_event_request' generated from model 'addDocumentEventUnderscorerequest'
 --
-CREATE TABLE IF NOT EXISTS public.add_document_history_request (
-    event_type add_document_history_request_event_type NOT NULL,
+CREATE TABLE IF NOT EXISTS public.add_document_event_request (
+    event_type add_document_event_request_event_type NOT NULL,
     metadata JSON DEFAULT NULL
 );
-COMMENT ON TABLE add_document_history_request IS 'Original model name - addDocumentHistory_request.';
-COMMENT ON COLUMN add_document_history_request.event_type IS 'Original param name - eventType.';
+COMMENT ON TABLE add_document_event_request IS 'Original model name - addDocumentEvent_request.';
+COMMENT ON COLUMN add_document_event_request.event_type IS 'Original param name - eventType.';
 
 --
 -- Table 'approve_document_version_request' generated from model 'approveDocumentVersionUnderscorerequest'

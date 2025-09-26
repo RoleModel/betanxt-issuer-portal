@@ -276,11 +276,11 @@ export function MeetingProvider({
     }
   }, [
     pathname,
-    meetings,
-    currentMeeting,
     refreshMeetings,
     getTickerFromURL,
     getMeetingIdFromURL,
+    // Remove meetings and currentMeeting from dependencies to prevent infinite loop
+    // Only re-run when pathname changes or functions change
   ])
 
   // Fetch meeting data when current meeting changes

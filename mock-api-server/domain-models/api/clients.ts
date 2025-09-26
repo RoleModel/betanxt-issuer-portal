@@ -52,9 +52,7 @@ export async function listClients(
   }
 }
 
-export async function createClient(
-  clientData: unknown
-): Promise<ApiResponse<Client>> {
+export async function createClient(clientData: unknown): Promise<ApiResponse<Client>> {
   const { data, error, response } = await apiClient.POST('/clients', {
     body: clientData as CreateClientRequest,
   })

@@ -4,7 +4,6 @@ import { glob } from 'glob'
 import path from 'path'
 
 async function addOptionsHandlers() {
-
   // Find all route.ts files in the app/api directory
   const routeFiles = await glob('app/api/**/route.ts', {
     cwd: process.cwd(),
@@ -39,6 +38,4 @@ async function addOptionsHandlers() {
 
     await fs.writeFile(filePath, content)
   }
-
 }
-
