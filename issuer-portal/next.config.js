@@ -1,9 +1,18 @@
 // @ts-check
 
+import createBundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = createBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+
+
 const nextConfig = () => {
   /**
    * @type {import('next').NextConfig}
-   **/
+  **/
+
   const config = {
     experimental: {
       globalNotFound: true,
@@ -22,6 +31,14 @@ const nextConfig = () => {
       '@mui/x-data-grid-pro',
       '@mui/x-date-pickers',
     ],
+    async rewrites() {
+      return [
+        {
+          source: '/documents/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/documents/:path*`,
+        },
+      ]
+    },
   }
 
   // Apply auth environment variables (no secrets here)
@@ -37,4 +54,4 @@ const nextConfig = () => {
   return config
 }
 
-export default nextConfig
+export default withBundleAnalyzer(nextConfig);

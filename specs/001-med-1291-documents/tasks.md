@@ -1,4 +1,29 @@
-# Tasks: Shareholder Proxy Document Management (Revised with OpenAPI Client & Seed Integration)
+# Tasks: Shareholder Proxy Document Management
+
+NOTE (Divergence Update - Direct Supabase Integration Implemented):
+We implemented an initial thin data-access layer directly against the existing Supabase tables (table `document`) ahead of the originally planned OpenAPI-first workflow. The following unplanned but completed adjustments occurred:
+
+Completed Outside Original Plan:
+
+- Replaced mock document utilities with real Supabase queries (`fetchDSMDocuments`, `fetchRegularDocuments`, `updateDocumentStatus`).
+- Centralized document status enum to API-only uppercase set; removed legacy lowercase statuses; added friendly label mapping and dynamic action button logic.
+- Added history JSON parsing (row.history -> typed `DocumentHistoryEntry[]`).
+- Removed duplicate Supabase client file to avoid divergence; using shared client from mock-api-server.
+
+Implications:
+
+- OpenAPI client scaffolding (Phase 3.0) is now optional for the MVP UI already reading from Supabase. We can (A) proceed to retrofit an OpenAPI layer for future portability and contract tests, or (B) defer spec-driven client until after core UI flows stabilize. Recommendation: proceed with spec alignment but mark tasks as “adopt to replace direct calls” rather than strict blockers.
+- Some repository/service abstractions defined in later phases may be simplified because a direct table-first approach is active. We can introduce repositories incrementally, wrapping the current utility functions, then swap their internals to use generated OpenAPI client.
+
+Adjustments to Plan:
+
+- Add T000 to capture divergence & retrofit tasks (DONE).
+- Add new task T067A to wrap current direct Supabase functions behind a repository interface before introducing OpenAPI client (ensures single integration point).
+- Renumbering kept stable to avoid breaking references; new tasks appended.
+
+Status Legend Addendum:
+
+- (DONE\*) indicates task accomplished via divergence prior to this revision.
 
 **Input**: `/specs/001-med-1291-documents/` + `mock-api-server/openapi-schema/openapi.yaml` + `supabase/seed.ts`
 **Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md, openapi spec
@@ -12,6 +37,8 @@
 
 ## Phase 3.0: OpenAPI Spec Alignment & Client Scaffolding
 
+- [x] T000 (DONE\*) Record divergence & update tasks (this section) – provides migration path from direct Supabase access to OpenAPI client.
+
 - [ ] T001 Audit current OpenAPI spec for missing document endpoints; add (sign-digital, upload-executed, upload, approve, replace, readiness, history) to `mock-api-server/openapi-schema/openapi.yaml`
 - [ ] T002 Add script `scripts/generate-openapi-types.ts` using `openapi-typescript` to produce `issuer-portal/domain-models/api/generated.ts`
 - [ ] T003 Add dependency `openapi-fetch` (and `openapi-typescript` as dev) in `issuer-portal/package.json`
@@ -21,9 +48,9 @@
 
 ## Phase 3.1: Environment, Buckets & Seed Enhancements
 
-- [ ] T007 Ensure Supabase local env & extend `.env.local` with `DOCS_BUCKET=forms`, `PROXY_BUCKET=proxy`, `SUPPORT_BUCKET=supporting`
-- [ ] T008 Create storage buckets (forms/proxy/supporting) & update `supabase/seed.sql` with INSERT or comment describing manual creation
-- [ ] T009 Add DB migrations (tables/enums) in single file under `supabase/migrations/` (form_documents, proxy_materials, supporting_documents, document_versions, approval_records, readiness_summaries + enums)
+- [ ] T007 Ensure Supabase local env & extend `.env.local` with `DOCS_BUCKET=documents` (deprecated: PROXY_BUCKET, SUPPORT_BUCKET removed after consolidation)
+- [ ] T008 Create single storage bucket `documents` (replaces forms/proxy/supporting) & update `supabase/seed.sql` or docs with note on manual creation
+- [ ] T009 Add DB migrations (tables/enums) in single file under `supabase/migrations/` (unify prior form/proxy/supporting structures if still planned, or mark deprecated) (form_documents, proxy_materials, supporting_documents, document_versions, approval_records, readiness_summaries + enums)
 - [ ] T010 [P] Add enum TS declarations mapping DB enums in `issuer-portal/types/documents.ts`
 - [ ] T011 [P] Stub digital signature provider + interface in `issuer-portal/domain-models/documents/signature/StubSignatureProvider.ts`
 - [ ] T012 [P] Hash utility (SHA-256 Base64) in `issuer-portal/domain-models/documents/utils/hash.ts`
@@ -106,6 +133,18 @@
 - [ ] T066 Security review checklist `specs/001-med-1291-documents/security-review.md`
 - [ ] T067 Final readiness recompute & manual walkthrough (no code)
 
+### New / Divergence Retrofit Tasks
+
+- [ ] T067A Abstract current direct Supabase document utilities into `issuer-portal/domain-models/documents/repositories/DocumentRepo.ts` (wrap `fetchDSMDocuments`, `fetchRegularDocuments`, `updateDocumentStatus`) so future OpenAPI client swap is localized.
+- [ ] T067B Add unit test stubs for history parsing (given JSON variations: null, empty array, mixed objects) `issuer-portal/tests/unit/documents/history_parsing.test.ts`.
+- [ ] T067C Add follow-up doc section in quickstart describing interim direct-access layer and migration path to OpenAPI (`specs/001-med-1291-documents/quickstart.md`).
+
+Retrofit Coverage Mapping:
+
+- Direct Supabase read/write (DONE\*) corresponds to future T032–T038 repository goals.
+- History parsing (DONE\*) partially satisfies future history listing endpoint (T054/T022/T030) once API route added.
+- Status normalization & action logic (DONE\*) supports UI readiness for service layer integration.
+
 ## Dependencies Summary
 
 - Phase 3.0 (T001–T006) precedes any test using generated types
@@ -135,4 +174,4 @@ Early batch candidates:
 - [ ] Observability + error mapping implemented
 - [ ] Security & performance addressed (T063, T066)
 
-Status: READY FOR EXECUTION (Revised)
+Status: READY FOR EXECUTION (Revised with Divergence Notes)

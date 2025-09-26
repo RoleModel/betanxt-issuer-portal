@@ -1,4 +1,5 @@
 import NextAuth from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 import Credentials from 'next-auth/providers/credentials'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -38,7 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: 'Dev User',
             email: 'dev@betanxt.com',
             type: 'ADMIN',
-            account_id: null,
+            account_id: undefined,
           },
           {
             id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
@@ -97,13 +98,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.sub || ''
-        session.user.type = token.type
-        session.user.account_id = token.account_id
-        session.user.client_ticker = token.client_ticker
-        session.user.username = token.username
-      }
+      const t = token as JWT & { sub?: string }
+      session.user.id = t.sub ?? ''
+      session.user.type = t.type ?? undefined
+      session.user.account_id = t.account_id ?? undefined
+      session.user.client_ticker = t.client_ticker ?? null
+      session.user.username = t.username ?? undefined
       return session
     },
     async redirect({ url, baseUrl }) {

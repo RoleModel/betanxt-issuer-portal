@@ -1,22 +1,23 @@
+import { test, expect } from '@playwright/test'
 import { getAllClientLogos, getClientLogo, hasClientLogo } from '../clientUtils'
 
-describe('clientUtils', () => {
-  describe('getClientLogo', () => {
-    it('should return correct logo for exact client name match', () => {
+test.describe('clientUtils', () => {
+  test.describe('getClientLogo', () => {
+    test('should return correct logo for exact client name match', () => {
       expect(getClientLogo("The Wendy's Company")).toBe('/logos/wendys_logo.svg.svg')
       expect(getClientLogo('Paycom Software, Inc.')).toBe('/logos/paycom_logo.svg.svg')
       expect(getClientLogo('Woodward, Inc.')).toBe('/logos/woodward_logo.svg.svg')
       expect(getClientLogo('Enliven Therapeutics, Inc.')).toBe('/logos/enliven-logo.svg')
     })
 
-    it('should return correct logo for ticker match', () => {
+    test('should return correct logo for ticker match', () => {
       expect(getClientLogo(undefined, 'WEN')).toBe('/logos/wendys_logo.svg.svg')
       expect(getClientLogo(undefined, 'PAYC')).toBe('/logos/paycom_logo.svg.svg')
       expect(getClientLogo(undefined, 'WWD')).toBe('/logos/woodward_logo.svg.svg')
       expect(getClientLogo(undefined, 'ELVN')).toBe('/logos/enliven-logo.svg')
     })
 
-    it('should return correct logo for account code match', () => {
+    test('should return correct logo for account code match', () => {
       expect(getClientLogo(undefined, undefined, 'WEN-2024')).toBe(
         '/logos/wendys_logo.svg.svg'
       )
@@ -31,40 +32,40 @@ describe('clientUtils', () => {
       )
     })
 
-    it('should return correct logo for partial name match', () => {
+    test('should return correct logo for partial name match', () => {
       expect(getClientLogo('Wendy Company')).toBe('/logos/wendys_logo.svg.svg')
       expect(getClientLogo('paycom software')).toBe('/logos/paycom_logo.svg.svg')
       expect(getClientLogo('WOODWARD INC')).toBe('/logos/woodward_logo.svg.svg')
       expect(getClientLogo('enliven therapeutics')).toBe('/logos/enliven-logo.svg')
     })
 
-    it('should return default logo for unknown client', () => {
+    test('should return default logo for unknown client', () => {
       expect(getClientLogo('Unknown Company')).toBe('/logos/enliven-logo.svg')
       expect(getClientLogo()).toBe('/logos/enliven-logo.svg')
     })
 
-    it('should prioritize exact name match over ticker', () => {
+    test('should prioritize exact name match over ticker', () => {
       expect(getClientLogo("The Wendy's Company", 'PAYC')).toBe(
         '/logos/wendys_logo.svg.svg'
       )
     })
   })
 
-  describe('hasClientLogo', () => {
-    it('should return true for known clients', () => {
+  test.describe('hasClientLogo', () => {
+    test('should return true for known clients', () => {
       expect(hasClientLogo("The Wendy's Company")).toBe(true)
       expect(hasClientLogo(undefined, 'PAYC')).toBe(true)
       expect(hasClientLogo(undefined, undefined, 'WWD-2024')).toBe(true)
     })
 
-    it('should return false for unknown clients', () => {
+    test('should return false for unknown clients', () => {
       expect(hasClientLogo('Unknown Company')).toBe(false)
       expect(hasClientLogo()).toBe(false)
     })
   })
 
-  describe('getAllClientLogos', () => {
-    it('should return all available logo paths', () => {
+  test.describe('getAllClientLogos', () => {
+    test('should return all available logo paths', () => {
       const logos = getAllClientLogos()
       expect(logos).toContain('/logos/wendys_logo.svg.svg')
       expect(logos).toContain('/logos/paycom_logo.svg.svg')

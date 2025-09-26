@@ -17,4 +17,5 @@ mock-api-server/playwright-report/index.html
 supabase/migrations/.openapi-generator/FILES
 test-results/*
 issuer-portal/playwright-report/
-issuer-portal/test-results/
+issuer-portal/test-results/*
+issuer-portal/playwright-report/index.html

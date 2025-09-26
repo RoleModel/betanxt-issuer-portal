@@ -7,9 +7,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint --fix",
-    "test:ui": "playwright test --ui",
+    "test": "npx playwright test",
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o domain-models/generated-schema.ts",
     "generate:all-types": "npm run generate:types && cd ../mock-api-server && npm run generate:db-types",
@@ -48,7 +48,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.36.2",
-    "@types/luxon": "^3.7.1",
     "@types/node": "^20.4.2",
     "@types/react": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
