@@ -386,7 +386,7 @@ export async function fetchDSMDocuments(
   }
   try {
     // Fallback: direct Supabase query (legacy path)
-    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { supabase } = await import('./supabaseStorage')
     const { data, error } = await supabase
       .from('document')
       .select(
