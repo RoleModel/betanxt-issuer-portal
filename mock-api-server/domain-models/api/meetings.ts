@@ -123,6 +123,17 @@ export async function listMeetings(
 
 export async function createMeeting(meetingData: unknown): Promise<ApiResponse<Meeting>> {
   try {
+    // Basic validation for required fields
+    const meeting = meetingData as any
+    if (!meeting.id || !meeting.clientId || !meeting.status || !meeting.meetingType) {
+      return {
+        error: {
+          message: 'Missing required fields: id, clientId, status, and meetingType are required',
+          statusCode: 400
+        },
+      }
+    }
+
     const { data, error } = await supabase
       .from('meeting')
       .insert(meetingData as CreateMeetingRequest)
@@ -131,7 +142,7 @@ export async function createMeeting(meetingData: unknown): Promise<ApiResponse<M
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create meeting' },
+        error: { message: error.message || 'Failed to create meeting', statusCode: 400 },
       }
     }
 
@@ -161,8 +172,20 @@ export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> 
       .single()
 
     if (error) {
+      // Check if it's a not found error
+      if (error.code === 'PGRST116') {
+        return {
+          error: { message: 'Meeting not found', statusCode: 404 },
+        }
+      }
       return {
         error: { message: error.message || 'Failed to fetch meeting' },
+      }
+    }
+
+    if (!data) {
+      return {
+        error: { message: 'Meeting not found', statusCode: 404 },
       }
     }
 

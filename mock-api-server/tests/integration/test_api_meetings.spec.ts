@@ -53,14 +53,15 @@ test.describe('Meeting API Endpoints', () => {
 
     const data = await response.json()
     expect(data).toHaveProperty('meetings')
-    expect(data).toHaveProperty('total')
-    expect(data).toHaveProperty('page')
-    expect(data).toHaveProperty('limit')
+    expect(data).toHaveProperty('pagination')
+    expect(data.pagination).toHaveProperty('total')
+    expect(data.pagination).toHaveProperty('page')
+    expect(data.pagination).toHaveProperty('limit')
 
     // Should not return more than the limit
     expect(data.meetings.length).toBeLessThanOrEqual(5)
-    expect(data.page).toBe(1)
-    expect(data.limit).toBe(5)
+    expect(data.pagination.page).toBe(1)
+    expect(data.pagination.limit).toBe(5)
   })
 
   test('GET /api/meetings/{id} should return specific meeting', async ({ request }) => {

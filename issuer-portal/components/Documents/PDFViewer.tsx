@@ -51,13 +51,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       hasInitialized.current = true
       import('react-pdf')
         .then(({ pdfjs }) => {
-          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`
+          // Prefer official build path (non-legacy). Fallback set below if needed.
+          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
           setIsWorkerReady(true)
         })
         .catch(() => {
           // Try fallback worker URL silently
           import('react-pdf').then(({ pdfjs }) => {
-            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
             setIsWorkerReady(true)
           })
         })
@@ -126,84 +127,65 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     )
   }
 
-  // Pre-load PDF while showing spinner with consistent dimensions
-  if (!isPdfLoaded) {
-    return (
-      <Box
-        style={{
-          position: 'relative',
-          width: actualWidth,
-          minHeight: actualWidth * 1.294,
-        }}
-      >
-        {/* Maintain aspect ratio of US Letter (8.5:11) */}
+  return (
+    <Box sx={{ position: 'relative' }}>
+      {/* Spinner overlay until PDF is loaded */}
+      {!isPdfLoaded && (
         <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          style={{
+          sx={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: '#f5f5f5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: '#f5f5f5',
             borderRadius: '4px',
+            zIndex: 1,
           }}
         >
           <CircularProgress />
         </Box>
-        {/* Hidden Document component to trigger PDF loading with actual width */}
-        <Box style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
-          <Document
-            file={file}
-            onLoadSuccess={handleLoadSuccess}
-            onLoadError={handleLoadError}
-          >
-            <Page pageNumber={pageNumber} width={actualWidth} />
-          </Document>
-        </Box>
-      </Box>
-    )
-  }
-
-  return (
-    <Box sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 5s ease-in-out' }}>
-      <Document
-        file={file}
-        className={className}
-        onLoadSuccess={handleLoadSuccess}
-        onLoadError={handleLoadError}
-        loading={null}
-        error={
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight={400}
-            sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 5s ease-in-out' }}
-          >
-            <div>Failed to load PDF document</div>
-          </Box>
-        }
-      >
-        <Page
-          pageNumber={pageNumber}
-          width={actualWidth}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
+      )}
+      <Box sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}>
+        <Document
+          file={file}
+          className={className}
+          onLoadSuccess={handleLoadSuccess}
+          onLoadError={handleLoadError}
+          loading={null}
           error={
             <Box
               display="flex"
               justifyContent="center"
               alignItems="center"
               minHeight={400}
+              sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
             >
-              <div>Failed to render page {pageNumber}</div>
+              <div>Failed to load PDF document</div>
             </Box>
           }
-        />
-      </Document>
+        >
+          <Page
+            pageNumber={pageNumber}
+            width={actualWidth}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            error={
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                minHeight={400}
+              >
+                <div>Failed to render page {pageNumber}</div>
+              </Box>
+            }
+          />
+        </Document>
+      </Box>
     </Box>
   )
 }

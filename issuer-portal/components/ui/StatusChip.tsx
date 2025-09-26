@@ -83,9 +83,9 @@ const getStatusDisplayText = (
     default:
       return typeof status === 'string'
         ? status
-            .split('_')
-            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-            .join(' ')
+          .split('_')
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+          .join(' ')
         : 'Unknown'
   }
 }
@@ -111,8 +111,6 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'Approved to Send',
     'Approved',
     'Submitted',
-    'Submitted Awaiting Record Date',
-    'SUBMITTED_AWAITING_RECORD_DATE',
     'Received',
     'Reached',
   ]
@@ -144,7 +142,8 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
   ]
 
   // Grey/Neutral - Default/Incomplete statuses
-  const neutralStatuses = ['Incomplete', 'INCOMPLETE', 'Unvoted', 'Not Started']
+  const neutralStatuses = ['Incomplete', 'INCOMPLETE', 'Unvoted', 'Not Started', 'Submitted Awaiting Record Date',
+    'SUBMITTED_AWAITING_RECORD_DATE',]
 
   // Blue - Info/In Progress statuses
   const infoStatuses = [

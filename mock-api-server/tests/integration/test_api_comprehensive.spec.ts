@@ -11,9 +11,10 @@ test.describe('Comprehensive API Tests', () => {
 
       const data = await response.json()
       expect(data).toHaveProperty('meetings')
-      expect(data).toHaveProperty('total')
-      expect(data).toHaveProperty('page')
-      expect(data).toHaveProperty('limit')
+      expect(data).toHaveProperty('pagination')
+      expect(data.pagination).toHaveProperty('total')
+      expect(data.pagination).toHaveProperty('page')
+      expect(data.pagination).toHaveProperty('limit')
       expect(Array.isArray(data.meetings)).toBe(true)
     })
 
@@ -80,7 +81,8 @@ test.describe('Comprehensive API Tests', () => {
       expect(response.status()).toBe(200)
 
       const data = await response.json()
-      expect(Array.isArray(data)).toBe(true)
+      expect(data).toHaveProperty('positions')
+      expect(Array.isArray(data.positions)).toBe(true)
     })
 
     test('GET /api/positions with meetingId filter should work', async ({ request }) => {
@@ -90,7 +92,8 @@ test.describe('Comprehensive API Tests', () => {
       expect(response.status()).toBe(200)
 
       const data = await response.json()
-      expect(Array.isArray(data)).toBe(true)
+      expect(data).toHaveProperty('positions')
+      expect(Array.isArray(data.positions)).toBe(true)
     })
   })
 
