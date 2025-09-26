@@ -1,0 +1,19 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+The monorepo uses npm workspaces. `issuer-portal/` hosts the Next.js front end with feature folders such as `components/`, `contexts/`, and `utils/`; page routes reside in `app/`. Domain models and generated client types live under `domain-models/`. `mock-api-server/` contains the Supabase schema, OpenAPI definitions, and seeds used to drive local data. Shared scripts live in `scripts/`, while reference docs and diagrams live in `docs/`, `specs/`, and `er-diagram.md`. End-to-end artifacts land in `issuer-portal/tests` and `playwright-report/`.
+
+## Build, Test & Development Commands
+From the repo root run `npm run dev` to start both workspaces through Turbo. `npm run build` compiles the Next.js app and prepares the mock server artifacts. Use `npm run test` for the Playwright suite, and `npm run clean` to reset workspace outputs. Inside `issuer-portal/`, `npm run lint`, `npm run type-check`, and `npm run format` keep code quality intact. Regenerate API typings with `npm run generate:all-types`.
+
+## Coding Style & Naming Conventions
+Formatting is enforced by Prettier (`prettier.config.js`) with 2-space indentation, LF line endings, no semicolons, and single quotes. Imports are auto-sorted by `@trivago/prettier-plugin-sort-imports`; use the `@/...` alias for local modules and group third-party modules first. Prefer PascalCase for React components, camelCase for functions and variables, and kebab-case for files except Next.js route conventions under `app/`. Commit only formatted code; run `npm run format` before pushing.
+
+## Testing Guidelines
+Playwright drives browser tests located in `issuer-portal/tests/e2e/*.spec.ts`. Name new specs with descriptive verbs (`user-login.spec.ts`) and colocate shared fixtures in `issuer-portal/tests`. Run the full suite with `npm run test`; add `--ui` or `--headed` when debugging. For unit-style scenarios, prefer lightweight tests under `issuer-portal/tests/*.test.ts` and ensure any new data contracts update `domain-models/generated-schema.ts`. Investigate flaky tests before merging and attach Playwright reports on failures.
+
+## Commit & Pull Request Guidelines
+Follow the existing Conventional-Commit-inspired prefixes (`feat:`, `fix:`, `chore:`) with an imperative summary, e.g., `fix: align document uploader validations`. Break large work into focused commits and keep them lint-clean. Pull requests should include: summary of user impact, notes on testing (`npm run test`, `npm run lint`), linked Linear/Jira ticket, and screenshots for UI changes. Mention env or migration dependencies explicitly and reference `ENV_SETUP.md` when configuration updates are required.
+
+## Environment & Security Notes
+Create `.env.local` from `issuer-portal/env.template` and keep Supabase service keys server-side only. Use the mock API by pointing `NEXT_PUBLIC_API_BASE_URL` at `http://localhost:3001`. Never commit generated secrets or Playwright reports; add sensitive overrides through Vercel or Supabase configuration.
