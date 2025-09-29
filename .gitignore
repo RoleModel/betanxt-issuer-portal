@@ -19,3 +19,5 @@ test-results/*
 issuer-portal/playwright-report/
 issuer-portal/test-results/*
 issuer-portal/playwright-report/index.html
+.env*.local
+data/
