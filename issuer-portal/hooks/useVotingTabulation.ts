@@ -3,8 +3,66 @@
 import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
-
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 import type { ProposalVoting, VotingSummary } from '@/types/phases'
+
+// Type for normalized position with guaranteed fields
+export interface NormalizedPosition {
+  id: string
+  voteStatus: string
+  shares: number
+  sharesVoted: number
+  votingSource?: string
+}
+
+// Type for normalized proposal
+export interface NormalizedProposal {
+  id: string
+  proposalNumber: number
+  title: string
+  proposalType?: string
+  recommendation?: string
+  directorName?: string
+  totalVotesFor: number
+  totalVotesAgainst: number
+  totalVotesAbstain: number
+}
+
+// Normalize position data to ensure consistent fields
+function normalizePosition(position: unknown): NormalizedPosition | null {
+  if (!position) return null
+
+  const record = asRecord(position)
+  if (!record) return null
+
+  return {
+    id: asString(record.id) || '',
+    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
+    shares: Number(record.shares) || 0,
+    sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
+    votingSource: asString(record.votingSource) || asString(record.voting_source) || asString(record.source) || undefined,
+  }
+}
+
+// Normalize proposal data to ensure consistent fields
+function normalizeProposal(proposal: unknown): NormalizedProposal | null {
+  if (!proposal) return null
+
+  const record = asRecord(proposal)
+  if (!record) return null
+
+  return {
+    id: asString(record.id) || '',
+    proposalNumber: Number(record.proposalNumber) || Number(record.proposal_number) || 0,
+    title: asString(record.proposalTitle) || asString(record.title) || asString(record.proposal_title) || '',
+    proposalType: asString(record.proposalType) || asString(record.proposal_type) || undefined,
+    recommendation: asString(record.recommendation) || undefined,
+    directorName: asString(record.directorName) || asString(record.director_name) || undefined,
+    totalVotesFor: Number(record.totalVotesFor) || Number(record.total_votes_for) || 0,
+    totalVotesAgainst: Number(record.totalVotesAgainst) || Number(record.total_votes_against) || 0,
+    totalVotesAbstain: Number(record.totalVotesAbstain) || Number(record.total_votes_abstain) || 0,
+  }
+}
 
 export interface UseVotingTabulationResult {
   proposals: ProposalVoting[]
@@ -31,39 +89,44 @@ const fetchVotingData = async (meetingId: string) => {
     throw new Error('Failed to fetch proposals')
   }
 
-  const proposalsData = proposalsResult.data || []
-  // Handle different possible response formats
-  const responseData = positionsResult.data
-  const positions = Array.isArray(responseData)
-    ? responseData
-    : ((responseData as unknown as { positions?: any[] })?.positions ?? [])
+  const proposalsRaw = Array.isArray(proposalsResult.data)
+    ? proposalsResult.data
+    : asArray(asRecord(proposalsResult.data)?.proposals)
+  const proposals = proposalsRaw
+    .map((proposal) => normalizeProposal(proposal))
+    .filter((proposal): proposal is NormalizedProposal => proposal !== null)
+
+  const positionsRaw = Array.isArray(positionsResult.data)
+    ? positionsResult.data
+    : asArray(asRecord(positionsResult.data)?.positions)
+  const positions = positionsRaw
+    .map((position) => normalizePosition(position))
+    .filter((position): position is NormalizedPosition => position !== null)
 
   // Calculate voting summary
   const totalPositions = positions.length
-  const positionsVoted = positions.filter((p: any) => p.voteStatus === 'Voted').length
-  const totalShares = positions.reduce((sum: number, p: any) => sum + (p.shares || 0), 0)
+  const positionsVoted = positions.filter((p) => p.voteStatus === 'Voted').length
+  const totalShares = positions.reduce((sum, p) => sum + p.shares, 0)
   const sharesVoted = positions
-    .filter((p: any) => p.voteStatus === 'Voted')
-    .reduce((sum: number, p: any) => sum + (p.shares || 0), 0)
+    .filter((p) => p.voteStatus === 'Voted')
+    .reduce((sum, p) => sum + p.sharesVoted, 0)
 
   const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0
 
   // Count voting methods
-  const webVotes = positions.filter((p: any) => p.votingSource === 'WEB').length
-  const paperVotes = positions.filter((p: any) => p.votingSource === 'PAPER').length
-  const phoneVotes = positions.filter((p: any) => p.votingSource === 'PHONE').length
+  const webVotes = positions.filter((p) => p.votingSource === 'WEB').length
+  const paperVotes = positions.filter((p) => p.votingSource === 'PRINT').length
+  const phoneVotes = positions.filter((p) => p.votingSource === 'IVR').length
 
   // Calculate real voting breakdown by aggregating all proposals
   let totalForShares = 0
   let totalAgainstShares = 0
   let totalAbstainShares = 0
 
-  proposalsData.forEach((proposal: any) => {
-    const proposalFor = proposal.totalVotesFor || proposal.total_votes_for || 0
-    const proposalAgainst =
-      proposal.totalVotesAgainst || proposal.total_votes_against || 0
-    const proposalAbstain =
-      proposal.totalVotesAbstain || proposal.total_votes_abstain || 0
+  proposals.forEach((proposal) => {
+    const proposalFor = proposal.totalVotesFor
+    const proposalAgainst = proposal.totalVotesAgainst
+    const proposalAbstain = proposal.totalVotesAbstain
 
     totalForShares += proposalFor
     totalAgainstShares += proposalAgainst
@@ -101,7 +164,7 @@ const fetchVotingData = async (meetingId: string) => {
   const summary: VotingSummary = {
     totalSharesVoted: sharesVoted,
     totalSharesOutstanding: totalShares,
-    percentageVoted: Math.round(percentageVoted),
+    percentageVoted: Math.round(percentageVoted * 100) / 100, // Round to 2 decimal places
     positionsVoted,
     totalPositions,
     lastUpdated: new Date().toISOString(),
@@ -114,13 +177,11 @@ const fetchVotingData = async (meetingId: string) => {
   }
 
   // Transform proposals data for voting display
-  const votingProposals: ProposalVoting[] = proposalsData.map((proposal: any) => {
+  const votingProposals: ProposalVoting[] = proposals.map((proposal) => {
     // Use actual voting data from the database
-    const proposalForShares = proposal.totalVotesFor || proposal.total_votes_for || 0
-    const proposalAgainstShares =
-      proposal.totalVotesAgainst || proposal.total_votes_against || 0
-    const proposalAbstainShares =
-      proposal.totalVotesAbstain || proposal.total_votes_abstain || 0
+    const proposalForShares = proposal.totalVotesFor
+    const proposalAgainstShares = proposal.totalVotesAgainst
+    const proposalAbstainShares = proposal.totalVotesAbstain
 
     const proposalTotalVoted =
       proposalForShares + proposalAgainstShares + proposalAbstainShares
@@ -145,14 +206,9 @@ const fetchVotingData = async (meetingId: string) => {
 
     return {
       proposalId: proposal.id || '',
-      proposalNumber: proposal.proposalNumber || proposal.proposal_number || '',
-      description:
-        proposal.proposalTitle ||
-        proposal.proposal_title ||
-        proposal.description ||
-        proposal.title ||
-        '',
-      directorName: proposal.directorName || proposal.director_name || undefined,
+      proposalNumber: proposal.proposalNumber,
+      description: proposal.title,
+      directorName: proposal.directorName,
       votingResults: realVotingResults,
       totalShares: proposalTotalVoted,
       status: 'active' as const,
