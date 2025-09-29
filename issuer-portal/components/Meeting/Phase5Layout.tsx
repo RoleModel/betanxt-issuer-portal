@@ -1,38 +1,20 @@
 'use client'
 
 import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
-import dynamic from 'next/dynamic'
 import React, { Suspense } from 'react'
 
 import { CalendarMonthOutlined } from '@mui/icons-material'
-import { Box, Grid, Skeleton, Stack } from '@mui/material'
+import { Box, Grid, Stack } from '@mui/material'
 
 import DocumentSiteCard from '@/components/Documents/DocumentSiteCard'
+import FeatureTile from '@/components/FeatureTile'
+import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
+import SharesMultiplerCard from '@/components/Meeting/SharesMultiplierCard'
+import VotingSharesCard from '@/components/Meeting/VotingSharesCard'
 
-import type { Meeting } from '@/types/api'
+import type { Meeting } from '@/types/api-exports'
 
 import KeyDatesCard from './KeyDatesCard'
-
-const MeetingDocuments = dynamic(() => import('@/components/Meeting/MeetingDocuments'), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-})
-const VotingSharesCard = dynamic(() => import('@/components/Meeting/VotingSharesCard'), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-})
-const SharesMultiplerCard = dynamic(
-  () => import('@/components/Meeting/SharesMultiplierCard'),
-  {
-    loading: () => <Skeleton variant="rectangular" height={300} />,
-    ssr: false,
-  }
-)
-
-const FeatureTile = dynamic(() => import('@/components/FeatureTile'), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-})
 
 interface Phase5LayoutProps {
   meetingId?: string
@@ -40,7 +22,7 @@ interface Phase5LayoutProps {
   phase?: number
 }
 
-export default function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
+function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       <Suspense>
@@ -50,7 +32,7 @@ export default function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) 
         <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
           <Stack direction={{ sm: 'row', lg: 'column' }} spacing={2} useFlexGap={true}>
             <MeetingDocuments meetingId={meetingId} meeting={meeting} />
-            <VotingSharesCard meetingId={meetingId} />
+            {meetingId && <VotingSharesCard meetingId={meetingId} />}
           </Stack>
         </Grid>
 
@@ -84,3 +66,5 @@ export default function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) 
     </Box>
   )
 }
+
+export default Phase5Layout

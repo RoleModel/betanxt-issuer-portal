@@ -1,10 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-25T18:35:57.315Z
+// Generated on 2025-09-29T07:37:47.341Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
 import { createPositionVote } from '@/domain-models/api/votes'
-
 import type { components } from '@/types/api'
 
 export async function GET(): Promise<NextResponse> {
@@ -12,7 +11,7 @@ export async function GET(): Promise<NextResponse> {
     // TODO: Implement getPositionVotes
     // Operation: getPositionVotes
     // This route was auto-generated from OpenAPI spec
-
+    
     // Example: Fetch data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -22,10 +21,10 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json([])
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getPositionVotes',
+        operationId: 'getPositionVotes'
       },
       { status: 500 }
     )
@@ -35,7 +34,7 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as any
+    const body = (await request.json()) as components['schemas']['CastVoteRequest']
 
     // Use existing domain model function
     const { data, error } = await createPositionVote(body)
@@ -50,12 +49,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createPositionVote',
+        operationId: 'createPositionVote'
       },
       { status: 500 }
     )
   }
 }
+

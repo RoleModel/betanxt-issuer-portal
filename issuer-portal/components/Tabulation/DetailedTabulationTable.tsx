@@ -1,7 +1,10 @@
 'use client'
 
 import React from 'react'
+
 import {
+  Box,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -9,10 +12,9 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Box,
   styled,
-  Stack,
 } from '@mui/material'
+
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { formatNumber } from '@/utils/numberUtils'
 
@@ -43,7 +45,9 @@ const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 500,
 }))
 
-export default function DetailedTabulationTable({ meetingId }: DetailedTabulationTableProps) {
+export default function DetailedTabulationTable({
+  meetingId,
+}: DetailedTabulationTableProps) {
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId)
 
   if (loading) {

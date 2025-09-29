@@ -24,7 +24,7 @@ test.describe('Database Connection', () => {
 
     // Function might not exist or return null, but should not error
     if (error && error.code !== 'PGRST116') {
-      console.log('RPC error (expected):', error.message)
+      console.warn('RPC error (expected):', error.message)
     }
     expect(true).toBe(true) // Connection works
   })

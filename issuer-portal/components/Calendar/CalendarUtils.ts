@@ -39,8 +39,8 @@ export const parseTaskDate = (dateStr: string): Date | null => {
     if (!isNaN(parsed.getTime())) {
       return parsed
     }
-  } catch (e) {
-    // Error parsing date
+  } catch {
+    // Ignore parsing errors and fall back to null
   }
 
   return null

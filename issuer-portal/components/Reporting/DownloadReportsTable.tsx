@@ -43,7 +43,9 @@ export default function DownloadReportsTable() {
       <CardContent sx={{ p: 0 }}>
         <TableContainer>
           <Table>
-            <SROnlyTableCaption>List of available meeting reports for download</SROnlyTableCaption>
+            <SROnlyTableCaption>
+              List of available meeting reports for download
+            </SROnlyTableCaption>
             <TableHead>
               <TableRow>
                 <TableCell>Report Name</TableCell>

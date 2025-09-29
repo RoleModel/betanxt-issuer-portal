@@ -5,6 +5,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ErrorOutlineOutlined } from '@mui/icons-material'
+import AudioFileOutlinedIcon from '@mui/icons-material/AudioFileOutlined'
 import { Box, CircularProgress } from '@mui/material'
 
 import {
@@ -12,6 +13,8 @@ import {
   getStoragePublicUrl,
   isStorageUrl,
 } from '@/utils/documentUtils'
+
+import DocumentThumbnailGenerator from './DocumentThumbnailGenerator'
 
 type Props = {
   filePath?: string | null
@@ -45,7 +48,7 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     null
   )
   const [Page, setPage] = useState<React.ComponentType<PageProps> | null>(null)
-  const [_numPages, setNumPages] = useState<number | null>(null)
+  const [, setNumPages] = useState<number | null>(null)
 
   const fileUrl = useMemo(() => {
     if (!filePath) return null
@@ -83,7 +86,7 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   // Derive design-system icon file type (limited union)
   type DesignSystemFileType = 'PDF' | 'HTML' | 'TXT' | 'XLS' | 'XLSX' | 'CSV'
   const iconFileType: DesignSystemFileType = useMemo(() => {
-    if (!filePath) return 'HTML'
+    if (!filePath) return 'PDF'
 
     // Check for PDF data URI first
     if (filePath.startsWith('data:application/pdf')) {
@@ -108,7 +111,7 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
       case 'ppt':
       case 'pptx':
       default:
-        return 'HTML'
+        return 'PDF'
     }
   }, [filePath])
 
@@ -119,23 +122,6 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
 
     const loadPDFComponents = async () => {
       try {
-        // Preflight: skip for data URIs since they're inline
-        if (!fileUrl.startsWith('data:')) {
-          try {
-            const headRes = await fetch(fileUrl, { method: 'HEAD' })
-            if (!headRes.ok) {
-              // Some storage setups don't allow HEAD; try GET with Range to minimize bytes
-              if (headRes.status !== 405) {
-                if (mounted) setHasError(true)
-                return
-              }
-            }
-          } catch {
-            if (mounted) setHasError(true)
-            return
-          }
-        }
-
         // Dynamically import react-pdf components
         const { pdfjs } = await import('react-pdf')
         pdfjs.GlobalWorkerOptions.workerSrc =
@@ -184,9 +170,11 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'action.hover',
+          backgroundColor: 'background.paper',
           borderRadius: 1,
           fontSize: '10px',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <IconForFileType fileType={iconFileType} />
@@ -194,8 +182,53 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     )
   }
 
-  // Non-PDF file
+  // Non-PDF file - use DocumentThumbnailGenerator for Office docs
   if (!isPDF) {
+    const ext = filePath ? getFileExtension(filePath).toLowerCase() : ''
+    const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)
+    const isAudio = ['mp4', 'm4a'].includes(ext)
+
+    if (isOfficeDoc) {
+      return (
+        <Box
+          sx={{
+            cursor: onClick ? 'pointer' : 'default',
+          }}
+          onClick={onClick}
+        >
+          <DocumentThumbnailGenerator
+            url={fileUrl || undefined}
+            fileType={ext}
+            title={filePath?.split('/').pop()}
+            width={width}
+            height={Math.round(width * 1.294)} // 8.5/11 aspect ratio
+          />
+        </Box>
+      )
+    }
+
+    if (isAudio) {
+      return (
+        <Box
+          sx={{
+            width,
+            aspectRatio: '8.5 / 11',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'background.paper',
+            borderRadius: 1,
+            cursor: onClick ? 'pointer' : 'default',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+          onClick={onClick}
+        >
+          <AudioFileOutlinedIcon />
+        </Box>
+      )
+    }
+
     return (
       <Box
         sx={{
@@ -204,9 +237,11 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'action.hover',
+          backgroundColor: 'background.paper',
           borderRadius: 1,
           cursor: onClick ? 'pointer' : 'default',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
         onClick={onClick}
       >
@@ -225,9 +260,11 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'action.hover',
+          backgroundColor: 'background.paper',
           borderRadius: 1,
           cursor: onClick ? 'pointer' : 'default',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
         onClick={onClick}
       >
@@ -246,8 +283,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'action.hover',
+          backgroundColor: 'background.paper',
           borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <CircularProgress size={20} />

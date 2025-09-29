@@ -65,7 +65,9 @@ export const config = {
               roles: user.roles || [],
             }
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Credential authentication failed', error)
+        }
 
         return null
       },

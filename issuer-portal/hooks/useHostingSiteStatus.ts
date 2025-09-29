@@ -14,8 +14,8 @@ export interface HostingSiteStatus {
   approved_at?: string | null
   created_at?: string
   updated_at?: string
-  hosting_site_revisions?: any[]
-  hosting_site_comments?: any[]
+  hosting_site_revisions?: Array<Record<string, unknown>>
+  hosting_site_comments?: Array<Record<string, unknown>>
 }
 
 export interface RevisionRequest {

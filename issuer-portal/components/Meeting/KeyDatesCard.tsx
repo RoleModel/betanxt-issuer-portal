@@ -113,11 +113,13 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
 
       try {
         const apiClient = await buildApiClient()
-        const result = await apiClient.GET('/meetings/{meetingId}/phases', {
+        const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
           params: { path: { meetingId: meeting.id } },
         })
-        if (result.data && !result.error) {
-          setPhases(result.data || [])
+        if (data) {
+          setPhases(data)
+        } else if (error) {
+          console.error('API error fetching phases:', error)
         }
       } catch (error) {
         console.error('Error fetching phases:', error)

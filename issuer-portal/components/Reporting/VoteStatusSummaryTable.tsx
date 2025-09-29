@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material'
+
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 interface VoteStatusRow {
@@ -29,7 +31,10 @@ interface VoteStatusSummaryTableProps {
 }
 
 const formatNumber = (num: number): string => {
-  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 const isSourceRow = (category: string): boolean => {
@@ -59,8 +64,9 @@ export default function VoteStatusSummaryTable({
   const isNonDtcTable = title.includes('Non-DTC')
 
   // Calculate totals for percentage calculations
-  const totalShares = data.find(row => row.category === 'Grand Total')?.shares || 0
-  const totalShareholders = data.find(row => row.category === 'Grand Total')?.shareholders || 0
+  const totalShares = data.find((row) => row.category === 'Grand Total')?.shares || 0
+  const totalShareholders =
+    data.find((row) => row.category === 'Grand Total')?.shareholders || 0
 
   return (
     <Card>
@@ -92,7 +98,8 @@ export default function VoteStatusSummaryTable({
               {data.map((row, index) => {
                 const isSource = isSourceRow(row.category)
                 const isTotal = isTotalRow(row.category)
-                const shareholderPct = totalShareholders > 0 ? (row.shareholders / totalShareholders) * 100 : 0
+                const shareholderPct =
+                  totalShareholders > 0 ? (row.shareholders / totalShareholders) * 100 : 0
                 const sharesPct = totalShares > 0 ? (row.shares / totalShares) * 100 : 0
 
                 return (
@@ -118,7 +125,9 @@ export default function VoteStatusSummaryTable({
                     </TableCell>
                     {isNonDtcTable && (
                       <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
-                        {isTotal && row.category === 'Grand Total' ? '-' : `${shareholderPct.toFixed(2)}%`}
+                        {isTotal && row.category === 'Grand Total'
+                          ? '-'
+                          : `${shareholderPct.toFixed(2)}%`}
                       </TableCell>
                     )}
                     <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
@@ -126,7 +135,9 @@ export default function VoteStatusSummaryTable({
                     </TableCell>
                     {isNonDtcTable && (
                       <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
-                        {isTotal && row.category === 'Grand Total' ? '-' : `${sharesPct.toFixed(2)}%`}
+                        {isTotal && row.category === 'Grand Total'
+                          ? '-'
+                          : `${sharesPct.toFixed(2)}%`}
                       </TableCell>
                     )}
                   </TableRow>

@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import React from 'react'
 
 import { DescriptionOutlined } from '@mui/icons-material'
 import { Box, CircularProgress, Link, Paper, Typography } from '@mui/material'
@@ -13,8 +14,80 @@ interface ResourceTitleProps {
   icon?: React.ReactNode
   href?: string
   onClick?: () => void
-  pdfUrl?: string
+  fileUrl?: string
 }
+
+let workerInitialized = false
+
+const PDFPreview = dynamic(
+  () =>
+    import('react-pdf').then((mod) => {
+      if (typeof window !== 'undefined' && !workerInitialized) {
+        mod.pdfjs.GlobalWorkerOptions.workerSrc = '/images/pdf.worker.min.js'
+        workerInitialized = true
+      }
+
+      const PDFPreviewComponent = ({ fileUrl }: { fileUrl: string }) => {
+        const [error, setError] = React.useState(false)
+
+        if (error) {
+          return <DescriptionOutlined color="inherit" fontSize="large" />
+        }
+
+        return (
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& .react-pdf__Document': {
+                width: '100%',
+                height: '100%',
+              },
+              '& .react-pdf__Page': {
+                width: '100% !important',
+                height: '100% !important',
+              },
+              '& .react-pdf__Page__canvas': {
+                width: '100% !important',
+                height: 'auto !important',
+                maxHeight: '100%',
+                objectFit: 'contain',
+              },
+              '& .react-pdf__Page__textContent': {
+                display: 'none !important',
+              },
+              '& .react-pdf__Page__annotations': {
+                display: 'none !important',
+              },
+            }}
+          >
+            <mod.Document
+              file={fileUrl}
+              loading={<CircularProgress size={15} />}
+              error={<DescriptionOutlined fontSize="small" />}
+              onLoadError={() => setError(true)}
+            >
+              <mod.Page
+                pageNumber={1}
+                width={100}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+              />
+            </mod.Document>
+          </Box>
+        )
+      }
+
+      return { default: PDFPreviewComponent }
+    }),
+  {
+    loading: () => <CircularProgress size={20} />,
+    ssr: false,
+  }
+)
 
 const ResourceTitle: React.FC<ResourceTitleProps> = ({
   title,
@@ -24,73 +97,8 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
   icon,
   href,
   onClick,
-  pdfUrl,
+  fileUrl,
 }) => {
-  const [pdfLoading, setPdfLoading] = useState(false)
-  const [pdfError, setPdfError] = useState(false)
-  // Using looser typing for dynamic PDF components
-  const [Document, setDocument] = useState<React.FC<{
-    file: string
-    loading?: React.ReactElement
-    error?: React.ReactElement
-    children: React.ReactNode
-  }> | null>(null)
-  const [Page, setPage] = useState<React.FC<{
-    pageNumber: number
-    width?: number
-    renderTextLayer?: boolean
-    renderAnnotationLayer?: boolean
-  }> | null>(null)
-
-  // Load PDF components if pdfUrl is provided
-  useEffect(() => {
-    if (!pdfUrl) return
-
-    let mounted = true
-    setPdfLoading(true)
-    setPdfError(false)
-
-    const loadPdfComponents = async () => {
-      try {
-        const { pdfjs } = await import('react-pdf')
-        pdfjs.GlobalWorkerOptions.workerSrc = '/images/pdf.worker.min.js'
-
-        const pdfComponents = await import('react-pdf')
-
-        if (mounted) {
-          setDocument(
-            pdfComponents.Document as React.FC<{
-              file: string
-              loading?: React.ReactElement
-              error?: React.ReactElement
-              children: React.ReactNode
-            }>
-          )
-          setPage(
-            pdfComponents.Page as React.FC<{
-              pageNumber: number
-              width?: number
-              renderTextLayer?: boolean
-              renderAnnotationLayer?: boolean
-            }>
-          )
-          setPdfLoading(false)
-        }
-      } catch (error) {
-        console.error('Failed to load PDF components:', error)
-        if (mounted) {
-          setPdfError(true)
-          setPdfLoading(false)
-        }
-      }
-    }
-
-    loadPdfComponents()
-
-    return () => {
-      mounted = false
-    }
-  }, [pdfUrl])
   return (
     <Box
       className="resource-card"
@@ -145,55 +153,8 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
               overflow: 'hidden',
             }}
           >
-            {pdfUrl ? (
-              pdfLoading ? (
-                <CircularProgress size={20} />
-              ) : pdfError || !Document || !Page ? (
-                <DescriptionOutlined color="inherit" fontSize="large" />
-              ) : (
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    '& .react-pdf__Document': {
-                      width: '100%',
-                      height: '100%',
-                    },
-                    '& .react-pdf__Page': {
-                      width: '100% !important',
-                      height: '100% !important',
-                    },
-                    '& .react-pdf__Page__canvas': {
-                      width: '100% !important',
-                      height: 'auto !important',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                    },
-                    '& .react-pdf__Page__textContent': {
-                      display: 'none !important',
-                    },
-                    '& .react-pdf__Page__annotations': {
-                      display: 'none !important',
-                    },
-                  }}
-                >
-                  <Document
-                    file={pdfUrl}
-                    loading={<CircularProgress size={15} />}
-                    error={<DescriptionOutlined fontSize="small" />}
-                  >
-                    <Page
-                      pageNumber={1}
-                      width={100}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                    />
-                  </Document>
-                </Box>
-              )
+            {fileUrl ? (
+              <PDFPreview fileUrl={fileUrl} />
             ) : (
               icon && (
                 <Box
@@ -232,11 +193,12 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
 
         <Link
           href={href}
-          sx={{
+          sx={(theme) => ({
+            ...theme.typography.body3,
             alignSelf: 'flex-start',
             minWidth: 'auto',
             minHeight: 'auto',
-          }}
+          })}
         >
           {actionText}
         </Link>

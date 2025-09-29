@@ -8,11 +8,11 @@ type Position = components['schemas']['Position']
 async function fetchPositions(meetingId: string): Promise<Position[]> {
   const api = await buildApiClient()
   // Positions endpoint is PostgREST style; filter by meeting with eq.<meetingId>
-  const res = await api.GET('/positions', {
+  const { data } = await api.GET('/positions', {
     params: { query: { meetingId: `eq.${meetingId}` } },
   })
-  if (res.error || !res.data) return []
-  return res.data as Position[]
+  if (!data) return []
+  return data as Position[]
 }
 
 export const getPositionsCached = cacheFn(

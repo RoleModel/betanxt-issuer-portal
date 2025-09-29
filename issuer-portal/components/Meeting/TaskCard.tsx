@@ -17,13 +17,17 @@ import {
 } from '@mui/material'
 
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
-import { getPhaseColor, theme } from '@/components/mui-styling/theme'
+import {
+  getPhaseColor,
+  getStatusBorderColor,
+  theme,
+} from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { formatDate } from '@/lib/formats'
-import type { Task } from '@/types/api'
+import type { Task } from '@/types/api-exports'
 import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
 
 interface TaskItemProps {
@@ -44,6 +48,9 @@ export function TaskItem({
   status,
 }: TaskItemProps) {
   const isComplete = status === 'COMPLETE'
+  const borderColor = isComplete
+    ? theme.vars.palette.complete
+    : getStatusBorderColor(task.status, phaseColor, theme)
 
   return (
     <Card
@@ -51,6 +58,7 @@ export function TaskItem({
       key={task.id}
       data-testid={`task-card-${task.id}`}
       sx={{
+        height: '100%',
         gridArea: 'tasks',
         gridColumn: {
           xs: '1',
@@ -64,7 +72,7 @@ export function TaskItem({
             ? theme.vars.palette.background.default
             : theme.vars.palette.tableCellRow.fill,
         borderLeft: `6px solid`,
-        borderLeftColor: isComplete ? theme.vars.palette.complete : phaseColor,
+        borderLeftColor: borderColor,
         borderTop: 0,
         borderBottom: 0,
         borderRight: 0,
@@ -73,7 +81,7 @@ export function TaskItem({
         textAlign: 'left',
         width: '100%',
         '&:hover': {
-          boxShadow: `0px 0px 0px 1px inset ${phaseColor}`,
+          boxShadow: `0px 0px 0px 1px inset ${borderColor}`,
         },
       }}
     >

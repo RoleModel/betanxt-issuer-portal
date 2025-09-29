@@ -3,25 +3,32 @@
 import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
 import type { User } from 'next-auth'
 import { signOut } from 'next-auth/react'
-import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { useContext } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
 
 import type { NotificationData } from '@/components/Notifications/NotificationPopper'
+// Preload NotificationPopper for better performance - no dynamic import delay
+import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
 import { useClient } from '@/contexts/ClientContext'
-import { useMeeting } from '@/contexts/MeetingContext'
+import MeetingContext from '@/contexts/MeetingContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
-// Dynamic import: avoid loading NotificationPopper bundle until user interacts
-const NotificationPopper = dynamic(
-  () => import('@/components/Notifications/NotificationPopper'),
-  { ssr: false }
-)
+// Custom hook to safely use meeting context when it might not be available
+const useMeetingSafe = () => {
+  const context = useContext(MeetingContext)
+  // Return the context if available, otherwise return a safe default
+  return useMemo(
+    () => context || { meetings: [] as Array<{ id?: string; status?: string }> },
+    [context]
+  )
+}
 
 // --- Hoisted regex constants (avoid re-creation & keep intent explicit) ---
 const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
@@ -29,14 +36,6 @@ const PAST_MEETINGS_REGEX = /^\/[A-Z]+\/past-meetings$/
 const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
-
-// Shape we need for logo rendering (superset of stored client + available client fields referenced)
-interface LogoClientLike {
-  ticker?: string
-  name?: string
-  company_name?: string
-  short_name?: string
-}
 
 // Memoized Next.js Link component wrapper for BNAppBar - defined outside to prevent recreation
 interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
@@ -54,6 +53,27 @@ const NextLinkComponent = React.memo(
   )
 )
 NextLinkComponent.displayName = 'NextLinkComponent'
+
+// Next.js Image component wrapper for BNAppBar logo
+const NextImageComponent = React.memo(
+  (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    const { src, alt, width, height, style } = props
+    return (
+      <Image
+        src={src || '/images/logo.svg'}
+        alt={alt || 'Logo'}
+        width={typeof width === 'number' ? width : 30}
+        height={typeof height === 'number' ? height : 30}
+        style={style}
+        loading="eager"
+        priority
+        placeholder="blur"
+        blurDataURL={src || '/images/logo.svg'}
+      />
+    )
+  }
+)
+NextImageComponent.displayName = 'NextImageComponent'
 
 interface BNAppBarWrapperProps {
   title?: string
@@ -78,12 +98,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(
     null
   )
-  // loadNotifications gates rendering dynamic popper
-  const [loadNotifications, setLoadNotifications] = useState(false)
+  // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
   // Get current client for logo and branding
-  const { currentClient, availableClients, isHydrated } = useClient()
+  const { currentClient, isHydrated } = useClient()
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
@@ -91,29 +110,38 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     []
   )
 
-  // Try to use meeting context, but don't fail if it's not available
-  try {
-    useMeeting()
-  } catch {
-    // ignore
-  }
+  // Get meetings data - handle case where meeting context may not be available
+  const meetingContext = useMeetingSafe()
+  const meetings = useMemo(() => meetingContext.meetings, [meetingContext.meetings])
 
   // Use the current client's ticker for dashboard path, fallback to '/' if no client
   const dashboardPath = useMemo(() => {
     const clientToUse = isHydrated ? currentClient : null
     if (clientToUse?.ticker) {
-      return `/${clientToUse.ticker}/meeting/${clientToUse.ticker.toLowerCase()}-annual-meeting-2025`
+      // Find the first meeting that is not COMPLETE
+      const activeMeeting = meetings.find(
+        (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
+      )
+      if (activeMeeting?.id) {
+        return `/${clientToUse.ticker}/meeting/${activeMeeting.id}`
+      }
+      // Fallback to hardcoded meeting if no active meetings found
+      return `/${clientToUse.ticker}/meeting/${clientToUse.ticker.toLowerCase()}-annual-meeting-2026`
     }
     return '/'
-  }, [isHydrated, currentClient])
+  }, [isHydrated, currentClient, meetings])
+
+  // Extract ticker once per render - memoize regex execution
+  const urlTicker = useMemo(() => {
+    const match = pathname.match(TICKER_PREFIX_REGEX)
+    return match ? match[1] : null
+  }, [pathname])
 
   // Remove prefetch to improve performance - navigation is still instant with Next.js
   // Prefetch was causing unnecessary network requests and slowing down the app
 
-  // Memoize tabs array to prevent recreation
+  // Memoize tabs array to prevent recreation - optimize dependencies
   const exampleTabs = useMemo(() => {
-    const urlTickerMatch = pathname.match(/^\/([A-Z]{2,5})\//)
-    const urlTicker = urlTickerMatch ? urlTickerMatch[1] : null
     const navTicker = urlTicker || (isHydrated ? currentClient?.ticker : null)
     const tickerPrefix = navTicker ? `/${navTicker}` : ''
 
@@ -128,7 +156,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       { label: 'Education', value: 'education', to: '/education' },
       { label: 'Products', value: 'products', to: '/products' },
     ]
-  }, [dashboardPath, pathname, isHydrated, currentClient])
+  }, [dashboardPath, urlTicker, isHydrated, currentClient?.ticker])
 
   const currentTab = useMemo(() => {
     if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
@@ -150,66 +178,81 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   const handleNotificationClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
+      // Prevent event bubbling to avoid potential conflicts
+      event.stopPropagation()
       setNotificationAnchor(event.currentTarget)
-      setLoadNotifications(true)
       setNotificationsOpen((prev) => !prev)
     },
     []
   )
 
-  const handleNotificationClose = useCallback(() => setNotificationsOpen(false), [])
+  const handleNotificationClose = useCallback(() => {
+    setNotificationsOpen(false)
+  }, [])
 
   const handleNotificationItemClick = useCallback(
     (notification: NotificationData) => {
-      if (notification.link) router.push(notification.link)
+      if (notification.link) {
+        // Use router.push for client-side navigation (faster)
+        router.push(notification.link)
+      }
       setNotificationsOpen(false)
     },
     [router]
   )
 
-  // Cache stored client once
-  const storedClientRef = useRef<{ ticker?: string; name?: string } | null>(null)
-  React.useEffect(() => {
-    if (storedClientRef.current === null && typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('betanxt-selected-client')
-        storedClientRef.current = stored ? JSON.parse(stored) : null
-      } catch {
-        storedClientRef.current = null
-      }
+  // Cache stored client once - avoid localStorage read on every render
+  const storedClient = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const stored = localStorage.getItem('betanxt-selected-client')
+      return stored ? JSON.parse(stored) : null
+    } catch {
+      return null
     }
   }, [])
 
-  // Extract ticker once per render
-  const urlTickerMatch = pathname.match(TICKER_PREFIX_REGEX)
-  const urlTicker = urlTickerMatch ? urlTickerMatch[1] : null
+  // Determine logo source - memoize expensive logo computation
+  const logoTicker = useMemo(
+    () => urlTicker || currentClient?.ticker || storedClient?.ticker,
+    [urlTicker, currentClient?.ticker, storedClient?.ticker]
+  )
 
-  // Determine logo source with simpler logic
-  const logoTicker = urlTicker || currentClient?.ticker || storedClientRef.current?.ticker
-  const logoSrc =
-    props.logoSrc ||
-    (logoTicker
-      ? getClientLogo(
-          currentClient?.company_name || currentClient?.short_name,
-          logoTicker
-        )
-      : '/images/logo.svg')
+  const logoSrc = useMemo(
+    () =>
+      props.logoSrc ||
+      (logoTicker
+        ? getClientLogo(
+            currentClient?.company_name || currentClient?.short_name,
+            logoTicker
+          )
+        : '/images/logo.svg'),
+    [
+      props.logoSrc,
+      logoTicker,
+      getClientLogo,
+      currentClient?.company_name,
+      currentClient?.short_name,
+    ]
+  )
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
     const isDefaultLogo = logoSrc === '/images/logo.svg'
     const defaultLogoStyles: React.CSSProperties = isDefaultLogo
-      ? { height: 30 }
-      : { height: 40 }
+      ? { height: 30, width: 120 }
+      : { height: 40, width: 44 }
 
     return {
       logoImg: {
         src: logoSrc,
-        alt: logoTicker ? `${logoTicker} Logo` : 'Logo',
-        style: { ...defaultLogoStyles, ...props.logoImgStyles },
+        alt: `${logoTicker || 'BetaNXT'} logo`,
+        width: isDefaultLogo ? 120 : 44,
+        height: isDefaultLogo ? 30 : 40,
+        style: defaultLogoStyles,
       },
     }
-  }, [logoSrc, logoTicker, props.logoImgStyles])
+  }, [logoSrc, logoTicker])
 
   const avatar = useMemo(() => {
     if (!props.user) {
@@ -234,19 +277,20 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
           ref={notificationButtonRef}
           onClick={handleNotificationClick}
           aria-label="notifications"
+          // Optimize for faster interaction
+          disableRipple={false}
+          disableTouchRipple={false}
         >
           <Badge badgeContent={3} color="primary">
             <NotificationsOutlined />
           </Badge>
         </IconButton>
-        {loadNotifications && (
-          <NotificationPopper
-            anchorEl={notificationAnchor}
-            open={notificationsOpen}
-            onClose={handleNotificationClose}
-            onNotificationClick={handleNotificationItemClick}
-          />
-        )}
+        <NotificationPopper
+          anchorEl={notificationAnchor}
+          open={notificationsOpen}
+          onClose={handleNotificationClose}
+          onNotificationClick={handleNotificationItemClick}
+        />
       </>
     ),
     [
@@ -255,7 +299,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       handleNotificationClick,
       handleNotificationClose,
       handleNotificationItemClick,
-      loadNotifications,
     ]
   )
 
@@ -270,7 +313,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   return (
     <BNAppBar
-      slots={{ logoImg: 'img', end: endSlot }}
+      slots={{ logoImg: NextImageComponent, end: endSlot }}
       slotProps={slotProps}
       color="secondary"
       selectedTabValue={currentTab || undefined}

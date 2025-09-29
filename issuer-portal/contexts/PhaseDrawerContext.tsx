@@ -35,7 +35,7 @@ export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({ childr
   const closeDrawer = (): void => setIsOpen(false)
   const toggleDrawer = (): void => setIsOpen(!isOpen)
   const setPhase = (phase: number): void => setCurrentPhase(phase)
-  const onTaskClick = (taskId: string): void => {
+  const onTaskClick = (_taskId: string): void => {
     // Handle task click logic here
   }
 

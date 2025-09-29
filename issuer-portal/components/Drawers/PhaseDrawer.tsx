@@ -39,7 +39,7 @@ import TaskContextMenu from '@/components/ui/TaskContextMenu'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useClients } from '@/hooks/useClients'
 import { usePhases } from '@/hooks/usePhases'
-import type { KeyDate, Task } from '@/types/api'
+import type { KeyDate, Task } from '@/types/api-exports'
 import type { ContextMenuPosition } from '@/types/common'
 import { handleFormDownload, handleFormSign } from '@/utils/broadridgeFormHandler'
 import { calculateDaysUntil, formatDaysUntil, friendlyDate } from '@/utils/dateUtils'
@@ -97,7 +97,7 @@ interface PhaseDrawerProps {
 }
 
 const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
-  const { open, onClose, phase = 1, onPhaseChange, onTaskClick: _onTaskClick } = props
+  const { open, onClose, phase = 1, onPhaseChange } = props
 
   // Get active meeting and tasks from context
   const {
@@ -118,7 +118,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     phases,
     loading: phaseLoading,
     error: phaseError,
-    refetch: _refetchPhaseData,
   } = usePhases(currentMeeting?.id)
 
   // Get client data for form generation
@@ -133,10 +132,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     () =>
       currentClient
         ? {
-            issuerName: currentClient.company_name || currentClient.short_name || '',
-            contactName: currentClient.primary_contact || '',
-            email: currentClient.primary_contact_email || '',
-          }
+          issuerName: currentClient.company_name || currentClient.short_name || '',
+          contactName: currentClient.primary_contact || '',
+          email: currentClient.primary_contact_email || '',
+        }
         : undefined,
     [currentClient]
   )
@@ -689,7 +688,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                         variant="caption"
                         sx={{ color: '#CCE5FF', fontSize: '14px', fontWeight: 500 }}
                       >
-                        {friendlyDate(keyDate.date)}
+                        {friendlyDate(keyDate.date || '')}
                       </Typography>
                       <Typography
                         variant="h6"
@@ -701,7 +700,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                         variant="subtitle2"
                         sx={{ fontSize: '14px', fontWeight: 500 }}
                       >
-                        {formatDaysUntil(calculateDaysUntil(keyDate.date))}
+                        {formatDaysUntil(calculateDaysUntil(keyDate.date || ''))}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -852,7 +851,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       <DocumentViewer
         open={documentViewerOpen}
         onClose={handleDocumentViewerClose}
-        pdfUrl={documentUrl}
+        fileUrl={documentUrl}
         title={documentTitle}
         signatureAreas={signatureAreas}
         documentType="signature"
@@ -863,9 +862,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         open={approvalDrawerOpen}
         onClose={handleApprovalDrawerClose}
         title={approvalTitle}
-        pdfUrl={approvalDocumentUrl}
+        fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
-        onAddComment={(_comment: string) => {}}
+        onAddComment={() => { }}
       />
 
       {/* Context Menu */}

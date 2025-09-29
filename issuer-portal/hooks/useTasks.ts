@@ -7,10 +7,8 @@ import type { components } from '@/domain-models/generated-schema'
 
 type Task = components['schemas']['Task']
 type CreateTaskRequest = components['schemas']['CreateTaskRequest']
-type TaskLinkAction = 'download' | 'upload' | 'signature' | 'authorize' | 'external'
 
 const fetchTasks = async (meetingId: string): Promise<Task[]> => {
-  console.log('fetchTasks called for meetingId:', meetingId)
   const apiClient = await buildApiClient()
 
   const result = await apiClient.GET('/meetings/{meetingId}/tasks', {
@@ -19,16 +17,15 @@ const fetchTasks = async (meetingId: string): Promise<Task[]> => {
     },
   })
 
-  console.log('fetchTasks API response:', result)
+  const { data, error } = result
 
-  if (result.error) {
-    console.error('fetchTasks error:', result.error)
+  if (error || !data) {
+    console.error('fetchTasks error:', error)
     throw new Error('Failed to fetch tasks')
   }
 
   // Return the API response directly
-  const apiTasks = Array.isArray(result.data) ? result.data : []
-  console.log('Fetched tasks:', apiTasks)
+  const apiTasks: Task[] = Array.isArray(data) ? (data as Task[]) : []
   return apiTasks.filter((task) => task.id && task.title) // Filter out incomplete tasks
 }
 
@@ -68,7 +65,6 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
 
   const updateTaskById = useCallback(
     async (id: string, updates: Partial<Task>) => {
-      console.log('updateTaskById called with:', { id, updates })
       try {
         setError(null)
         // Convert to the correct API format
@@ -83,22 +79,19 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         if (updates.documentId !== undefined) apiUpdates.documentId = updates.documentId
         if (updates.links !== undefined) apiUpdates.links = updates.links
 
-        console.log('Sending API request to update task:', { id, apiUpdates })
         const apiClient = await buildApiClient()
         const result = await apiClient.PUT('/tasks/{id}', {
           params: { path: { id } },
           body: apiUpdates,
         })
 
-        console.log('API response:', result)
+        const { data: _updateData, error: updateError } = result
 
-        if (result.error) {
-          console.error('API error updating task:', result.error)
-          throw new Error(`Failed to update task: ${JSON.stringify(result.error)}`)
+        if (updateError) {
+          console.error('API error updating task:', updateError)
+          throw new Error(`Failed to update task: ${JSON.stringify(updateError)}`)
         }
 
-        console.log('Task updated successfully, refetching data...')
-        // Refetch to get latest data
         await fetchData()
       } catch (err) {
         console.error('Error in updateTaskById:', err)
@@ -132,7 +125,10 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
           params: { path: { meetingId: meetingIdParam } },
           body: taskData as CreateTaskRequest,
         })
-        if (result.error) {
+
+        const { data: _createData, error: createError } = result
+
+        if (createError) {
           throw new Error('Failed to create task')
         }
 

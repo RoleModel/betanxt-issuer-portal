@@ -1,7 +1,9 @@
 'use client'
 
 import React from 'react'
+
 import { Box, Typography } from '@mui/material'
+
 import LineMarker from './LineMarker'
 
 interface LegendItem {
@@ -55,14 +57,7 @@ const CustomLegend: React.FC<CustomLegendProps> = ({
             )
           } else {
             // Use colored rectangle for bar/area series
-            return (
-              <Box
-                width={14}
-                height={14}
-                bgcolor={item.color}
-                borderRadius={0.5}
-              />
-            )
+            return <Box width={14} height={14} bgcolor={item.color} borderRadius={0.5} />
           }
         }
 

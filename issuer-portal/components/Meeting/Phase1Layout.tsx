@@ -10,7 +10,7 @@ import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import MeetingInformationCard from '@/components/Meeting/MeetingInformationCard'
 import TaskCard from '@/components/Meeting/TaskCard'
 
-import type { Meeting } from '@/types/api'
+import type { Meeting } from '@/types/api-exports'
 
 interface Phase1LayoutProps {
   meetingId?: string
@@ -18,11 +18,7 @@ interface Phase1LayoutProps {
   phase?: number
 }
 
-export default function Phase1Layout({
-  meetingId,
-  meeting,
-  phase = 1,
-}: Phase1LayoutProps) {
+function Phase1Layout({ meetingId, meeting, phase = 1 }: Phase1LayoutProps) {
   return (
     <Suspense>
       <Grid container spacing={3}>
@@ -62,3 +58,5 @@ export default function Phase1Layout({
     </Suspense>
   )
 }
+
+export default Phase1Layout

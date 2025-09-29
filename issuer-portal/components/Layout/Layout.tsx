@@ -101,7 +101,7 @@ function Layout({
         )}
         {navBar && <BNAppBarClient user={bnUser} />}
 
-        <Box sx={{ flexGrow: 1, flex: 1 }}>{children}</Box>
+        {children}
         <Fab
           color="primary"
           aria-label="Support contacts"

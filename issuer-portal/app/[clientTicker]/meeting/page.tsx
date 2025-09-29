@@ -51,7 +51,7 @@ export default function MeetingsPage() {
     try {
       // Fetch active and upcoming meetings using openapi-fetch
       const apiClient = await buildApiClient()
-      const { data, error } = await apiClient.GET('/meetings', {
+      const result = await apiClient.GET('/meetings', {
         params: {
           query: {
             ticker: clientTicker,
@@ -60,11 +60,16 @@ export default function MeetingsPage() {
         },
       })
 
-      if (error) {
-        throw new Error('Failed to fetch meetings')
+      const { data, error } = result
+
+      if (!data) {
+        if (error) {
+          throw new Error('Failed to fetch meetings')
+        }
+        throw new Error('No data returned from API')
       }
 
-      const meetingsData = data?.meetings ?? []
+      const meetingsData = data as Meeting[]
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
@@ -139,7 +144,7 @@ export default function MeetingsPage() {
   }, [meetings, order, orderBy])
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Card>
         <CardHeader title="Active Meetings" />
         <CardContent sx={{ p: 0 }}>

@@ -7,10 +7,9 @@ import { Card, CardActionArea, CardContent, Link, Stack, Typography } from '@mui
 import { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
-import type { Client as ApiClient } from '@/types/api'
+import type { Client } from '@/hooks/useClients'
 
 type Meeting = components['schemas']['Meeting']
-type Client = ApiClient
 
 interface DocumentHostingCardProps {
   meeting?: Meeting

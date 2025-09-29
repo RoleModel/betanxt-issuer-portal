@@ -109,7 +109,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           onPositionUpdate?.(newSignatureArea.id, position.x, position.y)
         }
       } catch (err) {
-        // Error handled appropriately
+        console.error('Failed to create signature area', err)
       }
       return
     }
@@ -127,7 +127,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         // Failed to update position
       }
     } catch (err) {
-      // Error updating position
+      console.error('Failed to update signature area position', err)
     }
   }, [
     isDragging,

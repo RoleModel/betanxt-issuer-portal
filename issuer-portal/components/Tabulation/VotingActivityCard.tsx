@@ -1,9 +1,12 @@
 'use client'
 
 import React, { useMemo } from 'react'
+
 import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
 import { PieChart } from '@mui/x-charts/PieChart'
+
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
+
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 
 interface VotingActivityCardProps {

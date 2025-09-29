@@ -79,7 +79,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [approvalTask, setApprovalTask] = useState<Task | null>(null)
 
   // Document viewer state
-  const [_documentViewerOpen, setDocumentViewerOpen] = useState(false)
+  const [, setDocumentViewerOpen] = useState(false)
 
   // Add modal state
   const [addModalOpen, setAddModalOpen] = useState(false)
@@ -87,16 +87,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handleTaskClick = async (taskId: string) => {
     try {
       const apiClient = await buildApiClient()
-      const result = await apiClient.GET('/tasks/{id}', {
+      const { data } = await apiClient.GET('/tasks/{id}', {
         params: { path: { id: taskId } },
       })
 
-      if (result.error || !result.data) {
+      if (!data) {
         return
       }
 
       // Convert API response to our Task type using centralized transformer
-      const task = transformApiTaskToTask(result.data)
+      const task = transformApiTaskToTask(data)
 
       if (!task) {
         return
@@ -116,7 +116,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       // Otherwise open TaskDrawer
       setSelectedTask(task)
       setDrawerOpen(true)
-    } catch (err) {
+    } catch {
       // Error handled appropriately
     }
   }
@@ -133,17 +133,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setApprovalTask(null)
   }
 
-  const handleApprovalAddComment = (_comment: string) => {}
+  const handleApprovalAddComment = (_comment: string) => {
+    // TODO: implement comment submission logic
+    // Placeholder until submission logic is implemented
+    void _comment
+  }
 
   const handleOpenFullscreen = () => {
-    // Close the approval drawer
+    // Ensure calendar enters fullscreen before showing document viewer
+    if (!isFullscreen) {
+      setIsFullscreen(true)
+      onFullscreenChange?.(true)
+
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        document.body.style.overflow = 'hidden'
+      }
+
+      const event = new CustomEvent('calendar-fullscreen-change', {
+        detail: { isFullscreen: true },
+      })
+      window.dispatchEvent(event)
+    }
     setApprovalDrawerOpen(false)
     // Open the document viewer in fullscreen
     setDocumentViewerOpen(true)
-  }
-
-  const _handleCloseDocumentViewer = () => {
-    setDocumentViewerOpen(false)
   }
 
   const handleApprove = async () => {
@@ -152,7 +165,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       await approveTask(approvalTask.id)
       handleApprovalDrawerClose()
-    } catch (err) {
+    } catch {
       // Error handled appropriately
     }
   }
@@ -297,7 +310,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tasks={tasks}
               keyDates={keyDates}
               loading={tasksLoading}
-              onRefresh={refreshMeetingData}
             />
           )}
         </Box>
@@ -319,7 +331,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         open={approvalDrawerOpen}
         onClose={handleApprovalDrawerClose}
         title={approvalTitle}
-        pdfUrl={approvalDocumentUrl}
+        fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
         taskStatus={approvalTask?.status}
         onOpenFullscreen={handleOpenFullscreen}
@@ -332,20 +344,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         onTaskAdded={handleTaskAdded}
         activeMeeting={meeting}
       />
-
-      {/* TODO: Add DocumentViewer component */}
-      {/* <DocumentViewer
-        open={documentViewerOpen}
-        onClose={handleCloseDocumentViewer}
-        pdfUrl={approvalDocumentUrl}
-        title={approvalTitle}
-        taskId={approvalTask?.id}
-        onSubmitSuccess={() => {
-          // Refresh calendar data and close viewer
-          refreshData()
-          handleCloseDocumentViewer()
-        }}
-      /> */}
     </Container>
   )
 }

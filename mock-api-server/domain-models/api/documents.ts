@@ -1,5 +1,11 @@
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
 
 // Use generated types from OpenAPI schema
 type Document = components['schemas']['Document']
@@ -7,6 +13,28 @@ type Comment = components['schemas']['Comment']
 type CreateDocumentRequest = components['schemas']['CreateDocumentRequest']
 type UpdateDocumentRequest = components['schemas']['UpdateDocumentRequest']
 type CreateCommentRequest = components['schemas']['CreateCommentRequest']
+type DocumentRow = Database['public']['Tables']['document']['Row']
+type DocumentUpdate = Database['public']['Tables']['document']['Update']
+type CommentRow = Database['public']['Tables']['comment']['Row']
+type CommentRowWithUser = CommentRow & {
+  users?: {
+    first_name: string | null
+    last_name: string | null
+    avatar: string | null
+  } | null
+}
+
+interface CommentWithUser {
+  id: string
+  comment: string
+  user: string
+  first_name: string
+  last_name: string
+  created_at: string
+  users: {
+    avatar: string | null
+  }
+}
 
 // Helper type for backend responses
 type ApiResponse<T> = {
@@ -18,28 +46,30 @@ type ApiResponse<T> = {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformDocument(dbDocument: any): Document {
+function transformDocument(dbDocument: DocumentRow): Document {
   return {
     id: dbDocument.id,
-    meetingId: dbDocument.meeting_id,
-    title: dbDocument.title,
-    description: dbDocument.description,
-    type: dbDocument.type,
-    status: dbDocument.status,
-    taskId: dbDocument.task_id,
-    filePath: dbDocument.file_path,
-    createdAt: dbDocument.created_at,
-    updatedAt: dbDocument.updated_at,
+    meetingId: nullToUndefined(dbDocument.meeting_id),
+    title: nullToUndefined(dbDocument.title),
+    description: nullToUndefined(dbDocument.description),
+    type: nullToUndefined(dbDocument.type),
+    status: nullToUndefined(dbDocument.status) as 'IN_PROGRESS' | 'AUTHORIZED' | 'DRAFT' | 'AWAITING_DRAFT' | 'AWAITING_REVIEW' | 'APPROVED' | 'UPLOADED' | 'SIGNED' | 'COMPLETED' | undefined,
+    taskId: nullToUndefined(dbDocument.task_id),
+    filePath: nullToUndefined(dbDocument.file_path),
+    displayCategory: nullToUndefined(dbDocument.display_category),
+    fileType: nullToUndefined(dbDocument.file_type),
+    createdAt: nullToUndefined(dbDocument.created_at),
+    updatedAt: nullToUndefined(dbDocument.updated_at),
   }
 }
 
-function transformComment(dbComment: any): Comment {
+function transformComment(dbComment: CommentRow): Comment {
   return {
-    id: dbComment.id,
-    documentId: dbComment.document_id,
-    comment: dbComment.comment,
-    userId: dbComment.user_id,
-    createdAt: dbComment.created_at,
+    id: nullToUndefined(dbComment.id) as number | undefined,
+    documentId: nullToUndefined(dbComment.document_id),
+    comment: nullToUndefined(dbComment.comment),
+    userId: nullToUndefined(dbComment.user_id),
+    createdAt: nullToUndefined(dbComment.created_at),
   }
 }
 
@@ -86,10 +116,10 @@ export async function listDocuments(
 
 export async function createDocument(
   meetingId: string,
-  body: unknown
+  body: CreateDocumentRequest
 ): Promise<ApiResponse<Document>> {
   try {
-    const request = body as CreateDocumentRequest
+    const request = body
     const { data, error } = await supabase
       .from('document')
       .insert({
@@ -112,7 +142,7 @@ export async function createDocument(
     }
 
     return {
-      data: transformDocument(data),
+      data: transformDocument(data as DocumentRow),
     }
   } catch (error) {
     return {
@@ -151,11 +181,11 @@ export async function getDocumentById(id: string): Promise<ApiResponse<Document>
 
 export async function updateDocument(
   id: string,
-  body: unknown
+  body: UpdateDocumentRequest
 ): Promise<ApiResponse<Document>> {
   try {
-    const request = body as UpdateDocumentRequest
-    const updateData: any = {}
+    const request = body
+    const updateData: Partial<DocumentUpdate> = {}
     if (request.title !== undefined) updateData.title = request.title
     if (request.description !== undefined) updateData.description = request.description
     if (request.status !== undefined) updateData.status = request.status
@@ -174,7 +204,7 @@ export async function updateDocument(
     }
 
     return {
-      data: transformDocument(data),
+      data: transformDocument(data as DocumentRow),
     }
   } catch (error) {
     return {
@@ -193,20 +223,11 @@ export async function listDocumentsByMeetingId(
 
 export async function getDocumentComments(
   documentId: string
-): Promise<ApiResponse<any[]>> {
+): Promise<ApiResponse<CommentWithUser[]>> {
   try {
     const { data, error } = await supabase
       .from('comment')
-      .select(
-        `
-        *,
-        users:user_id (
-          first_name,
-          last_name,
-          avatar
-        )
-      `
-      )
+      .select('*')
       .eq('document_id', documentId)
       .order('created_at', { ascending: true })
 
@@ -217,17 +238,19 @@ export async function getDocumentComments(
     }
 
     // Transform to match DocumentViewer's CommentWithUser interface
-    const transformedComments = (data || []).map((dbComment: any) => ({
-      id: dbComment.id?.toString() || '',
-      comment: dbComment.comment || '',
-      user: dbComment.user_id || 'Unknown User',
-      first_name: dbComment.users?.first_name || 'Unknown',
-      last_name: dbComment.users?.last_name || 'User',
-      created_at: dbComment.created_at || new Date().toISOString(),
-      users: {
-        avatar: dbComment.users?.avatar || null,
-      },
-    }))
+    const transformedComments: CommentWithUser[] = (data ?? []).map(
+      (dbComment: CommentRowWithUser) => ({
+        id: dbComment.id?.toString() || '',
+        comment: dbComment.comment || '',
+        user: dbComment.user_id || 'Unknown User',
+        first_name: 'Unknown',
+        last_name: 'User',
+        created_at: dbComment.created_at || new Date().toISOString(),
+        users: {
+          avatar: null,
+        },
+      })
+    )
 
     return {
       data: transformedComments,

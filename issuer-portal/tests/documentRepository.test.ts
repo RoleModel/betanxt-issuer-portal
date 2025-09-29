@@ -9,7 +9,7 @@ test.describe('documentRepository (smoke)', () => {
     let docs: unknown
     try {
       docs = await documentRepository.listByMeeting('non-existent-meeting')
-    } catch (e) {
+    } catch {
       test.skip(
         true,
         'Repository threw (likely backend unavailable); skipping smoke assertion.'

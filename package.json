@@ -9,24 +9,33 @@
     "issuer-portal"
   ],
   "scripts": {
-    "build": "turbo run build",
+    "vercel-install": "./scripts/vercel-install.sh",
+    "build": "npm run build --workspace=issuer-portal",
+    "build:all": "turbo run build",
     "dev": "turbo run dev",
     "start": "turbo run start",
     "test": "turbo run test",
-    "clean": "turbo run clean",
-    "format": "prettier --write ."
+    "clean": "npm run clean --workspace=issuer-portal && npm run clean --workspace=mock-api-server",
+    "clean:all": "rm -rf .next issuer-portal/.next mock-api-server/.next node_modules issuer-portal/node_modules mock-api-server/node_modules .turbo",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "lint:strict": "eslint -c eslint.strict.config.mjs ."
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^15.5.4",
     "prettier": "3.6.2",
     "turbo": "^2.5.8"
   },
   "engines": {
-    "node": ">=22.15.0"
+    "node": "22.x"
   },
   "packageManager": "npm@10.9.3",
   "dependencies": {
     "@snaplet/copycat": "^6.0.0",
     "@supabase/supabase-js": "^2.58.0",
+    "@vercel/analytics": "^1.5.0",
     "luxon": "^3.7.2",
     "react": "^19.1.1"
   }

@@ -11,7 +11,7 @@ import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
 import TaskCard from '@/components/Meeting/TaskCard'
 
-import type { Document, Meeting } from '@/types/api'
+import type { Document, Meeting } from '@/types/api-exports'
 import { friendlyDate } from '@/utils/dateUtils'
 
 interface Phase4LayoutProps {
@@ -21,11 +21,7 @@ interface Phase4LayoutProps {
   phase?: number
 }
 
-export default function Phase4Layout({
-  meetingId,
-  meeting,
-  phase = 4,
-}: Phase4LayoutProps) {
+function Phase4Layout({ meetingId, meeting, phase = 4 }: Phase4LayoutProps) {
   const materialsDate = meeting?.meetingDate
     ? new Date(new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000)
     : null
@@ -51,3 +47,4 @@ export default function Phase4Layout({
     </Grid>
   )
 }
+export default Phase4Layout

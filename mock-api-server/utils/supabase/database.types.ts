@@ -14,7 +14,7 @@ export type Database = {
           client: string | null
           client_id: string | null
           created_at: string | null
-          id: string | null
+          id: string
           name: string | null
           primary_contact: string | null
         }
@@ -22,7 +22,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string | null
+          id: string
           name?: string | null
           primary_contact?: string | null
         }
@@ -30,7 +30,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string | null
+          id?: string
           name?: string | null
           primary_contact?: string | null
         }
@@ -43,7 +43,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           description: string | null
-          id: string | null
+          id: string
           industry: string | null
           is_active: boolean | null
           meetings: Json | null
@@ -60,7 +60,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string | null
+          id: string
           industry?: string | null
           is_active?: boolean | null
           meetings?: Json | null
@@ -77,7 +77,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string | null
+          id?: string
           industry?: string | null
           is_active?: boolean | null
           meetings?: Json | null
@@ -136,11 +136,14 @@ export type Database = {
           created_at: string | null
           deadline: string | null
           description: string | null
+          display_category:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path: string | null
           file_size: number | null
           file_type: string | null
           history: Json | null
-          id: string | null
+          id: string
           in_progress_date: string | null
           meeting: string | null
           meeting_id: string | null
@@ -163,11 +166,14 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description?: string | null
+          display_category?:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string | null
+          id: string
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
@@ -190,11 +196,14 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description?: string | null
+          display_category?:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string | null
+          id?: string
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
@@ -223,7 +232,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           document_id: string
-          event_type: Database['public']['Enums']['document_history_event_type']
+          event_type?: Database['public']['Enums']['document_history_event_type']
           id?: string
           metadata?: Json | null
           user_id?: string | null
@@ -240,6 +249,66 @@ export type Database = {
         }
         Relationships: []
       }
+      mailing: {
+        Row: {
+          canceled_suppressed_positions: number | null
+          consolidated_suppressed_positions: number | null
+          courtesy_other_mail_positions: number | null
+          created_at: string | null
+          electronic_suppressed_positions: number | null
+          fullset_mail_positions: number | null
+          household_suppressed_positions: number | null
+          id: string | null
+          managed_suppressed_positions: number | null
+          meeting_id: string | null
+          naa_mail_positions: number | null
+          ticker: string | null
+          total_accounts: number | null
+          total_positions: number | null
+          total_retransmissions: number | null
+          total_rollups: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          canceled_suppressed_positions?: number | null
+          consolidated_suppressed_positions?: number | null
+          courtesy_other_mail_positions?: number | null
+          created_at?: string | null
+          electronic_suppressed_positions?: number | null
+          fullset_mail_positions?: number | null
+          household_suppressed_positions?: number | null
+          id?: string | null
+          managed_suppressed_positions?: number | null
+          meeting_id?: string | null
+          naa_mail_positions?: number | null
+          ticker?: string | null
+          total_accounts?: number | null
+          total_positions?: number | null
+          total_retransmissions?: number | null
+          total_rollups?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          canceled_suppressed_positions?: number | null
+          consolidated_suppressed_positions?: number | null
+          courtesy_other_mail_positions?: number | null
+          created_at?: string | null
+          electronic_suppressed_positions?: number | null
+          fullset_mail_positions?: number | null
+          household_suppressed_positions?: number | null
+          id?: string | null
+          managed_suppressed_positions?: number | null
+          meeting_id?: string | null
+          naa_mail_positions?: number | null
+          ticker?: string | null
+          total_accounts?: number | null
+          total_positions?: number | null
+          total_retransmissions?: number | null
+          total_rollups?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       meeting: {
         Row: {
           broker_search_date: string | null
@@ -251,7 +320,7 @@ export type Database = {
           distribution_type: string | null
           employee_stock_plans: string | null
           filing_date: string | null
-          id: string | null
+          id: string
           inspector: string | null
           ivr_dial_in_number: string | null
           mailing_date: string | null
@@ -284,7 +353,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -317,7 +386,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id?: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -393,7 +462,7 @@ export type Database = {
       phase: {
         Row: {
           created_at: string | null
-          id: string | null
+          id: string
           key_dates: string | null
           meeting_id: string | null
           name: string | null
@@ -403,7 +472,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id?: string | null
+          id: string
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -413,7 +482,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          id?: string | null
+          id?: string
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -431,7 +500,7 @@ export type Database = {
           created_at: string | null
           cusip: string | null
           date_voted: string | null
-          id: string | null
+          id: string
           meeting_id: string | null
           name: string | null
           set_key: string | null
@@ -448,7 +517,7 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string | null
+          id: string
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
@@ -465,7 +534,7 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
@@ -515,7 +584,7 @@ export type Database = {
           final_result: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage: number | null
           frequency_options: Json | null
-          id: string | null
+          id: string
           meeting_id: string | null
           participation_rate: number | null
           proposal_number: number | null
@@ -542,7 +611,7 @@ export type Database = {
           final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string | null
+          id: string
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -569,7 +638,7 @@ export type Database = {
           final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -633,6 +702,59 @@ export type Database = {
         }
         Relationships: []
       }
+      tabulation_report: {
+        Row: {
+          broker_voting: Json | null
+          created_at: string | null
+          dtc_vote_status: Json | null
+          id: string
+          last_calculated_at: string | null
+          meeting_id: string
+          non_dtc_vote_status: Json | null
+          positions_voted: Json | null
+          set_keys: string[] | null
+          share_range_performance: Json | null
+          updated_at: string | null
+          vote_distribution: Json | null
+        }
+        Insert: {
+          broker_voting?: Json | null
+          created_at?: string | null
+          dtc_vote_status?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          meeting_id: string
+          non_dtc_vote_status?: Json | null
+          positions_voted?: Json | null
+          set_keys?: string[] | null
+          share_range_performance?: Json | null
+          updated_at?: string | null
+          vote_distribution?: Json | null
+        }
+        Update: {
+          broker_voting?: Json | null
+          created_at?: string | null
+          dtc_vote_status?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          meeting_id?: string
+          non_dtc_vote_status?: Json | null
+          positions_voted?: Json | null
+          set_keys?: string[] | null
+          share_range_performance?: Json | null
+          updated_at?: string | null
+          vote_distribution?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_tabulation_report_meeting'
+            columns: ['meeting_id']
+            isOneToOne: true
+            referencedRelation: 'meeting'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       task: {
         Row: {
           created_at: string | null
@@ -656,7 +778,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string
+          id: string
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -693,7 +815,7 @@ export type Database = {
           account_id: string | null
           email: string | null
           first_name: string | null
-          id: string | null
+          id: string
           last_name: string | null
           password: string | null
           type: string | null
@@ -704,7 +826,7 @@ export type Database = {
           account_id?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id: string
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -715,7 +837,7 @@ export type Database = {
           account_id?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -731,6 +853,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      add_document_event_request_event_type:
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
       add_document_history_request_event_type:
         | 'CREATED'
         | 'UPLOADED'
@@ -745,6 +878,13 @@ export type Database = {
       cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
       create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
       create_position_request_vote_status: 'Voted' | 'Unvoted'
+      document_display_category:
+        | 'general'
+        | 'dsm'
+        | 'proxy-materials'
+        | 'meeting-materials'
+        | 'post-meeting'
+        | 'internal'
       document_history_event_type:
         | 'CREATED'
         | 'UPLOADED'
@@ -890,6 +1030,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      add_document_event_request_event_type: [
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
+      ],
       add_document_history_request_event_type: [
         'CREATED',
         'UPLOADED',
@@ -905,6 +1057,14 @@ export const Constants = {
       cast_vote_request_vote: ['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'],
       create_position_request_source: ['WEB', 'PRINT', 'IVR'],
       create_position_request_vote_status: ['Voted', 'Unvoted'],
+      document_display_category: [
+        'general',
+        'dsm',
+        'proxy-materials',
+        'meeting-materials',
+        'post-meeting',
+        'internal',
+      ],
       document_history_event_type: [
         'CREATED',
         'UPLOADED',

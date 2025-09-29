@@ -48,6 +48,7 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
+      console.error('Login failed', err)
       setError('An error occurred during login')
     } finally {
       setIsLoading(false)

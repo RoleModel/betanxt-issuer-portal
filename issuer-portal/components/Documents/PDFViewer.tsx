@@ -8,7 +8,7 @@ import 'react-pdf/dist/Page/TextLayer.css'
 
 import { Box, CircularProgress } from '@mui/material'
 
-import './react-pdf.css'
+import '@/components/Documents/react-pdf.module.css'
 
 // Dynamically import react-pdf components with SSR disabled
 const Document = dynamic(() => import('react-pdf').then((mod) => mod.Document), {
@@ -30,7 +30,7 @@ interface PDFViewerProps {
 const PDFViewer: React.FC<PDFViewerProps> = ({
   file,
   pageNumber,
-  width = 600,
+  width = 400,
   className,
   onLoadSuccess,
   onLoadError,
@@ -40,10 +40,20 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [actualWidth, setActualWidth] = useState<number | null>(null)
   const hasInitialized = useRef(false)
 
+  // Safety check: only process PDF files
+  const isPdfFile = file?.toLowerCase().endsWith('.pdf') || file?.includes('/test-pdf')
+
   // Store the width immediately when it changes
   useEffect(() => {
     setActualWidth(width)
   }, [width])
+
+  // Call onLoadError if provided for non-PDF files
+  useEffect(() => {
+    if (!isPdfFile && onLoadError) {
+      onLoadError(new Error(`PDFViewer: File is not a PDF (${file})`))
+    }
+  }, [isPdfFile, file, onLoadError])
 
   useEffect(() => {
     // Initialize PDF.js worker only once
@@ -70,6 +80,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     setIsPdfLoaded(false)
   }, [file])
 
+  if (!isPdfFile) {
+    return (
+      <Box sx={{ p: 2, textAlign: 'center' }}>
+        <div>Cannot display non-PDF file in PDF viewer</div>
+      </Box>
+    )
+  }
+
   const handleLoadSuccess = (pdf: { numPages: number }) => {
     setIsPdfLoaded(true)
     if (onLoadSuccess) {
@@ -93,7 +111,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         style={{
           width: width,
           minHeight: width * 1.294,
-          backgroundColor: '#f5f5f5',
+          backgroundColor: 'var(--mui-palette-background-paper)',
           borderRadius: '4px',
           display: 'flex',
           justifyContent: 'center',
@@ -115,7 +133,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           position: 'relative',
           width: defaultWidth,
           minHeight: defaultWidth * 1.294,
-          backgroundColor: '#f5f5f5',
+          backgroundColor: 'var(--mui-palette-background-paper)',
           borderRadius: '4px',
           display: 'flex',
           justifyContent: 'center',
@@ -141,7 +159,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            bgcolor: '#f5f5f5',
+            backgroundColor: 'var(--mui-palette-background-paper)',
             borderRadius: '4px',
             zIndex: 1,
           }}
@@ -162,7 +180,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               justifyContent="center"
               alignItems="center"
               minHeight={400}
-              sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
+              sx={{ opacity: isPdfLoaded ? 1 : 0, transition: 'opacity 3s ease-in-out' }}
             >
               <div>Failed to load PDF document</div>
             </Box>

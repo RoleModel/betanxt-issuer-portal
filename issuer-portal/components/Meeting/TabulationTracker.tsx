@@ -101,8 +101,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           const candidateDates: Date[] = []
 
           for (const ph of sortedPhases) {
-            const raw = (ph.keyDates ??
-              (ph as unknown as PhaseSnake).key_dates) as unknown
+            const raw = (ph as Phase).keyDates
             if (!raw) continue
             try {
               const kdObj = typeof raw === 'string' ? JSON.parse(raw) : raw

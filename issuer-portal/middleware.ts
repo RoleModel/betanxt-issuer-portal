@@ -11,7 +11,7 @@ export default auth(async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // @ts-ignore - NextAuth v5 adds auth to request
+  // @ts-expect-error - NextAuth v5 adds auth to request
   const session = request.auth
 
   // If no session and not on login page, redirect to login

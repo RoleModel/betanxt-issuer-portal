@@ -34,6 +34,7 @@ export default function ProductLayout({
           xs: '1fr',
           md: '1fr 0.4fr',
         },
+        flexGrow1: 1,
         flexDirection: {
           xs: 'column-reverse',
         },

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 
@@ -24,37 +25,58 @@ interface TableSchema {
   types: Record<string, FieldType>
 }
 
+interface TableValidationSummary {
+  recordCount: number
+  validation: {
+    valid: boolean
+    errors: string[]
+    warnings: string[]
+    columnStats: Record<
+      string,
+      { totalCount: number; nullCount: number; typeErrors: number }
+    >
+  }
+  data: unknown[]
+}
+
+type ValidationResultsMap = Record<string, { error: string } | TableValidationSummary>
+
+// Minimal structural interfaces (original richer forms were removed during cleanup).
+// Retain only fields accessed later in the script.
 interface Phase {
   id: string
   meeting_id: string
   name: string
   order_index: number
-  status?: string
-  key_dates?: string
-  created_at?: string
-  updated_at?: string
-  meeting?: string
-  tasks?: unknown
 }
 
 interface Task {
   id: string
-  task_id?: string
   phase_id: string
   meeting_id: string
   phase_number?: number
   title: string
-  description?: string
-  type?: string
-  status?: string
-  due_date?: string
-  owner?: string
-  document_id?: string
-  links?: unknown
-  created_at?: string
-  updated_at?: string
-  phase?: string
-  meeting?: string
+}
+
+// Added minimal table row interfaces to eliminate `any`
+interface Meeting {
+  id: string
+}
+
+interface Position {
+  id: string
+  meeting_id: string
+  vote_status?: string
+}
+
+interface PositionVote {
+  id: string
+  position_id: string
+}
+
+interface Proposal {
+  id: string
+  meeting_id: string
 }
 
 // Define table schemas with column validation rules
@@ -474,7 +496,10 @@ const validateUrl = (url: string): boolean => {
   }
 }
 
-const validateType = (value: any, type: string): { valid: boolean; error?: string } => {
+const validateType = (
+  value: unknown,
+  type: FieldType
+): { valid: boolean; error?: string } => {
   if (value === null || value === undefined) {
     return { valid: true } // NULL values are handled separately
   }
@@ -645,7 +670,7 @@ async function validateSeedData() {
     process.exit(1)
   }
 
-  const validationResults: Record<string, any> = {}
+  const validationResults: ValidationResultsMap = {}
   let totalErrors = 0
   let totalWarnings = 0
 
@@ -684,19 +709,23 @@ async function validateSeedData() {
       }
 
       // Show column statistics
-      Object.entries(validation.columnStats).forEach(([col, stats]) => {
-        const nullPercent =
+      Object.entries(validation.columnStats).forEach(([_col, stats]) => {
+        const _nullPercent =
           stats.totalCount > 0
             ? ((stats.nullCount / stats.totalCount) * 100).toFixed(1)
             : '0.0'
-        const errorPercent =
+        const _errorPercent =
           stats.totalCount > 0
             ? ((stats.typeErrors / stats.totalCount) * 100).toFixed(1)
             : '0.0'
 
-        let status = '✅'
-        if (stats.typeErrors > 0) status = '❌'
-        else if (stats.nullCount > stats.totalCount * 0.5) status = '⚠️'
+        // Determine status (not currently output; retained for potential future use)
+        const _status =
+          stats.typeErrors > 0
+            ? '❌'
+            : stats.nullCount > stats.totalCount * 0.5
+              ? '⚠️'
+              : '✅'
       })
 
       // Show first few errors if any
@@ -713,19 +742,31 @@ async function validateSeedData() {
 
     // Business rule validations
 
-    const meetings = validationResults.meeting?.data || []
-    const positions = validationResults.position?.data || []
-    const positionVotes = validationResults.position_vote?.data || []
-    const proposals = validationResults.proposal?.data || []
-    const tasks = validationResults.task?.data || []
-    const phases = validationResults.phase?.data || []
+    const meetings =
+      ((validationResults.meeting as TableValidationSummary | undefined)
+        ?.data as Meeting[]) || []
+    const positions =
+      ((validationResults.position as TableValidationSummary | undefined)
+        ?.data as Position[]) || []
+    const positionVotes =
+      ((validationResults.position_vote as TableValidationSummary | undefined)
+        ?.data as PositionVote[]) || []
+    const proposals =
+      ((validationResults.proposal as TableValidationSummary | undefined)
+        ?.data as Proposal[]) || []
+    const tasks =
+      ((validationResults.task as TableValidationSummary | undefined)?.data as Task[]) ||
+      []
+    const phases =
+      ((validationResults.phase as TableValidationSummary | undefined)
+        ?.data as Phase[]) || []
 
     // Rule 1: Every meeting should have positions
     if (meetings.length > 0 && positions.length > 0) {
-      const meetingsWithPositions = new Set(positions.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
+      const meetingsWithPositions = new Set(positions.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
       const meetingsWithoutPositions = meetingIds.filter(
-        (id: any) => !meetingsWithPositions.has(id)
+        (id) => !meetingsWithPositions.has(id)
       )
 
       if (meetingsWithoutPositions.length === 0) {
@@ -740,10 +781,10 @@ async function validateSeedData() {
 
     // Rule 2: Voted positions should have position votes
     if (positions.length > 0 && positionVotes.length > 0) {
-      const votedPositions = positions.filter((p: any) => p.vote_status === 'Voted')
-      const positionsWithVotes = new Set(positionVotes.map((pv: any) => pv.position_id))
+      const votedPositions = positions.filter((p) => p.vote_status === 'Voted')
+      const positionsWithVotes = new Set(positionVotes.map((pv) => pv.position_id))
       const votedPositionsWithoutVotes = votedPositions.filter(
-        (p: any) => !positionsWithVotes.has(p.id)
+        (p) => !positionsWithVotes.has(p.id)
       )
 
       if (votedPositionsWithoutVotes.length === 0) {
@@ -758,10 +799,10 @@ async function validateSeedData() {
 
     // Rule 3: Every meeting should have proposals
     if (meetings.length > 0 && proposals.length > 0) {
-      const meetingsWithProposals = new Set(proposals.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
+      const meetingsWithProposals = new Set(proposals.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
       const meetingsWithoutProposals = meetingIds.filter(
-        (id: any) => !meetingsWithProposals.has(id)
+        (id) => !meetingsWithProposals.has(id)
       )
 
       if (meetingsWithoutProposals.length === 0) {
@@ -776,11 +817,9 @@ async function validateSeedData() {
 
     // Rule 4: Every meeting should have phases
     if (meetings.length > 0 && phases.length > 0) {
-      const meetingsWithPhases = new Set(phases.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
-      const meetingsWithoutPhases = meetingIds.filter(
-        (id: any) => !meetingsWithPhases.has(id)
-      )
+      const meetingsWithPhases = new Set(phases.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
+      const meetingsWithoutPhases = meetingIds.filter((id) => !meetingsWithPhases.has(id))
 
       if (meetingsWithoutPhases.length === 0) {
         console.log('✅ Business Rule 4: All meetings have phases')
@@ -794,9 +833,9 @@ async function validateSeedData() {
 
     // Rule 5: Every phase should have tasks
     if (phases.length > 0 && tasks.length > 0) {
-      const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
-      const phaseIds = phases.map((p: any) => p.id)
-      const phasesWithoutTasks = phaseIds.filter((id: any) => !phasesWithTasks.has(id))
+      const phasesWithTasksSet = new Set(tasks.map((t) => t.phase_id))
+      const phaseIds = phases.map((p) => p.id)
+      const phasesWithoutTasks = phaseIds.filter((id) => !phasesWithTasksSet.has(id))
 
       if (phasesWithoutTasks.length === 0) {
         console.log('✅ Business Rule 5: All phases have tasks')
@@ -902,47 +941,32 @@ async function validateSeedData() {
     let taskPhaseWarnings = 0
 
     if (tasks.length > 0 && phases.length > 0) {
-      // Create phase lookup maps
-      // TODO: Fix TypeScript error with Map type
-      /*
-      const phaseById = new Map((phases as Phase[]).map(p => [p.id, p]));
-      type PhaseMap = Record<string, Record<number, Phase>>
-      const phasesByMeetingAndOrder: PhaseMap = {};
-
-      const phasesArray = phases as Phase[];
-      phasesArray.forEach((phase) => {
-        if (!phasesByMeetingAndOrder[phase.meeting_id]) {
-          phasesByMeetingAndOrder[phase.meeting_id] = {}
-        }
-        phasesByMeetingAndOrder[phase.meeting_id][phase.order_index] = phase
-      })
-      */
-      const phaseById: any = {}
-      const _phasesByMeetingAndOrder: any = {}
+      // Create phase lookup map
+      const phaseById: Record<string, Phase> = phases.reduce<Record<string, Phase>>(
+        (acc, p) => {
+          acc[p.id] = p
+          return acc
+        },
+        {}
+      )
 
       // Validate each task
-      const tasksArray = tasks as Task[]
-      tasksArray.forEach((task) => {
-        const phase = phaseById[task.phase_id] as Phase | undefined
+      tasks.forEach((task) => {
+        const phase = phaseById[task.phase_id]
 
         if (!phase) {
           taskPhaseErrors++
           return
         }
 
-        // Check if task.phase_number matches the phase's order_index
-        // Key date phases have negative order_index (-3, -2, -1), regular phases have positive (1-8)
-        if (task.phase_number !== phase.order_index && phase.order_index > 0) {
-          // Only check for regular phases (positive order_index)
+        if (phase.order_index > 0 && task.phase_number !== phase.order_index) {
           taskPhaseErrors++
         }
 
-        // Check if task.meeting_id matches phase.meeting_id
         if (task.meeting_id !== phase.meeting_id) {
           taskPhaseErrors++
         }
 
-        // Check if task title matches expected tasks for this phase number
         if (task.phase_number && EXPECTED_TASKS_BY_PHASE[task.phase_number]) {
           const expectedTasks = EXPECTED_TASKS_BY_PHASE[task.phase_number]
           if (!expectedTasks.includes(task.title)) {
@@ -950,21 +974,19 @@ async function validateSeedData() {
           }
         }
 
-        // Check if phase_id actually exists in phases table
-        if (!phases.find((p: any) => p.id === task.phase_id)) {
+        if (!phaseById[task.phase_id]) {
           taskPhaseErrors++
         }
       })
 
       // Validate phase structure for each meeting
-      const meetingIds = Array.from(new Set(phases.map((p: any) => p.meeting_id)))
-      meetingIds.forEach((meetingId: any) => {
-        const meetingPhases = phases.filter((p: any) => p.meeting_id === meetingId)
+      const meetingIds = Array.from(new Set(phases.map((p) => p.meeting_id)))
+      meetingIds.forEach((meetingId) => {
+        const meetingPhases = phases.filter((p) => p.meeting_id === meetingId)
 
-        // Check if all expected phases exist
         EXPECTED_PHASE_STRUCTURE.forEach((expectedPhase) => {
           const actualPhase = meetingPhases.find(
-            (p: any) => p.order_index === expectedPhase.orderIndex // Direct integer comparison
+            (p) => p.order_index === expectedPhase.orderIndex
           )
 
           if (!actualPhase) {
@@ -974,8 +996,8 @@ async function validateSeedData() {
           }
         })
 
-        // Check for unexpected phases
-        meetingPhases.forEach((phase: any) => {
+        // Unexpected phases
+        meetingPhases.forEach((phase) => {
           const expectedPhase = EXPECTED_PHASE_STRUCTURE.find(
             (ep) => Math.abs(phase.order_index - ep.orderIndex) < 0.01
           )
@@ -984,11 +1006,11 @@ async function validateSeedData() {
           }
         })
 
-        // Validate task distribution across phases
-        const meetingTasks = tasks.filter((t: any) => t.meeting_id === meetingId)
-        const tasksByPhaseNumber = new Map<number, any[]>()
+        // Task distribution per phase
+        const meetingTasks = tasks.filter((t) => t.meeting_id === meetingId)
+        const tasksByPhaseNumber = new Map<number, Task[]>()
 
-        meetingTasks.forEach((task: any) => {
+        meetingTasks.forEach((task) => {
           if (task.phase_number) {
             if (!tasksByPhaseNumber.has(task.phase_number)) {
               tasksByPhaseNumber.set(task.phase_number, [])
@@ -997,18 +1019,15 @@ async function validateSeedData() {
           }
         })
 
-        // Check if each phase has the expected number of tasks
         Object.entries(EXPECTED_TASKS_BY_PHASE).forEach(([phaseNum, expectedTasks]) => {
-          const phaseNumber = parseInt(phaseNum)
+          const phaseNumber = parseInt(phaseNum, 10)
           const actualTasks = tasksByPhaseNumber.get(phaseNumber) || []
-
           if (actualTasks.length !== expectedTasks.length) {
             taskPhaseWarnings++
           }
         })
       })
 
-      // Summary of task-phase validation
       if (taskPhaseErrors === 0 && taskPhaseWarnings === 0) {
         console.log('✅ Task-Phase Assignment: All validations passed')
       } else {
@@ -1020,30 +1039,36 @@ async function validateSeedData() {
       }
 
       // Additional task validation statistics
-      const tasksWithValidPhaseId = tasks.filter((t: any) =>
-        phases.find((p: any) => p.id === t.phase_id)
-      ).length
-      const tasksWithMatchingMeetingId: number = tasks.filter((t: any) => {
-        const phase = phases.find((p: any) => p.id === t.phase_id)
+      const tasksWithValidPhaseId = tasks.filter((t) => phaseById[t.phase_id]).length
+      const tasksWithMatchingMeetingId = tasks.filter((t) => {
+        const phase = phaseById[t.phase_id]
         return phase && t.meeting_id === phase.meeting_id
       }).length
 
       console.log(
-        `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${((tasksWithValidPhaseId / tasks.length) * 100).toFixed(1)}%)`
+        `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${(
+          (tasksWithValidPhaseId / tasks.length) *
+          100
+        ).toFixed(1)}%)`
       )
       console.log(
-        `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${((tasksWithMatchingMeetingId / tasks.length) * 100).toFixed(1)}%)`
+        `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${(
+          (tasksWithMatchingMeetingId / tasks.length) *
+          100
+        ).toFixed(1)}%)`
       )
 
       // Phase utilization statistics
-      const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
-      const unusedPhases = phases.filter((p: any) => !phasesWithTasks.has(p.id))
+      const phasesWithTasksSet = new Set(tasks.map((t) => t.phase_id))
+      const unusedPhases = phases.filter((p) => !phasesWithTasksSet.has(p.id))
 
       if (unusedPhases.length > 0) {
         console.log(`   • Phases with no tasks: ${unusedPhases.length}/${phases.length}`)
         if (unusedPhases.length <= 5) {
           console.log(
-            `     Unused: ${unusedPhases.map((p: any) => `${p.name} (${p.meeting_id})`).join(', ')}`
+            `     Unused: ${unusedPhases
+              .map((p) => `${p.name} (${p.meeting_id})`)
+              .join(', ')}`
           )
         }
       }
@@ -1051,16 +1076,16 @@ async function validateSeedData() {
 
     // Final Summary
 
-    let totalRecords = 0
+    // Aggregate record count (kept for potential future metrics)
+    let _totalRecords = 0
     console.log('\n📊 Summary by Table:')
     Object.entries(validationResults).forEach(([tableName, result]) => {
-      if (result.recordCount) {
-        totalRecords += result.recordCount
-        const status = result.validation?.valid ? '✅' : '❌'
+      if ('recordCount' in result) {
+        _totalRecords += result.recordCount
+        const status = result.validation.valid ? '✅' : '❌'
         console.log(`   ${status} ${tableName}: ${result.recordCount} records`)
       }
     })
-
     console.log(
       `🎯 Key Tables: ${positions.length} positions, ${positionVotes.length} position votes`
     )
@@ -1097,7 +1122,7 @@ async function validateSeedData() {
     if (totalErrors > 0) {
       process.exit(1)
     }
-  } catch (error) {
+  } catch (_error) {
     process.exit(1)
   }
 }

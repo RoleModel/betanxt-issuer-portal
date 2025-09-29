@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 
 import {
   Card,
@@ -26,14 +26,9 @@ interface MeetingAccessItem {
 
 interface MeetingRolesCardProps {
   className?: string
-  meetingId?: string
 }
 
-const handleConfirm = (label: string) => {
-  console.log(label)
-}
-
-const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingId }) => {
+const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className }) => {
   // Mock data matching the Figma design
   const accessItems: MeetingAccessItem[] = [
     {

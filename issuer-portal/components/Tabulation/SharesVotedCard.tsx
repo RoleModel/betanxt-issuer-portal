@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+
 import SharesVotedChart from '@/components/Meeting/SharesVotedChart'
 
 interface SharesVotedCardProps {

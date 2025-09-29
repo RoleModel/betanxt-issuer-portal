@@ -2,6 +2,8 @@
 
 import { useSession } from 'next-auth/react'
 import React, { useState } from 'react'
+import ReactAudioPlayer from 'react-audio-player'
+import ReactPlayer from 'react-player'
 
 import {
   ChevronLeftOutlined as ChevronLeftIcon,
@@ -28,6 +30,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import OfficeDocumentViewer from '@/components/Documents/OfficeDocumentViewer'
 import PDFViewer from '@/components/Documents/PDFViewer'
 import StatusChip, { type UnifiedStatus } from '@/components/ui/StatusChip'
 
@@ -47,7 +50,7 @@ interface ApprovalDrawerProps {
   open: boolean
   onClose: () => void
   title: string
-  pdfUrl: string
+  fileUrl: string
   onApprove: () => void
   taskStatus?: UnifiedStatus | string | null
   onOpenFullscreen?: () => void
@@ -73,7 +76,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   open,
   onClose,
   title,
-  pdfUrl,
+  fileUrl,
   onApprove,
   taskStatus = 'Pending Approval',
   onOpenFullscreen,
@@ -157,8 +160,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   const handleDownload = () => {
     const link = document.createElement('a')
-    link.href = pdfUrl
-    link.download = `${title}.pdf`
+    link.href = fileUrl
+    const fileExtension = fileUrl?.split('.').pop()?.toLowerCase() || 'pdf'
+    link.download = `${title}.${fileExtension}`
     link.click()
   }
 
@@ -451,22 +455,122 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             overflow: 'auto',
           }}
         >
-          <Box sx={{ maxWidth: 350 }}>
-            <PDFViewer
-              file={pdfUrl}
-              pageNumber={currentPage}
-              onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
-            />
+          <Box sx={{ width: '100%' }}>
+            {(() => {
+              const fileExtension = fileUrl?.split('.').pop()?.toLowerCase()
+              const isPdf = fileExtension === 'pdf' || fileUrl?.includes('/test-pdf')
+              const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
+                fileExtension || ''
+              )
+              const isAudio = ['m4a', 'mp3', 'wav', 'aac'].includes(fileExtension || '')
+              const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension || '')
+
+              if (isPdf) {
+                return (
+                  <PDFViewer
+                    file={fileUrl}
+                    pageNumber={currentPage}
+                    onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
+                  />
+                )
+              } else if (isOfficeDoc) {
+                return (
+                  <OfficeDocumentViewer
+                    url={fileUrl}
+                    title={title}
+                    fileType={fileExtension}
+                  />
+                )
+              } else if (isAudio) {
+                return (
+                  <Box sx={{ p: 2, width: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                      {title}
+                    </Typography>
+                    <ReactAudioPlayer src={fileUrl} controls style={{ width: '100%' }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 2, display: 'block', textAlign: 'center' }}
+                    >
+                      Audio file: {fileExtension?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                )
+              } else if (isVideo) {
+                return (
+                  <Box sx={{ p: 2, width: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                      {title}
+                    </Typography>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        paddingTop: '56.25%' /* 16:9 aspect ratio */,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      >
+                        <ReactPlayer
+                          src={fileUrl}
+                          controls
+                          width="100%"
+                          height="100%"
+                          playing={false}
+                        />
+                      </div>
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 2, display: 'block', textAlign: 'center' }}
+                    >
+                      Video file: {fileExtension?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                )
+              } else {
+                return (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      This file type cannot be previewed
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = fileUrl
+                        link.download = title || 'document'
+                        link.click()
+                      }}
+                      sx={{ mt: 2 }}
+                    >
+                      Download File
+                    </Button>
+                  </Box>
+                )
+              }
+            })()}
           </Box>
         </Box>
         {/* Approve Button - only show if not already approved/complete */}
         {!showComments &&
           !showHistory &&
           taskStatus !== 'Complete' &&
-          taskStatus !== 'Approved' && (
+          taskStatus !== 'COMPLETE' &&
+          taskStatus !== 'Approved' &&
+          taskStatus !== 'APPROVED' && (
             <Box
               sx={(theme) => ({
                 p: 1,
+                zIndex: 10,
                 display: 'flex',
                 justifyContent: 'end',
                 borderTop: `1px solid ${theme.vars.palette.divider}`,
@@ -493,10 +597,11 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           flexDirection: 'column',
           position: 'absolute',
           bottom: 0,
-          height: '60%',
+          height: '50%',
           maxHeight: showHistory ? '60%' : '0%',
           overflowY: 'auto',
           left: 0,
+          zIndex: 1200,
           transition: theme.transitions.create(['max-height']),
         })}
       >
@@ -546,9 +651,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           flexDirection: 'column',
           height: '100%',
           position: 'absolute',
-          // top: showComments ? '50%' : '50%',
           bottom: 0,
-          maxHeight: showComments ? '60%' : '0%',
+          maxHeight: showComments ? '50%' : '0%',
           overflowY: 'auto',
           left: 0,
           transition: theme.transitions.create(['top', 'max-height']),

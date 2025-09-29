@@ -1,4 +1,3 @@
-
 import { styled } from '@mui/material/styles'
 import { useDrawingArea } from '@mui/x-charts'
 

@@ -1,16 +1,24 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+
 import FeatureTile from '@/components/FeatureTile'
-import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
+
+import buildApiClient from '@/domain-models/apiClient'
+import { components } from '@/domain-models/generated-schema'
+
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import buildApiClient from '@/domain-models/apiClient'
+import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 export default function TabulationReportCard() {
   const { currentMeeting } = useMeeting()
-  const { proposals: votingProposals, votingSummary } = useVotingTabulation(currentMeeting?.id)
-  const [rawProposals, setRawProposals] = useState<unknown[]>([])
+  const { proposals: votingProposals, votingSummary } = useVotingTabulation(
+    currentMeeting?.id
+  )
+  const [rawProposals, setRawProposals] = useState<components['schemas']['Proposal'][]>(
+    []
+  )
 
   // Fetch raw proposal data to get all fields
   useEffect(() => {
@@ -18,12 +26,12 @@ export default function TabulationReportCard() {
       if (!currentMeeting?.id) return
 
       const apiClient = await buildApiClient()
-      const result = await apiClient.GET('/meetings/{meetingId}/proposals', {
+      const { data } = await apiClient.GET('/meetings/{meetingId}/proposals', {
         params: { path: { meetingId: currentMeeting.id } },
       })
 
-      if (!result.error && result.data) {
-        const proposals = Array.isArray(result.data) ? result.data : []
+      if (data) {
+        const proposals = Array.isArray(data) ? data : []
         setRawProposals(proposals)
       }
     }
@@ -38,17 +46,18 @@ export default function TabulationReportCard() {
       return
     }
     // Map proposals to the format expected by the PDF export
-    const proposalsForExport = votingProposals.map(vp => {
-      const rawProposal = rawProposals.find(rp =>
-        (rp.proposalNumber === vp.proposalNumber) ||
-        (rp.proposal_number === vp.proposalNumber)
-      )
+    const proposalsForExport = votingProposals.map((vp) => {
+      const rawProposal = rawProposals.find(
+        (rp) =>
+          ('proposalNumber' in rp && rp.proposalNumber === vp.proposalNumber) ||
+          ('proposal_number' in rp && rp.proposal_number === vp.proposalNumber)
+      ) as components['schemas']['Proposal'] | undefined
 
       return {
         proposalNumber: vp.proposalNumber,
-        proposalTitle: vp.description || rawProposal?.proposalTitle || rawProposal?.proposal_title || '',
-        proposalType: rawProposal?.proposalType || rawProposal?.proposal_type || '',
-        directorName: vp.directorName || rawProposal?.directorName || rawProposal?.director_name || '',
+        proposalTitle: vp.description || rawProposal?.proposalTitle || '',
+        proposalType: rawProposal?.proposalType || '',
+        directorName: vp.directorName || rawProposal?.directorName || '',
         recommendation: rawProposal?.recommendation || 'FOR',
         totalVotesFor: vp.votingResults.for.shares,
         totalVotesAgainst: vp.votingResults.against.shares,
@@ -62,14 +71,21 @@ export default function TabulationReportCard() {
     // Calculate quorum data
     const totalOutstanding = votingSummary?.totalSharesOutstanding || 0
     const votesRepresented = votingSummary?.totalSharesVoted || 0
-    const quorumPercentage = totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
+    const quorumPercentage =
+      totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = '50%' // Default, should come from meeting config
-    const votesOverUnderQuorum = votesRepresented - (totalOutstanding * 0.5)
+    const votesOverUnderQuorum = votesRepresented - totalOutstanding * 0.5
 
     // Prepare tabulation data in the format expected by the PDF export
     const tabulationData = {
-      companyName: currentMeeting.title?.replace(/\d{4}\s*/, '').replace(/Annual.*Meeting.*/, '').trim() || currentMeeting.ticker || 'Company',
-      meetingType: currentMeeting.type || 'Annual Meeting',
+      companyName:
+        currentMeeting.title
+          ?.replace(/\d{4}\s*/, '')
+          .replace(/Annual.*Meeting.*/, '')
+          .trim() ||
+        currentMeeting.ticker ||
+        'Company',
+      meetingType: currentMeeting.meetingType || 'Annual Meeting',
       meetingDate: currentMeeting.meetingDate || '',
       recordDate: currentMeeting.recordDate || '',
       totalOutstanding,
@@ -78,7 +94,7 @@ export default function TabulationReportCard() {
       quorumRequirement,
       votesOverUnderQuorum,
       cusipList: currentMeeting.cusip || '', // Use cusip from meeting
-      proposals: proposalsForExport.map(p => {
+      proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
         const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero
 
@@ -119,10 +135,10 @@ export default function TabulationReportCard() {
   return (
     <FeatureTile
       title="Tabulation Report"
-      variant="primary"
+      variant="info"
       flex={true}
       description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
-      actionText={isDataReady ? "Download" : "Loading..."}
+      actionText={isDataReady ? 'Download' : 'Loading...'}
       onClick={isDataReady ? handleDownload : undefined}
       sx={{
         opacity: isDataReady ? 1 : 0.6,

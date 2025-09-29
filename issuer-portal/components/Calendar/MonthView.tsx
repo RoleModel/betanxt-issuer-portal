@@ -17,7 +17,7 @@ import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
 import { getPhaseColor } from '@/components/mui-styling/theme'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
-import type { KeyDate, Task } from '@/types/api'
+import type { KeyDate, Task } from '@/types/api-exports'
 import type { ContextMenuPosition } from '@/types/common'
 import type { CalendarDate, CalendarMonth, CalendarWeek } from '@/types/common'
 
@@ -33,30 +33,6 @@ interface MonthViewProps {
   keyDates: KeyDate[]
   loading: boolean
   onRefresh?: () => Promise<void>
-}
-
-// Helper function to extend Task for calendar display (currently unused but may be needed for future calendar formatting)
-const _prepareTaskForCalendar = (task: Task) => {
-  let formattedDate = undefined
-  if (task.dueDate) {
-    // Parse date and apply weekend adjustment for tasks
-    // Use UTC to avoid timezone issues
-    const [year, month, day] = task.dueDate.split('-').map(Number)
-    const originalDate = new Date(Date.UTC(year, month - 1, day))
-    const adjustedDate = shiftWeekendToMonday(originalDate)
-    formattedDate = adjustedDate.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC',
-    })
-  }
-
-  return {
-    ...task,
-    assignee: task.owner || '',
-    dueDate: formattedDate,
-    phase_number: task.phaseNumber || 1,
-  }
 }
 
 const getTaskPhase = (task: Task): number => {
@@ -124,7 +100,7 @@ const getTasksForDate = (date: Date, tasks: Task[]): Task[] => {
 // Helper function to get key dates for a specific date
 const getKeyDatesForDate = (date: Date, keyDates: KeyDate[]): KeyDate[] => {
   return keyDates.filter((keyDate) => {
-    const keyDateParsed = parseDateWithWeekendShift(keyDate.date)
+    const keyDateParsed = parseDateWithWeekendShift(keyDate.date || null)
     if (!keyDateParsed) return false
     // Convert input date to UTC for comparison
     const utcDate = new Date(
@@ -145,7 +121,7 @@ const generateCalendar = (tasks: Task[], keyDates: KeyDate[]) => {
   })
 
   keyDates.forEach((keyDate) => {
-    const date = parseDateWithWeekendShift(keyDate.date)
+    const date = parseDateWithWeekendShift(keyDate.date || null)
     if (date) allDates.push(date)
   })
 

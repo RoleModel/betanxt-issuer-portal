@@ -6,13 +6,37 @@ import buildApiClient from '@/domain-models/apiClient'
 import { documentRepository } from '@/domain-models/documentRepository'
 import type { components } from '@/domain-models/generated-schema'
 
-import { getBrowserSupabase } from '@/lib/browserSupabase'
+import type { components as apiComponents } from '@/types/api'
+import type {
+  CreateCommentRequest,
+  CreateDocumentRequest,
+  Document,
+  UpdateDocumentRequest,
+} from '@/types/api-exports'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
-type Document = components['schemas']['Document']
-type Comment = components['schemas']['Comment']
-type CreateDocumentRequest = components['schemas']['CreateDocumentRequest']
-type UpdateDocumentRequest = components['schemas']['UpdateDocumentRequest']
-type CreateCommentRequest = components['schemas']['CreateCommentRequest']
+// Type alias for DocumentHistory from components
+type DocumentHistory = apiComponents['schemas']['DocumentHistory']
+
+// Valid event types from the OpenAPI schema
+const VALID_EVENT_TYPES = [
+  'CREATED',
+  'UPLOADED',
+  'VIEWED',
+  'DOWNLOADED',
+  'SIGNED',
+  'APPROVED',
+  'REJECTED',
+  'COMMENTED',
+  'UPDATED',
+] as const
+
+// Type guard function to check if a string is a valid DocumentHistory event type
+function isDocumentHistoryEventType(
+  value: string
+): value is NonNullable<DocumentHistory['eventType']> {
+  return VALID_EVENT_TYPES.includes(value as (typeof VALID_EVENT_TYPES)[number])
+}
 
 export interface DocumentComment {
   id: string
@@ -28,11 +52,13 @@ export interface DocumentComment {
 
 export interface DocumentHistoryEvent {
   id: string
-  event_type: string
+  event_type: NonNullable<DocumentHistory['eventType']>
   user: string
   timestamp: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
+
+type DocumentHistoryEventType = NonNullable<DocumentHistory['eventType']>
 
 export interface UseDocumentsResult {
   loading: boolean
@@ -67,7 +93,10 @@ export interface UseDocumentsResult {
     file: File,
     versionNotes?: string
   ) => Promise<Document | null>
-  addDocumentHistory: (documentId: string, eventType: string) => Promise<boolean>
+  addDocumentHistory: (
+    documentId: string,
+    eventType: DocumentHistoryEventType
+  ) => Promise<boolean>
   getDocumentHistory: (documentId: string) => Promise<DocumentHistoryEvent[]>
   uploadDSMDocument: (
     meetingId: string,
@@ -94,11 +123,12 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { meetingId } },
           body: documentData,
         })
-        if (result.error) {
+        const { data, error } = result
+        if (error) {
           throw new Error('Failed to create document')
         }
 
-        return result.data || null
+        return data || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to create document'
@@ -120,11 +150,12 @@ export const useDocuments = (): UseDocumentsResult => {
       const result = await apiClient.GET('/documents/{id}', {
         params: { path: { id } },
       })
-      if (result.error) {
+      const { data, error } = result
+      if (error) {
         throw new Error('Failed to get document')
       }
 
-      return result.data || null
+      return data || null
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get document'
       setError(errorMessage)
@@ -145,11 +176,12 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { id } },
           body: updates,
         })
-        if (result.error) {
+        const { data, error } = result
+        if (error) {
           throw new Error('Failed to update document')
         }
 
-        return result.data || null
+        return data || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to update document'
@@ -171,11 +203,12 @@ export const useDocuments = (): UseDocumentsResult => {
       const result = await apiClient.GET('/documents/{id}/download', {
         params: { path: { id } },
       })
-      if (result.error) {
+      const { data, error } = result
+      if (error) {
         throw new Error('Failed to download document')
       }
 
-      return result.data || null
+      return data || null
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to download document'
@@ -196,12 +229,13 @@ export const useDocuments = (): UseDocumentsResult => {
         const result = await apiClient.GET('/documents/{id}/comments', {
           params: { path: { id: documentId } },
         })
-        if (result.error) {
+        const { data, error } = result
+        if (error) {
           throw new Error('Failed to get document comments')
         }
 
         // Return comments as-is since backend now returns CommentWithUser format
-        return (result.data || []) as unknown as DocumentComment[]
+        return (data || []) as unknown as DocumentComment[]
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get document comments'
@@ -235,7 +269,8 @@ export const useDocuments = (): UseDocumentsResult => {
           } as CreateCommentRequest,
         })
 
-        if (result.error) {
+        const { error: addError } = result
+        if (addError) {
           throw new Error('Failed to add comment')
         }
       } catch (err) {
@@ -291,14 +326,6 @@ export const useDocuments = (): UseDocumentsResult => {
       _meetingId?: string,
       _documentTitle?: string
     ): Promise<string | null> => {
-      console.log('uploadDocument called with:', {
-        fileName: _file.name,
-        fileSize: _file.size,
-        documentId: _documentId,
-        meetingId: _meetingId,
-        documentTitle: _documentTitle,
-      })
-
       try {
         setLoading(true)
         setError(null)
@@ -346,7 +373,6 @@ export const useDocuments = (): UseDocumentsResult => {
           }
 
           const result = await response.json()
-          console.log('Upload successful:', result)
           return result.id || result.storagePath || 'success'
         }
 
@@ -358,8 +384,6 @@ export const useDocuments = (): UseDocumentsResult => {
           reader.readAsDataURL(_file)
         })
 
-        console.log('Base64 data generated, length:', base64Data.length)
-
         const apiClient = await buildApiClient()
 
         // Check if this is a temporary document ID (for generated forms)
@@ -370,8 +394,6 @@ export const useDocuments = (): UseDocumentsResult => {
           _documentId === 'temp-doc-id' ||
           _documentId.startsWith('doc-') ||
           _documentId.startsWith('temp-')
-
-        console.log('Is temporary ID:', isTemporaryId)
 
         // Decide target status: certain special forms remain SIGNED; otherwise default to AWAITING_REVIEW
         const isExplicitSignedForm =
@@ -434,7 +456,6 @@ export const useDocuments = (): UseDocumentsResult => {
             }
           }
 
-          console.log('Creating new document with meeting ID:', meetingId)
           const result = await apiClient.POST('/meetings/{meetingId}/documents', {
             params: { path: { meetingId } },
             body: {
@@ -444,17 +465,17 @@ export const useDocuments = (): UseDocumentsResult => {
             } as components['schemas']['CreateDocumentRequest'],
           })
 
-          console.log('Create document API response:', result)
-
-          if (result.error || !result.data) {
-            console.error('Document creation error:', result.error || 'No data returned')
+          const { data, error } = result
+          if (error || !data) {
+            console.error('Document creation error:', error || 'No data returned')
             throw new Error('Failed to create signed document')
           }
 
+          const createdDoc = data as Document
           // If desiredStatus differs from default, update status in a follow-up call
-          if (result.data?.id && desiredStatus) {
+          if (createdDoc.id && desiredStatus) {
             await apiClient.PUT('/documents/{id}', {
-              params: { path: { id: result.data.id } },
+              params: { path: { id: createdDoc.id } },
               body: {
                 status: desiredStatus,
               } as components['schemas']['UpdateDocumentRequest'],
@@ -462,8 +483,7 @@ export const useDocuments = (): UseDocumentsResult => {
           }
 
           // Return the new document ID
-          console.log('Returning document ID:', result.data.id || _documentId)
-          return result.data.id || _documentId
+          return createdDoc.id || _documentId
         } else {
           // For existing documents, update them
           const result = await apiClient.PUT('/documents/{id}', {
@@ -474,8 +494,9 @@ export const useDocuments = (): UseDocumentsResult => {
             } as components['schemas']['UpdateDocumentRequest'],
           })
 
-          if (result.error) {
-            console.error('Document update error:', result.error)
+          const { error: updateError } = result
+          if (updateError) {
+            console.error('Document update error:', updateError)
             throw new Error('Failed to save signed document')
           }
 
@@ -553,11 +574,12 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { meetingId } },
           body: createBody,
         })
-        if (result.error) {
+        const { data, error } = result
+        if (error) {
           throw new Error('Failed to create document record')
         }
 
-        return (result.data as Document) || null
+        return (data as Document) || null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to upload document'
@@ -571,7 +593,7 @@ export const useDocuments = (): UseDocumentsResult => {
   )
 
   const addDocumentHistory = useCallback(
-    async (documentId: string, eventType: string): Promise<boolean> => {
+    async (documentId: string, eventType: DocumentHistoryEventType): Promise<boolean> => {
       try {
         setLoading(true)
         setError(null)
@@ -580,12 +602,13 @@ export const useDocuments = (): UseDocumentsResult => {
         const result = await apiClient.POST('/documents/{id}/events', {
           params: { path: { id: documentId } },
           body: {
-            eventType: eventType as any,
+            eventType,
             metadata: {},
           },
         })
 
-        if (result.error) {
+        const { error: histError } = result
+        if (histError) {
           throw new Error('Failed to add document history')
         }
 
@@ -613,40 +636,42 @@ export const useDocuments = (): UseDocumentsResult => {
           params: { path: { id: documentId } },
         })
 
-        if (result.error) {
+        const { data: histData, error: histError } = result
+        if (histError) {
           throw new Error('Failed to get document history')
         }
 
         // Transform the response to match our interface with runtime guards
-        const raw = Array.isArray(result.data) ? result.data : []
+        const raw = asArray(histData)
         return raw
-          .map((eventObjRaw) => eventObjRaw as Record<string, unknown>)
+          .map((value) => asRecord(value))
+          .filter((record): record is Record<string, unknown> => Boolean(record))
           .map((eventObj) => {
-            const id = String(
-              (eventObj as Record<string, unknown>).id ?? crypto.randomUUID()
-            )
-            const event_type = String(
-              (eventObj as Record<string, unknown>).eventType ||
-                (eventObj as Record<string, unknown>).event_type ||
-                'UNKNOWN'
-            )
-            const user = String(
-              (eventObj as Record<string, unknown>).userName ||
-                (eventObj as Record<string, unknown>).user_name ||
-                'Unknown User'
-            )
-            const timestamp = String(
-              (eventObj as Record<string, unknown>).createdAt ||
-                (eventObj as Record<string, unknown>).created_at ||
-                new Date().toISOString()
-            )
-            const metadata = ((): Record<string, unknown> | undefined => {
-              const md = (eventObj as Record<string, unknown>).metadata
-              return typeof md === 'object' && md !== null
-                ? (md as Record<string, unknown>)
-                : undefined
-            })()
-            return { id, event_type, user, timestamp, metadata }
+            const id = asString(eventObj.id) ?? crypto.randomUUID()
+
+            const eventTypeCandidate =
+              asString(eventObj.eventType) ?? asString(eventObj.event_type)
+            const normalizedEventType =
+              eventTypeCandidate && isDocumentHistoryEventType(eventTypeCandidate)
+                ? eventTypeCandidate
+                : 'UPDATED'
+
+            const userValue = asString(eventObj.userName) ?? asString(eventObj.user_name)
+            const user = userValue ?? 'Unknown User'
+
+            const timestampValue =
+              asString(eventObj.createdAt) ?? asString(eventObj.created_at)
+            const timestamp = timestampValue ?? new Date().toISOString()
+
+            const metadataRecord = asRecord(eventObj.metadata)
+
+            return {
+              id,
+              event_type: normalizedEventType,
+              user,
+              timestamp,
+              metadata: metadataRecord || undefined,
+            }
           })
       } catch (err) {
         const errorMessage =

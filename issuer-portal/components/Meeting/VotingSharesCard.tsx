@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 
 import { ArrowDropDownOutlined } from '@mui/icons-material'
 import {
@@ -19,8 +19,6 @@ import {
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
-import { formatSharesParts } from '@/lib/formats'
-
 interface MeetingAccessItem {
   label: string
   type: 'confirm' | 'string' | 'upload'
@@ -31,15 +29,18 @@ interface MeetingAccessItem {
 }
 
 interface MeetingRolesCardProps {
+  meetingId: string
   className?: string
-  meetingId?: string
 }
 
 const handleConfirm = (label: string) => {
-  console.log(label)
+  alert(`Confirm action for ${label}`)
 }
 
-const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingId }) => {
+const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
+  className,
+  meetingId: _meetingId,
+}) => {
   // Mock data matching the Figma design
   const accessItems: MeetingAccessItem[] = [
     {

@@ -402,7 +402,7 @@ const generateFilledPDF = async (taskTitle: string): Promise<Blob> => {
 
 #### 2. Storage Upload (`TaskDrawer.tsx:354-367`)
 
-- **Supabase Storage**: Uploads PDF blob to `supporting` bucket
+- **Supabase Storage**: Uploads PDF blob to `documents` bucket
 - **Unique filename**: `${taskId}-completed-${timestamp}.pdf`
 - **Proper path**: Stored in `task-completions/` folder
 - **Error handling**: Throws error if upload fails
@@ -514,7 +514,7 @@ interface PdfFormState {
 
 ```typescript
 <DocumentViewer
-  pdfUrl="/path/to/form.pdf"
+  fileUrl="/path/to/form.pdf"
   signatureAreas={[...]}
   onPdfStateChange={(formFields, signatures) => {
     // Handle form state changes

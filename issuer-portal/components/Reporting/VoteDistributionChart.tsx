@@ -1,8 +1,17 @@
 'use client'
 
 import React from 'react'
-import { Box, Card, CardContent, CardHeader, CircularProgress, Typography } from '@mui/material'
+
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  Typography,
+} from '@mui/material'
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart'
+
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
 
 interface VoteDistributionData {
@@ -17,7 +26,10 @@ interface VoteDistributionChartProps {
   loading?: boolean
 }
 
-export default function VoteDistributionChart({ data, loading }: VoteDistributionChartProps) {
+export default function VoteDistributionChart({
+  data,
+  loading,
+}: VoteDistributionChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
   if (loading) {

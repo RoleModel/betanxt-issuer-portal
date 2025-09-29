@@ -18,20 +18,22 @@ export interface DocumentRepository {
   uploadVersion(params: UploadVersionParams): Promise<Document | null>
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
 class DefaultDocumentRepository implements DocumentRepository {
   async listByMeeting(meetingId: string): Promise<Document[]> {
     // Prefer API (if implemented in mock-api-server) else fallback to direct table query
     try {
       const api = await buildApiClient()
-      const result = await api.GET('/meetings/{meetingId}/documents', {
+      const { data } = await api.GET('/meetings/{meetingId}/documents', {
         params: { path: { meetingId } },
       })
-      if (!result.error && result.data) {
-        return result.data as unknown as Document[]
+      if (data) {
+        return data
       }
-    } catch (e) {
-      // swallow and fallback
-      console.warn('listByMeeting API fallback', e)
+    } catch (error) {
+      console.warn('listByMeeting API fallback', error)
     }
 
     const supabase = getBrowserSupabase()
@@ -43,16 +45,16 @@ class DefaultDocumentRepository implements DocumentRepository {
       console.error('Supabase documents query failed', error)
       return []
     }
-    return (data || []).map((doc: any) => this.mapRow(doc))
+    return (data ?? []).map((doc) => this.mapRow(doc))
   }
 
   async get(id: string): Promise<Document | null> {
     try {
       const api = await buildApiClient()
-      const res = await api.GET('/documents/{id}', { params: { path: { id } } })
-      if (!res.error && res.data) return res.data as unknown as Document
-    } catch (e) {
-      console.warn('get API fallback', e)
+      const { data } = await api.GET('/documents/{id}', { params: { path: { id } } })
+      if (data) return data
+    } catch (error) {
+      console.warn('get API fallback', error)
     }
     const supabase = getBrowserSupabase()
     const { data, error } = await supabase
@@ -81,11 +83,11 @@ class DefaultDocumentRepository implements DocumentRepository {
       )
       if (resp.ok) {
         const data = await resp.json()
-        return data as Document
+        return this.mapRow(data)
       }
       console.warn('Upload route returned non-OK, falling back', resp.status)
-    } catch (err) {
-      console.warn('Upload route error, falling back to direct storage', err)
+    } catch (error) {
+      console.warn('Upload route error, falling back to direct storage', error)
     }
 
     // Fallback: direct storage then create document via API (minimal parity with existing DSM flow)
@@ -103,49 +105,71 @@ class DefaultDocumentRepository implements DocumentRepository {
     }
     try {
       const api = await buildApiClient()
-      const createBody = {
+      const createBody: components['schemas']['CreateDocumentRequest'] = {
         title: file.name,
         type: documentType,
-        filePath: upData.path,
-        status: 'UPLOADED',
-      } as unknown as components['schemas']['CreateDocumentRequest']
-      const res = await api.POST('/meetings/{meetingId}/documents', {
+        file: upData.path, // The API expects 'file' not 'filePath'
+      }
+      const { data } = await api.POST('/meetings/{meetingId}/documents', {
         params: { path: { meetingId } },
         body: createBody,
       })
-      if (!res.error && res.data) return res.data as unknown as Document
-    } catch (e) {
-      console.error('Fallback create document failed', e)
+      if (data) return data
+    } catch (error) {
+      console.error('Fallback create document failed', error)
     }
     return null
   }
 
-  private mapRow(row: any): Document {
+  private mapRow(value: unknown): Document {
+    let record: Record<string, unknown> = {}
+    if (isRecord(value)) {
+      record = value
+    }
+
+    const getString = (key: string): string | undefined => {
+      const raw = record[key]
+      return typeof raw === 'string' ? raw : undefined
+    }
+
+    const getNumber = (key: string): number | undefined => {
+      const raw = record[key]
+      return typeof raw === 'number' ? raw : undefined
+    }
+
+    const historyValue = record.history
+    const history = Array.isArray(historyValue)
+      ? undefined
+      : (historyValue as Record<string, unknown> | undefined)
+
+    const statusValue = getString('status')
+
     return {
-      id: row.id,
-      meetingId: row.meeting_id,
-      taskId: row.task_id,
-      title: row.title,
-      description: row.description,
-      type: row.type,
-      filePath: row.file_path,
-      fileType: row.file_type,
-      fileSize: row.file_size,
-      status: row.status,
-      uploadDate: row.upload_date,
-      uploadedDate: row.uploaded_date,
-      signedDate: row.signed_date,
-      authorizedDate: row.authorized_date,
-      completedDate: row.completed_date,
-      inProgressDate: row.in_progress_date,
-      deadline: row.deadline,
-      history: row.history,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: getString('id') ?? '',
+      meetingId: getString('meeting_id'),
+      taskId: getString('task_id'),
+      title: getString('title') ?? '',
+      description: getString('description') ?? undefined,
+      type: getString('type') ?? undefined,
+      filePath: getString('file_path'),
+      fileType: getString('file_type'),
+      displayCategory: getString('display_category') as Document['displayCategory'] | undefined,
+      fileSize: getNumber('file_size'),
+      status: statusValue as Document['status'] | undefined,
+      uploadDate: getString('upload_date'),
+      uploadedDate: getString('uploaded_date'),
+      signedDate: getString('signed_date'),
+      authorizedDate: getString('authorized_date'),
+      completedDate: getString('completed_date'),
+      inProgressDate: getString('in_progress_date'),
+      deadline: getString('deadline'),
+      history,
+      createdAt: getString('created_at'),
+      updatedAt: getString('updated_at'),
       meeting: undefined,
       comments: undefined,
       signatures: undefined,
-    } as Document
+    }
   }
 }
 

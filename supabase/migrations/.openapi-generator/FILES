@@ -20,6 +20,7 @@ Model/DocumentHistory.sql
 Model/DocumentStatus.sql
 Model/Error.sql
 Model/GetDocumentsReadiness200Response.sql
+Model/KeyDate.sql
 Model/ListAccountUsers200Response.sql
 Model/ListAccounts200Response.sql
 Model/ListClients200Response.sql
@@ -29,6 +30,7 @@ Model/ListUserAccounts200Response.sql
 Model/LoginUser200Response.sql
 Model/LoginUserRequest.sql
 Model/LogoutUser200Response.sql
+Model/Mailing.sql
 Model/Meeting.sql
 Model/MeetingStatus.sql
 Model/Notification.sql
@@ -41,6 +43,10 @@ Model/PositionVote.sql
 Model/Proposal.sql
 Model/SignFormDigitalRequest.sql
 Model/Signature.sql
+Model/TabulationReport.sql
+Model/TabulationReportBrokerVotingInner.sql
+Model/TabulationReportNonDtcVoteStatus.sql
+Model/TabulationReportShareRangePerformanceInner.sql
 Model/Task.sql
 Model/TaskStatus.sql
 Model/UpdateAccountRequest.sql

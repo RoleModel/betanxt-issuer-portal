@@ -1,10 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-25T18:35:57.314Z
+// Generated on 2025-09-29T07:37:47.340Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
 import { getTaskById, updateTask } from '@/domain-models/api/tasks'
-
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -33,10 +32,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getTaskById',
+        operationId: 'getTaskById'
       },
       { status: 500 }
     )
@@ -68,12 +67,13 @@ export async function PUT(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateTask',
+        operationId: 'updateTask'
       },
       { status: 500 }
     )
   }
 }
+

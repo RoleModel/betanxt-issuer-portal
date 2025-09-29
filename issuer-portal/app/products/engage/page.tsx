@@ -5,7 +5,6 @@ import DatabaseStackIcon from '@rolemodel/betanxt-design-system/components/icons
 import TeamGrowthIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGrowthIcon'
 import TimerClockIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TimerClockIcon'
 import Image from 'next/image'
-import { useState } from 'react'
 
 import { Check } from '@mui/icons-material'
 import {
@@ -20,7 +19,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Box as _Box,
   useTheme,
 } from '@mui/material'
 
@@ -29,24 +27,8 @@ import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
 
-interface ContactFormData {
-  name: string
-  email: string
-  message: string
-}
-
 export default function EngagePage() {
   const theme = useTheme()
-  const [_contactForm, _setContactForm] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    message: '',
-  })
-
-  const _handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Handle form submission
-  }
 
   const benefits = [
     {

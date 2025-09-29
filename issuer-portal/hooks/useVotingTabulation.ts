@@ -3,8 +3,9 @@
 import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+
 import type { ProposalVoting, VotingSummary } from '@/types/phases'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 // Type for normalized position with guaranteed fields
 export interface NormalizedPosition {
@@ -40,7 +41,11 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
     voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
-    votingSource: asString(record.votingSource) || asString(record.voting_source) || asString(record.source) || undefined,
+    votingSource:
+      asString(record.votingSource) ||
+      asString(record.voting_source) ||
+      asString(record.source) ||
+      undefined,
   }
 }
 
@@ -54,13 +59,21 @@ function normalizeProposal(proposal: unknown): NormalizedProposal | null {
   return {
     id: asString(record.id) || '',
     proposalNumber: Number(record.proposalNumber) || Number(record.proposal_number) || 0,
-    title: asString(record.proposalTitle) || asString(record.title) || asString(record.proposal_title) || '',
-    proposalType: asString(record.proposalType) || asString(record.proposal_type) || undefined,
+    title:
+      asString(record.proposalTitle) ||
+      asString(record.title) ||
+      asString(record.proposal_title) ||
+      '',
+    proposalType:
+      asString(record.proposalType) || asString(record.proposal_type) || undefined,
     recommendation: asString(record.recommendation) || undefined,
-    directorName: asString(record.directorName) || asString(record.director_name) || undefined,
+    directorName:
+      asString(record.directorName) || asString(record.director_name) || undefined,
     totalVotesFor: Number(record.totalVotesFor) || Number(record.total_votes_for) || 0,
-    totalVotesAgainst: Number(record.totalVotesAgainst) || Number(record.total_votes_against) || 0,
-    totalVotesAbstain: Number(record.totalVotesAbstain) || Number(record.total_votes_abstain) || 0,
+    totalVotesAgainst:
+      Number(record.totalVotesAgainst) || Number(record.total_votes_against) || 0,
+    totalVotesAbstain:
+      Number(record.totalVotesAbstain) || Number(record.total_votes_abstain) || 0,
   }
 }
 

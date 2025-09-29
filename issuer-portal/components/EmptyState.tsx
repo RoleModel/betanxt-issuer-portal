@@ -1,24 +1,26 @@
 'use client'
 
-import HandClickIcon from '@rolemodel/betanxt-design-system/components/icons/brand/HandClickIcon'
+import HandTouchIcon from '@rolemodel/betanxt-design-system/components/icons/brand/HandTouchIcon'
 import React from 'react'
 
 import { Box, Paper, Stack, Typography } from '@mui/material'
 
 interface EmptyStateProps {
-  icon?: React.JSXElementConstructor<React.ComponentProps<typeof HandClickIcon>> // Keep generic due to BetaNXT icon prop types
+  icon?: React.ReactNode
   title: string
+  minHeight?: number | string
   description: string | React.ReactNode
   dangerouslySetInnerHTML?: boolean
 }
 
 export function EmptyState({
-  icon: Icon = HandClickIcon,
+  icon = <HandTouchIcon />,
   title,
+  minHeight = 400,
   description,
 }: EmptyStateProps) {
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 1 }}>
       <Paper
         elevation={0}
         sx={(theme) => ({
@@ -31,7 +33,7 @@ export function EmptyState({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: 400,
+          minHeight: minHeight || 400,
         })}
       >
         <Stack
@@ -41,14 +43,18 @@ export function EmptyState({
         >
           <Box
             sx={{
-              width: 64,
-              height: 64,
               display: 'flex',
+              fontSize: 64,
+              '& .MuiSvgIcon-root': {
+                fontSize: 64,
+                height: '64px !important',
+                width: '64px !important',
+              },
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Icon fontSize="4rem" sx={{ width: 64, height: 64 }} />
+            {icon}
           </Box>
 
           <Typography

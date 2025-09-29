@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import { revalidateTag } from 'next/cache'
 import { NextRequest } from 'next/server'
 
+import { auth } from '@/auth'
 import { CACHE_TAGS } from '@/lib/caching'
 import { DOCUMENTS_BUCKET, getServerSupabase } from '@/lib/serverSupabase'
 
@@ -25,6 +26,10 @@ export async function POST(
   try {
     const { documentType } = await context.params
     if (!documentType) return jsonError('Missing documentType path param', 400)
+
+    // Get authenticated user
+    const session = await auth()
+    const userName = session?.user?.name || session?.user?.username || 'Unknown User'
 
     // Expect multipart/form-data
     const formData = await req.formData()
@@ -75,7 +80,7 @@ export async function POST(
     const historyEntry = {
       id: crypto.randomUUID(),
       action: existingDocumentId ? 'UPDATED_FILE' : 'CREATED_FILE',
-      user: 'system', // TODO: replace with authenticated user identity
+      user: userName,
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,

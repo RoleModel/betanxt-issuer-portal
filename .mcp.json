@@ -4,18 +4,21 @@
       "command": "npx",
       "args": [
         "-y",
-        "@supabase/mcp-server-supabase@latest",
+        "@supabase/mcp-server-supabase",
         "--read-only",
-        "--project-ref=<project-ref>"
+        "--project-ref=vfgjzlcakdrpsbzuqklz"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "${input:supabase-access-token}"
+        "SUPABASE_ACCESS_TOKEN": "sbp_41777623df247da5ca87204a58dde8c629fdaab3"
       }
     },
     "mui-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@mui/mcp@latest"]
+      "args": [
+        "-y",
+        "@mui/mcp@latest"
+      ]
     },
     "figma-dev-mode-mcp-server": {
       "type": "http",

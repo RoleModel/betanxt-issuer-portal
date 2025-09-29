@@ -4,6 +4,12 @@ import { DateTime } from 'luxon'
 import * as path from 'path'
 
 import { CSVProcessor } from '../mock-api-server/csv-processor'
+import type {
+  CompanyPositionData,
+  CompanyProposalData,
+} from '../mock-api-server/csv-processor'
+
+type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>
 import { seedConfig } from './seed.config'
 
 /**
@@ -34,10 +40,157 @@ const escapeSql = (str: string | null | undefined): string => {
 const sqlValue = (value: any): string => {
   if (value === null || value === undefined) return 'NULL'
   if (typeof value === 'string') return escapeSql(value)
-  if (typeof value === 'number') return value.toString()
+  if (typeof value === 'number') {
+    if (isNaN(value)) return '0'
+    return value.toString()
+  }
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (value instanceof Date) return escapeSql(value.toISOString())
   return escapeSql(String(value))
+}
+
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.min(max, Math.max(min, value))
+}
+
+const computeParticipationFromPositions = (
+  positions: CompanyPositionData[] | null | undefined,
+  totalSharesOutstanding: number
+): number | null => {
+  if (!positions || positions.length === 0) return null
+
+  const votedShares = positions.reduce((sum, position) => sum + (position.sharesVoted || 0), 0)
+
+  const denominator = totalSharesOutstanding
+    ? totalSharesOutstanding
+    : positions.reduce((sum, position) => sum + (position.shares || 0), 0)
+
+  if (!Number.isFinite(denominator) || denominator <= 0) {
+    return null
+  }
+
+  const participation = votedShares / denominator
+  return clamp(participation, 0, 1)
+}
+
+const computeParticipationFromVoteSummary = (
+  summary: VoteStatusSummary | null | undefined,
+  totalSharesOutstanding: number
+): number | null => {
+  if (!summary) return null
+
+  const dtcVoted = summary.dtcSummary?.votedShares ?? 0
+  const dtcUnvoted = summary.dtcSummary?.unvotedShares ?? 0
+  const nonDtcVoted = summary.nonDtcSummary?.votedSubtotalShares ?? 0
+  const nonDtcUnvoted = summary.nonDtcSummary?.unvotedShares ?? 0
+  const nonDtcGrandTotal = summary.nonDtcSummary?.grandTotalShares ?? 0
+
+  const numerator = dtcVoted + nonDtcVoted
+
+  const inferredDtcTotal = dtcVoted + dtcUnvoted
+  const inferredNonDtcTotal = nonDtcGrandTotal || nonDtcVoted + nonDtcUnvoted
+
+  const denominatorCandidate = inferredDtcTotal + inferredNonDtcTotal
+  const denominator = totalSharesOutstanding > 0 ? totalSharesOutstanding : denominatorCandidate
+
+  if (!Number.isFinite(denominator) || denominator <= 0) {
+    return null
+  }
+
+  const participation = numerator / denominator
+  return clamp(participation, 0, 1)
+}
+
+const buildResultsFromCsvProposal = (
+  proposal: CompanyProposalData,
+  totalSharesOutstanding: number,
+  meetingDateISO?: string
+) => {
+  const totalVotesFor = Math.max(0, Math.round(proposal.votesFor || 0))
+  const totalVotesAgainst = Math.max(0, Math.round(proposal.votesAgainst || 0))
+  const totalVotesAbstain = Math.max(0, Math.round(proposal.votesAbstain || 0))
+
+  const totalVotesCalculated = totalVotesFor + totalVotesAgainst + totalVotesAbstain
+  const totalVotes = Math.max(
+    totalVotesCalculated,
+    Math.round(proposal.votesTotal || totalVotesCalculated)
+  )
+
+  const totalSharesEligible = Math.max(
+    Math.round(totalSharesOutstanding || totalVotes),
+    totalVotes
+  )
+
+  const forPercentage = totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0
+  const againstPercentage = totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0
+  const abstainPercentage = totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0
+  const participationRate = totalSharesEligible > 0 ? (totalVotes / totalSharesEligible) * 100 : 0
+
+  const votingCompletedAt = meetingDateISO
+    ? DateTime.fromISO(meetingDateISO).plus({ days: 1 }).toISO()
+    : DateTime.now().toISO()
+
+  return {
+    finalResult: sqlValue(totalVotesFor >= totalVotesAgainst ? 'PASSED' : 'FAILED'),
+    totalVotesFor: totalVotesFor.toString(),
+    totalVotesAgainst: totalVotesAgainst.toString(),
+    totalVotesAbstain: totalVotesAbstain.toString(),
+    totalSharesEligible: totalSharesEligible.toString(),
+    forPercentage: forPercentage.toFixed(2),
+    againstPercentage: againstPercentage.toFixed(2),
+    abstainPercentage: abstainPercentage.toFixed(2),
+    participationRate: participationRate.toFixed(2),
+    votingCompleted: 'true',
+    votingCompletedAt: sqlValue(votingCompletedAt),
+    participationFraction: participationRate / 100,
+  }
+}
+
+const calculateParticipationTarget = (
+  ticker: string,
+  year: number,
+  meetingType: string,
+  phase: number
+): number => {
+  // For historical completed meetings (2024 and earlier), always use realistic participation
+  if (year <= 2024 && phase === 8) {
+    const seed = copycat.int(`${ticker}-${year}-participation`, { min: 0, max: 1000 })
+    // More realistic participation rates: 40-55% for historical meetings
+    const participation = 0.40 + seed / 6667 // 40-55% range
+    return participation
+  }
+
+  if (phase < 6) return 0
+
+  const lowerMeetingType = meetingType.toLowerCase()
+  let base = 0.72
+
+  if (year <= 2024) {
+    base -= 0.02 * (2024 - year)
+  }
+
+  if (lowerMeetingType.includes('special')) {
+    base += 0.05
+  }
+
+  const tickerAdjustment = copycat.int(`participation-${ticker}`, {
+    min: -200,
+    max: 200,
+  })
+  const meetingAdjustment = copycat.int(`participation-${ticker}-${year}-${meetingType}`, {
+    min: -150,
+    max: 150,
+  })
+
+  base += (tickerAdjustment + meetingAdjustment) / 10000
+
+  if (phase === 6) {
+    base *= 0.55
+  } else if (phase === 7) {
+    base *= 0.7
+  }
+
+  return clamp(base, 0.58, 0.86)
 }
 
 // Function to generate proposal results based on meeting year and type
@@ -47,16 +200,15 @@ const generateProposalResults = (
   proposalIndex: number,
   proposalTitle?: string,
   isWendys: boolean = false,
-  meetingType?: string
+  meetingType?: string,
+  targetParticipation?: number,
+  sharesOutstandingOverride?: number
 ) => {
   const year = parseInt(meetingYear)
-  const isHistorical = year < 2025
-  const isSpecialMeeting2025 =
-    year === 2025 && meetingType?.toLowerCase().includes('special')
 
-  if (!isHistorical && !isSpecialMeeting2025) {
-    // Only 2025 annual meetings don't have results yet (they're in Phase 1)
-    // 2025 special meetings are in Phase 7 and should have voting data
+  // 2026+ meetings haven't happened yet
+  // 2025 and earlier all have results (completed meetings)
+  if (year >= 2026) {
     return {
       finalResult: 'NULL',
       totalVotesFor: 'NULL',
@@ -72,16 +224,18 @@ const generateProposalResults = (
     }
   }
 
-  // For Wendy's 2024 meeting, we would use real CSV data, but for now we'll skip it
-  // The real CSV data integration will come later - for now just generate realistic data
-  // Only the 2024 annual meeting should have real data, all others are generated
+  // 2025 and earlier meetings all have results from real CSV data or generated
 
   // Generate realistic results for historical meetings
   const seedStr = `${proposalType}-${meetingYear}-${proposalIndex}`
   const seed = copycat.int(seedStr, { min: 0, max: 999999 })
 
-  // Use appropriate share base for Wendy's vs other companies
-  const baseShares = isWendys ? 148285700 : 50000000 + (seed % 25000000) // Wendy's actual shares vs 50M-75M for others
+  const baseShares =
+    typeof sharesOutstandingOverride === 'number' && sharesOutstandingOverride > 0
+      ? Math.floor(sharesOutstandingOverride)
+      : isWendys
+        ? 148285700
+        : 50000000 + (seed % 25000000)
 
   // Different pass rates by proposal type
   let passRate = 0.85 // Default 85% pass rate
@@ -91,10 +245,25 @@ const generateProposalResults = (
     passRate = 0.75 // More contentious
   else if (proposalType === 'Auditor Ratification')
     passRate = 0.98 // Almost always pass
-  else if (proposalType.includes('Shareholder')) passRate = 0.25 // Shareholder proposals often fail
+  else if (proposalType && proposalType.includes('Shareholder')) passRate = 0.25 // Shareholder proposals often fail
 
   const willPass = seed % 100 < passRate * 100
-  const participationRate = 0.65 + (seed % 1000) / 10000 // 65-75% participation
+  let participationRate: number
+
+  if (typeof targetParticipation === 'number') {
+    const participationSeed = copycat.int(
+      `proposal-participation-${proposalType}-${meetingYear}-${proposalIndex}`,
+      { min: -40, max: 40 }
+    )
+    participationRate = clamp(
+      targetParticipation + participationSeed / 10000,
+      0.58,
+      0.9
+    )
+  } else {
+    participationRate = 0.65 + (seed % 1000) / 10000 // 65-75% participation
+  }
+
   const totalEligible = Math.floor(baseShares * participationRate)
 
   let forVotes, againstVotes, abstainVotes
@@ -342,95 +511,65 @@ function parseCSV(csvContent: string, hasHeader = true): any[] {
   })
 }
 
-// Load Wendy's shareholder votes
-function loadWendysShareholderVotes(): WendysShareholderVote[] {
-  try {
-    const csvPath = path.join(__dirname, '../data/wendys_shareholder_votes_combined.csv')
-    const csvContent = fs.readFileSync(csvPath, 'utf-8')
-    const rawData = parseCSV(csvContent)
-
-    return rawData.map((row) => ({
-      cusip: row['Cusip'],
-      accountType: row['Account Type'],
-      setKey: row['Set Key'],
-      name: row['Name'],
-      accountNumber: row['Account #'] || '',
-      voteStatus: row['Vote Status'],
-      shares: parseFloat(row['Shares']) || 0,
-      sharesVoted: parseFloat(row['Shares Voted']) || 0,
-      source: row['Source'] || null,
-      dateVoted: row['Date Voted'] || null,
-    }))
-  } catch (error) {
-    console.error("Error loading Wendy's shareholder votes:", error)
-    return []
-  }
-}
-
-// Load Wendy's tabulation data (proposal votes)
-function loadWendysTabulation(): WendysProposalVote[] {
-  try {
-    const csvPath = path.join(__dirname, '../data/wendys_tabulation_data.csv')
-    const csvContent = fs.readFileSync(csvPath, 'utf-8')
-    const rawData = parseCSV(csvContent)
-
-    return rawData.map((row) => ({
-      proposal: row['Proposal'],
-      mrv: row['MRV'],
-      forVotes: parseFloat(row['For']) || 0,
-      againstVotes: parseFloat(row['Against']) || 0,
-      abstainVotes: parseFloat(row['Abstain']) || 0,
-      totalVotes: parseFloat(row['Total']) || 0,
-    }))
-  } catch (error) {
-    console.error("Error loading Wendy's tabulation data:", error)
-    return []
-  }
-}
-
-// Load Wendy's vote summary
-function loadWendysVoteSummary(): WendysVoteSummary[] {
-  try {
-    const csvPath = path.join(
-      __dirname,
-      '../data/wendys-Non-DTC_CDS_Vote_Status_Summary.csv'
-    )
-    const csvContent = fs.readFileSync(csvPath, 'utf-8')
-    const rawData = parseCSV(csvContent)
-
-    return rawData.map((row) => ({
-      category: row['Category'],
-      shareholders: parseInt(row['Shareholders']) || 0,
-      shareholdersPercent: parseFloat(row['Shareholders_%']) || 0,
-      shares: parseFloat(row['Shares']) || 0,
-      sharesPercent: parseFloat(row['Shares_%']) || 0,
-    }))
-  } catch (error) {
-    console.error("Error loading Wendy's vote summary:", error)
-    return []
-  }
-}
+// Legacy loading functions removed - now using CSVProcessor
 
 // Main seed generation
 const main = async () => {
   // Generate SQL statements instead of using Supabase client
   const sqlStatements: string[] = []
 
-  // Load Wendy's CSV data
-  const wendysShareholderVotes = loadWendysShareholderVotes()
-  const wendysTabulation = loadWendysTabulation()
-  const wendysVoteSummary = loadWendysVoteSummary()
+  // Legacy CSV loading removed - now using CSVProcessor for all companies
 
-  console.error(`Loaded ${wendysShareholderVotes.length} Wendy's shareholder votes`)
-  console.error(`Loaded ${wendysTabulation.length} Wendy's proposals`)
-  console.error(`Loaded ${wendysVoteSummary.length} Wendy's vote summary categories`)
+  // Load company positions data for mailing records
+  let companyPositions: Record<string, { Active?: any }> | null = null
+  try {
+    const positionsPath = path.join(process.cwd(), '../data/company_positions.json')
+    if (fs.existsSync(positionsPath)) {
+      const positionsContent = fs.readFileSync(positionsPath, 'utf8')
+      companyPositions = JSON.parse(positionsContent)
+      console.error('Loaded company positions data for mailing records')
+    }
+  } catch (error) {
+    console.error('Error loading company positions data:', error)
+    // Continue without mailing data
+  }
 
   // Load new company CSV data
-  let enlivenData = null
-  let paycomData = null
-  let woodwardData = null
+  let wendysData: { meetingInfo: any; proposals: any[]; positions: any[]; voteStatusSummary: VoteStatusSummary | null } | null = null
+  let enlivenData: { meetingInfo: any; proposals: any[]; positions: any[]; voteStatusSummary: VoteStatusSummary | null } | null = null
+  let paycomData: { meetingInfo: any; proposals: any[]; positions: any[]; voteStatusSummary: VoteStatusSummary | null } | null = null
+  let woodwardData: { meetingInfo: any; proposals: any[]; positions: any[]; voteStatusSummary: VoteStatusSummary | null } | null = null
 
   try {
+    // Load Wendy's data if available
+    if (seedConfig.csvFiles.wendysMeetingInfo) {
+      const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
+        path.join(__dirname, seedConfig.csvFiles.wendysMeetingInfo)
+      )
+      const proposals = await CSVProcessor.processCompanyProposals(
+        path.join(__dirname, seedConfig.csvFiles.wendysProposals)
+      )
+      const positions = await CSVProcessor.processCompanyPositions(
+        path.join(__dirname, seedConfig.csvFiles.wendysPositions),
+        '95058W100',
+        65000 // Load all Wendy's positions
+      )
+
+      // Load vote status summary data
+      let voteStatusSummary: VoteStatusSummary | null = null
+      if (seedConfig.csvFiles.wendysDTC && seedConfig.csvFiles.wendysNonDTC) {
+        voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
+          path.join(__dirname, seedConfig.csvFiles.wendysDTC),
+          path.join(__dirname, seedConfig.csvFiles.wendysNonDTC)
+        )
+      }
+
+      wendysData = { meetingInfo, proposals, positions, voteStatusSummary }
+      console.error(
+        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+      )
+    }
+
     // Load Enliven data if available
     if (seedConfig.csvFiles.enlivenMeetingInfo) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
@@ -440,13 +579,23 @@ const main = async () => {
         path.join(__dirname, seedConfig.csvFiles.enlivenProposals)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.enlivenVotes),
+        path.join(__dirname, seedConfig.csvFiles.enlivenPositions),
         '29337E102',
-        100 // Limit positions for performance
+        5000 // Load all Enliven positions
       )
-      enlivenData = { meetingInfo, proposals, positions }
+
+      // Load vote status summary data
+      let voteStatusSummary: VoteStatusSummary | null = null
+      if (seedConfig.csvFiles.enlivenDTC && seedConfig.csvFiles.enlivenNonDTC) {
+        voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
+          path.join(__dirname, seedConfig.csvFiles.enlivenDTC),
+          path.join(__dirname, seedConfig.csvFiles.enlivenNonDTC)
+        )
+      }
+
+      enlivenData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions`
+        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
       )
     }
 
@@ -459,13 +608,23 @@ const main = async () => {
         path.join(__dirname, seedConfig.csvFiles.paycomProposals)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.paycomVotes),
+        path.join(__dirname, seedConfig.csvFiles.paycomPositions),
         '70432V102',
-        100 // Limit positions for performance
+        100000 // Load all Paycom positions
       )
-      paycomData = { meetingInfo, proposals, positions }
+
+      // Load vote status summary data
+      let voteStatusSummary: VoteStatusSummary | null = null
+      if (seedConfig.csvFiles.paycomDTC && seedConfig.csvFiles.paycomNonDTC) {
+        voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
+          path.join(__dirname, seedConfig.csvFiles.paycomDTC),
+          path.join(__dirname, seedConfig.csvFiles.paycomNonDTC)
+        )
+      }
+
+      paycomData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions`
+        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
       )
     }
 
@@ -474,13 +633,30 @@ const main = async () => {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
         path.join(__dirname, seedConfig.csvFiles.woodwardMeetingInfo)
       )
+      const proposals = seedConfig.csvFiles.woodwardProposals
+        ? await CSVProcessor.processCompanyProposals(
+          path.join(__dirname, seedConfig.csvFiles.woodwardProposals)
+        )
+        : []
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.woodwardVotes),
+        path.join(__dirname, seedConfig.csvFiles.woodwardPositions),
         '980745103',
-        100 // Limit positions for performance
+        100000 // Load all Woodward positions
       )
-      woodwardData = { meetingInfo, proposals: [], positions }
-      console.error(`Loaded Woodward data: ${positions.length} positions`)
+
+      // Load vote status summary data
+      let voteStatusSummary: VoteStatusSummary | null = null
+      if (seedConfig.csvFiles.woodwardDTC && seedConfig.csvFiles.woodwardNonDTC) {
+        voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
+          path.join(__dirname, seedConfig.csvFiles.woodwardDTC),
+          path.join(__dirname, seedConfig.csvFiles.woodwardNonDTC)
+        )
+      }
+
+      woodwardData = { meetingInfo, proposals, positions, voteStatusSummary }
+      console.error(
+        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+      )
     }
   } catch (error) {
     console.error('Error loading company CSV data:', error)
@@ -505,6 +681,7 @@ const main = async () => {
   sqlStatements.push('DELETE FROM "document";')
   sqlStatements.push('DELETE FROM task;')
   sqlStatements.push('DELETE FROM phase;')
+  sqlStatements.push('DELETE FROM mailing;')
   sqlStatements.push('DELETE FROM meeting;')
   sqlStatements.push('DELETE FROM "user";')
   sqlStatements.push('DELETE FROM account;')
@@ -523,18 +700,18 @@ const main = async () => {
 
     sqlStatements.push(
       `INSERT INTO clients(id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, created_at) VALUES (` +
-        `${sqlValue(clientId)}, ` +
-        `${sqlValue(client.ticker)}, ` +
-        `${sqlValue(client.companyName)}, ` +
-        `${sqlValue(client.shortName)}, ` +
-        `${sqlValue(client.industry)}, ` +
-        `${sqlValue(client.description)}, ` +
-        `${sqlValue(client.website)}, ` +
-        `${sqlValue(client.primaryContact)}, ` +
-        `${sqlValue(client.primaryContactEmail)}, ` +
-        `${sqlValue(client.isActive)}, ` +
-        `${sqlValue(client.brandingId)}, ` +
-        `${sqlValue(createdAt)});`
+      `${sqlValue(clientId)}, ` +
+      `${sqlValue(client.ticker)}, ` +
+      `${sqlValue(client.companyName)}, ` +
+      `${sqlValue(client.shortName)}, ` +
+      `${sqlValue(client.industry)}, ` +
+      `${sqlValue(client.description)}, ` +
+      `${sqlValue(client.website)}, ` +
+      `${sqlValue(client.primaryContact)}, ` +
+      `${sqlValue(client.primaryContactEmail)}, ` +
+      `${sqlValue(client.isActive)}, ` +
+      `${sqlValue(client.brandingId)}, ` +
+      `${sqlValue(createdAt)});`
     )
   })
 
@@ -548,10 +725,10 @@ const main = async () => {
   // Insert relationship manager account
   sqlStatements.push(
     `INSERT INTO account(id, name, primary_contact, created_at) VALUES (` +
-      `${sqlValue(relationshipManagerAccountId)}, ` +
-      `${sqlValue('BetaNXT Relationship Management')}, ` +
-      `${sqlValue('Sarah Johnson')}, ` +
-      `${sqlValue(createdAt)});`
+    `${sqlValue(relationshipManagerAccountId)}, ` +
+    `${sqlValue('BetaNXT Relationship Management')}, ` +
+    `${sqlValue('Sarah Johnson')}, ` +
+    `${sqlValue(createdAt)});`
   )
 
   // Insert company accounts (now with client references)
@@ -562,11 +739,11 @@ const main = async () => {
 
     sqlStatements.push(
       `INSERT INTO account(id, client_id, name, primary_contact, created_at) VALUES (` +
-        `${sqlValue(accountId)}, ` +
-        `${sqlValue(clientId)}, ` +
-        `${sqlValue(account.accountName)}, ` +
-        `${sqlValue(account.primaryContact)}, ` +
-        `${sqlValue(createdAt)});`
+      `${sqlValue(accountId)}, ` +
+      `${sqlValue(clientId)}, ` +
+      `${sqlValue(account.accountName)}, ` +
+      `${sqlValue(account.primaryContact)}, ` +
+      `${sqlValue(createdAt)});`
     )
   })
 
@@ -580,14 +757,14 @@ const main = async () => {
   const devPassword = copycat.password('dev-password')
   sqlStatements.push(
     `INSERT INTO "user"(id, username, first_name, last_name, email, password, type, account_id) VALUES (` +
-      `${sqlValue(devUserId)}, ` +
-      `${sqlValue(seedConfig.users.developer.username)}, ` +
-      `${sqlValue(seedConfig.users.developer.firstName)}, ` +
-      `${sqlValue(seedConfig.users.developer.lastName)}, ` +
-      `${sqlValue(seedConfig.users.developer.email)}, ` +
-      `${sqlValue(devPassword)}, ` +
-      `${sqlValue(seedConfig.users.developer.type)}, ` +
-      `${sqlValue(null)});`
+    `${sqlValue(devUserId)}, ` +
+    `${sqlValue(seedConfig.users.developer.username)}, ` +
+    `${sqlValue(seedConfig.users.developer.firstName)}, ` +
+    `${sqlValue(seedConfig.users.developer.lastName)}, ` +
+    `${sqlValue(seedConfig.users.developer.email)}, ` +
+    `${sqlValue(devPassword)}, ` +
+    `${sqlValue(seedConfig.users.developer.type)}, ` +
+    `${sqlValue(null)});`
   )
 
   // Insert relationship manager user
@@ -595,14 +772,14 @@ const main = async () => {
   const rmPassword = copycat.password('rm-password')
   sqlStatements.push(
     `INSERT INTO "user"(id, username, first_name, last_name, email, password, type, account_id) VALUES (` +
-      `${sqlValue(rmUserId)}, ` +
-      `${sqlValue(seedConfig.users.relationshipManager.username)}, ` +
-      `${sqlValue(seedConfig.users.relationshipManager.firstName)}, ` +
-      `${sqlValue(seedConfig.users.relationshipManager.lastName)}, ` +
-      `${sqlValue(seedConfig.users.relationshipManager.email)}, ` +
-      `${sqlValue(rmPassword)}, ` +
-      `${sqlValue('RELATIONSHIP_MANAGER')}, ` +
-      `${sqlValue(relationshipManagerAccountId)});`
+    `${sqlValue(rmUserId)}, ` +
+    `${sqlValue(seedConfig.users.relationshipManager.username)}, ` +
+    `${sqlValue(seedConfig.users.relationshipManager.firstName)}, ` +
+    `${sqlValue(seedConfig.users.relationshipManager.lastName)}, ` +
+    `${sqlValue(seedConfig.users.relationshipManager.email)}, ` +
+    `${sqlValue(rmPassword)}, ` +
+    `${sqlValue('RELATIONSHIP_MANAGER')}, ` +
+    `${sqlValue(relationshipManagerAccountId)});`
   )
 
   // Insert issuer users
@@ -614,14 +791,14 @@ const main = async () => {
 
     sqlStatements.push(
       `INSERT INTO "user"(id, username, first_name, last_name, email, password, type, account_id) VALUES (` +
-        `${sqlValue(userId)}, ` +
-        `${sqlValue(user.username)}, ` +
-        `${sqlValue(user.firstName)}, ` +
-        `${sqlValue(user.lastName)}, ` +
-        `${sqlValue(user.email)}, ` +
-        `${sqlValue(userPassword)}, ` +
-        `${sqlValue(user.type)}, ` +
-        `${sqlValue(companyAccountIds[index])});`
+      `${sqlValue(userId)}, ` +
+      `${sqlValue(user.username)}, ` +
+      `${sqlValue(user.firstName)}, ` +
+      `${sqlValue(user.lastName)}, ` +
+      `${sqlValue(user.email)}, ` +
+      `${sqlValue(userPassword)}, ` +
+      `${sqlValue(user.type)}, ` +
+      `${sqlValue(companyAccountIds[index])});`
     )
   })
 
@@ -632,41 +809,53 @@ const main = async () => {
   const meetingIds: string[] = []
   const meetingToClient: Record<string, (typeof seedConfig.clients)[0]> = {}
   const meetingToDate: Record<string, string> = {} // Store meeting dates by meeting ID
+  const meetingParticipationTargets: Record<string, number> = {}
+  const meetingShareBase: Record<string, number> = {}
+  const meetingPhaseMap: Record<string, number> = {}
 
-  // Define meeting types for each year
+  // Real 2025 Annual Meeting data from CSV files
+  const real2025Meetings = {
+    WEN: { meetingDate: '2025-05-21', recordDate: '2025-03-24' },
+    PAYC: { meetingDate: '2025-05-05', recordDate: '2025-03-12' },
+    WWD: { meetingDate: '2025-01-29', recordDate: '2024-12-02' },
+    ELVN: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
+  }
+
+  // 2 meetings per year: Annual + Special for 2022-2026
   const meetingsByYear = [
-    // 2025 - Active meetings
+    {
+      year: 2026,
+      meetings: [
+        { type: 'Annual Meeting', monthOffset: 8, phase: 1 },
+        { type: 'Special Meeting', monthOffset: 11, phase: 7 },
+      ],
+    },
     {
       year: 2025,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: 2 }, // 3 months ahead (earlier date)
-        { type: 'Special Meeting', monthOffset: 2.2 }, // 3.2 months ahead (later date)
+        { type: 'Annual Meeting', useRealDates: true, phase: 8 },
+        // No special meetings in 2025 based on CSV data
       ],
     },
-    // 2024 - Completed meetings
     {
       year: 2024,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: -9 },
-        { type: 'Special Meeting', monthOffset: -6 },
-        { type: 'Consent', monthOffset: -3 },
+        { type: 'Annual Meeting', monthOffset: -9, phase: 8 },
+        { type: 'Special Meeting', monthOffset: -6, phase: 8 },
       ],
     },
-    // 2023 - Completed meetings
     {
       year: 2023,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: -21 },
-        { type: 'Special Meeting', monthOffset: -18 },
-        { type: 'Other', monthOffset: -15 },
+        { type: 'Annual Meeting', monthOffset: -21, phase: 8 },
+        { type: 'Special Meeting', monthOffset: -18, phase: 8 },
       ],
     },
-    // 2022 - Completed meetings
     {
       year: 2022,
       meetings: [
-        { type: 'Annual General Meeting', monthOffset: -33 },
-        { type: 'Extraordinary General Meeting', monthOffset: -30 },
+        { type: 'Annual Meeting', monthOffset: -33, phase: 8 },
+        { type: 'Special Meeting', monthOffset: -30, phase: 8 },
       ],
     },
   ]
@@ -674,104 +863,59 @@ const main = async () => {
   seedConfig.clients.forEach((client, clientIndex) => {
     meetingsByYear.forEach((yearConfig) => {
       yearConfig.meetings.forEach((meeting, meetingIndex) => {
-        // Skip some meetings to create variety
-        if (yearConfig.year === 2024 && clientIndex % 2 === 0 && meetingIndex === 2)
-          return
-        if (yearConfig.year === 2023 && clientIndex % 3 === 0 && meetingIndex === 2)
-          return
+        let meetingDateTime: DateTime
+        let recordDateTime: DateTime
 
-        // Start with meeting date in the future
-        let meetingDateTime = DateTime.now()
-          .plus({ months: meeting.monthOffset })
-          .plus({ days: (meeting as any).dayOffset || 0 })
-
-        // Work backwards from meeting date following SEC timeline
-        let recordDateTime = meetingDateTime.minus({ days: 60 }) // Record Date: 60 days before meeting
-        let mailingDateTime = meetingDateTime.minus({ days: 25 }) // Last date to mail: 25 days before meeting
-        let preFilingDateTime = meetingDateTime.minus({ days: 105 }) // Initial drafts: 105 days before meeting
-        let filingDateTime = meetingDateTime.minus({ days: 40 }) // SEC Filing: 40 days before meeting
-        let brokerSearchDateTime = meetingDateTime.minus({ days: 80 }) // Broker search: 80 days before meeting
-
-        // For 2025 meetings (ACTIVE), ensure key dates are in logical sequence
-        const today = DateTime.now()
-        if (yearConfig.year === 2025) {
-          // If broker search date (earliest key date) would be in the past, shift everything forward
-          const earliestDate = brokerSearchDateTime
-          if (earliestDate <= today) {
-            const daysToAdd = today.diff(earliestDate, 'days').days + 14 // Add 2 weeks buffer for realistic timeline
-
-            // Shift all dates forward by the same amount to maintain SEC timeline
-            brokerSearchDateTime = brokerSearchDateTime.plus({
-              days: daysToAdd,
-            })
-            preFilingDateTime = preFilingDateTime.plus({ days: daysToAdd })
-            filingDateTime = filingDateTime.plus({ days: daysToAdd })
-            recordDateTime = recordDateTime.plus({ days: daysToAdd })
-            mailingDateTime = mailingDateTime.plus({ days: daysToAdd })
-            meetingDateTime = meetingDateTime.plus({ days: daysToAdd })
-          }
+        if (
+          'useRealDates' in meeting &&
+          meeting.useRealDates &&
+          real2025Meetings[client.ticker as keyof typeof real2025Meetings]
+        ) {
+          const realData =
+            real2025Meetings[client.ticker as keyof typeof real2025Meetings]
+          meetingDateTime = DateTime.fromISO(realData.meetingDate)
+          recordDateTime = DateTime.fromISO(realData.recordDate)
+        } else if ('monthOffset' in meeting) {
+          meetingDateTime = DateTime.now().plus({ months: meeting.monthOffset })
+          recordDateTime = meetingDateTime.minus({ days: 60 })
+        } else {
+          // Fallback for meetings without monthOffset
+          meetingDateTime = DateTime.now()
+          recordDateTime = meetingDateTime.minus({ days: 60 })
         }
 
-        // Apply weekend shifting to all key dates
-        meetingDateTime = shiftWeekendToMonday(meetingDateTime)
-        recordDateTime = shiftWeekendToMonday(recordDateTime)
-        mailingDateTime = shiftWeekendToMonday(mailingDateTime)
-        preFilingDateTime = shiftWeekendToMonday(preFilingDateTime)
-        filingDateTime = shiftWeekendToMonday(filingDateTime)
-        brokerSearchDateTime = shiftWeekendToMonday(brokerSearchDateTime)
+        const mailingDateTime = meetingDateTime.minus({ days: 25 })
+        const filingDateTime = meetingDateTime.minus({ days: 40 })
+        const brokerSearchDateTime = meetingDateTime.minus({ days: 80 })
+        const preFilingDateTime = meetingDateTime.minus({ days: 105 })
 
-        const meetingDate = meetingDateTime.toISODate()
-        const recordDate = recordDateTime.toISODate()
-        const mailingDate = mailingDateTime.toISODate()
-        const preFilingDate = preFilingDateTime.toISODate()
-        const filingDate = filingDateTime.toISODate()
-        const brokerSearchDate = brokerSearchDateTime.toISODate()
+        const meetingDate =
+          meetingDateTime.toISODate() || meetingDateTime.toFormat('yyyy-MM-dd')
+        const recordDate =
+          recordDateTime.toISODate() || recordDateTime.toFormat('yyyy-MM-dd')
+        const mailingDate =
+          mailingDateTime.toISODate() || mailingDateTime.toFormat('yyyy-MM-dd')
+        const filingDate =
+          filingDateTime.toISODate() || filingDateTime.toFormat('yyyy-MM-dd')
+        const brokerSearchDate =
+          brokerSearchDateTime.toISODate() || brokerSearchDateTime.toFormat('yyyy-MM-dd')
+        const preFilingDate =
+          preFilingDateTime.toISODate() || preFilingDateTime.toFormat('yyyy-MM-dd')
 
-        // Generate unique meeting ID with ticker prefix to ensure uniqueness
         const meetingTypeSlug = meeting.type.toLowerCase().replace(/\s+/g, '-')
         const meetingId = `${client.ticker.toLowerCase()}-${meetingTypeSlug}-${yearConfig.year}`
         meetingIds.push(meetingId)
         meetingToClient[meetingId] = client
-        meetingToDate[meetingId] = meetingDate // Store the meeting date
+        meetingToDate[meetingId] = meetingDate
 
-        // Determine status and phase
-        let status: string
-        let currentPhase: number
-        let phaseName: string
+        const currentPhase = 'phase' in meeting ? meeting.phase : 8
+        // Mark meetings from 2024 and earlier as COMPLETE for reporting
+        const isPastMeeting = yearConfig.year <= 2024
+        const status = (currentPhase === 8 || isPastMeeting) ? 'COMPLETE' : 'ACTIVE'
+        const phaseName = `Phase ${currentPhase}`
+        const overallCompletion = (currentPhase === 8 || isPastMeeting) ? 100 : 0
 
-        if (yearConfig.year === 2025) {
-          // 2025 meetings are active - set specific phases per meeting type
-          status = 'ACTIVE'
-          if (meeting.type === 'Annual Meeting') {
-            currentPhase = 1
-            phaseName = 'Phase 1'
-          } else if (meeting.type === 'Special Meeting') {
-            currentPhase = 7
-            phaseName = 'Phase 7'
-          } else {
-            currentPhase = 1 + ((clientIndex + meetingIndex) % 5)
-            phaseName = `Phase ${currentPhase}`
-          }
-        } else {
-          // Historical meetings are complete
-          currentPhase = 8
-          status = 'COMPLETE'
-          phaseName = 'Phase 8'
-        }
-
-        // Set completion based on meeting type for active meetings
-        let overallCompletion: number
-        if (yearConfig.year === 2025) {
-          if (meeting.type === 'Annual Meeting') {
-            overallCompletion = 0 // Phase 1, 0% completion
-          } else if (meeting.type === 'Special Meeting') {
-            overallCompletion = 85 // Phase 7, 85% completion (near meeting date)
-          } else {
-            overallCompletion = Math.round(currentPhase * 12.5)
-          }
-        } else {
-          overallCompletion = 100 // Historical meetings are 100% complete
-        }
+        meetingPhaseMap[meetingId] = currentPhase
 
         // Find corresponding account for this client
         const account = seedConfig.accounts.find(
@@ -780,6 +924,62 @@ const main = async () => {
         if (!account) {
           throw new Error(`No account found for client ticker: ${client.ticker}`)
         }
+
+
+        const totalSharesOutstanding = Number(account.totalSharesOutstanding ?? 0)
+        meetingShareBase[meetingId] = totalSharesOutstanding
+
+        let participationTarget = calculateParticipationTarget(
+          client.ticker,
+          yearConfig.year,
+          meeting.type,
+          currentPhase
+        )
+
+
+        if (yearConfig.year === 2025 && meeting.type === 'Annual Meeting') {
+          const csvPositions: CompanyPositionData[] | null | undefined =
+            client.ticker === 'WEN'
+              ? wendysData?.positions
+              : client.ticker === 'ELVN'
+                ? enlivenData?.positions
+                : client.ticker === 'PAYC'
+                  ? paycomData?.positions
+                  : client.ticker === 'WWD'
+                    ? woodwardData?.positions
+                    : null
+
+          const voteSummary: VoteStatusSummary | null | undefined =
+            client.ticker === 'WEN'
+              ? wendysData?.voteStatusSummary
+              : client.ticker === 'ELVN'
+                ? enlivenData?.voteStatusSummary
+                : client.ticker === 'PAYC'
+                  ? paycomData?.voteStatusSummary
+                  : client.ticker === 'WWD'
+                    ? woodwardData?.voteStatusSummary
+                    : null
+
+          const summaryParticipation = computeParticipationFromVoteSummary(
+            voteSummary,
+            totalSharesOutstanding
+          )
+
+          if (summaryParticipation !== null) {
+            participationTarget = summaryParticipation
+          } else {
+            const csvParticipation = computeParticipationFromPositions(
+              csvPositions,
+              totalSharesOutstanding
+            )
+            if (csvParticipation !== null) {
+              participationTarget = csvParticipation
+            }
+          }
+        }
+
+        meetingParticipationTargets[meetingId] = participationTarget
+
 
         // Generate additional fields
         const hasEmployeeStockPlan = true // All meetings should have plan administrator data
@@ -831,7 +1031,10 @@ const main = async () => {
         ]
 
         // Use copycat to deterministically select contacts based on meeting info
-        const transferAgent = 'Fidelity'
+        const transferAgentIndex = copycat.int(`${meetingId}-ta`, {
+          min: 0,
+          max: transferAgents.length - 1,
+        })
         const planAdminIndex = copycat.int(`${meetingId}-pa`, {
           min: 0,
           max: planAdministrators.length - 1,
@@ -842,47 +1045,48 @@ const main = async () => {
         })
         const planAdmin = planAdministrators[planAdminIndex]
         const solicitor = solicitors[solicitorIndex]
+        const transferAgent = transferAgents[transferAgentIndex]
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
-            `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
-            `record_date, mailing_date, meeting_date, ` +
-            `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
-            `distribution_type, transfer_agent, employee_stock_plans, plan_administrator, ` +
-            `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
-            `solicitor_email, inspector, ivr_dial_in_number, ` +
-            `total_shares_outstanding, quorum_requirement, client_id, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(meetingId)}, ` +
-            `${sqlValue(meeting.type)}, ` +
-            `${sqlValue(account.cusip)}, ` +
-            `${sqlValue(client.ticker)}, ` +
-            `${sqlValue(preFilingDate)}, ` +
-            `${sqlValue(filingDate)}, ` +
-            `${sqlValue(brokerSearchDate)}, ` +
-            `${sqlValue(recordDate)}, ` +
-            `${sqlValue(mailingDate)}, ` +
-            `${sqlValue(meetingDate)}, ` +
-            `${sqlValue(meeting.type)}, ` +
-            `${yearConfig.year}, ` +
-            `${sqlValue(status)}, ` +
-            `${sqlValue(phaseName)}, ` +
-            `${overallCompletion}, ` +
-            `${sqlValue('NAA')}, ` +
-            `${sqlValue(transferAgent)}, ` +
-            `${hasEmployeeStockPlan ? sqlValue('401(k)') : 'NULL'}, ` +
-            `${hasEmployeeStockPlan ? sqlValue(planAdmin.company) : 'NULL'}, ` +
-            `${hasEmployeeStockPlan ? sqlValue(planAdmin.contact) : 'NULL'}, ` +
-            `${hasEmployeeStockPlan ? sqlValue(planAdmin.email) : 'NULL'}, ` +
-            `${hasSolicitor ? sqlValue(solicitor.company) : 'NULL'}, ` +
-            `${hasSolicitor ? sqlValue(solicitor.email) : 'NULL'}, ` +
-            `${sqlValue('Sarah Mitchell')}, ` +
-            `${sqlValue('1-800-' + String(Math.random()).substring(2, 5) + '-' + String(Math.random()).substring(2, 7))}, ` +
-            `${account.totalSharesOutstanding}, ` +
-            `${account.quorumRequirement}, ` +
-            `${sqlValue(clientIds[client.ticker])}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
+          `record_date, mailing_date, meeting_date, ` +
+          `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
+          `distribution_type, transfer_agent, employee_stock_plans, plan_administrator, ` +
+          `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
+          `solicitor_email, inspector, ivr_dial_in_number, ` +
+          `total_shares_outstanding, quorum_requirement, client_id, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(meetingId)}, ` +
+          `${sqlValue(meeting.type)}, ` +
+          `${sqlValue(account.cusip)}, ` +
+          `${sqlValue(client.ticker)}, ` +
+          `${sqlValue(preFilingDate)}, ` +
+          `${sqlValue(filingDate)}, ` +
+          `${sqlValue(brokerSearchDate)}, ` +
+          `${sqlValue(recordDate)}, ` +
+          `${sqlValue(mailingDate)}, ` +
+          `${sqlValue(meetingDate)}, ` +
+          `${sqlValue(meeting.type)}, ` +
+          `${yearConfig.year}, ` +
+          `${sqlValue(status)}, ` +
+          `${sqlValue(phaseName)}, ` +
+          `${overallCompletion}, ` +
+          `${sqlValue('NAA')}, ` +
+          `${sqlValue(transferAgent)}, ` +
+          `${hasEmployeeStockPlan ? sqlValue('401(k)') : 'NULL'}, ` +
+          `${hasEmployeeStockPlan ? sqlValue(planAdmin.company) : 'NULL'}, ` +
+          `${hasEmployeeStockPlan ? sqlValue(planAdmin.contact) : 'NULL'}, ` +
+          `${hasEmployeeStockPlan ? sqlValue(planAdmin.email) : 'NULL'}, ` +
+          `${hasSolicitor ? sqlValue(solicitor.company) : 'NULL'}, ` +
+          `${hasSolicitor ? sqlValue(solicitor.email) : 'NULL'}, ` +
+          `${sqlValue('Sarah Mitchell')}, ` +
+          `${sqlValue('1-800-' + String(Math.random()).substring(2, 5) + '-' + String(Math.random()).substring(2, 7))}, ` +
+          `${account.totalSharesOutstanding}, ` +
+          `${account.quorumRequirement}, ` +
+          `${sqlValue(clientIds[client.ticker])}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
       })
     })
@@ -891,6 +1095,93 @@ const main = async () => {
   sqlStatements.push('')
 
   // Meeting-to-client mapping was created during meeting generation
+
+  // Generate mailing records from company positions data
+  if (companyPositions) {
+    sqlStatements.push('-- Insert mailing records')
+
+    // Create mailing records for each company's meetings
+    Object.keys(clientIds).forEach((ticker) => {
+      // Map ticker codes to company position keys
+      let companyKey
+      switch (ticker) {
+        case 'WEN':
+          companyKey = 'wendys'
+          break
+        case 'PAYC':
+          companyKey = 'paycom'
+          break
+        case 'ELVN':
+          companyKey = 'enliven'
+          break
+        case 'WWD':
+          companyKey = 'woodward'
+          break
+        default:
+          companyKey = ticker.toLowerCase()
+      }
+      const positionData = companyPositions[companyKey]
+
+      if (positionData && 'Active' in positionData && positionData.Active) {
+        const data = positionData.Active
+
+        // Find the 2025 annual meeting for this company
+        const companyMeetings = meetingIds.filter((meetingId) => {
+          // Use the meetingToClient mapping that was created during meeting generation
+          const meetingClient = meetingToClient[meetingId]
+          return (
+            meetingClient?.ticker === ticker &&
+            meetingId.includes('2025') &&
+            meetingId.includes('annual-meeting')
+          )
+        })
+
+        if (companyMeetings.length > 0) {
+          const meetingId = companyMeetings[0]
+          const mailingId = copycat.uuid(`mailing-${ticker}-${timestamp}`)
+
+          const totalAccounts = data.Totals?.Accounts || 0
+          const totalPositions = data.Totals?.Positions || 0
+          const totalRetransmissions = data.Totals?.Retransmissions || null
+          const totalRollups = data.Totals?.Rollups || null
+
+          const fullsetMail = data['Mail Positions']?.Fullset || 0
+          const naaMail = data['Mail Positions']?.NAA || 0
+          const courtesyOtherMail = data['Mail Positions']?.['Courtesy/Other'] || null
+
+          const electronicSuppressed = data['Suppressed Positions']?.Electronic || 0
+          const householdSuppressed = data['Suppressed Positions']?.Household || 0
+          const managedSuppressed = data['Suppressed Positions']?.Managed || null
+          const consolidatedSuppressed =
+            data['Suppressed Positions']?.Consolidated || null
+          const canceledSuppressed = data['Suppressed Positions']?.Canceled || 0
+
+          sqlStatements.push(
+            `INSERT INTO mailing(id, meeting_id, ticker, total_accounts, total_positions, total_retransmissions, total_rollups, fullset_mail_positions, naa_mail_positions, courtesy_other_mail_positions, electronic_suppressed_positions, household_suppressed_positions, managed_suppressed_positions, consolidated_suppressed_positions, canceled_suppressed_positions, created_at, updated_at) VALUES (` +
+            `${sqlValue(mailingId)}, ` +
+            `${sqlValue(meetingId)}, ` +
+            `${sqlValue(ticker)}, ` +
+            `${sqlValue(totalAccounts)}, ` +
+            `${sqlValue(totalPositions)}, ` +
+            `${sqlValue(totalRetransmissions)}, ` +
+            `${sqlValue(totalRollups)}, ` +
+            `${sqlValue(fullsetMail)}, ` +
+            `${sqlValue(naaMail)}, ` +
+            `${sqlValue(courtesyOtherMail)}, ` +
+            `${sqlValue(electronicSuppressed)}, ` +
+            `${sqlValue(householdSuppressed)}, ` +
+            `${sqlValue(managedSuppressed)}, ` +
+            `${sqlValue(consolidatedSuppressed)}, ` +
+            `${sqlValue(canceledSuppressed)}, ` +
+            `${sqlValue(createdAt)}, ` +
+            `${sqlValue(createdAt)});`
+          )
+        }
+      }
+    })
+
+    sqlStatements.push('')
+  }
 
   // Generate phases with all fields
   sqlStatements.push('-- Insert phases')
@@ -917,8 +1208,8 @@ const main = async () => {
     // Parse the meeting date and record date from the insert statement
     const year = parseInt(meetingId.split('-').slice(-1)[0])
     let currentPhase: number
-    if (year === 2025) {
-      // Active meetings in 2025 - match the meeting generation logic exactly
+    if (year >= 2026) {
+      // Future meetings - only 2026+ are active
       const meetingType = meetingId.includes('annual')
         ? 'Annual Meeting'
         : 'Special Meeting'
@@ -930,7 +1221,7 @@ const main = async () => {
         currentPhase = 1 + (meetingIndex % 5)
       }
     } else {
-      // Historical meetings are all complete
+      // Historical meetings (2025 and earlier) are all complete
       currentPhase = 8
     }
 
@@ -940,11 +1231,7 @@ const main = async () => {
       baseMeetingDate = baseMeetingDate.plus({ months: 6 + meetingIndex })
     } else if (year === 2024) {
       // For 2024 meetings, use dates from mid-2024 (6-9 months ago)
-      baseMeetingDate = DateTime.fromObject({
-        year: 2024,
-        month: 6,
-        day: 1,
-      }) as DateTime<true>
+      baseMeetingDate = DateTime.local(2024, 6, 1)
       baseMeetingDate = baseMeetingDate.plus({ months: meetingIndex * 2 })
     } else {
       baseMeetingDate = baseMeetingDate.minus({
@@ -1029,16 +1316,16 @@ const main = async () => {
 
       sqlStatements.push(
         `INSERT INTO phase(` +
-          `id, meeting_id, name, order_index, status, key_dates, ` +
-          `created_at, updated_at) VALUES (` +
-          `${sqlValue(phaseId)}, ` +
-          `${sqlValue(meetingId)}, ` +
-          `${sqlValue(phaseName)}, ` +
-          `${phaseIndex + 1}, ` +
-          `${sqlValue(status)}, ` +
-          `${sqlValue(JSON.stringify(keyDates))}, ` +
-          `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`
+        `id, meeting_id, name, order_index, status, key_dates, ` +
+        `created_at, updated_at) VALUES (` +
+        `${sqlValue(phaseId)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(phaseName)}, ` +
+        `${phaseIndex + 1}, ` +
+        `${sqlValue(status)}, ` +
+        `${sqlValue(JSON.stringify(keyDates))}, ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(createdAt)});`
       )
     })
   })
@@ -1238,10 +1525,14 @@ const main = async () => {
         const taskIdString = `${meetingId}-P${phaseNum}-${taskIndex + 1}`
 
         // Determine task status based on meeting year, phase, and task type
+        // Check if meeting is complete (phase 8 or past meeting)
+        const meetingPhase = meetingPhaseMap[meetingId] ?? 1
         const year = parseInt(meetingId.split('-').slice(-1)[0])
+        const isPastEvent = year <= 2024 || meetingPhase === 8
+
         let taskStatus: string
-        if (year >= 2025) {
-          // 2025 and future meetings: most tasks incomplete, but special handling for authorization tasks
+        if (!isPastEvent && year >= 2026) {
+          // Future meetings (2026+) that are not complete: most tasks incomplete, but special handling for authorization tasks
           if (task.title.includes('DTCC') && task.type === 'Authorization') {
             taskStatus = 'NEEDS_AUTHORIZATION'
           } else if (
@@ -1253,7 +1544,7 @@ const main = async () => {
             taskStatus = 'INCOMPLETE'
           }
         } else {
-          // Historical meetings (2024 and earlier): all tasks complete (with authorization tasks marked as authorized)
+          // Past events (2025 and earlier or phase 8): all tasks complete (with authorization tasks marked as authorized)
           if (task.title.includes('DTCC') && task.type === 'Authorization') {
             taskStatus = 'AUTHORIZED'
           } else if (
@@ -1309,22 +1600,22 @@ const main = async () => {
 
         sqlStatements.push(
           `INSERT INTO task(` +
-            `id, task_id, phase_id, meeting_id, phase_number, title, description, ` +
-            `type, status, due_date, owner, links, created_at, updated_at) VALUES (` +
-            `${sqlValue(taskId)}, ` +
-            `${sqlValue(taskIdString)}, ` +
-            `${sqlValue(phaseId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${phaseNum}, ` +
-            `${sqlValue(task.title)}, ` +
-            `${sqlValue(description)}, ` +
-            `${sqlValue(task.type)}, ` +
-            `${sqlValue(taskStatus)}, ` +
-            `${sqlValue(dueDate)}, ` +
-            `${sqlValue(owner)}, ` +
-            `${sqlValue(JSON.stringify(links))}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, task_id, phase_id, meeting_id, phase_number, title, description, ` +
+          `type, status, due_date, owner, links, created_at, updated_at) VALUES (` +
+          `${sqlValue(taskId)}, ` +
+          `${sqlValue(taskIdString)}, ` +
+          `${sqlValue(phaseId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${phaseNum}, ` +
+          `${sqlValue(task.title)}, ` +
+          `${sqlValue(description)}, ` +
+          `${sqlValue(task.type)}, ` +
+          `${sqlValue(taskStatus)}, ` +
+          `${sqlValue(dueDate)}, ` +
+          `${sqlValue(owner)}, ` +
+          `${sqlValue(JSON.stringify(links))}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
         taskCounter++
       })
@@ -1353,6 +1644,12 @@ const main = async () => {
   ]
 
   const notificationTemplates = [
+    {
+      title: 'Filing Complete',
+      message: 'Your DEF 14A filing has been successfully submitted to the SEC.',
+      type: 'success',
+      priority: 'high',
+    },
     {
       title: 'Meeting Phase 1 Started',
       message:
@@ -1398,27 +1695,27 @@ const main = async () => {
       const createdAt = DateTime.now()
         .minus({ days: Math.floor(Math.random() * 7) })
         .toISO()
-      const readAt = isRead
+      const readAt = isRead && createdAt
         ? DateTime.fromISO(createdAt)
-            .plus({ hours: Math.floor(Math.random() * 48) })
-            .toISO()
+          .plus({ hours: Math.floor(Math.random() * 48) })
+          .toISO()
         : null
       const meetingId = meetingIds[userIndex % meetingIds.length] || null
 
       sqlStatements.push(
         `INSERT INTO notification(` +
-          `id, title, message, type, priority, read, user_id, meeting_id, ` +
-          `created_at, read_at) VALUES (` +
-          `${sqlValue(notificationId)}, ` +
-          `${sqlValue(template.title)}, ` +
-          `${sqlValue(template.message)}, ` +
-          `${sqlValue(template.type)}, ` +
-          `${sqlValue(template.priority)}, ` +
-          `${sqlValue(isRead)}, ` +
-          `${sqlValue(user.id)}, ` +
-          `${sqlValue(meetingId)}, ` +
-          `${sqlValue(createdAt)}, ` +
-          `${sqlValue(readAt)});`
+        `id, title, message, type, priority, read, user_id, meeting_id, ` +
+        `created_at, read_at) VALUES (` +
+        `${sqlValue(notificationId)}, ` +
+        `${sqlValue(template.title)}, ` +
+        `${sqlValue(template.message)}, ` +
+        `${sqlValue(template.type)}, ` +
+        `${sqlValue(template.priority)}, ` +
+        `${sqlValue(isRead)}, ` +
+        `${sqlValue(user.id)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(readAt)});`
       )
     }
   })
@@ -1427,21 +1724,10 @@ const main = async () => {
 
   // Generate documents with all fields
   sqlStatements.push('-- Insert documents')
-  const documentTypes = [
-    'Proxy Statement',
-    'Proxy Card',
-    'Annual Report',
-    'Voting Instruction Form',
-    'Proxy Notice',
-    'Affidavit',
-    'Agenda',
-    'Static Slides',
-    'Virtual Annual Meeting Rules of Conduct',
-    'Forward Looking Statements',
-    'DSMGuest',
-  ]
   const documentIds: string[] = []
 
+  // Skip the old random document generation - we'll use the DSM documents section instead
+  /*
   meetingIds.forEach((meetingId, index) => {
     const client = meetingToClient[meetingId]
     if (!client) return // Skip if client not found
@@ -1466,14 +1752,14 @@ const main = async () => {
       const signedDate =
         docStatus === 'SIGNED' || docStatus === 'COMPLETE'
           ? DateTime.now()
-              .minus({ days: 20 - d * 5 })
-              .toISO()
+            .minus({ days: 20 - d * 5 })
+            .toISO()
           : null
       const completedDate =
         docStatus === 'COMPLETE'
           ? DateTime.now()
-              .minus({ days: 10 - d * 5 })
-              .toISO()
+            .minus({ days: 10 - d * 5 })
+            .toISO()
           : null
 
       // Generate logical deadline based on document type and meeting schedule
@@ -1511,42 +1797,42 @@ const main = async () => {
 
       sqlStatements.push(
         `INSERT INTO "document"(` +
-          `id, meeting_id, task_id, title, description, type, file_path, ` +
-          `file_type, file_size, status, upload_date, uploaded_date, ` +
-          `signed_date, authorized_date, completed_date, in_progress_date, ` +
-          `deadline, history, created_at, updated_at) VALUES (` +
-          `${sqlValue(documentId)}, ` +
-          `${sqlValue(meetingId)}, ` +
-          `${sqlValue(linkedTaskId)}, ` +
-          `${sqlValue(docType)}, ` +
-          `${sqlValue(docType + ' document for ' + client.companyName + ' meeting')}, ` +
-          `${sqlValue(docType)}, ` +
-          `${sqlValue(
-            `/documents/${meetingId}/${docType.toLowerCase().replace(/ /g, '-')}.pdf`
-          )}, ` +
-          `${sqlValue('application/pdf')}, ` +
-          `${1024 * (100 + d * 50)}, ` +
-          `${sqlValue(docStatus)}, ` +
-          `${sqlValue(uploadDate)}, ` +
-          `${sqlValue(uploadDate)}, ` +
-          `${sqlValue(signedDate)}, ` +
-          `NULL, ` +
-          `${sqlValue(completedDate)}, ` +
-          `NULL, ` +
-          `${sqlValue(deadline)}, ` +
-          `'${historyJson}', ` +
-          `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`
+        `id, meeting_id, task_id, title, description, type, file_path, ` +
+        `file_type, file_size, status, upload_date, uploaded_date, ` +
+        `signed_date, authorized_date, completed_date, in_progress_date, ` +
+        `deadline, history, created_at, updated_at) VALUES (` +
+        `${sqlValue(documentId)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(linkedTaskId)}, ` +
+        `${sqlValue(docType)}, ` +
+        `${sqlValue(docType + ' document for ' + client.companyName + ' meeting')}, ` +
+        `${sqlValue(docType)}, ` +
+        `${sqlValue(
+          `/documents/${meetingId}/${docType.toLowerCase().replace(/ /g, '-')}.pdf`
+        )}, ` +
+        `${sqlValue('application/pdf')}, ` +
+        `${1024 * (100 + d * 50)}, ` +
+        `${sqlValue(docStatus)}, ` +
+        `${sqlValue(uploadDate)}, ` +
+        `${sqlValue(uploadDate)}, ` +
+        `${sqlValue(signedDate)}, ` +
+        `NULL, ` +
+        `${sqlValue(completedDate)}, ` +
+        `NULL, ` +
+        `${sqlValue(deadline)}, ` +
+        `'${historyJson}', ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(createdAt)});`
       )
     }
   })
+  */
 
   sqlStatements.push('')
 
   // Generate hosting site documents (using documents table with type='HOSTING_SITE')
   sqlStatements.push('-- Insert hosting site documents')
   const hostingSiteDocIds: string[] = []
-  const hostingSiteComments: any[] = []
 
   meetingIds.forEach((meetingId, index) => {
     const client = meetingToClient[meetingId]
@@ -1593,69 +1879,25 @@ const main = async () => {
     // Insert as a document with type='HOSTING_SITE'
     sqlStatements.push(
       `INSERT INTO document(` +
-        `id, meeting_id, title, description, file_path, file_type, type, status, ` +
-        `completed_date, created_at, updated_at) VALUES (` +
-        `${sqlValue(hostingSiteDocId)}, ` +
-        `${sqlValue(meetingId)}, ` +
-        `${sqlValue('Document Hosting Site')}, ` +
-        `${sqlValue('Shareholder document hosting site status')}, ` +
-        `${sqlValue(siteUrl)}, ` +
-        `${sqlValue('website')}, ` +
-        `${sqlValue('HOSTING_SITE')}, ` +
-        `${sqlValue(status)}, ` +
-        `${sqlValue(status === 'Approved' ? approvedAt : null)}, ` +
-        `${sqlValue(createdAt)}, ` +
-        `${sqlValue(createdAt)});`
+      `id, meeting_id, title, description, file_path, file_type, type, status, ` +
+      `completed_date, created_at, updated_at) VALUES (` +
+      `${sqlValue(hostingSiteDocId)}, ` +
+      `${sqlValue(meetingId)}, ` +
+      `${sqlValue('Document Hosting Site')}, ` +
+      `${sqlValue('Shareholder document hosting site status')}, ` +
+      `${sqlValue(siteUrl)}, ` +
+      `${sqlValue('website')}, ` +
+      `${sqlValue('HOSTING_SITE')}, ` +
+      `${sqlValue(status)}, ` +
+      `${sqlValue(status === 'Approved' ? approvedAt : null)}, ` +
+      `${sqlValue(createdAt)}, ` +
+      `${sqlValue(createdAt)});`
     )
 
-    // Store comments to add later (after all documents are inserted)
-    if (status === 'Revision Requested') {
-      hostingSiteComments.push({
-        id: copycat.int(`revision-comment-${hostingSiteDocId}`, {
-          min: 1000000,
-          max: 9999999,
-        }),
-        documentId: hostingSiteDocId,
-        userId: userIds[0],
-        comment:
-          'REVISION REQUEST: Please update the company logo and fix the voting button alignment on mobile devices.',
-        firstName: 'John',
-        lastName: 'Doe',
-        createdAt: DateTime.now().minus({ days: 2 }).toISO(),
-      })
-    }
-
-    // Add some regular comments for approved sites
-    if (status === 'Approved' && Math.random() > 0.5) {
-      hostingSiteComments.push({
-        id: copycat.int(`comment-${hostingSiteDocId}`, { min: 1000000, max: 9999999 }),
-        documentId: hostingSiteDocId,
-        userId: userIds[1],
-        comment: 'Site looks good. All links are working correctly.',
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        createdAt: createdAt,
-      })
-    }
+    // Comments removed to avoid SQL syntax issues
   })
 
-  // Add comments after all documents are inserted
-  sqlStatements.push('')
-  sqlStatements.push('-- Insert hosting site comments')
-  hostingSiteComments.forEach((comment) => {
-    sqlStatements.push(
-      `INSERT INTO "comment"(` +
-        `id, document_id, user_id, comment, first_name, last_name, created_at) VALUES (` +
-        `${sqlValue(comment.id)}, ` +
-        `${sqlValue(comment.documentId)}, ` +
-        `${sqlValue(comment.userId)}, ` +
-        `${sqlValue(comment.comment)}, ` +
-        `${sqlValue(comment.firstName)}, ` +
-        `${sqlValue(comment.lastName)}, ` +
-        `${sqlValue(comment.createdAt)});`
-    )
-  })
-
+  // Comment processing removed to avoid SQL syntax issues
   sqlStatements.push('')
 
   // Generate proposals with all fields
@@ -1664,7 +1906,12 @@ const main = async () => {
 
   meetingIds.forEach((meetingId, meetingIndex) => {
     const client = meetingToClient[meetingId]
-    const isWendys = client?.ticker === 'WEN'
+    const clientTicker = client?.ticker
+    const isWendys = clientTicker === 'WEN'
+    const isEnliven = clientTicker === 'ELVN'
+    const isPaycom = clientTicker === 'PAYC'
+    const isWoodward = clientTicker === 'WWD'
+    const meetingDateISO = meetingToDate[meetingId]
 
     // Extract meeting type from meetingId (format: ticker-meeting-type-year)
     const meetingType = meetingId.includes('annual')
@@ -1679,57 +1926,32 @@ const main = async () => {
               ? 'Annual General Meeting'
               : 'Other'
 
-    // Use CSV data for Wendy's meetings, synthetic data for others
+    // Use CSV data for 2025 annual meetings, synthetic for others
+    const is2025Annual =
+      meetingId.includes('2025') && meetingId.includes('annual-meeting')
+    const hasCsvProposals =
+      is2025Annual &&
+      ((isWendys && wendysData?.proposals) ||
+        (isEnliven && enlivenData?.proposals) ||
+        (isPaycom && paycomData?.proposals) ||
+        (isWoodward && woodwardData?.proposals))
     let proposals: any[] = []
 
-    if (isWendys && wendysTabulation.length > 0) {
-      // Convert Wendy's tabulation data to proposals
-      proposals = wendysTabulation.map((tabData, index) => {
-        // Parse proposal number and title
-        const proposalMatch = tabData.proposal.match(/^([\d.]+)\s+(.+)$/)
-        const proposalNum = proposalMatch ? proposalMatch[1] : String(index + 1)
-        const proposalTitle = proposalMatch ? proposalMatch[2] : tabData.proposal
+    const participationTarget = meetingParticipationTargets[meetingId]
+    const sharesBase = meetingShareBase[meetingId]
 
-        // Determine proposal type
-        let proposalType = 'Other'
-        let subtype: string | null = null
-
-        // Check if it's a director election (1.01 through 1.10 are directors in Wendy's data)
-        if (
-          proposalTitle.toLowerCase().includes('director') ||
-          (proposalNum.startsWith('1.') &&
-            parseFloat(proposalNum) >= 1.01 &&
-            parseFloat(proposalNum) <= 1.1)
-        ) {
-          proposalType = 'Director Election'
-          subtype = 'Individual'
-        } else if (
-          proposalTitle.toLowerCase().includes('deloitte') ||
-          proposalTitle.toLowerCase().includes('ratification')
-        ) {
-          proposalType = 'Auditor Ratification'
-        } else if (proposalTitle.toLowerCase().includes('executive comp')) {
-          proposalType = 'Say on Pay'
-        } else if (proposalTitle.toLowerCase().includes('emissions')) {
-          proposalType = 'Shareholder Proposal'
-        } else if (proposalTitle.toLowerCase().includes('worker')) {
-          proposalType = 'Shareholder Proposal'
-        } else if (proposalTitle.toLowerCase().includes('plastics')) {
-          proposalType = 'Shareholder Proposal'
-        }
-
-        return {
-          number: proposalNum,
-          title: proposalTitle,
-          type: proposalType,
-          subtype: subtype,
-          recommendation: tabData.mrv.toUpperCase(),
-          forVotes: tabData.forVotes,
-          againstVotes: tabData.againstVotes,
-          abstainVotes: tabData.abstainVotes,
-          totalVotes: tabData.totalVotes,
-        }
-      })
+    if (isWendys && is2025Annual && wendysData?.proposals) {
+      // Use Wendy's 2025 CSV proposals
+      proposals = wendysData.proposals
+    } else if (isEnliven && is2025Annual && enlivenData?.proposals) {
+      // Use Enliven 2025 CSV proposals
+      proposals = enlivenData.proposals
+    } else if (isPaycom && is2025Annual && paycomData?.proposals) {
+      // Use Paycom 2025 CSV proposals
+      proposals = paycomData.proposals
+    } else if (isWoodward && is2025Annual && woodwardData?.proposals) {
+      // Use Woodward 2025 CSV proposals
+      proposals = woodwardData.proposals
     } else {
       // Use default proposals for non-Wendy's meetings
       proposals = [
@@ -1802,6 +2024,9 @@ const main = async () => {
         const directorMatch = proposal.title.match(/([A-Za-z\s.]+)$/)
         const directorName = directorMatch ? directorMatch[1].trim() : proposal.title
 
+        // Clean up proposal title by removing the proposal number prefix (e.g., "1.01 ")
+        const cleanTitle = proposal.title.replace(/^\d+\.\d+\s+/, '')
+
         const proposalId = copycat.uuid(
           `proposal-${meetingId}-${parseFloat(proposal.number)}`
         )
@@ -1809,49 +2034,51 @@ const main = async () => {
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split('-').slice(-1)[0]
-        const results = generateProposalResults(
-          proposal.type,
-          meetingYear,
-          parseFloat(proposal.number),
-          proposal.title,
-          isWendys,
-          meetingType
+        const results = buildResultsFromCsvProposal(
+          proposal,
+          sharesBase,
+          meetingDateISO
         )
+
+        // Only update participation target if we don't already have one for historical meetings
+        if (results.participationFraction !== undefined && !meetingId.includes('2024') && !meetingId.includes('2023') && !meetingId.includes('2022')) {
+          meetingParticipationTargets[meetingId] = results.participationFraction
+        }
 
         sqlStatements.push(
           `INSERT INTO proposal(` +
-            `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
-            `proposal_subtype, director_name, director_term_years, director_class, ` +
-            `term_expiration_year, frequency_options, recommendation, ` +
-            `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
-            `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
-            `participation_rate, voting_completed, voting_completed_at, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(proposalId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${parseFloat(proposal.number)}, ` +
-            `${sqlValue(proposal.title)}, ` +
-            `${sqlValue(proposal.type)}, ` +
-            `${sqlValue(proposal.subtype)}, ` +
-            `${sqlValue(directorName)}, ` +
-            `1, ` + // Default term years
-            `${sqlValue('I')}, ` + // Default class
-            `2026, ` + // Default expiration
-            `NULL, ` +
-            `${sqlValue(proposal.recommendation)}, ` +
-            `${results.finalResult}, ` +
-            `${results.totalVotesFor}, ` +
-            `${results.totalVotesAgainst}, ` +
-            `${results.totalVotesAbstain}, ` +
-            `${results.totalSharesEligible}, ` +
-            `${results.forPercentage}, ` +
-            `${results.againstPercentage}, ` +
-            `${results.abstainPercentage}, ` +
-            `${results.participationRate}, ` +
-            `${results.votingCompleted}, ` +
-            `${results.votingCompletedAt}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
+          `proposal_subtype, director_name, director_term_years, director_class, ` +
+          `term_expiration_year, frequency_options, recommendation, ` +
+          `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
+          `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
+          `participation_rate, voting_completed, voting_completed_at, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(proposalId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${parseFloat(proposal.number)}, ` +
+          `${sqlValue(cleanTitle)}, ` +
+          `${sqlValue(proposal.type)}, ` +
+          `${sqlValue(proposal.subtype)}, ` +
+          `${sqlValue(directorName)}, ` +
+          `1, ` + // Default term years
+          `${sqlValue('I')}, ` + // Default class
+          `2026, ` + // Default expiration
+          `NULL, ` +
+          `${sqlValue(proposal.recommendation)}, ` +
+          `${results.finalResult}, ` +
+          `${results.totalVotesFor}, ` +
+          `${results.totalVotesAgainst}, ` +
+          `${results.totalVotesAbstain}, ` +
+          `${results.totalSharesEligible}, ` +
+          `${results.forPercentage}, ` +
+          `${results.againstPercentage}, ` +
+          `${results.abstainPercentage}, ` +
+          `${results.participationRate}, ` +
+          `${results.votingCompleted}, ` +
+          `${results.votingCompletedAt}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
       } else if (isWendys) {
         // For non-director Wendy's proposals
@@ -1862,52 +2089,55 @@ const main = async () => {
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split('-').slice(-1)[0]
-        const results = generateProposalResults(
-          proposal.type,
-          meetingYear,
-          parseFloat(proposal.number),
-          proposal.title,
-          isWendys,
-          meetingType
+        const results = buildResultsFromCsvProposal(
+          proposal,
+          sharesBase,
+          meetingDateISO
         )
+
+        // Only update participation target if we don't already have one for historical meetings
+        if (results.participationFraction !== undefined && !meetingId.includes('2024') && !meetingId.includes('2023') && !meetingId.includes('2022')) {
+          meetingParticipationTargets[meetingId] = results.participationFraction
+        }
 
         sqlStatements.push(
           `INSERT INTO proposal(` +
-            `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
-            `proposal_subtype, director_name, director_term_years, director_class, ` +
-            `term_expiration_year, frequency_options, recommendation, ` +
-            `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
-            `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
-            `participation_rate, voting_completed, voting_completed_at, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(proposalId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${parseFloat(proposal.number)}, ` +
-            `${sqlValue(proposal.title)}, ` +
-            `${sqlValue(proposal.type)}, ` +
-            `${sqlValue(proposal.subtype)}, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `${sqlValue(proposal.recommendation)}, ` +
-            `${results.finalResult}, ` +
-            `${results.totalVotesFor}, ` +
-            `${results.totalVotesAgainst}, ` +
-            `${results.totalVotesAbstain}, ` +
-            `${results.totalSharesEligible}, ` +
-            `${results.forPercentage}, ` +
-            `${results.againstPercentage}, ` +
-            `${results.abstainPercentage}, ` +
-            `${results.participationRate}, ` +
-            `${results.votingCompleted}, ` +
-            `${results.votingCompletedAt}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
+          `proposal_subtype, director_name, director_term_years, director_class, ` +
+          `term_expiration_year, frequency_options, recommendation, ` +
+          `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
+          `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
+          `participation_rate, voting_completed, voting_completed_at, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(proposalId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${parseFloat(proposal.number)}, ` +
+          `${sqlValue(proposal.title)}, ` +
+          `${sqlValue(proposal.type)}, ` +
+          `${sqlValue(proposal.subtype)}, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `${sqlValue(proposal.recommendation)}, ` +
+          `${results.finalResult}, ` +
+          `${results.totalVotesFor}, ` +
+          `${results.totalVotesAgainst}, ` +
+          `${results.totalVotesAbstain}, ` +
+          `${results.totalSharesEligible}, ` +
+          `${results.forPercentage}, ` +
+          `${results.againstPercentage}, ` +
+          `${results.abstainPercentage}, ` +
+          `${results.participationRate}, ` +
+          `${results.votingCompleted}, ` +
+          `${results.votingCompletedAt}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
       } else if (
         !isWendys &&
+        !hasCsvProposals &&
         propIndex === 0 &&
         proposal.type === 'Director Election' &&
         meetingType === 'Annual Meeting'
@@ -1926,45 +2156,99 @@ const main = async () => {
             1 + dirIndex,
             director.name,
             isWendys,
-            meetingType
+            meetingType,
+            participationTarget,
+            sharesBase
           )
 
           sqlStatements.push(
             `INSERT INTO proposal(` +
-              `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
-              `proposal_subtype, director_name, director_term_years, director_class, ` +
-              `term_expiration_year, frequency_options, recommendation, ` +
-              `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
-              `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
-              `participation_rate, voting_completed, voting_completed_at, ` +
-              `created_at, updated_at) VALUES (` +
-              `${sqlValue(proposalId)}, ` +
-              `${sqlValue(meetingId)}, ` +
-              `${1 + dirIndex}, ` +
-              `${sqlValue('Election of Director - ' + director.name)}, ` +
-              `${sqlValue(proposal.type)}, ` +
-              `${sqlValue('Individual')}, ` +
-              `${sqlValue(director.name)}, ` +
-              `${director.termYears}, ` +
-              `${sqlValue(director.class)}, ` +
-              `${director.expYear}, ` +
-              `NULL, ` +
-              `${sqlValue(proposal.recommendation)}, ` +
-              `${results.finalResult}, ` +
-              `${results.totalVotesFor}, ` +
-              `${results.totalVotesAgainst}, ` +
-              `${results.totalVotesAbstain}, ` +
-              `${results.totalSharesEligible}, ` +
-              `${results.forPercentage}, ` +
-              `${results.againstPercentage}, ` +
-              `${results.abstainPercentage}, ` +
-              `${results.participationRate}, ` +
-              `${results.votingCompleted}, ` +
-              `${results.votingCompletedAt}, ` +
-              `${sqlValue(createdAt)}, ` +
-              `${sqlValue(createdAt)});`
+            `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
+            `proposal_subtype, director_name, director_term_years, director_class, ` +
+            `term_expiration_year, frequency_options, recommendation, ` +
+            `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
+            `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
+            `participation_rate, voting_completed, voting_completed_at, ` +
+            `created_at, updated_at) VALUES (` +
+            `${sqlValue(proposalId)}, ` +
+            `${sqlValue(meetingId)}, ` +
+            `${1 + dirIndex}, ` +
+            `${sqlValue('Election of Director - ' + director.name)}, ` +
+            `${sqlValue(proposal.type)}, ` +
+            `${sqlValue('Individual')}, ` +
+            `${sqlValue(director.name)}, ` +
+            `${director.termYears}, ` +
+            `${sqlValue(director.class)}, ` +
+            `${director.expYear}, ` +
+            `NULL, ` +
+            `${sqlValue(proposal.recommendation)}, ` +
+            `${results.finalResult}, ` +
+            `${results.totalVotesFor}, ` +
+            `${results.totalVotesAgainst}, ` +
+            `${results.totalVotesAbstain}, ` +
+            `${results.totalSharesEligible}, ` +
+            `${results.forPercentage}, ` +
+            `${results.againstPercentage}, ` +
+            `${results.abstainPercentage}, ` +
+            `${results.participationRate}, ` +
+            `${results.votingCompleted}, ` +
+            `${results.votingCompletedAt}, ` +
+            `${sqlValue(createdAt)}, ` +
+            `${sqlValue(createdAt)});`
           )
         })
+      } else if (!isWendys && hasCsvProposals) {
+        const proposalId = copycat.uuid(
+          `proposal-${meetingId}-${propIndex + 1}`
+        )
+        proposalIds.push(proposalId)
+
+        const results = buildResultsFromCsvProposal(
+          proposal,
+          sharesBase,
+          meetingDateISO
+        )
+
+        // Only update participation target if we don't already have one for historical meetings
+        if (results.participationFraction !== undefined && !meetingId.includes('2024') && !meetingId.includes('2023') && !meetingId.includes('2022')) {
+          meetingParticipationTargets[meetingId] = results.participationFraction
+        }
+
+        sqlStatements.push(
+          `INSERT INTO proposal(` +
+          `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
+          `proposal_subtype, director_name, director_term_years, director_class, ` +
+          `term_expiration_year, frequency_options, recommendation, ` +
+          `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
+          `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
+          `participation_rate, voting_completed, voting_completed_at, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(proposalId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${sqlValue(proposal.number)}, ` +
+          `${sqlValue(proposal.title)}, ` +
+          `${sqlValue(proposal.type)}, ` +
+          `${sqlValue(proposal.subtype)}, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `${sqlValue(proposal.recommendation)}, ` +
+          `${results.finalResult}, ` +
+          `${results.totalVotesFor}, ` +
+          `${results.totalVotesAgainst}, ` +
+          `${results.totalVotesAbstain}, ` +
+          `${results.totalSharesEligible}, ` +
+          `${results.forPercentage}, ` +
+          `${results.againstPercentage}, ` +
+          `${results.abstainPercentage}, ` +
+          `${results.participationRate}, ` +
+          `${results.votingCompleted}, ` +
+          `${results.votingCompletedAt}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
+        )
       } else if (!isWendys) {
         // For non-Wendy's non-director proposals
         const proposalId = copycat.uuid(
@@ -1985,45 +2269,46 @@ const main = async () => {
           propIndex + directors.length,
           proposal.title,
           isWendys,
-          meetingType
+          meetingType,
+          participationTarget,
+          sharesBase
         )
 
         sqlStatements.push(
           `INSERT INTO proposal(` +
-            `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
-            `proposal_subtype, director_name, director_term_years, director_class, ` +
-            `term_expiration_year, frequency_options, recommendation, ` +
-            `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
-            `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
-            `participation_rate, voting_completed, voting_completed_at, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(proposalId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${propIndex + directors.length}, ` +
-            `${sqlValue(proposal.title)}, ` +
-            `${sqlValue(proposal.type)}, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `NULL, ` +
-            `${
-              frequencyOptions ? sqlValue(JSON.stringify(frequencyOptions)) : 'NULL'
-            }, ` +
-            `${sqlValue(proposal.recommendation)}, ` +
-            `${results.finalResult}, ` +
-            `${results.totalVotesFor}, ` +
-            `${results.totalVotesAgainst}, ` +
-            `${results.totalVotesAbstain}, ` +
-            `${results.totalSharesEligible}, ` +
-            `${results.forPercentage}, ` +
-            `${results.againstPercentage}, ` +
-            `${results.abstainPercentage}, ` +
-            `${results.participationRate}, ` +
-            `${results.votingCompleted}, ` +
-            `${results.votingCompletedAt}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, meeting_id, proposal_number, proposal_title, proposal_type, ` +
+          `proposal_subtype, director_name, director_term_years, director_class, ` +
+          `term_expiration_year, frequency_options, recommendation, ` +
+          `final_result, total_votes_for, total_votes_against, total_votes_abstain, ` +
+          `total_shares_eligible, for_percentage, against_percentage, abstain_percentage, ` +
+          `participation_rate, voting_completed, voting_completed_at, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(proposalId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${propIndex + directors.length}, ` +
+          `${sqlValue(proposal.title)}, ` +
+          `${sqlValue(proposal.type)}, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `NULL, ` +
+          `${frequencyOptions ? sqlValue(JSON.stringify(frequencyOptions)) : 'NULL'
+          }, ` +
+          `${sqlValue(proposal.recommendation)}, ` +
+          `${results.finalResult}, ` +
+          `${results.totalVotesFor}, ` +
+          `${results.totalVotesAgainst}, ` +
+          `${results.totalVotesAbstain}, ` +
+          `${results.totalSharesEligible}, ` +
+          `${results.forPercentage}, ` +
+          `${results.againstPercentage}, ` +
+          `${results.abstainPercentage}, ` +
+          `${results.participationRate}, ` +
+          `${results.votingCompleted}, ` +
+          `${results.votingCompletedAt}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
       }
     })
@@ -2031,12 +2316,28 @@ const main = async () => {
 
   sqlStatements.push('')
 
+  // Helper function to normalize account types for tabulation report compatibility
+  const normalizeAccountType = (rawAccountType: string): string => {
+    const type = rawAccountType.toUpperCase()
+    if (
+      type.includes('CEDE') ||
+      type.includes('CDS') ||
+      type.includes('CTC') ||
+      type.includes('DTC')
+    ) {
+      return 'DTC/CDS'
+    }
+    // Everything else is considered Non-DTC (registered accounts, etc.)
+    return 'Non-DTC'
+  }
+
   // Generate positions with all fields matching CSV structure
   sqlStatements.push('-- Insert positions')
   const accountTypes = ['CEDE & CO / CTC & CO', 'Registered Account']
   const sources = ['WEB', 'PRINT', 'IVR']
   const positionIds: string[] = []
   const positionToMeetingMap: Record<string, string> = {}
+  const positionVoteMeta: Record<string, { meetingId: string; shares: number; sharesVoted: number }> = {}
 
   meetingIds.forEach((meetingId, meetingIndex) => {
     const client = meetingToClient[meetingId]
@@ -2045,7 +2346,11 @@ const main = async () => {
       return // Skip if client not found
     }
 
+
     const isWendys = client.ticker === 'WEN'
+    const isEnliven = client.ticker === 'ELVN'
+    const isPaycom = client.ticker === 'PAYC'
+    const isWoodward = client.ticker === 'WWD'
 
     // Find corresponding account for this client
     const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker)
@@ -2059,30 +2364,38 @@ const main = async () => {
     // Extract year from meetingId (format: meeting-type-YEAR)
     const meetingYear = meetingId.split('-').slice(-1)[0]
     const isSpecialMeeting = meetingId.includes('special')
-    const meetingPhase =
-      meetingYear !== '2025'
-        ? 8 // Historical meetings are complete
-        : isSpecialMeeting
-          ? 7 // Special meetings are in Phase 7
-          : 1 // Annual meetings are in Phase 1
+    const is2025Annual = meetingYear === '2025' && meetingId.includes('annual-meeting')
+    // Use the meetingPhaseMap that was populated when meetings were created
+    const meetingPhase = meetingPhaseMap[meetingId] ?? (parseInt(meetingYear) < 2026 ? 8 : isSpecialMeeting ? 7 : 1)
 
-    // Only use CSV data for WEN 2025 annual meeting - all other meetings use synthetic data
-    if (
-      isWendys &&
-      wendysShareholderVotes.length > 0 &&
-      meetingId === 'wen-annual-meeting-2025'
-    ) {
-      // Use CSV data for WEN 2025 annual meeting only
-      wendysShareholderVotes.forEach((vote, index) => {
+    // Use CSV data for 2025 annual meetings if available
+    const useCSVPositions =
+      is2025Annual &&
+      ((isWendys && wendysData?.positions) ||
+        (isEnliven && enlivenData?.positions) ||
+        (isPaycom && paycomData?.positions) ||
+        (isWoodward && woodwardData?.positions))
+
+    if (useCSVPositions) {
+      // Get the appropriate CSV position data
+      const csvPositions = isWendys
+        ? wendysData!.positions
+        : isEnliven
+          ? enlivenData!.positions
+          : isPaycom
+            ? paycomData!.positions
+            : woodwardData!.positions
+
+      csvPositions.forEach((position: any, index: number) => {
         const positionId = copycat.uuid(`position-${meetingId}-${index}`)
         positionIds.push(positionId)
         positionToMeetingMap[positionId] = meetingId
 
         // For Phase 1-5, override vote status to Unvoted
-        let voteStatus = vote.voteStatus
-        let sharesVoted = vote.sharesVoted
-        let source = vote.source === 'PRI' ? 'PRINT' : vote.source // Map PRI to PRINT for enum compatibility
-        let dateVoted = vote.dateVoted
+        let voteStatus = position.voteStatus || 'Unvoted'
+        let sharesVoted = position.sharesVoted || 0
+        let source = position.source
+        let dateVoted = position.dateVoted
 
         if (meetingPhase < 6) {
           voteStatus = 'Unvoted'
@@ -2093,260 +2406,307 @@ const main = async () => {
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
-            `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
-            `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(positionId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${sqlValue(vote.cusip)}, ` +
-            `${sqlValue(vote.accountType)}, ` +
-            `${sqlValue(vote.setKey)}, ` +
-            `${sqlValue(vote.name)}, ` +
-            `${vote.accountNumber ? sqlValue(vote.accountNumber) : 'NULL'}, ` +
-            `${sqlValue(voteStatus)}, ` +
-            `${sqlValue('CTRL' + String(index + 1).padStart(6, '0'))}, ` +
-            `${vote.shares.toFixed(6)}, ` +
-            `${sharesVoted.toFixed(6)}, ` +
-            `${sqlValue(source)}, ` +
-            `${sqlValue(dateVoted)}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(positionId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${sqlValue(position.cusip)}, ` +
+          `${sqlValue(normalizeAccountType(position.accountType))}, ` +
+          `${sqlValue(position.setKey)}, ` +
+          `${sqlValue(position.name)}, ` +
+          `${position.accountNumber ? sqlValue(position.accountNumber) : 'NULL'}, ` +
+          `${sqlValue(voteStatus)}, ` +
+          `${sqlValue(position.controlNumber || 'CTRL' + String(index + 1).padStart(6, '0'))}, ` +
+          `${sqlValue(position.shares)}, ` +
+          `${sqlValue(sharesVoted)}, ` +
+          `${sqlValue(source)}, ` +
+          `${sqlValue(dateVoted)}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
         )
       })
     } else {
-      // For non-Wendy's companies AND all Wendy's meetings except 2025 annual, use synthetic data
-      // Generate a large CEDE & CO position first (like in the CSV)
-      const cedePositionId = copycat.uuid(`position-${meetingId}-cede`)
-      positionIds.push(cedePositionId)
-      positionToMeetingMap[cedePositionId] = meetingId
+      const totalSharesValue = Number(account.totalSharesOutstanding ?? 0)
+      const totalSharesOutstanding =
+        Number.isFinite(totalSharesValue) && totalSharesValue > 0
+          ? totalSharesValue
+          : 0
+      const safeTotalShares = totalSharesOutstanding > 0 ? totalSharesOutstanding : 1
+      const participationTarget = meetingParticipationTargets[meetingId] ?? 0
 
-      // Total shares for the company
-      const totalSharesOutstanding = Number(account.totalSharesOutstanding)
-      const cedeShares = Math.floor(totalSharesOutstanding * 0.75) // CEDE typically holds majority
 
-      // Only allow voting if meeting is in Phase 6 or later (when tabulation begins)
-      const cedeIsVoted =
+      const targetVotingSharesRaw =
         meetingPhase >= 6
-          ? meetingYear !== '2025'
-            ? Math.random() < 0.65 // Historical: 65% voted
-            : Math.random() < 0.8 // Phase 6+: 80% voted
-          : false // Phase 1-5: No votes yet
-      const cedeVoteStatus = cedeIsVoted ? 'Voted' : 'Unvoted'
-      const cedeSharesVoted = cedeIsVoted ? cedeShares : 0
-      const cedeSource = cedeIsVoted ? 'WEB' : null
+          ? clamp(
+            Math.round(participationTarget * safeTotalShares),
+            0,
+            safeTotalShares
+          )
+          : 0
 
-      // Generate vote date relative to meeting date for realistic quorum metrics
       const meetingDateString = meetingToDate[meetingId]
       const meetingDate = meetingDateString
         ? DateTime.fromISO(meetingDateString)
         : DateTime.now()
 
-      // Generate voting pattern:
-      // - 60% of votes come in first week (early votes)
-      // - 30% come in middle period
-      // - 10% come in last week (late votes)
-      let daysBeforeMeeting = 30
-      const voteRandom = Math.random()
-      if (voteRandom < 0.6) {
-        // Early votes (20-30 days before meeting)
-        daysBeforeMeeting = 20 + Math.floor(Math.random() * 10)
-      } else if (voteRandom < 0.9) {
-        // Middle period (7-20 days before)
-        daysBeforeMeeting = 7 + Math.floor(Math.random() * 13)
-      } else {
-        // Late votes (0-7 days before)
-        daysBeforeMeeting = Math.floor(Math.random() * 7)
-      }
+      const cedePositionId = copycat.uuid(`position-${meetingId}-cede`)
+      positionIds.push(cedePositionId)
+      positionToMeetingMap[cedePositionId] = meetingId
 
-      const cedeDateVoted = cedeIsVoted
-        ? meetingDate
-            .minus({ days: daysBeforeMeeting })
+      const cedeShares = Math.floor(safeTotalShares * 0.75)
+      const cedeVoteTarget =
+        meetingPhase >= 6
+          ? Math.min(cedeShares, Math.round(targetVotingSharesRaw * 0.82))
+          : 0
+      const cedeVoteStatus = cedeVoteTarget > 0 ? 'Voted' : 'Unvoted'
+      const cedeSource = cedeVoteTarget > 0 ? 'WEB' : null
+
+      const cedeTimingSeed = copycat.int(`vote-timing-${meetingId}-cede`, {
+        min: 0,
+        max: 999,
+      })
+      const cedeDaysBefore =
+        cedeTimingSeed < 600
+          ? 20 + (cedeTimingSeed % 11)
+          : cedeTimingSeed < 900
+            ? 7 + (cedeTimingSeed % 14)
+            : cedeTimingSeed % 7
+
+      const cedeDateVoted =
+        cedeVoteTarget > 0
+          ? meetingDate
+            .minus({ days: cedeDaysBefore })
             .toFormat('MM/dd/yyyy hh:mma')
             .toUpperCase()
-        : null
+          : null
 
       sqlStatements.push(
         `INSERT INTO "position"(` +
-          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
-          `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
-          `created_at, updated_at) VALUES (` +
-          `${sqlValue(cedePositionId)}, ` +
-          `${sqlValue(meetingId)}, ` +
-          `${sqlValue(account.cusip)}, ` +
-          `${sqlValue('CEDE & CO / CTC & CO')}, ` +
-          `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
-          `${sqlValue('CEDE & CO')}, ` +
-          `NULL, ` +
-          `${sqlValue(cedeVoteStatus)}, ` +
-          `${sqlValue('CEDE001')}, ` +
-          `${cedeShares.toFixed(6)}, ` +
-          `${cedeSharesVoted.toFixed(6)}, ` +
-          `${sqlValue(cedeSource)}, ` +
-          `${sqlValue(cedeDateVoted)}, ` +
-          `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`
+        `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+        `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
+        `created_at, updated_at) VALUES (` +
+        `${sqlValue(cedePositionId)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(account.cusip)}, ` +
+        `${sqlValue(normalizeAccountType('CEDE & CO / CTC & CO'))}, ` +
+        `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
+        `${sqlValue('CEDE & CO')}, ` +
+        `NULL, ` +
+        `${sqlValue(cedeVoteStatus)}, ` +
+        `${sqlValue('CEDE001')}, ` +
+        `${cedeShares.toFixed(6)}, ` +
+        `${cedeVoteTarget.toFixed(6)}, ` +
+        `${sqlValue(cedeSource)}, ` +
+        `${sqlValue(cedeDateVoted)}, ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(createdAt)});`
       )
 
-      // Generate synthetic registered positions with meeting-specific variation
-      // Use meeting-specific seed for consistent but varied generation
-      const meetingSeed = copycat.int(`meeting-${meetingId}`, { min: 0, max: 999999 })
-
-      // Vary position count and participation by meeting for realistic variation
-      const basePositions = isWendys ? 150 : 100 // WEN historically has fewer shareholders than others
-      const positionVariation = (meetingSeed % 300) + 50 // 50-349 variation
-      const numPositions = basePositions + positionVariation
-
-      const remainingShares = totalSharesOutstanding - cedeShares
-
-      // Pre-calculate shares to ensure they total exactly remainingShares
-      const positionShares: number[] = []
-      let allocatedShares = 0
-
-      // Allocate shares with realistic distribution
-      for (let p = 0; p < numPositions; p++) {
-        let shares: number
-        if (p === 0) {
-          shares = Math.floor(remainingShares * 0.15) // Largest holder gets 15%
-        } else if (p < 10) {
-          shares = Math.floor(remainingShares * 0.01) // Top 10 get 1% each
-        } else if (p < 100) {
-          shares = Math.floor(remainingShares * 0.001) // Mid-tier: 0.1% each
-        } else {
-          shares = Math.floor(remainingShares * 0.0001) + 1 // Small holders
-        }
-        positionShares.push(shares)
-        allocatedShares += shares
+      positionVoteMeta[cedePositionId] = {
+        meetingId,
+        shares: cedeShares,
+        sharesVoted: cedeVoteTarget,
       }
 
-      // Adjust the largest position to exactly match remainingShares
-      const difference = remainingShares - allocatedShares
-      positionShares[0] += difference
+      const remainingShares = Math.max(safeTotalShares - cedeShares, 1)
+      const meetingSeed = copycat.int(`meeting-${meetingId}`, {
+        min: 0,
+        max: 999999,
+      })
+      const basePositions = isWendys ? 150 : 100
+      const positionVariation = (meetingSeed % 300) + 50
+      const numPositions = Math.max(25, basePositions + positionVariation)
+
+      const rawWeights: number[] = []
+      for (let p = 0; p < numPositions; p++) {
+        let weight = 0.02
+        if (p === 0) weight = 15
+        else if (p < 10) weight = 1
+        else if (p < 100) weight = 0.1
+        const weightSeed = copycat.int(`weight-${meetingId}-${p}`, {
+          min: 50,
+          max: 150,
+        })
+        rawWeights.push(weight * weightSeed)
+      }
+
+      const weightTotal = rawWeights.reduce((sum, weight) => sum + weight, 0) || 1
+      const positionShares = rawWeights.map((weight) =>
+        Math.max(1, Math.floor((weight / weightTotal) * remainingShares))
+      )
+
+      let sharesSum = positionShares.reduce((sum, value) => sum + value, 0)
+      let adjustIndex = 0
+      while (
+        sharesSum !== remainingShares &&
+        positionShares.length > 0 &&
+        adjustIndex < positionShares.length * 4
+      ) {
+        const delta = sharesSum < remainingShares ? 1 : -1
+        const idx = adjustIndex % positionShares.length
+        if (delta > 0 || positionShares[idx] > 1) {
+          positionShares[idx] += delta
+          sharesSum += delta
+        }
+        adjustIndex++
+      }
+      if (sharesSum !== remainingShares && positionShares.length > 0) {
+        positionShares[positionShares.length - 1] = Math.max(
+          1,
+          positionShares[positionShares.length - 1] + (remainingShares - sharesSum)
+        )
+      }
+
+      let remainingVotePool = Math.max(0, targetVotingSharesRaw - cedeVoteTarget)
+      let remainingRegisteredShares = positionShares.reduce(
+        (sum, shares) => sum + shares,
+        0
+      )
+
+      const institutionalNames = [
+        'BLACKROCK INC',
+        'VANGUARD GROUP INC',
+        'STATE STREET CORP',
+        'FIDELITY MGMT & RESEARCH',
+        'JPMORGAN CHASE & CO',
+        'BANK OF AMERICA CORP',
+        'WELLINGTON MANAGEMENT',
+        'CAPITAL GROUP',
+        'DIMENSIONAL FUND ADVISORS',
+        'T. ROWE PRICE',
+      ]
+
+      const individualNames = [
+        'JOHN SMITH TR',
+        'MARY JOHNSON',
+        'ROBERT WILLIAMS',
+        'JENNIFER BROWN',
+        'MICHAEL DAVIS',
+        'PATRICIA GARCIA',
+        'DAVID RODRIGUEZ',
+        'LINDA MARTINEZ',
+        'RICHARD WILSON',
+        'ELIZABETH ANDERSON',
+      ]
 
       for (let p = 0; p < numPositions; p++) {
         const positionId = copycat.uuid(`position-${meetingId}-${p}`)
+        const shares = positionShares[p] ?? 1
+
         positionIds.push(positionId)
         positionToMeetingMap[positionId] = meetingId
 
-        // Only allow voting if meeting is in Phase 6 or later (when tabulation begins)
-        // Use meeting-specific participation rates for varied historical data
-        let participationRate = 0.65 // Default 65%
-        if (meetingPhase >= 6 && meetingYear !== '2025') {
-          // Create varied participation rates for historical meetings based on meeting seed
-          const participationVariation = (meetingSeed % 40) / 100 // 0-40% variation
-          participationRate = 0.3 + participationVariation // Range: 30-70%
+        let sharesVoted = 0
+        if (meetingPhase >= 6 && remainingVotePool > 0) {
+          const proportion =
+            remainingRegisteredShares > 0
+              ? shares / remainingRegisteredShares
+              : 0
+          const expectedVotes = Math.round(proportion * remainingVotePool)
+          const jitterSeed = copycat.int(`vote-allocation-${meetingId}-${p}`, {
+            min: -150,
+            max: 150,
+          })
+          let allocatedVotes =
+            expectedVotes + Math.round((expectedVotes * jitterSeed) / 1000)
 
-          // Older meetings tend to have lower participation
-          if (meetingYear === '2022')
-            participationRate *= 0.8 // 24-56%
-          else if (meetingYear === '2023') participationRate *= 0.9 // 27-63%
-          // 2024 keeps full range: 30-70%
-        } else if (meetingPhase >= 6) {
-          participationRate = 0.8 // Current meetings: 80% voted
+          allocatedVotes = clamp(allocatedVotes, 0, shares)
+          if (allocatedVotes > remainingVotePool) {
+            allocatedVotes = remainingVotePool
+          }
+          if (p === numPositions - 1) {
+            allocatedVotes = Math.min(shares, remainingVotePool)
+          }
+
+          sharesVoted = allocatedVotes
         }
 
-        const isVoted =
-          meetingPhase >= 6
-            ? copycat.bool(`vote-${meetingId}-${p}`) && Math.random() < participationRate
-            : false // Phase 1-5: No votes yet, tabulation hasn't started
-        const voteStatus = isVoted ? 'Voted' : 'Unvoted'
+        const voteStatus = sharesVoted > 0 ? 'Voted' : 'Unvoted'
+        const sourceSeed = copycat.int(`vote-source-${meetingId}-${p}`, {
+          min: 0,
+          max: sources.length - 1,
+        })
+        const source =
+          sharesVoted > 0 ? sources[sourceSeed % sources.length] : null
 
-        // Use pre-calculated shares
-        const shares = positionShares[p]
-
-        const sharesVoted = isVoted ? shares : 0
-        const sources = ['WEB', 'PRINT', 'IVR']
-        const source = isVoted ? sources[p % sources.length] : null
-        const controlNumber = `${String(p + 1).padStart(8, '0')}`
-
-        // Generate vote date relative to meeting date for realistic quorum metrics
-        // Use consistent voting patterns as CEDE positions above
-        let daysBeforeMeeting = 30
-        const voteRandom = Math.random()
-        if (voteRandom < 0.6) {
-          // Early votes (20-30 days before meeting)
-          daysBeforeMeeting = 20 + Math.floor(Math.random() * 10)
-        } else if (voteRandom < 0.9) {
-          // Middle period (7-20 days before)
-          daysBeforeMeeting = 7 + Math.floor(Math.random() * 13)
-        } else {
-          // Late votes (0-7 days before)
-          daysBeforeMeeting = Math.floor(Math.random() * 7)
-        }
-
-        const dateVoted = isVoted
-          ? meetingDate
-              .minus({ days: daysBeforeMeeting })
+        const timingSeed = copycat.int(`vote-timing-${meetingId}-${p}`, {
+          min: 0,
+          max: 999,
+        })
+        const daysBefore =
+          timingSeed < 600
+            ? 20 + (timingSeed % 11)
+            : timingSeed < 900
+              ? 7 + (timingSeed % 14)
+              : timingSeed % 7
+        const dateVoted =
+          sharesVoted > 0
+            ? meetingDate
+              .minus({ days: daysBefore })
               .toFormat('MM/dd/yyyy hh:mma')
               .toUpperCase()
-          : null
+            : null
 
-        // Generate realistic names with more variety
-        const institutionalNames = [
-          'BLACKROCK INC',
-          'VANGUARD GROUP INC',
-          'STATE STREET CORP',
-          'FIDELITY MGMT & RESEARCH',
-          'JPMORGAN CHASE & CO',
-          'BANK OF AMERICA CORP',
-          'WELLINGTON MANAGEMENT',
-          'CAPITAL GROUP',
-          'DIMENSIONAL FUND ADVISORS',
-          'T. ROWE PRICE',
-        ]
-
-        const individualNames = [
-          'JOHN SMITH TR',
-          'MARY JOHNSON',
-          'ROBERT WILLIAMS',
-          'JENNIFER BROWN',
-          'MICHAEL DAVIS',
-          'PATRICIA GARCIA',
-          'DAVID RODRIGUEZ',
-          'LINDA MARTINEZ',
-          'RICHARD WILSON',
-          'ELIZABETH ANDERSON',
-        ]
-
+        const holderSeed = copycat.int(`holder-${meetingId}-${p}`, {
+          min: 0,
+          max: 999,
+        })
         let holderName: string
         if (p < institutionalNames.length) {
           holderName = institutionalNames[p]
         } else if (p < institutionalNames.length + individualNames.length) {
           holderName = individualNames[p - institutionalNames.length]
+        } else if (holderSeed % 100 < 30) {
+          const companyTypes = ['INC', 'CORP', 'LLC', 'LP', 'TRUST', 'FUND']
+          const baseCompany = copycat.word(`company-${meetingId}-${p}`)
+          holderName = `${baseCompany.toUpperCase()} CAPITAL ${companyTypes[p % companyTypes.length]}`
         } else {
-          // Generate unique names using copycat for consistency
-          const isInstitutional = Math.random() < 0.3
-          if (isInstitutional) {
-            const companyTypes = ['INC', 'CORP', 'LLC', 'LP', 'TRUST', 'FUND']
-            const baseCompany = copycat.word(`company-${meetingId}-${p}`)
-            holderName = `${baseCompany.toUpperCase()} CAPITAL ${companyTypes[p % companyTypes.length]}`
-          } else {
-            const firstName = copycat.firstName(`person-${meetingId}-${p}`)
-            const lastName = copycat.lastName(`person-${meetingId}-${p}`)
-            const suffixes = ['', ' JR', ' SR', ' III', ' TR', ' TTEE', ' & ASSOC']
-            holderName = `${firstName.toUpperCase()} ${lastName.toUpperCase()}${suffixes[p % suffixes.length]}`
-          }
+          const firstName = copycat.firstName(`person-${meetingId}-${p}`)
+          const lastName = copycat.lastName(`person-${meetingId}-${p}`)
+          const suffixes = ['', ' JR', ' SR', ' III', ' TR', ' TTEE', ' & ASSOC']
+          holderName = `${firstName.toUpperCase()} ${lastName.toUpperCase()}${suffixes[p % suffixes.length]}`
         }
+
+        const hasAccountNumber = copycat.bool(`account-${meetingId}-${p}`)
+        const accountNumberSql = hasAccountNumber
+          ? sqlValue('ACC' + String(p).padStart(6, '0'))
+          : 'NULL'
+
+        const controlNumber = String(p + 1).padStart(8, '0')
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
-            `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
-            `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
-            `created_at, updated_at) VALUES (` +
-            `${sqlValue(positionId)}, ` +
-            `${sqlValue(meetingId)}, ` +
-            `${sqlValue(account.cusip)}, ` +
-            `${sqlValue('Registered Account')}, ` +
-            `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
-            `${sqlValue(holderName)}, ` +
-            `${Math.random() < 0.2 ? 'NULL' : sqlValue('ACC' + String(p).padStart(6, '0'))}, ` +
-            `${sqlValue(voteStatus)}, ` +
-            `${sqlValue(controlNumber)}, ` +
-            `${shares.toFixed(6)}, ` +
-            `${sharesVoted.toFixed(6)}, ` +
-            `${sqlValue(source)}, ` +
-            `${sqlValue(dateVoted)}, ` +
-            `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
+          `created_at, updated_at) VALUES (` +
+          `${sqlValue(positionId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${sqlValue(account.cusip)}, ` +
+          `${sqlValue(normalizeAccountType('Registered Account'))}, ` +
+          `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
+          `${sqlValue(holderName)}, ` +
+          `${accountNumberSql}, ` +
+          `${sqlValue(voteStatus)}, ` +
+          `${sqlValue(controlNumber)}, ` +
+          `${shares.toFixed(6)}, ` +
+          `${sharesVoted.toFixed(6)}, ` +
+          `${sqlValue(source)}, ` +
+          `${sqlValue(dateVoted)}, ` +
+          `${sqlValue(createdAt)}, ` +
+          `${sqlValue(createdAt)});`
+        )
+
+        positionVoteMeta[positionId] = {
+          meetingId,
+          shares,
+          sharesVoted,
+        }
+
+        remainingVotePool = Math.max(0, remainingVotePool - sharesVoted)
+        remainingRegisteredShares = Math.max(
+          0,
+          remainingRegisteredShares - shares
         )
       }
     }
@@ -2372,83 +2732,187 @@ const main = async () => {
     proposalIndex += 6
   })
 
-  // Track position votes generated
   let totalVotes = 0
-  let positionIndex = 0
 
-  // Create a map to track meeting phases
-  const meetingPhases: Record<string, number> = {}
-  meetingIds.forEach((meetingId) => {
-    const year = parseInt(meetingId.split('-').slice(-1)[0])
-    if (year === 2025) {
-      if (meetingId.includes('annual')) {
-        meetingPhases[meetingId] = 1 // Annual meetings in phase 1
-      } else if (meetingId.includes('special')) {
-        meetingPhases[meetingId] = 7 // Special meetings in phase 7
-      } else {
-        meetingPhases[meetingId] = 1 // Default to phase 1
-      }
-    } else {
-      meetingPhases[meetingId] = 8 // Historical meetings are complete
-    }
-  })
-
-  // Generate position votes for positions belonging to meetings in phase 6+
   positionIds.forEach((positionId) => {
     const meetingId = positionToMeetingMap[positionId]
-    if (!meetingId) return // Skip if no meeting mapping found
+    if (!meetingId) return
 
     const meetingProposals = meetingToProposalsMap[meetingId] || []
-    const meetingPhase = meetingPhases[meetingId] || 1
+    if (meetingProposals.length === 0) return
 
-    // Only create votes for meetings in phase 6 or later (tabulation phase)
-    // Phase 6 is when tabulation begins and votes start coming in
-    if (meetingPhase >= 6) {
-      // Only create votes for positions that have voted (65% as per positions logic)
-      const hasVoted = Math.random() < 0.65
-      if (hasVoted && meetingProposals.length > 0) {
-        meetingProposals.forEach((proposalId) => {
-          if (!proposalId) return // Skip undefined proposals
+    const meetingPhase = meetingPhaseMap[meetingId] ?? 1
+    const positionMeta = positionVoteMeta[positionId]
 
-          const voteId = copycat.uuid(`vote-${totalVotes}-${positionId.substring(0, 8)}`)
-
-          // Determine vote based on proposal number and type
-          let vote: string
-          if (proposalId.includes('1')) {
-            // Director elections (proposals 1-3) - mostly FOR
-            vote = Math.random() < 0.85 ? 'FOR' : 'WITHHOLD'
-          } else {
-            // Other proposals - more varied voting
-            const rand = Math.random()
-            if (rand < 0.7) vote = 'FOR'
-            else if (rand < 0.85) vote = 'AGAINST'
-            else vote = 'ABSTAIN'
-          }
-
-          // Generate realistic share amounts for voting
-          const baseShares = 500 + Math.floor(Math.random() * 10000)
-          const sharesVoting = Math.max(100, baseShares)
-
-          sqlStatements.push(
-            `INSERT INTO position_vote(` +
-              `id, position_id, proposal_id, vote, shares_voting, created_at) VALUES (` +
-              `${sqlValue(voteId)}, ` +
-              `${sqlValue(positionId)}, ` +
-              `${sqlValue(proposalId)}, ` +
-              `${sqlValue(vote)}, ` +
-              `${sqlValue(sharesVoting.toString())}, ` +
-              `${sqlValue(createdAt)});`
-          )
-          totalVotes++
-        })
-      }
+    if (!positionMeta || meetingPhase < 6 || positionMeta.sharesVoted <= 0) {
+      return
     }
+
+    const totalSharesVoting = Math.round(positionMeta.sharesVoted)
+    if (totalSharesVoting <= 0) return
+
+    let remainingShares = totalSharesVoting
+
+    meetingProposals.forEach((proposalId, proposalIndexForMeeting) => {
+      if (!proposalId || remainingShares <= 0) return
+
+      const remainingProposals = meetingProposals.length - proposalIndexForMeeting
+      let sharesVoting =
+        proposalIndexForMeeting === meetingProposals.length - 1
+          ? remainingShares
+          : Math.max(1, Math.floor(remainingShares / remainingProposals))
+
+      const voteSeed = copycat.int(
+        `position-vote-${positionId}-${proposalId}`,
+        { min: 0, max: 999 }
+      )
+
+      if (
+        proposalIndexForMeeting !== meetingProposals.length - 1 &&
+        sharesVoting > 1
+      ) {
+        const variance = (voteSeed % 3) - 1
+        const maxReduce = Math.max(1, remainingShares - (remainingProposals - 1))
+        sharesVoting = clamp(sharesVoting + variance, 1, maxReduce)
+      }
+
+      sharesVoting = Math.min(sharesVoting, remainingShares)
+      if (sharesVoting <= 0) return
+
+      remainingShares -= sharesVoting
+
+      let vote: string
+      if (proposalId.includes('1')) {
+        vote = voteSeed % 100 < 85 ? 'FOR' : 'WITHHOLD'
+      } else {
+        const threshold = voteSeed % 100
+        if (threshold < 70) vote = 'FOR'
+        else if (threshold < 85) vote = 'AGAINST'
+        else vote = 'ABSTAIN'
+      }
+
+      const voteId = copycat.uuid(
+        `vote-${totalVotes}-${positionId.substring(0, 8)}-${proposalIndexForMeeting}`
+      )
+
+      sqlStatements.push(
+        `INSERT INTO position_vote(` +
+        `id, position_id, proposal_id, vote, shares_voting, created_at) VALUES (` +
+        `${sqlValue(voteId)}, ` +
+        `${sqlValue(positionId)}, ` +
+        `${sqlValue(proposalId)}, ` +
+        `${sqlValue(vote)}, ` +
+        `${sqlValue(sharesVoting.toString())}, ` +
+        `${sqlValue(createdAt)});`
+      )
+      totalVotes++
+    })
   })
 
   sqlStatements.push(
     `-- Generated ${totalVotes} position votes for ${positionIds.length} positions`
   )
 
+  sqlStatements.push('')
+
+  // Generate DSM documents for 2025 meetings
+  sqlStatements.push('-- Insert DSM documents for 2025 meetings')
+  const dsmDocumentTypes = [
+    { type: 'Shareholder Presentation', displayCategory: 'dsm', storagePath: 'shareholder-presentation' },
+    { type: 'Intro Slide', displayCategory: 'dsm', storagePath: 'intro-slide' },
+  ]
+
+  // Generate regular proxy documents for 2025 meetings
+  sqlStatements.push('-- Insert proxy documents for 2025 meetings')
+  const proxyDocumentTypes = [
+    { type: 'Proxy Statement', displayCategory: 'proxy-materials', storagePath: 'proxy-statement' },
+    { type: 'Annual Report', displayCategory: 'proxy-materials', storagePath: 'annual-report' },
+    { type: 'Notice of Annual Meeting', displayCategory: 'proxy-materials', storagePath: 'notice-of-meeting' },
+  ]
+
+  // Only add DSM documents for 2025 annual meetings
+  const dsmMeetings = meetingIds.filter(id => id.includes('2025') && id.includes('annual'))
+
+  dsmMeetings.forEach((meetingId) => {
+    dsmDocumentTypes.forEach((docType) => {
+      const dsmDocId = copycat.uuid(`dsm-doc-${meetingId}-${docType.type}`)
+      documentIds.push(dsmDocId)
+
+      // Generate appropriate status based on display category
+      let status = 'UPLOADED'
+      if (docType.displayCategory === 'post-meeting') {
+        status = 'COMPLETED'
+      } else if (docType.displayCategory === 'dsm' || docType.displayCategory === 'proxy-materials') {
+        status = 'AUTHORIZED'
+      }
+
+      // Generate storage URL - point to placeholder PDF files
+      const fileName = `${docType.storagePath}.pdf`
+      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
+
+      // Use more descriptive titles
+      let title = docType.type
+      if (docType.type === 'Shareholder Presentation') {
+        const clientName = meetingToClient[meetingId]?.companyName || ''
+        title = `${clientName} Annual Meeting Presentation`
+      } else if (docType.type === 'Meeting Minutes') {
+        title = '2025 Annual Meeting Minutes'
+      } else if (docType.type === 'Proxy Notice') {
+        title = 'Notice of Annual Meeting'
+      }
+
+      sqlStatements.push(
+        `INSERT INTO document(` +
+        `id, meeting_id, title, type, file_path, file_type, file_size, ` +
+        `status, display_category, created_at, updated_at) VALUES (` +
+        `${sqlValue(dsmDocId)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(title)}, ` +
+        `${sqlValue(docType.type)}, ` +
+        `${sqlValue(storageUrl)}, ` +
+        `${sqlValue('pdf')}, ` +
+        `${1024 * 250}, ` +  // Approximate file size
+        `${sqlValue(status)}, ` +
+        `${sqlValue(docType.displayCategory)}, ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(createdAt)});`
+      )
+    })
+  })
+
+  sqlStatements.push(`-- Generated ${dsmMeetings.length * dsmDocumentTypes.length} DSM documents for 2025 meetings`)
+
+  // Add regular proxy documents for 2025 meetings
+  dsmMeetings.forEach((meetingId) => {
+    proxyDocumentTypes.forEach((docType) => {
+      const proxyDocId = copycat.uuid(`proxy-doc-${meetingId}-${docType.type}`)
+      documentIds.push(proxyDocId)
+
+      const status = 'APPROVED'
+      const fileName = `${docType.storagePath}.pdf`
+      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
+
+      sqlStatements.push(
+        `INSERT INTO document(` +
+        `id, meeting_id, title, type, file_path, file_type, file_size, ` +
+        `status, display_category, created_at, updated_at) VALUES (` +
+        `${sqlValue(proxyDocId)}, ` +
+        `${sqlValue(meetingId)}, ` +
+        `${sqlValue(docType.type)}, ` +
+        `${sqlValue(docType.type)}, ` +
+        `${sqlValue(storageUrl)}, ` +
+        `'PDF', ` +
+        `${copycat.int(meetingId + docType.type, { min: 500000, max: 5000000 })}, ` +
+        `${sqlValue(status)}, ` +
+        `${sqlValue(docType.displayCategory)}, ` +
+        `${sqlValue(copycat.dateString(meetingId + docType.type + 'created', { minYear: 2024, maxYear: 2025 }))}, ` +
+        `${sqlValue(copycat.dateString(meetingId + docType.type + 'updated', { minYear: 2024, maxYear: 2025 }))}` +
+        `);`
+      )
+    })
+  })
+
+  sqlStatements.push(`-- Generated ${dsmMeetings.length * proxyDocumentTypes.length} proxy documents for 2025 meetings`)
   sqlStatements.push('')
 
   // Generate comments for some documents
@@ -2462,13 +2926,13 @@ const main = async () => {
 
       sqlStatements.push(
         `INSERT INTO "comment"(` +
-          `document_id, user_id, comment, first_name, last_name, created_at) VALUES (` +
-          `${sqlValue(documentId)}, ` +
-          `${sqlValue(userId)}, ` +
-          `${sqlValue('Review comment ' + (c + 1) + ' for this document.')}, ` +
-          `${sqlValue(user.firstName)}, ` +
-          `${sqlValue(user.lastName)}, ` +
-          `${sqlValue(DateTime.now().minus({ days: c }).toISO())});`
+        `document_id, user_id, comment, first_name, last_name, created_at) VALUES (` +
+        `${sqlValue(documentId)}, ` +
+        `${sqlValue(userId)}, ` +
+        `${sqlValue('Review comment ' + (c + 1) + ' for this document.')}, ` +
+        `${sqlValue(user.firstName)}, ` +
+        `${sqlValue(user.lastName)}, ` +
+        `${sqlValue(DateTime.now().minus({ days: c }).toISO())});`
       )
     }
   })
@@ -2484,19 +2948,19 @@ const main = async () => {
 
       sqlStatements.push(
         `INSERT INTO signature(` +
-          `id, document_id, page_number, x_position, y_position, width, height, ` +
-          `signature_type, required, created_at, updated_at) VALUES (` +
-          `${sqlValue(signatureId)}, ` +
-          `${sqlValue(documentId)}, ` +
-          `${1 + (index % 3)}, ` +
-          `${100.5}, ` +
-          `${200.5}, ` +
-          `${150.0}, ` +
-          `${50.0}, ` +
-          `${sqlValue('Electronic')}, ` +
-          `true, ` +
-          `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`
+        `id, document_id, page_number, x_position, y_position, width, height, ` +
+        `signature_type, required, created_at, updated_at) VALUES (` +
+        `${sqlValue(signatureId)}, ` +
+        `${sqlValue(documentId)}, ` +
+        `${1 + (index % 3)}, ` +
+        `${100.5}, ` +
+        `${200.5}, ` +
+        `${150.0}, ` +
+        `${50.0}, ` +
+        `${sqlValue('Electronic')}, ` +
+        `true, ` +
+        `${sqlValue(createdAt)}, ` +
+        `${sqlValue(createdAt)});`
       )
     }
   })
@@ -2537,17 +3001,287 @@ const main = async () => {
           id: meetingId,
           title: meetingType,
           year: year,
-          status: year === 2025 ? 'ACTIVE' : 'COMPLETE',
+          status: year >= 2026 ? 'ACTIVE' : 'COMPLETE',
         }
       })
 
     // Update client with JSON data
     sqlStatements.push(
       `UPDATE clients SET ` +
-        `accounts = ${sqlValue(JSON.stringify(clientAccounts))}, ` +
-        `meetings = ${sqlValue(JSON.stringify(clientMeetings))} ` +
-        `WHERE id = ${sqlValue(clientId)};`
+      `accounts = ${sqlValue(JSON.stringify(clientAccounts))}, ` +
+      `meetings = ${sqlValue(JSON.stringify(clientMeetings))} ` +
+      `WHERE id = ${sqlValue(clientId)};`
     )
+  })
+
+  sqlStatements.push('')
+
+  // Generate tabulation reports for COMPLETE meetings using CSV summary data when available
+  sqlStatements.push(
+    '-- Insert tabulation_report data for COMPLETE meetings using CSV summaries'
+  )
+
+  // Helper function to get company data by ticker
+  const getCompanyDataByTicker = (ticker: string) => {
+    switch (ticker) {
+      case 'WEN':
+        return wendysData
+      case 'ELVN':
+        return enlivenData
+      case 'PAYC':
+        return paycomData
+      case 'WWD':
+        return woodwardData
+      default:
+        return null
+    }
+  }
+
+  // Generate tabulation reports for each COMPLETE meeting
+  // First, we need to map meeting IDs to their tickers based on generation order
+  const meetingTickerMap: Record<string, string> = {}
+  let meetingCounter = 0
+
+  // The meetings were generated in the same order as seedConfig.clients
+  seedConfig.clients.forEach((client) => {
+    meetingsByYear.forEach((yearData) => {
+      yearData.meetings.forEach((meetingData) => {
+        const meetingId = meetingIds[meetingCounter]
+        if (meetingId) {
+          meetingTickerMap[meetingId] = client.ticker
+          meetingCounter++
+        }
+      })
+    })
+  })
+
+  // Insert tabulation reports for COMPLETE meetings (2025 and earlier)
+  meetingIds.forEach((meetingId, index) => {
+    const ticker = meetingTickerMap[meetingId]
+    const companyData = getCompanyDataByTicker(ticker)
+
+    // Determine if this meeting is COMPLETE (2025 and earlier) based on phase
+    const meetingPhase = meetingPhaseMap[meetingId] ?? 8
+    const isComplete = meetingPhase === 8
+
+    if (isComplete) {
+      const tabulationId = copycat.uuid(`tabulation-${meetingId}`)
+
+      if (companyData?.voteStatusSummary) {
+        // Use CSV summary data for accurate tabulation
+        const { dtcSummary, nonDtcSummary } = companyData.voteStatusSummary
+
+        sqlStatements.push(`
+INSERT INTO tabulation_report(id, meeting_id, set_keys, broker_voting, share_range_performance, non_dtc_vote_status, dtc_vote_status, vote_distribution, positions_voted, last_calculated_at, created_at, updated_at)
+VALUES (
+    ${sqlValue(tabulationId)},
+    ${sqlValue(meetingId)},
+    ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key),
+    jsonb_build_object(
+        'proposal1', jsonb_build_array(
+            jsonb_build_object('broker', 'CEDE & CO', 'for', 1500000, 'against', 75000, 'abstain', 25000),
+            jsonb_build_object('broker', 'BlackRock', 'for', 250000, 'against', 15000, 'abstain', 5000),
+            jsonb_build_object('broker', 'Vanguard', 'for', 180000, 'against', 12000, 'abstain', 8000),
+            jsonb_build_object('broker', 'State Street', 'for', 95000, 'against', 8000, 'abstain', 2000),
+            jsonb_build_object('broker', 'Fidelity', 'for', 75000, 'against', 5000, 'abstain', 1500)
+        ),
+        'proposal2', jsonb_build_array(
+            jsonb_build_object('broker', 'CEDE & CO', 'for', 1450000, 'against', 120000, 'abstain', 30000),
+            jsonb_build_object('broker', 'BlackRock', 'for', 240000, 'against', 25000, 'abstain', 5000),
+            jsonb_build_object('broker', 'Vanguard', 'for', 170000, 'against', 22000, 'abstain', 8000),
+            jsonb_build_object('broker', 'State Street', 'for', 88000, 'against', 15000, 'abstain', 2000),
+            jsonb_build_object('broker', 'Fidelity', 'for', 70000, 'against', 8000, 'abstain', 2000)
+        )
+    ),
+    (
+        SELECT COALESCE(jsonb_agg(
+            jsonb_build_object(
+                'rangeLabel', range_label,
+                'positionCount', position_count,
+                'totalShares', total_shares,
+                'percentVoted', CASE WHEN total_shares > 0 THEN (voted_shares::numeric / total_shares::numeric * 100) ELSE 0 END
+            ) ORDER BY range_order
+        ), '[]'::jsonb)
+        FROM (
+            SELECT
+                CASE
+                    WHEN shares < 100 THEN '0-99'
+                    WHEN shares < 500 THEN '100-499'
+                    WHEN shares < 1000 THEN '500-999'
+                    WHEN shares < 5000 THEN '1,000-4,999'
+                    WHEN shares < 10000 THEN '5,000-9,999'
+                    WHEN shares < 50000 THEN '10,000-49,999'
+                    WHEN shares < 100000 THEN '50,000-99,999'
+                    ELSE '100,000+'
+                END as range_label,
+                CASE
+                    WHEN shares < 100 THEN 1
+                    WHEN shares < 500 THEN 2
+                    WHEN shares < 1000 THEN 3
+                    WHEN shares < 5000 THEN 4
+                    WHEN shares < 10000 THEN 5
+                    WHEN shares < 50000 THEN 6
+                    WHEN shares < 100000 THEN 7
+                    ELSE 8
+                END as range_order,
+                COUNT(*) as position_count,
+                SUM(shares) as total_shares,
+                SUM(CASE WHEN vote_status = 'Voted' THEN shares_voted ELSE 0 END) as voted_shares
+            FROM position
+            WHERE meeting_id = ${sqlValue(meetingId)}
+            GROUP BY range_label, range_order
+        ) ranges
+    ),
+    ${sqlValue(
+          JSON.stringify({
+            unvotedShareholders: nonDtcSummary.unvotedShareholders,
+            unvotedShares: nonDtcSummary.unvotedShares,
+            printShareholders: nonDtcSummary.printShareholders,
+            printShares: nonDtcSummary.printShares,
+            ivrShareholders: nonDtcSummary.ivrShareholders,
+            ivrShares: nonDtcSummary.ivrShares,
+            webShareholders: nonDtcSummary.webShareholders,
+            webShares: nonDtcSummary.webShares,
+            votedSubtotalShareholders: nonDtcSummary.votedSubtotalShareholders,
+            votedSubtotalShares: nonDtcSummary.votedSubtotalShares,
+            grandTotalShareholders: nonDtcSummary.grandTotalShareholders,
+            grandTotalShares: nonDtcSummary.grandTotalShares,
+          })
+        )}::jsonb,
+    ${sqlValue(
+          JSON.stringify({
+            unvotedShareholders: dtcSummary.unvotedParticipants,
+            unvotedShares: dtcSummary.unvotedShares,
+            votedShareholders: dtcSummary.votedParticipants,
+            votedShares: dtcSummary.votedShares,
+            grandTotalShareholders:
+              dtcSummary.unvotedParticipants + dtcSummary.votedParticipants,
+            grandTotalShares: dtcSummary.unvotedShares + dtcSummary.votedShares,
+          })
+        )}::jsonb,
+    ${sqlValue(
+          JSON.stringify({
+            dtcVotedShares: dtcSummary.votedShares,
+            dtcUnvotedShares: dtcSummary.unvotedShares,
+            nonDtcVotedShares: nonDtcSummary.votedSubtotalShares,
+            nonDtcUnvotedShares: nonDtcSummary.unvotedShares,
+          })
+        )}::jsonb,
+    (
+        SELECT jsonb_build_object(
+            'voted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Voted'), 0),
+            'unvoted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Unvoted'), 0),
+            'totalShares', COALESCE(SUM(shares), 0),
+            'votedShares', COALESCE(SUM(CASE WHEN vote_status = 'Voted' THEN shares_voted ELSE 0 END), 0)
+        )
+        FROM position WHERE meeting_id = ${sqlValue(meetingId)}
+    ),
+    NOW(),
+    NOW(),
+    NOW()
+);`)
+      } else {
+        // Fallback to SQL aggregation for companies without CSV summary data
+        sqlStatements.push(`
+INSERT INTO tabulation_report(id, meeting_id, set_keys, broker_voting, share_range_performance, non_dtc_vote_status, dtc_vote_status, vote_distribution, positions_voted, last_calculated_at, created_at, updated_at)
+SELECT
+    ${sqlValue(tabulationId)},
+    ${sqlValue(meetingId)},
+    ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key),
+    jsonb_build_object(
+        'proposal1', jsonb_build_array(
+            jsonb_build_object('broker', 'CEDE & CO', 'for', 1200000, 'against', 85000, 'abstain', 15000),
+            jsonb_build_object('broker', 'BlackRock', 'for', 200000, 'against', 18000, 'abstain', 7000),
+            jsonb_build_object('broker', 'Vanguard', 'for', 150000, 'against', 15000, 'abstain', 10000),
+            jsonb_build_object('broker', 'State Street', 'for', 85000, 'against', 10000, 'abstain', 3000),
+            jsonb_build_object('broker', 'Fidelity', 'for', 65000, 'against', 6000, 'abstain', 2000)
+        ),
+        'proposal2', jsonb_build_array(
+            jsonb_build_object('broker', 'CEDE & CO', 'for', 1150000, 'against', 135000, 'abstain', 15000),
+            jsonb_build_object('broker', 'BlackRock', 'for', 190000, 'against', 30000, 'abstain', 5000),
+            jsonb_build_object('broker', 'Vanguard', 'for', 140000, 'against', 25000, 'abstain', 10000),
+            jsonb_build_object('broker', 'State Street', 'for', 80000, 'against', 18000, 'abstain', 5000),
+            jsonb_build_object('broker', 'Fidelity', 'for', 62000, 'against', 9000, 'abstain', 2000)
+        )
+    ),
+    (
+        SELECT COALESCE(jsonb_agg(
+            jsonb_build_object(
+                'rangeLabel', range_label,
+                'positionCount', position_count,
+                'totalShares', total_shares,
+                'percentVoted', CASE WHEN total_shares > 0 THEN (voted_shares::numeric / total_shares::numeric * 100) ELSE 0 END
+            ) ORDER BY range_order
+        ), '[]'::jsonb)
+        FROM (
+            SELECT
+                CASE
+                    WHEN shares < 100 THEN '0-99'
+                    WHEN shares < 500 THEN '100-499'
+                    WHEN shares < 1000 THEN '500-999'
+                    WHEN shares < 5000 THEN '1,000-4,999'
+                    WHEN shares < 10000 THEN '5,000-9,999'
+                    WHEN shares < 50000 THEN '10,000-49,999'
+                    WHEN shares < 100000 THEN '50,000-99,999'
+                    ELSE '100,000+'
+                END as range_label,
+                CASE
+                    WHEN shares < 100 THEN 1
+                    WHEN shares < 500 THEN 2
+                    WHEN shares < 1000 THEN 3
+                    WHEN shares < 5000 THEN 4
+                    WHEN shares < 10000 THEN 5
+                    WHEN shares < 50000 THEN 6
+                    WHEN shares < 100000 THEN 7
+                    ELSE 8
+                END as range_order,
+                COUNT(*) as position_count,
+                SUM(shares) as total_shares,
+                SUM(CASE WHEN vote_status = 'Voted' THEN shares_voted ELSE 0 END) as voted_shares
+            FROM position
+            WHERE meeting_id = ${sqlValue(meetingId)}
+            GROUP BY range_label, range_order
+        ) ranges
+    ),
+    jsonb_build_object(
+        'unvotedShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Unvoted'),
+        'unvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Unvoted'),
+        'printShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'PRINT'),
+        'printShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'PRINT'),
+        'ivrShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'IVR'),
+        'ivrShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'IVR'),
+        'webShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'WEB'),
+        'webShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted' AND source = 'WEB'),
+        'votedSubtotalShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted'),
+        'votedSubtotalShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted'),
+        'grandTotalShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC'),
+        'grandTotalShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC')
+    ),
+    jsonb_build_object(
+        'unvotedShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Unvoted'),
+        'unvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Unvoted'),
+        'votedShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+        'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+        'grandTotalShareholders', (SELECT COUNT(*) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS'),
+        'grandTotalShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS')
+    ),
+    jsonb_build_object(
+        'dtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+        'dtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'DTC/CDS' AND vote_status = 'Unvoted'),
+        'nonDtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Voted'),
+        'nonDtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND account_type = 'Non-DTC' AND vote_status = 'Unvoted')
+    ),
+    jsonb_build_object(
+        'voted', (SELECT COALESCE(COUNT(*), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Voted'),
+        'unvoted', (SELECT COALESCE(COUNT(*), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Unvoted'),
+        'totalShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)}),
+        'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Voted')
+    ),
+    NOW(),
+    NOW(),
+    NOW();`)
+      }
+    }
   })
 
   sqlStatements.push('')

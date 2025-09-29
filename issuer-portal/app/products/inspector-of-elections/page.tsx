@@ -6,9 +6,7 @@ import HandshakeAgreementIcon from '@rolemodel/betanxt-design-system/components/
 import JusticeScaleIcon from '@rolemodel/betanxt-design-system/components/icons/brand/JusticeScaleIcon'
 import PersonShieldIcon from '@rolemodel/betanxt-design-system/components/icons/brand/PersonShieldIcon'
 import TeamCircleIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamCircleIcon'
-import _Image from 'next/image'
 
-import { Check as _Check } from '@mui/icons-material'
 import { Card, CardContent, CardHeader, Stack, Typography, useTheme } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'

@@ -216,6 +216,7 @@ export function NotificationPopper({
         sx={{
           maxWidth: 500,
           maxHeight: 700,
+          minWidth: { xs: '100%', sm: 400, md: 500 },
           overflow: 'hidden',
           borderRadius: 2,
           border: '1px solid',
@@ -253,9 +254,11 @@ export function NotificationPopper({
                       label="Unread"
                       iconPosition="start"
                       icon={
-                        <Box sx={{ paddingX: unreadCount.toString().length / 2 + 0.5 }}>
-                          <Badge badgeContent={unreadCount} color="primary" />
-                        </Box>
+                        unreadCount > 0 ? (
+                          <Box sx={{ px: unreadCount.toString().length / 2 + 0.5 }}>
+                            <Badge badgeContent={unreadCount} color="primary" />
+                          </Box>
+                        ) : undefined
                       }
                       id="notification-tab-0"
                       aria-controls="notification-tabpanel-0"

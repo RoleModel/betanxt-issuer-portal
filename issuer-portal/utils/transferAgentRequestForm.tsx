@@ -305,7 +305,7 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
 
         {/* File requirements section */}
         <Text style={styles.sectionHeader}>
-          In preparation for receiving the files, BetaNXT's file requirements are as
+          In preparation for receiving the files, BetaNXT&#39;s file requirements are as
           follows:
         </Text>
 
@@ -373,7 +373,7 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
           reader.readAsDataURL(blob)
         })
       }
-    } catch (error) {
+    } catch {
       // Logo loading failed, will use placeholder
     }
   }

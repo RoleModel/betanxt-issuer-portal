@@ -2,7 +2,6 @@
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import React from 'react'
-import SkeletonTable from '../ui/SkeletonTable'
 
 import {
   Box,
@@ -20,6 +19,8 @@ import {
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import type { ProposalVoting } from '@/types/phases'
+
+import SkeletonTable from '../ui/SkeletonTable'
 
 interface VotingTabulationTableProps {
   proposals: ProposalVoting[]
@@ -65,15 +66,9 @@ export default function VotingTabulationTable({
         <TableHead>
           <TableRow>
             <TableCell>Proposals</TableCell>
-            <TableCell align="right">
-              For
-            </TableCell>
-            <TableCell align="right">
-              Against
-            </TableCell>
-            <TableCell align="right">
-              Abstain
-            </TableCell>
+            <TableCell align="right">For</TableCell>
+            <TableCell align="right">Against</TableCell>
+            <TableCell align="right">Abstain</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -123,9 +118,7 @@ export default function VotingTabulationTable({
                       variant: 'body3',
                       fontWeight: 'medium',
                       sx: { textAlign: 'left' },
-                      text: formatPercentage(
-                        proposal.votingResults.against.percentage
-                      ),
+                      text: formatPercentage(proposal.votingResults.against.percentage),
                     }}
                     secondary={{
                       variant: 'body3',
@@ -149,9 +142,7 @@ export default function VotingTabulationTable({
                       variant: 'body3',
                       fontWeight: 'medium',
                       sx: { textAlign: 'left' },
-                      text: formatPercentage(
-                        proposal.votingResults.abstain.percentage
-                      ),
+                      text: formatPercentage(proposal.votingResults.abstain.percentage),
                     }}
                     secondary={{
                       variant: 'body3',
@@ -191,10 +182,7 @@ export default function VotingTabulationTable({
                     secondary={{
                       variant: 'body3',
                       text: formatShares(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.for.shares,
-                          0
-                        )
+                        proposals.reduce((sum, p) => sum + p.votingResults.for.shares, 0)
                       ),
                     }}
                   />

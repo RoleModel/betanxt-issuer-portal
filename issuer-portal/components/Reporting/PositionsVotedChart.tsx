@@ -1,8 +1,19 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, Card, CardContent, CardHeader, FormControl, MenuItem, Select, Stack } from '@mui/material'
+
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  FormControl,
+  MenuItem,
+  Select,
+  Stack,
+} from '@mui/material'
 import { PieChart } from '@mui/x-charts/PieChart'
+
 import PieCenterLabel from './PieChartCenterLabel'
 
 interface PositionsVotedData {
@@ -49,9 +60,9 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
               direction: 'horizontal',
               position: {
                 vertical: 'bottom',
-                horizontal: 'center'
-              }
-            }
+                horizontal: 'center',
+              },
+            },
           }}
           skipAnimation
         >
@@ -63,8 +74,8 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
                 id: index,
                 value: item.value,
                 label: item.label,
-                color: item.color
-              }))
+                color: item.color,
+              })),
             }}
           />
         </PieChart>
@@ -73,7 +84,10 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
   )
 }
 
-export default function PositionsVotedChart({ setKeys = [], data = {} }: PositionsVotedChartProps) {
+export default function PositionsVotedChart({
+  setKeys = [],
+  data = {},
+}: PositionsVotedChartProps) {
   const [selectedSetKey, setSelectedSetKey] = useState('')
 
   React.useEffect(() => {
@@ -82,17 +96,22 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
     }
   }, [setKeys, selectedSetKey])
 
-  const selectedData = selectedSetKey && data[selectedSetKey] ? data[selectedSetKey] : {
-    registered: { voted: 0, notVoted: 0 },
-    beneficial: { voted: 0, notVoted: 0 },
-  }
+  const selectedData =
+    selectedSetKey && data[selectedSetKey]
+      ? data[selectedSetKey]
+      : {
+          registered: { voted: 0, notVoted: 0 },
+          beneficial: { voted: 0, notVoted: 0 },
+        }
 
   // Calculate totals and percentages
   const totalRegistered = selectedData.registered.voted + selectedData.registered.notVoted
   const totalBeneficial = selectedData.beneficial.voted + selectedData.beneficial.notVoted
 
-  const registeredVotedPercentage = totalRegistered > 0 ? (selectedData.registered.voted / totalRegistered) * 100 : 0
-  const beneficialVotedPercentage = totalBeneficial > 0 ? (selectedData.beneficial.voted / totalBeneficial) * 100 : 0
+  const registeredVotedPercentage =
+    totalRegistered > 0 ? (selectedData.registered.voted / totalRegistered) * 100 : 0
+  const beneficialVotedPercentage =
+    totalBeneficial > 0 ? (selectedData.beneficial.voted / totalBeneficial) * 100 : 0
 
   const registeredData = [
     {
@@ -152,8 +171,10 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
         }
       />
       <CardContent>
-        <Stack direction={{ xs: 'column', sm: 'column', md: 'column', lg: 'row' }} spacing={3}>
-
+        <Stack
+          direction={{ xs: 'column', sm: 'column', md: 'column', lg: 'row' }}
+          spacing={3}
+        >
           <DonutChart
             centerLabel="Registered"
             data={registeredData}
@@ -165,7 +186,6 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
             data={beneficialData}
             centerValue={totalBeneficial}
           />
-
         </Stack>
       </CardContent>
     </Card>

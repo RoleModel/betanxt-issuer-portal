@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+import type { components } from '@/types/api'
+
+type Meeting = components['schemas']['Meeting']
+
 test.describe('Meeting API Endpoints', () => {
   const API_BASE_URL = 'http://localhost:3001/api'
 
@@ -41,7 +45,7 @@ test.describe('Meeting API Endpoints', () => {
     expect(data).toHaveProperty('meetings')
 
     // All returned meetings should have ACTIVE status
-    data.meetings.forEach((meeting: any) => {
+    data.meetings.forEach((meeting: Meeting) => {
       expect(meeting.status).toBe('ACTIVE')
     })
   })

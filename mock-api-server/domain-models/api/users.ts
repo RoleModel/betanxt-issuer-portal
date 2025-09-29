@@ -21,13 +21,13 @@ type ApiResponse<T> = {
 
 export async function listUsers(
   accountId?: string,
-  type?: string
+  type?: User['type']
 ): Promise<ApiResponse<User[] | undefined>> {
   const { data, error, response } = await apiClient.GET('/users', {
     params: {
       query: {
         accountId,
-        type: type as any,
+        type,
       },
     },
   })
@@ -50,9 +50,9 @@ export async function listUsers(
   }
 }
 
-export async function createUser(body: unknown): Promise<ApiResponse<User>> {
+export async function createUser(body: CreateUserRequest): Promise<ApiResponse<User>> {
   const { data, error, response } = await apiClient.POST('/users', {
-    body: body as CreateUserRequest,
+    body,
   })
 
   if (error) {
@@ -98,12 +98,15 @@ export async function getUserById(id: string): Promise<ApiResponse<User>> {
   }
 }
 
-export async function updateUser(id: string, body: unknown): Promise<ApiResponse<User>> {
+export async function updateUser(
+  id: string,
+  body: UpdateUserRequest
+): Promise<ApiResponse<User>> {
   const { data, error, response } = await apiClient.PUT('/users/{id}', {
     params: {
       path: { id },
     },
-    body: body as UpdateUserRequest,
+    body,
   })
 
   if (error) {
@@ -125,7 +128,7 @@ export async function updateUser(id: string, body: unknown): Promise<ApiResponse
 }
 
 export async function deleteUser(id: string): Promise<ApiResponse<void>> {
-  const { data, error, response } = await apiClient.DELETE('/users/{id}', {
+  const { error, response } = await apiClient.DELETE('/users/{id}', {
     params: {
       path: { id },
     },
@@ -178,13 +181,13 @@ export async function listAccountUsers(
 
 export async function createAccountUser(
   accountId: string,
-  body: unknown
+  body: CreateAccountUserRequest
 ): Promise<ApiResponse<User>> {
   const { data, error, response } = await apiClient.POST('/accounts/{accountId}/users', {
     params: {
       path: { accountId },
     },
-    body: body as CreateAccountUserRequest,
+    body,
   })
 
   if (error) {

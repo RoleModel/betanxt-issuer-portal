@@ -27,7 +27,7 @@ async function main() {
 
   const exists = (buckets || []).some((b) => b.name === 'documents')
   if (exists) {
-    console.log('[ensure-documents-bucket] documents bucket already exists.')
+    console.warn('[ensure-documents-bucket] documents bucket already exists.')
     return
   }
 
@@ -42,7 +42,7 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('[ensure-documents-bucket] Created documents bucket:', created?.name)
+  console.warn('[ensure-documents-bucket] Created documents bucket:', created?.name)
 }
 
 main().catch((e) => {

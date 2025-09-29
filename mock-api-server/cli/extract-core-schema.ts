@@ -25,6 +25,8 @@ const CORE_TABLES = [
   'position_vote',
   'proposal',
   'notification',
+  'mailing',
+  'tabulation_report',
 ]
 
 function extractCoreSchema() {
@@ -36,6 +38,7 @@ function extractCoreSchema() {
   try {
     fullSchema = readFileSync(schemaPath, 'utf-8')
   } catch (error) {
+    console.error(`Failed to load schema from ${schemaPath}`, error)
     process.exit(1)
   }
 
@@ -74,25 +77,36 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 `
 
   // Extract enum definitions first
+  // Skip document_history_event_type as it's managed by a separate migration
+  const SKIP_TYPES = ['document_history_event_type']
+
   const enumMatches = fullSchema.match(/CREATE TYPE[^;]+;/g) || []
   enumMatches.forEach((enumDef) => {
-    // Extract type name and add DROP IF EXISTS first
+    // Extract type name
     const typeNameMatch = enumDef.match(/CREATE TYPE (\w+)/)
     if (typeNameMatch) {
       const typeName = typeNameMatch[1]
-      coreSchema += `DROP TYPE IF EXISTS ${typeName};\n`
+
+      // Skip types that are managed by other migrations
+      if (SKIP_TYPES.includes(typeName)) {
+        return
+      }
+
+      // Add DROP IF EXISTS with CASCADE for types that might have dependencies
+      coreSchema += `DROP TYPE IF EXISTS ${typeName} CASCADE;\n`
     }
     coreSchema += enumDef + '\n\n'
   })
 
   // Extract core table definitions and their comments
-  const usedComments = new Set()
+  const _usedComments = new Set()
 
   CORE_TABLES.forEach((tableName) => {
     // Look for the table definition including its full structure
+    // Updated regex to handle the actual format: "-- Table 'name' generated from model...\n--\nCREATE TABLE..."
     const tableStartRegex = new RegExp(
-      `-- Table '${tableName}'.*?CREATE TABLE[^;]*?\\);`,
-      'gs'
+      `-- Table '${tableName}'[\\s\\S]*?CREATE TABLE[\\s\\S]*?\\);`,
+      'g'
     )
     const matches = fullSchema.match(tableStartRegex)
 
@@ -115,17 +129,37 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       tableCommentRegex.lastIndex = 0
       columnCommentRegex.lastIndex = 0
 
+      // Function to sanitize COMMENT statements
+      const _sanitizeComment = (_comment: string): string => {
+        return _comment
+          .replace(/&#x60;/g, '') // Remove HTML encoded backticks entirely
+          .replace(/&#x27;/g, "'") // Replace HTML encoded single quotes
+          .replace(/&quot;/g, '"') // Replace HTML entities for double quotes
+          .replace(/&amp;/g, '&') // Replace HTML entities for ampersands
+          .replace(/&lt;/g, '<') // Replace HTML entities for less than
+          .replace(/&gt;/g, '>') // Replace HTML entities for greater than
+          .replace(/`/g, '') // Remove any remaining backticks to avoid SQL syntax issues
+          .replace(/\r\n/g, ' ') // Replace Windows line endings
+          .replace(/\n/g, ' ') // Replace Unix line endings
+          .replace(/\r/g, ' ') // Replace Mac line endings
+          .replace(/\s+/g, ' ') // Collapse multiple spaces
+          .replace(/\.\s*\.\s*/, '. ') // Fix double periods
+          .trim()
+      }
+
+      // Extract and sanitize COMMENT statements to fix HTML entities
       let tableMatch
       while ((tableMatch = tableCommentRegex.exec(fullSchema)) !== null) {
         const comment = tableMatch[0]
         if (
-          !usedComments.has(comment) &&
+          !_usedComments.has(comment) &&
           !comment.includes('\\&quot;') &&
           !comment.includes('\\"') &&
           comment.trim().endsWith(';')
         ) {
-          coreSchema += comment + '\n'
-          usedComments.add(comment)
+          const sanitizedComment = _sanitizeComment(comment)
+          coreSchema += sanitizedComment + '\n'
+          _usedComments.add(comment)
         }
       }
 
@@ -133,18 +167,17 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       while ((columnMatch = columnCommentRegex.exec(fullSchema)) !== null) {
         const comment = columnMatch[0]
         if (
-          !usedComments.has(comment) &&
+          !_usedComments.has(comment) &&
           !comment.includes('\\&quot;') &&
           !comment.includes('\\"') &&
           comment.trim().endsWith(';')
         ) {
-          coreSchema += comment + '\n'
-          usedComments.add(comment)
+          const sanitizedComment = _sanitizeComment(comment)
+          coreSchema += sanitizedComment + '\n'
+          _usedComments.add(comment)
         }
       }
-
       coreSchema += '\n'
-    } else {
     }
   })
 

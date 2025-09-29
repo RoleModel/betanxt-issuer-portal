@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import React from 'react'
 
-import { Box, CircularProgress, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material'
 
 const BreakpointIndicatorComponent: React.FC = () => {
   const theme = useTheme()
@@ -45,7 +45,7 @@ const BreakpointIndicatorComponent: React.FC = () => {
         position: 'fixed',
         bottom: 100,
         left: 16,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'lch(30% 80 200)',
         color: 'white',
         padding: '8px 12px',
         borderRadius: 1,
@@ -77,7 +77,6 @@ const BreakpointIndicatorComponent: React.FC = () => {
 export const BreakpointIndicator = dynamic(
   () => Promise.resolve(BreakpointIndicatorComponent),
   {
-    loading: () => <CircularProgress size={20} />,
     ssr: false,
   }
 )

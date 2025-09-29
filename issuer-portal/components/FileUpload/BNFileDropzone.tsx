@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import type { FileRejection } from 'react-dropzone'
 
-import UploadFileIcon from '@mui/icons-material/UploadFile'
+import { UploadFile as UploadFileIcon } from '@mui/icons-material'
 import { Box, Link, Paper, Typography } from '@mui/material'
 
 import type { FileDropzoneProps } from './types'

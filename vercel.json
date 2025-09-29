@@ -1,18 +1,6 @@
 {
-  "buildCommand": "cd issuer-portal && npm run build",
+  "buildCommand": "npm install && cd issuer-portal && npm run build",
   "outputDirectory": "issuer-portal/.next",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "functions": {
-    "mock-api-server/app/api/**/*": {
-      "runtime": "nodejs22.x",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/backend/api/:path*",
-      "destination": "/mock-api-server/app/api/:path*"
-    }
-  ]
+  "framework": "nextjs"
 }

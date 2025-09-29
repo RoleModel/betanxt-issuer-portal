@@ -18,13 +18,13 @@ import Grid from '@mui/material/Grid'
 
 import AuditComplianceTable from '@/components/Reporting/AuditComplianceTable'
 import ChartToggle from '@/components/Reporting/ChartToggle'
+import type { ChartView } from '@/components/Reporting/ChartToggle'
 import DirectorPerformanceChart from '@/components/Reporting/DirectorPerformanceChart'
 import EventSummaryTable from '@/components/Reporting/EventSummaryTable'
 import IndividualDirectorChart from '@/components/Reporting/IndividualDirectorChart'
 import ParticipationChart from '@/components/Reporting/ParticipationChart'
 import ProposalPerformanceTable from '@/components/Reporting/ProposalPerformanceTable'
 import QuorumPerformanceTable from '@/components/Reporting/QuorumPerformanceTable'
-import type { ChartView } from '@/components/Reporting/ChartToggle'
 import YearOverYearChart from '@/components/Reporting/YearOverYearChart'
 
 import { useReporting } from '@/hooks/useReporting'
@@ -231,8 +231,8 @@ export default function ReportingPage() {
         // Check if there are actual votes (not just null values)
         const hasVotes =
           (p.totalVotesFor || 0) +
-          (p.totalVotesAgainst || 0) +
-          (p.totalVotesAbstain || 0) >
+            (p.totalVotesAgainst || 0) +
+            (p.totalVotesAbstain || 0) >
           0
 
         return isDirectorProposal && hasVotes
@@ -245,7 +245,11 @@ export default function ReportingPage() {
   React.useEffect(() => {
     if (meetingsWithDirectors.length > 0 && !selectedMeeting) {
       setSelectedMeeting(meetingsWithDirectors[0].id)
-    } else if (reportingData && reportingData.availableMeetings.length > 0 && !selectedMeeting) {
+    } else if (
+      reportingData &&
+      reportingData.availableMeetings.length > 0 &&
+      !selectedMeeting
+    ) {
       // Fallback: if no meetings with directors found, use first available meeting
       setSelectedMeeting(reportingData.availableMeetings[0].id)
     }
@@ -284,7 +288,15 @@ export default function ReportingPage() {
           <Suspense fallback={<ChartSkeleton />}>
             <Card sx={{ height: '100%' }}>
               <CardHeader title="Participation" />
-              <CardContent sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexGrow: 1,
+                  alignItems: 'center',
+                  justifyItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <ParticipationChart
                   data={{
                     meetings: mappedEventSummary.map((event) => ({

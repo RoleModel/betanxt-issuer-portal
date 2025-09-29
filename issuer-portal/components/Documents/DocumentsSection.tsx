@@ -31,17 +31,18 @@ import {
 import DSMDocuments from '@/components/Documents/DSMDocuments'
 import DocumentSiteCard from '@/components/Documents/DocumentSiteCard'
 import DocumentsTable from '@/components/Documents/DocumentsTable'
+import EmptyState from '@/components/EmptyState'
+import SkeletonTable from '@/components/ui/SkeletonTable'
 
 import { components } from '@/domain-models/generated-schema'
 
 import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
-import { ExtendedDocumentStatus } from '@/utils/documentUtils'
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
+import {
+  DOCUMENT_STATUS_VALUES,
+  ExtendedDocumentStatus,
+  getDocumentStatusLabel,
+} from '@/utils/documentUtils'
 
 /**
  * Documents page for managing meeting documents
@@ -51,11 +52,6 @@ import { ExtendedDocumentStatus } from '@/utils/documentUtils'
 type Document = Omit<components['schemas']['Document'], 'status'> & {
   status?: ExtendedDocumentStatus
 }
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
 
 // Dynamic imports for heavy document components to enable route-based code splitting
 const ApprovalDrawer = dynamic(() => import('@/components/Drawers/ApprovalDrawer'), {
@@ -98,10 +94,11 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   const [statusFilter, setStatusFilter] = useState('All')
   const [dsmPage, setDsmPage] = useState(0)
   const [dsmRowsPerPage, setDsmRowsPerPage] = useState(6)
+  const previousMeetingIdRef = React.useRef<string | null>(null)
 
   // Calculate DSM progress
   const dsmProgress = React.useMemo(() => {
-    const uploadedDsm = dsmDocuments.filter((doc) => doc.status === 'AUTHORIZED').length
+    const uploadedDsm = dsmDocuments.filter((doc) => doc.status === 'APPROVED').length
     return {
       uploaded: uploadedDsm,
       totalRequired: Math.max(dsmDocuments.length, 5),
@@ -125,20 +122,31 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // Fetch documents from API when meeting changes
   useEffect(() => {
-    if (currentMeeting?.id) {
+    if (currentMeeting?.id && previousMeetingIdRef.current !== currentMeeting.id) {
+      previousMeetingIdRef.current = currentMeeting.id
       refreshDocuments(currentMeeting.id)
     }
   }, [currentMeeting?.id, refreshDocuments])
 
   // Refresh documents when page gains focus or becomes visible
   useEffect(() => {
+    let isInitialMount = true
+
     const handleFocus = () => {
+      if (isInitialMount) {
+        isInitialMount = false
+        return
+      }
       if (currentMeeting?.id) {
         refreshDocuments(currentMeeting.id)
       }
     }
 
     const handleVisibilityChange = () => {
+      if (isInitialMount) {
+        isInitialMount = false
+        return
+      }
       if (!document.hidden && currentMeeting?.id) {
         refreshDocuments(currentMeeting.id)
       }
@@ -153,11 +161,35 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     }
   }, [currentMeeting?.id, refreshDocuments])
 
-  // Filter documents based on search and status
+  // Helper to normalize raw status values from API / placeholders.
+  const normalizeStatus = React.useCallback(
+    (raw: unknown): ExtendedDocumentStatus | 'UNKNOWN' => {
+      if (!raw || typeof raw !== 'string') return 'NOT_UPLOADED'
+      if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
+        return raw as ExtendedDocumentStatus
+      if (raw === 'NOT_UPLOADED') return 'NOT_UPLOADED'
+      return 'UNKNOWN'
+    },
+    []
+  )
+
+  // Derive unique normalized statuses present in the dataset.
+  const availableStatuses = React.useMemo(() => {
+    const set = new Set<string>()
+    regularDocuments.forEach((doc) => {
+      set.add(normalizeStatus(doc.status))
+    })
+    // Ensure NOT_UPLOADED present if there are documents with no status
+    if (regularDocuments.some((d) => !d.status)) set.add('NOT_UPLOADED')
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [regularDocuments, normalizeStatus])
+
+  // Filter documents based on search and selected (normalized) status
   const filteredDocuments = regularDocuments.filter((doc) => {
     const matchesSearch =
       doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false
-    const matchesStatus = statusFilter === 'All' || doc.status === statusFilter
+    const normalized = normalizeStatus(doc.status)
+    const matchesStatus = statusFilter === 'All' || normalized === statusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -216,7 +248,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     if (!currentMeeting?.id) return
     try {
       await uploadDocument(currentMeeting.id, files, 'dsm-document', associations)
-    } catch (error) {
+    } catch {
       // Error is already handled by the context
     }
   }
@@ -259,14 +291,9 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       if (currentMeeting?.id) {
         await refreshDocuments(currentMeeting.id)
       }
-    } catch (err) {
+    } catch {
       // Handle error
     }
-  }
-
-  // Show loading state
-  if (loading) {
-    return <LinearProgress />
   }
 
   // Show error state
@@ -280,7 +307,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   return (
     <>
-      <Suspense fallback={<LinearProgress />}>
+      <Suspense>
         <Container component="main" maxWidth="xl">
           <Box
             component="main"
@@ -332,67 +359,94 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                         displayEmpty
                       >
                         <MenuItem value="All">All</MenuItem>
-                        <MenuItem value="Approved">Approved</MenuItem>
-                        <MenuItem value="1/3 Reviews Complete">In Review</MenuItem>
-                        <MenuItem value="Not Uploaded">Not Uploaded</MenuItem>
+                        {availableStatuses.map((status) => {
+                          const label =
+                            status === 'UNKNOWN'
+                              ? 'Unknown'
+                              : getDocumentStatusLabel(
+                                (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                              )
+                          return (
+                            <MenuItem key={status} value={status}>
+                              {label}
+                            </MenuItem>
+                          )
+                        })}
                       </Select>
                     </FormControl>
                   </Stack>
                 </Box>
 
-                {/* Documents Table */}
-                <DocumentsTable
-                  documents={filteredDocuments}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
-                  emptyRows={emptyRows}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  onOpenDocument={handleDocumentAction}
-                />
+                {loading ? (
+                  <SkeletonTable rows={5} columns={4} />
+                ) : filteredDocuments.length === 0 ? (
+                  <EmptyState
+                    title="No documents found"
+                    description={
+                      searchQuery || statusFilter !== 'All'
+                        ? 'No documents match your search criteria.'
+                        : 'Upload documents to get started with your meeting materials.'
+                    }
+                    minHeight={300}
+                  />
+                ) : (
+                  <DocumentsTable
+                    documents={filteredDocuments}
+                    page={page}
+                    rowsPerPage={rowsPerPage}
+                    emptyRows={emptyRows}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    onOpenDocument={handleDocumentAction}
+                  />
+                )}
               </CardContent>
             </Card>
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 8 }}>
-                <DSMDocuments
-                  dsmDocuments={dsmDocuments}
-                  dsmPage={dsmPage}
-                  dsmRowsPerPage={dsmRowsPerPage}
-                  dsmEmptyRows={dsmEmptyRows}
-                  dsmProgress={dsmProgress}
-                  onUpload={handleUpload}
-                  onPageChange={handleDsmChangePage}
-                  onRowsPerPageChange={handleDsmChangeRowsPerPage}
-                  onOpenDocument={handleDocumentAction}
-                  onOpenUploadFor={(doc) => {
-                    setSelectedDsmDocument(doc)
-                    setUploadDialogOpen(true)
-                  }}
-                  placeholders={[
-                    {
-                      id: 'placeholder-static-slide',
-                      title: 'Static Slide or Presentation',
-                    },
-                    {
-                      id: 'placeholder-documents-display',
-                      title: 'Documents to Display',
-                    },
-                    { id: 'placeholder-speaker-list', title: 'Speaker List' },
-                    {
-                      id: 'placeholder-guest-registration',
-                      title: 'Guest Link Registration',
-                    },
-                    {
-                      id: 'placeholder-rules',
-                      title: '2025 Virtual Annual Meeting Rules of Conduct',
-                    },
-                    {
-                      id: 'placeholder-forward-looking',
-                      title: 'Forward Looking Statements',
-                    },
-                  ]}
-                />
+                {loading ? (
+                  <SkeletonTable rows={5} columns={4} />
+                ) : (
+                  <DSMDocuments
+                    dsmDocuments={dsmDocuments}
+                    dsmPage={dsmPage}
+                    dsmRowsPerPage={dsmRowsPerPage}
+                    dsmEmptyRows={dsmEmptyRows}
+                    dsmProgress={dsmProgress}
+                    onUpload={handleUpload}
+                    onPageChange={handleDsmChangePage}
+                    onRowsPerPageChange={handleDsmChangeRowsPerPage}
+                    onOpenDocument={handleDocumentAction}
+                    onOpenUploadFor={(doc) => {
+                      setSelectedDsmDocument(doc)
+                      setUploadDialogOpen(true)
+                    }}
+                    placeholders={[
+                      {
+                        id: 'placeholder-static-slide',
+                        title: 'Static Slide or Presentation',
+                      },
+                      {
+                        id: 'placeholder-documents-display',
+                        title: 'Documents to Display',
+                      },
+                      { id: 'placeholder-speaker-list', title: 'Speaker List' },
+                      {
+                        id: 'placeholder-guest-registration',
+                        title: 'Guest Link Registration',
+                      },
+                      {
+                        id: 'placeholder-rules',
+                        title: '2025 Virtual Annual Meeting Rules of Conduct',
+                      },
+                      {
+                        id: 'placeholder-forward-looking',
+                        title: 'Forward Looking Statements',
+                      },
+                    ]}
+                  />
+                )}
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
                 <DocumentSiteCard />
@@ -406,11 +460,11 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           open={approvalDrawerOpen}
           onClose={handleApprovalDrawerClose}
           title={selectedDocument.title || 'Document'}
-          pdfUrl={selectedDocument.filePath || ''}
+          fileUrl={selectedDocument.filePath || ''}
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => {}}
+          onAddComment={() => { }}
         />
       )}
 
@@ -431,7 +485,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         <DocumentViewer
           open={documentViewerOpen}
           onClose={handleDocumentViewerClose}
-          pdfUrl={selectedDocument.filePath || ''}
+          fileUrl={selectedDocument.filePath || ''}
           title={selectedDocument.title || 'Document'}
           documentId={selectedDocument.id}
         />

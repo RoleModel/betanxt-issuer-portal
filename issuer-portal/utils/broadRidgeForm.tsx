@@ -234,9 +234,9 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
           communication services for its Bank and Brokerage firm clients and we are
           committed to delivering excellent service. According to our records, your
           company or CUSIP are not listed or have changed due to corporate action. Please
-          take this opportunity to provide your company's information for our Master File
-          prior to your annual or special shareholders meeting, or any quarterly or other
-          non-proxy mailings. If you are requesting a NOBO list or non-mailing data
+          take this opportunity to provide your company&#39;s information for our Master
+          File prior to your annual or special shareholders meeting, or any quarterly or
+          other non-proxy mailings. If you are requesting a NOBO list or non-mailing data
           reporting, please submit the Issuer Profile along with the NOBO Request Form or
           Data report request form together in the same email.
         </Text>
@@ -343,9 +343,10 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         <Text style={styles.additionalInfo}>
           The most efficient way to provide Broadridge notification of your mailing is at:
           https://MyService.Broadridge.com. You will need your e-mail address and password
-          to access our website. If you need your password reset, please click on "Forgot
-          Password" and follow the instructions in the e-mail that will automatically be
-          sent to you. You will have 15 minutes to reset your password before it expires.
+          to access our website. If you need your password reset, please click on
+          &quot;Forgot Password&quot; and follow the instructions in the e-mail that will
+          automatically be sent to you. You will have 15 minutes to reset your password
+          before it expires.
         </Text>
 
         <Text style={styles.additionalInfo}>
@@ -414,7 +415,7 @@ export const generatePDFForm = async (formData: FormData = {}): Promise<string> 
         reader.readAsDataURL(blob)
       })
     }
-  } catch (error) {
+  } catch {
     // Logo loading failed, will use text fallback
   }
 

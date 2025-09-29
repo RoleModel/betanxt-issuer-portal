@@ -18,6 +18,21 @@ interface ContactFormData {
   message: string
 }
 
+const AutoAreasizeStyles = {
+  padding: '8px',
+  width: '100%',
+  border: '1px solid',
+  backgroundColor: 'var(--mui-palette-inputOutlinedEnabledFill)',
+  borderColor: 'var(--mui-palette-primary-main)',
+  borderRadius: '4px',
+  fontSize: '1rem',
+  lineHeight: 1.3,
+  fontFamily: 'var(--font-roboto)',
+  '&:focus': {
+    outline: 'var(--mui-palette-primary-main)',
+  },
+}
+
 export function CTACard() {
   const theme = useTheme()
   const [contactForm, setContactForm] = useState<ContactFormData>({
@@ -62,31 +77,21 @@ export function CTACard() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'end',
-                gap: 2,
+                gap: 1,
               }}
             >
-              <Box
-                sx={{
-                  '& textarea': {
-                    padding: 4,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    width: '100%',
-                  },
-                }}
-              >
-                <TextareaAutosize
-                  className="textarea-autosize"
-                  placeholder="How can we help you this proxy season?"
-                  minRows={3}
-                  value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, message: e.target.value })
-                  }
-                  required
-                />
-              </Box>
+              <TextareaAutosize
+                name="Contact Message"
+                id="contact-message"
+                style={AutoAreasizeStyles}
+                placeholder="How can we help you this proxy season?"
+                minRows={5}
+                value={contactForm.message}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, message: e.target.value })
+                }
+                required
+              />
               <Button
                 type="submit"
                 variant="contained"

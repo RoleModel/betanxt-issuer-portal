@@ -94,6 +94,45 @@ export const getPhaseColor = (phase: number) => {
   return `var(--mui-palette-phase-${phase - 1}-main)`
 }
 
+// Status color categories (matching StatusChip logic)
+// Only these statuses override the phase color
+const STATUS_COLORS: {
+  success: string[]
+  warning: string[]
+  neutral: string[]
+} = {
+  success: ['COMPLETE', 'AUTHORIZED'],
+  warning: ['PENDING_AUTHORIZATION', 'WAITING_FOR_FORM_RETURN'],
+  neutral: ['SUBMITTED_AWAITING_RECORD_DATE', 'REQUEST_FORM_TO_FOLLOW'],
+}
+
+// Utility function to get task/calendar border color based on status
+// Returns phase color for INCOMPLETE and other statuses that don't have special colors
+export const getStatusBorderColor = (
+  status: string | null | undefined,
+  phaseColor: string,
+  theme: Theme
+) => {
+  if (!status) {
+    return phaseColor
+  }
+
+  if (STATUS_COLORS.success.includes(status)) {
+    return theme.vars.palette.success.main
+  }
+
+  if (STATUS_COLORS.warning.includes(status)) {
+    return '#EBB322'
+  }
+
+  if (STATUS_COLORS.neutral.includes(status)) {
+    return theme.vars.palette.grey[400]
+  }
+
+  // All other statuses use phase color
+  return phaseColor
+}
+
 const issuerOverrides = {
   cssVariables: true,
   colorSchemes: {

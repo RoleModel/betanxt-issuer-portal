@@ -3,12 +3,21 @@
 import dynamic from 'next/dynamic'
 import React, { Suspense } from 'react'
 
-import { Box, Grid, Skeleton, Stack } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  Skeleton,
+  Stack,
+} from '@mui/material'
 
 import DigitalShareholderMeetingCard from '@/components/Meeting/DigitalShareholderMeetingCard'
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import type { Meeting } from '@/types/api'
+import type { Meeting } from '@/types/api-exports'
 
 import KeyDatesCard from './KeyDatesCard'
 
@@ -42,7 +51,10 @@ interface Phase6LayoutProps {
   phase?: number
 }
 
-export default function Phase6Layout({ meetingId, meeting }: Phase6LayoutProps) {
+export default React.memo(function Phase6Layout({
+  meetingId,
+  meeting,
+}: Phase6LayoutProps) {
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId)
 
   return (
@@ -87,11 +99,23 @@ export default function Phase6Layout({ meetingId, meeting }: Phase6LayoutProps) 
       </Grid>
       <Grid container size={12} spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 12, lg: 9 }}>
-          <VotingTabulationTable
-            proposals={proposals}
-            loading={votingLoading}
-            onViewTabulation={() => {}}
-          />
+          <Card>
+            <CardHeader
+              title="Tabulation"
+              action={
+                <Button
+                  variant="outlined"
+                  onClick={() => {}}
+                  sx={{ textTransform: 'none' }}
+                >
+                  View Tabulation
+                </Button>
+              }
+            />
+            <CardContent sx={{ p: 0 }}>
+              <VotingTabulationTable proposals={proposals} loading={votingLoading} />
+            </CardContent>
+          </Card>
         </Grid>
         <Grid
           container
@@ -130,4 +154,4 @@ export default function Phase6Layout({ meetingId, meeting }: Phase6LayoutProps) 
       </Grid>
     </Box>
   )
-}
+})

@@ -14,12 +14,13 @@ import {
   Typography,
 } from '@mui/material'
 
+import { getStatusBorderColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useTasks } from '@/hooks/useTasks'
 import { formatDate } from '@/lib/formats'
-import type { Task } from '@/types/api'
+import type { Task } from '@/types/api-exports'
 import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
 import {
   getDTCCAuthorizationStatus,
@@ -79,23 +80,29 @@ export default function DrawerTaskItem({
 
   return (
     <Card
-      sx={(theme) => ({
-        borderLeft: `6px solid`,
-        borderLeftColor: isCompleted ? 'complete' : phaseColor,
-        backgroundColor: isCompleted
-          ? 'background.paper'
-          : `${theme.vars.palette.tableCellRow.fill}`,
-        borderTop: 0,
-        borderBottom: 0,
-        borderRight: 0,
-        boxShadow: (theme) => `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-        p: 0,
-        textAlign: 'left',
-        width: '100%',
-        '&:hover': {
-          boxShadow: `0px 0px 0px 1px inset ${phaseColor}`,
-        },
-      })}
+      sx={(theme) => {
+        const borderColor = isCompleted
+          ? 'complete'
+          : getStatusBorderColor(task.status, phaseColor, theme)
+
+        return {
+          borderLeft: `6px solid`,
+          borderLeftColor: borderColor,
+          backgroundColor: isCompleted
+            ? 'background.paper'
+            : `${theme.vars.palette.tableCellRow.fill}`,
+          borderTop: 0,
+          borderBottom: 0,
+          borderRight: 0,
+          boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+          p: 0,
+          textAlign: 'left',
+          width: '100%',
+          '&:hover': {
+            boxShadow: `0px 0px 0px 1px inset ${borderColor}`,
+          },
+        }
+      }}
     >
       <CardActionArea onClick={onClick} disabled={!onClick}>
         <CardContent sx={{ p: 1.5 }}>

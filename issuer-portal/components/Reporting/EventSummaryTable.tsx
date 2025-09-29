@@ -77,16 +77,16 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   const rows: EventSummaryRow[] = isRowFormat
     ? (data as EventSummaryRow[])
     : [
-      {
-        event: 'Meeting Summary',
-        recordDate: (data as EventSummaryData).materials?.sentDate || '',
-        meetingType: 'Annual',
-        quorum: (data as EventSummaryData).quorumAchieved ? 'Yes' : 'No',
-        participation: `${((data as EventSummaryData).participationRate || 0).toFixed(1)}%`,
-        numProposals: (data as EventSummaryData).totalProposals,
-        outcome: `${(data as EventSummaryData).passedProposals}/${(data as EventSummaryData).totalProposals} Passed`,
-      },
-    ]
+        {
+          event: 'Meeting Summary',
+          recordDate: (data as EventSummaryData).materials?.sentDate || '',
+          meetingType: 'Annual',
+          quorum: (data as EventSummaryData).quorumAchieved ? 'Yes' : 'No',
+          participation: `${((data as EventSummaryData).participationRate || 0).toFixed(1)}%`,
+          numProposals: (data as EventSummaryData).totalProposals,
+          outcome: `${(data as EventSummaryData).passedProposals}/${(data as EventSummaryData).totalProposals} Passed`,
+        },
+      ]
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage)
@@ -135,10 +135,10 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                   <TableCell>
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell>{row.meetingType}</TableCell>

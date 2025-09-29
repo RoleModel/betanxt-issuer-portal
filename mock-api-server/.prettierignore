@@ -1,0 +1,19 @@
+# Note: Prettier ignores files in .gitignore by default
+
+openapi-schema/openapi.yaml
+node_modules/
+dist/
+.next/
+.turbo/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.prettierrc
+.prettierignore
+.eslintrc
+.eslintrc.json
+.eslintignore
+.eslintignore.json
+.eslintignore.json

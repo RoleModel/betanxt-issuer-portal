@@ -20,7 +20,7 @@ export interface DashboardComponent {
     | 'document-hosting'
     | 'event-contacts'
     | 'phase7-layout'
-  config: Record<string, any>
+  config: Record<string, unknown>
   priority: number
   gridProps?: {
     xs?: number
@@ -32,7 +32,7 @@ export interface DashboardComponent {
 }
 
 export interface ProposalVoting {
-  proposalNumber: string
+  proposalNumber: number
   proposalId: string
   description: string
   directorName?: string

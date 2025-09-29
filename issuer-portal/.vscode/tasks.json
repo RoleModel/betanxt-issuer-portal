@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Check frontend API types",
+      "type": "shell",
+      "command": "grep -n 'tabulation-report' types/api.ts || echo 'tabulation-report not found in frontend api.ts'"
+    },
+    {
+      "label": "generate:types",
+      "type": "shell",
+      "command": "npm run generate:types"
+    }
+  ]
+}

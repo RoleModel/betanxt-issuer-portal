@@ -1635,6 +1635,53 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   # Proposal Management Endpoints
+  /meetings/{meetingId}/tabulation-report:
+    get:
+      operationId: getTabulationReport
+      summary: Get pre-calculated tabulation report for a meeting
+      tags: [Reports]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tabulation report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TabulationReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /meetings/{meetingId}/mailing:
+    get:
+      operationId: getMailingStatistics
+      summary: Get mailing statistics for a meeting
+      tags: [Reports]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Meeting ID to get mailing statistics for
+      responses:
+        '200':
+          description: Mailing statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mailing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /meetings/{meetingId}/proposals:
     get:
       operationId: listProposals
@@ -2210,13 +2257,17 @@ components:
           type: string
           format: date-time
         accounts:
-          type: object
+          type: array
           nullable: true
-          description: JSON array of related account information
+          description: Array of related accounts
+          items:
+            $ref: '#/components/schemas/Account'
         meetings:
-          type: object
+          type: array
           nullable: true
-          description: JSON array of related meeting information
+          description: Array of related meetings
+          items:
+            $ref: '#/components/schemas/Meeting'
 
     User:
       type: object
@@ -2535,6 +2586,17 @@ components:
         updatedAt:
           type: string
           format: date-time
+        displayCategory:
+          type: string
+          nullable: true
+          description: Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
+          enum:
+            - general
+            - dsm
+            - proxy-materials
+            - meeting-materials
+            - post-meeting
+            - internal
         meeting:
           $ref: '#/components/schemas/Meeting'
         comments:
@@ -3505,6 +3567,169 @@ components:
           type: string
           format: date-time
           nullable: true
+
+    Mailing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+          example: '01234567-89ab-cdef-0123-456789abcdef'
+        ticker:
+          type: string
+          example: 'PAYC'
+        totalAccounts:
+          type: integer
+          description: Total number of accounts
+        totalPositions:
+          type: integer
+          description: Total number of positions
+        totalRetransmissions:
+          type: integer
+          nullable: true
+          description: Number of retransmissions
+        totalRollups:
+          type: integer
+          nullable: true
+          description: Number of rollups
+        fullsetMailPositions:
+          type: integer
+          description: Number of fullset mail positions
+        naaMailPositions:
+          type: integer
+          description: Number of NAA mail positions
+        courtesyOtherMailPositions:
+          type: integer
+          nullable: true
+          description: Number of courtesy/other mail positions
+        electronicSuppressedPositions:
+          type: integer
+          description: Number of electronic suppressed positions
+        householdSuppressedPositions:
+          type: integer
+          description: Number of household suppressed positions
+        managedSuppressedPositions:
+          type: integer
+          nullable: true
+          description: Number of managed suppressed positions
+        consolidatedSuppressedPositions:
+          type: integer
+          nullable: true
+          description: Number of consolidated suppressed positions
+        canceledSuppressedPositions:
+          type: integer
+          description: Number of canceled suppressed positions
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TabulationReport:
+      type: object
+      required:
+        - id
+        - meetingId
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-sql-type: UUID
+          description: Primary key
+        meetingId:
+          type: string
+          description: Foreign key to meeting table
+          x-sql-type: TEXT
+        setKeys:
+          type: array
+          items:
+            type: string
+          description: Unique set keys from position records
+          x-sql-type: TEXT[]
+        brokerVoting:
+          type: array
+          description: Top 6 brokers by total shares
+          x-sql-type: JSONB
+          items:
+            type: object
+            properties:
+              broker:
+                type: string
+              sharesFor:
+                type: number
+              sharesAgainst:
+                type: number
+              sharesAbstain:
+                type: number
+        shareRangePerformance:
+          type: array
+          description: Performance metrics across 18 share ranges
+          x-sql-type: JSONB
+          items:
+            type: object
+            properties:
+              rangeLabel:
+                type: string
+              positionCount:
+                type: integer
+              totalShares:
+                type: number
+              percentVoted:
+                type: number
+        nonDtcVoteStatus:
+          type: object
+          description: Non-DTC shareholder vote status breakdown
+          x-sql-type: JSONB
+          properties:
+            unvotedShareholders:
+              type: integer
+            unvotedShares:
+              type: number
+            printShareholders:
+              type: integer
+            printShares:
+              type: number
+            ivrShareholders:
+              type: integer
+            ivrShares:
+              type: number
+            webShareholders:
+              type: integer
+            webShares:
+              type: number
+            votedSubtotalShareholders:
+              type: integer
+            votedSubtotalShares:
+              type: number
+            grandTotalShareholders:
+              type: integer
+            grandTotalShares:
+              type: number
+        dtcVoteStatus:
+          type: object
+          description: DTC/CDS shareholder vote status breakdown
+          x-sql-type: JSONB
+        voteDistribution:
+          type: object
+          description: Overall vote distribution by account type
+          x-sql-type: JSONB
+        positionsVoted:
+          type: object
+          description: Positions voted by shareholder type
+          x-sql-type: JSONB
+        lastCalculatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last statistics calculation
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     Pagination:
       type: object

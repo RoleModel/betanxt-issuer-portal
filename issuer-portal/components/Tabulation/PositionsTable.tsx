@@ -1,13 +1,17 @@
 'use client'
 
 import React, { useState } from 'react'
+
+import FilterListIcon from '@mui/icons-material/FilterList'
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
+import MailOutlineIcon from '@mui/icons-material/MailOutline'
+import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  IconButton,
   MenuItem,
   Select,
   Skeleton,
@@ -21,17 +25,16 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import MailOutlineIcon from '@mui/icons-material/MailOutline'
-import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
-import SearchOutlined from '@mui/icons-material/SearchOutlined'
-import FilterListIcon from '@mui/icons-material/FilterList'
 import InputAdornment from '@mui/material/InputAdornment'
-import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+
 import NoWrapTableCell from '@/components/ui/NoWrapTableCell'
+import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import SortableHeaderCell, { useSortableTable } from '@/components/ui/SortableHeaderCell'
+
 import buildApiClient from '@/domain-models/apiClient'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+
 import { exportPositionsToPdf } from '@/utils/exportPositionsPdf'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 interface Position {
   cusip: string
@@ -114,11 +117,14 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
         const apiClient = await buildApiClient()
 
         // Fetch positions
-        const { data: positionsData, error: positionsError } = await apiClient.GET('/positions', {
-          params: {
-            query: { meetingId },
-          },
-        })
+        const { data: positionsData, error: positionsError } = await apiClient.GET(
+          '/positions',
+          {
+            params: {
+              query: { meetingId },
+            },
+          }
+        )
 
         if (positionsError) {
           console.error('Failed to fetch positions:', positionsError)
@@ -141,16 +147,19 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
 
         // Try to fetch meeting data for title and client ticker
         try {
-          const { data: meetingData, error: meetingError } = await apiClient.GET('/meetings/{meetingId}', {
-            params: {
-              path: { meetingId },
-            },
-          })
+          const { data: meetingData, error: meetingError } = await apiClient.GET(
+            '/meetings/{meetingId}',
+            {
+              params: {
+                path: { meetingId },
+              },
+            }
+          )
 
           if (!meetingError && meetingData) {
             const meeting = asRecord(meetingData)
             setMeetingTitle(asString(meeting?.title) || '')
-            setClientTicker(asString(meeting?.clientTicker) || '')
+            setClientTicker(asString(meeting?.ticker) || '')
           }
         } catch (_meetingErr) {
           // Meeting fetch is optional, set fallback values
@@ -216,7 +225,6 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
     })
   }
 
-
   return (
     <Card>
       <CardHeader
@@ -228,6 +236,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
             onClick={handleExportPdf}
             loading={isExporting}
             loadingIndicator="Generating..."
+            disabled={isExporting}
           >
             Export Positions
           </Button>
@@ -242,7 +251,11 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
             size="small"
             slotProps={{
               input: {
-                startAdornment: <InputAdornment position="start"><SearchOutlined /></InputAdornment>,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined />
+                  </InputAdornment>
+                ),
               },
             }}
           />
@@ -357,7 +370,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                 >
                   Date Voted
                 </SortableHeaderCell>
-                <NoWrapTableCell>Sent by</NoWrapTableCell>
+                <NoWrapTableCell align="right">Sent by</NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -389,19 +402,19 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                     <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
                     <NoWrapTableCell>{position.voteStatus}</NoWrapTableCell>
                     <NoWrapTableCell>{position.controlNumber}</NoWrapTableCell>
-                    <NoWrapTableCell align="right">{formatNumber(position.shares)}</NoWrapTableCell>
-                    <NoWrapTableCell align="right">{formatNumber(position.sharesVoted)}</NoWrapTableCell>
+                    <NoWrapTableCell align="right">
+                      {formatNumber(position.shares)}
+                    </NoWrapTableCell>
+                    <NoWrapTableCell align="right">
+                      {formatNumber(position.sharesVoted)}
+                    </NoWrapTableCell>
                     <NoWrapTableCell>{position.source}</NoWrapTableCell>
                     <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
-                    <TableCell>
+                    <TableCell align="right">
                       {position.sentBy ? (
-                        <IconButton size="small">
-                          <MailOutlineIcon fontSize="small" />
-                        </IconButton>
+                        <MailOutlineIcon fontSize="small" />
                       ) : (
-                        <IconButton size="small">
-                          <InsertDriveFileOutlinedIcon fontSize="small" />
-                        </IconButton>
+                        <InsertDriveFileOutlinedIcon fontSize="small" />
                       )}
                     </TableCell>
                   </TableRow>

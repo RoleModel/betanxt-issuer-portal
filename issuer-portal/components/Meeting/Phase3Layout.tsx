@@ -8,7 +8,7 @@ import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
 import TaskCard from '@/components/Meeting/TaskCard'
 
-import type { Document, Meeting } from '@/types/api'
+import type { Document, Meeting } from '@/types/api-exports'
 
 interface Phase3LayoutProps {
   meetingId?: string
@@ -17,11 +17,7 @@ interface Phase3LayoutProps {
   phase?: number
 }
 
-export default function Phase3Layout({
-  meetingId,
-  meeting,
-  phase = 3,
-}: Phase3LayoutProps) {
+function Phase3Layout({ meetingId, meeting, phase = 3 }: Phase3LayoutProps) {
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 12 }}>
@@ -38,3 +34,4 @@ export default function Phase3Layout({
     </Grid>
   )
 }
+export default Phase3Layout

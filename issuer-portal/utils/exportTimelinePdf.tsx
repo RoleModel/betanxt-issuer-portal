@@ -8,14 +8,12 @@ import {
   View,
   pdf,
 } from '@react-pdf/renderer'
-import { PDFViewer } from '@react-pdf/renderer'
 import React from 'react'
 
 import { shiftWeekendToMonday } from '@/components/Calendar/CalendarUtils'
 import { theme } from '@/components/mui-styling/theme'
 
-import type { KeyDate, Task } from '@/types/api'
-import { loadClientLogoAsPngBase64 } from '@/utils/clientBranding'
+import type { KeyDate, Task } from '@/types/api-exports'
 
 // Register Roboto font
 Font.register({
@@ -204,56 +202,26 @@ function formatDateShort(dateStr: string | null): string {
   }
 }
 
-// Helper function to load image as base64
-const loadImageAsBase64 = async (imagePath: string): Promise<string> => {
-  try {
-    const fullPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-    const response = await fetch(fullPath)
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`)
-    }
-
-    const blob = await response.blob()
-
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const result = reader.result as string
-        if (result && result.startsWith('data:')) {
-          resolve(result)
-        } else {
-          reject(new Error('Invalid image data'))
-        }
-      }
-      reader.onerror = () => reject(new Error('FileReader error'))
-      reader.readAsDataURL(blob)
-    })
-  } catch (error) {
-    throw error
-  }
-}
-
 interface TimelinePDFDocumentProps {
   tasks: Task[]
   keyDates: KeyDate[]
   meetingTitle: string
   selectedPhase?: number | 'all'
   clientTicker?: string
-  clientLogoBase64?: string
-  betanxtLogoBase64?: string
+  clientLogoUrl?: string
+  betanxtLogoUrl?: string
 }
 
 // Timeline PDF Document Component
-const TimelinePDFDocument: React.FC<TimelinePDFDocumentProps> = ({
+const TimelinePDFDocument = ({
   tasks,
   keyDates,
   meetingTitle,
   selectedPhase = 'all',
   clientTicker,
-  clientLogoBase64,
-  betanxtLogoBase64,
-}) => {
+  clientLogoUrl,
+  betanxtLogoUrl,
+}: TimelinePDFDocumentProps) => {
   // Filter and sort data
   let filteredTasks = tasks
   let filteredKeyDates = keyDates
@@ -326,144 +294,136 @@ const TimelinePDFDocument: React.FC<TimelinePDFDocumentProps> = ({
   }
 
   return (
-    <PDFViewer>
-      <Document>
-        <Page size="LETTER" style={styles.page}>
-          {/* Header with logos */}
-          <View style={styles.header}>
-            <View>
-              {clientLogoBase64 ? (
-                <PDFImage style={styles.logo} src={clientLogoBase64} />
-              ) : (
-                <Text style={styles.fallbackLogo}>
-                  {clientTicker ? `${clientTicker} Logo` : 'Client Logo'}
-                </Text>
-              )}
-            </View>
-            <View>
-              {betanxtLogoBase64 ? (
-                <PDFImage style={styles.betanxtLogo} src={betanxtLogoBase64} />
-              ) : (
-                <Text style={styles.betanxtText}>BetaNXT</Text>
-              )}
-            </View>
+    <Document>
+      <Page size="LETTER" style={styles.page}>
+        {/* Header with logos */}
+        <View style={styles.header}>
+          <View>
+            {clientLogoUrl ? (
+              <PDFImage style={styles.logo} src={clientLogoUrl} />
+            ) : (
+              <Text style={styles.fallbackLogo}>
+                {clientTicker ? `${clientTicker} Logo` : 'Client Logo'}
+              </Text>
+            )}
           </View>
+          <View>
+            {betanxtLogoUrl ? (
+              <PDFImage style={styles.betanxtLogo} src={betanxtLogoUrl} />
+            ) : (
+              <Text style={styles.betanxtText}>BetaNXT</Text>
+            )}
+          </View>
+        </View>
 
-          {/* Title */}
-          <Text style={styles.title}>Meeting Schedule</Text>
-          <Text style={styles.subtitle}>{meetingTitle}</Text>
+        {/* Title */}
+        <Text style={styles.title}>Meeting Schedule</Text>
+        <Text style={styles.subtitle}>{meetingTitle}</Text>
 
-          {/* Phase Tables */}
-          {Array.from({ length: 8 }, (_, i) => i + 1).map((phase) => {
-            const items = phaseGroups.get(phase) || []
-            if (items.length === 0) return null
+        {/* Phase Tables */}
+        {Array.from({ length: 8 }, (_, i) => i + 1).map((phase) => {
+          const items = phaseGroups.get(phase) || []
+          if (items.length === 0) return null
 
-            const phaseColor = hexToRgb(phaseColors[phase - 1])
+          const phaseColor = hexToRgb(phaseColors[phase - 1])
 
-            return (
-              <View key={phase} style={styles.phaseSection} wrap={false}>
-                <Text style={[styles.phaseHeader, { color: phaseColor }]}>
-                  Phase {phase}
-                </Text>
-                <View style={styles.table}>
-                  {items.map((item, index) => {
-                    if (item.type === 'keyDate') {
-                      const keyDate = item.item as KeyDate
-                      return (
-                        <View
-                          key={`kd-${phase}-${index}`}
-                          style={[styles.tableRow, styles.keyDateRow]}
-                        >
-                          <Text style={[styles.taskCell, styles.boldText]}>
-                            {keyDate.title || 'Untitled Key Date'}
-                          </Text>
-                          <Text style={[styles.dateCell, styles.boldText]}>
-                            {item.displayDate}
-                          </Text>
-                        </View>
-                      )
-                    } else {
-                      const task = item.item as Task
-                      const taskPhaseColor = hexToRgb(
-                        phaseColors[(task.phaseNumber || 1) - 1]
-                      )
-                      return (
-                        <View
-                          key={`t-${phase}-${index}`}
-                          style={[
-                            styles.tableRow,
-                            styles.taskRow,
-                            { borderLeftColor: taskPhaseColor },
-                          ]}
-                        >
-                          <Text style={styles.taskCell}>
-                            {task.title || 'Untitled Task'}
-                          </Text>
-                          <Text style={styles.dateCell}>
-                            {formatDateShort(task.dueDate || null)}
-                          </Text>
-                        </View>
-                      )
-                    }
-                  })}
-                </View>
+          return (
+            <View key={phase} style={styles.phaseSection} wrap={false}>
+              <Text style={[styles.phaseHeader, { color: phaseColor }]}>
+                Phase {phase}
+              </Text>
+              <View style={styles.table}>
+                {items.map((item, index) => {
+                  if (item.type === 'keyDate') {
+                    const keyDate = item.item as KeyDate
+                    return (
+                      <View
+                        key={`kd-${phase}-${index}`}
+                        style={[styles.tableRow, styles.keyDateRow]}
+                      >
+                        <Text style={[styles.taskCell, styles.boldText]}>
+                          {keyDate.title || 'Untitled Key Date'}
+                        </Text>
+                        <Text style={[styles.dateCell, styles.boldText]}>
+                          {item.displayDate}
+                        </Text>
+                      </View>
+                    )
+                  } else {
+                    const task = item.item as Task
+                    const taskPhaseColor = hexToRgb(
+                      phaseColors[(task.phaseNumber || 1) - 1]
+                    )
+                    return (
+                      <View
+                        key={`t-${phase}-${index}`}
+                        style={[
+                          styles.tableRow,
+                          styles.taskRow,
+                          { borderLeftColor: taskPhaseColor },
+                        ]}
+                      >
+                        <Text style={styles.taskCell}>
+                          {task.title || 'Untitled Task'}
+                        </Text>
+                        <Text style={styles.dateCell}>
+                          {formatDateShort(task.dueDate || null)}
+                        </Text>
+                      </View>
+                    )
+                  }
+                })}
               </View>
-            )
-          })}
-        </Page>
-      </Document>
-    </PDFViewer>
+            </View>
+          )
+        })}
+      </Page>
+    </Document>
   )
 }
 
-// Main export function
+// Simple PDF export function
 export async function exportTimelineToPdf(options: ExportOptions) {
   const { tasks, keyDates, meetingTitle, selectedPhase = 'all', clientTicker } = options
 
   try {
-    // Load logos as base64
-    let clientLogoBase64: string | undefined
-    let betanxtLogoBase64: string | undefined
+    // Use direct image URLs (no base64 conversion needed)
+    const clientLogoUrl = clientTicker
+      ? `/logos/${clientTicker.toLowerCase()}_logo.png`
+      : undefined
+    const betanxtLogoUrl = '/images/betanxt-logo.png'
 
-    try {
-      clientLogoBase64 = await loadClientLogoAsPngBase64({ ticker: clientTicker })
-    } catch (error) {
-      // Client logo is optional
-    }
-
-    try {
-      betanxtLogoBase64 = await loadImageAsBase64('/images/betanxt-logo.png')
-    } catch (error) {
-      // BetaNXT logo is optional
-    }
-
-    // Generate the PDF
-    const pdfBlob = await pdf(
+    // Create the PDF document
+    const doc = (
       <TimelinePDFDocument
         tasks={tasks}
         keyDates={keyDates}
         meetingTitle={meetingTitle}
         selectedPhase={selectedPhase}
         clientTicker={clientTicker}
-        clientLogoBase64={clientLogoBase64}
-        betanxtLogoBase64={betanxtLogoBase64}
+        clientLogoUrl={clientLogoUrl}
+        betanxtLogoUrl={betanxtLogoUrl}
       />
-    ).toBlob()
+    )
 
-    // Create download link and trigger download
+    // Generate PDF blob
+    const pdfBlob = await pdf(doc).toBlob()
+
+    // Create download link
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
-    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Timeline_${
-      new Date().toISOString().split('T')[0]
-    }.pdf`
     link.href = url
-    link.download = fileName
+    link.download = `${meetingTitle.replace(/\s+/g, '_')}_Timeline_${new Date().toISOString().split('T')[0]}.pdf`
+
+    // Trigger download
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+
+    // Cleanup
     URL.revokeObjectURL(url)
   } catch (error) {
-    console.error('Error generating PDF:', error)
+    console.error('Error exporting PDF:', error)
     throw error
   }
 }

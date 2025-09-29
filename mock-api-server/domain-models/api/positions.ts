@@ -1,10 +1,19 @@
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+import { randomUUID } from 'crypto'
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
 
 // Use generated types from OpenAPI schema
 type Position = components['schemas']['Position']
 type CreatePositionRequest = components['schemas']['CreatePositionRequest']
 type UpdatePositionRequest = components['schemas']['UpdatePositionRequest']
+type PositionRow = Database['public']['Tables']['position']['Row']
+type PositionUpdate = Database['public']['Tables']['position']['Update']
 
 // Helper type for backend responses
 type ApiResponse<T> = {
@@ -16,23 +25,23 @@ type ApiResponse<T> = {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformPosition(dbPosition: any): Position {
+function transformPosition(dbPosition: PositionRow): Position {
   return {
     id: dbPosition.id,
-    meetingId: dbPosition.meeting_id,
-    cusip: dbPosition.cusip,
-    accountType: dbPosition.account_type,
-    setKey: dbPosition.set_key,
-    name: dbPosition.name,
-    accountNumber: dbPosition.account_number,
-    controlNumber: dbPosition.control_number,
-    voteStatus: dbPosition.vote_status,
-    shares: dbPosition.shares,
-    sharesVoted: dbPosition.shares_voted,
-    source: dbPosition.source,
-    dateVoted: dbPosition.date_voted,
-    createdAt: dbPosition.created_at,
-    updatedAt: dbPosition.updated_at,
+    meetingId: nullToUndefined(dbPosition.meeting_id),
+    cusip: nullToUndefined(dbPosition.cusip),
+    accountType: nullToUndefined(dbPosition.account_type),
+    setKey: nullToUndefined(dbPosition.set_key),
+    name: nullToUndefined(dbPosition.name),
+    accountNumber: nullToUndefined(dbPosition.account_number),
+    controlNumber: nullToUndefined(dbPosition.control_number),
+    voteStatus: nullToUndefined(dbPosition.vote_status) as 'Voted' | 'Unvoted' | undefined,
+    shares: nullToUndefined(dbPosition.shares),
+    sharesVoted: nullToUndefined(dbPosition.shares_voted),
+    source: nullToUndefined(dbPosition.source),
+    dateVoted: nullToUndefined(dbPosition.date_voted),
+    createdAt: nullToUndefined(dbPosition.created_at),
+    updatedAt: nullToUndefined(dbPosition.updated_at),
   }
 }
 
@@ -40,7 +49,7 @@ export async function listPositions(params?: {
   meetingId?: string
   cusip?: string
   accountType?: string
-  voteStatus?: string
+  voteStatus?: Position['voteStatus']
   page?: number
   limit?: number
   order?: string
@@ -55,13 +64,26 @@ export async function listPositions(params?: {
       query = query.eq('meeting_id', params.meetingId)
     }
     if (params?.voteStatus) {
-      query = query.eq('vote_status', params.voteStatus as any)
+      query = query.eq('vote_status', params.voteStatus)
     }
 
     // Apply pagination
     if (params?.limit) {
+      // Supabase range() has internal limits, so we need to be careful
+      // For limits up to 1000, range works fine
+      // For higher limits, we should use limit() directly
       const offset = params?.offset || 0
-      query = query.range(offset, offset + params.limit - 1)
+      if (params.limit <= 1000 && offset === 0) {
+        query = query.limit(params.limit)
+      } else if (offset > 0) {
+        query = query.range(offset, offset + params.limit - 1)
+      } else {
+        // For large limits without offset, use limit directly
+        query = query.limit(params.limit)
+      }
+    } else {
+      // No limit specified - use default of 1000
+      query = query.limit(1000)
     }
 
     // Apply ordering
@@ -92,12 +114,15 @@ export async function listPositions(params?: {
   }
 }
 
-export async function createPosition(body: unknown): Promise<ApiResponse<Position>> {
+export async function createPosition(
+  body: CreatePositionRequest
+): Promise<ApiResponse<Position>> {
   try {
-    const request = body as CreatePositionRequest
+    const request = body
     const { data, error } = await supabase
       .from('position')
       .insert({
+        id: randomUUID(),
         meeting_id: request.meetingId,
         cusip: request.cusip,
         account_type: request.accountType,
@@ -160,11 +185,11 @@ export async function getPositionById(id: string): Promise<ApiResponse<Position>
 
 export async function updatePosition(
   id: string,
-  body: unknown
+  body: UpdatePositionRequest
 ): Promise<ApiResponse<Position>> {
   try {
-    const request = body as UpdatePositionRequest
-    const updateData: any = {}
+    const request = body
+    const updateData: Partial<PositionUpdate> = {}
     if (request.name !== undefined) updateData.name = request.name
     if (request.accountNumber !== undefined)
       updateData.account_number = request.accountNumber

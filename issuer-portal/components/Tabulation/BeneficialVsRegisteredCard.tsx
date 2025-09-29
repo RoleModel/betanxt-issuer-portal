@@ -1,12 +1,15 @@
 'use client'
 
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+
 import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
-import { BarChart, BarLabelProps } from '@mui/x-charts/BarChart'
 import { styled } from '@mui/material/styles'
+import { BarChart, BarLabelProps } from '@mui/x-charts/BarChart'
+
 import buildApiClient from '@/domain-models/apiClient'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+
 import { formatNumber } from '@/utils/numberUtils'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 interface Position {
   accountType: string
@@ -57,18 +60,15 @@ function CustomBarLabel(props: BarLabelProps) {
   const { x, y, width, children, ...otherProps } = props
 
   return (
-    <StyledText
-      {...otherProps}
-      x={x + width / 2}
-      y={y - 8}
-      textAnchor="middle"
-    >
+    <StyledText {...otherProps} x={x + width / 2} y={y - 8} textAnchor="middle">
       {formatNumber(Number(children) || 0)}
     </StyledText>
   )
 }
 
-export default function BeneficialVsRegisteredCard({ meetingId }: BeneficialVsRegisteredCardProps) {
+export default function BeneficialVsRegisteredCard({
+  meetingId,
+}: BeneficialVsRegisteredCardProps) {
   const [positions, setPositions] = useState<Position[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -144,7 +144,10 @@ export default function BeneficialVsRegisteredCard({ meetingId }: BeneficialVsRe
                   colorMap: {
                     type: 'ordinal',
                     values: ['Beneficial', 'Registered'],
-                    colors: ['var(--mui-palette-chartSeries-0-main)', 'var(--mui-palette-chartSeries-1-main)'],
+                    colors: [
+                      'var(--mui-palette-chartSeries-0-main)',
+                      'var(--mui-palette-chartSeries-1-main)',
+                    ],
                   },
                 },
               ]}

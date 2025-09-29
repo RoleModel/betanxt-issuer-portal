@@ -1,10 +1,12 @@
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
 
 // Use generated types from OpenAPI schema
 type Meeting = components['schemas']['Meeting']
 type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']
 type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
+type Phase = components['schemas']['Phase']
 
 // Helper type for backend responses
 type ApiResponse<T> = {
@@ -15,40 +17,59 @@ type ApiResponse<T> = {
   }
 }
 
+type MeetingRow = Database['public']['Tables']['meeting']['Row']
+type MeetingRowWithRelations = Omit<MeetingRow, 'client'> & {
+  client?: MeetingRow['client'] | Meeting['client']
+}
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
+
 // Transform snake_case database fields to camelCase API fields
-function transformMeeting(dbMeeting: any): Meeting {
+function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
   return {
     id: dbMeeting.id,
-    title: dbMeeting.title,
-    cusip: dbMeeting.cusip,
-    ticker: dbMeeting.ticker,
-    preFilingDate: dbMeeting.pre_filing_date,
-    filingDate: dbMeeting.filing_date,
-    brokerSearchDate: dbMeeting.broker_search_date,
-    recordDate: dbMeeting.record_date,
-    mailingDate: dbMeeting.mailing_date,
-    meetingDate: dbMeeting.meeting_date,
-    meetingType: dbMeeting.meeting_type,
-    meetingYear: dbMeeting.meeting_year,
-    status: dbMeeting.status,
-    currentPhase: dbMeeting.current_phase,
-    overallCompletion: dbMeeting.overall_completion,
-    distributionType: dbMeeting.distribution_type,
-    transferAgent: dbMeeting.transfer_agent,
-    employeeStockPlans: dbMeeting.employee_stock_plans,
-    planAdministrator: dbMeeting.plan_administrator,
-    planAdministratorContact: dbMeeting.plan_administrator_contact,
-    planAdministratorContactEmail: dbMeeting.plan_administrator_contact_email,
-    solicitor: dbMeeting.solicitor,
-    solicitorEmail: dbMeeting.solicitor_email,
-    inspector: dbMeeting.inspector,
-    ivrDialInNumber: dbMeeting.ivr_dial_in_number,
-    totalSharesOutstanding: dbMeeting.total_shares_outstanding,
-    quorumRequirement: dbMeeting.quorum_requirement,
-    clientId: dbMeeting.client_id,
-    createdAt: dbMeeting.created_at,
-    updatedAt: dbMeeting.updated_at,
-    client: dbMeeting.client,
+    title: nullToUndefined(dbMeeting.title),
+    cusip: nullToUndefined(dbMeeting.cusip),
+    ticker: nullToUndefined(dbMeeting.ticker),
+    preFilingDate: nullToUndefined(dbMeeting.pre_filing_date),
+    filingDate: nullToUndefined(dbMeeting.filing_date),
+    brokerSearchDate: nullToUndefined(dbMeeting.broker_search_date),
+    recordDate: nullToUndefined(dbMeeting.record_date),
+    mailingDate: nullToUndefined(dbMeeting.mailing_date),
+    meetingDate: nullToUndefined(dbMeeting.meeting_date),
+    meetingType: nullToUndefined(dbMeeting.meeting_type),
+    meetingYear: nullToUndefined(dbMeeting.meeting_year),
+    status: nullToUndefined(dbMeeting.status) as
+      | 'ACTIVE'
+      | 'COMPLETE'
+      | 'ADJOURNED'
+      | undefined,
+    currentPhase: nullToUndefined(dbMeeting.current_phase),
+    overallCompletion: nullToUndefined(dbMeeting.overall_completion),
+    distributionType: nullToUndefined(dbMeeting.distribution_type),
+    transferAgent: nullToUndefined(dbMeeting.transfer_agent),
+    employeeStockPlans: nullToUndefined(dbMeeting.employee_stock_plans),
+    planAdministrator: nullToUndefined(dbMeeting.plan_administrator),
+    planAdministratorContact: nullToUndefined(dbMeeting.plan_administrator_contact),
+    planAdministratorContactEmail: nullToUndefined(
+      dbMeeting.plan_administrator_contact_email
+    ),
+    solicitor: nullToUndefined(dbMeeting.solicitor),
+    solicitorEmail: nullToUndefined(dbMeeting.solicitor_email),
+    inspector: nullToUndefined(dbMeeting.inspector),
+    ivrDialInNumber: nullToUndefined(dbMeeting.ivr_dial_in_number),
+    totalSharesOutstanding: nullToUndefined(dbMeeting.total_shares_outstanding),
+    quorumRequirement: nullToUndefined(dbMeeting.quorum_requirement),
+    clientId: nullToUndefined(dbMeeting.client_id),
+    createdAt: nullToUndefined(dbMeeting.created_at),
+    updatedAt: nullToUndefined(dbMeeting.updated_at),
+    client:
+      typeof dbMeeting.client === 'object' && dbMeeting.client !== null
+        ? (dbMeeting.client as Meeting['client'])
+        : undefined,
   }
 }
 
@@ -102,13 +123,14 @@ export async function listMeetings(
       }
     }
 
+    const meetings = (data ?? []).map(transformMeeting)
     return {
       data: {
-        meetings: data.map(transformMeeting),
+        meetings,
         pagination: {
           page: page || 1,
-          limit: limit || data.length,
-          total: data.length,
+          limit: limit || meetings.length,
+          total: meetings.length,
         },
       },
     }
@@ -121,22 +143,23 @@ export async function listMeetings(
   }
 }
 
-export async function createMeeting(meetingData: unknown): Promise<ApiResponse<Meeting>> {
+export async function createMeeting(
+  meetingData: CreateMeetingRequest
+): Promise<ApiResponse<Meeting>> {
   try {
     // Basic validation for required fields
-    const meeting = meetingData as any
-    if (!meeting.id || !meeting.clientId || !meeting.status || !meeting.meetingType) {
+    if (!meetingData.id || !meetingData.clientId || !meetingData.meetingType) {
       return {
         error: {
-          message: 'Missing required fields: id, clientId, status, and meetingType are required',
-          statusCode: 400
+          message: 'Missing required fields: id, clientId, and meetingType are required',
+          statusCode: 400,
         },
       }
     }
 
     const { data, error } = await supabase
       .from('meeting')
-      .insert(meetingData as CreateMeetingRequest)
+      .insert(meetingData)
       .select()
       .single()
 
@@ -147,7 +170,7 @@ export async function createMeeting(meetingData: unknown): Promise<ApiResponse<M
     }
 
     return {
-      data: transformMeeting(data),
+      data: transformMeeting(data as MeetingRowWithRelations),
     }
   } catch (error) {
     return {
@@ -162,12 +185,7 @@ export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> 
   try {
     const { data, error } = await supabase
       .from('meeting')
-      .select(
-        `
-        *,
-        client:client_id (*)
-      `
-      )
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -204,7 +222,7 @@ export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> 
 // Legacy functions for backwards compatibility - should be updated to use proper OpenAPI endpoints
 export async function getMeetingByIdAndTicker(
   id: string,
-  ticker: string
+  _ticker: string
 ): Promise<ApiResponse<Meeting>> {
   // Use the standard getMeetingById and filter by ticker in the application layer
   return getMeetingById(id)
@@ -212,7 +230,7 @@ export async function getMeetingByIdAndTicker(
 
 export async function updateMeetingByIdAndTicker(
   id: string,
-  ticker: string,
+  _ticker: string,
   meetingData: UpdateMeetingRequest
 ): Promise<ApiResponse<Meeting>> {
   // Use the standard updateMeeting - ticker validation should be handled in API layer
@@ -221,14 +239,14 @@ export async function updateMeetingByIdAndTicker(
 
 export async function deleteMeetingByIdAndTicker(
   id: string,
-  ticker: string
+  _ticker: string
 ): Promise<ApiResponse<void>> {
   // Use the standard deleteMeeting - ticker validation should be handled in API layer
   return deleteMeeting(id)
 }
 
 // Helper function for backward compatibility - delegates to phases API
-export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<any[]>> {
+export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<Phase[]>> {
   // Import here to avoid circular dependency
   const { listPhases } = await import('./phases')
   return listPhases(meetingId)
@@ -236,12 +254,12 @@ export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<a
 
 export async function updateMeeting(
   id: string,
-  meetingData: unknown
+  meetingData: UpdateMeetingRequest
 ): Promise<ApiResponse<Meeting>> {
   try {
     const { data, error } = await supabase
       .from('meeting')
-      .update(meetingData as UpdateMeetingRequest)
+      .update(meetingData)
       .eq('id', id)
       .select()
       .single()
@@ -253,7 +271,7 @@ export async function updateMeeting(
     }
 
     return {
-      data: transformMeeting(data),
+      data: transformMeeting(data as MeetingRowWithRelations),
     }
   } catch (error) {
     return {

@@ -4,8 +4,65 @@ import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
 
-import type { Meeting } from '@/types/api'
+import type { Meeting } from '@/types/api-exports'
 import type { ProposalVoting, VotingSummary } from '@/types/phases'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
+
+// Type for normalized position with guaranteed fields
+export interface NormalizedPosition {
+  id: string
+  voteStatus: string
+  shares: number
+  sharesVoted: number
+  votingSource?: string
+}
+
+// Type for normalized proposal
+export interface NormalizedProposal {
+  id: string
+  proposalNumber: string
+  proposalType: string
+  recommendation?: string
+  directorName?: string
+}
+
+// Normalize position data to ensure consistent fields
+function normalizePosition(position: unknown): NormalizedPosition | null {
+  if (!position) return null
+
+  const record = asRecord(position)
+  if (!record) return null
+
+  return {
+    id: asString(record.id) || '',
+    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
+    shares: Number(record.shares) || 0,
+    sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
+    votingSource:
+      asString(record.votingSource) ||
+      asString(record.voting_source) ||
+      asString(record.source) ||
+      undefined,
+  }
+}
+
+// Normalize proposal data to ensure consistent fields
+function normalizeProposal(proposal: unknown): NormalizedProposal | null {
+  if (!proposal) return null
+
+  const record = asRecord(proposal)
+  if (!record) return null
+
+  return {
+    id: asString(record.id) || '',
+    proposalNumber:
+      asString(record.proposalNumber) || asString(record.proposal_number) || '',
+    proposalType: asString(record.proposalType) || asString(record.proposal_type) || '',
+    recommendation: asString(record.recommendation) || undefined,
+    directorName:
+      asString(record.directorName) || asString(record.director_name) || undefined,
+  }
+}
 
 export interface Phase {
   id: string
@@ -43,39 +100,41 @@ export interface UseMeetingDataResult {
   refetch: () => void
 }
 
-const asString = (val: unknown): string | null => (typeof val === 'string' ? val : null)
-const asNumber = (val: unknown): number | null =>
-  typeof val === 'number' && Number.isFinite(val) ? val : null
-const asRecord = (val: unknown): Record<string, unknown> | null =>
-  typeof val === 'object' && val !== null ? (val as Record<string, unknown>) : null
-
-const getStr = (obj: Record<string, unknown>, keys: string[]): string | null => {
-  for (const k of keys) {
-    const v = asString(obj[k])
-    if (v !== null) return v
+const pickString = (obj: Record<string, unknown>, keys: string[]): string | undefined => {
+  for (const key of keys) {
+    const value = asString(obj[key])
+    if (value !== null && value !== undefined) return value
+    const nestedValue = obj[key]
+    if (typeof nestedValue === 'string') return nestedValue
   }
-  return null
+  return undefined
 }
 
-const getNum = (obj: Record<string, unknown>, keys: string[]): number | null => {
-  for (const k of keys) {
-    const v = asNumber(obj[k])
-    if (v !== null) return v
+const pickNumber = (obj: Record<string, unknown>, keys: string[]): number | undefined => {
+  for (const key of keys) {
+    const value = obj[key]
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value
+    }
+    if (typeof value === 'string') {
+      const parsed = Number(value)
+      if (Number.isFinite(parsed)) return parsed
+    }
   }
-  return null
+  return undefined
 }
 
 const normalizePhase = (raw: unknown): Phase | null => {
   const rec = asRecord(raw)
   if (!rec) return null
 
-  const id = getStr(rec, ['id'])
-  const name = getStr(rec, ['name', 'phase_name'])
+  const id = pickString(rec, ['id'])
+  const name = pickString(rec, ['name', 'phase_name'])
   if (!id || !name) return null
 
-  const meetingId = getStr(rec, ['meetingId', 'meeting_id']) || ''
-  const orderIndex = getNum(rec, ['orderIndex', 'order_index']) ?? 0
-  const rawStatus = getStr(rec, ['status']) || ''
+  const meetingId = pickString(rec, ['meetingId', 'meeting_id']) ?? ''
+  const orderIndex = pickNumber(rec, ['orderIndex', 'order_index']) ?? 0
+  const rawStatus = pickString(rec, ['status']) ?? ''
   const status: Phase['status'] =
     rawStatus === 'COMPLETE'
       ? 'COMPLETE'
@@ -83,25 +142,26 @@ const normalizePhase = (raw: unknown): Phase | null => {
         ? 'ACTIVE'
         : 'NOT_STARTED'
 
-  const kdRec = (asRecord(rec['keyDates']) || asRecord(rec['key_dates']) || {}) as Record<
-    string,
-    unknown
-  >
+  const kdRec =
+    asRecord(rec['keyDates']) ||
+    asRecord(rec['key_dates']) ||
+    ({} as Record<string, unknown>)
   const keyDates: Phase['keyDates'] = {
-    startDate: getStr(kdRec, ['startDate', 'start_date']),
-    endDate: getStr(kdRec, ['endDate', 'end_date']),
-    dueDate: getStr(kdRec, ['dueDate', 'due_date']),
-    completionDate: getStr(kdRec, ['completionDate', 'completion_date']),
-    recordDate: getStr(kdRec, ['recordDate', 'record_date']),
-    mailingDate: getStr(kdRec, ['mailingDate', 'mailing_date']),
-    meetingDate: getStr(kdRec, ['meetingDate', 'meeting_date']),
-    preFilingDate: getStr(kdRec, ['preFilingDate', 'pre_filing_date']),
-    filingDate: getStr(kdRec, ['filingDate', 'filing_date']),
-    brokerSearchDate: getStr(kdRec, ['brokerSearchDate', 'broker_search_date']),
+    startDate: pickString(kdRec, ['startDate', 'start_date']) ?? null,
+    endDate: pickString(kdRec, ['endDate', 'end_date']) ?? null,
+    dueDate: pickString(kdRec, ['dueDate', 'due_date']) ?? null,
+    completionDate: pickString(kdRec, ['completionDate', 'completion_date']) ?? null,
+    recordDate: pickString(kdRec, ['recordDate', 'record_date']) ?? null,
+    mailingDate: pickString(kdRec, ['mailingDate', 'mailing_date']) ?? null,
+    meetingDate: pickString(kdRec, ['meetingDate', 'meeting_date']) ?? null,
+    preFilingDate: pickString(kdRec, ['preFilingDate', 'pre_filing_date']) ?? null,
+    filingDate: pickString(kdRec, ['filingDate', 'filing_date']) ?? null,
+    brokerSearchDate:
+      pickString(kdRec, ['brokerSearchDate', 'broker_search_date']) ?? null,
   }
 
-  const createdAt = getStr(rec, ['createdAt', 'created_at'])
-  const updatedAt = getStr(rec, ['updatedAt', 'updated_at'])
+  const createdAt = pickString(rec, ['createdAt', 'created_at']) ?? null
+  const updatedAt = pickString(rec, ['updatedAt', 'updated_at']) ?? null
 
   return {
     id,
@@ -110,8 +170,8 @@ const normalizePhase = (raw: unknown): Phase | null => {
     orderIndex,
     status,
     keyDates,
-    createdAt: createdAt ?? null,
-    updatedAt: updatedAt ?? null,
+    createdAt,
+    updatedAt,
   }
 }
 
@@ -134,10 +194,9 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
 
     // Process phases
     const phases: Phase[] = []
-    if (!phasesResult.error && phasesResult.data) {
-      const items: unknown[] = Array.isArray(phasesResult.data)
-        ? (phasesResult.data as unknown[])
-        : []
+    const { data: phasesData, error: phasesError } = phasesResult
+    if (!phasesError && phasesData) {
+      const items: unknown[] = Array.isArray(phasesData) ? (phasesData as unknown[]) : []
       for (const item of items) {
         const normalized = normalizePhase(item)
         if (normalized) phases.push(normalized)
@@ -148,27 +207,44 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
     let proposals: ProposalVoting[] = []
     let votingSummary: VotingSummary | null = null
 
-    if (!proposalsResult.error && proposalsResult.data) {
-      const proposalsData = proposalsResult.data || []
-      const positions = positionsResult.data || []
+    const { data: proposalsData, error: proposalsError } = proposalsResult
+    const { data: positionsData, error: _positionsError } = positionsResult
+
+    if (!proposalsError && proposalsData) {
+      const proposalsPayload = proposalsData
+      const proposalsRaw = Array.isArray(proposalsPayload)
+        ? proposalsPayload
+        : asArray(asRecord(proposalsPayload)?.proposals)
+
+      const positionsRaw = Array.isArray(positionsData)
+        ? positionsData
+        : asArray(asRecord(positionsData)?.positions)
+      const positions = positionsRaw
+        .map((position) => normalizePosition(position))
+        .filter((position): position is NormalizedPosition => position !== null)
 
       // Calculate voting summary
       const totalPositions = positions.length
-      const positionsVoted = positions.filter((p: any) => p.voteStatus === 'Voted').length
-      const totalShares = positions.reduce(
-        (sum: number, p: any) => sum + (p.shares || 0),
-        0
-      )
+      const positionsVoted = positions.filter(
+        (position) => position.voteStatus === 'VOTED'
+      ).length
+      const totalShares = positions.reduce((sum, position) => sum + position.shares, 0)
       const sharesVoted = positions
-        .filter((p: any) => p.voteStatus === 'Voted')
-        .reduce((sum: number, p: any) => sum + (p.shares || 0), 0)
+        .filter((position) => position.voteStatus === 'VOTED')
+        .reduce((sum, position) => sum + position.sharesVoted, 0)
 
       const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0
 
       // Count voting methods
-      const webVotes = positions.filter((p: any) => p.votingSource === 'WEB').length
-      const paperVotes = positions.filter((p: any) => p.votingSource === 'PAPER').length
-      const phoneVotes = positions.filter((p: any) => p.votingSource === 'PHONE').length
+      const webVotes = positions.filter(
+        (position) => position.votingSource === 'WEB'
+      ).length
+      const paperVotes = positions.filter(
+        (position) => position.votingSource === 'PRINT'
+      ).length
+      const phoneVotes = positions.filter(
+        (position) => position.votingSource === 'IVR'
+      ).length
 
       votingSummary = {
         totalSharesVoted: sharesVoted,
@@ -191,49 +267,47 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
       }
 
       // Transform proposals data for voting display
-      proposals = proposalsData.map((proposal: any) => {
-        // Mock voting results - in real implementation, fetch from voting endpoints
-        const mockVotingResults = {
-          for: { shares: Math.floor(Math.random() * sharesVoted * 0.7), percentage: 0 },
-          against: {
-            shares: Math.floor(Math.random() * sharesVoted * 0.2),
-            percentage: 0,
-          },
-          abstain: {
-            shares: Math.floor(Math.random() * sharesVoted * 0.1),
-            percentage: 0,
-          },
-        }
+      proposals = proposalsRaw
+        .map((proposal) => normalizeProposal(proposal))
+        .filter((proposal): proposal is NormalizedProposal => proposal !== null)
+        .map((proposal) => {
+          // Mock voting results - in real implementation, fetch from voting endpoints
+          const mockVotingResults = {
+            for: { shares: Math.floor(Math.random() * sharesVoted * 0.7), percentage: 0 },
+            against: {
+              shares: Math.floor(Math.random() * sharesVoted * 0.2),
+              percentage: 0,
+            },
+            abstain: {
+              shares: Math.floor(Math.random() * sharesVoted * 0.1),
+              percentage: 0,
+            },
+          }
 
-        const totalVoted =
-          mockVotingResults.for.shares +
-          mockVotingResults.against.shares +
-          mockVotingResults.abstain.shares
+          const totalVoted =
+            mockVotingResults.for.shares +
+            mockVotingResults.against.shares +
+            mockVotingResults.abstain.shares
 
-        if (totalVoted > 0) {
-          mockVotingResults.for.percentage =
-            (mockVotingResults.for.shares / totalVoted) * 100
-          mockVotingResults.against.percentage =
-            (mockVotingResults.against.shares / totalVoted) * 100
-          mockVotingResults.abstain.percentage =
-            (mockVotingResults.abstain.shares / totalVoted) * 100
-        }
+          if (totalVoted > 0) {
+            mockVotingResults.for.percentage =
+              (mockVotingResults.for.shares / totalVoted) * 100
+            mockVotingResults.against.percentage =
+              (mockVotingResults.against.shares / totalVoted) * 100
+            mockVotingResults.abstain.percentage =
+              (mockVotingResults.abstain.shares / totalVoted) * 100
+          }
 
-        return {
-          proposalId: proposal.id || '',
-          proposalNumber: proposal.proposalNumber || proposal.proposal_number || '',
-          description:
-            proposal.proposalTitle ||
-            proposal.proposal_title ||
-            proposal.description ||
-            proposal.title ||
-            '',
-          directorName: proposal.directorName || proposal.director_name || undefined,
-          votingResults: mockVotingResults,
-          totalShares: totalVoted,
-          status: 'active' as const,
-        }
-      })
+          return {
+            proposalId: proposal.id,
+            proposalNumber: parseInt(proposal.proposalNumber, 10) || 0,
+            description: proposal.proposalType,
+            directorName: proposal.directorName,
+            votingResults: mockVotingResults,
+            totalShares: totalVoted,
+            status: 'active' as const,
+          }
+        })
     }
 
     return {

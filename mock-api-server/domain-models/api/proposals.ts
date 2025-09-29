@@ -1,14 +1,48 @@
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+import { randomUUID } from 'crypto'
 
 // Use generated types from OpenAPI schema
 type Proposal = components['schemas']['Proposal']
 type CreateProposalRequest = components['schemas']['CreateProposalRequest']
 type UpdateProposalRequest = components['schemas']['UpdateProposalRequest']
+type ProposalRow = Database['public']['Tables']['proposal']['Row']
+type ProposalUpdate = Database['public']['Tables']['proposal']['Update']
 
 // Helper function to convert null to undefined
 function nullToUndefined<T>(value: T | null): T | undefined {
   return value === null ? undefined : value
+}
+
+function transformProposalRow(row: ProposalRow): Proposal {
+  return {
+    id: nullToUndefined(row.id),
+    proposalNumber: nullToUndefined(row.proposal_number),
+    proposalTitle: nullToUndefined(row.proposal_title),
+    directorName: nullToUndefined(row.director_name),
+    proposalType: nullToUndefined(row.proposal_type),
+    proposalSubtype: nullToUndefined(row.proposal_subtype),
+    directorTermYears: nullToUndefined(row.director_term_years),
+    directorClass: nullToUndefined(row.director_class),
+    termExpirationYear: nullToUndefined(row.term_expiration_year),
+    frequencyOptions: nullToUndefined(row.frequency_options as Record<string, never>),
+    recommendation: nullToUndefined(row.recommendation),
+    meetingId: nullToUndefined(row.meeting_id),
+    totalVotesFor: nullToUndefined(row.total_votes_for),
+    totalVotesAgainst: nullToUndefined(row.total_votes_against),
+    totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
+    totalSharesEligible: nullToUndefined(row.total_shares_eligible),
+    forPercentage: nullToUndefined(row.for_percentage),
+    againstPercentage: nullToUndefined(row.against_percentage),
+    abstainPercentage: nullToUndefined(row.abstain_percentage),
+    participationRate: nullToUndefined(row.participation_rate),
+    finalResult: nullToUndefined(row.final_result),
+    votingCompleted: row.voting_completed || false,
+    votingCompletedAt: nullToUndefined(row.voting_completed_at),
+    createdAt: nullToUndefined(row.created_at),
+    updatedAt: nullToUndefined(row.updated_at),
+  }
 }
 
 // Helper type for consistent response format
@@ -44,33 +78,7 @@ export async function listProposals(
     }
 
     // Transform database rows to API response format
-    const proposals: Proposal[] = (data || []).map((row: any) => ({
-      id: nullToUndefined(row.id),
-      proposalNumber: nullToUndefined(row.proposal_number),
-      proposalTitle: nullToUndefined(row.proposal_title),
-      directorName: nullToUndefined(row.director_name),
-      proposalType: nullToUndefined(row.proposal_type),
-      proposalSubtype: nullToUndefined(row.proposal_subtype),
-      directorTermYears: nullToUndefined(row.director_term_years),
-      directorClass: nullToUndefined(row.director_class),
-      termExpirationYear: nullToUndefined(row.term_expiration_year),
-      frequencyOptions: nullToUndefined(row.frequency_options as Record<string, never>),
-      recommendation: nullToUndefined(row.recommendation),
-      meetingId: nullToUndefined(row.meeting_id),
-      totalVotesFor: nullToUndefined(row.total_votes_for),
-      totalVotesAgainst: nullToUndefined(row.total_votes_against),
-      totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
-      totalSharesEligible: nullToUndefined(row.total_shares_eligible),
-      forPercentage: nullToUndefined(row.for_percentage),
-      againstPercentage: nullToUndefined(row.against_percentage),
-      abstainPercentage: nullToUndefined(row.abstain_percentage),
-      participationRate: nullToUndefined(row.participation_rate),
-      finalResult: nullToUndefined(row.final_result),
-      votingCompleted: row.voting_completed || false,
-      votingCompletedAt: nullToUndefined(row.voting_completed_at),
-      createdAt: nullToUndefined(row.created_at),
-      updatedAt: nullToUndefined(row.updated_at),
-    }))
+    const proposals = (data ?? []).map(transformProposalRow)
 
     return {
       data: proposals,
@@ -89,13 +97,14 @@ export async function listProposals(
 
 export async function createProposal(
   meetingId: string,
-  body: unknown
+  body: CreateProposalRequest
 ): Promise<ApiResponse<Proposal>> {
   try {
-    const request = body as CreateProposalRequest
+    const request = body
     const { data, error } = await supabase
       .from('proposal')
       .insert({
+        id: randomUUID(),
         meeting_id: meetingId,
         proposal_number: request.proposalNumber,
         proposal_title: request.proposalTitle,
@@ -123,36 +132,8 @@ export async function createProposal(
     }
 
     // Transform database row to API response format
-    const proposal: Proposal = {
-      id: nullToUndefined(data.id),
-      proposalNumber: nullToUndefined(data.proposal_number),
-      proposalTitle: nullToUndefined(data.proposal_title),
-      directorName: nullToUndefined(data.director_name),
-      proposalType: nullToUndefined(data.proposal_type),
-      proposalSubtype: nullToUndefined(data.proposal_subtype),
-      directorTermYears: nullToUndefined(data.director_term_years),
-      directorClass: nullToUndefined(data.director_class),
-      termExpirationYear: nullToUndefined(data.term_expiration_year),
-      frequencyOptions: nullToUndefined(data.frequency_options as Record<string, never>),
-      recommendation: nullToUndefined(data.recommendation),
-      meetingId: nullToUndefined(data.meeting_id),
-      totalVotesFor: nullToUndefined(data.total_votes_for),
-      totalVotesAgainst: nullToUndefined(data.total_votes_against),
-      totalVotesAbstain: nullToUndefined(data.total_votes_abstain),
-      totalSharesEligible: nullToUndefined(data.total_shares_eligible),
-      forPercentage: nullToUndefined(data.for_percentage),
-      againstPercentage: nullToUndefined(data.against_percentage),
-      abstainPercentage: nullToUndefined(data.abstain_percentage),
-      participationRate: nullToUndefined(data.participation_rate),
-      finalResult: nullToUndefined(data.final_result),
-      votingCompleted: data.voting_completed || false,
-      votingCompletedAt: nullToUndefined(data.voting_completed_at),
-      createdAt: nullToUndefined(data.created_at),
-      updatedAt: nullToUndefined(data.updated_at),
-    }
-
     return {
-      data: proposal,
+      data: transformProposalRow(data as ProposalRow),
       error: undefined,
     }
   } catch (err) {
@@ -185,36 +166,8 @@ export async function getProposalById(id: string): Promise<ApiResponse<Proposal>
     }
 
     // Transform database row to API response format
-    const proposal: Proposal = {
-      id: nullToUndefined(data.id),
-      proposalNumber: nullToUndefined(data.proposal_number),
-      proposalTitle: nullToUndefined(data.proposal_title),
-      directorName: nullToUndefined(data.director_name),
-      proposalType: nullToUndefined(data.proposal_type),
-      proposalSubtype: nullToUndefined(data.proposal_subtype),
-      directorTermYears: nullToUndefined(data.director_term_years),
-      directorClass: nullToUndefined(data.director_class),
-      termExpirationYear: nullToUndefined(data.term_expiration_year),
-      frequencyOptions: nullToUndefined(data.frequency_options as Record<string, never>),
-      recommendation: nullToUndefined(data.recommendation),
-      meetingId: nullToUndefined(data.meeting_id),
-      totalVotesFor: nullToUndefined(data.total_votes_for),
-      totalVotesAgainst: nullToUndefined(data.total_votes_against),
-      totalVotesAbstain: nullToUndefined(data.total_votes_abstain),
-      totalSharesEligible: nullToUndefined(data.total_shares_eligible),
-      forPercentage: nullToUndefined(data.for_percentage),
-      againstPercentage: nullToUndefined(data.against_percentage),
-      abstainPercentage: nullToUndefined(data.abstain_percentage),
-      participationRate: nullToUndefined(data.participation_rate),
-      finalResult: nullToUndefined(data.final_result),
-      votingCompleted: data.voting_completed || false,
-      votingCompletedAt: nullToUndefined(data.voting_completed_at),
-      createdAt: nullToUndefined(data.created_at),
-      updatedAt: nullToUndefined(data.updated_at),
-    }
-
     return {
-      data: proposal,
+      data: transformProposalRow(data as ProposalRow),
       error: undefined,
     }
   } catch (err) {
@@ -230,11 +183,11 @@ export async function getProposalById(id: string): Promise<ApiResponse<Proposal>
 
 export async function updateProposal(
   id: string,
-  body: unknown
+  body: UpdateProposalRequest
 ): Promise<ApiResponse<Proposal>> {
   try {
-    const request = body as UpdateProposalRequest
-    const updateData: any = {}
+    const request = body
+    const updateData: Partial<ProposalUpdate> = {}
     if (request.proposalTitle !== undefined)
       updateData.proposal_title = request.proposalTitle
     if (request.proposalType !== undefined)
@@ -272,36 +225,8 @@ export async function updateProposal(
     }
 
     // Transform database row to API response format
-    const proposal: Proposal = {
-      id: nullToUndefined(data.id),
-      proposalNumber: nullToUndefined(data.proposal_number),
-      proposalTitle: nullToUndefined(data.proposal_title),
-      directorName: nullToUndefined(data.director_name),
-      proposalType: nullToUndefined(data.proposal_type),
-      proposalSubtype: nullToUndefined(data.proposal_subtype),
-      directorTermYears: nullToUndefined(data.director_term_years),
-      directorClass: nullToUndefined(data.director_class),
-      termExpirationYear: nullToUndefined(data.term_expiration_year),
-      frequencyOptions: nullToUndefined(data.frequency_options as Record<string, never>),
-      recommendation: nullToUndefined(data.recommendation),
-      meetingId: nullToUndefined(data.meeting_id),
-      totalVotesFor: nullToUndefined(data.total_votes_for),
-      totalVotesAgainst: nullToUndefined(data.total_votes_against),
-      totalVotesAbstain: nullToUndefined(data.total_votes_abstain),
-      totalSharesEligible: nullToUndefined(data.total_shares_eligible),
-      forPercentage: nullToUndefined(data.for_percentage),
-      againstPercentage: nullToUndefined(data.against_percentage),
-      abstainPercentage: nullToUndefined(data.abstain_percentage),
-      participationRate: nullToUndefined(data.participation_rate),
-      finalResult: nullToUndefined(data.final_result),
-      votingCompleted: data.voting_completed || false,
-      votingCompletedAt: nullToUndefined(data.voting_completed_at),
-      createdAt: nullToUndefined(data.created_at),
-      updatedAt: nullToUndefined(data.updated_at),
-    }
-
     return {
-      data: proposal,
+      data: transformProposalRow(data as ProposalRow),
       error: undefined,
     }
   } catch (err) {

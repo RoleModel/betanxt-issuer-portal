@@ -10,14 +10,14 @@ import { Container } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
 
-import type { Meeting } from '@/types/api'
+import type { Meeting } from '@/types/api-exports'
 
 interface Phase8LayoutProps {
   meetingId?: string
   meeting?: Meeting
 }
 
-export default function Phase7Layout({ meeting }: Phase8LayoutProps) {
+export default React.memo(function Phase8Layout({ meeting }: Phase8LayoutProps) {
   return (
     <Container component="main">
       <Stack spacing={3}>
@@ -56,4 +56,4 @@ export default function Phase7Layout({ meeting }: Phase8LayoutProps) {
       </Stack>
     </Container>
   )
-}
+})

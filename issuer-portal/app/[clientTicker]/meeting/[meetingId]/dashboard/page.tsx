@@ -6,7 +6,6 @@ import { useEffect } from 'react'
 import { Box, LinearProgress, Typography } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
-import { usePhases } from '@/hooks/usePhases'
 
 // This handles the Meeting Dashboard route and redirects to the active phase
 export default function MeetingDashboardPage() {
@@ -14,25 +13,34 @@ export default function MeetingDashboardPage() {
   const params = useParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
-  const { error } = useMeeting()
-  const { phases, loading } = usePhases(meetingId)
+  const { error, currentMeeting: meeting } = useMeeting()
 
-  useEffect(() => {
-    if (!loading && phases.length > 0) {
-      // Find the active phase
-      const activePhase = phases.find((phase) => phase.status === 'ACTIVE')
+  const parsePhaseNumber = (phase: string | number | null | undefined): number => {
+    if (typeof phase === 'number' && Number.isFinite(phase)) {
+      return Math.max(1, phase)
+    }
 
-      if (activePhase) {
-        // Redirect to the phase-specific route under dashboard
-        router.replace(
-          `/${clientTicker}/meeting/${meetingId}/dashboard/${activePhase.orderIndex}`
-        )
-      } else {
-        // If no active phase, default to phase 1
-        router.replace(`/${clientTicker}/meeting/${meetingId}/dashboard/1`)
+    if (typeof phase === 'string') {
+      const match = phase.match(/(\d+)/)
+      if (match?.[1]) {
+        const value = Number.parseInt(match[1], 10)
+        if (Number.isFinite(value) && value > 0) {
+          return value
+        }
       }
     }
-  }, [loading, phases, router, clientTicker, meetingId])
+
+    return 1
+  }
+
+  useEffect(() => {
+    // Only redirect if the meeting ID matches the URL and we have phase info
+    if (meeting?.id === meetingId && meeting?.currentPhase) {
+      // Use the meeting's current phase instead of looking for active phase in phases array
+      const currentPhase = parsePhaseNumber(meeting.currentPhase)
+      router.replace(`/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}`)
+    }
+  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId])
 
   if (error) {
     return (

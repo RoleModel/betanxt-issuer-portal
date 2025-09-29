@@ -3,7 +3,7 @@
 import NextLink from 'next/link'
 import React from 'react'
 
-import { Box, Card, Link, SxProps, Typography } from '@mui/material'
+import { Box, Card, SxProps, Typography } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 
 interface FeatureTileProps {
@@ -20,7 +20,7 @@ interface FeatureTileProps {
   flex?: boolean
   height?: string
   sx?: SxProps
-  pdfUrl?: string
+  fileUrl?: string
 }
 
 export function FeatureTile({
@@ -119,24 +119,26 @@ export function FeatureTile({
           gap: 0.25,
         }}
       >
-        <Box
-          sx={{
-            mb: 1,
-            height: iconSize,
-            width: iconSize,
-            fontSize: iconSize,
-            color: variantStyles.color,
-            '& .MuiSvgIcon-root': {
+        {icon && (
+          <Box
+            sx={{
+              mb: 1,
               height: iconSize,
               width: iconSize,
-            },
-            '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
-              stroke: variantStyles.color,
-            },
-          }}
-        >
-          {icon}
-        </Box>
+              fontSize: iconSize,
+              color: variantStyles.color,
+              '& .MuiSvgIcon-root': {
+                height: iconSize,
+                width: iconSize,
+              },
+              '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
+                stroke: variantStyles.color,
+              },
+            }}
+          >
+            {icon}
+          </Box>
+        )}
 
         <Typography
           component="h2"
@@ -169,37 +171,25 @@ export function FeatureTile({
         >
           {description}
         </Box>
-
         {href ? (
-          <Link
-            component={NextLink}
-            href={href}
-            sx={{
+          <NextLink
+            href={href || '#'}
+            style={{
               alignSelf: 'flex-start',
-              color: variantStyles.color,
+              color: 'inherit',
               textDecoration: 'underline',
-              textDecorationColor: variantStyles.color,
-            }}
-            onClick={(e) => {
-              if (onClick) {
-                e.stopPropagation()
-              }
+              textDecorationColor: 'inherit',
             }}
           >
             {actionText}
-          </Link>
+          </NextLink>
         ) : (
-          <Link
-            sx={{
-              alignSelf: 'flex-start',
-              color: variantStyles.color,
-              textDecoration: 'underline',
-              textDecorationColor: variantStyles.color,
-              cursor: onClick ? 'pointer' : 'default',
-            }}
+          <Typography
+            variant="body3"
+            sx={{ textDecoration: 'underline', color: variantStyles.color }}
           >
             {actionText}
-          </Link>
+          </Typography>
         )}
       </Box>
     </Card>

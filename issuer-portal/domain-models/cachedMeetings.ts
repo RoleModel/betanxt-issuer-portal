@@ -7,12 +7,13 @@ type Meeting = components['schemas']['Meeting']
 
 async function fetchMeetings(ticker?: string): Promise<Meeting[]> {
   const api = await buildApiClient()
-  const res = await api.GET('/meetings', {
+  const { data } = await api.GET('/meetings', {
     params: { query: ticker ? { ticker } : {} },
   })
-  if (res.error) return []
-  const meetingsArray = (res.data as any)?.meetings ?? res.data ?? []
-  return meetingsArray as Meeting[]
+  if (!data) return []
+
+  // The API returns an array of meetings directly
+  return data as Meeting[]
 }
 
 export const getMeetingsCached = cacheFn(

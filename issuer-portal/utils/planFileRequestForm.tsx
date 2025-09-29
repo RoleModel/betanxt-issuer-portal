@@ -1,7 +1,7 @@
 import {
   Document,
   Font,
-  Image,
+  Image as PDFImage,
   Page,
   StyleSheet,
   Text,
@@ -230,7 +230,7 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
         {/* Header with logo and date */}
         <View style={styles.header}>
           {logoBase64 ? (
-            <Image style={styles.logo} src={logoBase64} />
+            <PDFImage style={styles.logo} src={logoBase64} />
           ) : (
             <View style={styles.logoPlaceholder}>
               <Text style={styles.logoText}>{clientData?.ticker || 'LOGO'}</Text>
@@ -305,7 +305,7 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
 
         {/* File requirements section */}
         <Text style={styles.sectionHeader}>
-          In preparation for receiving the files, BetaNXT's file requirements are as
+          In preparation for receiving the files, BetaNXT&#39;s file requirements are as
           follows:
         </Text>
 
@@ -373,7 +373,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
           reader.readAsDataURL(blob)
         })
       }
-    } catch (error) {
+    } catch {
       // Logo loading failed, will use placeholder
     }
   }

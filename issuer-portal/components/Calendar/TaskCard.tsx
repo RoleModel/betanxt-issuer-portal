@@ -26,7 +26,7 @@ import type { SxProps, Theme } from '@mui/material/styles'
 import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
-import type { Task } from '@/types/api'
+import type { Task } from '@/types/api-exports'
 
 /**
  * TaskCard component for displaying tasks in calendar views

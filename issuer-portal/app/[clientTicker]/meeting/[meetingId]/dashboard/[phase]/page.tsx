@@ -1,22 +1,23 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useParams } from 'next/navigation'
+import React, { useMemo } from 'react'
 
 import { Box, Container, Typography } from '@mui/material'
 
-import { useMeeting } from '@/contexts/MeetingContext'
-
 // Dynamically load heavy phase layouts & tracker to reduce initial JS
-const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'))
-const Phase2Layout = dynamic(() => import('@/components/Meeting/Phase2Layout'))
-const Phase3Layout = dynamic(() => import('@/components/Meeting/Phase3Layout'))
-const Phase4Layout = dynamic(() => import('@/components/Meeting/Phase4Layout'))
-const Phase5Layout = dynamic(() => import('@/components/Meeting/Phase5Layout'))
-const Phase6Layout = dynamic(() => import('@/components/Meeting/Phase6Layout'))
-const Phase7Layout = dynamic(() => import('@/components/Meeting/Phase7Layout'))
-const Phase8Layout = dynamic(() => import('@/components/Meeting/Phase8Layout'))
-const TabulationTracker = dynamic(() => import('@/components/Meeting/TabulationTracker'))
+import Phase1Layout from '@/components/Meeting/Phase1Layout'
+import Phase2Layout from '@/components/Meeting/Phase2Layout'
+import Phase3Layout from '@/components/Meeting/Phase3Layout'
+import Phase4Layout from '@/components/Meeting/Phase4Layout'
+import Phase5Layout from '@/components/Meeting/Phase5Layout'
+import Phase6Layout from '@/components/Meeting/Phase6Layout'
+import Phase7Layout from '@/components/Meeting/Phase7Layout'
+import Phase8Layout from '@/components/Meeting/Phase8Layout'
+import TabulationTracker from '@/components/Meeting/TabulationTracker'
+
+import { useMeeting } from '@/contexts/MeetingContext'
+import { usePhases } from '@/hooks/usePhases'
 
 export default function PhasePage() {
   const params = useParams()
@@ -24,6 +25,37 @@ export default function PhasePage() {
   const meetingId = params.meetingId as string
   const { getMeetingById } = useMeeting()
   const meeting = getMeetingById(meetingId)
+  const { phases } = usePhases(meetingId)
+  const { currentMeeting } = useMeeting()
+
+  // Helper to parse phase label like "Phase 4" safely to number
+  const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
+    if (!phaseLabel) return null
+    const match = phaseLabel.match(/(\d+)/)
+    if (!match) return null
+    const num = Number(match[1])
+    return Number.isFinite(num) ? num : null
+  }
+
+  const currentPhaseLabel = useMemo(() => {
+    if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
+    if ('currentPhase' in currentMeeting) {
+      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      return typeof val === 'string' ? val : undefined
+    }
+    return undefined
+  }, [currentMeeting])
+
+  const currentPhaseNumber = useMemo(() => {
+    const fromLabel = parsePhaseNumber(currentPhaseLabel)
+    if (fromLabel) return fromLabel
+    if (phases.length > 0) {
+      return phases.reduce((m, p) => (p.orderIndex > m ? p.orderIndex : m), 0) || null
+    }
+    return null
+  }, [currentPhaseLabel, phases])
+
+  const isPhase8 = (currentPhaseNumber ?? 0) < 8
 
   const renderPhaseLayout = () => {
     switch (phaseNumber) {
@@ -75,8 +107,19 @@ export default function PhasePage() {
 
   return (
     <Container component="main" maxWidth="xl" data-testid="meeting-dashboard">
-      <Box display="flex" flexDirection="column" paddingY={{ xs: 1, sm: 3 }} gap={3}>
-        <TabulationTracker meetingId={meetingId} />
+      <Box
+        display="flex"
+        flexGrow={1}
+        flexDirection="column"
+        paddingY={{ xs: 1, sm: 3 }}
+        gap={3}
+      >
+        {isPhase8 ? (
+          <>
+            {' '}
+            <TabulationTracker meetingId={meetingId} />
+          </>
+        ) : null}
 
         {renderPhaseLayout()}
       </Box>

@@ -1,15 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Tab,
-  Tabs,
-} from '@mui/material'
-import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+
+import { Card, CardContent, CardHeader, Tab, Tabs } from '@mui/material'
+
 import VotingTabulationTable from '@/components/Meeting/VotingTabulationTable'
+
+import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+
 import DetailedTabulationTable from './DetailedTabulationTable'
 
 interface ProposalDetailsCardProps {
@@ -20,13 +18,12 @@ export default function ProposalDetailsCard({ meetingId }: ProposalDetailsCardPr
   const { proposals, loading } = useVotingTabulation(meetingId)
   const [selectedTab, setSelectedTab] = useState(0)
 
-  const filteredProposals = selectedTab === 1 ? proposals.filter((p) => p.directorName) : proposals
+  const filteredProposals =
+    selectedTab === 1 ? proposals.filter((p) => p.directorName) : proposals
 
   return (
     <Card>
-      <CardHeader
-        title="Tabulation"
-      />
+      <CardHeader title="Tabulation" />
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Tabs
           value={selectedTab}
@@ -38,10 +35,7 @@ export default function ProposalDetailsCard({ meetingId }: ProposalDetailsCardPr
         </Tabs>
 
         {selectedTab === 0 ? (
-          <VotingTabulationTable
-            proposals={filteredProposals}
-            loading={loading}
-          />
+          <VotingTabulationTable proposals={filteredProposals} loading={loading} />
         ) : (
           <DetailedTabulationTable meetingId={meetingId} />
         )}

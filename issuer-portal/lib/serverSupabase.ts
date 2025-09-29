@@ -13,8 +13,8 @@ const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 export function getServerSupabase() {
   const key = SERVICE_ROLE_KEY || ANON_KEY
   if (!key) {
-    console.warn(
-      '[serverSupabase] No service role or anon key available – operations may fail.'
+    throw new Error(
+      '[serverSupabase] Missing Supabase key. Set NEXT_PUBLIC_SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable.'
     )
   }
   return createClient(SUPABASE_URL, key, {

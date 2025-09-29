@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Issuer Portal Monorepo Root (Solution)",
+  // This root tsconfig is a solution file only. We do not build from root with tsc -b,
+  // and Next.js handles transpilation inside each workspace. Removing `composite` and
+  // conflicting `noEmit`/`declaration` settings resolves the TS error:
+  //   "Composite projects may not disable declaration emit".
+  // If in the future we decide to use project references build mode (tsc -b) to emit
+  // shared type declarations, set `composite: true` and `declaration: true` inside each
+  // workspace tsconfig instead of here.
+  "files": [],
+  "references": [
+    {
+      "path": "issuer-portal"
+    },
+    {
+      "path": "mock-api-server"
+    }
+  ]
+}

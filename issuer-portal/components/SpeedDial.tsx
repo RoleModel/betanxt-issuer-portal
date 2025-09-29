@@ -1,9 +1,6 @@
 import * as React from 'react'
 
-import CloseIcon from '@mui/icons-material/Close'
-import ContactSupportOutlinedIcon from '@mui/icons-material/ContactSupportOutlined'
-import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined'
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined'
+import { Close as CloseIcon, ContactSupportOutlined as ContactSupportOutlinedIcon, ContactsOutlined as ContactsOutlinedIcon, SmartToyOutlined as SmartToyOutlinedIcon } from '@mui/icons-material'
 import { Typography, styled } from '@mui/material'
 import Box from '@mui/material/Box'
 import SpeedDial from '@mui/material/SpeedDial'

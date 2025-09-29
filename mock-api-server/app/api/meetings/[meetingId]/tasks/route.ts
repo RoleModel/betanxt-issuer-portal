@@ -1,10 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-25T18:35:57.314Z
+// Generated on 2025-09-29T07:37:47.340Z
 // Source: openapi-schema/openapi.yaml
+
 import { NextRequest, NextResponse } from 'next/server'
-
-import { createTask, listTasks } from '@/domain-models/api/tasks'
-
+import { listTasks, createTask } from '@/domain-models/api/tasks'
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -23,7 +22,11 @@ export async function GET(
     // Extract query parameters
     const { searchParams } = new URL(request.url)
     const phaseId = searchParams.get('phaseId') || undefined
-    const status = searchParams.get('status') || undefined
+    const statusParam = searchParams.get('status') || undefined
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = 
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam) 
+        ? statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
+        : undefined
 
     // Use existing domain model function
     const { data, error } = await listTasks(meetingId, { phaseId, status })
@@ -38,10 +41,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listTasks',
+        operationId: 'listTasks'
       },
       { status: 500 }
     )
@@ -73,12 +76,13 @@ export async function POST(
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createTask',
+        operationId: 'createTask'
       },
       { status: 500 }
     )
   }
 }
+

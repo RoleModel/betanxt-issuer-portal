@@ -37,16 +37,15 @@ test.describe('Reporting Data Verification', () => {
     await page.waitForSelector('text=Reporting', { timeout: 15000 })
 
     // Look for director names from CSV data
-    const directorNames = [
-      'Arthur B. Winkleblack',
-      'Peter W. May',
-      'Wendy C. Arlin'
-    ]
+    const directorNames = ['Arthur B. Winkleblack', 'Peter W. May', 'Wendy C. Arlin']
 
     // Check if at least one director is visible
     let foundDirector = false
     for (const name of directorNames) {
-      const isVisible = await page.locator(`text=${name}`).isVisible().catch(() => false)
+      const isVisible = await page
+        .locator(`text=${name}`)
+        .isVisible()
+        .catch(() => false)
       if (isVisible) {
         foundDirector = true
         break
@@ -75,7 +74,7 @@ test.describe('Reporting Data Verification', () => {
     const metricsToCheck = [
       'Passed', // Proposal outcomes
       'Quorum', // Quorum status
-      'Participation' // Participation rate
+      'Participation', // Participation rate
     ]
 
     for (const metric of metricsToCheck) {
@@ -95,7 +94,12 @@ test.describe('Reporting Data Verification', () => {
     let foundYear = false
 
     for (const year of years) {
-      if (await page.locator(`text=${year}`).isVisible().catch(() => false)) {
+      if (
+        await page
+          .locator(`text=${year}`)
+          .isVisible()
+          .catch(() => false)
+      ) {
         foundYear = true
         break
       }
@@ -111,11 +115,7 @@ test.describe('Reporting Data Verification', () => {
     await page.waitForSelector('text=Reporting', { timeout: 15000 })
 
     // Check for proposal types
-    const proposalTypes = [
-      'Director Election',
-      'Say on Pay',
-      'Auditor'
-    ]
+    const proposalTypes = ['Director Election', 'Say on Pay', 'Auditor']
 
     let foundProposalType = false
     for (const type of proposalTypes) {
@@ -130,7 +130,12 @@ test.describe('Reporting Data Verification', () => {
     if (!foundProposalType) {
       const proposalHeaders = ['Proposal', 'Support', 'Outcome']
       for (const header of proposalHeaders) {
-        if (await page.locator(`text=${header}`).isVisible().catch(() => false)) {
+        if (
+          await page
+            .locator(`text=${header}`)
+            .isVisible()
+            .catch(() => false)
+        ) {
           foundProposalType = true
           break
         }
@@ -151,7 +156,8 @@ test.describe('Reporting Data Verification', () => {
     const pageContent = await page.content()
 
     // Check for numbers in millions (CSV has values like 146,659,348)
-    const hasLargeNumbers = /\d{1,3}(,\d{3})+/.test(pageContent) || // Formatted numbers
+    const hasLargeNumbers =
+      /\d{1,3}(,\d{3})+/.test(pageContent) || // Formatted numbers
       /\d{6,}/.test(pageContent) // Unformatted large numbers
 
     expect(hasLargeNumbers).toBeTruthy()

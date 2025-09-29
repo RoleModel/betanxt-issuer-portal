@@ -1,0 +1,76 @@
+
+> mock-api-server@1.0.0 build
+> next build
+
+   ▲ Next.js 15.5.4
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1184ms
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/17) ...
+   Generating static pages (4/17) 
+   Generating static pages (8/17) 
+   Generating static pages (12/17) 
+ ✓ Generating static pages (17/17)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                     Size  First Load JS
+┌ ○ /                                                          242 B         101 kB
+├ ○ /_not-found                                                996 B         102 kB
+├ ƒ /api                                                       242 B         101 kB
+├ ƒ /api/accounts                                              242 B         101 kB
+├ ƒ /api/accounts/[accountId]                                  242 B         101 kB
+├ ƒ /api/accounts/[accountId]/users                            242 B         101 kB
+├ ƒ /api/auth/login                                            242 B         101 kB
+├ ƒ /api/auth/logout                                           242 B         101 kB
+├ ƒ /api/auth/me                                               242 B         101 kB
+├ ƒ /api/clients                                               242 B         101 kB
+├ ƒ /api/clients/[ticker]                                      242 B         101 kB
+├ ƒ /api/clients/[ticker]/accounts                             242 B         101 kB
+├ ƒ /api/documents/[id]                                        242 B         101 kB
+├ ƒ /api/documents/[id]/comments                               242 B         101 kB
+├ ƒ /api/documents/[id]/download                               242 B         101 kB
+├ ƒ /api/documents/[id]/events                                 242 B         101 kB
+├ ƒ /api/documents/[id]/history                                242 B         101 kB
+├ ƒ /api/documents/forms/[formType]/sign-digital               242 B         101 kB
+├ ƒ /api/documents/forms/[formType]/upload-executed            242 B         101 kB
+├ ƒ /api/documents/readiness                                   242 B         101 kB
+├ ƒ /api/documents/types/[documentType]/[versionId]/approve    242 B         101 kB
+├ ƒ /api/documents/types/[documentType]/[versionId]/replace    242 B         101 kB
+├ ƒ /api/documents/types/[documentType]/history                242 B         101 kB
+├ ƒ /api/documents/types/[documentType]/upload                 242 B         101 kB
+├ ƒ /api/health                                                242 B         101 kB
+├ ƒ /api/meetings                                              242 B         101 kB
+├ ƒ /api/meetings/[meetingId]                                  242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/documents                        242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/key-dates                        242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/mailing                          242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/phases                           242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/proposals                        242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/tabulation-report                242 B         101 kB
+├ ƒ /api/meetings/[meetingId]/tasks                            242 B         101 kB
+├ ƒ /api/notifications                                         242 B         101 kB
+├ ƒ /api/notifications/[notificationId]/mark-read              242 B         101 kB
+├ ƒ /api/phases/[id]                                           242 B         101 kB
+├ ƒ /api/position_votes                                        242 B         101 kB
+├ ƒ /api/positions                                             242 B         101 kB
+├ ƒ /api/positions/[id]                                        242 B         101 kB
+├ ƒ /api/proposals/[id]                                        242 B         101 kB
+├ ƒ /api/tasks/[id]                                            242 B         101 kB
+├ ƒ /api/users                                                 242 B         101 kB
+├ ƒ /api/users/[id]                                            242 B         101 kB
+└ ƒ /api/users/[id]/accounts                                   242 B         101 kB
++ First Load JS shared by all                                 101 kB
+  ├ chunks/3131-b669843a040426d0.js                            45 kB
+  ├ chunks/c7879cf7-ce6cc72fe8fad416.js                      54.2 kB
+  └ other shared chunks (total)                              1.88 kB
+
+
+ƒ Middleware                                                 34.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -83,14 +83,15 @@ const FileUploadDialog = ({
     const completedFiles = uploadFiles.filter((f) => f.status === 'complete')
     const filesToUpload = completedFiles.map((f) => f.file)
 
-    // Build associations map for completed files
+    // Build associations map using file identifiers (name-size)
     const associations: { [fileId: string]: string } = {}
     completedFiles.forEach((uploadFile) => {
+      const fileKey = `${uploadFile.file.name}-${uploadFile.file.size}`
       // If there's a preSelectedDocumentId, use it for all files
       if (preSelectedDocumentId) {
-        associations[uploadFile.id] = preSelectedDocumentId
+        associations[fileKey] = preSelectedDocumentId
       } else if (fileAssociations[uploadFile.id]) {
-        associations[uploadFile.id] = fileAssociations[uploadFile.id]
+        associations[fileKey] = fileAssociations[uploadFile.id]
       }
     })
 

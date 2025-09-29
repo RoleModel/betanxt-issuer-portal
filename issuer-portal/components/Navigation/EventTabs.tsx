@@ -3,12 +3,11 @@
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
-  Grow,
   IconButton,
   LinearProgress,
   Paper,
@@ -22,6 +21,7 @@ import {
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
+import { getPhaseColor } from '@/components/mui-styling/theme'
 import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -30,6 +30,7 @@ import type { components } from '@/domain-models/generated-schema'
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
+import { formatDate } from '@/lib/formats'
 
 interface MeetingTab {
   id: string
@@ -45,8 +46,8 @@ interface MeetingTab {
   client: string
 }
 
-const navigationTabs = [
-  { label: 'Meeting Dashboard', route: '/dashboard' },
+const getNavigationTabs = (currentPhase: number) => [
+  { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
   { label: 'Calendar', route: '/calendar' },
   { label: 'Documents', route: '/documents' },
   { label: 'Mailing', route: '/mailing' },
@@ -81,7 +82,25 @@ const ScrollButton = styled(IconButton, {
   },
 }))
 
-export const EventTabs = React.memo((): React.ReactElement => {
+const parsePhaseNumber = (phase: string | number | null | undefined): number => {
+  if (typeof phase === 'number' && Number.isFinite(phase)) {
+    return Math.max(1, phase)
+  }
+
+  if (typeof phase === 'string') {
+    const match = phase.match(/(\d+)/)
+    if (match?.[1]) {
+      const value = Number.parseInt(match[1], 10)
+      if (Number.isFinite(value) && value > 0) {
+        return value
+      }
+    }
+  }
+
+  return 1
+}
+
+export function EventTabs() {
   const router = useRouter()
   const pathname = usePathname()
   const [activeMeetingTab, setActiveMeetingTab] = useState(0)
@@ -97,11 +116,14 @@ export const EventTabs = React.memo((): React.ReactElement => {
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const currentPhase = (() => {
-    const label = currentMeeting?.currentPhase || 'Phase 1'
-    const parsed = parseInt(label.replace('Phase ', ''))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
-  })()
+  // (Optimization) Memoize current phase parsing
+  const currentPhase = useMemo(
+    () => parsePhaseNumber(currentMeeting?.currentPhase),
+    [currentMeeting?.currentPhase]
+  )
+
+  // Memoize navigation tabs with current phase
+  const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
 
   // Keep drawerPhase in sync with currentPhase when meeting changes
   useEffect(() => {
@@ -111,20 +133,21 @@ export const EventTabs = React.memo((): React.ReactElement => {
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)
 
-  // Prefetch all navigation tabs for instant switching
+  // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
   useEffect(() => {
-    if (currentMeeting && currentClient?.ticker) {
-      navigationTabs.forEach((tab) => {
-        const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
-        router.prefetch(route)
-      })
+    if (currentMeeting?.id && currentClient?.ticker) {
+      const timeout = setTimeout(() => {
+        navigationTabs.forEach((tab) => {
+          const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
+          router.prefetch(route)
+        })
+      }, 120)
+      return () => clearTimeout(timeout)
     }
-  }, [currentMeeting, currentClient, router])
+  }, [currentMeeting?.id, currentClient?.ticker, router, navigationTabs])
 
   // Get active tab from current pathname
-  // Extract the route part after /[ticker]/meeting/[meetingId]
   const currentRoute = pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, '')
-
   const activeTab =
     navigationTabs.find((tab) => tab.route === currentRoute)?.label || 'Meeting Dashboard'
 
@@ -149,48 +172,32 @@ export const EventTabs = React.memo((): React.ReactElement => {
     }
 
     handleMeetingFromURL()
-  }, [pathname, activeMeeting, meetings])
-
-  // Helper function to format dates
-  const formatDate = (dateString: string) => {
-    if (!dateString) return ''
-    try {
-      const date = new Date(dateString)
-      return isNaN(date.getTime())
-        ? dateString
-        : date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-          })
-    } catch {
-      return dateString || ''
-    }
-  }
+  }, [pathname, activeMeeting, meetings, currentMeeting])
 
   // Helper: map API/Context meeting to simplified tab data
-  const mapToMeetingTab = (m: components['schemas']['Meeting']): MeetingTab => ({
-    id: m.id ?? '',
-    title: m.title ?? 'Meeting',
-    ticker: m.ticker ?? '',
-    cusip: m.cusip ?? '',
-    recordDate: formatDate(m.recordDate ?? ''),
-    mailingDate: formatDate(m.mailingDate ?? ''),
-    meetingDate: formatDate(m.meetingDate ?? ''),
-    status: (m.status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED') ?? 'ACTIVE',
-    currentPhase: m.currentPhase ?? 'Phase 1',
-    overallCompletion: m.overallCompletion ?? 0,
-    client: currentClient?.company_name ?? '',
-  })
+  const mapToMeetingTab = useCallback(
+    (m: components['schemas']['Meeting']): MeetingTab => ({
+      id: m.id ?? '',
+      title: m.title ?? 'Meeting',
+      ticker: m.ticker ?? '',
+      cusip: m.cusip ?? '',
+      recordDate: formatDate(m.recordDate ?? ''),
+      mailingDate: formatDate(m.mailingDate ?? ''),
+      meetingDate: formatDate(m.meetingDate ?? ''),
+      status: (m.status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED') ?? 'ACTIVE',
+      currentPhase: m.currentPhase ?? 'Phase 1',
+      overallCompletion: m.overallCompletion ?? 0,
+      client: currentClient?.company_name ?? '',
+    }),
+    [currentClient?.company_name]
+  )
 
   // Show only active meetings OR the currently selected past meeting
   const transformedMeetings: {
     tab: MeetingTab
     src: components['schemas']['Meeting']
-  }[] = (() => {
-    // Ensure meetings is an array before filtering
+  }[] = useMemo(() => {
     const meetingsArray = meetings || []
-
-    // If we have a current meeting that's COMPLETE (past meeting), only show that one
     if (currentMeeting && currentMeeting.status === 'COMPLETE') {
       return [
         {
@@ -199,14 +206,17 @@ export const EventTabs = React.memo((): React.ReactElement => {
         },
       ]
     }
-
-    // Otherwise, filter to only show active meetings
-    const activeMeetings = meetingsArray.filter((meeting) => meeting.status === 'ACTIVE')
-    return activeMeetings.map((meeting) => ({
-      tab: mapToMeetingTab(meeting),
-      src: meeting,
-    }))
-  })()
+    const activeMeetings = meetingsArray.filter((m) => m.status === 'ACTIVE')
+    activeMeetings.sort((a, b) => {
+      const dateA = a.meetingDate ? new Date(a.meetingDate).getTime() : 0
+      const dateB = b.meetingDate ? new Date(b.meetingDate).getTime() : 0
+      if (dateA === dateB) {
+        return (a.title || '').localeCompare(b.title || '')
+      }
+      return dateA - dateB
+    })
+    return activeMeetings.map((m) => ({ tab: mapToMeetingTab(m), src: m }))
+  }, [meetings, currentMeeting, mapToMeetingTab])
 
   // Sync activeMeetingTab with current meeting
   useEffect(() => {
@@ -224,19 +234,13 @@ export const EventTabs = React.memo((): React.ReactElement => {
   const scrollToActiveTab = useCallback(() => {
     if (scrollContainerRef.current && activeMeetingTab !== -1) {
       const container = scrollContainerRef.current
-      const activeTab = container.querySelector(
+      const activeTabEl = container.querySelector(
         `[data-tab-index="${activeMeetingTab}"]`
       ) as HTMLElement
-
-      if (activeTab) {
-        const tabLeft = activeTab.offsetLeft
+      if (activeTabEl) {
+        const tabLeft = activeTabEl.offsetLeft
         const targetScroll = activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12)
-
-        container.scrollTo({
-          left: targetScroll,
-          behavior: 'smooth',
-        })
-
+        container.scrollTo({ left: targetScroll, behavior: 'smooth' })
         checkScrollButtons()
       }
     }
@@ -426,29 +430,220 @@ export const EventTabs = React.memo((): React.ReactElement => {
     </Box>
   )
 
-  const renderMeetingTab = (
-    meeting: MeetingTab,
-    sourceMeeting: components['schemas']['Meeting'],
-    index: number
-  ) => {
-    const isActive = currentMeeting?.id === meeting.id
-    const _isPastMeeting = meeting.status === 'COMPLETE'
+  // Subcomponents for active/inactive meeting detail sections
+  const ActiveMeetingDetails = ({
+    meeting,
+    currentPhase,
+    onOpenPhaseDrawer,
+  }: {
+    meeting: MeetingTab
+    currentPhase: number
+    onOpenPhaseDrawer: () => void
+  }) => {
+    const phaseLabel = meeting.currentPhase || `Phase ${currentPhase}`
 
-    // Build the target URL for this meeting (use current client ticker)
+    return (
+      <Box sx={{ display: 'flex', color: 'text.primary' }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'CUSIP',
+            }}
+            secondary={{ variant: 'body3', fontWeight: 500, text: meeting.cusip }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Record Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.recordDate,
+            }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Mailing Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.mailingDate,
+            }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Meeting Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.meetingDate,
+            }}
+          />
+          <Stack>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              sx={{ fontWeight: 500 }}
+            >
+              Current Phase
+            </Typography>
+            <Typography
+              component="span"
+              variant="body2"
+              aria-label={`Open ${phaseLabel} phase details`}
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onOpenPhaseDrawer()
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onOpenPhaseDrawer()
+                }
+              }}
+              sx={(muiTheme) => {
+                const focusOutlineColor =
+                  muiTheme.vars?.palette?.primary?.main || muiTheme.palette.primary.main
+
+                return {
+                  fontWeight: 600,
+                  color: getPhaseColor(currentPhase),
+                  cursor: 'pointer',
+                  fontSize: 'inherit',
+                  lineHeight: 1.5,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                  '&:focus': {
+                    outline: `2px solid ${focusOutlineColor}`,
+                    outlineOffset: 2,
+                  },
+                }
+              }}
+            >
+              {phaseLabel}
+            </Typography>
+          </Stack>
+          <Stack sx={{ minWidth: 120 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              sx={{ fontWeight: 500 }}
+            >
+              Overall Completion
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: 24 }}>
+              <LinearProgress
+                variant="determinate"
+                color="primary"
+                value={meeting.overallCompletion || 0}
+                aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
+                sx={{ flex: 1, height: 4 }}
+              />
+              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                {meeting.overallCompletion || 0}%
+              </Typography>
+            </Box>
+          </Stack>
+          <StatusChip status={meeting.status || 'Unknown'} size="small" />
+        </Stack>
+      </Box>
+    )
+  }
+
+  const InactiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <Stack sx={{ alignItems: 'flex-end' }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 500,
+              fontSize: '0.75rem',
+              lineHeight: 1.5,
+              letterSpacing: '3.33%',
+              color: 'inherit',
+            }}
+          >
+            Meeting Date
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              lineHeight: 1.286,
+              letterSpacing: '0.71%',
+              color: 'inherit',
+            }}
+          >
+            {meeting.meetingDate}
+          </Typography>
+        </Stack>
+      </Box>
+    )
+  }
+
+  const handleOpenPhaseDrawer = useCallback((phase: number) => {
+    setDrawerPhase(phase)
+    setPhaseDrawerOpen(true)
+  }, [])
+
+  function MeetingTab({
+    meeting,
+    src: _src,
+    index,
+  }: {
+    meeting: MeetingTab
+    src: components['schemas']['Meeting']
+    index: number
+  }) {
+    const isActive = currentMeeting?.id === meeting.id
     const ticker = currentClient?.ticker
     const meetingId = meeting.id
     const currentPath = pathname.replace(/\/[^/]+\/meeting\/[^/]+/, '')
-    const targetPath =
-      currentPath === ''
-        ? `/${ticker}/meeting/${meetingId}`
-        : `/${ticker}/meeting/${meetingId}${currentPath}`
 
-    // removed nested state; using top-level phaseDrawerOpen
+    // If on dashboard with phase, navigate to the target meeting's phase
+    const targetPath = useMemo(() => {
+      if (currentPath.match(/^\/dashboard(\/\d+)?$/)) {
+        const targetPhase = parsePhaseNumber(meeting.currentPhase)
+        return `/${ticker}/meeting/${meetingId}/dashboard/${targetPhase}`
+      } else if (currentPath === '') {
+        return `/${ticker}/meeting/${meetingId}`
+      } else {
+        return `/${ticker}/meeting/${meetingId}${currentPath}`
+      }
+    }, [currentPath, ticker, meetingId, meeting.currentPhase])
 
     return (
       <Box
         component={Link}
-        key={index}
+        key={meeting.id || index}
         href={targetPath}
         data-tab-index={index}
         tabIndex={0}
@@ -476,17 +671,10 @@ export const EventTabs = React.memo((): React.ReactElement => {
           borderRight: `1px solid ${theme.vars.palette.divider}`,
           minWidth: 'fit-content',
           transition: theme.transitions.create(['color']),
-          '&:hover': {
-            color: theme.vars.palette.primary.main,
-          },
+          '&:hover': { color: theme.vars.palette.primary.main },
         })}
       >
-        <Box
-          sx={(theme) => ({
-            px: theme.spacing(2),
-            pt: theme.spacing(1.5),
-          })}
-        >
+        <Box sx={(theme) => ({ px: theme.spacing(2), pt: theme.spacing(1.5) })}>
           <Stack>
             <Typography
               variant="h1"
@@ -499,268 +687,22 @@ export const EventTabs = React.memo((): React.ReactElement => {
                 letterSpacing: '0.47%',
                 color: 'inherit',
                 mb: 1,
-                fontDisplay: 'swap', // Ensure font swapping for faster render
+                fontDisplay: 'swap',
               }}
             >
               {meeting.title}
             </Typography>
-
-            {isActive && !isMobile && (
-              <Grow
-                in={isActive}
-                timeout={{
-                  enter: 300,
-                  exit: 200,
-                }}
-                unmountOnExit
-                style={{ transformOrigin: '0 0 0' }}
-              >
-                <Box sx={{ display: 'flex', color: 'text.primary' }}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'CUSIP',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.cusip,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Record Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.recordDate,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Mailing Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.mailingDate,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Meeting Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.meetingDate,
-                      }}
-                    />
-
-                    <Stack>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                        sx={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        Current Phase
-                      </Typography>
-                      <Typography
-                        component="span"
-                        variant="body2"
-                        aria-label={`Open ${meeting.currentPhase} phase details`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setDrawerPhase(currentPhase)
-                          togglePhaseDrawer(true)()
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setDrawerPhase(currentPhase)
-                            togglePhaseDrawer(true)()
-                          }
-                        }}
-                        sx={{
-                          fontWeight: 600,
-                          color:
-                            theme.vars.palette.phase[
-                              parseInt(
-                                (meeting.currentPhase || 'Phase 1').replace('Phase ', '')
-                              ) - 1
-                            ].main,
-                          cursor: 'pointer',
-                          fontSize: 'inherit',
-                          lineHeight: 1.5,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                          '&:focus': {
-                            outline: `2px solid ${theme.vars.palette.primary.main}`,
-                            outlineOffset: 2,
-                          },
-                          ...theme.applyStyles('dark', {
-                            color:
-                              theme.vars.palette.phase[
-                                parseInt(
-                                  (meeting.currentPhase || 'Phase 1').replace(
-                                    'Phase ',
-                                    ''
-                                  )
-                                ) - 1
-                              ].light,
-                          }),
-                        }}
-                      >
-                        {meeting.currentPhase}
-                      </Typography>
-                    </Stack>
-
-                    <Stack sx={{ minWidth: 120 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                        sx={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        Overall Completion
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          minHeight: (theme) => theme.spacing(3),
-                        }}
-                      >
-                        <LinearProgress
-                          variant="determinate"
-                          color="primary"
-                          value={meeting.overallCompletion || 0}
-                          aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
-                          sx={{
-                            flex: 1,
-                            height: (theme) => theme.spacing(0.5),
-                          }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          {meeting.overallCompletion || 0}%
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    <StatusChip status={meeting.status || 'Unknown'} size="small" />
-                  </Stack>
-                </Box>
-              </Grow>
-            )}
-
-            {!isActive && !isMobile && (
-              // Inactive tab shows only meeting date
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                }}
-              >
-                <Stack sx={{ alignItems: 'flex-end' }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '0.75rem',
-                      lineHeight: 1.5,
-                      letterSpacing: '3.33%',
-                      color: 'inherit',
-                    }}
-                  >
-                    Meeting Date
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '0.875rem',
-                      lineHeight: 1.286,
-                      letterSpacing: '0.71%',
-                      color: 'inherit',
-                    }}
-                  >
-                    {meeting.meetingDate}
-                  </Typography>
-                </Stack>
-              </Box>
+            {isActive && !isMobile ? (
+              <ActiveMeetingDetails
+                meeting={meeting}
+                currentPhase={currentPhase}
+                onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
+              />
+            ) : (
+              !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
             )}
           </Stack>
         </Box>
-      </Box>
-    )
-  }
-
-  // Show loading state if clients are still loading
-  const meetingsArray = meetings || []
-  if (clientLoading || (loading && meetingsArray.length === 0)) {
-    return (
-      <Box>
-        <Paper
-          sx={{
-            borderBottom: '1px solid',
-            borderColor: (theme) => theme.vars.palette.divider,
-            boxShadow: 'none',
-            borderRadius: 0,
-            backgroundColor: (theme) => theme.vars.palette.appBarSecondary.defaultFill,
-          }}
-        >
-          <Box sx={{ px: 3 }}>
-            <Stack direction="row">
-              {[1, 2].map((index) => renderSkeletonTab(index))}
-            </Stack>
-          </Box>
-        </Paper>
       </Box>
     )
   }
@@ -787,6 +729,31 @@ export const EventTabs = React.memo((): React.ReactElement => {
     )
   }
 
+  // Show loading state if clients are still loading
+  const meetingsArray = meetings || []
+
+  if (clientLoading || (loading && meetingsArray.length === 0)) {
+    return (
+      <Box>
+        <Paper
+          sx={{
+            borderBottom: '1px solid',
+            borderColor: (theme) => theme.vars.palette.divider,
+            boxShadow: 'none',
+            borderRadius: 0,
+            background: (theme) => theme.vars.palette.tableCellRow.fill,
+          }}
+        >
+          <Box sx={{ px: 3 }}>
+            <Stack direction="row">
+              {[1, 2].map((index) => renderSkeletonTab(index))}
+            </Stack>
+          </Box>
+        </Paper>
+      </Box>
+    )
+  }
+
   return (
     <Box component="nav">
       {/* Meeting Tabs Section */}
@@ -796,7 +763,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
           borderColor: 'divider',
           borderRadius: 0,
           boxShadow: 'none',
-          backgroundColor: 'appBarSecondary.defaultFill',
+          background: (theme) => theme.vars.palette.tableCellRow.fill,
           position: 'relative', // Add relative positioning
           '& .MuiPaper-root': {
             borderRadius: 0,
@@ -850,14 +817,19 @@ export const EventTabs = React.memo((): React.ReactElement => {
                 borderColor: (theme) => theme.vars.palette.divider,
               }}
             >
-              {loading && meetingsArray.length === 0 ? (
+              {loading && (!meetings || meetings.length === 0) ? (
                 // Show skeleton tabs while loading
                 [1, 2, 3].map((index) => renderSkeletonTab(index))
               ) : transformedMeetings.length > 0 ? (
                 // Show actual meeting tabs
-                transformedMeetings.map(({ tab, src }, index) =>
-                  renderMeetingTab(tab, src, index)
-                )
+                transformedMeetings.map(({ tab, src }, index) => (
+                  <MeetingTab
+                    key={tab.id || index}
+                    meeting={tab}
+                    src={src}
+                    index={index}
+                  />
+                ))
               ) : (
                 // Only show "No meetings" after loading is complete
                 <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
@@ -906,13 +878,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (tabHref !== '#') {
-                        router.push(tabHref)
-                      }
-                    }}
+                    onClick={() => router.push(tabHref)}
                     sx={(theme) => ({
                       color: isActive
                         ? 'var(--mui-palette-primary-main)'
@@ -947,6 +913,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
       />
     </Box>
   )
-})
+}
 
 EventTabs.displayName = 'EventTabs'

@@ -10,7 +10,7 @@ interface WithAuthOptions {
 }
 
 // Higher-order component that mimics mic-ops withRouteGuard pattern for App Router
-export function withAuth<T extends {}>(
+export function withAuth<T extends object>(
   Component: React.ComponentType<T>,
   options: WithAuthOptions = {}
 ) {

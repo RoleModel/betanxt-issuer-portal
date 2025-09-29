@@ -7,11 +7,11 @@ type Document = components['schemas']['Document']
 
 async function fetchDocuments(meetingId: string): Promise<Document[]> {
   const api = await buildApiClient()
-  const res = await api.GET('/meetings/{meetingId}/documents', {
+  const { data } = await api.GET('/meetings/{meetingId}/documents', {
     params: { path: { meetingId } },
   })
-  if (res.error || !res.data) return []
-  return res.data as unknown as Document[]
+  if (!data) return []
+  return data as Document[]
 }
 
 export const getDocumentsCached = cacheFn(

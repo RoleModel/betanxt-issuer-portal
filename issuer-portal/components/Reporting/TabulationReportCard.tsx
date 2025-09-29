@@ -1,8 +1,8 @@
 'use client'
 
+import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
 import React from 'react'
 
-import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
 import FeatureTile from '../FeatureTile'
 
 export default function TabulationReportCard() {

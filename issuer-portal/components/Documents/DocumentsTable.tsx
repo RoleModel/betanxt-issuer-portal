@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 
 import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
+import EmptyState from '@/components/EmptyState'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { components } from '@/domain-models/generated-schema'
@@ -53,6 +54,16 @@ export default function DocumentsTable(props: DocumentsTableProps) {
     onOpenDocument,
   } = props
 
+  if (documents.length === 0) {
+    return (
+      <EmptyState
+        title="No Documents"
+        description="Upload documents to get started with your meeting materials."
+        minHeight={300}
+      />
+    )
+  }
+
   return (
     <TableContainer data-testid="documents-table">
       <Table sx={{ minWidth: 500 }} aria-label="Event Documents">
@@ -76,16 +87,19 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                     filePath={doc.filePath}
                     onClick={doc.filePath ? () => onOpenDocument?.(doc) : undefined}
                   />
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                     {doc.title ?? 'Untitled Document'}
                   </Typography>
                 </Box>
               </TableCell>
               <TableCell size="small">
                 <Box>
-                  <Typography>System</Typography>
-                  <Typography>
-                    {doc.updatedAt ? formatDate(doc.updatedAt) : 'No date'}
+                  <Typography variant="caption" color="text.secondary">
+                    {doc.updatedAt
+                      ? formatDate(doc.updatedAt)
+                      : doc.createdAt
+                        ? formatDate(doc.createdAt)
+                        : '-'}
                   </Typography>
                 </Box>
               </TableCell>

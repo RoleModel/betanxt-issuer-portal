@@ -276,11 +276,14 @@ export function getStoragePublicUrl(filePath: string): string {
 
   // Get the base Supabase URL from environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
-  // Always ensure path starts with the 'documents/' bucket unless already specified
-  const normalized = filePath.replace(/^\/+/, '')
-  const withBucket = normalized.startsWith('documents/')
-    ? normalized
-    : `documents/${normalized}`
+  // Strip leading slashes and /documents/ prefix if present
+  let normalized = filePath.replace(/^\/+/, '')
+  if (normalized.startsWith('documents/')) {
+    normalized = normalized.substring('documents/'.length)
+  }
+
+  // Always ensure path is under the 'documents/' bucket
+  const withBucket = `documents/${normalized}`
 
   // Build the public object URL (not the S3 proxy) so it works in browsers
   return `${supabaseUrl}/storage/v1/object/public/${withBucket}`
@@ -381,7 +384,7 @@ export async function fetchDSMDocuments(
         : []
       return { data: adapted, error: null }
     }
-  } catch (apiErr) {
+  } catch {
     // Swallow to fallback
   }
   try {
@@ -492,11 +495,11 @@ export async function fetchRegularDocuments(
         : []
       return { data: adapted, error: null }
     }
-  } catch (apiErr) {
+  } catch {
     // Fallback to direct query
   }
   try {
-    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { supabase } = await import('./supabaseStorage')
     const { data, error } = await supabase
       .from('document')
       .select(
@@ -554,10 +557,10 @@ export async function updateDocumentStatus(
           error: null,
         }
       }
-    } catch (apiErr) {
+    } catch {
       // fall through to direct update
     }
-    const { supabase } = await import('../../mock-api-server/utils/supabase/client')
+    const { supabase } = await import('./supabaseStorage')
     const { data, error } = await supabase
       .from('document')
       .update({ status: persistStatus })

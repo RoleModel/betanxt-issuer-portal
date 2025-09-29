@@ -21,19 +21,19 @@ export const CACHE_TAGS = {
  *   { revalidate: 60 }
  * )
  */
-export function cacheFn<Fn extends (...args: any[]) => Promise<any>>( // eslint-disable-line @typescript-eslint/no-explicit-any
-  fn: Fn,
-  tagBuilder: (...args: Parameters<Fn>) => string[],
+export function cacheFn<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn>,
+  tagBuilder: (...args: TArgs) => string[],
   options: { revalidate?: number } = {}
-): (...args: Parameters<Fn>) => Promise<Awaited<ReturnType<Fn>>> {
-  return async (...args: Parameters<Fn>): Promise<Awaited<ReturnType<Fn>>> => {
+): (...args: TArgs) => Promise<TReturn> {
+  return async (...args: TArgs): Promise<TReturn> => {
     const builtTags = tagBuilder(...args)
     const key = JSON.stringify(['cacheFn', fn.name || 'anon', args])
     const cached = nextUnstableCache(async () => fn(...args), [key], {
       tags: builtTags,
       revalidate: options.revalidate ?? 60,
     })
-    return cached() as Promise<Awaited<ReturnType<Fn>>>
+    return cached() as Promise<TReturn>
   }
 }
 

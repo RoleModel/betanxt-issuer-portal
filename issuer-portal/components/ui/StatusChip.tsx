@@ -14,7 +14,7 @@ import {
 export type UnifiedStatus =
   // Document statuses
   | 'active' // Database status -> "Approved"
-  | 'pending' // Database status -> "1/3 Reviews Complete"
+  | 'pending' // Database status ->
   | 'inactive' // Database status -> "Not Uploaded"
   // Task statuses (from global TaskStatus)
   | 'Complete'
@@ -50,7 +50,6 @@ const getStatusDisplayText = (
       if (reviewCount !== undefined && totalReviews !== undefined) {
         return `${reviewCount}/${totalReviews} Reviews Complete`
       }
-      return '1/3 Reviews Complete'
     case 'Incomplete':
     case 'INCOMPLETE':
       return 'Incomplete'
@@ -83,9 +82,9 @@ const getStatusDisplayText = (
     default:
       return typeof status === 'string'
         ? status
-          .split('_')
-          .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-          .join(' ')
+            .split('_')
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(' ')
         : 'Unknown'
   }
 }
@@ -124,7 +123,6 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'Waiting for Form Return',
     'WAITING_FOR_FORM_RETURN',
     'Delayed',
-    '1/3 Reviews Complete',
     'Awaiting Review',
     'Pending Client Review',
     'Making Revisions',
@@ -142,8 +140,14 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
   ]
 
   // Grey/Neutral - Default/Incomplete statuses
-  const neutralStatuses = ['Incomplete', 'INCOMPLETE', 'Unvoted', 'Not Started', 'Submitted Awaiting Record Date',
-    'SUBMITTED_AWAITING_RECORD_DATE',]
+  const neutralStatuses = [
+    'Incomplete',
+    'INCOMPLETE',
+    'Unvoted',
+    'Not Started',
+    'Submitted Awaiting Record Date',
+    'SUBMITTED_AWAITING_RECORD_DATE',
+  ]
 
   // Blue - Info/In Progress statuses
   const infoStatuses = [

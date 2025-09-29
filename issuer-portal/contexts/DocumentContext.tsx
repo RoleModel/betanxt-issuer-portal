@@ -1,6 +1,13 @@
 'use client'
 
-import React, { ReactNode, createContext, useCallback, useContext, useState } from 'react'
+import React, {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
 import { components } from '@/domain-models/generated-schema'
@@ -30,7 +37,7 @@ interface DocumentProviderProps {
 export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) => {
   const [documents, setDocuments] = useState<Document[]>([])
   const [dsmDocuments, setDsmDocuments] = useState<Document[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refreshDocuments = useCallback(async (meetingId: string) => {
@@ -48,16 +55,59 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         }
       )
 
-      if (apiError) {
+      if (apiError || !data) {
         setError('Failed to fetch documents')
         return
       }
 
-      const allDocuments = data ?? []
+      const allDocuments = data as Document[]
 
-      // Separate regular documents from DSM documents
-      const regular = allDocuments.filter((doc) => doc.type !== 'dsm-document')
-      const dsm = allDocuments.filter((doc) => doc.type === 'dsm-document')
+      // Separate DSM documents from regular documents
+      const dsm = allDocuments.filter((doc) => {
+        // Include documents marked as DSM category
+        if (doc.displayCategory === 'dsm' || doc.type === 'dsm-document') return true
+
+        // For 2025 meetings, also include presentation/slide documents
+        if (meetingId.includes('2025')) {
+          const docType = (doc.type || '').toLowerCase()
+          const title = (doc.title || '').toLowerCase()
+          return (
+            docType.includes('presentation') ||
+            docType.includes('slide') ||
+            title.includes('presentation') ||
+            title.includes('slide') ||
+            docType.includes('shareholder presentation') ||
+            docType.includes('intro slide')
+          )
+        }
+        return false
+      })
+
+      // Regular documents are everything that's NOT a DSM document or HOSTING_SITE
+      const regular = allDocuments.filter((doc) => {
+        // Exclude HOSTING_SITE documents
+        if (doc.type === 'HOSTING_SITE') return false
+
+        // Exclude DSM documents
+        if (doc.displayCategory === 'dsm' || doc.type === 'dsm-document') return false
+
+        // For 2025 meetings, also exclude presentation/slide documents
+        if (meetingId.includes('2025')) {
+          const docType = (doc.type || '').toLowerCase()
+          const title = (doc.title || '').toLowerCase()
+          if (
+            docType.includes('presentation') ||
+            docType.includes('slide') ||
+            title.includes('presentation') ||
+            title.includes('slide')
+          ) {
+            return false
+          }
+        }
+
+        // Include everything else
+        return true
+      })
 
       setDocuments(regular)
       setDsmDocuments(dsm)
@@ -146,14 +196,17 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
     [refreshDocuments]
   )
 
-  const value: DocumentContextType = {
-    documents,
-    dsmDocuments,
-    loading,
-    error,
-    refreshDocuments,
-    uploadDocument,
-  }
+  const value: DocumentContextType = useMemo(
+    () => ({
+      documents,
+      dsmDocuments,
+      loading,
+      error,
+      refreshDocuments,
+      uploadDocument,
+    }),
+    [documents, dsmDocuments, loading, error, refreshDocuments, uploadDocument]
+  )
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>
 }

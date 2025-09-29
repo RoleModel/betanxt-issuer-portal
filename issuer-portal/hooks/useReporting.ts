@@ -136,7 +136,9 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
       params: { query: { ticker: clientTicker } },
     })
 
-    if (!meetingsResponse.data) {
+    const { data: meetingsData, error: _meetingsError } = meetingsResponse
+
+    if (!meetingsData) {
       return {
         meetings: [],
         proposals: [],
@@ -166,7 +168,10 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     }
 
     // Filter out future meetings (keep current year and past)
-    const allMeetings = (meetingsResponse.data.meetings || []).filter((meeting) => {
+    const meetingsArray = Array.isArray(meetingsData)
+      ? meetingsData
+      : (meetingsData as { meetings?: Meeting[] })?.meetings || []
+    const allMeetings = (meetingsArray as Meeting[]).filter((meeting) => {
       const meetingYear =
         meeting.meetingYear ||
         (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
@@ -763,7 +768,7 @@ function transformEventSummaryData(
       }
 
       results.push(result)
-    } catch {}
+    } catch { }
   }
 
   return results

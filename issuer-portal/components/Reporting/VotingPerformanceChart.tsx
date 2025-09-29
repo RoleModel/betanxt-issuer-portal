@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+
 import { Box, Card, CardContent, CardHeader, CircularProgress } from '@mui/material'
 import {
   BarPlot,
@@ -13,10 +14,12 @@ import {
   MarkPlot,
 } from '@mui/x-charts'
 import { ChartsXAxis } from '@mui/x-charts/ChartsXAxis'
+
 import { EmptyState } from '@/components/EmptyState'
 
-import { CustomLegend } from './index'
 import { abbreviateNumber } from '@/utils/numberUtils'
+
+import { CustomLegend } from './index'
 
 interface ShareRangeData {
   range: string
@@ -31,7 +34,10 @@ interface VotingPerformanceChartProps {
   loading?: boolean
 }
 
-export default function VotingPerformanceChart({ data = [], loading = false }: VotingPerformanceChartProps) {
+export default function VotingPerformanceChart({
+  data = [],
+  loading = false,
+}: VotingPerformanceChartProps) {
   if (loading) {
     return (
       <Card>
@@ -65,9 +71,21 @@ export default function VotingPerformanceChart({ data = [], loading = false }: V
   const percentVoted = data.map((item) => item.percentVoted)
 
   const legendItems = [
-    { label: 'Positions', color: 'var(--mui-palette-chartSeries-1-main)', type: 'bar' as const },
-    { label: 'Shares', color: 'var(--mui-palette-chartSeries-2-main)', type: 'bar' as const },
-    { label: 'Percent Voted', color: 'var(--mui-palette-chartSeries-6-main)', type: 'line' as const },
+    {
+      label: 'Positions',
+      color: 'var(--mui-palette-chartSeries-1-main)',
+      type: 'bar' as const,
+    },
+    {
+      label: 'Shares',
+      color: 'var(--mui-palette-chartSeries-2-main)',
+      type: 'bar' as const,
+    },
+    {
+      label: 'Percent Voted',
+      color: 'var(--mui-palette-chartSeries-6-main)',
+      type: 'line' as const,
+    },
   ]
 
   return (

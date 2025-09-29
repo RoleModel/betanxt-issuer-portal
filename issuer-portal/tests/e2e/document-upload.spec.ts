@@ -17,10 +17,7 @@ function createTempPdf(filename: string): string {
 // - After upload, documents table refreshes and displays new file name
 // If selectors differ in implementation, adjust data-testid markers accordingly.
 
-test('upload DSM placeholder document and verify appearance', async ({
-  page,
-  context,
-}) => {
+test('upload DSM placeholder document and verify appearance', async ({ page }) => {
   // Navigate directly to documents page (MeetingContext should lazy resolve)
   await page.goto('http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents', {
     waitUntil: 'domcontentloaded',
@@ -29,7 +26,7 @@ test('upload DSM placeholder document and verify appearance', async ({
   // Retry logic: attempt to reload a few times if heading not present (handle transient 500s)
   let attempts = 0
   while (attempts < 3) {
-    const heading = page.locator('role=heading[name="Documents"]')
+    const heading = page.locator('text=Documents')
     if (await heading.first().isVisible()) break
     await page.waitForTimeout(1500)
     attempts++
@@ -37,11 +34,11 @@ test('upload DSM placeholder document and verify appearance', async ({
       await page.reload({ waitUntil: 'domcontentloaded' })
     }
   }
-  const documentsHeading = page.locator('role=heading[name="Documents"]').first()
+  const documentsHeading = page.locator('text=Documents').first()
   await expect(documentsHeading).toBeVisible({ timeout: 15000 })
 
-  // Trigger upload dialog
-  const uploadButton = page.locator('button:has-text("Upload")')
+  // Trigger upload dialog - use the first main upload button in the Documents section
+  const uploadButton = page.locator('button:has-text("Upload")').first()
   await expect(uploadButton).toBeVisible()
   await uploadButton.click()
 

@@ -1,10 +1,8 @@
-import type { components } from '@/types/api'
+
 
 import { apiClient } from '../apiClient'
 
 // Use generated types from OpenAPI schema
-type Meeting = components['schemas']['Meeting']
-type Phase = components['schemas']['Phase']
 
 // Helper type for openapi-fetch response
 type ApiResponse<T> = {
@@ -27,15 +25,16 @@ export async function listKeyDatesForMeeting(
   meetingId: string
 ): Promise<ApiResponse<KeyDate[] | undefined>> {
   // Fetch meeting for top-level dates
-  const {
-    data: meeting,
-    error: meetingError,
-    response: meetingResponse,
-  } = await apiClient.GET('/meetings/{meetingId}', {
-    params: {
-      path: { meetingId },
-    },
-  })
+  const meetingResult = await apiClient.GET(
+    '/meetings/{meetingId}',
+    {
+      params: {
+        path: { meetingId },
+      },
+    }
+  )
+
+  const { data: meeting, error: meetingError, response: meetingResponse } = meetingResult
 
   if (meetingError) {
     return {
@@ -49,15 +48,16 @@ export async function listKeyDatesForMeeting(
   }
 
   // Fetch phases for phase-level key dates
-  const {
-    data: phases,
-    error: phasesError,
-    response: phasesResponse,
-  } = await apiClient.GET('/meetings/{meetingId}/phases', {
-    params: {
-      path: { meetingId },
-    },
-  })
+  const phasesResult = await apiClient.GET(
+    '/meetings/{meetingId}/phases',
+    {
+      params: {
+        path: { meetingId },
+      },
+    }
+  )
+
+  const { data: phases, error: phasesError, response: phasesResponse } = phasesResult
 
   if (phasesError) {
     return {

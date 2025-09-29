@@ -1,47 +1,157 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { Box, Container, LinearProgress } from '@mui/material'
 
 import Layout from '@/components/Layout/Layout'
+import PastMeetingsTable, {
+  type Order,
+  type PastMeetingData,
+} from '@/components/Meeting/PastMeetingsTable'
 
-import buildApiClient from '@/domain-models/apiClient'
+import buildApiClient, { type ApiClientReturnType } from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
+import { asRecord, asString } from '@/utils/typeUtils'
+
 type Meeting = components['schemas']['Meeting']
-
-interface PastMeetingData extends Meeting {
-  participationPercent: number
-  totalVotes: number
-  votingShares: number
-}
-
-type Order = 'asc' | 'desc'
 type OrderBy = keyof PastMeetingData
 
-// Define the props for PastMeetingsTable to satisfy TypeScript
-interface PastMeetingsTableProps {
-  clientTicker: string
-  order: Order
-  orderBy: OrderBy
-  onRequestSort: (property: OrderBy) => void
-  meetings: PastMeetingData[]
-  rawMeetingsCount: number
-  loading: boolean
-  formatDate: (dateString: string) => string
-  formatNumber: (num: number) => string
+type ParticipationMetrics = Pick<
+  PastMeetingData,
+  'participationPercent' | 'totalVotes' | 'votingShares'
+>
+
+// Minimal shape of the tabulation report we rely on (extend if OpenAPI adds more fields)
+interface TabulationReportPositionsVoted {
+  totalShares?: number
+  votedShares?: number
+  voted?: number
 }
 
-// Separate heavy table section into dynamic child to defer large MUI table bundle
-const PastMeetingsTable = dynamic<PastMeetingsTableProps>(
-  () => import('./pastMeetingsTableSection'),
-  {
-    ssr: false,
+interface TabulationReport {
+  positionsVoted?: TabulationReportPositionsVoted
+}
+
+const DEFAULT_METRICS: ParticipationMetrics = {
+  participationPercent: 0,
+  totalVotes: 0,
+  votingShares: 0,
+}
+
+const parseNumericValue = (value: unknown): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
   }
-)
+
+  if (typeof value === 'string') {
+    const normalized = value.replace(/,/g, '')
+    const parsed = Number(normalized)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  return 0
+}
+
+const getVoteStatus = (position: components['schemas']['Position']): string => {
+  if (position.voteStatus) {
+    return position.voteStatus
+  }
+
+  const record = asRecord(position as unknown)
+  if (!record) return ''
+
+  return asString(record.vote_status) ?? asString(record.status) ?? ''
+}
+
+const isPositionVoted = (position: components['schemas']['Position']): boolean => {
+  const status = getVoteStatus(position).toLowerCase()
+  return status === 'voted'
+}
+
+const extractPositions = (data: unknown): components['schemas']['Position'][] => {
+  if (Array.isArray(data)) {
+    return data as components['schemas']['Position'][]
+  }
+
+  const record = asRecord(data)
+  if (record?.positions && Array.isArray(record.positions)) {
+    return record.positions as components['schemas']['Position'][]
+  }
+
+  return []
+}
+
+const getMeetingId = (meeting: Meeting): string => {
+  if (meeting.id) return meeting.id
+
+  const meetingRecord = asRecord(meeting as unknown)
+  if (!meetingRecord) return ''
+
+  return (
+    asString(meetingRecord.meetingId) ??
+    asString(meetingRecord.meeting_id) ??
+    asString(meetingRecord.id) ??
+    ''
+  )
+}
+
+const getTotalSharesOutstanding = (meeting: Meeting): number => {
+  const directValue = parseNumericValue(meeting.totalSharesOutstanding)
+  if (directValue > 0) return directValue
+
+  const meetingRecord = asRecord(meeting as unknown)
+  if (!meetingRecord) return 0
+
+  const camelCaseValue = parseNumericValue(meetingRecord.totalSharesOutstanding)
+  if (camelCaseValue > 0) return camelCaseValue
+
+  return parseNumericValue(meetingRecord.total_shares_outstanding)
+}
+
+const computeParticipationMetrics = (
+  meeting: Meeting,
+  positions: components['schemas']['Position'][]
+): ParticipationMetrics => {
+  if (positions.length === 0) {
+    return { ...DEFAULT_METRICS }
+  }
+
+  const totalSharesOutstanding = getTotalSharesOutstanding(meeting)
+  const totalSharesFromPositions = positions.reduce(
+    (sum, position) => sum + parseNumericValue(position.shares),
+    0
+  )
+
+  const totalShares =
+    totalSharesOutstanding > 0 ? totalSharesOutstanding : totalSharesFromPositions
+
+  const votedShares = positions.reduce((sum, position) => {
+    if (!isPositionVoted(position)) return sum
+    const sharesValue =
+      position.sharesVoted ??
+      (asRecord(position as unknown)?.shares_voted as unknown) ??
+      position.shares ??
+      0
+    return sum + parseNumericValue(sharesValue)
+  }, 0)
+
+  const totalVotes = positions.reduce(
+    (count, position) => (isPositionVoted(position) ? count + 1 : count),
+    0
+  )
+
+  const participationPercent =
+    totalShares > 0 ? Math.round((votedShares / totalShares) * 100 * 10) / 10 : 0
+
+  return {
+    participationPercent,
+    totalVotes,
+    votingShares: votedShares,
+  }
+}
 
 export default function PastMeetingsPage() {
   const pathname = usePathname()
@@ -55,77 +165,111 @@ export default function PastMeetingsPage() {
     try {
       setLoading(true)
 
+      if (!clientTicker) {
+        setMeetings([])
+        setLoading(false)
+        return
+      }
+
       // Use openapi-fetch to fetch meetings
       const apiClient = await buildApiClient()
-      const { data, error } = await apiClient.GET('/meetings', {
+      const meetingsResponse = (await apiClient.GET('/meetings', {
         params: {
           query: {
             ticker: clientTicker.toUpperCase(),
             status: 'COMPLETE',
           },
         },
-      })
+      })) as ApiClientReturnType<unknown>
 
-      if (error) {
-        throw new Error('Failed to fetch meetings')
+      if (meetingsResponse.error) {
+        throw new Error(meetingsResponse.error.message || 'Failed to fetch meetings')
       }
 
       // Get meetings array from the paginated response - already filtered by API
-      const completedMeetings = data?.meetings || []
+      type MeetingsApiResponse = {
+        meetings?: Meeting[]
+        pagination?: components['schemas']['Pagination']
+      }
+      const typedData = meetingsResponse.data as MeetingsApiResponse | undefined
+      const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
+        ? typedData!.meetings!
+        : []
 
-      // Calculate participation data from actual voting data
+      // Calculate participation data from tabulation reports
       const meetingsWithParticipation: PastMeetingData[] = await Promise.all(
-        completedMeetings.map(async (meeting) => {
-          try {
-            // Fetch positions for this meeting to calculate participation
-            const positionsResult = await apiClient.GET('/positions', {
-              params: { query: { meetingId: meeting.id } },
-            })
-
-            // Extract positions array from API response
-            // Handle different possible response formats
-            const responseData = positionsResult.data
-            const positions = Array.isArray(responseData)
-              ? (responseData as components['schemas']['Position'][])
-              : ((
-                  responseData as unknown as {
-                    positions?: components['schemas']['Position'][]
-                  }
-                )?.positions ?? [])
-
-            // Use totalSharesOutstanding from meeting for participation calculation
-            const totalSharesOutstanding = parseInt(
-              meeting.totalSharesOutstanding || '0',
-              10
-            )
-
-            // Calculate voted shares using sharesVoted field
-            const votedShares = positions.reduce((sum, p) => {
-              // Use sharesVoted if available, otherwise 0
-              const shares = p.sharesVoted || 0
-              return sum + shares
-            }, 0)
-
-            const totalVotes = positions.filter((p) => p.voteStatus === 'Voted').length
-
-            const participationPercent =
-              totalSharesOutstanding > 0
-                ? (votedShares / totalSharesOutstanding) * 100
-                : 0
-
+        completedMeetings.map(async (meeting: Meeting): Promise<PastMeetingData> => {
+          const meetingId = getMeetingId(meeting)
+          if (!meetingId) {
             return {
               ...meeting,
-              participationPercent: Math.round(participationPercent * 10) / 10, // Round to 1 decimal
-              totalVotes,
-              votingShares: votedShares,
+              ...DEFAULT_METRICS,
+            }
+          }
+
+          try {
+            // Fetch tabulation report which contains pre-calculated participation data
+            const tabulationResult = (await apiClient.GET(
+              '/meetings/{meetingId}/tabulation-report',
+              {
+                params: { path: { meetingId } },
+              }
+            )) as ApiClientReturnType<unknown>
+
+            if (tabulationResult.error) {
+              // Fallback: compute from positions
+              const positionsResult = (await apiClient.GET('/positions', {
+                params: { query: { select: '*', limit: 100000 } },
+              })) as ApiClientReturnType<unknown>
+
+              if (positionsResult.error) {
+                throw new Error(
+                  positionsResult.error.message || 'Failed to fetch positions'
+                )
+              }
+
+              const positions = extractPositions(positionsResult.data)
+              const metrics = computeParticipationMetrics(meeting, positions)
+
+              return {
+                ...meeting,
+                ...metrics,
+              }
+            }
+
+            // Extract participation data from tabulation report
+            const report = tabulationResult.data as TabulationReport | undefined
+            const positionsVoted = report?.positionsVoted
+
+            if (positionsVoted) {
+              const participationPercent =
+                positionsVoted.totalShares && positionsVoted.totalShares > 0
+                  ? Math.round(
+                      (parseNumericValue(positionsVoted.votedShares) /
+                        parseNumericValue(positionsVoted.totalShares)) *
+                        100 *
+                        10
+                    ) / 10
+                  : 0
+
+              return {
+                ...meeting,
+                participationPercent,
+                totalVotes: parseNumericValue(positionsVoted.voted),
+                votingShares: parseNumericValue(positionsVoted.votedShares),
+              }
+            }
+
+            // Fallback if positionsVoted missing
+            return {
+              ...meeting,
+              ...DEFAULT_METRICS,
             }
           } catch (posError) {
-            console.error(`Error fetching positions for meeting ${meeting.id}:`, posError)
+            console.error(`Error fetching data for meeting ${meetingId}:`, posError)
             return {
               ...meeting,
-              participationPercent: 0,
-              totalVotes: 0,
-              votingShares: 0,
+              ...DEFAULT_METRICS,
             }
           }
         })
@@ -161,17 +305,6 @@ export default function PastMeetingsPage() {
       console.warn('Error parsing date:', dateString, error)
       return 'Invalid Date'
     }
-  }
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000000) {
-      return (num / 1000000000).toFixed(1) + 'B'
-    } else if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M'
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K'
-    }
-    return num.toLocaleString()
   }
 
   const handleRequestSort = (property: OrderBy) => {
@@ -213,8 +346,8 @@ export default function PastMeetingsPage() {
 
   return (
     <Layout navBar={true}>
-      <Container maxWidth="xl" component="main">
-        <Box sx={{ p: 3 }}>
+      <Box sx={{ p: { xs: 1, sm: 3 }, flexGrow: 1, flex: 1 }}>
+        <Container maxWidth="xl">
           <PastMeetingsTable
             clientTicker={clientTicker}
             order={order}
@@ -224,10 +357,9 @@ export default function PastMeetingsPage() {
             rawMeetingsCount={meetings.length}
             loading={loading}
             formatDate={formatDate}
-            formatNumber={formatNumber}
           />
-        </Box>
-      </Container>
+        </Container>
+      </Box>
     </Layout>
   )
 }

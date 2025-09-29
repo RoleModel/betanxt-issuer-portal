@@ -3,8 +3,9 @@
 // Compute a logo base path (without extension) from client name/ticker
 export const computeClientLogoBase = (clientName?: string, ticker?: string): string => {
   if (ticker) {
-    const tickerLower = ticker.toLowerCase()
-    return `/logos/${tickerLower}_logo`
+    // Use uppercase for ticker since that's how the logo files are named
+    const tickerUpper = ticker.toUpperCase()
+    return `/logos/${tickerUpper}_logo`
   }
 
   if (clientName) {
@@ -12,7 +13,7 @@ export const computeClientLogoBase = (clientName?: string, ticker?: string): str
     return `/logos/${nameLower}_logo`
   }
 
-  return '/images/logo'
+  return '/images/betanxt-logo'
 }
 
 // Compute a logo src (with extension) matching the AppBar's SVG-first behavior
@@ -33,7 +34,7 @@ export const loadClientLogoAsPngBase64 = async (opts: {
   ticker?: string
   overrideSrc?: string
 }): Promise<string> => {
-  const defaultPng = '/images/logo.png'
+  const defaultPng = '/images/betanxt-logo.png'
   const { clientName, ticker, overrideSrc } = opts
 
   // Determine candidates in order of preference

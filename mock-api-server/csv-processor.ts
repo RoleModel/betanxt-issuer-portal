@@ -52,16 +52,20 @@ export interface CompanyMeetingInfo {
 }
 
 export interface CompanyProposalData {
-  proposalNumber: string
-  proposalTitle: string
-  managementRecommendation: string
+  number: string
+  title: string
+  type: string
+  subtype: string | null
+  recommendation: string
   votesFor: number
   votesAgainst: number
   votesAbstain: number
+  votesTotal: number
 }
 
 export interface CompanyPositionData {
   cusip: string
+  setKey?: string | null
   accountType: string
   name: string
   accountNumber: string | null
@@ -75,6 +79,23 @@ export interface CompanyPositionData {
 }
 
 export class CSVProcessor {
+  /**
+   * Normalize account types for tabulation report compatibility
+   */
+  private static normalizeAccountType(rawAccountType: string): string {
+    const type = rawAccountType.toUpperCase()
+    if (
+      type.includes('CEDE') ||
+      type.includes('CDS') ||
+      type.includes('CTC') ||
+      type.includes('DTC')
+    ) {
+      return 'DTC/CDS'
+    }
+    // Everything else is considered Non-DTC (registered accounts, etc.)
+    return 'Non-DTC'
+  }
+
   /**
    * Process Wendy's shareholder votes CSV data
    */
@@ -91,7 +112,7 @@ export class CSVProcessor {
             }
             positions.push({
               cusip: row.Cusip || '',
-              accountType: row['Account Type'] || '',
+              accountType: this.normalizeAccountType(row['Account Type'] || ''),
               setKey: row['Set Key'] || '',
               name: row.Name || '',
               accountNumber: row['Account #'] || null,
@@ -101,7 +122,9 @@ export class CSVProcessor {
               source: row.Source || null,
               dateVoted: this.parseDate(row['Date Voted']),
             })
-          } catch (error) {}
+          } catch {
+            // Ignore malformed row; continue processing stream
+          }
         })
         .on('end', () => {
           resolve(positions)
@@ -134,7 +157,9 @@ export class CSVProcessor {
               abstain: this.parseNumber(row.Abstain),
               total: this.parseNumber(row.Total),
             })
-          } catch (error) {}
+          } catch {
+            // Ignore malformed row; continue processing stream
+          }
         })
         .on('end', () => {
           resolve(tabulation)
@@ -195,6 +220,40 @@ export class CSVProcessor {
     return isNaN(parsed) ? 0 : parsed
   }
 
+  private static inferProposalType(
+    title: string,
+    proposalNumber: string
+  ): { type: string; subtype: string | null } {
+    const normalized = title.toLowerCase()
+    const number = proposalNumber.trim()
+
+    if (number.startsWith('1.') || /director/.test(normalized)) {
+      return { type: 'Director Election', subtype: 'Individual' }
+    }
+
+    if (/auditor|accounting firm|ratification/.test(normalized)) {
+      return { type: 'Auditor Ratification', subtype: null }
+    }
+
+    if (/frequency/.test(normalized) && /compensation|say on pay/.test(normalized)) {
+      return { type: 'Say on Pay Frequency', subtype: null }
+    }
+
+    if (/executive compensation/.test(normalized) || /say on pay/.test(normalized)) {
+      return { type: 'Say on Pay', subtype: null }
+    }
+
+    if (/shareholder|stockholder/.test(normalized)) {
+      return { type: 'Shareholder Proposal', subtype: null }
+    }
+
+    if (/bylaw/.test(normalized) || /charter/.test(normalized)) {
+      return { type: 'Governance Proposal', subtype: null }
+    }
+
+    return { type: 'Other', subtype: null }
+  }
+
   /**
    * Parse date from CSV string
    */
@@ -247,24 +306,68 @@ export class CSVProcessor {
 
     return new Promise((resolve, reject) => {
       createReadStream(filePath)
-        .pipe(csvParser({ headers: true }))
+        .pipe(csvParser())
         .on('data', (row: Record<string, string>) => {
-          proposals.push({
-            proposalNumber: row['Proposal Number'] || row['Prop'] || '',
-            proposalTitle:
-              row['Proposal Title'] || row['Proposal'] || row['Description'] || '',
-            managementRecommendation:
-              row['MRV'] || row['Management Recommendation'] || 'For',
-            votesFor: this.parseNumber(row['For'] || row['Votes For'] || '0'),
-            votesAgainst: this.parseNumber(row['Against'] || row['Votes Against'] || '0'),
-            votesAbstain: this.parseNumber(
+          try {
+            const proposalColumn =
+              row['Proposal Number'] ||
+              row['Proposal'] ||
+              row['Prop'] ||
+              row['Proposal Item'] ||
+              ''
+            const rawProposal = proposalColumn.trim()
+            const match = rawProposal.match(/^(\d+(?:\.\d+)?)\s*(.*)$/)
+            const number = match ? match[1] : `${proposals.length + 1}`
+            const fallbackTitle = match && match[2] ? match[2] : proposalColumn.trim()
+            const title = (
+              row['Proposal Title'] ||
+              row['Description'] ||
+              fallbackTitle ||
+              ''
+            ).trim()
+
+            const recommendation = (
+              row['MRV'] ||
+              row['Management Recommendation'] ||
+              row['Recommendation'] ||
+              'FOR'
+            )
+              .toString()
+              .trim()
+
+            const votesFor = this.parseNumber(
+              row['For'] || row['Votes For'] || row['For Votes'] || '0'
+            )
+            const votesAgainst = this.parseNumber(
+              row['Against'] || row['Votes Against'] || row['Against Votes'] || '0'
+            )
+            const votesAbstain = this.parseNumber(
               row['Abstain'] || row['Abstentions'] || row['Votes Abstain'] || '0'
-            ),
-          })
+            )
+            const totalRaw =
+              row['Total'] || row['Votes Total'] || row['Total Votes'] || ''
+            const votesTotal = totalRaw
+              ? this.parseNumber(totalRaw)
+              : votesFor + votesAgainst + votesAbstain
+
+            const { type, subtype } = this.inferProposalType(title, number)
+
+            proposals.push({
+              number,
+              title,
+              type,
+              subtype,
+              recommendation: recommendation.toUpperCase() || 'FOR',
+              votesFor,
+              votesAgainst,
+              votesAbstain,
+              votesTotal,
+            })
+          } catch {
+            // Ignore malformed rows
+          }
         })
-        .on('end', () => {
-          resolve(proposals)
-        })
+        .on('end', () => resolve(proposals))
         .on('error', reject)
     })
   }
@@ -279,7 +382,7 @@ export class CSVProcessor {
   ): Promise<CompanyPositionData[]> {
     const positions: CompanyPositionData[] = []
     let rowCount = 0
-    let totalRows = 0
+    let _totalRows = 0 // unused tally retained for possible future diagnostics
 
     return new Promise((resolve, reject) => {
       let headers: string[] = []
@@ -287,26 +390,26 @@ export class CSVProcessor {
 
       createReadStream(filePath)
         .pipe(csvParser({ headers: false }))
-        .on('data', (row: any) => {
+        .on('data', (row: Record<string, unknown>) => {
           if (isFirstRow) {
             // Parse headers manually, filtering out empty columns
             headers = Object.values(row)
-              .map((h: any) => String(h).trim())
+              .map((h: unknown) => String(h).trim())
               .filter((h) => h !== '')
             isFirstRow = false
             return
           }
 
-          totalRows++
+          _totalRows++
 
           // Convert array row to object using our headers
           const rowObj: Record<string, string> = {}
           let headerIndex = 0
-          Object.values(row).forEach((val: any, idx: number) => {
+          Object.values(row).forEach((val: unknown, idx: number) => {
             // Skip empty header positions
             if (Object.values(row)[idx] !== '') {
               if (headers[headerIndex]) {
-                rowObj[headers[headerIndex]] = String(val)
+                rowObj[headers[headerIndex]] = String(val).trim()
               }
               headerIndex++
             }
@@ -320,9 +423,22 @@ export class CSVProcessor {
           )
           if (shares === 0) return
 
+          const rawStatus = (rowObj['Status'] || rowObj['Vote Status'] || '')
+            .toString()
+            .trim()
+          const normalisedStatus =
+            rawStatus.toLowerCase() === 'voted' ? 'Voted' : 'Unvoted'
+
+          const sharesVoted = this.parseNumber(
+            rowObj['Shares Voted'] || rowObj['Voted Shares'] || '0'
+          )
+
           positions.push({
             cusip: cusip,
-            accountType: rowObj['Account Type'] || rowObj['Type'] || 'Registered Account',
+            setKey: rowObj['Set Key'] || rowObj['SetKey'] || null,
+            accountType: this.normalizeAccountType(
+              rowObj['Account Type'] || rowObj['Type'] || 'Registered Account'
+            ),
             name:
               rowObj['Account'] ||
               rowObj['Account Name'] ||
@@ -331,14 +447,10 @@ export class CSVProcessor {
               'Unknown',
             accountNumber:
               rowObj['Account#'] || rowObj['Account Number'] || rowObj['Account'] || null,
-            voteStatus: (rowObj['Status'] || rowObj['Vote Status'] || 'Unvoted') as
-              | 'Voted'
-              | 'Unvoted',
+            voteStatus: normalisedStatus,
             shares: shares,
-            sharesVoted: this.parseNumber(
-              rowObj['Shares Voted'] || rowObj['Voted Shares'] || '0'
-            ),
-            source: rowObj['Source'] || rowObj['Vote Method'] || null,
+            sharesVoted: sharesVoted,
+            source: (rowObj['Source'] || rowObj['Vote Method'] || null) ?? null,
             dateVoted: this.parseDate(
               rowObj['Time Stamp'] || rowObj['Vote Date'] || rowObj['Voted Date'] || ''
             ),
@@ -353,5 +465,134 @@ export class CSVProcessor {
         })
         .on('error', reject)
     })
+  }
+
+  /**
+   * Process vote status summary CSV files (e.g., wendys_dtc_vote_status.csv, wendys_non_dtc_vote_status.csv)
+   */
+  static async processVoteStatusSummary(
+    dtcFilePath: string,
+    nonDtcFilePath: string
+  ): Promise<{
+    dtcSummary: {
+      unvotedParticipants: number
+      unvotedShares: number
+      votedParticipants: number
+      votedShares: number
+    }
+    nonDtcSummary: {
+      unvotedShareholders: number
+      unvotedShares: number
+      printShareholders: number
+      printShares: number
+      ivrShareholders: number
+      ivrShares: number
+      webShareholders: number
+      webShares: number
+      votedSubtotalShareholders: number
+      votedSubtotalShares: number
+      grandTotalShareholders: number
+      grandTotalShares: number
+    }
+  }> {
+    type DtcSummaryData = {
+      unvotedParticipants: number
+      unvotedShares: number
+      votedParticipants: number
+      votedShares: number
+    }
+
+    // Process DTC summary file
+    const dtcSummary = await new Promise<DtcSummaryData>((resolve, reject) => {
+      const results: DtcSummaryData = {
+        unvotedParticipants: 0,
+        unvotedShares: 0,
+        votedParticipants: 0,
+        votedShares: 0,
+      }
+
+      createReadStream(dtcFilePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+          const category = (row.Category || '').toLowerCase()
+          const participants = this.parseNumber(row.Participants || '0')
+          const shares = this.parseNumber(row.Shares || '0')
+
+          if (category.includes('unvoted')) {
+            results.unvotedParticipants = participants
+            results.unvotedShares = shares
+          } else if (category.includes('voted')) {
+            results.votedParticipants = participants
+            results.votedShares = shares
+          }
+        })
+        .on('end', () => resolve(results))
+        .on('error', reject)
+    })
+
+    type NonDtcSummaryData = {
+      unvotedShareholders: number
+      unvotedShares: number
+      printShareholders: number
+      printShares: number
+      ivrShareholders: number
+      ivrShares: number
+      webShareholders: number
+      webShares: number
+      votedSubtotalShareholders: number
+      votedSubtotalShares: number
+      grandTotalShareholders: number
+      grandTotalShares: number
+    }
+
+    // Process Non-DTC summary file
+    const nonDtcSummary = await new Promise<NonDtcSummaryData>((resolve, reject) => {
+      const results: NonDtcSummaryData = {
+        unvotedShareholders: 0,
+        unvotedShares: 0,
+        printShareholders: 0,
+        printShares: 0,
+        ivrShareholders: 0,
+        ivrShares: 0,
+        webShareholders: 0,
+        webShares: 0,
+        votedSubtotalShareholders: 0,
+        votedSubtotalShares: 0,
+        grandTotalShareholders: 0,
+        grandTotalShares: 0,
+      }
+
+      createReadStream(nonDtcFilePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+          const category = (row.Category || '').toLowerCase()
+          const shareholders = this.parseNumber(row.Shareholders || '0')
+          const shares = this.parseNumber(row.Shares || '0')
+
+          if (category.includes('unvoted')) {
+            results.unvotedShareholders = shareholders
+            results.unvotedShares = shares
+          } else if (category === 'print') {
+            results.printShareholders = shareholders
+            results.printShares = shares
+          } else if (category === 'ivr') {
+            results.ivrShareholders = shareholders
+            results.ivrShares = shares
+          } else if (category === 'web') {
+            results.webShareholders = shareholders
+            results.webShares = shares
+          } else if (category.includes('voted sub-total')) {
+            results.votedSubtotalShareholders = shareholders
+            results.votedSubtotalShares = shares
+          } else if (category.includes('grand total')) {
+            results.grandTotalShareholders = shareholders
+            results.grandTotalShares = shares
+          }
+        })
+        .on('end', () => resolve(results))
+        .on('error', reject)
+    })
+
+    return { dtcSummary, nonDtcSummary }
   }
 }

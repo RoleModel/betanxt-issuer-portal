@@ -19,11 +19,12 @@ import {
   Typography,
 } from '@mui/material'
 
-import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
+import SrOnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { components } from '@/domain-models/generated-schema'
 
+import { formatDate } from '@/lib/formats'
 import { getDocumentActionLabel } from '@/utils/documentUtils'
 
 type ApiDocument = components['schemas']['Document']
@@ -66,40 +67,22 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
     placeholders = [],
   } = props
 
-  // Merge placeholders with real docs: show Not Uploaded for missing entries
-  const docsByPlaceholderId = new Map(
-    dsmDocuments
-      .filter((doc) => doc.description?.startsWith('placeholder-'))
-      .map((doc) => [doc.description, doc])
-  )
+  // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
+  const mergedRows: Document[] = []
 
-  const mergedRows: Document[] = placeholders.map((placeholder) => {
-    // Check if we have a real document for this placeholder
-    const realDoc = docsByPlaceholderId.get(placeholder.id)
+  // Add all real DSM documents
+  mergedRows.push(...dsmDocuments)
 
-    if (realDoc) {
-      // Return the real document but with the placeholder title
-      return {
-        ...realDoc,
-        title: placeholder.title,
-      }
-    } else {
-      // Return placeholder as "Not Uploaded"
-      const placeholderDoc: Document = {
-        id: placeholder.id,
-        title: placeholder.title,
-        status: 'NOT_UPLOADED',
-        // Minimal required optional API fields left undefined intentionally
-      }
-      return placeholderDoc
-    }
-  })
-
-  // Add any DSM documents that don't match placeholders
-  const unmatchedDocs = dsmDocuments.filter(
-    (doc) => !doc.description?.startsWith('placeholder-')
-  )
-  mergedRows.push(...unmatchedDocs)
+  // Add placeholders only if there are no real documents
+  if (dsmDocuments.length === 0) {
+    const placeholderDocs: Document[] = placeholders.map((placeholder) => ({
+      id: placeholder.id,
+      title: placeholder.title,
+      status: 'NOT_UPLOADED',
+      // Minimal required optional API fields left undefined intentionally
+    }))
+    mergedRows.push(...placeholderDocs)
+  }
 
   return (
     <Card>
@@ -116,9 +99,11 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
       <CardContent sx={{ p: 0 }}>
         <TableContainer>
           <Table>
+            <SrOnlyTableCaption>
+              Digital Shareholder Meeting Documents - {dsmProgress.percentage}% complete
+            </SrOnlyTableCaption>
             <TableHead>
               <TableRow>
-                <TableCell>Thumbnail</TableCell>
                 <TableCell>Document</TableCell>
                 <TableCell>Added/Updated</TableCell>
                 <TableCell>Status</TableCell>
@@ -135,20 +120,16 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
               ).map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell size="small">
-                    <DocumentThumbnail
-                      filePath={doc.filePath ?? (doc as { url?: string }).url}
-                      onClick={
-                        (doc.filePath ?? (doc as { url?: string }).url)
-                          ? () => onOpenDocument(doc)
-                          : undefined
-                      }
-                    />
-                  </TableCell>
-                  <TableCell size="small">
                     <Typography>{doc.title}</Typography>
                   </TableCell>
                   <TableCell size="small">
-                    <Typography color="text.secondary">{doc.updatedAt || '—'}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {doc.updatedAt
+                        ? formatDate(doc.updatedAt)
+                        : doc.createdAt
+                          ? formatDate(doc.createdAt)
+                          : '—'}
+                    </Typography>
                   </TableCell>
                   <TableCell size="small">
                     <StatusChip

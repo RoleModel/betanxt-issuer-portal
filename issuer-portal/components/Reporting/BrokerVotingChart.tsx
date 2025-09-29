@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
+
 import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
+
 import { EmptyState } from '@/components/EmptyState'
 
 interface BrokerVotingData {
@@ -25,7 +27,10 @@ interface BrokerVotingChartProps {
   brokerData?: Record<string, BrokerVotingData[]>
 }
 
-export default function BrokerVotingChart({ proposals = [], brokerData = {} }: BrokerVotingChartProps) {
+export default function BrokerVotingChart({
+  proposals = [],
+  brokerData = {},
+}: BrokerVotingChartProps) {
   const [selectedProposalId, setSelectedProposalId] = useState<string>('')
 
   React.useEffect(() => {
@@ -60,7 +65,10 @@ export default function BrokerVotingChart({ proposals = [], brokerData = {} }: B
   }, [brokerData, proposals])
 
   // Get broker data for selected proposal
-  const data = selectedProposalId && mappedBrokerData[selectedProposalId] ? mappedBrokerData[selectedProposalId] : []
+  const data =
+    selectedProposalId && mappedBrokerData[selectedProposalId]
+      ? mappedBrokerData[selectedProposalId]
+      : []
   const hasData = Object.keys(mappedBrokerData).length > 0
 
   if (proposals.length === 0) {

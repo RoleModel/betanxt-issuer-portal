@@ -7,11 +7,11 @@ type Task = components['schemas']['Task']
 
 async function fetchTasks(meetingId: string): Promise<Task[]> {
   const api = await buildApiClient()
-  const res = await api.GET('/meetings/{meetingId}/tasks', {
+  const { data } = await api.GET('/meetings/{meetingId}/tasks', {
     params: { path: { meetingId } },
   })
-  if (res.error || !res.data) return []
-  return res.data as unknown as Task[]
+  if (!data) return []
+  return data as Task[]
 }
 
 export const getTasksCached = cacheFn(

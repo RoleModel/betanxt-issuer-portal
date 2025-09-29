@@ -20,7 +20,7 @@ import { getPhaseColor, theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
-import type { KeyDate, Task } from '@/types/api'
+import type { KeyDate, Task } from '@/types/api-exports'
 import type { ContextMenuPosition } from '@/types/common'
 
 /**
@@ -43,7 +43,6 @@ interface ListViewProps {
   tasks: Task[]
   keyDates: KeyDate[]
   loading: boolean
-  onRefresh: () => Promise<void>
 }
 
 const filterTasks = (
@@ -74,7 +73,6 @@ export const ListView: React.FC<ListViewProps> = ({
   tasks: dbTasks,
   keyDates: dbKeyDates,
   loading,
-  onRefresh: _onRefresh,
 }) => {
   const [loaded, setLoaded] = useState(false)
 
@@ -244,8 +242,8 @@ export const ListView: React.FC<ListViewProps> = ({
 
     // Sort key dates chronologically
     const sortedKeyDates = [...keyDatesToShow].sort((a, b) => {
-      const dateA = parseDateString(a.date)
-      const dateB = parseDateString(b.date)
+      const dateA = parseDateString(a.date || '')
+      const dateB = parseDateString(b.date || '')
       return dateA.getTime() - dateB.getTime()
     })
 
@@ -302,7 +300,7 @@ export const ListView: React.FC<ListViewProps> = ({
   }
 
   // Handle task update from edit modal
-  const handleTaskUpdated = (_updatedTask: Task) => {
+  const handleTaskUpdated = () => {
     // Note: With CalendarContext, updates should trigger a refresh
     // The context will handle the actual data updates
     setEditModalOpen(false)
@@ -473,7 +471,7 @@ export const ListView: React.FC<ListViewProps> = ({
                   combinedItems.push({
                     type: 'keyDate',
                     item: keyDate,
-                    date: parseDateString(keyDate.date),
+                    date: parseDateString(keyDate.date || ''),
                   })
                 })
 

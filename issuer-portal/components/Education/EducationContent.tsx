@@ -7,7 +7,7 @@ import GlobeNetworkIcon from '@rolemodel/betanxt-design-system/components/icons/
 import LaptopPlayIcon from '@rolemodel/betanxt-design-system/components/icons/brand/LaptopPlayIcon'
 import TeamGroupIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGroupIcon'
 import TrendingUpIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TrendingUpIcon'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import React from 'react'
 
 import { Card, CardContent, CardHeader, Container, Stack } from '@mui/material'
@@ -17,9 +17,10 @@ import FeatureTile from '@/components/FeatureTile'
 import ResourceTitle from '@/components/ResourceTitle'
 import ScrollContainer from '@/components/ScrollContainer'
 
+import DocumentViewer from '../Documents/DocumentViewer'
+
 export default function EducationContent() {
   const router = useRouter()
-  const _pathname = usePathname()
 
   const educationPaperItems = React.useMemo(
     () => [
@@ -42,6 +43,11 @@ export default function EducationContent() {
         titleVariant: 'h2' as const,
         description: 'Insights to support the execution of your annual meeting',
         actionText: 'View Guide',
+        onClick: () => {
+          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setViewerTitle('Digital Shareholder Meeting Guide')
+          setViewerOpen(true)
+        },
         icon: <TeamGroupIcon fontSize="3xl" />,
       },
       {
@@ -89,7 +95,7 @@ export default function EducationContent() {
         title: 'NOBO Request Form',
         description: 'Complete this form and send it to documents@betanxt.com.',
         actionText: 'Download',
-        pdfUrl: '/documents/betanxt-nobo-request-form-0125-250220.pdf',
+        fileUrl: '/documents/betanxt-nobo-request-form-0125-250220.pdf',
         href: '/documents/betanxt-nobo-request-form-0125-250220.pdf',
       },
       {
@@ -97,7 +103,7 @@ export default function EducationContent() {
         description:
           'Simply download, complete, and email this form and email it to documents@betanxt.com.',
         actionText: 'Download',
-        pdfUrl: '/documents/proxy-campaign-set-up-2025-250127.pdf',
+        fileUrl: '/documents/proxy-campaign-set-up-2025-250127.pdf',
         href: '/documents/proxy-campaign-set-up-2025-250127.pdf',
       },
       {
@@ -105,7 +111,7 @@ export default function EducationContent() {
         description:
           'For member organizations distributing proxy and other issuer-related materials to beneficial owners.',
         actionText: 'Download',
-        pdfUrl: '/documents/proxy-fee-schedule-january-2025-250127.pdf',
+        fileUrl: '/documents/proxy-fee-schedule-january-2025-250127.pdf',
         href: '/documents/proxy-fee-schedule-january-2025-250127.pdf',
       },
       {
@@ -113,7 +119,7 @@ export default function EducationContent() {
         description:
           'The procedures and requirements for using a third party to receive and handle deliveries on behalf of the intended recipient.',
         actionText: 'Download',
-        pdfUrl: '/documents/delivery-guidelines-2025-250127.pdf',
+        fileUrl: '/documents/delivery-guidelines-2025-250127.pdf',
         href: '/documents/delivery-guidelines-2025-250127.pdf',
       },
       {
@@ -121,7 +127,7 @@ export default function EducationContent() {
         description:
           'Give to your shareholders so they may attend this meeting and vote their shares in person.',
         actionText: 'Download',
-        pdfUrl: '/documents/legal-proxy-250127.pdf',
+        fileUrl: '/documents/legal-proxy-250127.pdf',
         href: '/documents/legal-proxy-250127.pdf',
       },
       {
@@ -129,7 +135,7 @@ export default function EducationContent() {
         description:
           'Illustrates billing details, such as itemized charges, taxes, and total amounts due, in a professional format for invoicing purposes.',
         actionText: 'Download',
-        pdfUrl: '/documents/bpx-bpv-invoice-250127.pdf',
+        fileUrl: '/documents/bpx-bpv-invoice-250127.pdf',
         href: '/documents/bpx-bpv-invoice-250127.pdf',
       },
     ],
@@ -158,14 +164,18 @@ export default function EducationContent() {
         onClick: () => router.push('/products/inspector-of-elections'),
       },
       {
-        title: 'Digital Shareholder Meeting',
+        title: 'Digital Shareholder Meeting Guide',
         description:
           'Enable shareholders to participate in annual meetings remotely with the same level of access as in-person attendees',
         actionText: 'Learn More',
         titleVariant: 'h2' as const,
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'info' as const,
-        onClick: () => router.push('/products/digital-shareholder-meetings'),
+        onClick: () => {
+          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setViewerTitle('Digital Shareholder Meeting Guide')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Marketing Assets',
@@ -179,8 +189,15 @@ export default function EducationContent() {
     [router]
   )
 
+  const [viewerOpen, setViewerOpen] = React.useState(false)
+  const [fileUrl, setFileUrl] = React.useState<string | undefined>(undefined)
+  const [viewerTitle, setViewerTitle] = React.useState<string | undefined>(undefined)
+  const handleViewerClose = () => {
+    setViewerOpen(false)
+  }
+
   return (
-    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
+    <Container component="main" maxWidth="lg" sx={{ p: { xs: 1, md: 3 } }}>
       <Grid order={1} container spacing={3}>
         <Grid size={{ xs: 12 }}>
           <Card>
@@ -245,6 +262,13 @@ export default function EducationContent() {
           </Grid>
         </Grid>
       </Grid>
+      <DocumentViewer
+        hideActivityButtons={true}
+        open={viewerOpen}
+        onClose={handleViewerClose}
+        fileUrl={fileUrl}
+      title={viewerTitle}
+      />
     </Container>
   )
 }

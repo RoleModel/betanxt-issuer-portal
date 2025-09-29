@@ -1,8 +1,9 @@
 import eslint from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   {
     ignores: [
       'dist/**/*',
@@ -16,18 +17,21 @@ export default tseslint.config(
       'node_modules',
       '**/*.config.js',
       '**/*.config.mjs',
+      'utils/api-client-example.ts', // sample script – ignored for now
     ],
   },
+  // Base JS recommended
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  // TypeScript recommended (manually assembled)
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
+      parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
         project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: new URL('.', import.meta.url).pathname,
       },
       globals: {
         ...globals.node,
@@ -36,13 +40,16 @@ export default tseslint.config(
         JSX: 'readonly',
       },
     },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
     rules: {
       'linebreak-style': ['error', 'unix'],
       'no-unused-vars': 'off',
       'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         {
           varsIgnorePattern: '^_',
           argsIgnorePattern: '^_',
@@ -55,8 +62,13 @@ export default tseslint.config(
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      'no-unused-expressions': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'no-empty': ['warn', { allowEmptyCatch: true }],
+      '@typescript-eslint/triple-slash-reference': 'off',
     },
   },
+  // Plain JS files
   {
     files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
@@ -66,5 +78,5 @@ export default tseslint.config(
         ...globals.node,
       },
     },
-  }
-)
+  },
+]

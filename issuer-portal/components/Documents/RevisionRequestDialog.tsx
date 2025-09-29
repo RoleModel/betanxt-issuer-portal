@@ -138,7 +138,7 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
           icon={<CheckCircleOutline />}
           sx={{ width: '100%' }}
         >
-          We've received your revision request and will review it promptly. You'll be
+          We received your revision request and will review it promptly. You will be
           notified once the updates are complete.
         </Alert>
       </Snackbar>

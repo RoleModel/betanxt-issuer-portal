@@ -3,6 +3,7 @@
 import useSWR, { type Fetcher } from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
+
 import { asRecord, asString } from '@/utils/typeUtils'
 
 interface BrokerVotingData {
@@ -71,7 +72,10 @@ const toFiniteNumber = (value: unknown): number => {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([_key, meetingId]: ReportsKey) => {
+const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([
+  _key,
+  meetingId,
+]: ReportsKey) => {
   const apiClient = await buildApiClient()
 
   const { data, error } = await apiClient.GET('/meetings/{meetingId}/tabulation-report', {
@@ -87,7 +91,9 @@ const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([_key, meetingId]:
   const report = asRecord(data) ?? {}
 
   const brokerVotingByProposal = _transformBrokerVoting(report.brokerVoting)
-  const shareRangePerformance = _transformShareRangePerformance(report.shareRangePerformance)
+  const shareRangePerformance = _transformShareRangePerformance(
+    report.shareRangePerformance
+  )
   const nonDtcVoteStatus = _transformNonDtcVoteStatus(report.nonDtcVoteStatus)
   const dtcVoteStatus = _transformDtcVoteStatus(report.dtcVoteStatus)
   const voteDistribution = _transformVoteDistribution(report.voteDistribution)
@@ -149,7 +155,9 @@ function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
   return result
 }
 
-function _transformShareRangePerformance(shareRangePerformance: unknown): ShareRangeData[] {
+function _transformShareRangePerformance(
+  shareRangePerformance: unknown
+): ShareRangeData[] {
   if (!Array.isArray(shareRangePerformance)) {
     return []
   }
@@ -187,9 +195,7 @@ function _transformNonDtcVoteStatus(nonDtcVoteStatus: unknown): VoteStatusData[]
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
       percentage:
-        totalShares > 0
-          ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100
-          : 0,
+        totalShares > 0 ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100 : 0,
     },
     {
       category: 'PRINT',
@@ -248,9 +254,7 @@ function _transformDtcVoteStatus(dtcVoteStatus: unknown): VoteStatusData[] {
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
       percentage:
-        totalShares > 0
-          ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100
-          : 0,
+        totalShares > 0 ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100 : 0,
     },
     {
       category: 'Voted',
@@ -334,13 +338,13 @@ function _transformPositionsVoted(positionsVoted: unknown): PositionsVotedData {
     const votedPositions = Math.round(toFiniteNumber(data.voted))
     const unvotedPositions = Math.round(toFiniteNumber(data.unvoted))
 
-    // For now, assume all positions are treated as beneficial 
+    // For now, assume all positions are treated as beneficial
     // until we have DTC/Non-DTC breakdown data
     return {
       registered: { voted: 0, notVoted: 0 },
       beneficial: {
         voted: votedPositions,
-        notVoted: unvotedPositions
+        notVoted: unvotedPositions,
       },
     }
   }

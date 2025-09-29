@@ -49,9 +49,11 @@ export async function listAccounts(
   }
 }
 
-export async function createAccount(accountData: unknown): Promise<ApiResponse<Account>> {
+export async function createAccount(
+  accountData: CreateAccountRequest
+): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.POST('/accounts', {
-    body: accountData as CreateAccountRequest,
+    body: accountData,
   })
 
   if (error) {
@@ -99,13 +101,13 @@ export async function getAccountById(id: string): Promise<ApiResponse<Account>> 
 
 export async function updateAccount(
   id: string,
-  accountData: unknown
+  accountData: UpdateAccountRequest
 ): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.PUT('/accounts/{accountId}', {
     params: {
       path: { accountId: id },
     },
-    body: accountData as UpdateAccountRequest,
+    body: accountData,
   })
 
   if (error) {
@@ -127,7 +129,7 @@ export async function updateAccount(
 }
 
 export async function deleteAccount(id: string): Promise<ApiResponse<void>> {
-  const { data, error, response } = await apiClient.DELETE('/accounts/{accountId}', {
+  const { error, response } = await apiClient.DELETE('/accounts/{accountId}', {
     params: {
       path: { accountId: id },
     },

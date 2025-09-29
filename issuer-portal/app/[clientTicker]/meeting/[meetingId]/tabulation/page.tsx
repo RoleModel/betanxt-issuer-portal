@@ -1,16 +1,18 @@
 'use client'
 
 import React, { useMemo } from 'react'
+
 import { Container, Stack } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import EmptyState from '@/components/EmptyState'
+import BeneficialVsRegisteredCard from '@/components/Tabulation/BeneficialVsRegisteredCard'
 import PositionsTable from '@/components/Tabulation/PositionsTable'
 import ProposalDetailsCard from '@/components/Tabulation/ProposalDetailsCard'
+import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
 import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
-import BeneficialVsRegisteredCard from '@/components/Tabulation/BeneficialVsRegisteredCard'
-import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
+
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { friendlyDate } from '@/utils/dateUtils'
@@ -55,8 +57,6 @@ export default function TabulationPage() {
   if (meetingLoading || phasesLoading) {
     return null
   }
-
-
 
   if (phaseIsSevenOrGreater) {
     return (

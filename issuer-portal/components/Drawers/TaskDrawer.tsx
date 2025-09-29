@@ -1,7 +1,5 @@
 'use client'
 
-import BNFilePreview from '@rolemodel/betanxt-design-system/components/file-upload/BNFilePreview'
-import FileUploadDialog from '@rolemodel/betanxt-design-system/components/file-upload/FileUploadDialog'
 import { jsPDF } from 'jspdf'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
@@ -18,7 +16,6 @@ import {
   Drawer,
   FormControlLabel,
   IconButton,
-  Link,
   Snackbar,
   Stack,
   Typography,
@@ -29,6 +26,9 @@ import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
+import BNFilePreview from '@/components/FileUpload/BNFilePreview'
+import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
+import { getStatusBorderColor, theme as muiTheme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu, {
   type ContextMenuPosition,
@@ -141,6 +141,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     title: string
     message: string
   }>({ open: false, title: '', message: '' })
+  const [hasSignedDocument, setHasSignedDocument] = useState(false)
 
   // Update current task when prop changes and reset document state
   useEffect(() => {
@@ -162,6 +163,22 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         // Links are now stored as JSON in the task itself
         const fetchedLinks = parseTaskLinks(taskToUse.links, taskToUse.title)
         setTaskLinks(fetchedLinks)
+
+        // Check if a signed form document exists for this task
+        const checkSignedDocument = async () => {
+          if (taskToUse.meetingId) {
+            const meetingDocuments = await getDocumentsByMeeting(taskToUse.meetingId)
+            const signedDoc = meetingDocuments.find(
+              (doc) =>
+                doc.taskId === (taskToUse.taskId || taskToUse.id) &&
+                doc.type === 'signed-form'
+            )
+            setHasSignedDocument(!!signedDoc)
+          }
+        }
+        checkSignedDocument().catch((error) => {
+          console.error('Failed to check signed document', error)
+        })
 
         // Check for signature type tasks first
         if (taskToUse?.type === 'signature') {
@@ -190,11 +207,13 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
 
         // Set phase number directly from task
         setTaskPhaseNumber(taskToUse.phaseNumber || 1)
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to initialize task drawer', err)
+      }
     } else {
       setTaskLinks([])
     }
-  }, [open, task, currentTask, onClose])
+  }, [open, task, currentTask, onClose, getDocumentsByMeeting])
 
   const handleFilesSelected = (newFiles: File[]) => {
     const uploadFileObjects = newFiles.map((file) => ({
@@ -227,14 +246,14 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
 
     const clientData = currentClient
       ? {
-          issuerName: currentClient.company_name || currentClient.short_name || '',
-          // Client model does not expose cusip; use meeting cusip if available
-          cusipNumber: currentMeeting?.cusip || undefined,
-          contactName: currentClient.primary_contact || '',
-          email: currentClient.primary_contact_email || '',
-          meetingDate: currentMeeting?.meetingDate || undefined,
-          ticker: currentClient.ticker || undefined,
-        }
+        issuerName: currentClient.company_name || currentClient.short_name || '',
+        // Client model does not expose cusip; use meeting cusip if available
+        cusipNumber: currentMeeting?.cusip || undefined,
+        contactName: currentClient.primary_contact || '',
+        email: currentClient.primary_contact_email || '',
+        meetingDate: currentMeeting?.meetingDate || undefined,
+        ticker: currentClient.ticker || undefined,
+      }
       : undefined
 
     // Check which type of form task this is
@@ -314,6 +333,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             ]
             setSignatureAreas(defaultSignatureAreas)
           } catch (error) {
+            console.error('Failed to configure signature areas', error)
             setSignatureAreas([])
           }
 
@@ -424,22 +444,24 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         throw new Error(`Failed to upload PDF: ${uploadError.message}`)
       }
 
-      // Check if document already exists for this task
-      let existingDocument = null
+      // Check if signed document already exists for this task
+      let existingSignedDocument = null
       if (taskToSubmit.meetingId) {
         const meetingDocuments = await getDocumentsByMeeting(taskToSubmit.meetingId)
-        existingDocument = meetingDocuments.find(
-          (doc) => doc.taskId === (taskToSubmit.taskId || taskToSubmit.id)
+        existingSignedDocument = meetingDocuments.find(
+          (doc) =>
+            doc.taskId === (taskToSubmit.taskId || taskToSubmit.id) &&
+            doc.type === 'signed-form'
         )
       }
 
-      // Only create document if it doesn't already exist
-      if (!existingDocument) {
-        // Create document record for the submitted task
+      // Only create signed document if it doesn't already exist
+      if (!existingSignedDocument) {
+        // Create document record for the signed form
         const documentData = {
-          title: `${taskToSubmit.title} - Completed`,
-          description: `Document completed for task: ${taskToSubmit.title}`,
-          type: 'task-completion',
+          title: `${taskToSubmit.title} - Signed`,
+          description: `Signed document for task: ${taskToSubmit.title}`,
+          type: 'signed-form',
           file: uploadData.path, // Point to the actual stored PDF
           taskId: taskToSubmit.taskId || taskToSubmit.id,
         }
@@ -452,10 +474,9 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           )
           if (newDocument && newDocument.id) {
             // Add history entry for document completion
-            await addDocumentHistory(newDocument.id, 'Task Completed')
+            await addDocumentHistory(newDocument.id, 'UPDATED')
           }
         }
-      } else {
       }
 
       // Determine appropriate status based on task type
@@ -476,6 +497,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         try {
           await updateTaskById(taskToSubmit.id, { status: newStatus })
         } catch (error) {
+          console.error('Failed to update task status', error)
           throw error
         }
       }
@@ -513,7 +535,9 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
               overallCompletion: overallCompletion,
             },
           })
-        } catch (error) {}
+        } catch (error) {
+          console.error('Failed to update meeting completion', error)
+        }
       }
 
       // Update local task state
@@ -532,7 +556,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       setUploadFiles([])
       onClose()
     } catch (error) {
-      // TODO: Show error message to user
+      console.error('Failed to submit task', error)
     } finally {
       setIsSubmittingTask(false)
     }
@@ -555,9 +579,10 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         await addCommentToDocument(currentDocumentId, comment, {
           // TODO: Add user information from session
         })
-      } else {
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Failed to add comment to document', error)
+    }
   }
 
   const handleApprovalDrawerClose = () => {
@@ -669,6 +694,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
 
       return uploadResults
     } catch (error) {
+      console.error('Failed to upload supporting documents', error)
       throw error
     }
   }
@@ -693,8 +719,8 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         !['BetaNXT', 'DFIN'].includes(t.owner || '')
     )
 
-    // Define statuses that indicate task completion
-    const completedStatuses = [
+    // Define statuses that indicate task has been initiated/acted upon
+    const initiatedStatuses = [
       'COMPLETE',
       'AUTHORIZED',
       'SUBMITTED_AWAITING_RECORD_DATE',
@@ -703,37 +729,45 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       'PENDING_AUTHORIZATION',
     ]
 
-    // Check if all phase tasks have a completed status
-    const allPhaseTasksComplete =
+    // Check if all phase tasks have been initiated (moved out of INCOMPLETE/NEEDS_AUTHORIZATION)
+    const allPhaseTasksInitiated =
       currentPhaseTasks.length > 0 &&
-      currentPhaseTasks.every((t) => completedStatuses.includes(t.status || ''))
+      currentPhaseTasks.every((t) => initiatedStatuses.includes(t.status || ''))
 
-    if (allPhaseTasksComplete) {
+    if (allPhaseTasksInitiated) {
       // Update meeting to next phase and calculate completion percentage
       if (currentMeeting?.id) {
         try {
           const client = await buildApiClient()
 
-          // Calculate overall completion based on all tasks
+          // Calculate overall completion based on all initiated statuses except INCOMPLETE and NEEDS_AUTHORIZATION
           const allTasks = tasks
           const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status || '')
+            initiatedStatuses.includes(t.status || '')
           ).length
           const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
 
           const nextPhaseNumber = currentPhaseNumber + 1
 
+          const updatePayload = {
+            currentPhase: `Phase ${nextPhaseNumber}`,
+            overallCompletion: overallCompletion,
+          }
+
           // Update meeting phase and completion
-          await client.PUT('/meetings/{meetingId}', {
+          const updateResult = await client.PUT('/meetings/{meetingId}', {
             params: {
               path: { meetingId: currentMeeting.id },
             },
-            body: {
-              currentPhase: `Phase ${nextPhaseNumber}`,
-              overallCompletion: overallCompletion,
-            },
+            body: updatePayload,
           })
-        } catch (error) {}
+
+          if (updateResult.error) {
+            // Continue to show the alert even if the backend update fails
+          }
+        } catch (error) {
+          console.error('Failed to auto-advance meeting phase', error)
+        }
       }
 
       // Get user name and meeting title for personalized message
@@ -757,10 +791,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         const nextPhasePath = `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/dashboard/${nextPhaseNumber}`
         router.push(nextPhasePath)
       }, 3000)
-    } else {
-      const remainingTasks = currentPhaseTasks.filter(
-        (t) => t.status !== 'COMPLETE' && t.status !== 'AUTHORIZED'
-      )
     }
   }
 
@@ -848,16 +878,17 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         onTaskUpdate(updatedTask as DbTask)
       }
 
-      // Wait a bit for the update to propagate
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
       // Check if all tasks in the current phase are complete after DTCC authorization
       if (checked) {
-        // Close the drawer after authorization
-        onClose()
+        // Wait for database update and refetch before checking phase
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        await refetch()
 
-        // Check phase completion after drawer closes
+        // Check phase completion with updated task
         await checkAndCompletePhase(updatedTask)
+
+        // Close the drawer after phase check
+        onClose()
       }
     }
   }
@@ -923,17 +954,22 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
               {/* Task Details Card */}
               <Card
                 onContextMenu={handleTaskContextMenu}
-                sx={(theme) => ({
-                  p: 2,
-                  background: theme.vars.palette.tableCellRow.fill,
-                  borderLeft: `5px solid ${
-                    (currentTask || task)?.status === 'COMPLETE'
-                      ? theme.vars.palette.complete
-                      : theme.vars.palette.phase[taskPhaseNumber - 1].main
-                  }`,
-                  boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-                  cursor: 'context-menu',
-                })}
+                sx={(theme) => {
+                  const taskToUse = currentTask || task
+                  const isComplete = taskToUse?.status === 'COMPLETE'
+                  const phaseColor = `var(--mui-palette-phase-${taskPhaseNumber - 1}-main)`
+                  const borderColor = isComplete
+                    ? theme.vars.palette.complete
+                    : getStatusBorderColor(taskToUse?.status, phaseColor, muiTheme)
+
+                  return {
+                    p: 2,
+                    background: theme.vars.palette.tableCellRow.fill,
+                    borderLeft: `5px solid ${borderColor}`,
+                    boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+                    cursor: 'context-menu',
+                  }
+                }}
               >
                 <Typography
                   variant="body3"
@@ -987,12 +1023,64 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                 {taskLinks.length > 0 && (
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     {taskLinks.map((link, linkIndex) => {
-                      // Hide signature links for completed tasks
+                      const taskStatus = (currentTask || task)?.status
+                      const isCompleted = [
+                        'COMPLETE',
+                        'AUTHORIZED',
+                        'PENDING_AUTHORIZATION',
+                        'SUBMITTED_AWAITING_RECORD_DATE',
+                      ].includes(taskStatus || '')
+
+                      // For signature tasks that are completed AND have a signed document, show "View" button instead
                       if (
-                        (currentTask || task)?.status === 'COMPLETE' &&
+                        isCompleted &&
+                        hasSignedDocument &&
                         link.action === 'signature'
                       ) {
-                        return null
+                        const taskTitle =
+                          (currentTask || task)?.title?.toLowerCase() || ''
+                        const isFormTask = taskTitle.includes('form')
+                        const viewLabel = isFormTask
+                          ? 'View Signed Form'
+                          : 'View Signed Document'
+
+                        return (
+                          <Button
+                            key={linkIndex}
+                            component="button"
+                            onClick={async () => {
+                              const taskToUse = currentTask || task
+                              if (!taskToUse?.meetingId) return
+
+                              // Fetch the signed form document for this task
+                              const meetingDocuments = await getDocumentsByMeeting(
+                                taskToUse.meetingId
+                              )
+                              const signedDoc = meetingDocuments.find(
+                                (doc) =>
+                                  doc.taskId === (taskToUse.taskId || taskToUse.id) &&
+                                  doc.type === 'signed-form'
+                              )
+
+                              if (signedDoc?.filePath) {
+                                // Use the utility to get properly formatted URL
+                                const { getStoragePublicUrl } = await import(
+                                  '@/utils/documentUtils'
+                                )
+                                const documentUrl = getStoragePublicUrl(
+                                  signedDoc.filePath
+                                )
+
+                                setDocumentUrl(documentUrl)
+                                setCurrentDocumentId(signedDoc.id || '')
+                                setSignatureAreas([]) // No signature areas for view-only
+                                setDocumentViewerOpen(true)
+                              }
+                            }}
+                          >
+                            {viewLabel}
+                          </Button>
+                        )
                       }
 
                       // Make sign and download actions clickable even without direct URL
@@ -1002,21 +1090,15 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                         link.action === 'download'
 
                       return isClickable ? (
-                        <Link
+                        <Button
                           key={linkIndex}
+                          variant="outlined"
+                          color="secondary"
                           component="button"
                           onClick={() => handleLinkClick(link)}
-                          variant="body3"
-                          sx={{
-                            textDecoration: 'underline',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            p: 0,
-                          }}
                         >
                           {link.label}
-                        </Link>
+                        </Button>
                       ) : null
                     })}
                   </Stack>
@@ -1028,43 +1110,43 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                 const hasDownload = taskLinks.some((link) => link.action === 'download')
                 return hasDownload
               })() && (
-                <Box>
-                  <BNFileDropzone
-                    onFilesSelected={handleFilesSelected}
-                    onFileRejections={handleFileRejections}
-                    maxFiles={5}
-                    maxSize={3 * 1024 * 1024} // 3MB
-                    acceptedFileTypes={['.docx', '.doc', '.xlsx', '.pdf']}
-                    multiple={true}
-                    linkText={`Browse files for ${(currentTask || task)?.title}`}
-                    hasUnsupportedFiles={hasUnsupportedFiles}
-                  />
+                  <Box>
+                    <BNFileDropzone
+                      onFilesSelected={handleFilesSelected}
+                      onFileRejections={handleFileRejections}
+                      maxFiles={5}
+                      maxSize={3 * 1024 * 1024} // 3MB
+                      acceptedFileTypes={['.docx', '.doc', '.xlsx', '.pdf']}
+                      multiple={true}
+                      linkText={`Browse files for ${(currentTask || task)?.title}`}
+                      hasUnsupportedFiles={hasUnsupportedFiles}
+                    />
 
-                  {/* File Previews */}
-                  {uploadFiles.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Stack spacing={1}>
-                        {uploadFiles.map((uploadFile) => (
-                          <BNFilePreview
-                            key={uploadFile.id}
-                            file={{
-                              id: uploadFile.id,
-                              file: uploadFile.file,
-                              status: uploadFile.status as
-                                | 'uploading'
-                                | 'complete'
-                                | 'error',
-                              progress: uploadFile.progress,
-                              error: uploadFile.error,
-                            }}
-                            onRemove={handleFileRemove}
-                          />
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
-                </Box>
-              )}
+                    {/* File Previews */}
+                    {uploadFiles.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Stack spacing={1}>
+                          {uploadFiles.map((uploadFile) => (
+                            <BNFilePreview
+                              key={uploadFile.id}
+                              file={{
+                                id: uploadFile.id,
+                                file: uploadFile.file,
+                                status: uploadFile.status as
+                                  | 'uploading'
+                                  | 'complete'
+                                  | 'error',
+                                progress: uploadFile.progress,
+                                error: uploadFile.error,
+                              }}
+                              onRemove={handleFileRemove}
+                            />
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                  </Box>
+                )}
             </Stack>
           </Box>
 
@@ -1103,183 +1185,193 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       <DocumentViewer
         {...(documentViewerOpen && documentUrl
           ? {
-              // Use legacy props when we have a generated document URL (like Broadridge form)
-              open: documentViewerOpen,
-              onClose: handleDocumentViewerClose,
-              pdfUrl: documentUrl,
-              title: approvalTitle || (currentTask || task)?.title || 'Document',
-              signatureAreas: signatureAreas,
-              documentId: currentDocumentId,
-              taskId:
-                (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
-              task:
-                currentTask || task
-                  ? {
-                      id: (currentTask || task)?.id || '',
-                      task_id: (currentTask || task)?.taskId || (currentTask || task)?.id,
-                      title: (currentTask || task)?.title || 'Document',
-                      type: (currentTask || task)?.type,
-                      meeting_id: (currentTask || task)?.meetingId,
-                    }
-                  : undefined,
-              documentType: 'signature', // Ensure signature buttons show up
-              onPdfStateChange: handlePdfStateChange,
-              onSubmitSuccess: async () => {
-                // Determine appropriate status based on task type
-                let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
-                const taskTitle = ((currentTask || task)?.title || '').toLowerCase()
-
-                if (
-                  taskTitle.includes('broadridge') ||
-                  taskTitle.includes('ics access')
-                ) {
-                  newStatus = 'PENDING_AUTHORIZATION'
-                } else if (taskTitle.includes('transfer agent')) {
-                  newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-                } else if (taskTitle.includes('plan file request')) {
-                  newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-                }
-
-                // Update task status in backend
-                const taskToUpdate = currentTask || task
-                if (taskToUpdate?.id) {
-                  try {
-                    await updateTaskById(taskToUpdate.id, { status: newStatus })
-                  } catch (error) {}
-                }
-
-                // Update local task state with appropriate status
-                const updatedTask = { ...(currentTask || task), status: newStatus }
-                setCurrentTask(updatedTask)
-
-                // Notify parent component to refresh
-                if (onTaskUpdate) {
-                  onTaskUpdate(updatedTask as DbTask)
-                }
-
-                // Check if all phase 1 tasks are complete and auto-advance to phase 2
-                const taskToCheck = currentTask || task
-                if (taskToCheck?.phaseNumber === 1) {
-                  // Short delay to ensure database is updated
-                  await new Promise((resolve) => setTimeout(resolve, 500))
-
-                  // Refresh tasks to get latest status
-                  await refetch()
-
-                  // Get all phase 1 tasks (excluding BetaNXT and DFIN owned tasks)
-                  const phase1Tasks = tasks.filter(
-                    (t) =>
-                      t.phaseNumber === 1 && !['BetaNXT', 'DFIN'].includes(t.owner || '')
-                  )
-
-                  // Define statuses that indicate task completion
-                  const completedStatuses = [
-                    'COMPLETE',
-                    'AUTHORIZED',
-                    'SUBMITTED_AWAITING_RECORD_DATE',
-                    'WAITING_FOR_FORM_RETURN',
-                    'REQUEST_FORM_TO_FOLLOW',
-                    'PENDING_AUTHORIZATION',
-                  ]
-
-                  // Check if all phase 1 tasks are complete
-                  const allPhase1TasksComplete =
-                    phase1Tasks.length > 0 &&
-                    phase1Tasks.every((t) => completedStatuses.includes(t.status || ''))
-
-                  if (allPhase1TasksComplete) {
-                    // Update meeting to Phase 2 and calculate completion percentage
-                    if (currentMeeting?.id) {
-                      try {
-                        const client = await buildApiClient()
-
-                        // Calculate overall completion based on all tasks
-                        const allTasks = tasks
-                        const completedTasks = allTasks.filter((t) =>
-                          [
-                            'COMPLETE',
-                            'AUTHORIZED',
-                            'SUBMITTED_AWAITING_RECORD_DATE',
-                            'WAITING_FOR_FORM_RETURN',
-                            'REQUEST_FORM_TO_FOLLOW',
-                            'PENDING_AUTHORIZATION',
-                          ].includes(t.status || '')
-                        ).length
-                        const overallCompletion = Math.round(
-                          (completedTasks / allTasks.length) * 100
-                        )
-
-                        // Update meeting phase and completion
-                        await client.PUT('/meetings/{meetingId}', {
-                          params: {
-                            path: { meetingId: currentMeeting.id },
-                          },
-                          body: {
-                            currentPhase: 'Phase 2',
-                            overallCompletion: overallCompletion,
-                          },
-                        })
-                      } catch (error) {}
-                    }
-
-                    // Show success message using MUI Alert
-                    const userName = session?.user?.name || 'User'
-                    const meetingTitle = currentMeeting?.title || 'Shareholder Meeting'
-
-                    setPhaseCompleteAlert({
-                      open: true,
-                      title: 'Phase 1 Wrapped Up – Time for Phase 2',
-                      message: `Great news! ${userName}, you completed Phase 1 of ${meetingTitle}. You can now start Phase 2 — check the updated tasks and timelines to keep things moving smoothly.`,
-                    })
-
-                    // Close the document viewer and task drawer
-                    handleDocumentViewerClose()
-
-                    // Navigate to phase 2 after a short delay to let user see the message
-                    setTimeout(() => {
-                      onClose() // Close the task drawer
-                      const phase2Path = `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/dashboard/2`
-                      router.push(phase2Path)
-                    }, 3000)
-                  } else {
-                    const remainingTasks = phase1Tasks.filter(
-                      (t) => !completedStatuses.includes(t.status || '')
-                    )
-                  }
-                }
-
-                // Close the document viewer
-                handleDocumentViewerClose()
-              },
-            }
-          : (currentTask || task) && documentViewerOpen
-            ? {
-                // Use task-based props for regular document tasks
-                task: {
+            // Use legacy props when we have a generated document URL (like Broadridge form)
+            open: documentViewerOpen,
+            onClose: handleDocumentViewerClose,
+            fileUrl: documentUrl,
+            title: approvalTitle || (currentTask || task)?.title || 'Document',
+            signatureAreas: signatureAreas,
+            documentId: currentDocumentId,
+            taskId:
+              (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
+            task:
+              currentTask || task
+                ? {
                   id: (currentTask || task)?.id || '',
                   task_id: (currentTask || task)?.taskId || (currentTask || task)?.id,
                   title: (currentTask || task)?.title || 'Document',
                   type: (currentTask || task)?.type,
                   meeting_id: (currentTask || task)?.meetingId,
-                },
-                taskId:
-                  (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
-                onSuccess: () => {
-                  handleDocumentViewerClose()
-                  onClose() // Also close the TaskDrawer
-                },
-                onPdfStateChange: handlePdfStateChange,
+                }
+                : undefined,
+            documentType: 'signature', // Ensure signature buttons show up
+            onPdfStateChange: handlePdfStateChange,
+            onSubmitSuccess: async () => {
+              // Determine appropriate status based on task type
+              let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
+              const taskTitle = ((currentTask || task)?.title || '').toLowerCase()
+
+              if (
+                taskTitle.includes('broadridge') ||
+                taskTitle.includes('ics access')
+              ) {
+                newStatus = 'PENDING_AUTHORIZATION'
+              } else if (taskTitle.includes('transfer agent')) {
+                newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+              } else if (taskTitle.includes('plan file request')) {
+                newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
               }
+
+              // Update task status in backend
+              const taskToUpdate = currentTask || task
+              if (taskToUpdate?.id) {
+                try {
+                  await updateTaskById(taskToUpdate.id, { status: newStatus })
+                } catch (error) {
+                  console.error(
+                    'Failed to update task after document submission',
+                    error
+                  )
+                }
+              }
+
+              // Update local task state with appropriate status
+              const updatedTask = { ...(currentTask || task), status: newStatus }
+              setCurrentTask(updatedTask)
+
+              // Notify parent component to refresh
+              if (onTaskUpdate) {
+                onTaskUpdate(updatedTask as DbTask)
+              }
+
+              // Close both the DocumentViewer and TaskDrawer after successful submission
+              handleDocumentViewerClose()
+              onClose()
+
+              // Check if all phase 1 tasks are complete and auto-advance to phase 2
+              const taskToCheck = currentTask || task
+              if (taskToCheck?.phaseNumber === 1) {
+                // Short delay to ensure database is updated
+                await new Promise((resolve) => setTimeout(resolve, 500))
+
+                // Refresh tasks to get latest status
+                await refetch()
+
+                // Get all phase 1 tasks (excluding BetaNXT and DFIN owned tasks)
+                const phase1Tasks = tasks.filter(
+                  (t) =>
+                    t.phaseNumber === 1 && !['BetaNXT', 'DFIN'].includes(t.owner || '')
+                )
+
+                // Define statuses that indicate task completion
+                const completedStatuses = [
+                  'COMPLETE',
+                  'AUTHORIZED',
+                  'SUBMITTED_AWAITING_RECORD_DATE',
+                  'WAITING_FOR_FORM_RETURN',
+                  'REQUEST_FORM_TO_FOLLOW',
+                  'PENDING_AUTHORIZATION',
+                ]
+
+                // Check if all phase 1 tasks are complete
+                const allPhase1TasksComplete =
+                  phase1Tasks.length > 0 &&
+                  phase1Tasks.every((t) => completedStatuses.includes(t.status || ''))
+
+                if (allPhase1TasksComplete) {
+                  // Update meeting to Phase 2 and calculate completion percentage
+                  if (currentMeeting?.id) {
+                    try {
+                      const client = await buildApiClient()
+
+                      // Calculate overall completion based on all tasks
+                      const allTasks = tasks
+                      const completedTasks = allTasks.filter((t) =>
+                        [
+                          'COMPLETE',
+                          'AUTHORIZED',
+                          'SUBMITTED_AWAITING_RECORD_DATE',
+                          'WAITING_FOR_FORM_RETURN',
+                          'REQUEST_FORM_TO_FOLLOW',
+                          'PENDING_AUTHORIZATION',
+                        ].includes(t.status || '')
+                      ).length
+                      const overallCompletion = Math.round(
+                        (completedTasks / allTasks.length) * 100
+                      )
+
+                      // Update meeting phase and completion
+                      await client.PUT('/meetings/{meetingId}', {
+                        params: {
+                          path: { meetingId: currentMeeting.id },
+                        },
+                        body: {
+                          currentPhase: 'Phase 2',
+                          overallCompletion: overallCompletion,
+                        },
+                      })
+                    } catch (error) {
+                      console.error(
+                        'Failed to update meeting after phase 1 completion',
+                        error
+                      )
+                    }
+                  }
+
+                  // Show success message using MUI Alert
+                  const userName = session?.user?.name || 'User'
+                  const meetingTitle = currentMeeting?.title || 'Shareholder Meeting'
+
+                  setPhaseCompleteAlert({
+                    open: true,
+                    title: 'Phase 1 Wrapped Up – Time for Phase 2',
+                    message: `Great news! ${userName}, you completed Phase 1 of ${meetingTitle}. You can now start Phase 2 — check the updated tasks and timelines to keep things moving smoothly.`,
+                  })
+
+                  // Close the document viewer and task drawer
+                  handleDocumentViewerClose()
+
+                  // Navigate to phase 2 after a short delay to let user see the message
+                  setTimeout(() => {
+                    onClose() // Close the task drawer
+                    const phase2Path = `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/dashboard/2`
+                    router.push(phase2Path)
+                  }, 3000)
+                }
+              }
+
+              // Close the document viewer
+              handleDocumentViewerClose()
+            },
+          }
+          : (currentTask || task) && documentViewerOpen
+            ? {
+              // Use task-based props for regular document tasks
+              task: {
+                id: (currentTask || task)?.id || '',
+                task_id: (currentTask || task)?.taskId || (currentTask || task)?.id,
+                title: (currentTask || task)?.title || 'Document',
+                type: (currentTask || task)?.type,
+                meeting_id: (currentTask || task)?.meetingId,
+              },
+              taskId:
+                (currentTask || task)?.id || (currentTask || task)?.taskId || undefined,
+              onSuccess: () => {
+                handleDocumentViewerClose()
+                onClose() // Also close the TaskDrawer
+              },
+              onPdfStateChange: handlePdfStateChange,
+            }
             : {
-                // Fallback to legacy props
-                open: documentViewerOpen,
-                onClose: handleDocumentViewerClose,
-                pdfUrl: approvalDocumentUrl,
-                title: approvalTitle || 'Document',
-                signatureAreas: signatureAreas,
-                documentId: currentDocumentId,
-                onPdfStateChange: handlePdfStateChange,
-              })}
+              // Fallback to legacy props
+              open: documentViewerOpen,
+              onClose: handleDocumentViewerClose,
+              fileUrl: approvalDocumentUrl,
+              title: approvalTitle || 'Document',
+              signatureAreas: signatureAreas,
+              documentId: currentDocumentId,
+              onPdfStateChange: handlePdfStateChange,
+            })}
       />
 
       {/* Approval Drawer */}
@@ -1287,7 +1379,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         open={approvalDrawerOpen}
         onClose={handleApprovalDrawerClose}
         title={approvalTitle}
-        pdfUrl={approvalDocumentUrl}
+        fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
         onOpenFullscreen={handleOpenFullscreen}
         onAddComment={handleAddComment}

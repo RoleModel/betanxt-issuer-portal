@@ -1,6 +1,5 @@
 'use client'
 
-import BNFileDropzone from '@rolemodel/betanxt-design-system/components/file-upload/BNFileDropzone'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FileRejection } from 'react-dropzone'
 
@@ -29,9 +28,11 @@ import {
   Typography,
 } from '@mui/material'
 
+import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
+
 import { useDocuments } from '@/hooks/useDocuments'
 import { useTasks } from '@/hooks/useTasks'
-import type { Document, Task } from '@/types/api'
+import type { Document, Task } from '@/types/api-exports'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
 import { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
 
@@ -51,7 +52,6 @@ type TaskStatus =
   | 'Pending Approval'
   | 'Pending'
   | 'Delayed'
-  | '1/3 Reviews Complete'
   | 'Awaiting Review'
   | 'Pending Client Review'
   | 'Making Revisions'
@@ -112,7 +112,6 @@ const statusOptions: TaskStatus[] = [
   'Pending Approval',
   'Pending',
   'Delayed',
-  '1/3 Reviews Complete',
   'Awaiting Review',
   'Pending Client Review',
   'Making Revisions',

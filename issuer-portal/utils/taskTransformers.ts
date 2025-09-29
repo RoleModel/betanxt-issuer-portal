@@ -1,6 +1,6 @@
 import type { components } from '@/domain-models/generated-schema'
 
-import type { Task } from '@/types/api'
+import type { Task } from '@/types/api-exports'
 
 type ApiTask = components['schemas']['Task']
 

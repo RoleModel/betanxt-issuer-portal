@@ -10,8 +10,6 @@ import {
 } from '@react-pdf/renderer'
 import React from 'react'
 
-import { loadClientLogoAsPngBase64 } from '@/utils/clientBranding'
-
 // Register Roboto font
 Font.register({
   family: 'Roboto',
@@ -84,18 +82,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clientLogo: {
-    width: 113,
-    height: 24,
+    width: 60,
+    height: 60,
   },
   betanxtLogo: {
     width: 73,
     height: 17,
   },
   titleSection: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31, 30, 28, 0.12)',
     paddingBottom: 10,
     marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
   },
   title: {
     fontSize: 14,
@@ -113,13 +111,13 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
+    paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31, 30, 28, 0.12)',
-    paddingVertical: 8,
+    borderBottomColor: '#f5f5f5',
   },
   infoCell: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   infoLabel: {
     fontSize: 11,
@@ -136,9 +134,9 @@ const styles = StyleSheet.create({
   },
   cusipRow: {
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31, 30, 28, 0.12)',
+    borderBottomColor: '#f5f5f5',
   },
   cusipText: {
     fontSize: 11,
@@ -150,23 +148,21 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31, 30, 28, 0.12)',
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   proposalHeader: {
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31, 30, 28, 0.12)',
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
   },
   headerCell: {
     fontSize: 11,
@@ -190,10 +186,10 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   // Column widths
-  colLabel: { width: '14%' },
+  colLabel: { width: '25%' },
   colProposal: { flex: 1 },
   colVote: { width: '15%', textAlign: 'right' },
-  colPercent: { width: '15%', textAlign: 'center' },
+  colPercent: { width: '15%', textAlign: 'right' },
   colPercentRight: { width: '15%', textAlign: 'right' },
   fallbackLogo: {
     fontSize: 12,
@@ -215,36 +211,6 @@ const styles = StyleSheet.create({
     color: '#1f1e1c',
   },
 })
-
-// Helper function to load image as base64
-const loadImageAsBase64 = async (imagePath: string): Promise<string> => {
-  try {
-    const fullPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-    const response = await fetch(fullPath)
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`)
-    }
-
-    const blob = await response.blob()
-
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const result = reader.result as string
-        if (result && result.startsWith('data:')) {
-          resolve(result)
-        } else {
-          reject(new Error('Invalid image data'))
-        }
-      }
-      reader.onerror = () => reject(new Error('FileReader error'))
-      reader.readAsDataURL(blob)
-    })
-  } catch (error) {
-    throw error
-  }
-}
 
 // Format number with thousand separators and decimals
 const formatNumber = (num: number, decimals: number = 2): string => {
@@ -272,16 +238,16 @@ const formatPercent = (value: number): string => {
 interface TabulationPDFDocumentProps {
   tabulationData: TabulationData
   clientTicker?: string
-  clientLogoBase64?: string
-  betanxtLogoBase64?: string
+  clientLogoUrl?: string
+  betanxtLogoUrl?: string
 }
 
 // Tabulation PDF Document Component
 const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
   tabulationData,
-  clientTicker: _clientTicker,
-  clientLogoBase64,
-  betanxtLogoBase64,
+  clientTicker,
+  clientLogoUrl,
+  betanxtLogoUrl,
 }) => {
   const {
     companyName,
@@ -303,13 +269,19 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
         {/* Header with logos */}
         <View style={styles.header}>
           <View>
-            {clientLogoBase64 && (
-              <PDFImage style={styles.clientLogo} src={clientLogoBase64} />
+            {clientLogoUrl ? (
+              <PDFImage style={styles.clientLogo} src={clientLogoUrl} />
+            ) : (
+              <Text style={styles.fallbackLogo}>
+                {clientTicker ? `${clientTicker} Logo` : 'Client Logo'}
+              </Text>
             )}
           </View>
           <View>
-            {betanxtLogoBase64 && (
-              <PDFImage style={styles.betanxtLogo} src={betanxtLogoBase64} />
+            {betanxtLogoUrl ? (
+              <PDFImage style={styles.betanxtLogo} src={betanxtLogoUrl} />
+            ) : (
+              <Text style={styles.betanxtText}>BetaNXT</Text>
             )}
           </View>
         </View>
@@ -348,7 +320,9 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
               <Text style={styles.infoLabel}>Votes Represented for Quorum:</Text>
             </View>
             <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{formatNumber(votesRepresentedForQuorum)}</Text>
+              <Text style={styles.infoValue}>
+                {formatNumber(votesRepresentedForQuorum)}
+              </Text>
             </View>
           </View>
 
@@ -400,9 +374,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
         {/* CUSIP Information */}
         <View style={styles.cusipRow}>
-          <Text style={styles.cusipText}>
-            CUSIP(s): {cusipList || 'N/A'}
-          </Text>
+          <Text style={styles.cusipText}>CUSIP(s): {cusipList || 'N/A'}</Text>
         </View>
 
         {/* Proposals Section */}
@@ -411,9 +383,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
           <View style={styles.tableHeader}>
             <View style={styles.colLabel} />
             <View style={styles.colProposal} />
-            <Text style={[styles.headerCell, styles.colVote]}>
-              Vote{'\n'}Submitted
-            </Text>
+            <Text style={[styles.headerCell, styles.colVote]}>Vote{'\n'}Submitted</Text>
             <Text style={[styles.headerCell, styles.colPercent]}>
               % of{'\n'}Outstanding
             </Text>
@@ -478,9 +448,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                   <Text style={[styles.cell, styles.colPercent]}>
                     {formatPercent(proposal.percentAgainst)}
                   </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(0)}
-                  </Text>
+                  <Text style={[styles.cell, styles.colPercent]}>{formatPercent(0)}</Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
                     {formatPercent(0)}
                   </Text>
@@ -496,14 +464,15 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatPercent(proposal.percentAbstain)}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(1.60)}
+                    {formatPercent(1.6)}
                   </Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(1.60)}
+                    {formatPercent(1.6)}
                   </Text>
                 </View>
               </View>
-            ))) : (
+            ))
+          ) : (
             <View style={styles.tableRow}>
               <Text style={styles.cell}>No proposals to display</Text>
             </View>
@@ -522,37 +491,28 @@ export async function exportTabulationPdf(options: ExportOptions) {
   const { tabulationData, clientTicker } = options
 
   try {
-    // Load logos as base64
-    let clientLogoBase64: string | undefined
-    let betanxtLogoBase64: string | undefined
-
-    try {
-      clientLogoBase64 = await loadClientLogoAsPngBase64({ ticker: clientTicker })
-    } catch {
-      // Client logo is optional
-    }
-
-    try {
-      betanxtLogoBase64 = await loadImageAsBase64('/images/betanxt-logo.png')
-    } catch {
-      // BetaNXT logo is optional
-    }
+    // Use direct image URLs (no base64 conversion needed)
+    const clientLogoUrl = clientTicker
+      ? `/logos/${clientTicker.toLowerCase()}_logo.png`
+      : undefined
+    const betanxtLogoUrl = '/images/betanxt-logo.png'
 
     // Generate the PDF
     const pdfBlob = await pdf(
       <TabulationPDFDocument
         tabulationData={tabulationData}
         clientTicker={clientTicker}
-        clientLogoBase64={clientLogoBase64}
-        betanxtLogoBase64={betanxtLogoBase64}
+        clientLogoUrl={clientLogoUrl}
+        betanxtLogoUrl={betanxtLogoUrl}
       />
     ).toBlob()
 
     // Create download link and trigger download
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
-    const fileName = `${tabulationData.companyName.replace(/\s+/g, '_')}_Tabulation_Report_${new Date().toISOString().split('T')[0]
-      }.pdf`
+    const fileName = `${tabulationData.companyName.replace(/\s+/g, '_')}_Tabulation_Report_${
+      new Date().toISOString().split('T')[0]
+    }.pdf`
     link.href = url
     link.download = fileName
     document.body.appendChild(link)

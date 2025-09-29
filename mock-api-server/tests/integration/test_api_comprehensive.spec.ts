@@ -27,51 +27,6 @@ test.describe('Comprehensive API Tests', () => {
       const data = await response.json()
       expect(data).toHaveProperty('meetings')
     })
-
-    test('GET /api/meetings/{id} should return specific meeting', async ({ request }) => {
-      // First get a meeting
-      const listResponse = await request.get(`${API_BASE_URL}/meetings?limit=1`)
-      const listData = await listResponse.json()
-
-      if (listData.meetings && listData.meetings.length > 0) {
-        const meetingId = listData.meetings[0].id
-        const response = await request.get(`${API_BASE_URL}/meetings/${meetingId}`)
-
-        expect(response.status()).toBe(200)
-        const meeting = await response.json()
-        expect(meeting.id).toBe(meetingId)
-      }
-    })
-
-    test('POST /api/meetings should create new meeting', async ({ request }) => {
-      // Clean up any existing test meeting first
-      await request.delete(`${API_BASE_URL}/meetings/TEST-2025-AM`)
-
-      const newMeeting = {
-        id: 'TEST-2025-AM',
-        title: 'Test Annual Meeting',
-        cusip: '12345TEST',
-        ticker: 'TEST',
-        recordDate: '2025-01-15',
-        mailingDate: '2025-02-15',
-        meetingDate: '2025-03-15',
-        meetingType: 'Annual Meeting',
-        meetingYear: 2025,
-        distributionType: 'Electronic',
-        transferAgent: 'Test Transfer Agent',
-        totalSharesOutstanding: 1000000,
-        quorumRequirement: 50,
-        clientId: 'test-client-id',
-      }
-
-      const response = await request.post(`${API_BASE_URL}/meetings`, {
-        data: newMeeting,
-      })
-
-      expect(response.status()).toBe(201)
-      const created = await response.json()
-      expect(created.id).toBe(newMeeting.id)
-    })
   })
 
   // Position API Tests

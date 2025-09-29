@@ -1,9 +1,17 @@
 import { Locator, Page, expect, test } from '@playwright/test'
 
+// Simple debug logger (use DEBUG_E2E or PWDEBUG env vars to enable) to avoid lint no-console warnings
+const debug = (...args: unknown[]) => {
+  if (process.env.DEBUG_E2E) {
+    // eslint-disable-next-line no-console
+    console.log('[e2e]', ...args)
+  }
+}
+
 const DASHBOARD_URL =
-  'http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/dashboard/1'
+  'http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/dashboard/1'
 const DOCUMENTS_URL =
-  'http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents'
+  'http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/documents'
 
 async function navigateToPhase(page: Page) {
   await page.goto(DASHBOARD_URL)
@@ -36,11 +44,9 @@ async function closeTaskDrawer(page: Page) {
 async function findTaskWithSignForm(page: Page) {
   const cards = page.locator('[data-testid*="task-card"]')
   const count = await cards.count()
-  console.log(`Total task cards: ${count}`)
   for (let i = 0; i < count; i++) {
     const card = cards.nth(i)
     const rawText = (await card.textContent()) || ''
-    console.log(`Examining task card ${i}: ${rawText.replace(/\s+/g, ' ').trim()}`)
     // Quick filter: skip cards already marked Complete
     if (/Complete/i.test(rawText) && !/Needs Authorization|Incomplete/i.test(rawText)) {
       continue
@@ -52,11 +58,11 @@ async function findTaskWithSignForm(page: Page) {
         const title =
           (await card.locator('[data-testid="task-title"]').textContent()) ||
           rawText.trim()
-        return { card, drawer, title: title.trim() }
+        return { drawer, title: title.trim() }
       }
       await closeTaskDrawer(page)
     } catch (e) {
-      console.warn(`Failed opening card index ${i}: ${(e as Error).message}`)
+      debug(`Failed opening card index ${i}: ${(e as Error).message}`)
       await closeTaskDrawer(page).catch(() => {})
     }
   }
@@ -129,7 +135,7 @@ test.describe.serial('Signature Task Flow', () => {
   test('should update task status to COMPLETE after submission', async ({ page }) => {
     await navigateToPhase(page)
 
-    const { card, drawer, title } = await findTaskWithSignForm(page)
+    const { drawer, title } = await findTaskWithSignForm(page)
 
     await completeSignatureFlow(page, drawer)
     await closeTaskDrawer(page)

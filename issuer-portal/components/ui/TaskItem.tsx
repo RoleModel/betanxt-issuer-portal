@@ -1,11 +1,11 @@
 import React from 'react'
 
-import { Box, Button, Typography, styled } from '@mui/material'
+import { Box, Button, Typography, styled, useTheme } from '@mui/material'
 
-import { getPhaseColor } from '@/components/mui-styling/theme'
+import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
-import type { Task } from '@/types/api'
+import type { Task } from '@/types/api-exports'
 
 ;('use client')
 
@@ -14,8 +14,8 @@ interface TaskItemProps {
   onClick?: (task: Task) => void
 }
 
-const StyledTaskButton = styled(Button)<{ phasecolor: string }>(
-  ({ theme, phasecolor }) => ({
+const StyledTaskButton = styled(Button)<{ bordercolor: string }>(
+  ({ theme, bordercolor }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -27,17 +27,19 @@ const StyledTaskButton = styled(Button)<{ phasecolor: string }>(
     color: theme.vars.palette.text.primary,
     backgroundColor: theme.vars.palette.tableCellRow.fill,
     boxShadow: `0px 0px 0px 1px inset ${theme.vars?.palette.divider}`,
-    borderLeft: `5px solid ${phasecolor}`,
+    borderLeft: `5px solid ${bordercolor}`,
     borderRadius: theme.spacing(0.5),
     cursor: 'pointer',
     transition: theme.transitions.create(['box-shadow']),
     '&:hover': {
-      boxShadow: `0px 0px 0px 1px inset ${phasecolor}`,
+      boxShadow: `0px 0px 0px 1px inset ${bordercolor}`,
     },
   })
 )
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
+  const theme = useTheme()
+
   const transformStatus = (status: string | null | undefined): string => {
     if (!status) return 'Incomplete'
     return String(status)
@@ -60,9 +62,12 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
   // Use phase color based on phaseNumber (convert to 0-based index)
   const phaseColor = getPhaseColor((task.phaseNumber || 1) - 1)
 
+  // Get border color based on task status
+  const borderColor = getStatusBorderColor(task.status, phaseColor, theme)
+
   return (
     <StyledTaskButton
-      phasecolor={phaseColor}
+      bordercolor={borderColor}
       onClick={() => onClick?.(task)}
       role="button"
       tabIndex={0}

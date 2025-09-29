@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { Suspense, lazy, useCallback, useState } from 'react'
 
 import {
   Box,
@@ -9,6 +9,7 @@ import {
   CardActions,
   CardContent,
   CardHeader,
+  LinearProgress,
   Switch,
   Table,
   TableBody,
@@ -20,7 +21,14 @@ import {
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
+import buildApiClient from '@/domain-models/apiClient'
+import { components } from '@/domain-models/generated-schema'
+
 import { useDocuments } from '@/contexts/DocumentContext'
+
+const DocumentViewer = lazy(() => import('@/components/Documents/DocumentViewer'))
+
+type Document = components['schemas']['Document']
 
 interface DigitalShareholderMeetingCardProps {
   className?: string
@@ -36,7 +44,100 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
   const [meetingRecording, setMeetingRecording] = useState(true)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [uploadType, setUploadType] = useState<string>('')
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const { uploadDocument } = useDocuments()
+
+  // Extract year from meeting ID to find previous year's meeting
+  const getPreviousYearMeetingId = useCallback(
+    (currentMeetingId: string | undefined): string | null => {
+      if (!currentMeetingId) return null
+
+      // Parse meeting ID format: "ticker-meeting-type-year"
+      const parts = currentMeetingId.split('-')
+      if (parts.length < 3) return null
+
+      const yearStr = parts[parts.length - 1]
+      const year = parseInt(yearStr, 10)
+
+      if (isNaN(year)) return null
+
+      // Construct previous year meeting ID
+      const previousYear = year - 1
+      parts[parts.length - 1] = previousYear.toString()
+      return parts.join('-')
+    },
+    []
+  )
+
+  const handleViewLastYear = useCallback(
+    async (docType: string) => {
+      const previousMeetingId = getPreviousYearMeetingId(meetingId)
+      if (!previousMeetingId) {
+        console.warn('No previous year meeting found')
+        return
+      }
+
+      try {
+        const apiClient = await buildApiClient()
+        const { data } = await apiClient.GET('/meetings/{meetingId}/documents', {
+          params: { path: { meetingId: previousMeetingId } },
+        })
+
+        if (!data) {
+          console.warn('No documents found for previous year')
+          return
+        }
+
+        const documents = data as Document[]
+        if (Array.isArray(documents)) {
+          // Filter for DSM documents based on type
+          const dsmDocs = documents.filter((doc) => {
+            const docTypeNorm = doc.type?.toLowerCase() || ''
+            const titleNorm = doc.title?.toLowerCase() || ''
+
+            if (docType === 'Live Written Q&A') {
+              return (
+                docTypeNorm.includes('q&a') ||
+                titleNorm.includes('q&a') ||
+                titleNorm.includes('questions')
+              )
+            } else if (docType === 'Audio only') {
+              return docTypeNorm.includes('audio') || titleNorm.includes('audio')
+            } else if (docType === 'Static Slide or Presentation') {
+              return (
+                docTypeNorm.includes('slide') ||
+                docTypeNorm.includes('presentation') ||
+                titleNorm.includes('slide') ||
+                titleNorm.includes('presentation')
+              )
+            } else if (docType === 'Documents to Display') {
+              return doc.displayCategory === 'dsm' || docTypeNorm.includes('display')
+            } else if (docType === 'Meeting Recording') {
+              return (
+                docTypeNorm.includes('recording') ||
+                docTypeNorm.includes('archive') ||
+                titleNorm.includes('recording') ||
+                titleNorm.includes('archive')
+              )
+            }
+            return false
+          })
+
+          if (dsmDocs.length > 0 && dsmDocs[0]?.filePath) {
+            // Open the document in DocumentViewer
+            setSelectedDocument(dsmDocs[0])
+            setDocumentViewerOpen(true)
+          } else {
+            console.warn(`No ${docType} documents found for previous year`)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch previous year documents:', error)
+      }
+    },
+    [meetingId, getPreviousYearMeetingId]
+  )
 
   const handleUpload = (type: string) => {
     setUploadType(type)
@@ -76,30 +177,35 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       value: liveQA,
       onChange: setLiveQA,
       action: 'View Last Year',
+      onViewLastYear: () => handleViewLastYear('Live Written Q&A'),
     },
     {
       label: 'Audio only (no video)?',
       value: audioOnly,
       onChange: setAudioOnly,
       action: 'View Last Year',
+      onViewLastYear: () => handleViewLastYear('Audio only'),
     },
     {
       label: 'Static Slide or Presentation?',
       action: 'View Last Year',
       rightAction: 'Upload',
       onUpload: () => handleUpload('Static Slide or Presentation'),
+      onViewLastYear: () => handleViewLastYear('Static Slide or Presentation'),
     },
     {
       label: 'Documents to Display?',
       action: 'View Last Year',
       rightAction: 'Upload',
       onUpload: () => handleUpload('Documents to Display'),
+      onViewLastYear: () => handleViewLastYear('Documents to Display'),
     },
     {
       label: 'Meeting Recording?',
       value: meetingRecording,
       onChange: setMeetingRecording,
       action: 'View Last Year',
+      onViewLastYear: () => handleViewLastYear('Meeting Recording'),
     },
   ]
 
@@ -130,7 +236,11 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                 <TableCell>{option.label}</TableCell>
                 {option.action && (
                   <TableCell align="right">
-                    <Button variant="text" sx={{ textTransform: 'none' }}>
+                    <Button
+                      variant="text"
+                      sx={{ textTransform: 'none' }}
+                      onClick={option.onViewLastYear}
+                    >
                       {option.action}
                     </Button>
                   </TableCell>
@@ -182,6 +292,21 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         meetingId={meetingId}
         documentType={uploadType}
       />
+
+      {selectedDocument && selectedDocument.filePath && (
+        <Suspense fallback={<LinearProgress />}>
+          <DocumentViewer
+            open={documentViewerOpen}
+            onClose={() => {
+              setDocumentViewerOpen(false)
+              setSelectedDocument(null)
+            }}
+            fileUrl={selectedDocument.filePath}
+            title={selectedDocument.title}
+            documentId={selectedDocument.id}
+          />
+        </Suspense>
+      )}
     </Card>
   )
 }

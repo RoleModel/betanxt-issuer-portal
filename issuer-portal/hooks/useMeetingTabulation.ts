@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
+
 import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 // Type for normalized position with guaranteed fields
@@ -26,7 +27,11 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
     voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
-    votingSource: asString(record.votingSource) || asString(record.voting_source) || asString(record.source),
+    votingSource:
+      asString(record.votingSource) ||
+      asString(record.voting_source) ||
+      asString(record.source) ||
+      undefined,
   }
 }
 
@@ -84,13 +89,9 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       }
 
       const meetingTitle =
-        asString(meetingRecord.title) ??
-        asString(meetingRecord.meetingTitle) ??
-        'Meeting'
+        asString(meetingRecord.title) ?? asString(meetingRecord.meetingTitle) ?? 'Meeting'
       const meetingDate =
-        asString(meetingRecord.date) ??
-        asString(meetingRecord.meetingDate) ??
-        ''
+        asString(meetingRecord.date) ?? asString(meetingRecord.meetingDate) ?? ''
       const meetingStatus = asString(meetingRecord.status) ?? 'active'
 
       // Fetch positions to calculate tabulation
@@ -143,9 +144,9 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
         const phasesResult = await apiClient.GET('/meetings/{meetingId}/phases', {
           params: { path: { meetingId } },
         })
-        const phases = asArray(asRecord(phasesResult.data)?.phases ?? phasesResult.data).map(
-          (phase) => asRecord(phase)
-        )
+        const phases = asArray(
+          asRecord(phasesResult.data)?.phases ?? phasesResult.data
+        ).map((phase) => asRecord(phase))
 
         // Find the next phase date
         const today = new Date().toISOString().split('T')[0]

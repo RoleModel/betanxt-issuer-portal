@@ -5,6 +5,6 @@ export default async function Layout({
   children: React.ReactNode
   params: Promise<{ clientTicker: string; meetingId: string }>
 }) {
-  const { clientTicker: _clientTicker, meetingId: _meetingId } = await params
+  await params
   return children
 }

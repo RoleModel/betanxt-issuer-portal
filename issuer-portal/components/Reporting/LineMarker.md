@@ -17,6 +17,7 @@ A custom marker component for MUI X Charts based on the `LineMarker.svg` design.
 import { createLineMarkerElement } from './LineMarker'
 
 // In your chart component
+
 ;<MarkPlot
   slots={{
     mark: createLineMarkerElement({

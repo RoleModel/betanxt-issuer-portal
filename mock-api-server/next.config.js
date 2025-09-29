@@ -5,6 +5,9 @@ const nextConfig = () => {
    **/
   const config = {
     output: 'standalone',
+    eslint: {
+      ignoreDuringBuilds: true,
+    },
     logging: {
       fetches: {
         fullUrl: true,

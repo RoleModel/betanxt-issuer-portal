@@ -9,8 +9,13 @@ import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/ma
 import RevisionRequestDialog from '@/components/Documents/RevisionRequestDialog'
 import StatusChip from '@/components/ui/StatusChip'
 
+import buildApiClient from '@/domain-models/apiClient'
+import { components } from '@/domain-models/generated-schema'
+
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
+
+type Document = components['schemas']['Document']
 
 const DocumentViewer = dynamic(() => import('@/components/Documents/DocumentViewer'), {
   ssr: false,
@@ -65,22 +70,35 @@ export default function DocumentSiteCard() {
 
       try {
         // Query documents table for hosting site document
-        const response = await fetch(
-          `/api/documents?meeting_id=${currentMeeting.id}&type=HOSTING_SITE`
-        )
-        if (response.ok) {
-          const documents = await response.json()
-          if (documents && documents.length > 0) {
-            const doc = documents[0]
+        const apiClient = await buildApiClient()
+        const response = (await apiClient.GET('/meetings/{meetingId}/documents', {
+          params: { path: { meetingId: currentMeeting.id } },
+        })) as { data?: Document[]; error?: unknown }
+
+        if (!response.error && response.data) {
+          // Filter for HOSTING_SITE documents
+          const documents = response.data
+          const hostingDocs = documents.filter(
+            (d) => d.type === 'HOSTING_SITE' || d.type === 'hosting_site'
+          )
+          if (hostingDocs && hostingDocs.length > 0) {
+            const doc = hostingDocs[0]
+            const mappedStatus: HostingSiteStatusData['status'] =
+              doc.status === 'APPROVED'
+                ? 'Approved'
+                : doc.status === 'IN_PROGRESS' || doc.status === 'AWAITING_REVIEW'
+                  ? 'Pending Review'
+                  : 'Incomplete'
+
             setHostingSiteStatus({
               id: doc.id,
-              meeting_id: doc.meeting_id || doc.meetingId,
-              status: doc.status || 'Incomplete',
-              site_url: doc.file_path || doc.filePath,
-              approved_by: doc.approved_by || doc.approvedBy,
-              approved_at: doc.approved_at || doc.approvedAt,
-              created_at: doc.created_at || doc.createdAt,
-              updated_at: doc.updated_at || doc.updatedAt,
+              meeting_id: doc.meetingId || '',
+              status: mappedStatus,
+              site_url: doc.filePath || null,
+              approved_by: null,
+              approved_at: null,
+              created_at: doc.createdAt,
+              updated_at: doc.updatedAt,
               test_control_number: '123456782',
             })
           } else {
@@ -93,12 +111,12 @@ export default function DocumentSiteCard() {
           }
         }
       } catch (error) {
+        console.error('Failed to fetch hosting site status', error)
         setHostingSiteStatus({
           meeting_id: currentMeeting.id,
           status: 'Incomplete',
           test_control_number: '123456782',
         })
-      } finally {
       }
     }
 
@@ -172,6 +190,7 @@ export default function DocumentSiteCard() {
         }
       }
     } catch (error) {
+      console.error('Failed to persist hosting site status', error)
       throw error
     }
   }
@@ -220,6 +239,7 @@ export default function DocumentSiteCard() {
         throw new Error('Failed to submit revision request')
       }
     } catch (error) {
+      console.error('Failed to submit hosting site revision request', error)
       throw error
     }
   }
@@ -232,7 +252,7 @@ export default function DocumentSiteCard() {
       })
       setHostingSiteViewerOpen(false)
     } catch (err) {
-      // Error already logged in updateHostingSiteStatus
+      console.error('Failed to approve hosting site', err)
     }
   }
 
@@ -292,7 +312,7 @@ export default function DocumentSiteCard() {
       <DocumentViewer
         open={hostingSiteViewerOpen}
         onClose={handleHostingSiteViewerClose}
-        pdfUrl={viewerUrl || ''}
+        fileUrl={viewerUrl || ''}
         title="Document Hosting Site"
         isWebsiteView={true}
         onApproveSite={handleApproveSite}

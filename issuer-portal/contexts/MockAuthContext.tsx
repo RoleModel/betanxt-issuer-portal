@@ -62,6 +62,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
       // For now, return true if we have mock credentials
       return username === 'admin' && password === 'admin'
     } catch (error) {
+      console.error('Login failed in MockAuthContext', error)
       return false
     }
   }
@@ -71,7 +72,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
       // This would typically call the NextAuth signOut function
       setUser(null)
     } catch (error) {
-      // Handle logout error
+      console.error('Logout failed in MockAuthContext', error)
     }
   }
 
@@ -98,7 +99,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
         throw new Error('Failed to switch client')
       }
     } catch (error) {
-      // Handle error - maybe show a toast notification
+      console.error('Client switch failed in MockAuthContext', error)
     }
   }
 

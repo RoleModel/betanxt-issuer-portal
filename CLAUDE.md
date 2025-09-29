@@ -42,13 +42,20 @@ This is a Turborepo workspace with two main applications:
 
 ### Schema-Driven Development Workflow
 
-**IMPORTANT**: Always follow this flow when making API changes:
+**CRITICAL**: Always follow this exact flow when making API/data changes:
 
 1. **Update OpenAPI spec**: Edit `mock-api-server/openapi-schema/openapi.yaml`
 2. **Generate database schema**: `npm run generate:postgres-schema` (creates SQL migrations)
-3. **Generate seed data**: `npm run generate:seeds` (creates seed.sql)
+3. **Generate seed data** (optional): `npm run generate:seeds` (creates seed.sql)
 4. **Reset database**: `supabase db reset` (applies migrations and seeds)
 5. **Generate types**: `npm run generate:db-types` && `npm run generate:api-types`
+6. **MANUALLY update domain transforms**: Update `mock-api-server/domain-models/api/*.ts` to handle snake_case→camelCase conversions for new fields
+
+**Common Pitfall**: Missing step 6 causes silent data loss. Every new OpenAPI field must appear in:
+- DB migration (auto-generated)
+- Generated types (auto-generated)
+- Domain model transforms (MANUAL)
+- Any create/update functions (MANUAL)
 
 ### Testing
 
@@ -225,18 +232,54 @@ import './styles.css'
 - **Meetings**: Shareholder meetings with proposals to vote on
 - **Votes**: Position-based voting decisions (For/Against/Abstain)
 
-### Document Workflow
+### Meeting Phase System
 
-- **Document Upload**: PDF documents for signature
-- **Signature Collection**: Multiple signers per document
-- **Status Tracking**: Draft → Pending → Completed workflow
-- **Audit Trail**: Full history of document interactions
+**Phase Advancement Logic** (`TaskDrawer.tsx:676-776`):
+- Meetings progress through numbered phases (Phase 1, Phase 2, etc.)
+- Phase advances automatically when ALL issuer-owned tasks (excluding BetaNXT/DFIN) reach completion statuses
+- **Completion statuses**: `COMPLETE`, `AUTHORIZED`, `SUBMITTED_AWAITING_RECORD_DATE`, `WAITING_FOR_FORM_RETURN`, `REQUEST_FORM_TO_FOLLOW`, `PENDING_AUTHORIZATION`
+- On phase advance: Meeting's `currentPhase` and `overallCompletion` are updated via API
+- User sees personalized alert and is auto-navigated to next phase dashboard after 3 seconds
+
+**Overall Completion Calculation** (`MeetingCompletion.ts`):
+- Percentage = (tasks with completion status / total tasks) × 100
+- Excludes `INCOMPLETE` and `NEEDS_AUTHORIZATION` from count
+- Updated after task status changes and phase transitions
+
+### Document Repository Architecture
+
+**Three-tier system** (`issuer-portal/components/Documents/README.md`):
+
+1. **Metadata Tables** (Supabase):
+   - `documents` - canonical document records (one per logical document)
+   - `document_versions` - immutable version history (each upload/edit)
+   - `document_history` - audit trail (approval, signature, status changes)
+
+2. **Storage Bucket**: Consolidated `documents` bucket with path pattern: `{meetingId}/{documentType}/{timestamp}_{rand}.{ext}`
+
+3. **Repository Pattern** (`domain-models/documentRepository.ts`):
+   - Abstracts API vs direct Supabase queries
+   - Preference order: OpenAPI endpoints → Direct Supabase fallback
+   - Upload route: `/api/documents/types/{documentType}/upload` (multipart POST)
+
+**Document Upload Flow**:
+- Frontend uses `useDocuments` hook → calls `uploadDocumentVersion(meetingId, documentType, file)`
+- Server route validates size (≤25MB), uploads to storage, returns provisional response
+- Future enhancement: Will insert canonical + version rows in single transaction
+
+**Signature Workflow** (`DocumentViewer.tsx`):
+- PDF rendered with `react-pdf`, overlayed with draggable `SignatureArea` components
+- Text/date fields use `FormFieldArea`, signatures use `DraggableSignatureArea`
+- Field type detection: IDs containing 'sig' or labels with 'signature' → signature field, otherwise → text/date
+- Submit button activates when all areas have values (checked via `signatureDataMap` for signatures, `formFieldValues` for text/date)
+- On submit: PDF generated with embedded data, uploaded to storage, document record created, task status updated
+
+**RLS Status**: Currently disabled for rapid development. Future migration will enable with role-based policies.
 
 ---
 
 **Node Version**: 22.15.x (enforced via engines)
 **Package Manager**: npm 10.9.3
-**Last Updated**: September 16, 2025
-
-- DO NOT USE ANY type ASSERTIONS
-- Front end doesn't define types
+**Last Updated**: September 26, 2025
+- Do not use 'any' type assetions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won’t type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
+- **CRITICAL** Do not use ANY type inferences.

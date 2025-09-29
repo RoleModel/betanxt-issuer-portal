@@ -1,6 +1,6 @@
 'use client'
 
-import React, { Suspense } from 'react'
+import React from 'react'
 
 import { Grid } from '@mui/material'
 
@@ -8,7 +8,7 @@ import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
 import TaskCard from '@/components/Meeting/TaskCard'
 
-import type { Document, Meeting } from '@/types/api'
+import type { Document, Meeting } from '@/types/api-exports'
 
 interface Phase2LayoutProps {
   meetingId?: string
@@ -17,17 +17,11 @@ interface Phase2LayoutProps {
   phase?: number
 }
 
-export default function Phase2Layout({
-  meetingId,
-  meeting,
-  phase = 2,
-}: Phase2LayoutProps) {
+function Phase2Layout({ meetingId, meeting, phase = 2 }: Phase2LayoutProps) {
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 12 }}>
-        <Suspense>
-          <KeyDatesCard meeting={meeting} />
-        </Suspense>
+        <KeyDatesCard meeting={meeting} />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
@@ -38,3 +32,5 @@ export default function Phase2Layout({
     </Grid>
   )
 }
+
+export default Phase2Layout
