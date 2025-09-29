@@ -4,6 +4,7 @@ import React from 'react'
 
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { LineChart } from '@mui/x-charts'
+import { CustomLegend } from './index'
 
 interface DirectorVotingData {
   year: number
@@ -58,6 +59,12 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   const againstVotes = sortedData.map((d) => d.againstPercentage)
   const abstainVotes = sortedData.map((d) => d.abstainPercentage)
 
+  const legendItems = [
+    { label: 'For', color: 'var(--mui-palette-chartSeries-1-main)', type: 'line' as const },
+    { label: 'Against', color: 'var(--mui-palette-chartSeries-5-main)', type: 'line' as const },
+    { label: 'Abstain', color: 'var(--mui-palette-chartSeries-2-main)', type: 'line' as const },
+  ]
+
   return (
     <Box>
       <LineChart
@@ -102,13 +109,11 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
         ]}
         margin={{ left: 20, right: 20, top: 20, bottom: 0 }}
         grid={{ vertical: true, horizontal: true }}
-        slotProps={{
-          legend: {
-            direction: 'horizontal',
-            position: { vertical: 'bottom', horizontal: 'center' },
-          },
+        slots={{
+          legend: () => null,
         }}
       />
+      <CustomLegend items={legendItems} />
     </Box>
   )
 }

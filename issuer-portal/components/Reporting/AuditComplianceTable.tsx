@@ -91,7 +91,7 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
                         component={NextLink}
                         href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
                       >
-                        <Typography variant="body2" noWrap>
+                        <Typography variant="body2" fontWeight={500} noWrap>
                           {row.event}
                         </Typography>
                       </MuiLink>

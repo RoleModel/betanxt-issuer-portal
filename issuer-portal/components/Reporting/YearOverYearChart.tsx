@@ -53,6 +53,16 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
     )
   }
 
+  if (!data || data.length === 0) {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
+        <Typography variant="body1" color="text.secondary">
+          No year over year data available
+        </Typography>
+      </Box>
+    )
+  }
+
   const years = data.map((item) => String(item.year))
   const participationRates = data.map((item) => item.participationRate)
   const passedCounts = data.map((item) => item.passedCount)
@@ -111,7 +121,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         },
       ]}
       height={300}
-      margin={{ left: 10, right: 60, top: 0, bottom: 0 }}
+      margin={{ left: 10, right: 60, top: 10, bottom: 0 }}
     >
       <ChartsSurface>
         <ChartsGrid vertical horizontal />

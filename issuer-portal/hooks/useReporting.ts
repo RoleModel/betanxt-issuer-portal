@@ -124,7 +124,7 @@ interface MappedAuditComplianceData {
   finalCertified: string
 }
 
-const fetcher = async (clientTicker: string) => {
+const fetcher = async (clientTicker: string): Promise<ReportingData> => {
   try {
     // ticker provided directly by SWR
     // Fetch all meetings for the ticker
@@ -173,14 +173,9 @@ const fetcher = async (clientTicker: string) => {
       return meetingYear && meetingYear <= currentYear
     })
 
-    // Most meetings should already be completed from the API calls, but filter just in case
-    // For now, let's be more permissive to see all meetings in reporting
+    // Filter to only completed meetings for reporting
     const completedMeetings = allMeetings.filter(
-      (meeting) =>
-        meeting.status === 'COMPLETE' ||
-        meeting.status === 'ACTIVE' ||
-        (meeting.meetingDate && new Date(meeting.meetingDate) < new Date()) ||
-        !meeting.status // Include meetings without status for debugging
+      (meeting) => meeting.status === 'COMPLETE'
     )
 
     // OPTIMIZATION 2: Parallel fetch of proposals and positions for completed meetings only
@@ -205,7 +200,7 @@ const fetcher = async (clientTicker: string) => {
         })
 
         return result
-      } catch (error) {
+      } catch (_error) {
         return { data: [] as Position[] }
       }
     })
@@ -286,25 +281,25 @@ const fetcher = async (clientTicker: string) => {
         allProposals,
         allPositions
       )
-    } catch (error) {
+    } catch (_error) {
       mappedEventSummary = []
     }
 
     try {
       mappedYearOverYear = transformYearOverYearData(yearOverYearData)
-    } catch (error) {
+    } catch (_error) {
       mappedYearOverYear = []
     }
 
     try {
       mappedProposalPerformanceData = transformProposalPerformanceData(allProposals)
-    } catch (error) {
+    } catch (_error) {
       mappedProposalPerformanceData = []
     }
 
     try {
       mappedAuditComplianceData = transformAuditComplianceData(auditComplianceData)
-    } catch (error) {
+    } catch (_error) {
       mappedAuditComplianceData = []
     }
 
@@ -358,8 +353,6 @@ export function useReporting(clientTicker: string) {
 // Helper calculation functions
 function calculateDirectorPerformance(proposals: Proposal[]): DirectorPerformanceData[] {
   // Log unique proposal types
-  const uniqueTypes = [...new Set(proposals.map((p) => p.proposalType))].filter(Boolean)
-
   const directorProposals = proposals.filter(
     (p) =>
       p.proposalType === 'Director Election' ||
@@ -626,18 +619,6 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
       })
       .sort((a, b) => a.date.getTime() - b.date.getTime())
 
-    let quorumDate: Date | null = null
-    if (datedVotes.length > 0 && requiredShares > 0) {
-      let cumulative = 0
-      for (const v of datedVotes) {
-        cumulative += v.shares
-        if (cumulative >= requiredShares) {
-          quorumDate = v.date
-          break
-        }
-      }
-    }
-
     // Calculate days to quorum: from first vote date to meeting date
     let daysToQuorum: number | null = null
     if (datedVotes.length > 0 && meeting.meetingDate) {
@@ -782,7 +763,7 @@ function transformEventSummaryData(
       }
 
       results.push(result)
-    } catch (error) {}
+    } catch {}
   }
 
   return results

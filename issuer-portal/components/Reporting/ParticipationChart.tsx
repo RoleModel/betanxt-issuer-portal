@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { Box, CircularProgress } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
 
 interface ParticipationData {
@@ -25,7 +25,31 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   title: _title = 'Voting Method Distribution',
 }) => {
   if (loading) {
-    return <CircularProgress />
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        height={300}
+        gap={2}
+      >
+        <CircularProgress />
+        <Typography variant="body2" color="text.secondary">
+          Loading participation data...
+        </Typography>
+      </Box>
+    )
+  }
+
+  if (!data.meetings || data.meetings.length === 0) {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
+        <Typography variant="body1" color="text.secondary">
+          No participation data available
+        </Typography>
+      </Box>
+    )
   }
 
   // Normalize dataset to use dataKey mapping (avoids index misalignment in tooltips/hover)
@@ -47,7 +71,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   const indices = years.map((_, i) => i)
 
   return (
-    <Box height={300}>
+    <Box height={300} width="100%">
       <BarChart
         dataset={undefined}
         grid={{ horizontal: true, vertical: true }}

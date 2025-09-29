@@ -105,12 +105,12 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                           component={NextLink}
                           href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
                         >
-                          <Typography variant="body2" noWrap>
+                          <Typography variant="body2" fontWeight={500} noWrap>
                             {displayTitle}
                           </Typography>
                         </MuiLink>
                       ) : (
-                        <Typography variant="body2" noWrap>
+                        <Typography variant="body2" fontWeight={500} noWrap>
                           {displayTitle}
                         </Typography>
                       )}
