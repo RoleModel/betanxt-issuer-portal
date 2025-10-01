@@ -1,11 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import {
   Box,
   Button,
   Card,
+  CardActions,
   CardContent,
   CardHeader,
   Switch,
@@ -20,7 +22,12 @@ import {
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
-import { useDocuments } from '@/contexts/DocumentContext'
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
+import { useMeeting } from '@/contexts/MeetingContext'
+import { useDocuments } from '@/hooks/useDocuments'
+
+type DSMConfig = components['schemas']['DSMConfig']
 
 interface MeetingAccessItem {
   label: string
@@ -44,7 +51,12 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
   const [ioe, setIoe] = useState(true)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [uploadType, setUploadType] = useState<string>('')
-  const { uploadDocument } = useDocuments()
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({}) // label -> documentId
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [_isConfirmed, setIsConfirmed] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { uploadDSMDocument, getDocumentsByMeeting } = useDocuments()
+  const { currentMeeting } = useMeeting()
 
   // Mock data matching the Figma design
   const accessItems: MeetingAccessItem[] = [
@@ -101,31 +113,147 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
     setUploadDialogOpen(true)
   }
 
-  const handleUploadComplete = async (
-    files: File[],
-    associations?: { [fileId: string]: string }
-  ) => {
-    if (!meetingId) return
-    try {
-      // Create associations based on upload type to link to DSM placeholders
-      const typeAssociations: { [fileId: string]: string } = {}
+  // Load DSM config and existing uploaded documents on mount
+  useEffect(() => {
+    const loadData = async () => {
+      const activeMeetingId = meetingId || currentMeeting?.id
+      if (!activeMeetingId) return
 
-      files.forEach((file, index) => {
-        const fileId = `file_${index}`
-        if (uploadType === 'Speaker List') {
-          typeAssociations[fileId] = 'placeholder-speaker-list'
-        } else if (uploadType === 'Guest Link Registration') {
-          typeAssociations[fileId] = 'placeholder-guest-registration'
+      try {
+        setIsLoading(true)
+
+        // Fetch DSM config
+        const apiClient = await buildApiClient()
+        const { data: dsmData, error: dsmError } = await apiClient.GET('/meetings/{meetingId}/dsm-config', {
+          params: { path: { meetingId: activeMeetingId } },
+        })
+
+        if (!dsmError && dsmData) {
+          setDsm(dsmData.dsmEnabled ?? true)
+          setIoe(dsmData.ioeEnabled ?? true)
+          setIsConfirmed(dsmData.isConfirmed || false)
+
+          if (dsmData.isConfirmed) {
+            setIsEditMode(false)
+          } else {
+            setIsEditMode(true)
+          }
         }
-      })
 
-      // Merge with any existing associations
-      const finalAssociations = { ...associations, ...typeAssociations }
+        // Load uploaded documents
+        const docs = await getDocumentsByMeeting(activeMeetingId)
+        const uploaded: Record<string, string> = {}
 
-      await uploadDocument(meetingId, files, 'dsm-document', finalAssociations)
+        docs.forEach((doc) => {
+          if (doc.title === 'Speaker List') {
+            uploaded['Speaker List'] = doc.id || ''
+          } else if (doc.title === 'Guest Link Registration') {
+            uploaded['Guest Link Registration'] = doc.id || ''
+          }
+        })
+
+        setUploadedDocs(uploaded)
+      } catch (error) {
+        console.error('Error loading data:', error)
+        setIsEditMode(true)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
+  }, [meetingId, currentMeeting?.id, getDocumentsByMeeting])
+
+  const handleUploadComplete = async (files: File[]) => {
+    const activeMeetingId = meetingId || currentMeeting?.id
+    if (!activeMeetingId || files.length === 0) return
+
+    try {
+      const file = files[0]
+      const result = await uploadDSMDocument(activeMeetingId, uploadType, file)
+
+      if (result?.id) {
+        setUploadedDocs((prev) => ({
+          ...prev,
+          [uploadType]: result.id || '',
+        }))
+      }
+
+      setUploadDialogOpen(false)
     } catch (error) {
       console.error('Upload failed:', error)
     }
+  }
+
+  const handleDelete = async (label: string) => {
+    // TODO: Implement delete functionality when needed
+    setUploadedDocs((prev) => {
+      const updated = { ...prev }
+      delete updated[label]
+      return updated
+    })
+  }
+
+  const handleConfirm = async () => {
+    const activeMeetingId = meetingId || currentMeeting?.id
+    if (!activeMeetingId) return
+
+    try {
+      setIsLoading(true)
+      const apiClient = await buildApiClient()
+
+      const config: Partial<DSMConfig> = {
+        meetingId: activeMeetingId,
+        dsmEnabled: dsm,
+        ioeEnabled: ioe,
+        dsmProducerName: 'Tim Burton',
+        dsmProducerEmail: 'tim.burton@betanxt.com',
+        inspectorName: 'Marsha Waters',
+        inspectorEmail: 'marsh.waters@betanxt.com',
+        speakerListDocId: uploadedDocs['Speaker List'] || undefined,
+        guestLinkRegistrationDocId: uploadedDocs['Guest Link Registration'] || undefined,
+        isConfirmed: true,
+      }
+
+      const { data, error } = await apiClient.POST('/meetings/{meetingId}/dsm-config', {
+        params: { path: { meetingId: activeMeetingId } },
+        body: config as DSMConfig,
+      })
+
+      if (!error && data) {
+        setIsConfirmed(true)
+        setIsEditMode(false)
+      }
+    } catch (error) {
+      console.error('Error saving config:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEdit = () => {
+    setIsEditMode(true)
+  }
+
+  const handleCancel = async () => {
+    const activeMeetingId = meetingId || currentMeeting?.id
+    if (!activeMeetingId) return
+
+    try {
+      const apiClient = await buildApiClient()
+      const { data } = await apiClient.GET('/meetings/{meetingId}/dsm-config', {
+        params: { path: { meetingId: activeMeetingId } },
+      })
+
+      if (data) {
+        setDsm(data.dsmEnabled ?? true)
+        setIoe(data.ioeEnabled ?? true)
+      }
+    } catch (error) {
+      console.error('Error reloading config:', error)
+    }
+
+    setIsEditMode(false)
   }
 
   return (
@@ -176,6 +304,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                         checked={item.value || false}
                         onChange={(e) => handleToggle(item.label, e.target.checked)}
                         size="small"
+                        disabled={!isEditMode}
                       />
                       <Typography variant="body2">Yes</Typography>
                     </Box>
@@ -197,9 +326,29 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                   )}
 
                   {item.type === 'upload' && (
-                    <Button variant="text" onClick={() => handleUpload(item.label)}>
-                      Upload
-                    </Button>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      {uploadedDocs[item.label] && (
+                        <CheckCircleIcon color="success" sx={{ fontSize: 20 }} />
+                      )}
+                      <Button
+                        variant="text"
+                        onClick={() =>
+                          uploadedDocs[item.label]
+                            ? handleDelete(item.label)
+                            : handleUpload(item.label)
+                        }
+                        disabled={!isEditMode}
+                      >
+                        {uploadedDocs[item.label] ? 'Delete' : 'Upload'}
+                      </Button>
+                    </Box>
                   )}
                 </TableCell>
               </TableRow>
@@ -207,6 +356,30 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
           </TableBody>
         </Table>
       </CardContent>
+
+      <CardActions sx={{ justifyContent: 'flex-end', gap: 1 }}>
+        {isEditMode ? (
+          <>
+            {_isConfirmed && (
+              <Button variant="text" sx={{ textTransform: 'none' }} onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              sx={{ textTransform: 'none' }}
+              onClick={handleConfirm}
+              disabled={isLoading}
+            >
+              Confirm
+            </Button>
+          </>
+        ) : (
+          <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handleEdit}>
+            Edit
+          </Button>
+        )}
+      </CardActions>
 
       <FileUploadDialog
         open={uploadDialogOpen}
