@@ -502,6 +502,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/meetings/{meetingId}/dsm-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get DSM configuration for a meeting */
+        get: operations["getDSMConfig"];
+        /** Update DSM configuration */
+        put: operations["updateDSMConfig"];
+        /** Create or update DSM configuration */
+        post: operations["createOrUpdateDSMConfig"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/positions": {
         parameters: {
             query?: never;
@@ -579,6 +598,24 @@ export interface paths {
         get: operations["getMailingStatistics"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/digital-shareholder-meeting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get digital shareholder meeting attendees */
+        get: operations["getDigitalShareholderMeeting"];
+        put?: never;
+        /** Bulk create digital shareholder meeting attendees */
+        post: operations["createDigitalShareholderMeetingAttendees"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1626,6 +1663,76 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        DigitalShareholderMeeting: {
+            /** Format: uuid */
+            id?: string;
+            meetingId?: string;
+            /** @enum {string} */
+            registrantType?: "Shareholder" | "Guest" | "Proxy" | "Other";
+            firstName?: string;
+            lastName?: string;
+            /** Format: email */
+            emailAddress?: string;
+            /** @description Pre-meeting questions submitted during registration */
+            registrationQuestions?: string | null;
+            /** @description Minutes attended in the meeting */
+            minutesAttendedMeeting?: number | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        DSMConfig: {
+            /** Format: uuid */
+            id?: string;
+            meetingId?: string;
+            /** @default false */
+            liveQa: boolean;
+            /** @default false */
+            audioOnly: boolean;
+            /** @default false */
+            meetingRecording: boolean;
+            staticSlideDocId?: string | null;
+            displayDocsDocId?: string | null;
+            /** @default false */
+            isConfirmed: boolean;
+            /** Format: date-time */
+            logisticsCallDate?: string | null;
+            logisticsCallNotes?: string | null;
+            /** @default false */
+            logisticsCallScheduled: boolean;
+            /** Format: date-time */
+            dryRunDate?: string | null;
+            dryRunNotes?: string | null;
+            /** @default false */
+            dryRunScheduled: boolean;
+            /** @default true */
+            dsmEnabled: boolean;
+            /** @default true */
+            ioeEnabled: boolean;
+            dsmProducerName?: string | null;
+            /** Format: email */
+            dsmProducerEmail?: string | null;
+            inspectorName?: string | null;
+            /** Format: email */
+            inspectorEmail?: string | null;
+            speakerListDocId?: string | null;
+            guestLinkRegistrationDocId?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CreateDigitalShareholderMeetingRequest: {
+            /** @enum {string} */
+            registrantType: "Shareholder" | "Guest" | "Proxy" | "Other";
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            emailAddress: string;
+            registrationQuestions?: string | null;
+            minutesAttendedMeeting?: number | null;
         };
         TabulationReport: {
             /**
@@ -3099,6 +3206,84 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    getDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description DSM configuration retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DSMConfig"];
+            };
+        };
+        responses: {
+            /** @description DSM configuration updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createOrUpdateDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DSMConfig"];
+            };
+        };
+        responses: {
+            /** @description DSM configuration saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
     listPositions: {
         parameters: {
             query?: {
@@ -3264,6 +3449,59 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    getDigitalShareholderMeeting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Meeting ID */
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Digital shareholder meeting data retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createDigitalShareholderMeetingAttendees: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDigitalShareholderMeetingRequest"][];
+            };
+        };
+        responses: {
+            /** @description Attendees created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     listProposals: {

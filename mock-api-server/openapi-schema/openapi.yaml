@@ -1485,6 +1485,82 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # DSM Configuration Endpoints
+  /meetings/{meetingId}/dsm-config:
+    get:
+      operationId: getDSMConfig
+      summary: Get DSM configuration for a meeting
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DSM configuration retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createOrUpdateDSMConfig
+      summary: Create or update DSM configuration
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DSMConfig'
+      responses:
+        '200':
+          description: DSM configuration saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    put:
+      operationId: updateDSMConfig
+      summary: Update DSM configuration
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DSMConfig'
+      responses:
+        '200':
+          description: DSM configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   # Position Management Endpoints (Supabase PostgREST)
   /positions:
     get:
@@ -1681,6 +1757,64 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /meetings/{meetingId}/digital-shareholder-meeting:
+    get:
+      operationId: getDigitalShareholderMeeting
+      summary: Get digital shareholder meeting attendees
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Meeting ID
+      responses:
+        '200':
+          description: Digital shareholder meeting data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DigitalShareholderMeeting'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createDigitalShareholderMeetingAttendees
+      summary: Bulk create digital shareholder meeting attendees
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateDigitalShareholderMeetingRequest'
+      responses:
+        '201':
+          description: Attendees created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DigitalShareholderMeeting'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /meetings/{meetingId}/proposals:
     get:
@@ -3627,6 +3761,139 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    DigitalShareholderMeeting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+        registrantType:
+          type: string
+          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailAddress:
+          type: string
+          format: email
+        registrationQuestions:
+          type: string
+          nullable: true
+          description: Pre-meeting questions submitted during registration
+        minutesAttendedMeeting:
+          type: integer
+          nullable: true
+          description: Minutes attended in the meeting
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DSMConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+        liveQa:
+          type: boolean
+          default: false
+        audioOnly:
+          type: boolean
+          default: false
+        meetingRecording:
+          type: boolean
+          default: false
+        staticSlideDocId:
+          type: string
+          nullable: true
+        displayDocsDocId:
+          type: string
+          nullable: true
+        isConfirmed:
+          type: boolean
+          default: false
+        logisticsCallDate:
+          type: string
+          format: date-time
+          nullable: true
+        logisticsCallNotes:
+          type: string
+          nullable: true
+        logisticsCallScheduled:
+          type: boolean
+          default: false
+        dryRunDate:
+          type: string
+          format: date-time
+          nullable: true
+        dryRunNotes:
+          type: string
+          nullable: true
+        dryRunScheduled:
+          type: boolean
+          default: false
+        dsmEnabled:
+          type: boolean
+          default: true
+        ioeEnabled:
+          type: boolean
+          default: true
+        dsmProducerName:
+          type: string
+          nullable: true
+        dsmProducerEmail:
+          type: string
+          format: email
+          nullable: true
+        inspectorName:
+          type: string
+          nullable: true
+        inspectorEmail:
+          type: string
+          format: email
+          nullable: true
+        speakerListDocId:
+          type: string
+          nullable: true
+        guestLinkRegistrationDocId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDigitalShareholderMeetingRequest:
+      type: object
+      required: [registrantType, firstName, lastName, emailAddress]
+      properties:
+        registrantType:
+          type: string
+          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailAddress:
+          type: string
+          format: email
+        registrationQuestions:
+          type: string
+          nullable: true
+        minutesAttendedMeeting:
+          type: integer
+          nullable: true
 
     TabulationReport:
       type: object
