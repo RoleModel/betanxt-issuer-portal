@@ -10,6 +10,7 @@ interface EmptyStateProps {
   title: string
   minHeight?: number | string
   description: string | React.ReactNode
+  action?: React.ReactNode
   dangerouslySetInnerHTML?: boolean
 }
 
@@ -18,6 +19,7 @@ export function EmptyState({
   title,
   minHeight = 400,
   description,
+  action,
 }: EmptyStateProps) {
   return (
     <Box sx={{ p: 1 }}>
@@ -84,6 +86,8 @@ export function EmptyState({
           >
             {description}
           </Typography>
+
+          {action && <Box sx={{ mt: 3 }}>{action}</Box>}
         </Stack>
       </Paper>
     </Box>

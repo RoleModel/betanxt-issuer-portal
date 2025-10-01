@@ -169,7 +169,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           variant="body1"
           sx={[
             (theme) => ({
-              color: theme.vars.palette.info.main,
+              color: theme.vars.palette.text.primary,
               textAlign: 'center',
               userSelect: 'none',
             }),
@@ -240,15 +240,15 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           width: `${area.width}%`,
           height: `${area.height}%`,
           backgroundColor: signatureData
-            ? 'rgba(76, 175, 80, 0.0)'
+            ? 'transparent'
             : isDragging
-              ? 'hsla(185, 100%, 28%, 0.1)'
-              : 'hsla(185, 100%, 28%, 0.1)',
+              ? 'rgba(255, 209, 102, 0.2)'
+              : 'rgba(255, 209, 102, 0.5)',
           border: signatureData
             ? ''
             : isDragging
-              ? '2px solid rgba(0, 131, 143, 0.8)'
-              : '2px dashed rgba(0, 131, 143, 0.3)',
+              ? '2px solid rgba(255, 209, 102, 1)'
+              : '2px dashed rgba(255, 209, 102, 1)',
           borderRadius: 1,
           cursor: isDragging ? 'move' : 'pointer',
           display: 'flex',
@@ -261,8 +261,8 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           boxShadow: isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : 'none',
           '&:hover': {
             backgroundColor: signatureData
-              ? 'rgba(76, 175, 80, 0.2)'
-              : 'rgba(0, 131, 143, 0.2)',
+              ? 'rgba(255, 209, 102, 0.2)'
+              : 'rgba(255, 209, 102, 0.0)',
             transform: isDragging ? 'none' : 'scale(1.02)',
             boxShadow: isDragging
               ? '0 4px 8px rgba(0,0,0,0.2)'

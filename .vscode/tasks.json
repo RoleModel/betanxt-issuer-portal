@@ -1,91 +1,88 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "npm: generate:seeds (mock-api-server)",
-			"type": "shell",
-			"command": "npm run generate:seeds",
-			"options": {
-				"cwd": "${workspaceFolder}/mock-api-server"
-			},
-			"group": "build"
-		},
-		{
-			"label": "npm: seed:generate (mock-api-server)",
-			"type": "shell",
-			"command": "npm run seed:generate",
-			"options": {
-				"cwd": "${workspaceFolder}/mock-api-server"
-			},
-			"group": "build"
-		},
-		{
-			"label": "npm: seed:validate (mock-api-server)",
-			"type": "shell",
-			"command": "npm run seed:validate",
-			"options": {
-				"cwd": "${workspaceFolder}/mock-api-server"
-			},
-			"group": "test"
-		},
-		{
-			"label": "npm: supabase:start (mock-api-server)",
-			"type": "shell",
-			"command": "npm run supabase:start",
-			"options": {
-				"cwd": "${workspaceFolder}/mock-api-server"
-			},
-			"group": "build"
-		},
-		{
-			"label": "npm: generate:db-types (mock-api-server)",
-			"type": "shell",
-			"command": "npm run generate:db-types",
-			"options": {
-				"cwd": "${workspaceFolder}/mock-api-server"
-			},
-			"group": "build"
-		},
-		{
-			"label": "start-monorepo-dev",
-			"dependsOn": [
-				"start-issuer-portal",
-				"start-api-server"
-			],
-			"problemMatcher": []
-		},
-		{
-			"label": "start-issuer-portal",
-			"type": "shell",
-			"command": "npm run dev --workspace issuer-portal",
-			"problemMatcher": [],
-			"presentation": {
-				"group": "dev-servers",
-				"panel": "split",
-				"reveal": "always"
-			}
-		},
-		{
-			"label": "start-api-server",
-			"type": "shell",
-			"command": "npm run dev --workspace mock-api-server",
-			"problemMatcher": [],
-			"presentation": {
-				"group": "dev-servers",
-				"panel": "split",
-				"reveal": "always"
-			}
-		},
-		{
-			"label": "generate-api-routes",
-			"type": "shell",
-			"command": "npm run generate:api-routes",
-			"group": "build"
-		},
-		{
-			"label": "Check conflicting migration files",
-			"type": "shell",
-			"command": "ls -la supabase/migrations/2025092814*"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: generate:seeds (mock-api-server)",
+      "type": "shell",
+      "command": "npm run generate:seeds",
+      "options": {
+        "cwd": "${workspaceFolder}/mock-api-server"
+      },
+      "group": "build"
+    },
+    {
+      "label": "npm: seed:generate (mock-api-server)",
+      "type": "shell",
+      "command": "npm run seed:generate",
+      "options": {
+        "cwd": "${workspaceFolder}/mock-api-server"
+      },
+      "group": "build"
+    },
+    {
+      "label": "npm: seed:validate (mock-api-server)",
+      "type": "shell",
+      "command": "npm run seed:validate",
+      "options": {
+        "cwd": "${workspaceFolder}/mock-api-server"
+      },
+      "group": "test"
+    },
+    {
+      "label": "npm: supabase:start (mock-api-server)",
+      "type": "shell",
+      "command": "npm run supabase:start",
+      "options": {
+        "cwd": "${workspaceFolder}/mock-api-server"
+      },
+      "group": "build"
+    },
+    {
+      "label": "npm: generate:db-types (mock-api-server)",
+      "type": "shell",
+      "command": "npm run generate:db-types",
+      "options": {
+        "cwd": "${workspaceFolder}/mock-api-server"
+      },
+      "group": "build"
+    },
+    {
+      "label": "start-monorepo-dev",
+      "dependsOn": ["start-issuer-portal", "start-api-server"],
+      "problemMatcher": []
+    },
+    {
+      "label": "start-issuer-portal",
+      "type": "shell",
+      "command": "npm run dev --workspace issuer-portal",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "split",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "start-api-server",
+      "type": "shell",
+      "command": "npm run dev --workspace mock-api-server",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "split",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "generate-api-routes",
+      "type": "shell",
+      "command": "npm run generate:api-routes",
+      "group": "build"
+    },
+    {
+      "label": "Check conflicting migration files",
+      "type": "shell",
+      "command": "ls -la supabase/migrations/2025092814*"
+    }
+  ]
 }

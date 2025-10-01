@@ -1,0 +1,136 @@
+/* React-PDF Page Styling */
+
+/* Main PDF page container */
+.react-pdf__Document {
+  transition: all 0.3s ease-in-out;
+  border-radius: 8px;
+  contain: paint;
+}
+
+.react-pdf__Page {
+  position: relative;
+  margin: 0 auto;
+  border-radius: var(--mui-shape-borderRadius);
+  overflow: hidden;
+  background: transparent;
+  transition: box-shadow 0.3s ease-in-out;
+  box-shadow: var(--mui-shadows-3);
+}
+
+.pdf-thumbnail {
+  width: 60px;
+  aspect-ratio: 8.5/11;
+  overflow: hidden;
+  max-height: 80px;
+  background: transparent;
+  border: 2px solid var(--mui-palette-divider);
+}
+
+.pdf-thumbnail .react-pdf__Page {
+  box-shadow: none;
+}
+
+.react-pdf__Page:hover {
+  box-shadow: var(--mui-shadows-8);
+}
+
+/* PDF page canvas */
+.react-pdf__Page__canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100ch !important;
+  background: var(--mui-palette-background-paper);
+  border-radius: calc(var(--mui-shape-borderRadius) * 2);
+}
+
+/* Text layer styling */
+.react-pdf__Page__textContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.2;
+  line-height: 1;
+}
+
+.react-pdf__Page__textContent span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+/* Annotation layer styling */
+.react-pdf__Page__annotations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.react-pdf__Page__annotations .annotationLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Loading state */
+.react-pdf__Document .react-pdf__Page {
+  box-shadow: var(--mui-shadows-3);
+}
+
+/* Error states */
+.react-pdf__Document__error,
+.react-pdf__Page__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: var(--mui-palette-background-paper);
+  border: 1px solid var(--mui-palette-error-main);
+  border-radius: var(--mui-shape-borderRadius);
+  color: var(--mui-palette-error-main);
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .react-pdf__Document {
+    padding: 8px !important;
+  }
+
+  .react-pdf__Page {
+    max-width: 100%;
+  }
+}
+
+/* Print styling */
+@media print {
+  .react-pdf__Document,
+  .react-pdf__Page {
+    box-shadow: none;
+    border: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .react-pdf__Page {
+    border: 2px solid var(--mui-palette-text-primary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .react-pdf__Document,
+  .react-pdf__Page,
+  .react-pdf__Page__canvas {
+    transition: none;
+  }
+}

@@ -35,6 +35,8 @@ export interface ProposalVoting {
   proposalNumber: number
   proposalId: string
   description: string
+  proposalTitle?: string
+  proposalType?: string
   directorName?: string
   votingResults: {
     for: { shares: number; percentage: number }

@@ -221,6 +221,8 @@ const fetchVotingData = async (meetingId: string) => {
       proposalId: proposal.id || '',
       proposalNumber: proposal.proposalNumber,
       description: proposal.title,
+      proposalTitle: proposal.title,
+      proposalType: proposal.proposalType,
       directorName: proposal.directorName,
       votingResults: realVotingResults,
       totalShares: proposalTotalVoted,

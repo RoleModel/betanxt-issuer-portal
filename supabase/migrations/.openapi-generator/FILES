@@ -8,6 +8,7 @@ Model/CreateAccountRequest.sql
 Model/CreateAccountUserRequest.sql
 Model/CreateClientRequest.sql
 Model/CreateCommentRequest.sql
+Model/CreateDigitalShareholderMeetingRequest.sql
 Model/CreateMeetingRequest.sql
 Model/CreatePhaseRequest.sql
 Model/CreatePhaseRequestKeyDates.sql
@@ -15,12 +16,13 @@ Model/CreatePositionRequest.sql
 Model/CreateProposalRequest.sql
 Model/CreateTaskRequest.sql
 Model/CreateUserRequest.sql
+Model/DSMConfig.sql
+Model/DigitalShareholderMeeting.sql
 Model/Document.sql
 Model/DocumentHistory.sql
 Model/DocumentStatus.sql
 Model/Error.sql
 Model/GetDocumentsReadiness200Response.sql
-Model/KeyDate.sql
 Model/ListAccountUsers200Response.sql
 Model/ListAccounts200Response.sql
 Model/ListClients200Response.sql

@@ -12,16 +12,19 @@ const compat = new FlatCompat({
 // Root flat config array export required by ESLint 9+ (Next.js expects an array)
 const eslintConfig = [
   // Next.js configuration - explicitly configure for App Router
-  ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript'],
-    settings: {
-      next: {
-        rootDir: './issuer-portal'
-      }
+  ...compat.config(
+    {
+      extends: ['next/core-web-vitals', 'next/typescript'],
+      settings: {
+        next: {
+          rootDir: './issuer-portal',
+        },
+      },
+    },
+    {
+      baseDirectory: __dirname + '/issuer-portal',
     }
-  }, {
-    baseDirectory: __dirname + '/issuer-portal'
-  }),
+  ),
   {
     ignores: [
       'node_modules/**',

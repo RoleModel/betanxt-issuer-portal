@@ -28,7 +28,7 @@ const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
 }
 
 const formatNumber = (num: number | null | undefined): string => {
-  if (num === null || num === undefined) return '—'
+  if (num === null || num === undefined) return '0'
   return num.toLocaleString('en-US')
 }
 

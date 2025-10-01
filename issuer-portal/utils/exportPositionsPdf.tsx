@@ -104,22 +104,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomWidth: 0.5,
     borderBottomColor: '#E0E0E0',
-    paddingVertical: 6,
+    paddingVertical: 4,
     minHeight: 24,
   },
   tableRowAlternate: {
     backgroundColor: '#FAFAFA',
   },
   headerCell: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 700,
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     fontFamily: 'Roboto',
     textAlign: 'left',
   },
   cell: {
     fontSize: 7,
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     fontFamily: 'Roboto',
   },
   cellCenter: {
@@ -129,17 +129,17 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   // Column widths (percentages)
-  col1: { width: '8%' }, // CUSIP
-  col2: { width: '10%' }, // Account Type
-  col3: { width: '8%' }, // Set Key
-  col4: { width: '18%' }, // Name
-  col5: { width: '10%' }, // Account #
-  col6: { width: '8%' }, // Vote Status
-  col7: { width: '10%' }, // Control #
-  col8: { width: '8%' }, // Shares
-  col9: { width: '8%' }, // Shares Voted
+  col1: { width: '10%' }, // CUSIP
+  col2: { width: '8%' }, // Account Type
+  col3: { width: '5%' }, // Set Key
+  col4: { width: '20%' }, // Name
+  col5: { width: '8%' }, // Account #
+  col6: { width: '5%' }, // Vote Status
+  col7: { width: '8%' }, // Control #
+  col8: { width: '5%' }, // Shares
+  col9: { width: '10%' }, // Shares Voted
   col10: { width: '6%' }, // Source
-  col11: { width: '8%' }, // Date Voted
+  col11: { width: '10%' }, // Date Voted
   col12: { width: '6%' }, // Sent By
   fallbackLogo: {
     fontSize: 12,
@@ -162,11 +162,45 @@ const formatNumber = (num: number): string => {
 // Format date
 const formatDate = (date: string | null): string => {
   if (!date) return ''
-  return new Date(date).toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: '2-digit',
-  })
+
+  try {
+    // Handle MM/DD/YYYY format with optional time
+    let dateStr = date
+    if (date.includes(' 12:00AM')) {
+      dateStr = date.replace(' 12:00AM', '')
+    }
+
+    const parsedDate = new Date(dateStr)
+
+    // Check if date is valid
+    if (isNaN(parsedDate.getTime())) {
+      // Try parsing as MM/DD/YYYY directly
+      const parts = dateStr.split('/')
+      if (parts.length === 3) {
+        const month = parseInt(parts[0], 10)
+        const day = parseInt(parts[1], 10)
+        const year = parseInt(parts[2], 10)
+        const altDate = new Date(year, month - 1, day)
+
+        if (!isNaN(altDate.getTime())) {
+          return altDate.toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+          })
+        }
+      }
+      return ''
+    }
+
+    return parsedDate.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    })
+  } catch (error) {
+    return ''
+  }
 }
 
 interface PositionsPDFDocumentProps {
@@ -187,7 +221,7 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
 }) => {
   return (
     <Document>
-      <Page size="LEGAL" style={styles.page} orientation="landscape">
+      <Page size="LETTER" style={styles.page} orientation="landscape">
         {/* Header with logos */}
         <View style={styles.header}>
           <View>
@@ -229,7 +263,9 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
             </Text>
             <Text style={[styles.headerCell, styles.col10]}>Source</Text>
             <Text style={[styles.headerCell, styles.col11]}>Date Voted</Text>
-            <Text style={[styles.headerCell, styles.col12]}>Sent By</Text>
+            <Text style={[styles.headerCell, styles.cellRight, styles.col12]}>
+              Sent By
+            </Text>
           </View>
 
           {/* Table Rows */}
@@ -238,35 +274,21 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
               key={index}
               style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlternate : {}]}
             >
-              <Text style={[styles.cell, styles.col1, styles.cellCenter]}>
-                {position.cusip}
-              </Text>
-              <Text style={[styles.cell, styles.col2, styles.cellCenter]}>
-                {position.accountType}
-              </Text>
-              <Text style={[styles.cell, styles.col3, styles.cellCenter]}>
-                {position.setKey}
-              </Text>
+              <Text style={[styles.cell, styles.col1]}>{position.cusip}</Text>
+              <Text style={[styles.cell, styles.col2]}>{position.accountType}</Text>
+              <Text style={[styles.cell, styles.col3]}>{position.setKey}</Text>
               <Text style={[styles.cell, styles.col4]}>{position.name}</Text>
-              <Text style={[styles.cell, styles.col5, styles.cellCenter]}>
-                {position.accountNumber}
-              </Text>
-              <Text style={[styles.cell, styles.col6, styles.cellCenter]}>
-                {position.voteStatus}
-              </Text>
-              <Text style={[styles.cell, styles.col7, styles.cellCenter]}>
-                {position.controlNumber}
-              </Text>
+              <Text style={[styles.cell, styles.col5]}>{position.accountNumber}</Text>
+              <Text style={[styles.cell, styles.col6]}>{position.voteStatus}</Text>
+              <Text style={[styles.cell, styles.col7]}>{position.controlNumber}</Text>
               <Text style={[styles.cell, styles.col8, styles.cellRight]}>
                 {formatNumber(position.shares)}
               </Text>
               <Text style={[styles.cell, styles.col9, styles.cellRight]}>
                 {formatNumber(position.sharesVoted)}
               </Text>
-              <Text style={[styles.cell, styles.col10, styles.cellCenter]}>
-                {position.source}
-              </Text>
-              <Text style={[styles.cell, styles.col11, styles.cellCenter]}>
+              <Text style={[styles.cell, styles.col10]}>{position.source}</Text>
+              <Text style={[styles.cell, styles.col11]}>
                 {formatDate(position.dateVoted)}
               </Text>
               <Text style={[styles.cell, styles.col12, styles.cellRight]}>

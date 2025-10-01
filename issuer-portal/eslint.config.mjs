@@ -10,9 +10,6 @@ const compat = new FlatCompat({
 })
 
 const eslintConfig = [
-  ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript'],
-  }),
   {
     ignores: [
       'node_modules/**',
@@ -24,8 +21,16 @@ const eslintConfig = [
       'playwright-report/**',
       'test-results/**',
       'public/images/pdf.worker.min.js',
+      '**/*.config.js',
+      '**/*.config.mjs',
+      '**/*.config.ts',
+      'next.config.mjs',
+      'next-env.d.ts',
     ],
   },
+  ...compat.config({
+    extends: ['next/core-web-vitals', 'next/typescript'],
+  }),
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
     rules: {
@@ -40,6 +45,7 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      '@next/next/no-duplicate-head': 'off',
     },
   },
 ]

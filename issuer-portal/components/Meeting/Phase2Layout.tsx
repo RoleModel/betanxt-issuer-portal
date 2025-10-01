@@ -24,10 +24,10 @@ function Phase2Layout({ meetingId, meeting, phase = 2 }: Phase2LayoutProps) {
         <KeyDatesCard meeting={meeting} />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
+        <TaskCard meetingId={meetingId} currentPhase={phase} />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <TaskCard meetingId={meetingId} currentPhase={phase} />
+        <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
       </Grid>
     </Grid>
   )

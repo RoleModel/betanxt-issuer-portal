@@ -1,5 +1,11 @@
-export const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
+export const formatDate = (dateInput: string | Date | undefined | null): string => {
+  if (!dateInput) return '-'
+
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) return '-'
+
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

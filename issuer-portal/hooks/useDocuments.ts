@@ -324,7 +324,8 @@ export const useDocuments = (): UseDocumentsResult => {
       _file: File,
       _documentId: string,
       _meetingId?: string,
-      _documentTitle?: string
+      _documentTitle?: string,
+      _taskId?: string
     ): Promise<string | null> => {
       try {
         setLoading(true)
@@ -337,28 +338,77 @@ export const useDocuments = (): UseDocumentsResult => {
           !_documentId.includes('-form-') &&
           !_documentId.includes('temp-')
 
+        // Check if documentId is a known document type (from placeholder replacement)
+        const knownDocumentTypes = [
+          'draft-proxy-statement',
+          'proxy-statement',
+          'proxy-card',
+          'notice-access-form',
+          'notice-and-access',
+          'broadridge-form',
+          'plan-file-request',
+          'transfer-agent-request',
+          '10-k',
+          'annual-report',
+        ]
+        const isKnownDocumentType = knownDocumentTypes.includes(_documentId)
+
+        // Check if this is a signed form with a timestamped ID
+        const isSignedFormId =
+          _documentId.includes('broadridge-form-') ||
+          _documentId.includes('plan-file-request-') ||
+          _documentId.includes('transfer-agent-request-')
+
+        // Check if this is a signed document
+        const isSignedDocument =
+          _documentTitle?.includes('(Signed)') ||
+          _documentId.includes('-signed-') ||
+          _file.name.includes('signed_')
+
         // For new documents from MeetingDocuments, use the new upload API route
-        if (isFilename && _meetingId) {
+        if (
+          (isFilename || isKnownDocumentType || isSignedFormId || isSignedDocument) &&
+          _meetingId
+        ) {
           const formData = new FormData()
           formData.append('file', _file)
           formData.append('meetingId', _meetingId)
+          if (_taskId) {
+            formData.append('taskId', _taskId)
+          }
 
-          // Determine document type from filename
-          const fileName = _file.name.toLowerCase()
+          // Determine document type
           let documentType = 'general'
 
-          if (fileName.includes('proxy') && fileName.includes('statement')) {
-            documentType = 'proxy-statement'
-          } else if (fileName.includes('proxy') && fileName.includes('card')) {
-            documentType = 'proxy-card'
-          } else if (fileName.includes('notice') || fileName.includes('access')) {
-            documentType = 'notice-and-access'
-          } else if (fileName.includes('broadridge')) {
-            documentType = 'broadridge-form'
-          } else if (fileName.includes('plan') && fileName.includes('file')) {
-            documentType = 'plan-file-request'
-          } else if (fileName.includes('transfer') && fileName.includes('agent')) {
-            documentType = 'transfer-agent-request'
+          if (isKnownDocumentType) {
+            // Use the provided document type directly
+            documentType = _documentId
+          } else if (isSignedFormId) {
+            // Extract base document type from timestamped signed form IDs
+            if (_documentId.includes('broadridge-form-')) {
+              documentType = 'broadridge-form'
+            } else if (_documentId.includes('plan-file-request-')) {
+              documentType = 'plan-file-request'
+            } else if (_documentId.includes('transfer-agent-request-')) {
+              documentType = 'transfer-agent-request'
+            }
+          } else {
+            // Determine document type from filename
+            const fileName = _file.name.toLowerCase()
+
+            if (fileName.includes('proxy') && fileName.includes('statement')) {
+              documentType = 'proxy-statement'
+            } else if (fileName.includes('proxy') && fileName.includes('card')) {
+              documentType = 'proxy-card'
+            } else if (fileName.includes('notice') || fileName.includes('access')) {
+              documentType = 'notice-and-access'
+            } else if (fileName.includes('broadridge')) {
+              documentType = 'broadridge-form'
+            } else if (fileName.includes('plan') && fileName.includes('file')) {
+              documentType = 'plan-file-request'
+            } else if (fileName.includes('transfer') && fileName.includes('agent')) {
+              documentType = 'transfer-agent-request'
+            }
           }
 
           // Upload via the new API route
@@ -405,63 +455,68 @@ export const useDocuments = (): UseDocumentsResult => {
           isExplicitSignedForm ? 'SIGNED' : 'AWAITING_REVIEW'
         ) as components['schemas']['Document']['status']
 
-        if (isTemporaryId) {
-          // For temporary documents, create a new document record
-          // Use the meeting ID passed in, or extract from URL
-          let meetingId = _meetingId
+        // Use the meeting ID passed in, or extract from URL
+        let meetingId = _meetingId
 
-          if (!meetingId) {
-            // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
-            const tickerPathMatch = window.location.pathname.match(
-              /\/[^/]+\/meeting\/([^/]+)/
-            )
-            if (tickerPathMatch) {
-              meetingId = tickerPathMatch[1]
-            }
+        if (!meetingId) {
+          // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
+          const tickerPathMatch = window.location.pathname.match(
+            /\/[^/]+\/meeting\/([^/]+)/
+          )
+          if (tickerPathMatch) {
+            meetingId = tickerPathMatch[1]
           }
+        }
 
-          // Fallback to a default if no meeting ID found
-          if (!meetingId) {
-            console.warn('No meeting ID provided or found in URL, using default')
-            meetingId = 'default-meeting'
-          }
+        // Fallback to a default if no meeting ID found
+        if (!meetingId) {
+          console.warn('No meeting ID provided or found in URL, using default')
+          meetingId = 'default-meeting'
+        }
 
-          // Determine document type from ID or use provided title
-          let docType = 'signed-form'
-          let title = _documentTitle || 'Signed Document'
+        // Determine document type from ID or use provided title
+        let docType = 'signed-form'
+        let title = _documentTitle || 'Signed Document'
 
-          // Override with specific form types if detected
-          if (_documentId.includes('broadridge')) {
+        // Override with specific form types if detected
+        if (_documentId.includes('broadridge')) {
+          docType = 'broadridge-form'
+          title = 'Broadridge Corporate Issuer Profile Form (Signed)'
+        } else if (_documentId.includes('plan-file-request')) {
+          docType = 'plan-file-request'
+          title = 'Plan File Request Form (Signed)'
+        } else if (_documentId.includes('transfer-agent-request')) {
+          docType = 'transfer-agent-request'
+          title = 'Transfer Agent Request Form (Signed)'
+        } else if (_documentTitle) {
+          // Detect form type from title as well
+          const lowerTitle = _documentTitle.toLowerCase()
+          if (lowerTitle.includes('broadridge') || lowerTitle.includes('ics')) {
             docType = 'broadridge-form'
             title = 'Broadridge Corporate Issuer Profile Form (Signed)'
-          } else if (_documentId.includes('plan-file-request')) {
+          } else if (lowerTitle.includes('plan file request')) {
             docType = 'plan-file-request'
             title = 'Plan File Request Form (Signed)'
-          } else if (_documentId.includes('transfer-agent-request')) {
+          } else if (lowerTitle.includes('transfer agent')) {
             docType = 'transfer-agent-request'
             title = 'Transfer Agent Request Form (Signed)'
-          } else if (_documentTitle) {
-            // Detect form type from title as well
-            if (_documentTitle.toLowerCase().includes('plan file request')) {
-              docType = 'plan-file-request'
-              title = 'Plan File Request Form (Signed)'
-            } else if (_documentTitle.toLowerCase().includes('transfer agent')) {
-              docType = 'transfer-agent-request'
-              title = 'Transfer Agent Request Form (Signed)'
-            } else {
-              // Use provided title and append (Signed) if not already present
-              title = _documentTitle.includes('(Signed)')
-                ? _documentTitle
-                : `${_documentTitle} (Signed)`
-            }
+          } else {
+            // Use provided title and append (Signed) if not already present
+            title = _documentTitle.includes('(Signed)')
+              ? _documentTitle
+              : `${_documentTitle} (Signed)`
           }
+        }
 
+        if (isTemporaryId) {
+          // For temporary documents, create a new document record
           const result = await apiClient.POST('/meetings/{meetingId}/documents', {
             params: { path: { meetingId } },
             body: {
               title,
               type: docType,
               file: base64Data,
+              taskId: _taskId,
             } as components['schemas']['CreateDocumentRequest'],
           })
 
@@ -485,23 +540,37 @@ export const useDocuments = (): UseDocumentsResult => {
           // Return the new document ID
           return createdDoc.id || _documentId
         } else {
-          // For existing documents, update them
-          const result = await apiClient.PUT('/documents/{id}', {
-            params: { path: { id: _documentId } },
+          // For existing documents, create a new document (version history)
+          // Documents are immutable - each upload creates a new document
+          const result = await apiClient.POST('/meetings/{meetingId}/documents', {
+            params: { path: { meetingId } },
             body: {
-              filePath: base64Data,
-              status: desiredStatus,
-            } as components['schemas']['UpdateDocumentRequest'],
+              title,
+              type: docType,
+              file: base64Data,
+              taskId: _taskId,
+            } as components['schemas']['CreateDocumentRequest'],
           })
 
-          const { error: updateError } = result
-          if (updateError) {
-            console.error('Document update error:', updateError)
-            throw new Error('Failed to save signed document')
+          const { data, error } = result
+          if (error || !data) {
+            console.error('Document creation error:', error || 'No data returned')
+            throw new Error('Failed to create signed document')
           }
 
-          // Return the document ID as the path for compatibility
-          return _documentId
+          const createdDoc = data as Document
+          // If desiredStatus differs from default, update status in a follow-up call
+          if (createdDoc.id && desiredStatus) {
+            await apiClient.PUT('/documents/{id}', {
+              params: { path: { id: createdDoc.id } },
+              body: {
+                status: desiredStatus,
+              } as components['schemas']['UpdateDocumentRequest'],
+            })
+          }
+
+          // Return the new document ID
+          return createdDoc.id || _documentId
         }
       } catch (err) {
         console.error('uploadDocument error:', err)

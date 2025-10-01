@@ -9,7 +9,6 @@
     "issuer-portal"
   ],
   "scripts": {
-    "vercel-install": "./scripts/vercel-install.sh",
     "build": "npm run build --workspace=issuer-portal",
     "build:all": "turbo run build",
     "dev": "turbo run dev",
@@ -37,6 +36,7 @@
     "@supabase/supabase-js": "^2.58.0",
     "@vercel/analytics": "^1.5.0",
     "luxon": "^3.7.2",
-    "react": "^19.1.1"
+    "react": "^19.1.1",
+    "xlsx": "^0.18.5"
   }
 }

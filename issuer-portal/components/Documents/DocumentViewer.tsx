@@ -19,6 +19,7 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   Divider,
   IconButton,
@@ -183,6 +184,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [comments, setComments] = useState<CommentWithUser[]>([])
   const [comment, setComment] = useState('')
   const [showCommentField, setShowCommentField] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // NextAuth session
   const { data: session } = useSession()
@@ -256,42 +258,49 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             })
           )
         } else if (!signatureAreas || signatureAreas.length === 0) {
-          // Only use default signature areas if none were passed as props
-          areas = [
-            {
-              id: 'temp-signature-area-1',
-              x: 20,
-              y: 75,
-              width: 25,
-              height: 5,
-              page: 1,
-              label: 'Signature',
-              type: 'signature',
-              signed: false,
-            },
-            {
-              id: 'temp-text-area-1',
-              x: 50,
-              y: 75,
-              width: 25,
-              height: 5,
-              page: 1,
-              label: 'Print Name',
-              type: 'text',
-              signed: false,
-            },
-            {
-              id: 'temp-date-area-1',
-              x: 20,
-              y: 82,
-              width: 15,
-              height: 5,
-              page: 1,
-              label: 'Date',
-              type: 'date',
-              signed: false,
-            },
-          ]
+          // If signatureAreas is explicitly an empty array, we're in view-only mode (no signature areas)
+          // If signatureAreas is undefined/null, use default signature areas
+          if (signatureAreas && signatureAreas.length === 0) {
+            // View-only mode - no signature areas
+            areas = []
+          } else {
+            // Only use default signature areas if none were passed as props
+            areas = [
+              {
+                id: 'temp-signature-area-1',
+                x: 20,
+                y: 75,
+                width: 25,
+                height: 5,
+                page: 1,
+                label: 'Signature',
+                type: 'signature',
+                signed: false,
+              },
+              {
+                id: 'temp-text-area-1',
+                x: 50,
+                y: 75,
+                width: 25,
+                height: 5,
+                page: 1,
+                label: 'Print Name',
+                type: 'text',
+                signed: false,
+              },
+              {
+                id: 'temp-date-area-1',
+                x: 20,
+                y: 82,
+                width: 15,
+                height: 5,
+                page: 1,
+                label: 'Date',
+                type: 'date',
+                signed: false,
+              },
+            ]
+          }
         } else {
           // Use the signature areas passed as props
           areas = signatureAreas
@@ -300,15 +309,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Construct the proper URL for the document
         let documentUrl =
           (document &&
-            typeof document === 'object' &&
-            'url' in document &&
-            typeof document.url === 'string'
+          typeof document === 'object' &&
+          'url' in document &&
+          typeof document.url === 'string'
             ? document.url
             : undefined) ||
           (document &&
-            typeof document === 'object' &&
-            'file_path' in document &&
-            typeof document.file_path === 'string'
+          typeof document === 'object' &&
+          'file_path' in document &&
+          typeof document.file_path === 'string'
             ? document.file_path
             : undefined)
 
@@ -332,22 +341,24 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           documentUrl &&
           (documentUrl.endsWith('.pdf') || documentUrl.includes('/test-pdf'))
         ) {
+          // Prioritize documentId prop over fetched document ID
           const docId =
-            document &&
-              typeof document === 'object' &&
-              'id' in document &&
-              typeof document.id === 'string'
+            documentId ||
+            (document &&
+            typeof document === 'object' &&
+            'id' in document &&
+            typeof document.id === 'string'
               ? document.id
-              : `doc-${task.id || Date.now()}`
+              : `doc-${task.id || Date.now()}`)
           setCurrentDocumentId(docId)
           setDocumentData({
             url: documentUrl,
             title:
               task.title ||
               (document &&
-                typeof document === 'object' &&
-                'title' in document &&
-                typeof document.title === 'string'
+              typeof document === 'object' &&
+              'title' in document &&
+              typeof document.title === 'string'
                 ? document.title
                 : 'Document'),
             signatureAreas: areas,
@@ -373,8 +384,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       legacyOnClose ||
       (task
         ? () => {
-          setOpen(false)
-        }
+            setOpen(false)
+          }
         : undefined),
     [legacyOnClose, task]
   )
@@ -394,7 +405,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     return urlParts[urlParts.length - 1]?.toLowerCase()
   }, [actualfileUrl])
 
-  const isPDF = fileExtension === 'pdf' || actualfileUrl?.includes('/test-pdf')
+  const isPDF =
+    fileExtension === 'pdf' ||
+    actualfileUrl?.includes('/test-pdf') ||
+    actualfileUrl?.startsWith('data:application/pdf')
   const isOfficeDocument = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
     fileExtension || ''
   )
@@ -584,6 +598,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       try {
         // Load document history using API
         const history = await getDocumentHistory(currentDocumentId)
+        console.log('[DocumentViewer] Document history loaded:', history)
         setDocumentHistory(
           history.map((event) => ({
             event_type: event.event_type,
@@ -604,8 +619,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           users: comment.users || null,
         })) as CommentWithUser[]
         setComments(transformedComments)
-      } catch {
-        // Error loading document history
+      } catch (error) {
+        console.error('[DocumentViewer] Error loading document history/comments:', error)
       }
     }
 
@@ -651,6 +666,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   )
 
   const handleSubmitSignedForm = useCallback(async () => {
+    setIsSubmitting(true)
     try {
       // Generate a PDF blob with the signatures and form data
       // Get the current PDF URL and fetch it
@@ -690,11 +706,35 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             const documentTitle = actualTitle || task?.title || 'Document'
             const meetingId =
               typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
+            const taskIdToUse = typeof task?.id === 'string' ? task?.id : undefined
+
+            // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
+            // Insert -signed- after the form type prefix to maintain document type detection
+            let documentIdForUpload = currentDocumentId
+
+            if (!documentIdForUpload.includes('-signed-')) {
+              // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
+              if (
+                documentIdForUpload.match(
+                  /^(plan-file-request|broadridge-form|transfer-agent-request)-/
+                )
+              ) {
+                documentIdForUpload = documentIdForUpload.replace(
+                  /^([^-]+-[^-]+-[^-]+)/,
+                  '$1-signed'
+                )
+              } else {
+                // Otherwise append -signed- to the end
+                documentIdForUpload = `${documentIdForUpload}-signed-${Date.now()}`
+              }
+            }
+
             const uploadPath = await uploadDocument(
               file,
-              currentDocumentId,
+              documentIdForUpload,
               meetingId,
-              documentTitle
+              documentTitle,
+              taskIdToUse
             )
             if (uploadPath === null) {
               throw new Error('Document upload failed - no path returned')
@@ -736,6 +776,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       alert(
         `Failed to submit signed document: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
+    } finally {
+      setIsSubmitting(false)
     }
   }, [
     handleTaskSubmitSuccess,
@@ -853,8 +895,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
       setComment('')
       setShowCommentField(false)
-    } catch {
-      // Error adding comment
+    } catch (error) {
+      console.error('[DocumentViewer] Error adding comment:', error)
+      alert(
+        `Failed to add comment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -986,30 +1031,29 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                       (task.type === 'signature' ||
                         task.type === 'Document' ||
                         task.type === 'Authorization'))) &&
+                  localSignatureAreas.length > 0 && // Only show submit button if there are signature areas (not view-only mode)
                   (() => {
                     // Check if all required fields are complete
                     // Since all areas have undefined type, detect field type by ID/label
-                    const allFieldsComplete =
-                      localSignatureAreas.length === 0 ||
-                      localSignatureAreas.every((area) => {
-                        // Check if it's filled based on what storage it should use
-                        let hasValue = false
+                    const allFieldsComplete = localSignatureAreas.every((area) => {
+                      // Check if it's filled based on what storage it should use
+                      let hasValue = false
 
-                        // Detect field type by ID or label
-                        if (
-                          area.id?.includes('sig') ||
-                          (area.label?.toLowerCase().includes('signature') &&
-                            !area.label?.toLowerCase().includes('print'))
-                        ) {
-                          // Signature field - check signatureDataMap
-                          hasValue = !!signatureDataMap[area.id]
-                        } else {
-                          // Text/date field - check formFieldValues
-                          hasValue = !!formFieldValues[area.id]
-                        }
+                      // Detect field type by ID or label
+                      if (
+                        area.id?.includes('sig') ||
+                        (area.label?.toLowerCase().includes('signature') &&
+                          !area.label?.toLowerCase().includes('print'))
+                      ) {
+                        // Signature field - check signatureDataMap
+                        hasValue = !!signatureDataMap[area.id]
+                      } else {
+                        // Text/date field - check formFieldValues
+                        hasValue = !!formFieldValues[area.id]
+                      }
 
-                        return hasValue
-                      })
+                      return hasValue
+                    })
 
                     return (
                       <Tooltip
@@ -1023,19 +1067,32 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         <Button
                           variant="contained"
                           color="success"
-                          onClick={allFieldsComplete ? handleSubmitSignedForm : undefined}
+                          onClick={
+                            allFieldsComplete && !isSubmitting
+                              ? handleSubmitSignedForm
+                              : undefined
+                          }
+                          disabled={!allFieldsComplete || isSubmitting}
+                          startIcon={
+                            isSubmitting ? (
+                              <CircularProgress size={20} color="inherit" />
+                            ) : undefined
+                          }
                           sx={{
-                            opacity: allFieldsComplete ? 1 : 0.65,
-                            cursor: allFieldsComplete ? 'pointer' : 'not-allowed',
+                            opacity: allFieldsComplete && !isSubmitting ? 1 : 0.65,
+                            cursor:
+                              allFieldsComplete && !isSubmitting
+                                ? 'pointer'
+                                : 'not-allowed',
                             '&:hover': {
                               backgroundColor: (theme) =>
-                                allFieldsComplete
+                                allFieldsComplete && !isSubmitting
                                   ? theme.vars.palette.success.light
                                   : theme.vars.palette.success.main,
                             },
                           }}
                         >
-                          Submit
+                          {isSubmitting ? 'Sending…' : 'Submit'}
                         </Button>
                       </Tooltip>
                     )
@@ -1215,7 +1272,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                           800,
                           typeof window !== 'undefined'
                             ? window.innerWidth -
-                            (showComments || showHistory ? 500 : 100)
+                                (showComments || showHistory ? 500 : 100)
                             : 800
                         )}
                         onLoadSuccess={onDocumentLoadSuccess}
@@ -1265,7 +1322,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
-                            !area.label?.toLowerCase().includes('signature')
+                              !area.label?.toLowerCase().includes('signature')
                             ? 'text'
                             : area.label?.toLowerCase().includes('date')
                               ? 'date'

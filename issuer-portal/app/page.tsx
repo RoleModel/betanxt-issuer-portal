@@ -21,7 +21,7 @@ export default function HomePage() {
       router.push('/login')
     } else if (currentClient) {
       // Authenticated and have a client, redirect to client meeting
-      const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2025`
+      const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2026`
       router.push(`/${currentClient.ticker}/meeting/${defaultMeetingId}`)
     }
   }, [session, status, router, currentClient, clientLoading])

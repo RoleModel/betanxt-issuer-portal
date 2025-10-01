@@ -218,11 +218,45 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
 
   const formatDate = (date: string | null): string => {
     if (!date) return ''
-    return new Date(date).toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: '2-digit',
-    })
+
+    try {
+      // Handle MM/DD/YYYY format with optional time
+      let dateStr = date
+      if (date.includes(' 12:00AM')) {
+        dateStr = date.replace(' 12:00AM', '')
+      }
+
+      const parsedDate = new Date(dateStr)
+
+      // Check if date is valid
+      if (isNaN(parsedDate.getTime())) {
+        // Try parsing as MM/DD/YYYY directly
+        const parts = dateStr.split('/')
+        if (parts.length === 3) {
+          const month = parseInt(parts[0], 10)
+          const day = parseInt(parts[1], 10)
+          const year = parseInt(parts[2], 10)
+          const altDate = new Date(year, month - 1, day)
+
+          if (!isNaN(altDate.getTime())) {
+            return altDate.toLocaleDateString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+            })
+          }
+        }
+        return ''
+      }
+
+      return parsedDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+      })
+    } catch (error) {
+      return ''
+    }
   }
 
   return (

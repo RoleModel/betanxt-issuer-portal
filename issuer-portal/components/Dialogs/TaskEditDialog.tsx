@@ -356,7 +356,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
     try {
       // Prepare comprehensive task updates
-      const taskUpdates = {
+      const taskUpdates: Record<string, unknown> = {
         title: formData.title,
         description: formData.description,
         status: formData.status,
@@ -370,14 +370,14 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
       // Add links if link editing is enabled
       if (enableLinkEditing) {
         // Filter and process links for saving
-        links
+        const processedLinks = links
           .filter((link) => link.label.trim()) // Only save links with labels
           .map((link) => ({
             label: link.label,
             url: link.url || undefined,
             action: link.action || undefined,
           }))
-        // Note: links are handled separately in this component
+        taskUpdates.links = processedLinks
       }
 
       // Update using hook

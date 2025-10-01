@@ -10,7 +10,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import type {} from '@mui/material/themeCssVarsAugmentation'
 
-import '@/components/Documents/react-pdf.module.css'
+import '@/components/Documents/react-pdf.css'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
 import { ClientProvider } from '@/contexts/ClientContext'
@@ -20,6 +20,7 @@ const roboto = Roboto({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-roboto',
+  preload: true,
 })
 
 const robotoCondensed = Roboto_Condensed({
@@ -27,6 +28,7 @@ const robotoCondensed = Roboto_Condensed({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-roboto-condensed',
+  preload: true,
 })
 
 export const viewport: Viewport = {

@@ -768,7 +768,7 @@ function transformEventSummaryData(
       }
 
       results.push(result)
-    } catch { }
+    } catch {}
   }
 
   return results

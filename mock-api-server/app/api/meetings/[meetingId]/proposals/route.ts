@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.341Z
+// Generated on 2025-09-30T00:31:43.170Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listProposals, createProposal } from '@/domain-models/api/proposals'
+
+import { createProposal, listProposals } from '@/domain-models/api/proposals'
+
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -32,10 +33,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listProposals'
+        operationId: 'listProposals',
       },
       { status: 500 }
     )
@@ -67,13 +68,12 @@ export async function POST(
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createProposal'
+        operationId: 'createProposal',
       },
       { status: 500 }
     )
   }
 }
-

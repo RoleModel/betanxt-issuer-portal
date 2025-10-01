@@ -118,13 +118,13 @@ export default function PositionsVotedChart({
       id: 'voted',
       label: `Voted (${registeredVotedPercentage.toFixed(2)}%)`,
       value: selectedData.registered.voted,
-      color: 'var(--mui-palette-chartSeries-1-main)',
+      color: 'var(--mui-palette-chartSeries-0-main)',
     },
     {
       id: 'not-voted',
       label: `Unvoted (${(100 - registeredVotedPercentage).toFixed(2)}%)`,
       value: selectedData.registered.notVoted,
-      color: 'var(--mui-palette-chartSeries-2-main)',
+      color: 'var(--mui-palette-chartSeries-6-main)',
     },
   ]
 
@@ -153,7 +153,6 @@ export default function PositionsVotedChart({
               value={selectedSetKey || ''}
               onChange={(e) => setSelectedSetKey(e.target.value)}
               displayEmpty
-              sx={{ bgcolor: 'background.paper' }}
             >
               {setKeys.length === 0 ? (
                 <MenuItem value="" disabled>
@@ -173,6 +172,7 @@ export default function PositionsVotedChart({
       <CardContent>
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'column', lg: 'row' }}
+          justifyContent={'center'}
           spacing={3}
         >
           <DonutChart

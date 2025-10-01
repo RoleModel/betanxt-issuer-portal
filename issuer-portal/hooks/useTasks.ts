@@ -20,7 +20,10 @@ const fetchTasks = async (meetingId: string): Promise<Task[]> => {
   const { data, error } = result
 
   if (error || !data) {
-    console.error('fetchTasks error:', error)
+    console.error('fetchTasks error details:', {
+      error,
+      meetingId,
+    })
     throw new Error('Failed to fetch tasks')
   }
 

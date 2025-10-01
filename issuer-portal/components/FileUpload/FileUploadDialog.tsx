@@ -33,7 +33,7 @@ const FileUploadDialog = ({
   onUpload,
   onUploadSuccess,
   // meetingId,
-  // documentType = 'dsm-document',
+  documentType = 'dsm-document',
   // isDragging,
   dsmDocumentOptions = [],
   preSelectedDocumentId,
@@ -151,7 +151,11 @@ const FileUploadDialog = ({
         )}
         <BNFileUpload
           maxFiles={5}
-          acceptedFileTypes={['.doc', '.docx', '.pdf', '.ppt', '.pptx', '.csv']}
+          acceptedFileTypes={
+            documentType === 'digital-shareholder-meeting'
+              ? ['.csv', '.xlsx', '.xls']
+              : ['.doc', '.docx', '.pdf', '.ppt', '.pptx', '.csv']
+          }
           onFilesSelected={handleFilesSelected}
           onFileRemove={handleFileRemove}
           onUpload={handleUpload}

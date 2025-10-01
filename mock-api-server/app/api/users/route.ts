@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.339Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listUsers, createUser } from '@/domain-models/api/users'
+
+import { createUser, listUsers } from '@/domain-models/api/users'
+
 import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -11,9 +12,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
     const typeParam = searchParams.get('type') || undefined
-    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined = 
-      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam) 
-        ? typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'
+    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined =
+      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam)
+        ? (typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER')
         : undefined
     const accountId = searchParams.get('accountId') || undefined
 
@@ -30,10 +31,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listUsers'
+        operationId: 'listUsers',
       },
       { status: 500 }
     )
@@ -58,13 +59,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createUser'
+        operationId: 'createUser',
       },
       { status: 500 }
     )
   }
 }
-

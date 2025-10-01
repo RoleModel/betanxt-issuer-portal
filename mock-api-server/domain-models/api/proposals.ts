@@ -1,7 +1,8 @@
+import { randomUUID } from 'crypto'
+
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
-import { randomUUID } from 'crypto'
 
 // Use generated types from OpenAPI schema
 type Proposal = components['schemas']['Proposal']

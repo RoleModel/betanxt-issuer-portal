@@ -33,7 +33,7 @@ interface MeetingContextType {
   error: string | null
   setCurrentMeeting: (meeting: Meeting | null) => void
   refreshMeetings: (ticker?: string) => Promise<void>
-  refreshMeetingData: () => Promise<void> // Refresh tasks and positions for current meeting
+  refreshMeetingData: () => Promise<{ tasks: Task[]; positions: Position[] } | null> // Refresh tasks and positions for current meeting
   getMeetingById: (id: string) => Meeting | undefined
 }
 
@@ -184,38 +184,55 @@ export function MeetingProvider({
 
   // Fetch tasks and positions for the current meeting
   const refreshMeetingData = useCallback(async () => {
-    if (!currentMeeting?.id) return
+    if (!currentMeeting?.id) return null
 
     try {
-      // Fetch tasks and positions in parallel
+      // Fetch meeting, tasks, and positions in parallel
       setTasksLoading(true)
       setPositionsLoading(true)
 
       const apiClient = await buildApiClient()
-      const [tasksResult, positionsResult] = await Promise.all([
+      const [meetingResult, tasksResult, positionsResult] = await Promise.all([
+        apiClient.GET('/meetings/{meetingId}', {
+          params: { path: { meetingId: currentMeeting.id } },
+        }),
         apiClient.GET('/meetings/{meetingId}/tasks', {
           params: { path: { meetingId: currentMeeting.id } },
         }),
         apiClient.GET('/positions', {
-          params: { query: { meetingId: currentMeeting.id } },
+          params: { query: { meetingId: currentMeeting.id, limit: 50000 } },
         }),
       ])
 
+      // Update the meeting object with fresh data from the server
+      const typedMeetingResult = meetingResult as { error?: unknown; data?: unknown }
+      if (!typedMeetingResult.error && typedMeetingResult.data) {
+        const updatedMeeting = typedMeetingResult.data as Meeting
+        setCurrentMeeting(updatedMeeting)
+
+        // Also update the meeting in the meetings array to keep everything in sync
+        setMeetings((prevMeetings) =>
+          prevMeetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m))
+        )
+      }
+
       // Handle tasks
+      let taskData: Task[] = []
       if (tasksResult.error) {
         // Error handling in place
       } else {
-        const taskData = tasksResult.data || []
+        taskData = tasksResult.data || []
         setTasks(taskData)
       }
 
       // Handle positions
+      let positionData: Position[] = []
       if (positionsResult.error) {
         // Error handling in place
       } else {
         // Handle different possible response formats
         const responseData = positionsResult.data
-        const positionData = Array.isArray(responseData)
+        positionData = Array.isArray(responseData)
           ? responseData
           : ((responseData as { positions?: Position[] })?.positions ?? [])
         setPositions(positionData)
@@ -279,8 +296,12 @@ export function MeetingProvider({
       }
 
       setKeyDates(extractedKeyDates)
+
+      // Return fresh data for immediate use
+      return { tasks: taskData, positions: positionData }
     } catch {
       // Error handling in place
+      return null
     } finally {
       setTasksLoading(false)
       setPositionsLoading(false)

@@ -19,6 +19,8 @@ const CORE_TABLES = [
   'phase',
   'task',
   'document',
+  'document_history',
+  'digital_shareholder_meeting',
   'comment',
   'signature',
   'position',
@@ -27,6 +29,7 @@ const CORE_TABLES = [
   'notification',
   'mailing',
   'tabulation_report',
+  'dsm_config',
 ]
 
 function extractCoreSchema() {

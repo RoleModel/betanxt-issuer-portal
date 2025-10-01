@@ -90,8 +90,19 @@ function Layout({
       <Box
         sx={{
           minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
+          display: 'grid',
+          gridTemplateColumns: '100%',
+          gridTemplateRows: 'auto auto 1fr auto',
+          gridTemplateAreas: `
+            "appSwitcher"
+            "navBar"
+            "main"
+            "footer"
+          `,
+          '& > *': {
+            gridColumn: '1',
+            gridRow: 'auto',
+          },
         }}
       >
         {appSwitcher && (
@@ -101,7 +112,7 @@ function Layout({
         )}
         {navBar && <BNAppBarClient user={bnUser} />}
 
-        {children}
+        <Box component="main">{children}</Box>
         <Fab
           color="primary"
           aria-label="Support contacts"

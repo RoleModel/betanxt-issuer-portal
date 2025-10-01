@@ -69,6 +69,7 @@ const NextImageComponent = React.memo(
         priority
         placeholder="blur"
         blurDataURL={src || '/images/logo.svg'}
+        sizes="(max-width: 600px) 40px, 40px"
       />
     )
   }
@@ -114,19 +115,30 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const meetingContext = useMeetingSafe()
   const meetings = useMemo(() => meetingContext.meetings, [meetingContext.meetings])
 
+  // Extract current meeting ID from pathname
+  const currentMeetingId = useMemo(() => {
+    const match = pathname.match(/\/meeting\/([^\/]+)/)
+    return match ? match[1] : null
+  }, [pathname])
+
+  // Check if current meeting is a past meeting (completed)
+  const isViewingPastMeeting = useMemo(() => {
+    if (!currentMeetingId) return false
+    const meeting = meetings.find((m: { id?: string }) => m.id === currentMeetingId)
+    return meeting?.status === 'COMPLETE'
+  }, [currentMeetingId, meetings])
+
   // Use the current client's ticker for dashboard path, fallback to '/' if no client
   const dashboardPath = useMemo(() => {
     const clientToUse = isHydrated ? currentClient : null
+    // Find the first meeting that is not COMPLETE
     if (clientToUse?.ticker) {
-      // Find the first meeting that is not COMPLETE
       const activeMeeting = meetings.find(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
       )
       if (activeMeeting?.id) {
         return `/${clientToUse.ticker}/meeting/${activeMeeting.id}`
       }
-      // Fallback to hardcoded meeting if no active meetings found
-      return `/${clientToUse.ticker}/meeting/${clientToUse.ticker.toLowerCase()}-annual-meeting-2026`
     }
     return '/'
   }, [isHydrated, currentClient, meetings])
@@ -159,6 +171,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   }, [dashboardPath, urlTicker, isHydrated, currentClient?.ticker])
 
   const currentTab = useMemo(() => {
+    // Check if viewing a past meeting first
+    if (isViewingPastMeeting) return 'past-meetings'
+
     if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
       return 'past-meetings'
     if (MEETING_REPORTS_REGEX.test(pathname)) return 'meeting'
@@ -174,7 +189,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     )
       return 'meeting'
     return null
-  }, [pathname])
+  }, [pathname, isViewingPastMeeting])
 
   const handleNotificationClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -268,7 +283,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return { alt: `${props.user.name || props.user.username} Avatar`, children: initials }
   }, [props.user])
 
-  const isGlobalNotFound = currentTab === null
+  // Only hide tabs for actual 404/error pages, not for profile or other valid pages
+  const isGlobalNotFound = false
 
   const endSlot = useCallback(
     () => (
@@ -304,11 +320,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   const menuItems = useMemo(
     () => [
-      { label: 'Profile' },
-      { label: 'Settings' },
+      { label: 'Profile', onClick: () => router.push('/profile') },
       { label: 'Logout', onClick: () => signOut({ callbackUrl: '/login' }) },
     ],
-    []
+    [router]
   )
 
   return (

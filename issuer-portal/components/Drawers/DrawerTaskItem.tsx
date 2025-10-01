@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 import {
   Box,
   Card,
-  CardActionArea,
   CardContent,
   Checkbox,
   FormControlLabel,
@@ -25,7 +24,6 @@ import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
 import {
   getDTCCAuthorizationStatus,
   isDTCCAuthorizationTask,
-  isIssuerOwnedTask,
 } from '@/utils/taskTransformers'
 
 interface DrawerTaskItemProps {
@@ -47,10 +45,12 @@ export default function DrawerTaskItem({
 }: DrawerTaskItemProps) {
   const { updateTaskById } = useTasks()
   const { refreshMeetingData } = useMeeting()
-  const [isAuthorized, setIsAuthorized] = useState(task.status === 'COMPLETE')
+  const [isAuthorized, setIsAuthorized] = useState(
+    task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
+  )
 
   useEffect(() => {
-    setIsAuthorized(task.status === 'COMPLETE')
+    setIsAuthorized(task.status === 'COMPLETE' || task.status === 'AUTHORIZED')
   }, [task.status])
 
   const handleAuthorizationChange = async (
@@ -76,7 +76,6 @@ export default function DrawerTaskItem({
 
   const isDTCCAuthorization = isDTCCAuthorizationTask(task)
   const taskLinks = parseTaskLinks(task.links, task.title)
-  const isIssuerOwned = isIssuerOwnedTask(task)
 
   return (
     <Card
@@ -104,89 +103,102 @@ export default function DrawerTaskItem({
         }
       }}
     >
-      <CardActionArea onClick={onClick} disabled={!onClick}>
-        <CardContent sx={{ p: 1.5 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 0.5,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                variant="body3"
-                fontWeight={600}
-                sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  mb: 0.25,
-                }}
-              >
-                {task.title}
-              </Typography>
-              <Typography variant="caption">{task.owner}</Typography>
-            </Box>
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}
-            >
-              <Typography
-                variant="body3"
-                fontWeight={600}
-                sx={{
-                  mb: 0.25,
-                }}
-              >
-                {formatDate(task.dueDate || '')}
-              </Typography>
-              <StatusChip status={task.status ?? null} size="small" />
-            </Box>
-          </Box>
-          {/* Task description */}
-          {task.description && (
+      <CardContent
+        sx={{ p: 1.5, cursor: onClick ? 'pointer' : 'default' }}
+        onClick={onClick}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 0.5,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
-              color="text.secondary"
-              sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', mt: 1 }}
+              variant="body3"
+              fontWeight={600}
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                mb: 0.25,
+              }}
             >
-              {task.description}
+              {task.title}
             </Typography>
-          )}
+            <Typography variant="caption">{task.owner}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <Typography
+              variant="body3"
+              fontWeight={600}
+              sx={{
+                mb: 0.25,
+              }}
+            >
+              {formatDate(task.dueDate || '')}
+            </Typography>
+            <StatusChip status={task.status ?? null} size="small" />
+          </Box>
+        </Box>
+        {/* Task description */}
+        {task.description && (
+          <Typography
+            color="text.secondary"
+            sx={{ fontSize: '0.75rem', lineHeight: 1.6, display: 'block', mt: 1 }}
+          >
+            {task.description}
+          </Typography>
+        )}
 
-          {/* DTCC Authorization Checkbox */}
-          {isDTCCAuthorization && (
-            <Box sx={{ mt: 1 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    color="secondary"
-                    checked={isAuthorized}
-                    onChange={handleAuthorizationChange}
-                    size="small"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                }
-                label="Authorization confirmed"
-                sx={{ fontSize: '0.875rem' }}
-              />
-            </Box>
-          )}
+        {/* DTCC Authorization Checkbox */}
+        {isDTCCAuthorization && (
+          <Box sx={{ mt: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  color="secondary"
+                  checked={isAuthorized}
+                  onChange={handleAuthorizationChange}
+                  size="small"
+                />
+              }
+              label="Authorization confirmed"
+              onClick={(e) => e.stopPropagation()}
+              sx={{ fontSize: '0.875rem' }}
+            />
+          </Box>
+        )}
 
-          {/* Task Links - only show for issuer-owned tasks */}
-          {isIssuerOwned && taskLinks.length > 0 && onLinkClick && (
+        {/* Task Links - Only show for issuer-owned tasks */}
+        {taskLinks.length > 0 &&
+          onLinkClick &&
+          !['BetaNXT', 'DFIN'].includes(task.owner || '') && (
             <Box sx={{ mt: 1 }}>
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 {taskLinks.map((link: TaskLink, linkIndex: number) => (
                   <Link
                     key={linkIndex}
                     component="button"
-                    underline="always"
+                    variant="body2"
                     onClick={(e) => {
+                      e.preventDefault()
                       e.stopPropagation()
                       onLinkClick(link, task.title || 'Task')
                     }}
-                    sx={{ fontSize: '0.875rem' }}
+                    sx={{
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      '&:hover': {
+                        textDecoration: 'none',
+                      },
+                    }}
                   >
                     {link.label}
                   </Link>
@@ -194,8 +206,7 @@ export default function DrawerTaskItem({
               </Stack>
             </Box>
           )}
-        </CardContent>
-      </CardActionArea>
+      </CardContent>
     </Card>
   )
 }

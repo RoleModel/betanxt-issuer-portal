@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Box, Card, CardContent, CardHeader, CircularProgress } from '@mui/material'
 import {
@@ -17,9 +17,21 @@ import { ChartsXAxis } from '@mui/x-charts/ChartsXAxis'
 
 import { EmptyState } from '@/components/EmptyState'
 
+import buildApiClient from '@/domain-models/apiClient'
+
 import { abbreviateNumber } from '@/utils/numberUtils'
 
 import { CustomLegend } from './index'
+
+interface Position {
+  shares: number | string
+  voteStatus?: string
+  [key: string]: unknown
+}
+
+interface PositionsResponse {
+  positions?: Position[]
+}
 
 interface ShareRangeData {
   range: string
@@ -30,14 +42,99 @@ interface ShareRangeData {
 
 interface VotingPerformanceChartProps {
   meetingId?: string
-  data?: ShareRangeData[]
-  loading?: boolean
 }
 
 export default function VotingPerformanceChart({
-  data = [],
-  loading = false,
+  meetingId,
 }: VotingPerformanceChartProps) {
+  const [data, setData] = useState<ShareRangeData[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!meetingId) return
+
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const apiClient = await buildApiClient()
+
+        // Fetch positions for this meeting to calculate share range performance
+        const { data: positionsData, error } = await apiClient.GET('/positions', {
+          params: { query: { meetingId } },
+        })
+
+        if (error) {
+          console.error('Failed to fetch voting performance data:', error)
+        } else if (positionsData) {
+          // Define share ranges
+          const ranges = [
+            { min: 0, max: 999, label: '0-999' },
+            { min: 1000, max: 4999, label: '1K-5K' },
+            { min: 5000, max: 9999, label: '5K-10K' },
+            { min: 10000, max: 19999, label: '10K-20K' },
+            { min: 20000, max: 49999, label: '20K-50K' },
+            { min: 50000, max: 99999, label: '50K-100K' },
+            { min: 100000, max: 199999, label: '100K-200K' },
+            { min: 200000, max: 499999, label: '200K-500K' },
+            { min: 500000, max: 999999, label: '500K-1M' },
+            { min: 1000000, max: Number.MAX_SAFE_INTEGER, label: '1M+' },
+          ]
+
+          // Process actual position data to calculate performance by share range
+          // Handle both array and wrapped response formats
+          const positionRecords = Array.isArray(positionsData)
+            ? (positionsData as Position[])
+            : (positionsData as PositionsResponse)?.positions || []
+          const performanceData = ranges
+            .map((rangeInfo) => {
+              // Filter positions within this share range
+              const rangePositions = positionRecords.filter((pos: Position) => {
+                const shares = Number(pos.shares) || 0
+                return shares >= rangeInfo.min && shares <= rangeInfo.max
+              })
+
+              // Calculate statistics for this range
+              const totalPositions = rangePositions.length
+              const totalShares = rangePositions.reduce(
+                (sum: number, pos: Record<string, unknown>) =>
+                  sum + (Number(pos.shares) || 0),
+                0
+              )
+              const votedPositions = rangePositions.filter(
+                (pos: Record<string, unknown>) => {
+                  return pos.voteStatus === 'Voted'
+                }
+              )
+              const votedShares = votedPositions.reduce(
+                (sum: number, pos: Record<string, unknown>) => {
+                  return sum + (Number(pos.sharesVoted) || 0)
+                },
+                0
+              )
+              const percentVoted =
+                totalShares > 0 ? Math.round((votedShares / totalShares) * 100) : 0
+
+              return {
+                range: rangeInfo.label,
+                positions: totalPositions,
+                shares: totalShares,
+                percentVoted: percentVoted,
+              }
+            })
+            .filter((d) => d.positions > 0) // Only include ranges with positions
+
+          setData(performanceData)
+        }
+      } catch (error) {
+        console.error('Failed to load voting performance data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [meetingId])
+
   if (loading) {
     return (
       <Card>
@@ -152,7 +249,7 @@ export default function VotingPerformanceChart({
               valueFormatter: (value) => `${value}%`,
             },
           ]}
-          height={315}
+          height={345}
           margin={{ left: 10, right: 40, top: 10, bottom: 0 }}
         >
           <ChartsSurface>

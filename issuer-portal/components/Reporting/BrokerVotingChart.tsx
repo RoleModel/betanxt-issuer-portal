@@ -150,7 +150,7 @@ export default function BrokerVotingChart({
                 data: data.map((d) => d.abstain),
                 label: 'Abstain',
                 stack: 'total',
-                color: 'var(--mui-palette-neutral-dark)',
+                color: 'var(--mui-palette-action-active)',
               },
             ]}
             height={Math.max(300, data.length * 50 + 75)}

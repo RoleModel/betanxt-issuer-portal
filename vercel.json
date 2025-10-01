@@ -1,6 +1,5 @@
 {
-  "buildCommand": "npm install && cd issuer-portal && npm run build",
+  "buildCommand": "cd issuer-portal && npm run build",
   "outputDirectory": "issuer-portal/.next",
-  "installCommand": "npm install",
   "framework": "nextjs"
 }

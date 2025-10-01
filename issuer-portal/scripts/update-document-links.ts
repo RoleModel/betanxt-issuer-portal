@@ -12,11 +12,13 @@ async function updateDocumentLinks() {
   console.log('🔗 Updating document links to storage files...\n')
 
   // Get all storage files using raw SQL
-  let { data: storageFiles, error: storageError } = await supabase
+  const { data: initialStorageFiles, error: storageError } = await supabase
     .rpc('get_storage_objects', {
       bucket_name: 'documents',
     })
     .select('*')
+
+  let storageFiles = initialStorageFiles
 
   // If RPC doesn't exist, use storage API directly
   if (storageError || !storageFiles) {

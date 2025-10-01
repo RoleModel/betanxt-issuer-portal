@@ -38,5 +38,10 @@
     "noErrorTruncation": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.d.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "playwright-report", "test-results"]
+  "exclude": [
+    "node_modules",
+    "playwright-report",
+    "test-results",
+    "**/node_modules/openapi-fetch/**"
+  ]
 }

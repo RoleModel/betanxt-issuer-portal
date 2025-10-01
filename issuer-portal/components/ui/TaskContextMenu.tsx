@@ -15,9 +15,8 @@ interface TaskContextMenuProps {
   position: ContextMenuPosition | null
   onClose: () => void
   onEdit: () => void
-  onView: () => void
-  onUploadDocument?: () => void
   onDelete?: () => void
+  showEdit?: boolean
 }
 
 export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
@@ -25,9 +24,8 @@ export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
   position,
   onClose,
   onEdit,
-  onView,
-  onUploadDocument,
   onDelete,
+  showEdit = true,
 }) => {
   const handleItemClick = (action: () => void) => {
     action()
@@ -50,17 +48,9 @@ export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
         },
       }}
     >
-      <MenuItem onClick={() => handleItemClick(onView)}>
-        <ListItemText>View Details</ListItemText>
-      </MenuItem>
-
-      <MenuItem onClick={() => handleItemClick(onEdit)}>
-        <ListItemText>Edit Task</ListItemText>
-      </MenuItem>
-
-      {onUploadDocument && (
-        <MenuItem onClick={() => handleItemClick(onUploadDocument)}>
-          <ListItemText>Upload Document</ListItemText>
+      {showEdit && (
+        <MenuItem onClick={() => handleItemClick(onEdit)}>
+          <ListItemText>Edit Task</ListItemText>
         </MenuItem>
       )}
 

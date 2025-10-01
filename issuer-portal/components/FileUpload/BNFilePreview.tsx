@@ -1,6 +1,11 @@
 import React from 'react'
 
-import { Check as CheckIcon, Delete as DeleteIcon, Error as ErrorIcon, UploadFile as UploadFileIcon } from '@mui/icons-material'
+import {
+  Check as CheckIcon,
+  Delete as DeleteIcon,
+  Error as ErrorIcon,
+  UploadFile as UploadFileIcon,
+} from '@mui/icons-material'
 import {
   Avatar,
   Box,

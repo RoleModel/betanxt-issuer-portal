@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 
 import {
@@ -63,6 +64,8 @@ const filterTasks = (
     return matchesSearch && matchesStatus
   })
 }
+
+// Individual item animation - staggered by index
 
 export const ListView: React.FC<ListViewProps> = ({
   searchQuery,
@@ -260,7 +263,9 @@ export const ListView: React.FC<ListViewProps> = ({
     const phaseTasks = dbTasks.filter((t) => t.phaseNumber === phaseNumber)
 
     if (phaseTasks.length === 0) return 0
-    const completed = phaseTasks.filter((t) => t.status === 'COMPLETE').length
+    const completed = phaseTasks.filter(
+      (t) => t.status === 'COMPLETE' || t.status === 'AUTHORIZED'
+    ).length
     return Math.round((completed / phaseTasks.length) * 100)
   }
 
@@ -290,12 +295,6 @@ export const ListView: React.FC<ListViewProps> = ({
     if (selectedTaskForContext) {
       setTaskToEdit(prepareTaskForDisplay(selectedTaskForContext))
       setEditModalOpen(true)
-    }
-  }
-
-  const handleViewTask = () => {
-    if (selectedTaskForContext?.id) {
-      onTaskClick(selectedTaskForContext.id)
     }
   }
 
@@ -354,8 +353,8 @@ export const ListView: React.FC<ListViewProps> = ({
           <Divider />
 
           <List sx={{ p: 0 }}>
-            {Array.from({ length: 8 }, (_, i) => i + 1).map((phaseNumber) => {
-              const phaseColor = getPhaseColor(phaseNumber - 1)
+            {Array.from({ length: 8 }, (_, i) => i + 1).map((phaseNumber: number) => {
+              const phaseColor = getPhaseColor(phaseNumber)
               const isSelected = selectedPhase === phaseNumber
               const isFiltered = phaseFilter === null || phaseFilter === phaseNumber
               const completion = getPhaseCompletion(phaseNumber)
@@ -425,7 +424,7 @@ export const ListView: React.FC<ListViewProps> = ({
                           variant="determinate"
                           value={completion}
                           color={`phase[${phaseNumber - 1}].main` as 'primary'}
-                          aria-label={`Phase ${phaseNumber - 1} completion: ${completion}%`}
+                          aria-label={`Phase ${phaseNumber} completion: ${completion}%`}
                           sx={{
                             height: 6,
                             width: '100%',
@@ -447,189 +446,245 @@ export const ListView: React.FC<ListViewProps> = ({
             selectedPhase >= 1 &&
             selectedPhase <= 8) ? (
             <Stack p={{ xs: 1, md: 3 }} spacing={1}>
-              {(() => {
-                // Combine tasks and key dates into a single array with type information
-                const combinedItems: Array<{
-                  type: 'task' | 'keyDate'
-                  item: Task | DisplayKeyDate
-                  date: Date
-                }> = []
+              <Box
+                component="ul"
+                sx={{ display: 'flex', flexDirection: 'column', gap: 1, m: 0, p: 0 }}
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {(() => {
+                    // Combine tasks and key dates into a single array with type information
+                    const combinedItems: Array<{
+                      type: 'task' | 'keyDate'
+                      item: Task | DisplayKeyDate
+                      date: Date
+                    }> = []
 
-                // Add tasks with parsed dates
-                filteredTasks.forEach((task) => {
-                  if (task.dueDate) {
-                    combinedItems.push({
-                      type: 'task',
-                      item: task,
-                      date: parseDateString(task.dueDate),
+                    // Add tasks with parsed dates
+                    filteredTasks.forEach((task) => {
+                      if (task.dueDate) {
+                        combinedItems.push({
+                          type: 'task',
+                          item: task,
+                          date: parseDateString(task.dueDate),
+                        })
+                      }
                     })
-                  }
-                })
 
-                // Add key dates with parsed dates
-                currentKeyDates.forEach((keyDate) => {
-                  combinedItems.push({
-                    type: 'keyDate',
-                    item: keyDate,
-                    date: parseDateString(keyDate.date || ''),
-                  })
-                })
+                    // Add key dates with parsed dates
+                    currentKeyDates.forEach((keyDate) => {
+                      combinedItems.push({
+                        type: 'keyDate',
+                        item: keyDate,
+                        date: parseDateString(keyDate.date || ''),
+                      })
+                    })
 
-                // Sort all items chronologically, with key dates before tasks on the same date
-                combinedItems.sort((a, b) => {
-                  const dateComparison = a.date.getTime() - b.date.getTime()
-                  if (dateComparison !== 0) {
-                    return dateComparison
-                  }
-                  // If dates are the same, put key dates before tasks
-                  if (a.type === 'keyDate' && b.type === 'task') return -1
-                  if (a.type === 'task' && b.type === 'keyDate') return 1
-                  return 0
-                })
-                // Render combined items
-                if (combinedItems.length === 0) {
-                  return (
-                    <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        No tasks match your search criteria
-                      </Typography>
-                    </Paper>
-                  )
-                }
-
-                return combinedItems.map((combinedItem) => {
-                  if (combinedItem.type === 'keyDate') {
-                    const keyDate = combinedItem.item as DisplayKeyDate
-                    return (
-                      <Paper
-                        key={`keydate-${keyDate.id}`}
-                        elevation={0}
-                        sx={{
-                          p: 1,
-                          backgroundColor: (theme) => theme.vars?.palette?.keydate?.main,
-                          borderLeft: (theme) =>
-                            `4px solid ${theme.vars?.palette?.keydate?.contrastText}`,
-                          borderRadius: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Typography
-                          variant="body3"
-                          fontWeight={500}
-                          sx={{
-                            color: (theme) => theme.vars?.palette?.keydate?.contrastText,
-                          }}
-                        >
-                          {keyDate.title}
-                        </Typography>
-                        <Typography
-                          variant="body3"
-                          fontWeight={600}
-                          sx={{
-                            color: (theme) => theme.vars?.palette?.keydate?.contrastText,
-                          }}
-                        >
-                          {keyDate.date}
-                        </Typography>
-                      </Paper>
-                    )
-                  } else {
-                    const task = combinedItem.item as Task
-                    // Determine which phase this task belongs to
-                    let taskPhase: number
-                    if (selectedPhase === 'all') {
-                      // For "View All", get phase from task's phase_number
-                      const dbTask = dbTasks.find(
-                        (t) => t.taskId === task.id || t.id === task.id
+                    // Sort all items chronologically, with key dates before tasks on the same date
+                    combinedItems.sort((a, b) => {
+                      const dateComparison = a.date.getTime() - b.date.getTime()
+                      if (dateComparison !== 0) {
+                        return dateComparison
+                      }
+                      // If dates are the same, put key dates before tasks
+                      if (a.type === 'keyDate' && b.type === 'task') return -1
+                      if (a.type === 'task' && b.type === 'keyDate') return 1
+                      return 0
+                    })
+                    // Render combined items
+                    if (combinedItems.length === 0) {
+                      return (
+                        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            No tasks match your search criteria
+                          </Typography>
+                        </Paper>
                       )
-                      taskPhase = dbTask ? dbTask.phaseNumber || 1 : 1
-                    } else {
-                      // For specific phase selection, use the selected phase
-                      taskPhase = selectedPhase as number
                     }
-                    const taskPhaseColor = getPhaseColor(taskPhase - 1)
-                    return (
-                      <Paper
-                        key={task.id}
-                        elevation={0}
-                        tabIndex={0}
-                        onClick={() => onTaskClick(task.id || '')}
-                        onContextMenu={(e) => {
+
+                    return combinedItems.map((combinedItem, index) => {
+                      if (combinedItem.type === 'keyDate') {
+                        const keyDate = combinedItem.item as DisplayKeyDate
+                        const uniqueKey = `keydate-${keyDate.id || keyDate.title || index}`
+                        return (
+                          <motion.li
+                            layout
+                            key={uniqueKey}
+                            layoutId={uniqueKey}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0, y: 30 }}
+                            transition={{
+                              duration: 0.2,
+                              delay: index * 0.05,
+                              ease: 'easeOut',
+                            }}
+                            style={{ listStyle: 'none', margin: 0, padding: 0 }}
+                          >
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                backgroundColor: (theme) =>
+                                  theme.vars?.palette?.keydate?.main,
+                                borderLeft: (theme) =>
+                                  `8px solid ${theme.vars?.palette?.keydate?.contrastText}`,
+                                borderRadius: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <Typography
+                                variant="body3"
+                                fontWeight={500}
+                                sx={{
+                                  color: (theme) =>
+                                    theme.vars?.palette?.keydate?.contrastText,
+                                }}
+                              >
+                                {keyDate.title}
+                              </Typography>
+                              <Typography
+                                variant="body3"
+                                fontWeight={600}
+                                sx={{
+                                  color: (theme) =>
+                                    theme.vars?.palette?.keydate?.contrastText,
+                                }}
+                              >
+                                {keyDate.date}
+                              </Typography>
+                            </Paper>
+                          </motion.li>
+                        )
+                      } else {
+                        const task = combinedItem.item as Task
+                        // Determine which phase this task belongs to
+                        let taskPhase: number
+                        if (selectedPhase === 'all') {
+                          // For "View All", get phase from task's phase_number
                           const dbTask = dbTasks.find(
                             (t) => t.taskId === task.id || t.id === task.id
                           )
-                          if (dbTask) {
-                            handleTaskRightClick(
-                              e,
-                              dbTask.id || dbTask.taskId || task.id || ''
-                            )
-                          }
-                        }}
-                        sx={{
-                          p: 1,
-                          cursor: 'pointer',
-                          backgroundColor: (theme) =>
-                            task.status === 'COMPLETE'
-                              ? theme.vars?.palette.background.default
-                              : theme.vars?.palette?.tableCellRow.fill,
-                          boxShadow: (theme) =>
-                            `inset 0px 0px 0px 1px ${theme.vars?.palette?.divider}`,
-                          borderLeft: (theme) =>
-                            task.status === 'COMPLETE'
-                              ? `5px solid ${theme.vars?.palette.complete}`
-                              : `5px solid ${taskPhaseColor}`,
-                          '&:hover': {
-                            boxShadow: `inset 0px 0px 0px 1px ${taskPhaseColor}`,
-                          },
-                        }}
-                      >
-                        <Box
-                          display="flex"
-                          alignItems={{ xs: 'flex-start', md: 'center' }}
-                          flexDirection={{ xs: 'column', md: 'row' }}
-                          justifyContent="space-between"
-                        >
-                          <Box flex={1}>
-                            <Typography
-                              variant="body3"
-                              fontWeight={500}
-                              gutterBottom
+                          taskPhase = dbTask ? dbTask.phaseNumber || 1 : 1
+                        } else {
+                          // For specific phase selection, use the selected phase
+                          taskPhase = selectedPhase as number
+                        }
+                        const taskPhaseColor: string = getPhaseColor(taskPhase)
+                        const uniqueKey = `task-${task.id || task.taskId || task.title || index}`
+                        return (
+                          <motion.li
+                            key={uniqueKey}
+                            layoutId={uniqueKey}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 30 }}
+                            transition={{
+                              duration: 0.2,
+                              delay: index * 0.05,
+                              ease: 'easeOut',
+                            }}
+                            style={{ listStyle: 'none', margin: 0, padding: 0 }}
+                          >
+                            <Paper
+                              elevation={0}
+                              tabIndex={0}
+                              onClick={() => onTaskClick(task.id || '')}
+                              onContextMenu={(e) => {
+                                const dbTask = dbTasks.find(
+                                  (t) => t.taskId === task.id || t.id === task.id
+                                )
+                                if (dbTask) {
+                                  handleTaskRightClick(
+                                    e,
+                                    dbTask.id || dbTask.taskId || task.id || ''
+                                  )
+                                }
+                              }}
                               sx={{
-                                textDecoration:
-                                  task.status === 'COMPLETE' ? 'line-through' : 'none',
-                                opacity: task.status === 'COMPLETE' ? 0.6 : 1,
+                                p: 2,
+                                cursor: 'pointer',
+                                backgroundColor: (theme) =>
+                                  task.status === 'COMPLETE' ||
+                                  task.status === 'AUTHORIZED'
+                                    ? theme.vars?.palette.background.default
+                                    : theme.vars?.palette?.tableCellRow.fill,
+                                boxShadow: (theme) =>
+                                  `inset 0px 0px 0px 1px ${theme.vars?.palette?.divider}`,
+                                borderLeft: (theme) =>
+                                  task.status === 'COMPLETE' ||
+                                  task.status === 'AUTHORIZED'
+                                    ? `8px solid ${theme.vars?.palette.complete}`
+                                    : `8px solid ${taskPhaseColor}`,
+                                '&:hover': {
+                                  boxShadow: `inset 0px 0px 0px 1px ${taskPhaseColor}`,
+                                  borderLeftColor: taskPhaseColor,
+                                },
                               }}
                             >
-                              {task.title}
-                            </Typography>
-                            <Typography
-                              variant="body3"
-                              color="text.secondary"
-                              sx={{
-                                textDecoration:
-                                  task.status === 'COMPLETE' ? 'line-through' : 'none',
-                              }}
-                            >
-                              {task.owner || 'BetaNXT'}
-                            </Typography>
-                          </Box>
-                          <Box textAlign={{ xs: 'left', md: 'right' }}>
-                            <Typography variant="body3" fontWeight={500} color="primary">
-                              {task.dueDate}
-                            </Typography>
-                            <StatusChip
-                              status={task.status || 'INCOMPLETE'}
-                              size="small"
-                            />
-                          </Box>
-                        </Box>
-                      </Paper>
-                    )
-                  }
-                })
-              })()}
+                              <Box
+                                display="flex"
+                                alignItems={{ xs: 'flex-start', md: 'center' }}
+                                flexDirection={{ xs: 'column', md: 'row' }}
+                                justifyContent="space-between"
+                              >
+                                <Box flex={1}>
+                                  <Typography
+                                    variant="body3"
+                                    fontWeight={500}
+                                    gutterBottom
+                                    sx={{
+                                      textDecoration:
+                                        task.status === 'COMPLETE' ||
+                                        task.status === 'AUTHORIZED'
+                                          ? 'line-through'
+                                          : 'none',
+                                      opacity:
+                                        task.status === 'COMPLETE' ||
+                                        task.status === 'AUTHORIZED'
+                                          ? 0.6
+                                          : 1,
+                                    }}
+                                  >
+                                    {task.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="body3"
+                                    color="text.secondary"
+                                    sx={{
+                                      textDecoration:
+                                        task.status === 'COMPLETE' ||
+                                        task.status === 'AUTHORIZED'
+                                          ? 'line-through'
+                                          : 'none',
+                                    }}
+                                  >
+                                    {task.owner || 'BetaNXT'}
+                                  </Typography>
+                                </Box>
+                                <Box textAlign={{ xs: 'left', md: 'right' }}>
+                                  <Typography
+                                    variant="body3"
+                                    fontWeight={500}
+                                    color="primary"
+                                  >
+                                    {task.dueDate}
+                                  </Typography>
+                                  <StatusChip
+                                    status={task.status || 'INCOMPLETE'}
+                                    size="small"
+                                  />
+                                </Box>
+                              </Box>
+                            </Paper>
+                          </motion.li>
+                        )
+                      }
+                    })
+                  })()}
+                </AnimatePresence>
+              </Box>
             </Stack>
           ) : (
             <Box display="flex" alignItems="center" justifyContent="center" height="100%">
@@ -646,7 +701,6 @@ export const ListView: React.FC<ListViewProps> = ({
           position={contextMenuPosition}
           onClose={handleContextMenuClose}
           onEdit={handleEditTask}
-          onView={handleViewTask}
         />
 
         {/* Task Edit Modal */}

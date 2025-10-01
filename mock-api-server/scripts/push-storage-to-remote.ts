@@ -1,15 +1,15 @@
 #!/usr/bin/env npx tsx
 /* eslint-disable no-console */
 import { createClient } from '@supabase/supabase-js'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 
 // Local Supabase
 const localUrl = 'http://127.0.0.1:54321'
-const localServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+const localServiceKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 // Remote Supabase (production)
-const remoteUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+const remoteUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
 const remoteServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 if (!remoteServiceKey) {
@@ -41,13 +41,13 @@ async function pushStorageToRemote() {
         'video/mp4',
         'audio/mp4',
         'audio/x-m4a'
-      ] WHERE name='documents';`
+      ] WHERE name='documents';`,
     })
 
     if (updateError) {
       console.log('⚠️  Could not update bucket MIME types via RPC:', updateError.message)
     }
-  } catch (err) {
+  } catch (_err) {
     console.log('⚠️  Skipping bucket MIME type update (RPC not available on remote)')
   }
 
@@ -59,7 +59,13 @@ async function pushStorageToRemote() {
     'wwd-annual-meeting-2025',
   ]
 
-  const allFiles: Array<{ path: string; metadata?: any }> = []
+  interface FileMetadata {
+    mimeType?: string
+    mimetype?: string
+    [key: string]: unknown
+  }
+
+  const allFiles: Array<{ path: string; metadata?: FileMetadata }> = []
 
   for (const meetingId of meetingIds) {
     const { data: folders, error: folderError } = await localSupabase.storage
@@ -88,7 +94,7 @@ async function pushStorageToRemote() {
           if (file.name && file.name.includes('.')) {
             allFiles.push({
               path: `${folderPath}/${file.name}`,
-              metadata: file.metadata
+              metadata: file.metadata,
             })
           }
         }
@@ -128,7 +134,7 @@ async function pushStorageToRemote() {
         .from('documents')
         .list(filePath.split('/').slice(0, -1).join('/'), {
           limit: 1000,
-          search: filePath.split('/').pop()
+          search: filePath.split('/').pop(),
         })
 
       if (existingFile && existingFile.length > 0) {
@@ -141,8 +147,11 @@ async function pushStorageToRemote() {
       const { error: uploadError } = await remoteSupabase.storage
         .from('documents')
         .upload(filePath, buffer, {
-          contentType: file.metadata?.mimeType || file.metadata?.mimetype || 'application/octet-stream',
-          upsert: false
+          contentType:
+            file.metadata?.mimeType ||
+            file.metadata?.mimetype ||
+            'application/octet-stream',
+          upsert: false,
         })
 
       if (uploadError) {

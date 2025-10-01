@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.339Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserById, updateUser, deleteUser } from '@/domain-models/api/users'
+
+import { deleteUser, getUserById, updateUser } from '@/domain-models/api/users'
+
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -32,10 +33,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getUserById'
+        operationId: 'getUserById',
       },
       { status: 500 }
     )
@@ -67,10 +68,10 @@ export async function PUT(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateUser'
+        operationId: 'updateUser',
       },
       { status: 500 }
     )
@@ -99,13 +100,12 @@ export async function DELETE(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteUser'
+        operationId: 'deleteUser',
       },
       { status: 500 }
     )
   }
 }
-

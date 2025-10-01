@@ -93,6 +93,14 @@ export type PhaseColor =
 export const getPhaseColor = (phase: number) => {
   return `var(--mui-palette-phase-${phase - 1}-main)`
 }
+export const getPhaseContrastText = (phase: number) => {
+  return `var(--mui-palette-phase-${phase - 1}-contrastText)`
+}
+
+// Utility function to get phase color format for MUI components (e.g., LinearProgress)
+export const getPhaseNumber = (phase: number) => {
+  return `phase[${phase - 1}].main` as PhaseColor
+}
 
 // Status color categories (matching StatusChip logic)
 // Only these statuses override the phase color
@@ -202,20 +210,20 @@ const issuerOverrides = {
       palette: {
         aquaLight: '#CFE2E5',
         keydate: {
-          main: nxtBlue[800],
-          light: nxtBlue[600],
+          main: nxtBlue[900],
+          light: nxtBlue[700],
           dark: nxtBlue[600],
           contrastText: nxtBlue[100],
         },
         phase: [
           {
-            main: cyan[400],
+            main: cyan[800],
             light: cyan[300],
             dark: cyan[900],
             contrastText: cyan[50],
           },
           {
-            main: teal[400],
+            main: teal[600],
             light: teal[400],
             dark: teal[900],
             contrastText: teal[50],
@@ -246,13 +254,13 @@ const issuerOverrides = {
           },
 
           {
-            main: green[500],
+            main: green[700],
             light: green[400],
             dark: green[900],
             contrastText: green[50],
           },
           {
-            main: deepPurple[500],
+            main: deepPurple[600],
             light: deepPurple[400],
             dark: deepPurple[900],
             contrastText: deepPurple[50],
@@ -260,6 +268,15 @@ const issuerOverrides = {
         ],
         complete: grey[600],
       },
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1800,
     },
   },
   components: {

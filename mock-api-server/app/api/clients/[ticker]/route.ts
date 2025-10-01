@@ -1,9 +1,14 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.339Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getClientByTicker, updateClient, deleteClient } from '@/domain-models/api/clients'
+
+import {
+  deleteClient,
+  getClientByTicker,
+  updateClient,
+} from '@/domain-models/api/clients'
+
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -32,10 +37,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getClientByTicker'
+        operationId: 'getClientByTicker',
       },
       { status: 500 }
     )
@@ -67,10 +72,10 @@ export async function PUT(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateClient'
+        operationId: 'updateClient',
       },
       { status: 500 }
     )
@@ -99,13 +104,12 @@ export async function DELETE(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteClient'
+        operationId: 'deleteClient',
       },
       { status: 500 }
     )
   }
 }
-

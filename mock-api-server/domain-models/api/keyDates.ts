@@ -1,5 +1,3 @@
-
-
 import { apiClient } from '../apiClient'
 
 // Use generated types from OpenAPI schema
@@ -25,14 +23,11 @@ export async function listKeyDatesForMeeting(
   meetingId: string
 ): Promise<ApiResponse<KeyDate[] | undefined>> {
   // Fetch meeting for top-level dates
-  const meetingResult = await apiClient.GET(
-    '/meetings/{meetingId}',
-    {
-      params: {
-        path: { meetingId },
-      },
-    }
-  )
+  const meetingResult = await apiClient.GET('/meetings/{meetingId}', {
+    params: {
+      path: { meetingId },
+    },
+  })
 
   const { data: meeting, error: meetingError, response: meetingResponse } = meetingResult
 
@@ -48,14 +43,11 @@ export async function listKeyDatesForMeeting(
   }
 
   // Fetch phases for phase-level key dates
-  const phasesResult = await apiClient.GET(
-    '/meetings/{meetingId}/phases',
-    {
-      params: {
-        path: { meetingId },
-      },
-    }
-  )
+  const phasesResult = await apiClient.GET('/meetings/{meetingId}/phases', {
+    params: {
+      path: { meetingId },
+    },
+  })
 
   const { data: phases, error: phasesError, response: phasesResponse } = phasesResult
 

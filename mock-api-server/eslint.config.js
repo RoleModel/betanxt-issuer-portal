@@ -14,6 +14,7 @@ export default [
       '**/api-schema-types.ts',
       '**/database.types.ts',
       '.next',
+      '.vercel',
       'node_modules',
       '**/*.config.js',
       '**/*.config.mjs',

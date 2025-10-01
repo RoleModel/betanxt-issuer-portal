@@ -1,7 +1,8 @@
+import { randomUUID } from 'crypto'
+
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
-import { randomUUID } from 'crypto'
 
 // Helper function to convert null to undefined
 function nullToUndefined<T>(value: T | null): T | undefined {
@@ -32,7 +33,18 @@ function transformTask(dbTask: TaskRow): Task {
     description: nullToUndefined(dbTask.description),
     dueDate: nullToUndefined(dbTask.due_date),
     owner: nullToUndefined(dbTask.owner),
-    status: nullToUndefined(dbTask.status) as 'COMPLETE' | 'INCOMPLETE' | 'CANCELLED' | 'NEEDS_AUTHORIZATION' | 'AUTHORIZED' | 'PENDING_AUTHORIZATION' | 'WAITING_FOR_FORM_RETURN' | 'AUTHORIZATION_NEEDED' | 'SUBMITTED_AWAITING_RECORD_DATE' | 'REQUEST_FORM_TO_FOLLOW' | undefined,
+    status: nullToUndefined(dbTask.status) as
+      | 'COMPLETE'
+      | 'INCOMPLETE'
+      | 'CANCELLED'
+      | 'NEEDS_AUTHORIZATION'
+      | 'AUTHORIZED'
+      | 'PENDING_AUTHORIZATION'
+      | 'WAITING_FOR_FORM_RETURN'
+      | 'AUTHORIZATION_NEEDED'
+      | 'SUBMITTED_AWAITING_RECORD_DATE'
+      | 'REQUEST_FORM_TO_FOLLOW'
+      | undefined,
     meetingId: nullToUndefined(dbTask.meeting_id),
     phaseId: nullToUndefined(dbTask.phase_id),
     phaseNumber: nullToUndefined(dbTask.phase_number),

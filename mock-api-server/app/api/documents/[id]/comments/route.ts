@@ -1,59 +1,102 @@
-// AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.341Z
-// Source: openapi-schema/openapi.yaml
+import crypto from 'crypto'
+import { NextRequest, NextResponse } from 'next/server'
 
-import { NextResponse } from 'next/server'
+import { supabase } from '@/utils/supabase/client'
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   try {
-    // TODO: Implement getDocumentComments
-    // Operation: getDocumentComments
-    // This route was auto-generated from OpenAPI spec
-    
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .eq('id', id)
+    const { id } = await params
 
-    return NextResponse.json([])
+    const { data, error } = await supabase
+      .from('comment')
+      .select('*')
+      .eq('document_id', id)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch comments', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(data || [])
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDocumentComments'
+        operationId: 'getDocumentComments',
       },
       { status: 500 }
     )
   }
 }
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   try {
-    // TODO: Implement addComment
-    // Operation: addComment
-    // This route was auto-generated from OpenAPI spec
-    
-    // Parse request body
-    // const body = await request.json()
+    const { id } = await params
+    const body = await request.json()
 
-    // Example: Insert data into Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .insert(body)
-    //   .select()
+    // Extract comment data from request body
+    const { comment, firstName, lastName, userId } = body
 
-    return NextResponse.json({}, { status: 201 })
+    if (!comment || !userId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: comment and userId' },
+        { status: 400 }
+      )
+    }
+
+    // Insert comment into database
+    const { data, error } = await supabase
+      .from('comment')
+      .insert({
+        id: Date.now(), // Generate a unique ID using timestamp
+        document_id: id,
+        comment,
+        user_id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to add comment', message: error.message, details: error },
+        { status: 500 }
+      )
+    }
+
+    // Create a history event for the comment
+    const userName = firstName && lastName ? `${firstName} ${lastName}` : userId
+    await supabase.from('document_history').insert({
+      id: crypto.randomUUID(),
+      document_id: id,
+      event_type: 'COMMENTED',
+      user_id: userId,
+      user_name: userName,
+      metadata: { comment_preview: comment.substring(0, 100) },
+      created_at: new Date().toISOString(),
+    })
+
+    return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'addComment'
+        operationId: 'addComment',
       },
       { status: 500 }
     )
   }
 }
-

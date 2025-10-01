@@ -50,7 +50,17 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
             {label}
           </Typography>
           {!isPhoneNumber && !!url && (
-            <Link variant="body3" fontWeight={500} href={url} target="_blank">
+            <Link
+              sx={{
+                wordBreak: 'break-all',
+                overflowWrap: 'break-word',
+                wordWrap: 'break-word',
+              }}
+              variant="body3"
+              fontWeight={500}
+              href={url}
+              target="_blank"
+            >
               {url}
             </Link>
           )}

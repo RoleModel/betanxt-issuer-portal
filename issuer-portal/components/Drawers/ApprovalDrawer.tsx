@@ -455,10 +455,34 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             overflow: 'auto',
           }}
         >
-          <Box sx={{ width: '100%' }}>
+          <Box
+            sx={{
+              p: 2,
+              width: '100%',
+              '& .react-pdf__Document': {
+                padding: 1,
+              },
+              '& .react-pdf__Page': {
+                maxHeight: 100,
+              },
+            }}
+          >
             {(() => {
-              const fileExtension = fileUrl?.split('.').pop()?.toLowerCase()
-              const isPdf = fileExtension === 'pdf' || fileUrl?.includes('/test-pdf')
+              // Extract file extension, handling URLs with query parameters and data URLs
+              let fileExtension: string | undefined
+              let isPdf = false
+
+              // Check if it's a data URL (base64 encoded)
+              if (fileUrl?.startsWith('data:')) {
+                const mimeType = fileUrl.split(';')[0].split(':')[1]
+                isPdf = mimeType === 'application/pdf'
+                fileExtension = mimeType?.split('/')[1] // e.g., 'pdf' from 'application/pdf'
+              } else {
+                // Regular URL - extract extension from filename
+                const urlWithoutQuery = fileUrl?.split('?')[0] || ''
+                fileExtension = urlWithoutQuery.split('.').pop()?.toLowerCase()
+                isPdf = fileExtension === 'pdf' || fileUrl?.includes('/test-pdf')
+              }
               const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
                 fileExtension || ''
               )
@@ -474,13 +498,61 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                   />
                 )
               } else if (isOfficeDoc) {
-                return (
-                  <OfficeDocumentViewer
-                    url={fileUrl}
-                    title={title}
-                    fileType={fileExtension}
-                  />
-                )
+                // For Excel files, provide download option since preview is often problematic
+                if (fileExtension === 'xls' || fileExtension === 'xlsx') {
+                  return (
+                    <Box sx={{ p: 4, textAlign: 'center', width: '100%' }}>
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 80,
+                          mx: 'auto',
+                          mb: 3,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: 'success.main',
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Typography variant="h4" color="success.contrastText">
+                          {fileExtension === 'xlsx' ? 'XLSX' : 'XLS'}
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" gutterBottom>
+                        {title || 'Excel Spreadsheet'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" paragraph>
+                        Download to view this Excel file.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        onClick={handleDownload}
+                        startIcon={<DownloadIcon />}
+                        size="large"
+                        sx={{ mt: 2 }}
+                      >
+                        Download Excel File
+                      </Button>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ mt: 2, display: 'block' }}
+                      >
+                        File type: {fileExtension?.toUpperCase()}
+                      </Typography>
+                    </Box>
+                  )
+                } else {
+                  // Use react-doc-viewer for Word and PowerPoint docs
+                  return (
+                    <OfficeDocumentViewer
+                      url={fileUrl}
+                      title={title}
+                      fileType={fileExtension}
+                    />
+                  )
+                }
               } else if (isAudio) {
                 return (
                   <Box sx={{ p: 2, width: '100%' }}>

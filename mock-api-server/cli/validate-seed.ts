@@ -852,7 +852,7 @@ async function validateSeedData() {
     // Define expected tasks by phase number (from seed.ts)
     const EXPECTED_TASKS_BY_PHASE: Record<number, string[]> = {
       1: [
-        'DTCC (SPR) Authorization Status',
+        'DTCC authorization',
         'Plan File Request form',
         'Transfer Agent Registered File Request Form',
         'Broadridge/ICS Access',

@@ -90,7 +90,6 @@ export default function VoteDistributionChart({
                 highlightScope: { fade: 'global', highlight: 'item' },
               },
             ]}
-            width={600}
             height={300}
             slotProps={{
               legend: {

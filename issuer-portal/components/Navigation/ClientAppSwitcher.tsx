@@ -4,6 +4,7 @@ import {
   type App,
   BNAppSwitcher,
 } from '@rolemodel/betanxt-design-system/components/BNAppSwitcher'
+import { useSession } from 'next-auth/react'
 import React, { useState } from 'react'
 
 import { ArrowDropDownOutlined } from '@mui/icons-material'
@@ -19,10 +20,19 @@ interface ClientAppSwitcherProps {
 function SwitchButton() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const { availableClients, currentClient, switchClient } = useClient()
+  const { data: session } = useSession()
   const open = Boolean(anchorEl)
 
+  // Check if user has permission to switch clients
+  const userType = session?.user?.type
+  const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+  const canSwitchClients =
+    isAuthBypassed || userType === 'ADMIN' || userType === 'RELATIONSHIP_MANAGER'
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
+    if (canSwitchClients) {
+      setAnchorEl(event.currentTarget)
+    }
   }
 
   const handleClose = () => {
@@ -36,6 +46,11 @@ function SwitchButton() {
 
   const currentClientName =
     currentClient?.company_name || currentClient?.short_name || 'Select Client'
+
+  // If user doesn't have permission, just show the client name without dropdown
+  if (!canSwitchClients) {
+    return <span style={{ padding: '6px 8px' }}>{currentClientName}</span>
+  }
 
   return (
     <>

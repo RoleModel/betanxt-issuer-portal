@@ -60,9 +60,10 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
   const renderField = () => {
     const baseStyles = {
       width: '100%',
-      height: '20px',
       display: 'flex',
-      alignItems: 'flex-end',
+      height: '39.13px',
+      padding: '8px 8px',
+      alignItems: 'center',
       justifyContent: 'flex-start',
       paddingBottom: '2px',
     }
@@ -81,17 +82,17 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
                   textField: {
                     size: 'small',
                     fullWidth: true,
-                    variant: 'standard',
+                    variant: 'outlined',
                     sx: {
                       '& .MuiInputBase-root': {
                         backgroundColor: 'white',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         color: 'black',
                         '&:before, &:after': { display: 'none' },
                       },
                       '& .MuiInputBase-input': {
-                        fontSize: '12px',
-                        padding: 0,
+                        fontSize: '14px',
+                        padding: '8px 8px',
                         color: 'black',
                       },
                     },
@@ -109,12 +110,7 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               onBlur={handleBlur}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleBlur()
-                }
-              }}
-              variant="standard"
+              variant="outlined"
               size="small"
               fullWidth
               autoFocus
@@ -122,13 +118,13 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
               sx={{
                 '& .MuiInputBase-root': {
                   backgroundColor: 'white',
-                  fontSize: '12px',
+                  fontSize: '14px',
                   color: 'black',
                   '&:before, &:after': { display: 'none' },
                 },
                 '& .MuiInputBase-input': {
-                  fontSize: '12px',
-                  padding: 0,
+                  fontSize: '14px',
+                  padding: '8px 8px',
                   color: 'black',
                 },
               }}
@@ -154,14 +150,15 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
           sx={{
             color: value ? 'black' : 'rgba(0, 0, 0, 0.7)',
             fontSize: '14px',
-            fontWeight: 500,
             lineHeight: '16px',
             height: '16px',
             userSelect: 'none',
             fontStyle: 'normal',
             width: '100%',
+            paddingInline: 1,
             overflow: 'hidden',
             whiteSpace: 'nowrap',
+
             textOverflow: 'ellipsis',
           }}
         >

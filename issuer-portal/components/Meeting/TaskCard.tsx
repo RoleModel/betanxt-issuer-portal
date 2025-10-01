@@ -199,6 +199,8 @@ export default function TaskCard({
         'Plan File Request form',
         'Transfer Agent Registered File Request Form',
         'Broadridge/ICS Access',
+        'Draft Proxy Statement',
+        'Proxy Card',
       ]
 
       if (task.phaseNumber === 1 && carryOverTitles.includes(task.title || '')) {
@@ -207,6 +209,7 @@ export default function TaskCard({
           'INCOMPLETE',
           'NEEDS_AUTHORIZATION',
           'PENDING_AUTHORIZATION',
+          'AUTHORIZED',
           'SUBMITTED_AWAITING_RECORD_DATE',
         ]
         return incompleteStatuses.includes(task.status || 'INCOMPLETE')

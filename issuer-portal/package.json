@@ -8,7 +8,7 @@
     "dev": "next dev",
     "dev:inspect": "NODE_OPTIONS='--inspect' next dev",
     "start": "node .next/standalone/server.js",
-    "lint": "eslint --fix .",
+    "lint": "eslint --fix . --ignore-pattern='*.config.mjs' --ignore-pattern='next-env.d.ts'",
     "test": "npx playwright test",
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o domain-models/generated-schema.ts",
@@ -64,7 +64,6 @@
     "eslint-config-next": "^14.0.0",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
-    "motion-plus": "^1.5.1",
     "openapi-fetch": "^0.8.2",
     "openapi-typescript": "^6.7.3",
     "typescript": "^5.9.2"

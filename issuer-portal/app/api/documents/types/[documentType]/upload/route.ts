@@ -109,6 +109,22 @@ export async function POST(
       if (insertError) {
         return jsonError(`Persist document failed: ${insertError.message}`, 500)
       }
+
+      // Create history event in document_history table
+      await supabase.from('document_history').insert({
+        id: crypto.randomUUID(),
+        document_id: id,
+        event_type: 'CREATED',
+        user_id: userName,
+        user_name: userName,
+        metadata: {
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          document_type: documentType,
+        },
+        created_at: nowIso,
+      })
     } else {
       // Fetch existing history to append
       const { data: existingData, error: fetchErr } = await supabase
@@ -136,6 +152,23 @@ export async function POST(
       if (updateError) {
         return jsonError(`Update document failed: ${updateError.message}`, 500)
       }
+
+      // Create history event for update
+      await supabase.from('document_history').insert({
+        id: crypto.randomUUID(),
+        document_id: existingDocumentId,
+        event_type: 'UPLOADED',
+        user_id: userName,
+        user_name: userName,
+        metadata: {
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          document_type: documentType,
+          version_notes: versionNotes,
+        },
+        created_at: nowIso,
+      })
     }
 
     const responsePayload = {

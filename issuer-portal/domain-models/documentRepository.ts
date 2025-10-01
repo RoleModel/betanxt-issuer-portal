@@ -153,7 +153,9 @@ class DefaultDocumentRepository implements DocumentRepository {
       type: getString('type') ?? undefined,
       filePath: getString('file_path'),
       fileType: getString('file_type'),
-      displayCategory: getString('display_category') as Document['displayCategory'] | undefined,
+      displayCategory: getString('display_category') as
+        | Document['displayCategory']
+        | undefined,
       fileSize: getNumber('file_size'),
       status: statusValue as Document['status'] | undefined,
       uploadDate: getString('upload_date'),

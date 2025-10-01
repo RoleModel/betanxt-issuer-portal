@@ -21,7 +21,11 @@ import {
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
-import { getPhaseColor } from '@/components/mui-styling/theme'
+import {
+  getPhaseColor,
+  getPhaseContrastText,
+  getPhaseNumber,
+} from '@/components/mui-styling/theme'
 import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -121,6 +125,15 @@ export function EventTabs() {
     () => parsePhaseNumber(currentMeeting?.currentPhase),
     [currentMeeting?.currentPhase]
   )
+
+  // Extract phase from URL if on a dashboard route
+  const phaseFromUrl = useMemo(() => {
+    const match = pathname.match(/\/dashboard\/(\d+)/)
+    return match ? parseInt(match[1], 10) : null
+  }, [pathname])
+
+  // Use URL phase for display if available, otherwise use meeting's current phase
+  const displayPhase = phaseFromUrl ?? currentPhase
 
   // Memoize navigation tabs with current phase
   const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
@@ -524,24 +537,29 @@ export function EventTabs() {
                   onOpenPhaseDrawer()
                 }
               }}
-              sx={(muiTheme) => {
-                const focusOutlineColor =
-                  muiTheme.vars?.palette?.primary?.main || muiTheme.palette.primary.main
-
+              sx={(theme) => {
                 return {
                   fontWeight: 600,
-                  color: getPhaseColor(currentPhase),
+                  color: getPhaseColor(displayPhase),
                   cursor: 'pointer',
                   fontSize: 'inherit',
-                  lineHeight: 1.5,
+                  lineHeight: 1,
                   display: 'inline-flex',
                   alignItems: 'center',
+                  alignSelf: 'start',
                   textDecoration: 'none',
                   '&:hover': { textDecoration: 'underline' },
                   '&:focus': {
-                    outline: `2px solid ${focusOutlineColor}`,
+                    outline: `2px solid ${theme.vars?.palette?.primary?.main}`,
                     outlineOffset: 2,
                   },
+                  ...theme.applyStyles('dark', {
+                    paddingY: 0.25,
+                    paddingX: 0.5,
+                    borderRadius: 1,
+                    background: getPhaseColor(displayPhase),
+                    color: getPhaseContrastText(displayPhase),
+                  }),
                 }
               }}
             >
@@ -560,7 +578,7 @@ export function EventTabs() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: 24 }}>
               <LinearProgress
                 variant="determinate"
-                color="primary"
+                color={getPhaseNumber(currentPhase) as 'primary'}
                 value={meeting.overallCompletion || 0}
                 aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
                 sx={{ flex: 1, height: 4 }}
@@ -642,9 +660,7 @@ export function EventTabs() {
 
     return (
       <Box
-        component={Link}
         key={meeting.id || index}
-        href={targetPath}
         data-tab-index={index}
         tabIndex={0}
         role="tab"
@@ -677,14 +693,16 @@ export function EventTabs() {
         <Box sx={(theme) => ({ px: theme.spacing(2), pt: theme.spacing(1.5) })}>
           <Stack>
             <Typography
+              href={targetPath}
               variant="h1"
-              component="h1"
+              component={Link}
               sx={{
                 fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
                 fontWeight: 500,
                 fontSize: '2rem',
                 lineHeight: 1.125,
                 letterSpacing: '0.47%',
+                textDecoration: 'none',
                 color: 'inherit',
                 mb: 1,
                 fontDisplay: 'swap',
@@ -760,7 +778,7 @@ export function EventTabs() {
       <Paper
         sx={{
           borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
           boxShadow: 'none',
           background: (theme) => theme.vars.palette.tableCellRow.fill,
@@ -849,7 +867,8 @@ export function EventTabs() {
         sx={{
           boxShadow: 'none',
           backgroundColor: 'var(--mui-palette-background-default)',
-          borderBottom: '1px solid var(--mui-palette-divider)',
+          borderBottom: '1px solid',
+          borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
           zIndex: 2,
         }}

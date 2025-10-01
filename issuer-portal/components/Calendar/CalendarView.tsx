@@ -299,7 +299,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tasks={tasks}
               keyDates={keyDates}
               loading={tasksLoading}
-              onRefresh={refreshMeetingData}
+              onRefresh={async () => {
+                await refreshMeetingData()
+              }}
             />
           ) : (
             <ListView

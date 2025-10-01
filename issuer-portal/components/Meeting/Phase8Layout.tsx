@@ -10,14 +10,69 @@ import { Container } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
 
+import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
+import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 interface Phase8LayoutProps {
   meetingId?: string
   meeting?: Meeting
 }
 
-export default React.memo(function Phase8Layout({ meeting }: Phase8LayoutProps) {
+export default React.memo(function Phase8Layout({
+  meeting,
+  meetingId,
+}: Phase8LayoutProps) {
+  const { proposals, votingSummary } = useVotingTabulation(meetingId)
+
+  const handleTabulationDownload = async () => {
+    if (!meeting || !proposals) return
+
+    try {
+      await exportTabulationPdf({
+        tabulationData: {
+          companyName: meeting.title || 'Company',
+          meetingType: meeting.meetingType || 'Annual Meeting',
+          meetingDate: meeting.meetingDate || '',
+          recordDate: meeting.recordDate || '',
+          totalOutstanding: votingSummary?.totalSharesOutstanding || 0,
+          votesRepresentedForQuorum: votingSummary?.totalSharesVoted || 0,
+          quorumPercentage: votingSummary?.percentageVoted || 0,
+          quorumRequirement: '50%',
+          votesOverUnderQuorum:
+            (votingSummary?.totalSharesVoted || 0) -
+            (votingSummary?.totalSharesOutstanding || 0) * 0.5,
+          cusipList: meeting.cusip || '',
+          proposals: proposals.map((p) => ({
+            proposalNumber: String(p.proposalNumber),
+            title: p.proposalTitle || '',
+            directorName: p.directorName || '',
+            voteFor: p.votingResults.for.shares,
+            voteAgainst: p.votingResults.against.shares,
+            voteAbstain: p.votingResults.abstain.shares,
+            percentFor: p.votingResults.for.percentage,
+            percentAgainst: p.votingResults.against.percentage,
+            percentAbstain: p.votingResults.abstain.percentage,
+            percentOfOutstanding:
+              (p.votingResults.for.shares /
+                (votingSummary?.totalSharesOutstanding || 1)) *
+              100,
+            percentOfTotalVoted:
+              (p.votingResults.for.shares / (votingSummary?.totalSharesVoted || 1)) * 100,
+            percentOfProposalVotes: p.votingResults.for.percentage,
+          })),
+        },
+        clientTicker: meeting.ticker,
+      })
+    } catch (error) {
+      console.error('Failed to export tabulation report:', error)
+    }
+  }
+
+  const handleRegisteredAccountsDownload = async () => {
+    // Placeholder for registered accounts report - can be implemented later
+    // TODO: Implement registered accounts report download
+  }
   return (
     <Container component="main">
       <Stack spacing={3}>
@@ -43,6 +98,7 @@ export default React.memo(function Phase8Layout({ meeting }: Phase8LayoutProps) 
               title="Final Tabulation Report"
               actionText="Download"
               icon={<PdfIcon fontSize="inherit" />}
+              onClick={handleTabulationDownload}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
@@ -50,6 +106,7 @@ export default React.memo(function Phase8Layout({ meeting }: Phase8LayoutProps) 
               title="Registered Accounts Voted Report"
               actionText="Download"
               icon={<PdfIcon fontSize="inherit" />}
+              onClick={handleRegisteredAccountsDownload}
             />
           </Grid>
         </Grid>

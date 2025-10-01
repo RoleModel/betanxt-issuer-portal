@@ -1,47 +1,29 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.341Z
+// Generated on 2025-09-30T00:31:43.170Z
 // Source: openapi-schema/openapi.yaml
+import { NextResponse } from 'next/server'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { getMailingByMeetingId } from '@/domain-models/api/mailing'
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { meetingId: string } }
-): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    // TODO: Implement getMailingStatistics
+    // Operation: getMailingStatistics
+    // This route was auto-generated from OpenAPI spec
 
-    if (!meetingId) {
-      return NextResponse.json(
-        { error: 'Meeting ID is required' },
-        { status: 400 }
-      )
-    }
+    // Example: Fetch data from Supabase
+    // const { data, error } = await supabase
+    //   .from('table_name')
+    //   .select('*')
+    //   .eq('meetingId', meetingId)
 
-    const result = await getMailingByMeetingId(meetingId)
-
-    if (result.error) {
-      return NextResponse.json(
-        {
-          error: 'Failed to fetch mailing data',
-          message: result.error.message,
-          operationId: 'getMailingStatistics'
-        },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(result.data)
+    return NextResponse.json([])
   } catch (error) {
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getMailingStatistics'
+        operationId: 'getMailingStatistics',
       },
       { status: 500 }
     )
   }
 }
-

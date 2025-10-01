@@ -52,6 +52,7 @@ This is a Turborepo workspace with two main applications:
 6. **MANUALLY update domain transforms**: Update `mock-api-server/domain-models/api/*.ts` to handle snake_case→camelCase conversions for new fields
 
 **Common Pitfall**: Missing step 6 causes silent data loss. Every new OpenAPI field must appear in:
+
 - DB migration (auto-generated)
 - Generated types (auto-generated)
 - Domain model transforms (MANUAL)
@@ -69,9 +70,9 @@ This is a Turborepo workspace with two main applications:
 
 ### Frontend (issuer-portal/)
 
-- **Framework**: Next.js 15 with app directory structure
-- **State Management**: React Context + TanStack React Query v4
-- **Authentication**: NextAuth.js v4 with custom role handling
+- **Framework**: Next.js 15 with app directory structure (client-side rendered)
+- **State Management**: React Context + custom hooks with lightweight in-memory caching
+- **Authentication**: NextAuth.js v5 with role-based access control
 - **UI Components**: MUI 7.3+ with BetaNXT design system
 - **Forms**: React Hook Form with Zod validation
 - **PDF Handling**: react-pdf for document viewing
@@ -120,7 +121,7 @@ This is a Turborepo workspace with two main applications:
 - Custom hooks for business logic
 - Error boundaries for error handling
 - Minimize useState/useEffect usage
-- Use TanStack Query for server state
+- Use React Context + custom hooks for data management
 
 ### MUI & Design System
 
@@ -153,12 +154,13 @@ import './styles.css'
 
 ## Development Constraints
 
-### Important Rules
+### CRITICAL Rules
 
 - **Don't start servers**: User will start development servers manually
 - **Don't use console.logs**: Unless specifically requested
 - **Optional chaining doesn't work in Figma**: Avoid `?.` in Figma plugin code
 - **Schema-first development**: Always update OpenAPI spec before database changes
+- **CRITICAL**: You must run lint after every piece of code that you write.
 
 ### Database Schema Updates
 
@@ -180,9 +182,9 @@ import './styles.css'
 
 - **Next.js 15.5+**: React framework with app directory
 - **MUI 7.3+**: Component library with emotion styling
-- **TanStack Query v4**: Server state management
 - **React Hook Form**: Form handling with Zod validation
-- **NextAuth.js v4**: Authentication and session management
+- **NextAuth.js v5**: Authentication and session management
+- **openapi-fetch**: Type-safe API client with OpenAPI integration
 
 ### Backend
 
@@ -235,6 +237,7 @@ import './styles.css'
 ### Meeting Phase System
 
 **Phase Advancement Logic** (`TaskDrawer.tsx:676-776`):
+
 - Meetings progress through numbered phases (Phase 1, Phase 2, etc.)
 - Phase advances automatically when ALL issuer-owned tasks (excluding BetaNXT/DFIN) reach completion statuses
 - **Completion statuses**: `COMPLETE`, `AUTHORIZED`, `SUBMITTED_AWAITING_RECORD_DATE`, `WAITING_FOR_FORM_RETURN`, `REQUEST_FORM_TO_FOLLOW`, `PENDING_AUTHORIZATION`
@@ -242,6 +245,7 @@ import './styles.css'
 - User sees personalized alert and is auto-navigated to next phase dashboard after 3 seconds
 
 **Overall Completion Calculation** (`MeetingCompletion.ts`):
+
 - Percentage = (tasks with completion status / total tasks) × 100
 - Excludes `INCOMPLETE` and `NEEDS_AUTHORIZATION` from count
 - Updated after task status changes and phase transitions
@@ -263,11 +267,13 @@ import './styles.css'
    - Upload route: `/api/documents/types/{documentType}/upload` (multipart POST)
 
 **Document Upload Flow**:
+
 - Frontend uses `useDocuments` hook → calls `uploadDocumentVersion(meetingId, documentType, file)`
 - Server route validates size (≤25MB), uploads to storage, returns provisional response
 - Future enhancement: Will insert canonical + version rows in single transaction
 
 **Signature Workflow** (`DocumentViewer.tsx`):
+
 - PDF rendered with `react-pdf`, overlayed with draggable `SignatureArea` components
 - Text/date fields use `FormFieldArea`, signatures use `DraggableSignatureArea`
 - Field type detection: IDs containing 'sig' or labels with 'signature' → signature field, otherwise → text/date
@@ -281,5 +287,6 @@ import './styles.css'
 **Node Version**: 22.15.x (enforced via engines)
 **Package Manager**: npm 10.9.3
 **Last Updated**: September 26, 2025
+
 - Do not use 'any' type assetions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won’t type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.

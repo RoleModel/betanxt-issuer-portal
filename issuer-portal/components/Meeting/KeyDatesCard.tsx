@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useRef, useState } from 'react'
 
 import {
@@ -227,13 +228,14 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
         <CardHeader
           title={<Typography variant="h3">Key Dates</Typography>}
           action={
-            <Button variant="text" color="primary" onClick={toggleDrawer(true)}>
+            <Button variant="text" onClick={toggleDrawer(true)}>
               Phase Overview
             </Button>
           }
         />
         <CardContent sx={{ pt: 0 }}>
           <Box
+            component="ul"
             ref={scrollContainerRef}
             sx={{
               display: 'grid',
@@ -248,62 +250,86 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                 md: 'repeat(6, minmax(130px, 1fr))',
               },
               gap: 1,
+              paddingInlineStart: 1.25,
+              m: 0,
             }}
           >
-            {loading || phasesLoading
-              ? // Skeleton loading for key dates
-                Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
-              : displayKeyDates.map((phaseItem, index) => {
-                  const daysUntil = calculateDaysUntil(phaseItem.dateString)
-                  const isPast = daysUntil < 0
-                  return (
-                    <KeyDateBox
-                      key={index}
-                      isMeeting={phaseItem.isMeeting}
-                      isPast={isPast}
-                      phaseColor={phaseItem.phaseColor}
-                    >
-                      <KeyDateTypography variant="body3" isPast={isPast}>
-                        {phaseItem.title}
-                      </KeyDateTypography>
-                      <Box
-                        display="flex"
-                        alignItems="baseline"
-                        justifyContent="space-between"
-                        width="100%"
+            <AnimatePresence>
+              {loading || phasesLoading
+                ? // Skeleton loading for key dates
+                  Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
+                : displayKeyDates.map((phaseItem, index) => {
+                    const daysUntil = calculateDaysUntil(phaseItem.dateString)
+                    const isPast = daysUntil < 0
+                    return (
+                      <motion.li
+                        key={phaseItem.title + phaseItem.date}
+                        layoutId={phaseItem.title + phaseItem.date}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: 30 }}
+                        transition={{
+                          duration: 0.2,
+                          delay: index * 0.05,
+                          ease: 'easeOut',
+                        }}
+                        style={{
+                          gridColumn: 'auto',
+                          listStyle: 'none',
+                          margin: 0,
+                          padding: 0,
+                        }}
                       >
-                        <KeyDateTypography
+                        <KeyDateBox
+                          key={index}
+                          isMeeting={phaseItem.isMeeting}
                           isPast={isPast}
-                          variant="body3"
-                          fontWeight={500}
-                          sx={(theme) => {
-                            return {
-                              color: phaseItem.isMeeting
-                                ? theme.vars.palette.primary.contrastText
-                                : theme.vars.palette.text.primary,
-                            }
-                          }}
+                          phaseColor={phaseItem.phaseColor}
                         >
-                          {phaseItem.date}
-                        </KeyDateTypography>
+                          <KeyDateTypography variant="body3" isPast={isPast}>
+                            {phaseItem.title}
+                          </KeyDateTypography>
+                          <Box
+                            display="flex"
+                            alignItems="baseline"
+                            justifyContent="space-between"
+                            gap={1}
+                            width="100%"
+                          >
+                            <KeyDateTypography
+                              isPast={isPast}
+                              variant="body3"
+                              fontWeight={500}
+                              sx={(theme) => {
+                                return {
+                                  color: phaseItem.isMeeting
+                                    ? theme.vars.palette.primary.contrastText
+                                    : theme.vars.palette.text.primary,
+                                }
+                              }}
+                            >
+                              {phaseItem.date}
+                            </KeyDateTypography>
 
-                        <Typography
-                          variant="body3"
-                          fontWeight={600}
-                          sx={(theme) => {
-                            return {
-                              color: phaseItem.isMeeting
-                                ? theme.vars.palette.primary.contrastText
-                                : theme.vars.palette.text.secondary,
-                            }
-                          }}
-                        >
-                          {formatDaysUntil(daysUntil)}
-                        </Typography>
-                      </Box>
-                    </KeyDateBox>
-                  )
-                })}
+                            <Typography
+                              variant="body3"
+                              fontWeight={600}
+                              sx={(theme) => {
+                                return {
+                                  color: phaseItem.isMeeting
+                                    ? theme.vars.palette.primary.contrastText
+                                    : theme.vars.palette.text.secondary,
+                                }
+                              }}
+                            >
+                              {formatDaysUntil(daysUntil)}
+                            </Typography>
+                          </Box>
+                        </KeyDateBox>
+                      </motion.li>
+                    )
+                  })}
+            </AnimatePresence>
           </Box>
         </CardContent>
       </Card>

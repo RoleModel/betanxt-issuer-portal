@@ -1,8 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.341Z
+// Generated on 2025-09-30T00:31:43.170Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
 import { getTabulationReport } from '@/domain-models/api/tabulationReports'
 
 interface RouteParams {
@@ -31,13 +31,12 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getTabulationReport'
+        operationId: 'getTabulationReport',
       },
       { status: 500 }
     )
   }
 }
-

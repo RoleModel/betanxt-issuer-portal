@@ -42,7 +42,18 @@ import {
   DOCUMENT_STATUS_VALUES,
   ExtendedDocumentStatus,
   getDocumentStatusLabel,
+  getStoragePublicUrl,
 } from '@/utils/documentUtils'
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
 
 /**
  * Documents page for managing meeting documents
@@ -364,8 +375,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                             status === 'UNKNOWN'
                               ? 'Unknown'
                               : getDocumentStatusLabel(
-                                (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                              )
+                                  (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                )
                           return (
                             <MenuItem key={status} value={status}>
                               {label}
@@ -460,11 +471,11 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           open={approvalDrawerOpen}
           onClose={handleApprovalDrawerClose}
           title={selectedDocument.title || 'Document'}
-          fileUrl={selectedDocument.filePath || ''}
+          fileUrl={getStoragePublicUrl(selectedDocument.filePath || '')}
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => { }}
+          onAddComment={() => {}}
         />
       )}
 
@@ -485,7 +496,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         <DocumentViewer
           open={documentViewerOpen}
           onClose={handleDocumentViewerClose}
-          fileUrl={selectedDocument.filePath || ''}
+          fileUrl={getStoragePublicUrl(selectedDocument.filePath || '')}
           title={selectedDocument.title || 'Document'}
           documentId={selectedDocument.id}
         />

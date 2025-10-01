@@ -15,10 +15,7 @@
     "mui-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "@mui/mcp@latest"
-      ]
+      "args": ["-y", "@mui/mcp@latest"]
     },
     "figma-dev-mode-mcp-server": {
       "type": "http",

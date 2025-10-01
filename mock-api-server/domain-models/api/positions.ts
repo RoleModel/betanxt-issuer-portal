@@ -1,7 +1,8 @@
+import { randomUUID } from 'crypto'
+
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
-import { randomUUID } from 'crypto'
 
 // Helper function to convert null to undefined
 function nullToUndefined<T>(value: T | null): T | undefined {
@@ -35,7 +36,10 @@ function transformPosition(dbPosition: PositionRow): Position {
     name: nullToUndefined(dbPosition.name),
     accountNumber: nullToUndefined(dbPosition.account_number),
     controlNumber: nullToUndefined(dbPosition.control_number),
-    voteStatus: nullToUndefined(dbPosition.vote_status) as 'Voted' | 'Unvoted' | undefined,
+    voteStatus: nullToUndefined(dbPosition.vote_status) as
+      | 'Voted'
+      | 'Unvoted'
+      | undefined,
     shares: nullToUndefined(dbPosition.shares),
     sharesVoted: nullToUndefined(dbPosition.shares_voted),
     source: nullToUndefined(dbPosition.source),

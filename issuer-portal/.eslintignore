@@ -22,6 +22,12 @@ database.types.ts
 api-schema-types.ts
 next-env.d.ts
 
+# Config files
+*.config.js
+*.config.mjs
+*.config.ts
+next.config.mjs
+
 # Misc
 .DS_Store
 *.pem

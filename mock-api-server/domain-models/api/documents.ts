@@ -53,7 +53,17 @@ function transformDocument(dbDocument: DocumentRow): Document {
     title: nullToUndefined(dbDocument.title),
     description: nullToUndefined(dbDocument.description),
     type: nullToUndefined(dbDocument.type),
-    status: nullToUndefined(dbDocument.status) as 'IN_PROGRESS' | 'AUTHORIZED' | 'DRAFT' | 'AWAITING_DRAFT' | 'AWAITING_REVIEW' | 'APPROVED' | 'UPLOADED' | 'SIGNED' | 'COMPLETED' | undefined,
+    status: nullToUndefined(dbDocument.status) as
+      | 'IN_PROGRESS'
+      | 'AUTHORIZED'
+      | 'DRAFT'
+      | 'AWAITING_DRAFT'
+      | 'AWAITING_REVIEW'
+      | 'APPROVED'
+      | 'UPLOADED'
+      | 'SIGNED'
+      | 'COMPLETED'
+      | undefined,
     taskId: nullToUndefined(dbDocument.task_id),
     filePath: nullToUndefined(dbDocument.file_path),
     displayCategory: nullToUndefined(dbDocument.display_category),
@@ -120,6 +130,7 @@ export async function createDocument(
 ): Promise<ApiResponse<Document>> {
   try {
     const request = body
+    const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('document')
       .insert({
@@ -130,7 +141,9 @@ export async function createDocument(
         type: request.type,
         task_id: request.taskId,
         file_path: request.file,
-        status: 'DRAFT',
+        status: 'AWAITING_REVIEW',
+        created_at: now,
+        updated_at: now,
       })
       .select()
       .single()
@@ -189,6 +202,9 @@ export async function updateDocument(
     if (request.title !== undefined) updateData.title = request.title
     if (request.description !== undefined) updateData.description = request.description
     if (request.status !== undefined) updateData.status = request.status
+
+    // Always update the updated_at timestamp
+    updateData.updated_at = new Date().toISOString()
 
     const { data, error } = await supabase
       .from('document')

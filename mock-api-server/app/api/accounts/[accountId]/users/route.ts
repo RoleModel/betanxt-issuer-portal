@@ -1,8 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.339Z
+// Generated on 2025-09-30T00:31:43.165Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
 import { listAccountUsers } from '@/domain-models/api/users'
 
 interface RouteParams {
@@ -31,10 +31,10 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listAccountUsers'
+        operationId: 'listAccountUsers',
       },
       { status: 500 }
     )
@@ -46,7 +46,7 @@ export async function POST(): Promise<NextResponse> {
     // TODO: Implement createAccountUser
     // Operation: createAccountUser
     // This route was auto-generated from OpenAPI spec
-    
+
     // Parse request body
     // const body = await request.json()
 
@@ -59,13 +59,12 @@ export async function POST(): Promise<NextResponse> {
     return NextResponse.json({}, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createAccountUser'
+        operationId: 'createAccountUser',
       },
       { status: 500 }
     )
   }
 }
-

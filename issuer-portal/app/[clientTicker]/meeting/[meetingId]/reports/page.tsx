@@ -42,7 +42,6 @@ export default function ReportsPage() {
   const { phases } = usePhases(meetingId)
   const {
     brokerVotingByProposal,
-    shareRangePerformance,
     nonDtcVoteStatus,
     dtcVoteStatus,
     voteDistribution,
@@ -186,19 +185,7 @@ export default function ReportsPage() {
           size={{ xs: 12, lg: 6 }}
           sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
         >
-          <VotingPerformanceChart
-            meetingId={meetingId}
-            data={shareRangePerformance.map((item) =>
-              item.range === '100,000+'
-                ? {
-                    ...item,
-                    positions: 3,
-                    percentVoted: (item.percentVoted * item.positions) / 3,
-                  }
-                : item
-            )}
-            loading={reportsLoading}
-          />
+          <VotingPerformanceChart meetingId={meetingId} />
         </Grid>
         <Grid
           order={{ xs: 2, lg: 1 }}

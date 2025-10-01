@@ -274,6 +274,9 @@ export function getStoragePublicUrl(filePath: string): string {
   // If already a full URL, return as-is
   if (/^https?:\/\//i.test(filePath)) return filePath
 
+  // If it's a data URI (base64), return as-is
+  if (filePath.startsWith('data:')) return filePath
+
   // Get the base Supabase URL from environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
   // Strip leading slashes and /documents/ prefix if present

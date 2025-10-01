@@ -34,8 +34,9 @@ export async function exportTimelineToPdf(options: ExportOptions) {
     )
 
     // Download the PDF directly
-    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Timeline_${new Date().toISOString().split('T')[0]
-      }.pdf`
+    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Timeline_${
+      new Date().toISOString().split('T')[0]
+    }.pdf`
 
     pdf.save(fileName)
   } catch (error) {
@@ -186,16 +187,16 @@ async function generatePdfContent(
       <h2>${meetingTitle}</h2>
 
       ${Array.from(phaseGroups.entries())
-      .map(
-        ([phase, items]) => `
+        .map(
+          ([phase, items]) => `
         <div class="phase-section">
           <div class="phase-header" style="color: ${phaseColors[phase - 1]}">
             Phase ${phase}
           </div>
           <div class="timeline-table">
             ${items.keyDates
-            .map(
-              (keyDate) => `
+              .map(
+                (keyDate) => `
               <div class="timeline-row key-date-row">
                 <div class="row-content">
                   <div class="task-title">${keyDate.title || 'Untitled Key Date'}</div>
@@ -203,11 +204,11 @@ async function generatePdfContent(
                 </div>
               </div>
             `
-            )
-            .join('')}
+              )
+              .join('')}
             ${items.tasks
-            .map(
-              (task) => `
+              .map(
+                (task) => `
               <div class="timeline-row task-row" style="border-left-color: ${phaseColors[phase - 1]}">
                 <div class="row-content">
                   <div class="task-title">${task.title || 'Untitled Task'}</div>
@@ -215,13 +216,13 @@ async function generatePdfContent(
                 </div>
               </div>
             `
-            )
-            .join('')}
+              )
+              .join('')}
           </div>
         </div>
       `
-      )
-      .join('')}
+        )
+        .join('')}
     </body>
     </html>
   `

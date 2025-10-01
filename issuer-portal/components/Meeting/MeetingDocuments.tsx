@@ -1,4 +1,4 @@
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { InsertDriveFileOutlined } from '@mui/icons-material'
@@ -26,7 +26,8 @@ import StatusChip from '@/components/ui/StatusChip'
 
 import { useDocuments } from '@/hooks/useDocuments'
 import type { Document, Meeting } from '@/types/api-exports'
-import { friendlyDate } from '@/utils/dateUtils'
+import { formatDateForDisplay } from '@/utils/dateUtils'
+import { getStoragePublicUrl } from '@/utils/documentUtils'
 
 interface MeetingDocumentsProps {
   documents?: Document[]
@@ -40,12 +41,17 @@ export default function MeetingDocuments({
   meeting,
 }: MeetingDocumentsProps) {
   const router = useRouter()
+  const params = useParams()
+  const clientTicker = params.clientTicker as string
   const { getDocumentsByMeeting, uploadDocument } = useDocuments()
   const [documents, setDocuments] = useState<Document[]>(propDocuments || [])
   const [open, setOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [fileUrl, setfileUrl] = useState('')
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>('')
+  const [selectedPlaceholderId, setSelectedPlaceholderId] = useState<string | undefined>(
+    undefined
+  )
   const [loading, setLoading] = useState(!!meetingId)
 
   const fetchDocuments = useCallback(async () => {
@@ -73,6 +79,17 @@ export default function MeetingDocuments({
 
         // Exclude hosting site documents
         if (docType === 'hosting_site' || docType === 'hosting site') {
+          return false
+        }
+
+        // Exclude signed forms (they belong in the full Documents page)
+        if (
+          docType === 'signed-form' ||
+          docType === 'transfer-agent-request' ||
+          docType === 'plan-file-request' ||
+          docTitle.includes('transfer agent request') ||
+          docTitle.includes('plan file request')
+        ) {
           return false
         }
 
@@ -213,12 +230,11 @@ export default function MeetingDocuments({
   }, [meetingId, fetchDocuments])
 
   const handleViewAllDocuments = () => {
-    if (meetingId) {
-      router.push(`/meeting/${meetingId}/documents`)
-    }
+    router.push(`/${clientTicker}/meeting/${meetingId}/documents`)
   }
 
-  const handleUpload = () => {
+  const handleUpload = (placeholderId?: string) => {
+    setSelectedPlaceholderId(placeholderId)
     setUploadDialogOpen(true)
   }
 
@@ -233,7 +249,11 @@ export default function MeetingDocuments({
         const fileId = `${file.name}-${file.size}`
         const placeholderId = associations?.[fileId]
 
-        if (placeholderId && placeholderId.startsWith('placeholder-')) {
+        if (
+          placeholderId &&
+          typeof placeholderId === 'string' &&
+          placeholderId.startsWith('placeholder-')
+        ) {
           const documentType = placeholderId.replace('placeholder-', '')
           await uploadDocument(file, documentType, meetingId, file.name)
         } else {
@@ -267,8 +287,8 @@ export default function MeetingDocuments({
       return
     }
 
-    // Use the file path directly if it's already a full URL
-    const docUrl = storagePath
+    // Convert storage path to public URL
+    const docUrl = getStoragePublicUrl(storagePath)
 
     setSelectedDocumentId(documentId)
     setOpen(true)
@@ -320,7 +340,7 @@ export default function MeetingDocuments({
 
     if (isPlaceholder) {
       return (
-        <Button variant="text" onClick={handleUpload}>
+        <Button variant="text" onClick={() => handleUpload(document.id)}>
           Upload
         </Button>
       )
@@ -332,7 +352,7 @@ export default function MeetingDocuments({
       case 'IN_PROGRESS':
         return (
           <Button variant="text" onClick={() => handleApprove(document.id || '')}>
-            Approve Draft
+            View
           </Button>
         )
       case 'SIGNED':
@@ -342,7 +362,7 @@ export default function MeetingDocuments({
         return null
       case 'AWAITING_DRAFT':
         return (
-          <Button variant="outlined" onClick={handleUpload}>
+          <Button variant="outlined" onClick={() => handleUpload()}>
             Upload
           </Button>
         )
@@ -364,7 +384,7 @@ export default function MeetingDocuments({
           />
         ) : (
           <TableContainer>
-            <Table>
+            <Table sx={{ width: '100%', tableLayout: 'fixed' }}>
               <SROnlyTableCaption>Meeting Documents</SROnlyTableCaption>
               <TableHead sx={{ visibility: 'hidden', display: 'none' }}>
                 <TableRow>
@@ -394,10 +414,11 @@ export default function MeetingDocuments({
                           document.id?.startsWith('placeholder-') &&
                           typeof document.deadline === 'string' && (
                             <Typography
+                              noWrap
                               color="text.secondary"
                               sx={{ fontStyle: 'italic' }}
                             >
-                              {friendlyDate(document.deadline)}
+                              Deadline: {formatDateForDisplay(document.deadline)}
                             </Typography>
                           )
                         )}
@@ -406,21 +427,9 @@ export default function MeetingDocuments({
                     <TableCell>
                       <Typography color="text.secondary">
                         {(() => {
-                          const docType = document.type || document.fileType || 'PDF'
+                          const docType = document.fileType || 'PDF'
                           // Map document types to display names
-                          const typeMapping: Record<string, string> = {
-                            'signed-form': 'Broadridge/ICS Access',
-                            'transfer-agent-request': 'Transfer Agent Request Form',
-                            'plan-file-request': 'Plan File Request Form',
-                            'draft-proxy-statement': 'Draft Proxy Statement',
-                            'proxy-card': 'Proxy Card',
-                            'notice-access-form': 'Notice and Access Form',
-                            HOSTING_SITE: 'Document Hosting Site',
-                            'task-completion': 'Completed Task Document',
-                            general: 'General Document',
-                            PDF: 'PDF Document',
-                          }
-                          return typeMapping[docType] || docType
+                          return docType
                         })()}
                       </Typography>
                     </TableCell>
@@ -434,7 +443,7 @@ export default function MeetingDocuments({
         )}
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={handleUpload} disabled={!meetingId}>
+        <Button variant="contained" onClick={() => handleUpload()} disabled={!meetingId}>
           Upload Document
         </Button>
         {documents.length > 0 && (
@@ -458,12 +467,17 @@ export default function MeetingDocuments({
       />
       <FileUploadDialog
         open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        onClose={() => {
+          setUploadDialogOpen(false)
+          setSelectedPlaceholderId(undefined)
+        }}
         onUpload={handleFileUpload}
         onUploadSuccess={() => {
           setUploadDialogOpen(false)
+          setSelectedPlaceholderId(undefined)
         }}
         meetingId={meetingId}
+        preSelectedDocumentId={selectedPlaceholderId}
       />
     </Card>
   )

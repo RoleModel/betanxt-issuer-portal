@@ -8,7 +8,7 @@ import 'react-pdf/dist/Page/TextLayer.css'
 
 import { Box, CircularProgress } from '@mui/material'
 
-import '@/components/Documents/react-pdf.module.css'
+import '@/components/Documents/react-pdf.css'
 
 // Dynamically import react-pdf components with SSR disabled
 const Document = dynamic(() => import('react-pdf').then((mod) => mod.Document), {
@@ -40,8 +40,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [actualWidth, setActualWidth] = useState<number | null>(null)
   const hasInitialized = useRef(false)
 
-  // Safety check: only process PDF files
-  const isPdfFile = file?.toLowerCase().endsWith('.pdf') || file?.includes('/test-pdf')
+  // Safety check: only process PDF files or data URIs
+  const isPdfFile =
+    file?.toLowerCase().endsWith('.pdf') ||
+    file?.includes('/test-pdf') ||
+    file?.startsWith('data:application/pdf')
 
   // Store the width immediately when it changes
   useEffect(() => {
@@ -108,7 +111,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   if (!isValidFile) {
     return (
       <Box
-        style={{
+        sx={{
           width: width,
           minHeight: width * 1.294,
           backgroundColor: 'var(--mui-palette-background-paper)',
@@ -116,6 +119,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          padding: 2,
         }}
       >
         <div>No PDF file specified</div>
@@ -129,7 +133,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     const defaultWidth = width
     return (
       <Box
-        style={{
+        sx={{
           position: 'relative',
           width: defaultWidth,
           minHeight: defaultWidth * 1.294,
@@ -138,6 +142,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          padding: 2,
         }}
       >
         <CircularProgress />

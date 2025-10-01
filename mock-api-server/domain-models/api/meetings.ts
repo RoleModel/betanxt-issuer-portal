@@ -257,9 +257,60 @@ export async function updateMeeting(
   meetingData: UpdateMeetingRequest
 ): Promise<ApiResponse<Meeting>> {
   try {
+    // Transform camelCase to snake_case for database
+    const dbUpdate: Record<string, unknown> = {}
+    if (meetingData.title !== undefined) dbUpdate.title = meetingData.title
+    if (meetingData.cusip !== undefined) dbUpdate.cusip = meetingData.cusip
+    if (meetingData.ticker !== undefined) dbUpdate.ticker = meetingData.ticker
+    if (meetingData.preFilingDate !== undefined)
+      dbUpdate.pre_filing_date = meetingData.preFilingDate
+    if (meetingData.filingDate !== undefined)
+      dbUpdate.filing_date = meetingData.filingDate
+    if (meetingData.brokerSearchDate !== undefined)
+      dbUpdate.broker_search_date = meetingData.brokerSearchDate
+    if (meetingData.recordDate !== undefined)
+      dbUpdate.record_date = meetingData.recordDate
+    if (meetingData.mailingDate !== undefined)
+      dbUpdate.mailing_date = meetingData.mailingDate
+    if (meetingData.meetingDate !== undefined)
+      dbUpdate.meeting_date = meetingData.meetingDate
+    if (meetingData.meetingType !== undefined)
+      dbUpdate.meeting_type = meetingData.meetingType
+    if (meetingData.meetingYear !== undefined)
+      dbUpdate.meeting_year = meetingData.meetingYear
+    if (meetingData.status !== undefined) dbUpdate.status = meetingData.status
+    if (meetingData.currentPhase !== undefined)
+      dbUpdate.current_phase = meetingData.currentPhase
+    if (meetingData.overallCompletion !== undefined)
+      dbUpdate.overall_completion = meetingData.overallCompletion
+    if (meetingData.distributionType !== undefined)
+      dbUpdate.distribution_type = meetingData.distributionType
+    if (meetingData.transferAgent !== undefined)
+      dbUpdate.transfer_agent = meetingData.transferAgent
+    if (meetingData.employeeStockPlans !== undefined)
+      dbUpdate.employee_stock_plans = meetingData.employeeStockPlans
+    if (meetingData.planAdministrator !== undefined)
+      dbUpdate.plan_administrator = meetingData.planAdministrator
+    if (meetingData.planAdministratorContact !== undefined)
+      dbUpdate.plan_administrator_contact = meetingData.planAdministratorContact
+    if (meetingData.planAdministratorContactEmail !== undefined)
+      dbUpdate.plan_administrator_contact_email =
+        meetingData.planAdministratorContactEmail
+    if (meetingData.solicitor !== undefined) dbUpdate.solicitor = meetingData.solicitor
+    if (meetingData.solicitorEmail !== undefined)
+      dbUpdate.solicitor_email = meetingData.solicitorEmail
+    if (meetingData.inspector !== undefined) dbUpdate.inspector = meetingData.inspector
+    if (meetingData.ivrDialInNumber !== undefined)
+      dbUpdate.ivr_dial_in_number = meetingData.ivrDialInNumber
+    if (meetingData.totalSharesOutstanding !== undefined)
+      dbUpdate.total_shares_outstanding = meetingData.totalSharesOutstanding
+    if (meetingData.quorumRequirement !== undefined)
+      dbUpdate.quorum_requirement = meetingData.quorumRequirement
+    if (meetingData.clientId !== undefined) dbUpdate.client_id = meetingData.clientId
+
     const { data, error } = await supabase
       .from('meeting')
-      .update(meetingData)
+      .update(dbUpdate)
       .eq('id', id)
       .select()
       .single()

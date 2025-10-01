@@ -13,7 +13,7 @@ export default function MeetingDashboardPage() {
   const params = useParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
-  const { error, currentMeeting: meeting } = useMeeting()
+  const { error, currentMeeting: meeting, isLoading } = useMeeting()
 
   const parsePhaseNumber = (phase: string | number | null | undefined): number => {
     if (typeof phase === 'number' && Number.isFinite(phase)) {
@@ -34,13 +34,19 @@ export default function MeetingDashboardPage() {
   }
 
   useEffect(() => {
+    // Wait for meeting to load before attempting redirect
+    if (isLoading) {
+      return
+    }
+
     // Only redirect if the meeting ID matches the URL and we have phase info
     if (meeting?.id === meetingId && meeting?.currentPhase) {
       // Use the meeting's current phase instead of looking for active phase in phases array
       const currentPhase = parsePhaseNumber(meeting.currentPhase)
-      router.replace(`/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}`)
+      const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}`
+      router.replace(targetPath)
     }
-  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId])
+  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId, isLoading])
 
   if (error) {
     return (

@@ -61,7 +61,8 @@ const getTaskBackground = (
 ) => {
   if (isMeetingDate) return theme.vars?.palette?.appBarPrimary.defaultFill
   if (isKeyDate) return theme.vars?.palette.keydate.main
-  if (task.status === 'COMPLETE') return theme.vars?.palette?.background.default
+  if (task.status === 'COMPLETE' || task.status === 'AUTHORIZED')
+    return theme.vars?.palette?.background.default
   return theme.vars?.palette?.tableCellRow.fill
 }
 
@@ -73,7 +74,7 @@ const getTaskBorderLeft = (
   isKeyDate: boolean,
   phase?: number
 ) => {
-  if (task.status === 'COMPLETE') {
+  if (task.status === 'COMPLETE' || task.status === 'AUTHORIZED') {
     return `5px solid ${theme.vars?.palette.complete}`
   }
   if (isMeetingDate) {
@@ -124,10 +125,13 @@ const textTruncationStyles = {
   display: 'block',
 } as const
 
-const getCompletionStyles = (isComplete: boolean) => ({
-  textDecoration: isComplete ? 'line-through' : 'none',
-  opacity: isComplete ? 0.6 : 1,
-})
+const getCompletionStyles = (status: string | null | undefined) => {
+  const isCompleted = status === 'COMPLETE' || status === 'AUTHORIZED'
+  return {
+    textDecoration: isCompleted ? 'line-through' : 'none',
+    opacity: isCompleted ? 0.6 : 1,
+  }
+}
 
 const getActionIcon = (action: string) => {
   switch (action) {
@@ -198,7 +202,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               fontWeight: 500,
               ...textTruncationStyles,
               mb: 0.25,
-              ...getCompletionStyles(task.status === 'COMPLETE'),
+              ...getCompletionStyles(task.status),
               color: (theme) => getTaskTextColor(theme, isMeetingDate, isKeyDate),
             }}
           >
@@ -212,7 +216,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               sx={{
                 fontSize: '0.725rem',
                 ...textTruncationStyles,
-                ...getCompletionStyles(task.status === 'COMPLETE'),
+                ...getCompletionStyles(task.status),
                 color: (theme) => getTaskTextColor(theme, isMeetingDate, isKeyDate, true),
                 mb: 0.25,
               }}
@@ -260,7 +264,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         background: (theme) => theme.vars?.palette?.tableCellRow.fill,
         boxShadow: (theme) => `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
         borderLeft: (theme) =>
-          task.status === 'COMPLETE'
+          task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
             ? `4px solid ${theme.vars?.palette.complete}`
             : showPhaseIndicator && phase
               ? `4px solid ${theme.vars.palette.phase[phase - 1]?.main}`
@@ -294,8 +298,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               variant="subtitle1"
               fontWeight={600}
               sx={{
-                textDecoration: task.status === 'COMPLETE' ? 'line-through' : 'none',
-                opacity: task.status === 'COMPLETE' ? 0.6 : 1,
+                textDecoration:
+                  task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
+                    ? 'line-through'
+                    : 'none',
+                opacity:
+                  task.status === 'COMPLETE' || task.status === 'AUTHORIZED' ? 0.6 : 1,
               }}
             >
               {task.title}

@@ -117,29 +117,29 @@ const styles = StyleSheet.create({
   },
   infoCell: {
     flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   infoLabel: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
     letterSpacing: 0.13,
   },
   infoValue: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
   },
   cusipRow: {
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#f5f5f5',
   },
   cusipText: {
-    fontSize: 11,
+    fontSize: 7,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
   },
@@ -148,36 +148,36 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
   },
   proposalHeader: {
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#f5f5f5',
   },
   headerCell: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: 500,
     fontFamily: 'Roboto',
     letterSpacing: 0.21,
   },
   cellBold: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: 500,
     fontFamily: 'Roboto',
     letterSpacing: 0.21,
   },
   cell: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
     letterSpacing: 0.13,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   // Column widths
-  colLabel: { width: '25%' },
+  colLabel: { width: '100%', whiteSpace: 'nowrap' },
   colProposal: { flex: 1 },
   colVote: { width: '15%', textAlign: 'right' },
   colPercent: { width: '15%', textAlign: 'right' },
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 36,
-    fontSize: 11,
+    fontSize: 7,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
   },
@@ -402,10 +402,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                 {/* Proposal Header */}
                 <View style={styles.proposalHeader}>
                   <Text style={[styles.cellBold, styles.colLabel]}>
-                    Proposal {proposal.proposalNumber}
-                  </Text>
-                  <Text style={[styles.cellBold, styles.colProposal]}>
-                    {proposal.title}
+                    Proposal {proposal.proposalNumber} {proposal.title}
                   </Text>
                 </View>
 
@@ -413,10 +410,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                 {proposal.directorName && (
                   <View style={styles.proposalHeader}>
                     <Text style={[styles.cellBold, styles.colLabel]}>
-                      Proposal {proposal.proposalNumber}
-                    </Text>
-                    <Text style={[styles.cellBold, styles.colProposal]}>
-                      {proposal.directorName}
+                      Proposal {proposal.proposalNumber} {proposal.directorName}
                     </Text>
                   </View>
                 )}
@@ -429,10 +423,19 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatNumber(proposal.voteFor)}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(proposal.percentOfOutstanding)}
+                    {formatPercent(
+                      tabulationData.totalOutstanding > 0
+                        ? (proposal.voteFor / tabulationData.totalOutstanding) * 100
+                        : 0
+                    )}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(proposal.percentOfTotalVoted)}
+                    {formatPercent(
+                      tabulationData.votesRepresentedForQuorum > 0
+                        ? (proposal.voteFor / tabulationData.votesRepresentedForQuorum) *
+                            100
+                        : 0
+                    )}
                   </Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
                     {formatPercent(proposal.percentFor)}
@@ -446,11 +449,23 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatNumber(proposal.voteAgainst)}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(proposal.percentAgainst)}
+                    {formatPercent(
+                      tabulationData.totalOutstanding > 0
+                        ? (proposal.voteAgainst / tabulationData.totalOutstanding) * 100
+                        : 0
+                    )}
                   </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>{formatPercent(0)}</Text>
+                  <Text style={[styles.cell, styles.colPercent]}>
+                    {formatPercent(
+                      tabulationData.votesRepresentedForQuorum > 0
+                        ? (proposal.voteAgainst /
+                            tabulationData.votesRepresentedForQuorum) *
+                            100
+                        : 0
+                    )}
+                  </Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(0)}
+                    {formatPercent(proposal.percentAgainst)}
                   </Text>
                 </View>
 
@@ -461,13 +476,23 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatNumber(proposal.voteAbstain)}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(proposal.percentAbstain)}
+                    {formatPercent(
+                      tabulationData.totalOutstanding > 0
+                        ? (proposal.voteAbstain / tabulationData.totalOutstanding) * 100
+                        : 0
+                    )}
                   </Text>
                   <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(1.6)}
+                    {formatPercent(
+                      tabulationData.votesRepresentedForQuorum > 0
+                        ? (proposal.voteAbstain /
+                            tabulationData.votesRepresentedForQuorum) *
+                            100
+                        : 0
+                    )}
                   </Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(1.6)}
+                    {formatPercent(proposal.percentAbstain)}
                   </Text>
                 </View>
               </View>

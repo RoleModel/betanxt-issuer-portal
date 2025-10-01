@@ -9,14 +9,14 @@
  *   npm run seed:documents -- --link    # Link existing storage files to database
  *   npm run seed:documents -- --clean   # Clean all documents before uploading
  */
-
 import { createClient } from '@supabase/supabase-js'
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
 import type { Stats } from 'fs'
 import { join } from 'path'
 
 const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321'
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ||
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -45,7 +45,13 @@ const clientMapping = {
   },
 }
 
-type DocumentCategory = 'general' | 'dsm' | 'proxy-materials' | 'meeting-materials' | 'post-meeting' | 'internal'
+type DocumentCategory =
+  | 'general'
+  | 'dsm'
+  | 'proxy-materials'
+  | 'meeting-materials'
+  | 'post-meeting'
+  | 'internal'
 
 type DocumentTypeMapping = {
   type: string
@@ -57,35 +63,97 @@ type DocumentTypeMapping = {
 // Document type mappings based on filename patterns
 const documentMappings: Record<string, DocumentTypeMapping> = {
   // Proxy materials - all APPROVED
-  'proxy_statement': { type: 'Proxy Statement', displayCategory: 'proxy-materials', status: 'APPROVED' },
-  'annual_report': { type: 'Annual Report', displayCategory: 'proxy-materials', status: 'APPROVED' },
-  '_naa_proof': { type: 'Notice and Access', displayCategory: 'proxy-materials', title: 'Notice of Annual Meeting', status: 'APPROVED' },
-  '_vif_proof': { type: 'VIF', displayCategory: 'proxy-materials', title: 'Voter Information Form', status: 'APPROVED' },
-  '_proxycard_proof': { type: 'Proxy Card', displayCategory: 'proxy-materials', status: 'APPROVED' },
+  proxy_statement: {
+    type: 'Proxy Statement',
+    displayCategory: 'proxy-materials',
+    status: 'APPROVED',
+  },
+  annual_report: {
+    type: 'Annual Report',
+    displayCategory: 'proxy-materials',
+    status: 'APPROVED',
+  },
+  _naa_proof: {
+    type: 'Notice and Access',
+    displayCategory: 'proxy-materials',
+    title: 'Notice of Annual Meeting',
+    status: 'APPROVED',
+  },
+  _vif_proof: {
+    type: 'VIF',
+    displayCategory: 'proxy-materials',
+    title: 'Voter Information Form',
+    status: 'APPROVED',
+  },
+  _proxycard_proof: {
+    type: 'Proxy Card',
+    displayCategory: 'proxy-materials',
+    status: 'APPROVED',
+  },
 
   // Meeting materials - all APPROVED
-  'Agenda': { type: 'Meeting Agenda', displayCategory: 'meeting-materials', status: 'APPROVED' },
-  'Script': { type: 'Meeting Script', displayCategory: 'meeting-materials', status: 'APPROVED' },
-  'Oath': { type: 'Inspector Oath', displayCategory: 'meeting-materials', status: 'APPROVED' },
+  Agenda: {
+    type: 'Meeting Agenda',
+    displayCategory: 'meeting-materials',
+    status: 'APPROVED',
+  },
+  Script: {
+    type: 'Meeting Script',
+    displayCategory: 'meeting-materials',
+    status: 'APPROVED',
+  },
+  Oath: {
+    type: 'Inspector Oath',
+    displayCategory: 'meeting-materials',
+    status: 'APPROVED',
+  },
 
   // DSM documents - all APPROVED
-  'Presentation': { type: 'Shareholder Presentation', displayCategory: 'dsm', status: 'APPROVED' },
+  Presentation: {
+    type: 'Shareholder Presentation',
+    displayCategory: 'dsm',
+    status: 'APPROVED',
+  },
   'Intro Slide': { type: 'Intro Slide', displayCategory: 'dsm', status: 'APPROVED' },
-  'Annual Meeting': { type: 'Shareholder Presentation', displayCategory: 'dsm', status: 'APPROVED' },
-  'Guest': { type: 'Guest List', displayCategory: 'dsm', status: 'APPROVED' },
-  'QA': { type: 'Q&A Document', displayCategory: 'dsm', status: 'APPROVED' },
+  'Annual Meeting': {
+    type: 'Shareholder Presentation',
+    displayCategory: 'dsm',
+    status: 'APPROVED',
+  },
+  Guest: { type: 'Guest List', displayCategory: 'dsm', status: 'APPROVED' },
+  QA: { type: 'Q&A Document', displayCategory: 'dsm', status: 'APPROVED' },
   'Q&A': { type: 'Q&A Document', displayCategory: 'dsm', status: 'APPROVED' },
-  'Procedures': { type: 'Meeting Procedures', displayCategory: 'dsm', status: 'APPROVED' },
-  'Attendance Report': { type: 'Attendance Report', displayCategory: 'dsm', status: 'APPROVED' },
-  'Final Attendance Report': { type: 'Attendance Report', displayCategory: 'dsm', status: 'APPROVED' },
+  Procedures: { type: 'Meeting Procedures', displayCategory: 'dsm', status: 'APPROVED' },
+  'Attendance Report': {
+    type: 'Attendance Report',
+    displayCategory: 'dsm',
+    status: 'APPROVED',
+  },
+  'Final Attendance Report': {
+    type: 'Attendance Report',
+    displayCategory: 'dsm',
+    status: 'APPROVED',
+  },
 
   // Post-meeting documents - all APPROVED
-  'Minutes': { type: 'Meeting Minutes', displayCategory: 'post-meeting', status: 'APPROVED' },
-  'Archive': { type: 'Meeting Recording', displayCategory: 'post-meeting', status: 'APPROVED' },
+  Minutes: {
+    type: 'Meeting Minutes',
+    displayCategory: 'post-meeting',
+    status: 'APPROVED',
+  },
+  Archive: {
+    type: 'Meeting Recording',
+    displayCategory: 'post-meeting',
+    status: 'APPROVED',
+  },
 
   // Internal documents - all APPROVED
   'Data.docx': { type: 'Company Data', displayCategory: 'internal', status: 'APPROVED' },
-  'Registered Account': { type: 'Account Registry', displayCategory: 'internal', status: 'APPROVED' },
+  'Registered Account': {
+    type: 'Account Registry',
+    displayCategory: 'internal',
+    status: 'APPROVED',
+  },
 }
 
 function determineDocumentType(filename: string): DocumentTypeMapping | null {
@@ -100,7 +168,7 @@ function determineDocumentType(filename: string): DocumentTypeMapping | null {
   return {
     type: 'General Document',
     displayCategory: 'general',
-    status: 'APPROVED'
+    status: 'APPROVED',
   }
 }
 
@@ -153,10 +221,8 @@ async function cleanDocuments() {
     .list('', { limit: 1000 })
 
   if (files && files.length > 0) {
-    const paths = files.map(f => f.name)
-    const { error: storageError } = await supabase.storage
-      .from('documents')
-      .remove(paths)
+    const paths = files.map((f) => f.name)
+    const { error: storageError } = await supabase.storage.from('documents').remove(paths)
 
     if (storageError) {
       console.error('Failed to clean storage:', storageError)
@@ -189,7 +255,17 @@ async function uploadDocument(
   try {
     // Skip non-document files
     const ext = filename.split('.').pop() || ''
-    const supportedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'm4a']
+    const supportedExts = [
+      'pdf',
+      'doc',
+      'docx',
+      'xls',
+      'xlsx',
+      'ppt',
+      'pptx',
+      'mp4',
+      'm4a',
+    ]
     if (!supportedExts.includes(ext.toLowerCase())) {
       console.log(`   Skipping unsupported file type: ${filename}`)
       return false
@@ -223,9 +299,7 @@ async function uploadDocument(
     console.log(`   ✓ Uploaded to storage: ${storageData?.path || storagePath}`)
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('documents')
-      .getPublicUrl(storagePath)
+    const { data: urlData } = supabase.storage.from('documents').getPublicUrl(storagePath)
 
     // Create database record with generated ID
     const docId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -331,27 +405,26 @@ async function linkExistingDocuments() {
     const filename = pathParts[2]
 
     const docType = determineDocumentType(filename) || {
-      type: docTypeFolder.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      type: docTypeFolder
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' '),
       displayCategory: 'general' as DocumentCategory,
-      status: 'APPROVED'
+      status: 'APPROVED',
     }
 
-    const { data: urlData } = supabase.storage
-      .from('documents')
-      .getPublicUrl(file.name)
+    const { data: urlData } = supabase.storage.from('documents').getPublicUrl(file.name)
 
-    const { error: upsertError } = await supabase
-      .from('document')
-      .upsert({
-        meeting_id: meetingId,
-        title: getCleanTitle(filename, docType),
-        type: docType.type,
-        display_category: docType.displayCategory,
-        file_path: urlData.publicUrl,
-        file_type: (filename.split('.').pop() || 'pdf').toUpperCase(),
-        status: docType.status || 'APPROVED',
-        updated_at: new Date().toISOString(),
-      })
+    const { error: upsertError } = await supabase.from('document').upsert({
+      meeting_id: meetingId,
+      title: getCleanTitle(filename, docType),
+      type: docType.type,
+      display_category: docType.displayCategory,
+      file_path: urlData.publicUrl,
+      file_type: (filename.split('.').pop() || 'pdf').toUpperCase(),
+      status: docType.status || 'APPROVED',
+      updated_at: new Date().toISOString(),
+    })
 
     if (!upsertError) {
       linkedCount++
@@ -371,7 +444,9 @@ async function main() {
 
   console.log('🚀 Document Seeding Tool\n')
   console.log(`   Supabase URL: ${supabaseUrl}`)
-  console.log(`   Mode: ${shouldLink ? 'Link existing' : shouldClean ? 'Clean & upload' : 'Upload only'}\n`)
+  console.log(
+    `   Mode: ${shouldLink ? 'Link existing' : shouldClean ? 'Clean & upload' : 'Upload only'}\n`
+  )
 
   // Link existing files if requested
   if (shouldLink) {

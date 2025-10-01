@@ -267,7 +267,7 @@ export default function EducationContent() {
         open={viewerOpen}
         onClose={handleViewerClose}
         fileUrl={fileUrl}
-      title={viewerTitle}
+        title={viewerTitle}
       />
     </Container>
   )

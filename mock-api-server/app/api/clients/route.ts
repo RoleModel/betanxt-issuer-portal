@@ -1,9 +1,10 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-29T07:37:47.339Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listClients, createClient } from '@/domain-models/api/clients'
+
+import { createClient, listClients } from '@/domain-models/api/clients'
+
 import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -25,10 +26,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listClients'
+        operationId: 'listClients',
       },
       { status: 500 }
     )
@@ -53,13 +54,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createClient'
+        operationId: 'createClient',
       },
       { status: 500 }
     )
   }
 }
-

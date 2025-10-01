@@ -24,8 +24,8 @@
     "generate:seeds": "npx tsx ../supabase/seed.ts && npx tsx ../supabase/seed.ts > ../supabase/seed.sql",
     "generate:db-types": "supabase gen types typescript --local --schema public > utils/supabase/database.types.ts",
     "generate:postgres-schema": "openapi-generator-cli generate -i ./openapi-schema/openapi.yaml -g postgresql-schema -o ../supabase/migrations --additional-properties=identifierNamingConvention=snake_case,defaultDatabaseName=public,schemaName=public && npx tsx cli/extract-core-schema.ts",
-    "seed:reset": "supabase db reset && npm run generate:seeds",
-    "full-reset": "npm run generate:postgres-schema && npm run generate:seeds && supabase db reset && npm run generate:db-types && npm run generate:api-types",
+    "seed:reset": "supabase db reset && npm run generate:seeds && npm run seed:documents:clean",
+    "full-reset": "npm run generate:postgres-schema && npm run generate:seeds && supabase db reset && npm run generate:db-types && npm run generate:api-types && tsx scripts/ensure-documents-bucket.ts npx tsx scripts/seed-documents.ts -- --clean && npx tsx scripts/seed-documents.ts -- --link",
     "generate:api-types": "openapi-typescript ./openapi-schema/openapi.yaml -o ./types/api.ts",
     "generate:api-routes": "npx tsx cli/generate-routes.ts",
     "setup:storage": "tsx scripts/ensure-documents-bucket.ts",
@@ -35,6 +35,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@redocly/openapi-core": "^1.34.5",
     "@supabase/supabase-js": "^2.49.3",
     "dotenv": "^17.2.2",
     "glob": "^10.3.10",
