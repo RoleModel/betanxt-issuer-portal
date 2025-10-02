@@ -115,7 +115,8 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
       <Typography
         component="h1"
         variant="pageTitle"
-        sx={{ fontFamily: 'var(--font-tungsten)' }}
+        fontWeight={600}
+        fontFamily={'var(--font-tungsten)'}
       >
         {getPageTitle()}
       </Typography>

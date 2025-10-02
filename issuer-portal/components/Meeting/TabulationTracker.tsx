@@ -9,7 +9,7 @@ import {
   ArrowUpwardSharp,
   CalendarTodayOutlined as CalendarIcon,
 } from '@mui/icons-material'
-import { LinearProgress, LinearProgressProps, useMediaQuery, useTheme } from '@mui/material'
+import { useMediaQuery, useTheme } from '@mui/material'
 import { Box, Stack, Typography, Fade } from '@mui/material'
 
 import buildApiClient from '@/domain-models/apiClient'

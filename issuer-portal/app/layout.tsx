@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import type { Viewport } from 'next'
 import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
+import localFont from 'next/font/local'
 import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
@@ -33,6 +34,17 @@ const robotoCondensed = Roboto_Condensed({
   preload: true,
 })
 
+const Tungsten = localFont({
+  src: [
+    { path: '../public/fonts/Tungsten.woff2', weight: '400' },
+    { path: '../public/fonts/Tungsten-Medium.woff2', weight: '500' },
+
+  ],
+  variable: '--font-tungsten',
+  display: 'swap',
+  preload: true,
+})
+
 export const viewport: Viewport = {
   themeColor: 'var(--mui-palette-primary-main)',
   width: 'device-width',
@@ -50,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${roboto.variable} ${robotoCondensed.variable}`}
+      className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
       <GlobalStyles
         styles={{
