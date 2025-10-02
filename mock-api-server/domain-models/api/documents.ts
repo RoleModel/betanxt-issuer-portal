@@ -68,6 +68,12 @@ function transformDocument(dbDocument: DocumentRow): Document {
     filePath: nullToUndefined(dbDocument.file_path),
     displayCategory: nullToUndefined(dbDocument.display_category),
     fileType: nullToUndefined(dbDocument.file_type),
+    createdBy: nullToUndefined(dbDocument.created_by),
+    createdByFirstName: nullToUndefined(dbDocument.created_by_first_name),
+    createdByLastName: nullToUndefined(dbDocument.created_by_last_name),
+    updatedBy: nullToUndefined(dbDocument.updated_by),
+    updatedByFirstName: nullToUndefined(dbDocument.updated_by_first_name),
+    updatedByLastName: nullToUndefined(dbDocument.updated_by_last_name),
     createdAt: nullToUndefined(dbDocument.created_at),
     updatedAt: nullToUndefined(dbDocument.updated_at),
   }
@@ -131,6 +137,8 @@ export async function createDocument(
   try {
     const request = body
     const now = new Date().toISOString()
+    // Default user: Sarah Chen (from seed data)
+    const defaultUserId = '14f7b303-44c8-5dce-9b73-c75c2199d7f9'
     const { data, error } = await supabase
       .from('document')
       .insert({
@@ -141,7 +149,13 @@ export async function createDocument(
         type: request.type,
         task_id: request.taskId,
         file_path: request.file,
-        status: 'AWAITING_REVIEW',
+        status: request.status || 'AWAITING_REVIEW',
+        created_by: defaultUserId,
+        created_by_first_name: 'Sarah',
+        created_by_last_name: 'Chen',
+        updated_by: defaultUserId,
+        updated_by_first_name: 'Sarah',
+        updated_by_last_name: 'Chen',
         created_at: now,
         updated_at: now,
       })

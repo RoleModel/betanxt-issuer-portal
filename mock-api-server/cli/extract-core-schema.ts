@@ -80,8 +80,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 `
 
   // Extract enum definitions first
-  // Skip document_history_event_type as it's managed by a separate migration
-  const SKIP_TYPES = ['document_history_event_type']
+  const SKIP_TYPES: string[] = []
 
   const enumMatches = fullSchema.match(/CREATE TYPE[^;]+;/g) || []
   enumMatches.forEach((enumDef) => {
@@ -114,7 +113,17 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     const matches = fullSchema.match(tableStartRegex)
 
     if (matches && matches[0]) {
-      const tableSection = matches[0]
+      let tableSection = matches[0]
+
+      // Replace CREATE TABLE IF NOT EXISTS with DROP + CREATE TABLE
+      // This ensures clean migrations that always recreate tables
+      tableSection = tableSection.replace(
+        /CREATE TABLE IF NOT EXISTS (public\.)?("?\w+"?)/,
+        (match, schema, tableName) => {
+          return `DROP TABLE IF EXISTS ${schema || ''}${tableName} CASCADE;\nCREATE TABLE ${schema || ''}${tableName}`
+        }
+      )
+
       coreSchema += tableSection + '\n'
 
       // Add COMMENT statements for this table only (exact matches only)

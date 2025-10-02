@@ -1,18 +1,19 @@
-import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+
+import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
     const supabase = await createClient()
 
     // Get current user from auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get query parameters

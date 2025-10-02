@@ -289,6 +289,7 @@ export interface components {
       | 'SIGNED'
       | 'AUTHORIZED'
       | 'COMPLETED'
+      | 'NOT_UPLOADED'
     Account: {
       /** Format: uuid */
       id?: string

@@ -110,7 +110,7 @@ export async function createTask(
         description: request.description,
         due_date: request.dueDate,
         owner: request.owner,
-        status: 'TODO',
+        status: request.status || 'INCOMPLETE',
         phase_id: request.phaseId,
         phase_number: request.phaseNumber,
         type: request.type,

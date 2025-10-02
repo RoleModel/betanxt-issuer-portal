@@ -658,6 +658,136 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  # User Profile Photo Endpoints
+  /users/{id}/avatar:
+    post:
+      operationId: uploadUserAvatar
+      summary: Upload user profile photo
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The profile photo file (JPEG, PNG, WebP)
+                scale:
+                  type: number
+                  format: float
+                  minimum: 0.5
+                  maximum: 2.0
+                  default: 1.0
+                  description: Scale factor for cropping (0.5x to 2x zoom)
+      responses:
+        '201':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+                    format: uri
+                    description: Public URL of the uploaded avatar
+                  message:
+                    type: string
+                    example: 'Avatar uploaded successfully'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteUserAvatar
+      summary: Remove user profile photo
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      responses:
+        '200':
+          description: Avatar removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Avatar removed successfully'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}/avatar/url:
+    get:
+      operationId: getUserAvatarUrl
+      summary: Get user profile photo URL
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      responses:
+        '200':
+          description: Avatar URL retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: Public URL of the user's avatar, null if no avatar set
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   # Meeting Management Endpoints
   /meetings:
     get:
@@ -2159,6 +2289,7 @@ paths:
                       UPLOADED,
                       VIEWED,
                       DOWNLOADED,
+                      NOT_UPLOADED,
                       SIGNED,
                       APPROVED,
                       REJECTED,
@@ -2390,18 +2521,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        accounts:
-          type: array
-          nullable: true
-          description: Array of related accounts
-          items:
-            $ref: '#/components/schemas/Account'
-        meetings:
-          type: array
-          nullable: true
-          description: Array of related meetings
-          items:
-            $ref: '#/components/schemas/Meeting'
 
     User:
       type: object
@@ -2430,6 +2549,12 @@ components:
           nullable: true
         account:
           $ref: '#/components/schemas/Account'
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL of the user's profile photo stored in Supabase Storage
+          example: https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
 
     Meeting:
       type: object
@@ -2714,6 +2839,32 @@ components:
           format: date-time
           nullable: true
           description: When the document was approved
+        createdBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: User ID who created the document
+        createdByFirstName:
+          type: string
+          nullable: true
+          description: First name of user who created the document
+        createdByLastName:
+          type: string
+          nullable: true
+          description: Last name of user who created the document
+        updatedBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: User ID who last updated the document
+        updatedByFirstName:
+          type: string
+          nullable: true
+          description: First name of user who last updated the document
+        updatedByLastName:
+          type: string
+          nullable: true
+          description: Last name of user who last updated the document
         createdAt:
           type: string
           format: date-time
@@ -3230,6 +3381,12 @@ components:
         accountId:
           type: string
           format: uuid
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL of the user's profile photo stored in Supabase Storage
+          example: https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
 
     CreateMeetingRequest:
       type: object

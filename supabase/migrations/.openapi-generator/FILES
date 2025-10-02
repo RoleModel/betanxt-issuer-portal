@@ -17,12 +17,14 @@ Model/CreateProposalRequest.sql
 Model/CreateTaskRequest.sql
 Model/CreateUserRequest.sql
 Model/DSMConfig.sql
+Model/DeleteUserAvatar200Response.sql
 Model/DigitalShareholderMeeting.sql
 Model/Document.sql
 Model/DocumentHistory.sql
 Model/DocumentStatus.sql
 Model/Error.sql
 Model/GetDocumentsReadiness200Response.sql
+Model/GetUserAvatarUrl200Response.sql
 Model/ListAccountUsers200Response.sql
 Model/ListAccounts200Response.sql
 Model/ListClients200Response.sql
@@ -61,6 +63,7 @@ Model/UpdatePositionRequest.sql
 Model/UpdateProposalRequest.sql
 Model/UpdateTaskRequest.sql
 Model/UpdateUserRequest.sql
+Model/UploadUserAvatar201Response.sql
 Model/User.sql
 Model/UserType.sql
 README.md

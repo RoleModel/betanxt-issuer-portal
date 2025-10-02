@@ -34,6 +34,8 @@ export async function POST(
     // Expect multipart/form-data
     const formData = await req.formData()
     const meetingId = formData.get('meetingId')?.toString()
+    const title = formData.get('title')?.toString()
+    const taskId = formData.get('taskId')?.toString()
     const versionNotes = formData.get('versionNotes')?.toString() || undefined
     const file = formData.get('file') as File | null
 
@@ -41,6 +43,22 @@ export async function POST(
     if (!file) return jsonError('file is required', 400)
 
     if (file.size > MAX_FILE_BYTES) return jsonError('File too large', 413)
+
+    // Determine if this is a signed document
+    const isSignedDocument =
+      title?.includes('(Signed)') ||
+      title?.includes('- Signed') ||
+      file.name.includes('signed_')
+
+    // Broadridge forms need authorization, not just signature
+    const needsAuthorization = documentType === 'broadridge-form'
+
+    // Set status based on document type
+    const documentStatus = needsAuthorization
+      ? 'PENDING_AUTHORIZATION'
+      : isSignedDocument
+        ? 'SIGNED'
+        : 'UPLOADED'
 
     // Generate deterministic-ish unique path
     const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'
@@ -95,12 +113,13 @@ export async function POST(
       const { error: insertError } = await supabase.from('document').insert({
         id,
         meeting_id: meetingId,
-        title: file.name,
+        task_id: taskId || null,
+        title: title || file.name,
         type: documentType,
         file_path: uploadData.path,
         file_type: file.type || 'application/octet-stream',
         file_size: file.size,
-        status: 'UPLOADED',
+        status: documentStatus,
         uploaded_date: nowIso,
         created_at: nowIso,
         updated_at: nowIso,
@@ -143,7 +162,7 @@ export async function POST(
           file_path: uploadData.path,
           file_type: file.type || 'application/octet-stream',
           file_size: file.size,
-          status: 'UPLOADED',
+          status: documentStatus,
           uploaded_date: nowIso,
           updated_at: nowIso,
           history: newHistory,
@@ -175,8 +194,8 @@ export async function POST(
       id,
       meetingId,
       type: documentType,
-      status: 'UPLOADED',
-      name: file.name,
+      status: documentStatus,
+      name: title || file.name,
       size: file.size,
       uploadedAt: nowIso,
       storagePath: uploadData.path,

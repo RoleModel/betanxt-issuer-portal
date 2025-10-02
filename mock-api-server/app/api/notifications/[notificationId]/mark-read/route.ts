@@ -1,5 +1,6 @@
-import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+
+import { createClient } from '@/utils/supabase/server'
 
 export async function PATCH(
   request: Request,
@@ -10,13 +11,13 @@ export async function PATCH(
     const { notificationId } = await params
 
     // Get current user from auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Update notification to mark as read
@@ -24,7 +25,7 @@ export async function PATCH(
       .from('notification')
       .update({
         read: true,
-        read_at: new Date().toISOString()
+        read_at: new Date().toISOString(),
       })
       .eq('id', notificationId)
       .eq('user_id', user.id) // Ensure user owns this notification
@@ -39,10 +40,7 @@ export async function PATCH(
     }
 
     if (!data) {
-      return NextResponse.json(
-        { error: 'Notification not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
     return NextResponse.json(data)

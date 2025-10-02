@@ -26,6 +26,7 @@ export async function POST(
     const file = formData.get('file') as File
     const versionNotes = formData.get('versionNotes') as string | null
     const taskId = formData.get('taskId') as string | null
+    const documentTitle = formData.get('title') as string | null
 
     if (!meetingId || !file) {
       return NextResponse.json(
@@ -68,8 +69,11 @@ export async function POST(
       )
     }
 
-    // Create document title based on document type and filename
-    const title = file.name.replace(/\.[^/.]+$/, '') || documentType.replace(/-/g, ' ')
+    // Use provided title if available, otherwise create from filename or document type
+    const title =
+      documentTitle ||
+      file.name.replace(/\.[^/.]+$/, '') ||
+      documentType.replace(/-/g, ' ')
 
     // Create document record with storage path
     const { data, error } = await createDocument(meetingId, {

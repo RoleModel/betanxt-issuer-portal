@@ -16,7 +16,10 @@ interface User {
 // In-memory user storage for development (replace with database in production)
 const users: Map<string, User> = new Map()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check authentication
     const session = await auth()
@@ -24,12 +27,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Get or create user
-    let user = users.get(params.id)
+    let user = users.get(id)
 
     if (!user) {
       user = {
-        id: params.id,
+        id,
         name: session.user.name || 'Unknown User',
         email: session.user.email || 'unknown@example.com',
         type: session.user.type,
@@ -38,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         username: session.user.username,
         avatarUrl: undefined,
       }
-      users.set(params.id, user)
+      users.set(id, user)
     }
 
     return NextResponse.json({ data: user })
@@ -48,7 +53,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check authentication
     const session = await auth()
@@ -56,8 +64,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Verify the user is updating their own profile
-    if (session.user.id !== params.id) {
+    if (session.user.id !== id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -65,11 +75,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const body = await request.json()
 
     // Get or create user
-    let user = users.get(params.id)
+    let user = users.get(id)
 
     if (!user) {
       user = {
-        id: params.id,
+        id,
         name: session.user.name || 'Unknown User',
         email: session.user.email || 'unknown@example.com',
         type: session.user.type,
@@ -88,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Save updated user
-    users.set(params.id, user)
+    users.set(id, user)
 
     return NextResponse.json({ data: user })
   } catch (error) {
