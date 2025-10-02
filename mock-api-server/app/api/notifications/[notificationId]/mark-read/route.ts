@@ -1,21 +1,56 @@
-// AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.171Z
-// Source: openapi-schema/openapi.yaml
+import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
-export async function PATCH(): Promise<NextResponse> {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ notificationId: string }> }
+): Promise<NextResponse> {
   try {
-    // TODO: Implement markNotificationRead
-    // Operation: markNotificationRead
-    // This route was auto-generated from OpenAPI spec
+    const supabase = await createClient()
+    const { notificationId } = await params
 
-    return NextResponse.json({ status: 'OK' })
+    // Get current user from auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Update notification to mark as read
+    const { data, error } = await supabase
+      .from('notification')
+      .update({
+        read: true,
+        read_at: new Date().toISOString()
+      })
+      .eq('id', notificationId)
+      .eq('user_id', user.id) // Ensure user owns this notification
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to update notification', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Notification not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'markNotificationRead',
       },
       { status: 500 }
     )

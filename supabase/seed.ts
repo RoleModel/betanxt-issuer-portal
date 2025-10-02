@@ -879,7 +879,7 @@ const main = async () => {
       year: 2025,
       meetings: [
         { type: 'Annual Meeting', useRealDates: true, phase: 8 },
-        { type: 'Special Meeting', monthOffset: -6, phase: 8 },
+        { type: 'Special Meeting', monthOffset: -12, phase: 8 },
       ],
     },
     {
@@ -1167,20 +1167,17 @@ const main = async () => {
       if (positionData && 'Active' in positionData && positionData.Active) {
         const data = positionData.Active
 
-        // Find the 2025 annual meeting for this company
+        // Find all past meetings (2025 and earlier) for this company
         const companyMeetings = meetingIds.filter((meetingId) => {
           // Use the meetingToClient mapping that was created during meeting generation
           const meetingClient = meetingToClient[meetingId]
-          return (
-            meetingClient?.ticker === ticker &&
-            meetingId.includes('2025') &&
-            meetingId.includes('annual-meeting')
-          )
+          const year = parseInt(meetingId.split('-').slice(-1)[0])
+          return meetingClient?.ticker === ticker && year <= 2025
         })
 
-        if (companyMeetings.length > 0) {
-          const meetingId = companyMeetings[0]
-          const mailingId = copycat.uuid(`mailing-${ticker}-${timestamp}`)
+        // Create mailing record for each past meeting
+        companyMeetings.forEach((meetingId) => {
+          const mailingId = copycat.uuid(`mailing-${meetingId}-${timestamp}`)
 
           const totalAccounts = data.Totals?.Accounts || 0
           const totalPositions = data.Totals?.Positions || 0
@@ -1218,7 +1215,7 @@ const main = async () => {
               `${sqlValue(createdAt)}, ` +
               `${sqlValue(createdAt)});`
           )
-        }
+        })
       }
     })
 
@@ -1600,8 +1597,8 @@ const main = async () => {
 
         let taskStatus: string
 
-        // Special meetings should always have completed/appropriate status
-        if (isSpecialMeeting) {
+        // Future special meetings (2026+) should have in-progress status
+        if (isSpecialMeeting && year >= 2026) {
           const taskTitle = task.title.toLowerCase()
 
           if (task.title.includes('DTCC') && task.type === 'Authorization') {
@@ -1631,7 +1628,7 @@ const main = async () => {
             taskStatus = 'INCOMPLETE'
           }
         } else {
-          // Past events (2025 and earlier or phase 8): all tasks complete (with authorization tasks marked as authorized)
+          // Past events (2025 and earlier or phase 8): specific statuses for key tasks
           if (task.title.includes('DTCC') && task.type === 'Authorization') {
             taskStatus = 'AUTHORIZED'
           } else if (
@@ -1639,6 +1636,10 @@ const main = async () => {
             task.type === 'Authorization'
           ) {
             taskStatus = 'AUTHORIZED'
+          } else if (task.title === 'Plan File Request form') {
+            taskStatus = 'COMPLETE'
+          } else if (task.title === 'Transfer Agent Registered File Request Form') {
+            taskStatus = 'COMPLETE'
           } else {
             taskStatus = 'COMPLETE'
           }
@@ -1805,42 +1806,63 @@ const main = async () => {
 
   const notificationTemplates = [
     {
-      title: 'Filing Complete',
-      message: 'Your DEF 14A filing has been successfully submitted to the SEC.',
+      title: 'Your 2026 Annual Meeting is Ready',
+      message: 'Your 2026 Annual Meeting has been set up and is ready for you to begin working on tasks. Click here to view your meeting dashboard and get started.',
       type: 'success',
       priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}`,
+      forMeetings: ['annual-meeting-2026'],
     },
     {
-      title: 'Meeting Phase 1 Started',
-      message:
-        'Phase 1 (Pre-Filing) has begun for your meeting. Please review the upcoming tasks.',
+      title: 'Special Meeting - Tabulation Phase Active',
+      message: 'Your 2026 Special Meeting has entered the tabulation phase. Daily vote counts are now available. Review the latest results on your dashboard.',
       type: 'info',
-      priority: 'medium',
+      priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/tabulation`,
+      forMeetings: ['special-meeting-2026'],
     },
     {
-      title: 'Task Due Soon',
-      message:
-        'You have a task due within the next 2 days. Please review your task list.',
+      title: 'Document Requires Your Signature',
+      message: 'The Transfer Agent Request Form needs your signature. Please review and sign the document to proceed.',
       type: 'warning',
       priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
-      title: 'Document Review Required',
-      message: 'A new document has been uploaded and requires your review.',
-      type: 'info',
-      priority: 'medium',
-    },
-    {
-      title: 'Filing Deadline Approaching',
-      message: 'DEF 14A filing deadline is in 3 days.',
+      title: 'DTCC Authorization Needed',
+      message: 'Please complete the DTCC (SPR) authorization to access shareholder proxy records. This is required to proceed with your meeting.',
       type: 'warning',
       priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}`,
+      forMeetings: ['annual-meeting-2026'],
     },
     {
-      title: 'System Maintenance',
-      message: 'Scheduled maintenance will occur tonight from 11 PM - 1 AM EST.',
+      title: 'Task Due in 2 Days',
+      message: 'You have 3 tasks due within the next 2 days. Please review your task list and complete them on time.',
+      type: 'warning',
+      priority: 'medium',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%201`,
+    },
+    {
+      title: 'Document Review Complete',
+      message: 'Sarah Johnson has approved your Draft Proxy Statement. You can now proceed to the next phase.',
+      type: 'success',
+      priority: 'medium',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
+    },
+    {
+      title: 'Comment on Hosting Site Document',
+      message: 'Michael Chen left a comment on your Document Hosting Site: "Please update the shareholder letter section before final approval."',
       type: 'info',
-      priority: 'low',
+      priority: 'medium',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
+    },
+    {
+      title: 'Filing Deadline Reminder',
+      message: 'Your DEF 14A filing deadline is in 5 business days. Please ensure all documents are finalized and ready for submission.',
+      type: 'warning',
+      priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%204`,
     },
   ]
 
@@ -1851,17 +1873,46 @@ const main = async () => {
     for (let i = 0; i < notificationCount; i++) {
       const template = notificationTemplates[i % notificationTemplates.length]
       const notificationId = copycat.uuid(`notification-${user.id}-${i}`)
-      const isRead = Math.random() > 0.4 // 60% chance of being read
+      const isRead = i > 0 // First notification is unread, rest are read
+
+      // Find a relevant meeting for this notification
+      let meetingId: string | null = null
+      const accountClient = seedConfig.accounts[userIndex % seedConfig.accounts.length]
+
+      if ('forMeetings' in template && template.forMeetings) {
+        // Find specific meeting type for this client
+        meetingId = meetingIds.find(id =>
+          id.includes(accountClient.clientTicker.toLowerCase()) &&
+          template.forMeetings?.some(type => id.includes(type))
+        ) || null
+      } else {
+        // Use any 2026 meeting for this client
+        meetingId = meetingIds.find(id =>
+          id.includes(accountClient.clientTicker.toLowerCase()) &&
+          id.includes('2026')
+        ) || null
+      }
+
+      // Calculate notification timing based on index
       const createdAt = DateTime.now()
-        .minus({ days: Math.floor(Math.random() * 7) })
+        .minus({ days: i * 2 + 1 }) // Stagger notifications: 1, 3, 5, 7 days ago
         .toISO()
       const readAt =
         isRead && createdAt
           ? DateTime.fromISO(createdAt)
-              .plus({ hours: Math.floor(Math.random() * 48) })
+              .plus({ hours: 4 + i * 2 }) // Read a few hours later
               .toISO()
           : null
-      const meetingId = meetingIds[userIndex % meetingIds.length] || null
+
+      // Replace {{meetingId}} placeholder in link
+      let message = template.message
+      if ('link' in template && template.link && meetingId) {
+        const client = meetingToClient[meetingId]
+        if (client) {
+          const linkUrl = template.link(client.ticker).replace('{{meetingId}}', meetingId)
+          message = template.message // Keep message as-is, link will be in a separate field if added
+        }
+      }
 
       sqlStatements.push(
         `INSERT INTO notification(` +
@@ -1869,7 +1920,7 @@ const main = async () => {
           `created_at, read_at) VALUES (` +
           `${sqlValue(notificationId)}, ` +
           `${sqlValue(template.title)}, ` +
-          `${sqlValue(template.message)}, ` +
+          `${sqlValue(message)}, ` +
           `${sqlValue(template.type)}, ` +
           `${sqlValue(template.priority)}, ` +
           `${sqlValue(isRead)}, ` +
@@ -2000,17 +2051,66 @@ const main = async () => {
     const sharesBase = meetingShareBase[meetingId]
 
     if (isWendys && is2025Annual && wendysData?.proposals) {
-      // Use Wendy's 2025 CSV proposals
+      // Use Wendy's 2025 CSV proposals (with real vote data)
       proposals = wendysData.proposals
+    } else if (isWendys && wendysData?.proposals) {
+      // For non-2025 Wendy's meetings, use the same directors from 2025 CSV but with synthetic votes
+      // Clear vote data so generateProposalResults will be used instead of buildResultsFromCsvProposal
+      const directorProposals = wendysData.proposals
+        .filter((p: any) => p.type === 'Director Election' && p.subtype === 'Individual')
+        .map((p: any) => ({
+          ...p,
+          votesFor: 0,
+          votesAgainst: 0,
+          votesAbstain: 0,
+          votesTotal: 0,
+        }))
+      const nonDirectorProposals = wendysData.proposals
+        .filter((p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual')
+        .map((p: any) => ({
+          ...p,
+          votesFor: 0,
+          votesAgainst: 0,
+          votesAbstain: 0,
+          votesTotal: 0,
+        }))
+      proposals = [...directorProposals, ...nonDirectorProposals]
     } else if (isEnliven && is2025Annual && enlivenData?.proposals) {
-      // Use Enliven 2025 CSV proposals
+      // Use Enliven 2025 CSV proposals (with real vote data)
       proposals = enlivenData.proposals
+    } else if (isEnliven && enlivenData?.proposals) {
+      // For non-2025 Enliven meetings, use the same directors from 2025 CSV but with synthetic votes
+      const directorProposals = enlivenData.proposals.filter(
+        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
+      )
+      const nonDirectorProposals = enlivenData.proposals.filter(
+        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
+      )
+      proposals = [...directorProposals, ...nonDirectorProposals]
     } else if (isPaycom && is2025Annual && paycomData?.proposals) {
-      // Use Paycom 2025 CSV proposals
+      // Use Paycom 2025 CSV proposals (with real vote data)
       proposals = paycomData.proposals
+    } else if (isPaycom && paycomData?.proposals) {
+      // For non-2025 Paycom meetings, use the same directors from 2025 CSV but with synthetic votes
+      const directorProposals = paycomData.proposals.filter(
+        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
+      )
+      const nonDirectorProposals = paycomData.proposals.filter(
+        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
+      )
+      proposals = [...directorProposals, ...nonDirectorProposals]
     } else if (isWoodward && is2025Annual && woodwardData?.proposals) {
-      // Use Woodward 2025 CSV proposals
+      // Use Woodward 2025 CSV proposals (with real vote data)
       proposals = woodwardData.proposals
+    } else if (isWoodward && woodwardData?.proposals) {
+      // For non-2025 Woodward meetings, use the same directors from 2025 CSV but with synthetic votes
+      const directorProposals = woodwardData.proposals.filter(
+        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
+      )
+      const nonDirectorProposals = woodwardData.proposals.filter(
+        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
+      )
+      proposals = [...directorProposals, ...nonDirectorProposals]
     } else {
       // Use default proposals for non-Wendy's meetings
       proposals = [
@@ -2099,19 +2199,26 @@ const main = async () => {
           meetingType === 'Special Meeting' &&
           parseInt(meetingYear) >= 2026
 
-        const results = isPhase7Special2026
-          ? generateProposalResults(
-              proposal.type,
-              meetingYear,
-              parseFloat(proposal.number),
-              cleanTitle,
-              isWendys,
-              meetingType,
-              participationTarget,
-              sharesBase,
-              meetingPhase
-            )
-          : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO)
+        // Check if CSV has actual vote data
+        const hasVoteData =
+          (proposal.votesFor || 0) > 0 ||
+          (proposal.votesAgainst || 0) > 0 ||
+          (proposal.votesAbstain || 0) > 0
+
+        const results =
+          isPhase7Special2026 || !hasVoteData
+            ? generateProposalResults(
+                proposal.type,
+                meetingYear,
+                parseFloat(proposal.number),
+                cleanTitle,
+                isWendys,
+                meetingType,
+                participationTarget,
+                sharesBase,
+                meetingPhase
+              )
+            : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO)
 
         // Only update participation target if we don't already have one for historical meetings
         if (
@@ -2174,19 +2281,26 @@ const main = async () => {
           meetingType === 'Special Meeting' &&
           parseInt(meetingYear) >= 2026
 
-        const results = isPhase7Special2026
-          ? generateProposalResults(
-              proposal.type,
-              meetingYear,
-              parseFloat(proposal.number),
-              proposal.title,
-              isWendys,
-              meetingType,
-              participationTarget,
-              sharesBase,
-              meetingPhase
-            )
-          : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO)
+        // Check if CSV has actual vote data
+        const hasVoteData =
+          (proposal.votesFor || 0) > 0 ||
+          (proposal.votesAgainst || 0) > 0 ||
+          (proposal.votesAbstain || 0) > 0
+
+        const results =
+          isPhase7Special2026 || !hasVoteData
+            ? generateProposalResults(
+                proposal.type,
+                meetingYear,
+                parseFloat(proposal.number),
+                proposal.title,
+                isWendys,
+                meetingType,
+                participationTarget,
+                sharesBase,
+                meetingPhase
+              )
+            : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO)
 
         // Only update participation target if we don't already have one for historical meetings
         if (
@@ -3034,22 +3148,38 @@ const main = async () => {
 
   // Generate comments for some documents
   sqlStatements.push('-- Insert comments')
-  documentIds.slice(0, 10).forEach((documentId, index) => {
+
+  // Realistic comment templates
+  const commentTemplates = [
+    'Looks good! Approved for next phase.',
+    'Please update the shareholder letter section before final approval.',
+    'Can you verify the voting deadline date? It seems incorrect.',
+    'The disclosure on page 3 needs to be expanded per SEC requirements.',
+    'Great work on this document! Ready to file.',
+    'Minor formatting issue on page 2 - please fix the table alignment.',
+    'This needs legal review before we can proceed.',
+    'Approved with minor revisions. See attached notes.',
+    'Can we add more detail about the compensation structure?',
+    'Perfect! Moving this to the next reviewer.',
+  ]
+
+  documentIds.slice(0, 15).forEach((documentId, index) => {
     const numComments = 1 + (index % 3)
     for (let c = 0; c < numComments; c++) {
       const userId = userIds[index % userIds.length]
       const user =
         seedConfig.users.issuerUsers[index % seedConfig.users.issuerUsers.length]
+      const comment = commentTemplates[(index + c) % commentTemplates.length]
 
       sqlStatements.push(
         `INSERT INTO "comment"(` +
           `document_id, user_id, comment, first_name, last_name, created_at) VALUES (` +
           `${sqlValue(documentId)}, ` +
           `${sqlValue(userId)}, ` +
-          `${sqlValue('Review comment ' + (c + 1) + ' for this document.')}, ` +
+          `${sqlValue(comment)}, ` +
           `${sqlValue(user.firstName)}, ` +
           `${sqlValue(user.lastName)}, ` +
-          `${sqlValue(DateTime.now().minus({ days: c }).toISO())});`
+          `${sqlValue(DateTime.now().minus({ days: c * 2 + 1 }).toISO())});`
       )
     }
   })
@@ -3084,52 +3214,10 @@ const main = async () => {
 
   sqlStatements.push('')
 
-  // Update client table with related accounts and meetings JSON data
-  sqlStatements.push('-- Update clients with related accounts and meetings')
-
-  seedConfig.clients.forEach((client) => {
-    const clientId = clientIds[client.ticker]
-
-    // Find all accounts for this client
-    const clientAccounts = seedConfig.accounts
-      .filter((acc) => acc.clientTicker === client.ticker)
-      .map((acc) => {
-        const accountId = companyAccountIds[seedConfig.accounts.indexOf(acc)]
-        return {
-          id: accountId,
-          name: acc.accountName,
-          primary_contact: acc.primaryContact,
-        }
-      })
-
-    // Find all meetings for this client
-    const clientMeetings = meetingIds
-      .filter((meetingId) => meetingToClient[meetingId]?.ticker === client.ticker)
-      .map((meetingId) => {
-        const meetingClient = meetingToClient[meetingId]
-        const year = parseInt(meetingId.split('-').slice(-1)[0])
-        const meetingType = meetingId.includes('annual')
-          ? 'Annual Meeting'
-          : meetingId.includes('special')
-            ? 'Special Meeting'
-            : 'Other'
-
-        return {
-          id: meetingId,
-          title: meetingType,
-          year: year,
-          status: year >= 2026 ? 'ACTIVE' : 'COMPLETE',
-        }
-      })
-
-    // Update client with JSON data
-    sqlStatements.push(
-      `UPDATE clients SET ` +
-        `accounts = ${sqlValue(JSON.stringify(clientAccounts))}, ` +
-        `meetings = ${sqlValue(JSON.stringify(clientMeetings))} ` +
-        `WHERE id = ${sqlValue(clientId)};`
-    )
-  })
+  // NOTE: The clients table no longer has 'accounts' and 'meetings' JSON columns.
+  // Accounts are linked via foreign keys in the 'account' table (client_id)
+  // Meetings are linked via foreign keys in the 'meeting' table (client_id)
+  // This section has been removed to avoid SQL errors.
 
   sqlStatements.push('')
 
@@ -3193,7 +3281,7 @@ INSERT INTO tabulation_report(id, meeting_id, set_keys, broker_voting, share_ran
 VALUES (
     ${sqlValue(tabulationId)},
     ${sqlValue(meetingId)},
-    ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key),
+    to_jsonb(ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key)),
     jsonb_build_object(
         'proposal1', jsonb_build_array(
             jsonb_build_object('broker', 'CEDE & CO', 'for', 1500000, 'against', 75000, 'abstain', 25000),

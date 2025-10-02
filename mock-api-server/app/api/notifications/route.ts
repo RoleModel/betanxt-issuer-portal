@@ -1,27 +1,52 @@
-// AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.171Z
-// Source: openapi-schema/openapi.yaml
+import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    // TODO: Implement listNotifications
-    // Operation: listNotifications
-    // This route was auto-generated from OpenAPI spec
+    const supabase = await createClient()
 
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .limit(20)
+    // Get current user from auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    return NextResponse.json([])
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const unreadOnly = searchParams.get('unread') === 'true'
+
+    // Query notifications for the current user
+    let query = supabase
+      .from('notification')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (unreadOnly) {
+      query = query.eq('read', false)
+    }
+
+    const { data: notifications, error } = await query
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch notifications', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(notifications || [])
   } catch (error) {
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listNotifications',
       },
       { status: 500 }
     )
