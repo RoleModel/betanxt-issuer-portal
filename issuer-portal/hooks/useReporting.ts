@@ -439,7 +439,10 @@ function calculateYearOverYearData(
   proposals: Proposal[],
   positions: Position[]
 ): YearOverYearData[] {
-  const yearMap = new Map<number, YearOverYearData>()
+  const yearMap = new Map<
+    number,
+    YearOverYearData & { participationSum: number; participationCount: number }
+  >()
 
   meetings.forEach((meeting) => {
     if (!meeting.meetingDate) return
@@ -454,6 +457,8 @@ function calculateYearOverYearData(
       proposalsCount: 0,
       passedCount: 0,
       failedCount: 0,
+      participationSum: 0,
+      participationCount: 0,
     }
 
     existing.proposalsCount += meetingProposals.length
@@ -480,7 +485,10 @@ function calculateYearOverYearData(
         0
       )
       const participationRate = (actualShares / totalSharesOutstandingNum) * 100
-      existing.participationRate = Math.max(existing.participationRate, participationRate)
+      // Average participation across all meetings in the year
+      existing.participationSum += participationRate
+      existing.participationCount += 1
+      existing.participationRate = existing.participationSum / existing.participationCount
     }
 
     yearMap.set(year, existing)

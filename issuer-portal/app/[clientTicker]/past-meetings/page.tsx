@@ -217,15 +217,22 @@ export default function PastMeetingsPage() {
             )) as ApiClientReturnType<unknown>
 
             if (tabulationResult.error) {
-              // Fallback: compute from positions
+              // Fallback: compute from positions for this specific meeting
               const positionsResult = (await apiClient.GET('/positions', {
-                params: { query: { select: '*', limit: 100000 } },
+                params: {
+                  query: {
+                    meetingId: meetingId,
+                    limit: 100000
+                  }
+                },
               })) as ApiClientReturnType<unknown>
 
               if (positionsResult.error) {
-                throw new Error(
-                  positionsResult.error.message || 'Failed to fetch positions'
-                )
+                console.warn(`No positions found for meeting ${meetingId}, using defaults`)
+                return {
+                  ...meeting,
+                  ...DEFAULT_METRICS,
+                }
               }
 
               const positions = extractPositions(positionsResult.data)
@@ -242,21 +249,19 @@ export default function PastMeetingsPage() {
             const positionsVoted = report?.positionsVoted
 
             if (positionsVoted) {
+              const votedShares = parseNumericValue(positionsVoted.votedShares)
+              const totalShares = parseNumericValue(positionsVoted.totalShares)
+
               const participationPercent =
-                positionsVoted.totalShares && positionsVoted.totalShares > 0
-                  ? Math.round(
-                      (parseNumericValue(positionsVoted.votedShares) /
-                        parseNumericValue(positionsVoted.totalShares)) *
-                        100 *
-                        10
-                    ) / 10
+                totalShares > 0
+                  ? Math.round((votedShares / totalShares) * 1000) / 10
                   : 0
 
               return {
                 ...meeting,
                 participationPercent,
                 totalVotes: parseNumericValue(positionsVoted.voted),
-                votingShares: parseNumericValue(positionsVoted.votedShares),
+                votingShares: votedShares,
               }
             }
 
@@ -345,7 +350,7 @@ export default function PastMeetingsPage() {
   }
 
   return (
-    <Layout navBar={true}>
+    <Layout navBar={true} eventTabs={false}>
       <Box sx={{ p: { xs: 1, sm: 3 }, flexGrow: 1, flex: 1 }}>
         <Container maxWidth="xl">
           <PastMeetingsTable
