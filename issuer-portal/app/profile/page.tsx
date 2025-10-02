@@ -1,5 +1,6 @@
 'use client'
 
+import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 
@@ -16,7 +17,6 @@ import {
 
 import ProfilePhotoModal from '@/components/Profile/ProfilePhotoModal'
 import EditAvatarButton from '@/components/ui/EditAvatarButton'
-import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 
 const ProfilePage = () => {
   const { data: session } = useSession()
@@ -44,7 +44,7 @@ const ProfilePage = () => {
       // or if the session image is different from our current avatar URL
       // Don't overwrite a valid avatar URL with null from session
       const sessionImage = session.user.image || null
-      setAvatarUrl(prevAvatarUrl => {
+      setAvatarUrl((prevAvatarUrl) => {
         // If we have no avatar URL, use whatever the session has
         if (prevAvatarUrl === null) {
           return sessionImage
@@ -107,7 +107,7 @@ const ProfilePage = () => {
                   primary={{
                     text: 'First Name',
                     variant: 'caption',
-                    color: 'text.secondary'
+                    color: 'text.secondary',
                   }}
                   secondary={{
                     text: formData.firstName,
@@ -122,7 +122,6 @@ const ProfilePage = () => {
                   fullWidth
                   margin="dense"
                 />
-
               )}
             </Grid>
             <Grid size={{ sm: 12, md: 6 }}>
@@ -131,7 +130,7 @@ const ProfilePage = () => {
                   primary={{
                     text: 'Last Name',
                     variant: 'caption',
-                    color: 'text.secondary'
+                    color: 'text.secondary',
                   }}
                   secondary={{
                     text: formData.lastName,
@@ -156,7 +155,7 @@ const ProfilePage = () => {
                   primary={{
                     text: 'Email Address',
                     variant: 'caption',
-                    color: 'text.secondary'
+                    color: 'text.secondary',
                   }}
                   secondary={{
                     text: formData.email,
@@ -182,7 +181,7 @@ const ProfilePage = () => {
                   primary={{
                     text: 'Password',
                     variant: 'caption',
-                    color: 'text.secondary'
+                    color: 'text.secondary',
                   }}
                   secondary={{
                     text: '***********',

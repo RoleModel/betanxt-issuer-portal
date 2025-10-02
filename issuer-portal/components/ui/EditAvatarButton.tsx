@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, Box, Typography, SxProps, Theme } from '@mui/material'
+import { Avatar, Box, SxProps, Theme, Typography } from '@mui/material'
 
 interface EditAvatarButtonProps {
   avatarUrl?: string | null
@@ -67,16 +67,17 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
       <Typography
         variant="body3"
         component="span"
-        align='center'
+        align="center"
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           position: 'absolute',
           visibility: 'hidden',
-          transition: (theme) => theme.transitions.create(['transform', 'opacity'], {
-            duration: theme.transitions.duration.short,
-          }),
+          transition: (theme) =>
+            theme.transitions.create(['transform', 'opacity'], {
+              duration: theme.transitions.duration.short,
+            }),
           height: '100%',
           opacity: 0,
           color: '#fff',

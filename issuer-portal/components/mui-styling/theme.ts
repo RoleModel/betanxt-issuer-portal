@@ -3,7 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -18,6 +18,14 @@ import {
 } from '@mui/material/colors'
 import { Theme, createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
+
+export interface LayoutVars {
+  navbarHeight: number
+  appSwitcherHeight: number
+  footerHeight: number
+  drawerWidth: number
+  eventTabsHeight: number
+}
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -142,7 +150,9 @@ export const getStatusBorderColor = (
 }
 
 const issuerOverrides = {
-  cssVariables: true,
+  cssVariables: {
+    colorScemeSelector: 'class',
+  },
   colorSchemes: {
     light: {
       palette: {
@@ -155,50 +165,50 @@ const issuerOverrides = {
         },
         phase: [
           {
-            main: cyan[700],
+            main: cyan[800],
             light: cyan[600],
             dark: cyan[900],
-            contrastText: cyan[50],
+            contrastText: '#ffffff',
           },
           {
-            main: teal[600],
-            light: teal[400],
+            main: teal[800],
+            light: teal[700],
             dark: teal[900],
             contrastText: teal[50],
           },
           {
             main: purple[700],
-            light: purple[400],
+            light: purple[500],
             dark: purple[900],
             contrastText: purple[50],
           },
           {
             main: lightBlue[700],
-            light: lightBlue[400],
+            light: lightBlue[500],
             dark: lightBlue[900],
             contrastText: lightBlue[50],
           },
           {
             main: pink[900],
-            light: pink[400],
+            light: pink[500],
             dark: pink[900],
             contrastText: pink[50],
           },
           {
-            main: blue[700],
+            main: blue[800],
             light: blue[400],
             dark: blue[900],
             contrastText: blue[50],
           },
           {
-            main: green[700],
-            light: green[400],
+            main: green[800],
+            light: green[500],
             dark: green[900],
             contrastText: green[50],
           },
           {
-            main: deepPurple[700],
-            light: deepPurple[400],
+            main: deepPurple[800],
+            light: deepPurple[500],
             dark: deepPurple[900],
             contrastText: deepPurple[50],
           },
@@ -279,7 +289,23 @@ const issuerOverrides = {
       xl: 1800,
     },
   },
+  layout: {
+    eventTabsHeight: 158,
+    navbarHeight: 66,
+    appSwitcherHeight: 38,
+    footerHeight: 60,
+    drawerWidth: 500,
+  },
   components: {
+    MuiLink: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          ...theme.typography.body3,
+          color: theme.vars.palette.link,
+          fontWeight: 500,
+        }),
+      },
+    },
     MuiCardContent: {
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
@@ -288,6 +314,11 @@ const issuerOverrides = {
           },
           [theme.breakpoints.down('md')]: {
             padding: theme.spacing(1),
+          },
+          '&:last-child': {
+            [theme.breakpoints.down('md')]: {
+              padding: theme.spacing(1),
+            },
           },
         }),
       },

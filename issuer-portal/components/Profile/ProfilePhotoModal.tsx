@@ -184,7 +184,9 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
       if (!updateResponse.ok) {
         const errorData = await updateResponse.text()
-        throw new Error(`Failed to update user profile: ${updateResponse.status} - ${errorData}`)
+        throw new Error(
+          `Failed to update user profile: ${updateResponse.status} - ${errorData}`
+        )
       }
 
       const updatedUserResponse = await updateResponse.json()

@@ -6,6 +6,7 @@ import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
 import React from 'react'
 
+import { GlobalStyles } from '@mui/material'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import type {} from '@mui/material/themeCssVarsAugmentation'
@@ -50,6 +51,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable}`}
     >
+      <GlobalStyles
+        styles={{
+          'html, body': {
+            height: '100%',
+          },
+        }}
+      />
       <body>
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider>
