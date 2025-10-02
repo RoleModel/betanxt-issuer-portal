@@ -3,16 +3,13 @@
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import type { FileRejection } from 'react-dropzone'
 
-import { Close as CloseIcon } from '@mui/icons-material'
 import {
   Alert,
   Box,
   Button,
   Card,
   Drawer,
-  IconButton,
   Snackbar,
   Stack,
   Typography,
@@ -23,6 +20,9 @@ import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import TaskActions from '@/components/Drawers/TaskActions'
+import DrawerHeader from '@/components/Drawers/shared/DrawerHeader'
+import { useDrawerDocuments } from '@/components/Drawers/shared/hooks/useDrawerDocuments'
+import type { SignatureArea } from '@/components/Drawers/shared/hooks/useDrawerDocuments'
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
 import BNFilePreview from '@/components/FileUpload/BNFilePreview'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
@@ -72,17 +72,6 @@ interface TaskLinkWithSignature extends TaskLink {
   signatureArea?: SignatureArea[]
 }
 
-interface SignatureArea {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  page?: number
-  label?: string
-  signed?: boolean
-}
-
 interface TaskDrawerProps {
   open: boolean
   onClose: () => void
@@ -112,12 +101,42 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     refreshMeetingData: refreshContext,
   } = useMeeting()
 
+  // Use shared document management hook (must be called before useTaskSubmission)
+  const {
+    documentViewerOpen,
+    documentUrl,
+    signatureAreas,
+    currentDocumentId,
+    approvalDrawerOpen,
+    approvalDocumentUrl,
+    approvalTitle,
+    uploadFiles,
+    hasUnsupportedFiles,
+    pdfFormState,
+    setDocumentViewerOpen,
+    setDocumentUrl,
+    setSignatureAreas,
+    setCurrentDocumentId,
+    handleDocumentViewerClose,
+    setApprovalDrawerOpen,
+    setApprovalDocumentUrl,
+    setApprovalTitle,
+    handleApprovalDrawerClose,
+    handleFilesSelected,
+    handleFileRejections,
+    handleFileRemove,
+    clearUploadFiles,
+    handlePdfStateChange,
+    setUploadFiles,
+  } = useDrawerDocuments()
+
   // Initialize custom hooks
   const { generateFilledPDF } = usePDFGeneration()
   const { isSubmittingTask, setIsSubmittingTask, submitRegularFiles } = useTaskSubmission(
     {
       uploadDocument,
       updateTaskById,
+      setUploadFiles,
     }
   )
   const { checkAndCompletePhase } = usePhaseCompletion({
@@ -136,23 +155,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     tasks,
     refetch,
   })
-  const [uploadFiles, setUploadFiles] = useState<
-    {
-      id: string
-      file: File
-      status: 'pending' | 'uploading' | 'complete' | 'error'
-      progress?: number
-      error?: string
-    }[]
-  >([])
-  const [hasUnsupportedFiles, setHasUnsupportedFiles] = useState(false)
-  const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
-  const [documentUrl, setDocumentUrl] = useState<string>('')
-  const [signatureAreas, setSignatureAreas] = useState<SignatureArea[]>([])
-  const [currentDocumentId, setCurrentDocumentId] = useState<string>('')
-  const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false)
-  const [approvalDocumentUrl, setApprovalDocumentUrl] = useState<string>('')
-  const [approvalTitle, setApprovalTitle] = useState<string>('')
+
   const [taskLinks, setTaskLinks] = useState<TaskLink[]>([])
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -168,6 +171,13 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [currentTask, setCurrentTask] = useState<DbTask | Task | null>(null)
   const [dtccAuthorized, setDtccAuthorized] = useState(false)
+  const [phaseCompleteAlert, setPhaseCompleteAlert] = useState<{
+    open: boolean
+    title: string
+    message: string
+  }>({ open: false, title: '', message: '' })
+  const [hasSignedDocument, setHasSignedDocument] = useState(false)
+  const [checkingSignedDocument, setCheckingSignedDocument] = useState(false)
 
   // Sync DTCC authorization state with task status
   useEffect(() => {
@@ -178,17 +188,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       setDtccAuthorized(isAuthorized)
     }
   }, [currentTask, task, open])
-  const [pdfFormState, setPdfFormState] = useState<{
-    formFields: Record<string, string>
-    signatures: Record<string, string>
-  }>({ formFields: {}, signatures: {} })
-  const [phaseCompleteAlert, setPhaseCompleteAlert] = useState<{
-    open: boolean
-    title: string
-    message: string
-  }>({ open: false, title: '', message: '' })
-  const [hasSignedDocument, setHasSignedDocument] = useState(false)
-  const [checkingSignedDocument, setCheckingSignedDocument] = useState(false)
 
   // Update current task when prop changes and reset document state
   useEffect(() => {
@@ -207,7 +206,14 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       setHasSignedDocument(false)
       setCheckingSignedDocument(true)
     }
-  }, [task, currentTask])
+  }, [
+    task,
+    currentTask,
+    setDocumentUrl,
+    setSignatureAreas,
+    setCurrentDocumentId,
+    setDocumentViewerOpen,
+  ])
 
   // Set task links from task data when task changes
   useEffect(() => {
@@ -236,7 +242,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             setCheckingSignedDocument(false)
           }
         }
-        checkSignedDocument().catch((_error) => {
+        void checkSignedDocument().catch((_error) => {
           // Error handled silently - we just want to check if signed document exists
           setCheckingSignedDocument(false)
         })
@@ -275,30 +281,16 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       setTaskLinks([])
       setCheckingSignedDocument(false)
     }
-  }, [open, task, currentTask, onClose, getDocumentsByMeeting])
-
-  const handleFilesSelected = (newFiles: File[]) => {
-    const uploadFileObjects = newFiles.map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      status: 'pending' as const,
-    }))
-    setUploadFiles((prev) => [...prev, ...uploadFileObjects])
-    setHasUnsupportedFiles(false)
-  }
-
-  const handleFileRejections = (fileRejections: FileRejection[]) => {
-    const hasUnsupportedType = fileRejections.some((rejection) =>
-      rejection.errors.some((error) => error.code === 'file-invalid-type')
-    )
-    if (hasUnsupportedType) {
-      setHasUnsupportedFiles(true)
-    }
-  }
-
-  const handleFileRemove = (fileId: string) => {
-    setUploadFiles((prev) => prev.filter((file) => file.id !== fileId))
-  }
+  }, [
+    open,
+    task,
+    currentTask,
+    onClose,
+    getDocumentsByMeeting,
+    setApprovalDocumentUrl,
+    setApprovalTitle,
+    setApprovalDrawerOpen,
+  ])
 
   const handleLinkClick = async (link: TaskLinkWithSignature) => {
     // Clear document URL and signature areas, but preserve documentId
@@ -366,39 +358,13 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           const documentUrl = link.url || '' // fallback URL
           setDocumentUrl(documentUrl)
 
-          try {
-            // Generate a real document ID for tracking
-            const documentId = `doc-${Date.now()}-${documentUrl.replace(/[^a-zA-Z0-9]/g, '-')}`
-            setCurrentDocumentId(documentId)
+          // Generate a real document ID for tracking
+          const documentId = `doc-${Date.now()}-${documentUrl.replace(/[^a-zA-Z0-9]/g, '-')}`
+          setCurrentDocumentId(documentId)
 
-            // Default signature areas for standard documents
-            const defaultSignatureAreas = [
-              {
-                id: 'signature-primary',
-                x: 10,
-                y: 75,
-                width: 30,
-                height: 5,
-                page: 1,
-                label: 'Signature',
-                signed: false,
-              },
-              {
-                id: 'date-primary',
-                x: 50,
-                y: 75,
-                width: 20,
-                height: 5,
-                page: 1,
-                label: 'Date',
-                signed: false,
-              },
-            ]
-            setSignatureAreas(defaultSignatureAreas)
-          } catch (_error) {
-            // Failed to configure signature areas - use empty array
-            setSignatureAreas([])
-          }
+          // No default signature areas - they should come from form handlers
+          // Generic signature links are view-only
+          setSignatureAreas([])
 
           setDocumentViewerOpen(true)
           onClose() // Close drawer for full-screen document viewing
@@ -419,15 +385,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         break
     }
   }
-
-  const handleDocumentViewerClose = () => {
-    setDocumentViewerOpen(false)
-    setDocumentUrl('')
-    setSignatureAreas([])
-    setCurrentDocumentId('')
-  }
-
-  // Generate filled PDF with form data and signatures
 
   // Handle task submission with PDF state
   const handleTaskSubmit = async () => {
@@ -463,7 +420,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         await checkAndCompletePhase(taskToSubmit as Task)
 
         // Clear files and close drawer
-        setUploadFiles([])
+        clearUploadFiles()
         setIsSubmittingTask(false)
         onClose()
         return
@@ -524,6 +481,9 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         )
       }
 
+      // Determine appropriate status based on task type
+      const newStatus = determineTaskStatus(taskToSubmit.title || '')
+
       // Only create signed document if it doesn't already exist
       if (!existingSignedDocument) {
         // Create document record for the signed form
@@ -533,6 +493,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           type: 'signed-form',
           file: uploadData.path,
           taskId: taskToSubmit.taskId || taskToSubmit.id,
+          status: newStatus, // Match document status to task status
         }
 
         // Create document record in the meeting
@@ -546,9 +507,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           }
         }
       }
-
-      // Determine appropriate status based on task type
-      const newStatus = determineTaskStatus(taskToSubmit.title || '')
 
       // Update task status
       if (taskToSubmit.id) {
@@ -571,21 +529,13 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       await checkAndCompletePhase(taskToSubmit as Task)
 
       // Clear files and close drawer
-      setUploadFiles([])
+      clearUploadFiles()
       onClose()
     } catch (_error) {
       // Error handled silently - task submission failed
     } finally {
       setIsSubmittingTask(false)
     }
-  }
-
-  // Callback to receive PDF state from DocumentViewer
-  const handlePdfStateChange = (
-    formFields: Record<string, string>,
-    signatures: Record<string, string>
-  ) => {
-    setPdfFormState({ formFields, signatures })
   }
 
   // Handle adding comments to the task/document
@@ -603,21 +553,14 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     }
   }
 
-  const handleApprovalDrawerClose = () => {
-    setApprovalDrawerOpen(false)
-    setApprovalDocumentUrl('')
-    setApprovalTitle('')
-  }
-
   const handleOpenFullscreen = () => {
     // Set the document URL from the approval drawer
     if (approvalDocumentUrl) {
       setDocumentUrl(approvalDocumentUrl)
+      setDocumentViewerOpen(true)
     }
     // Close the approval drawer
-    setApprovalDrawerOpen(false)
-    // Open the document viewer in fullscreen
-    setDocumentViewerOpen(true)
+    handleApprovalDrawerClose()
   }
 
   const handleApprove = () => {
@@ -839,26 +782,10 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       {currentTask || task ? (
         <Stack sx={{ height: '100vh', width: { xs: '100vw', md: 550 } }}>
           {/* Header */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: 2,
-              paddingLeft: 3,
-              backgroundColor: 'appBarPrimary.defaultFill',
-              color: 'appBarPrimary.defaultContrast',
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 500 }}>
-              {(currentTask || task)?.title || 'Task Details'}
-            </Typography>
-            <IconButton size="small" onClick={onClose} sx={{ color: 'inherit' }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          <DrawerHeader
+            title={(currentTask || task)?.title || 'Task Details'}
+            onClose={onClose}
+          />
 
           {/* Content */}
           <Box sx={{ p: 3 }}>
@@ -1267,7 +1194,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           <Typography variant="h6" gutterBottom>
             {phaseCompleteAlert.title}
           </Typography>
-          <Typography variant="body2">{phaseCompleteAlert.message}</Typography>
+          <Typography variant="body3">{phaseCompleteAlert.message}</Typography>
         </Alert>
       </Snackbar>
 

@@ -29,7 +29,9 @@ interface Session {
 interface UsePhaseCompletionProps {
   currentMeeting: Meeting | null
   session: Session | null
-  refreshContext: () => Promise<{ tasks: Task[]; positions: unknown[] } | null>
+  refreshContext:
+    | (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>)
+    | undefined
   snackbar: SnackbarHandler
 }
 
@@ -44,6 +46,10 @@ export const usePhaseCompletion = ({
   const checkAndCompletePhase = useCallback(
     async (taskWithPhase: Task | null): Promise<boolean> => {
       if (!taskWithPhase?.phaseNumber || taskWithPhase.phaseNumber <= 0) {
+        return false
+      }
+
+      if (!refreshContext) {
         return false
       }
 

@@ -31,6 +31,7 @@ interface DrawerTaskItemProps {
   phaseColor: string
   isCompleted?: boolean
   onClick?: () => void
+  onContextMenu?: (event: React.MouseEvent) => void
   onStatusUpdate?: (task: Task) => void
   onLinkClick?: (link: TaskLink, taskTitle: string) => void
 }
@@ -42,12 +43,14 @@ export default function DrawerTaskItem({
   onClick,
   onStatusUpdate,
   onLinkClick,
+  onContextMenu,
 }: DrawerTaskItemProps) {
   const { updateTaskById } = useTasks()
   const { refreshMeetingData } = useMeeting()
   const [isAuthorized, setIsAuthorized] = useState(
     task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
   )
+  onContextMenu
 
   useEffect(() => {
     setIsAuthorized(task.status === 'COMPLETE' || task.status === 'AUTHORIZED')
@@ -153,36 +156,17 @@ export default function DrawerTaskItem({
           </Typography>
         )}
 
-        {/* DTCC Authorization Checkbox */}
-        {isDTCCAuthorization && (
-          <Box sx={{ mt: 1 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  color="secondary"
-                  checked={isAuthorized}
-                  onChange={handleAuthorizationChange}
-                  size="small"
-                />
-              }
-              label="Authorization confirmed"
-              onClick={(e) => e.stopPropagation()}
-              sx={{ fontSize: '0.875rem' }}
-            />
-          </Box>
-        )}
-
         {/* Task Links - Only show for issuer-owned tasks */}
         {taskLinks.length > 0 &&
           onLinkClick &&
           !['BetaNXT', 'DFIN'].includes(task.owner || '') && (
             <Box sx={{ mt: 1 }}>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center">
                 {taskLinks.map((link: TaskLink, linkIndex: number) => (
                   <Link
                     key={linkIndex}
                     component="button"
-                    variant="body2"
+                    variant="body3"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -203,6 +187,22 @@ export default function DrawerTaskItem({
                     {link.label}
                   </Link>
                 ))}
+                {/* DTCC Authorization Checkbox */}
+                {isDTCCAuthorization && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        color="secondary"
+                        checked={isAuthorized}
+                        onChange={handleAuthorizationChange}
+                        size="small"
+                      />
+                    }
+                    label="Authorization confirmed"
+                    onClick={(e) => e.stopPropagation()}
+                    sx={{ fontSize: '0.875rem' }}
+                  />
+                )}
               </Stack>
             </Box>
           )}

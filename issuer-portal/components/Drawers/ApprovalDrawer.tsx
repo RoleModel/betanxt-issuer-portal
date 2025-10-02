@@ -11,7 +11,6 @@ import {
   Close as CloseIcon,
   CommentOutlined as CommentIcon,
   DownloadOutlined as DownloadIcon,
-  EditOutlined as EditIcon,
   HistoryOutlined as HistoryOulinedIcon,
   OpenInFullOutlined as OpenInFullOutlinedIcon,
 } from '@mui/icons-material'
@@ -188,15 +187,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
     // Let the parent component handle closing this drawer
   }
 
-  const handleEdit = () => {
-    // Handle edit action - could open external editor
-  }
-
-  const handleView = () => {
-    // Handle view action - same as fullscreen
-    handleFullscreen()
-  }
-
   const handleAddComment = () => {
     setShowCommentField(true)
     // Smooth scroll to bottom when comment field appears
@@ -229,9 +219,16 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
     // }
 
     try {
+      // Extract user info from session
+      const firstName = (session?.user?.name || '').split(' ')[0] || 'User'
+      const lastName = (session?.user?.name || '').split(' ').slice(1).join(' ') || ''
+      const userId = session?.user?.email || session?.user?.id || 'unknown'
+
       // Use hook to add comment
       await addCommentToDocument(currentDocumentId, comment.trim(), {
-        // TODO: Add user information from session
+        firstName,
+        lastName,
+        userId,
       })
 
       // Create optimistic comment for immediate UI update
@@ -283,10 +280,10 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   return (
     <Drawer
       anchor="left"
+      variant="temporary"
       open={open}
       onClose={onClose}
       elevation={8}
-      keepMounted={false}
       sx={{
         zIndex: 1400, // Higher than other drawers
       }}
@@ -382,13 +379,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             <ChevronRightIcon fontSize="medium" />
           </IconButton>
         </Box>
-        <Tooltip title="Edit">
-          <IconButton size="small" onClick={handleEdit} sx={{ color: 'white' }}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="View">
-          <IconButton size="small" onClick={handleView} sx={{ color: 'white' }}>
+        <Tooltip title="View in Fullscreen">
+          <IconButton size="small" onClick={handleFullscreen} sx={{ color: 'white' }}>
             <OpenInFullOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -522,7 +514,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                       <Typography variant="h6" gutterBottom>
                         {title || 'Excel Spreadsheet'}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
+                      <Typography variant="body3" color="text.secondary" paragraph>
                         Download to view this Excel file.
                       </Typography>
                       <Button
@@ -611,7 +603,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               } else {
                 return (
                   <Box sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body3" color="text.secondary">
                       This file type cannot be previewed
                     </Typography>
                     <Button
@@ -705,7 +697,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             ))
           ) : (
             <Box sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body3" color="text.secondary">
                 No history available
               </Typography>
             </Box>
@@ -796,7 +788,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               <ListItem>
                 <ListItemText
                   primary={
-                    <Typography variant="body2" color="text.secondary" align="center">
+                    <Typography variant="body3" color="text.secondary" align="center">
                       No comments yet
                     </Typography>
                   }

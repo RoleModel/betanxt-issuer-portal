@@ -99,6 +99,11 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           )
         }
 
+        // Skip upload action buttons - handled by dropzone in TaskDrawer
+        if (link.action === 'upload') {
+          return null
+        }
+
         // Make sign and download actions clickable even without direct URL
         const isClickable =
           link.url || link.action === 'signature' || link.action === 'download'

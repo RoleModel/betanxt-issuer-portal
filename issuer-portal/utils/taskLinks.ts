@@ -38,32 +38,44 @@ export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
     }
   }
 
-  // Auto-add upload link when there's a download link
+  // Auto-add Sign Form and Upload links for form tasks
   const hasDownloadLink = links.some((link) => link.action === 'download')
-  const hasUploadLink = links.some((link) => link.action === 'upload')
-
-  if (hasDownloadLink && !hasUploadLink) {
-    links.push({
-      label: 'Upload Document',
-      action: 'upload',
-      url: '',
-    })
-  }
-
-  // Auto-add Sign Form link for specific form tasks that have a download link
   const hasSignLink = links.some(
     (link) => link.action === 'signature' || link.action === 'sign'
   )
+  const hasUploadLink = links.some((link) => link.action === 'upload')
   const isFormTask =
     taskTitle &&
     (taskTitle.includes('Plan File Request') ||
       taskTitle.includes('Transfer Agent') ||
       taskTitle.includes('Broadridge'))
 
-  if (hasDownloadLink && !hasSignLink && isFormTask) {
+  // For form tasks, insert Sign Form after Download, then add Upload Document
+  if (hasDownloadLink && isFormTask) {
+    // Find the download link index
+    const downloadIndex = links.findIndex((link) => link.action === 'download')
+
+    if (!hasSignLink && downloadIndex !== -1) {
+      // Insert Sign Form right after Download
+      links.splice(downloadIndex + 1, 0, {
+        label: 'Sign Form',
+        action: 'signature',
+        url: '',
+      })
+    }
+    if (!hasUploadLink) {
+      // Add Upload Document at the end
+      links.push({
+        label: 'Upload Document',
+        action: 'upload',
+        url: '',
+      })
+    }
+  } else if (hasDownloadLink && !hasUploadLink) {
+    // For non-form tasks, just add Upload Document
     links.push({
-      label: 'Sign Form',
-      action: 'signature',
+      label: 'Upload Document',
+      action: 'upload',
       url: '',
     })
   }

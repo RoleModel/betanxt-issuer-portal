@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useState } from 'react'
 
 import type { components } from '@/types/api'
@@ -8,6 +9,9 @@ type TaskStatus = components['schemas']['TaskStatus']
 interface UploadFile {
   id: string
   file: File
+  status: 'pending' | 'uploading' | 'complete' | 'error'
+  progress?: number
+  error?: string
 }
 
 interface TaskToSubmit {
@@ -27,11 +31,13 @@ interface UseTaskSubmissionProps {
     taskId?: string
   ) => Promise<string | null>
   updateTaskById: (taskId: string, updates: { status: TaskStatus }) => Promise<void>
+  setUploadFiles?: Dispatch<SetStateAction<UploadFile[]>>
 }
 
 export const useTaskSubmission = ({
   uploadDocument,
   updateTaskById,
+  setUploadFiles,
 }: UseTaskSubmissionProps) => {
   const [isSubmittingTask, setIsSubmittingTask] = useState(false)
 
@@ -55,18 +61,67 @@ export const useTaskSubmission = ({
         throw new Error('Meeting ID is required for file upload')
       }
 
-      // Upload each file to document repository
-      for (const uploadFile of uploadFiles) {
-        const documentType = taskToSubmit.type || 'upload'
-        const uploadPath = await uploadDocument(
-          uploadFile.file,
-          documentType,
-          meetingId,
-          uploadFile.file.name,
-          taskIdToUse
-        )
-        if (uploadPath === null) {
-          throw new Error(`Failed to upload file: ${uploadFile.file.name}`)
+      // Upload each file to document repository with progress tracking
+      for (let i = 0; i < uploadFiles.length; i++) {
+        const uploadFile = uploadFiles[i]
+
+        // Update file status to uploading
+        if (setUploadFiles) {
+          setUploadFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: 'uploading' as const, progress: 0 }
+                : f
+            )
+          )
+        }
+
+        try {
+          const documentType = taskToSubmit.type || 'upload'
+          const uploadPath = await uploadDocument(
+            uploadFile.file,
+            documentType,
+            meetingId,
+            uploadFile.file.name,
+            taskIdToUse
+          )
+
+          if (uploadPath === null) {
+            // Update file status to error
+            if (setUploadFiles) {
+              setUploadFiles((prev) =>
+                prev.map((f) =>
+                  f.id === uploadFile.id
+                    ? { ...f, status: 'error' as const, error: 'Upload failed' }
+                    : f
+                )
+              )
+            }
+            throw new Error(`Failed to upload file: ${uploadFile.file.name}`)
+          }
+
+          // Update file status to complete
+          if (setUploadFiles) {
+            setUploadFiles((prev) =>
+              prev.map((f) =>
+                f.id === uploadFile.id
+                  ? { ...f, status: 'complete' as const, progress: 100 }
+                  : f
+              )
+            )
+          }
+        } catch (error) {
+          // Update file status to error
+          if (setUploadFiles) {
+            setUploadFiles((prev) =>
+              prev.map((f) =>
+                f.id === uploadFile.id
+                  ? { ...f, status: 'error' as const, error: 'Upload failed' }
+                  : f
+              )
+            )
+          }
+          throw error
         }
       }
 
@@ -80,7 +135,7 @@ export const useTaskSubmission = ({
 
       return newStatus
     },
-    [uploadDocument, updateTaskById]
+    [uploadDocument, updateTaskById, setUploadFiles]
   )
 
   return {
