@@ -22,7 +22,6 @@ import StatusChip from '@/components/ui/StatusChip'
 
 import { components } from '@/domain-models/generated-schema'
 
-import { formatDate } from '@/lib/formats'
 import { getDocumentActionLabel } from '@/utils/documentUtils'
 import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
 
@@ -87,18 +86,32 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                     filePath={doc.filePath}
                     onClick={doc.filePath ? () => onOpenDocument?.(doc) : undefined}
                   />
-                  <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                    {doc.title ?? 'Untitled Document'}
+                  <Typography variant="body3">
+                    {doc.title || 'Untitled Document'}
                   </Typography>
                 </Box>
               </TableCell>
               <TableCell size="small">
                 <Box>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" display="block" color="text.secondary">
                     {doc.updatedAt
-                      ? formatDate(doc.updatedAt)
+                      ? new Date(doc.updatedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })
                       : doc.createdAt
-                        ? formatDate(doc.createdAt)
+                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
                         : '-'}
                   </Typography>
                 </Box>

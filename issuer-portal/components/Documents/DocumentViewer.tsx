@@ -375,7 +375,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
 
     fetchTaskDocument()
-  }, [task, getTaskDocument, signatureAreas.length, signatureAreas])
+  }, [task, getTaskDocument, signatureAreas.length, signatureAreas, documentId])
 
   // Determine which props to use (legacy props take absolute priority when provided)
   const actualOpen = legacyOpen !== undefined ? legacyOpen : task ? open : false
@@ -598,7 +598,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       try {
         // Load document history using API
         const history = await getDocumentHistory(currentDocumentId)
-        console.log('[DocumentViewer] Document history loaded:', history)
         setDocumentHistory(
           history.map((event) => ({
             event_type: event.event_type,
@@ -703,10 +702,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Upload the signed document
         if (currentDocumentId && uploadDocument) {
           try {
-            const documentTitle = actualTitle || task?.title || 'Document'
+            const baseTitle = actualTitle || task?.title || 'Document'
+            const documentTitle = baseTitle.includes(' - Signed')
+              ? baseTitle
+              : `${baseTitle} - Signed`
             const meetingId =
               typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
-            const taskIdToUse = typeof task?.id === 'string' ? task?.id : undefined
 
             // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
             // Insert -signed- after the form type prefix to maintain document type detection
@@ -733,8 +734,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               file,
               documentIdForUpload,
               meetingId,
-              documentTitle,
-              taskIdToUse
+              documentTitle
             )
             if (uploadPath === null) {
               throw new Error('Document upload failed - no path returned')
@@ -1072,7 +1072,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                               ? handleSubmitSignedForm
                               : undefined
                           }
-                          disabled={!allFieldsComplete || isSubmitting}
                           startIcon={
                             isSubmitting ? (
                               <CircularProgress size={20} color="inherit" />
@@ -1084,6 +1083,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                               allFieldsComplete && !isSubmitting
                                 ? 'pointer'
                                 : 'not-allowed',
+                            pointerEvents: 'auto',
                             '&:hover': {
                               backgroundColor: (theme) =>
                                 allFieldsComplete && !isSubmitting
@@ -1117,7 +1117,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   <ChevronLeftIcon />
                 </IconButton>
                 <Typography
-                  variant="body2"
+                  variant="body3"
                   sx={{ color: (theme) => theme.vars.palette.common.white, mx: 1 }}
                 >
                   {pageNumber} / {numPages}
@@ -1212,7 +1212,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   color: 'text.secondary',
                 }}
               >
-                <Typography variant="body2">No URL provided for website view</Typography>
+                <Typography variant="body3">No URL provided for website view</Typography>
               </Box>
             )
           ) : (
@@ -1238,7 +1238,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                     zIndex: 1000,
                   }}
                 >
-                  <Typography variant="body2">Loading document...</Typography>
+                  <Typography variant="body3">Loading document...</Typography>
                 </Box>
               )}
 
@@ -1260,7 +1260,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                     boxShadow: 3,
                     borderRadius: 1,
                     overflow: 'hidden',
-                    background: 'white',
+                    background: (theme) => theme.vars.palette.common.white,
                   }}
                 >
                   {actualfileUrl ? (
@@ -1296,7 +1296,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         }}
                       >
                         <Typography variant="h6">Unsupported file type</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body3" color="text.secondary">
                           This file type ({fileExtension}) cannot be previewed
                         </Typography>
                       </Box>
@@ -1456,7 +1456,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                       <ListItemText
                         primary={
                           <Typography
-                            variant="body2"
+                            variant="body3"
                             color="text.secondary"
                             align="center"
                           >
@@ -1545,7 +1545,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   justifyContent: 'center',
                 }}
               >
-                <Typography variant="body2" color="text.secondary" align="center">
+                <Typography variant="body3" color="text.secondary" align="center">
                   Click History or Comments to view document information
                 </Typography>
               </Box>

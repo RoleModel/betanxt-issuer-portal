@@ -361,9 +361,21 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
 
   if (clientData?.ticker) {
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : ''
-      const logoPath = `${origin}/logos/${clientData.ticker}_logo.png`
+      const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`
+      // eslint-disable-next-line no-console
+      console.log(
+        '[TransferAgentForm] Loading logo from:',
+        logoPath,
+        'clientData:',
+        clientData
+      )
       const response = await fetch(logoPath)
+      // eslint-disable-next-line no-console
+      console.log(
+        '[TransferAgentForm] Logo fetch response:',
+        response.ok,
+        response.status
+      )
       if (response.ok) {
         const blob = await response.blob()
         const reader = new FileReader()
@@ -372,10 +384,19 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
           reader.onerror = reject
           reader.readAsDataURL(blob)
         })
+        // eslint-disable-next-line no-console
+        console.log(
+          '[TransferAgentForm] Logo loaded successfully, base64 length:',
+          logoBase64?.length
+        )
       }
-    } catch {
-      // Logo loading failed, will use placeholder
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[TransferAgentForm] Logo loading failed:', error)
     }
+  } else {
+    // eslint-disable-next-line no-console
+    console.log('[TransferAgentForm] No ticker in clientData:', clientData)
   }
 
   // Generate the PDF

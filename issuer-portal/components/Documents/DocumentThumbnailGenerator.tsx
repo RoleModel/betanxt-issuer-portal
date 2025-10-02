@@ -42,7 +42,7 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
         return <IconForFileType fileType="PDF" {...iconProps} />
       case 'doc':
       case 'docx':
-        return <IconForFileType fileType="TXT" {...iconProps} />
+        return <IconForFileType fileType="PDF" {...iconProps} />
       case 'xls':
       case 'xlsx':
         return <IconForFileType fileType="XLS" {...iconProps} />

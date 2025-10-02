@@ -146,7 +146,7 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
         }}
       >
         <Typography
-          variant="body2"
+          variant="body3"
           sx={{
             color: value ? 'black' : 'rgba(0, 0, 0, 0.7)',
             fontSize: '14px',

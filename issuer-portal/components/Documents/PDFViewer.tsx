@@ -137,6 +137,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           position: 'relative',
           width: defaultWidth,
           minHeight: defaultWidth * 1.294,
+          maxHeight: '90vh',
           backgroundColor: 'var(--mui-palette-background-paper)',
           borderRadius: '4px',
           display: 'flex',

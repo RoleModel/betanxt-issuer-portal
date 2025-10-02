@@ -85,7 +85,8 @@ export interface UseDocumentsResult {
     file: File,
     documentId: string,
     meetingId?: string,
-    documentTitle?: string
+    documentTitle?: string,
+    taskId?: string
   ) => Promise<string | null>
   uploadDocumentVersion: (
     meetingId: string,
@@ -375,6 +376,9 @@ export const useDocuments = (): UseDocumentsResult => {
           formData.append('meetingId', _meetingId)
           if (_taskId) {
             formData.append('taskId', _taskId)
+          }
+          if (_documentTitle) {
+            formData.append('title', _documentTitle)
           }
 
           // Determine document type

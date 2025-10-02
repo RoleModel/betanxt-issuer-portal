@@ -7,10 +7,11 @@
 
 import dynamic from 'next/dynamic'
 import React, { Suspense, useEffect, useState } from 'react'
+import * as XLSX from 'xlsx'
 
+import { SmartDisplayOutlined } from '@mui/icons-material'
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 import SearchIcon from '@mui/icons-material/Search'
-import { SmartDisplayOutlined } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -46,7 +47,11 @@ import {
   getDocumentStatusLabel,
   getStoragePublicUrl,
 } from '@/utils/documentUtils'
-import * as XLSX from 'xlsx'
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
 
 /**
  * Documents page for managing meeting documents
@@ -369,14 +374,15 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       // Check if this is an Agenda upload with Excel/CSV file
       const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
       const file = files[0]
-      const isExcelOrCsv = file && (
-        file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.type === 'application/vnd.ms-excel' ||
-        file.type === 'text/csv' ||
-        file.name.endsWith('.xlsx') ||
-        file.name.endsWith('.xls') ||
-        file.name.endsWith('.csv')
-      )
+      const isExcelOrCsv =
+        file &&
+        (file.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.type === 'application/vnd.ms-excel' ||
+          file.type === 'text/csv' ||
+          file.name.endsWith('.xlsx') ||
+          file.name.endsWith('.xls') ||
+          file.name.endsWith('.csv'))
 
       if (isAgendaUpload && isExcelOrCsv) {
         // Parse and upload as proposals
@@ -479,7 +485,6 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                       },
                     }}
                   >
-
                     <SmartDisplayOutlined />
                   </IconButton>
                 }
@@ -500,60 +505,61 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     }
                     minHeight={300}
                   />
-                ) : (<>
-                  <Box sx={{ mb: 2, px: 2 }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <TextField
-                        placeholder="Search Documents"
-                        size="small"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        sx={{ minWidth: 250 }}
-                        slotProps={{
-                          input: {
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <SearchIcon fontSize="small" />
-                              </InputAdornment>
-                            ),
-                          },
-                        }}
-                      />
-                      <FormControl size="small" sx={{ minWidth: 150 }}>
-                        <Select
-                          value={statusFilter}
-                          aria-label="Status Filter"
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                          displayEmpty
-                        >
-                          <MenuItem value="All">All</MenuItem>
-                          {availableStatuses.map((status) => {
-                            const label =
-                              status === 'UNKNOWN'
-                                ? 'Unknown'
-                                : getDocumentStatusLabel(
-                                  (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                                )
-                            return (
-                              <MenuItem key={status} value={status}>
-                                {label}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      </FormControl>
-                    </Stack>
-                  </Box>
-                  <DocumentsTable
-                    documents={filteredDocuments}
-                    page={page}
-                    rowsPerPage={rowsPerPage}
-                    emptyRows={emptyRows}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    onOpenDocument={handleDocumentAction}
-                  />
-                </>
+                ) : (
+                  <>
+                    <Box sx={{ mb: 2, px: 2 }}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <TextField
+                          placeholder="Search Documents"
+                          size="small"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          sx={{ minWidth: 250 }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                        <FormControl size="small" sx={{ minWidth: 150 }}>
+                          <Select
+                            value={statusFilter}
+                            aria-label="Status Filter"
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            displayEmpty
+                          >
+                            <MenuItem value="All">All</MenuItem>
+                            {availableStatuses.map((status) => {
+                              const label =
+                                status === 'UNKNOWN'
+                                  ? 'Unknown'
+                                  : getDocumentStatusLabel(
+                                      (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                    )
+                              return (
+                                <MenuItem key={status} value={status}>
+                                  {label}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                    <DocumentsTable
+                      documents={filteredDocuments}
+                      page={page}
+                      rowsPerPage={rowsPerPage}
+                      emptyRows={emptyRows}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      onOpenDocument={handleDocumentAction}
+                    />
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -623,7 +629,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => { }}
+          onAddComment={() => {}}
         />
       )}
 

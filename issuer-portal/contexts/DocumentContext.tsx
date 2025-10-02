@@ -129,60 +129,51 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         setLoading(true)
         setError(null)
 
-        // Import storage utility dynamically to avoid SSR issues
-        const { uploadDocument: uploadToStorage } = await import('@/utils/documentUtils')
+        // Combine regular documents and DSM documents for lookup
+        const allExistingDocs = [...documents, ...dsmDocuments]
 
-        // Upload each file to Supabase storage
+        // Upload each file using the API endpoint
         const uploadPromises = files.map(async (file, index) => {
-          const isDsmType = documentType === 'dsm-document'
-          const result = await uploadToStorage(
-            file,
-            meetingId,
-            isDsmType ? 'dsm' : 'regular'
+          // Try multiple association key formats:
+          // 1. file_0, file_1, etc. (used by DigitalShareholderMeetingCard)
+          // 2. filename-filesize (used by FileUploadDialog)
+          const fileIndexKey = `file_${index}`
+          const fileNameSizeKey = `${file.name}-${file.size}`
+          const associationId =
+            associations?.[fileIndexKey] || associations?.[fileNameSizeKey]
+          const title = associationId || file.name.replace(/\.[^/.]+$/, '')
+
+          // Check if a document with this title and type already exists
+          const existingDoc = allExistingDocs.find(
+            (doc) => doc.title === title && doc.type === documentType
           )
 
-          if (result.error) {
-            throw new Error(`Failed to upload ${file.name}: ${result.error}`)
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('meetingId', meetingId)
+          formData.append('title', title)
+
+          // If we found an existing document, pass its ID to trigger replacement
+          if (existingDoc?.id) {
+            formData.append('documentId', existingDoc.id)
           }
 
-          // Store document metadata including associations
-          const documentMetadata = {
-            ...result.data,
-            originalName: file.name,
-            uploadType: documentType,
-            associations: associations ? associations[`file_${index}`] : undefined,
-            meetingId,
+          // Upload via the API route
+          const response = await fetch(`/api/documents/types/${documentType}/upload`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || `Failed to upload ${file.name}`)
           }
 
-          return documentMetadata
+          const result = await response.json()
+          return result
         })
 
-        const uploadResults = await Promise.all(uploadPromises)
-
-        // Create mock documents in the state for immediate UI feedback
-        const mockDocuments = uploadResults.map((result, index) => {
-          const fileId = `file_${index}`
-          const associationId = associations?.[fileId]
-
-          return {
-            id: result?.id || `mock-${Date.now()}-${index}`,
-            title: result?.originalName || files[index].name,
-            description: associationId || undefined, // Store association in description for now
-            type: documentType,
-            status: 'INCOMPLETE' as Document['status'],
-            filePath: result?.url,
-            fileSize: files[index].size,
-            updatedAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-          } as Document
-        })
-
-        // Add mock documents to state immediately
-        if (documentType === 'dsm-document') {
-          setDsmDocuments((prev) => [...prev, ...mockDocuments])
-        } else {
-          setDocuments((prev) => [...prev, ...mockDocuments])
-        }
+        await Promise.all(uploadPromises)
 
         // Refresh documents after upload
         await refreshDocuments(meetingId)
@@ -193,7 +184,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         setLoading(false)
       }
     },
-    [refreshDocuments]
+    [documents, dsmDocuments, refreshDocuments]
   )
 
   const value: DocumentContextType = useMemo(

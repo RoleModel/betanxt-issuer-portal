@@ -588,7 +588,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body3"
           sx={{
             flex: 1,
             fontSize: 14,
