@@ -55,21 +55,26 @@ export function CTACard() {
     >
       <CardHeader
         title={
-          <Typography color="primary" variant="h1" component="p">
+          <Typography
+            color="primary"
+            variant="h1"
+            component="p"
+            fontFamily={'var(--font-tungsten)'}
+          >
             Let&apos;s Talk
           </Typography>
         }
       />
       <CardContent>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="body3">
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Typography variant="body1">
               Connect with one of our specialists to learn more about our expertise for
               proxies, shareholder processes, and the shareholder experience. Send us a
               message and we&apos;ll respond to your proxy advisory inquiry right away.
             </Typography>
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box
               component="form"
               onSubmit={handleContactSubmit}

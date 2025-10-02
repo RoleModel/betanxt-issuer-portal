@@ -6,6 +6,7 @@ import StarBadgeIcon from '@rolemodel/betanxt-design-system/components/icons/bra
 import TeamDiscussionIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamDiscussionIcon'
 import TeamMeeting2Icon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamMeeting2Icon'
 
+import { OpenInNew } from '@mui/icons-material'
 import { Card, CardContent, CardHeader, Stack, Typography, useTheme } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
@@ -103,8 +104,9 @@ export default function EndToEndProxySolutionsPage() {
       <Typography
         variant="h2"
         sx={{
+          fontSize: theme.typography.pageTitle.fontSize,
           fontWeight: 700,
-          mb: 3,
+          fontFamily: 'var(--font-tungsten)',
           color: theme.vars.palette.text.primary,
         }}
       >
@@ -136,9 +138,9 @@ export default function EndToEndProxySolutionsPage() {
               key={index}
               variant={product.variant}
               title={product.title}
-              titleVariant="h2"
+              titleVariant="h1"
               description={product.description}
-              actionText={''}
+              brandFont={true}
               icon={product.icon}
             />
           ))}
@@ -165,9 +167,10 @@ export default function EndToEndProxySolutionsPage() {
               key={index}
               variant="base"
               title={benefit.title}
-              titleVariant="h2"
+              titleVariant="h1"
               description={benefit.description}
               actionText={''}
+              brandFont={true}
               icon={benefit.icon}
             />
           ))}
@@ -181,12 +184,13 @@ export default function EndToEndProxySolutionsPage() {
     <SidebarCard
       title="Issuer Solutions​ Overview"
       button
-      buttonText="View Issuer Solutions Overview PDF"
+      icon={<OpenInNew />}
+      buttonText="Visit Issuer Solutions"
       onClick={() => {
-        window.open('https://www.betanxt.com/issuer-solutions-guide', '_blank')
+        window.open('https://betanxt.com/issuer-solutions', '_blank')
       }}
     >
-      <Typography variant="body2" component="p">
+      <Typography variant="body3" component="p">
         Get a complete look at the tools and services available to you in one place.
       </Typography>
     </SidebarCard>

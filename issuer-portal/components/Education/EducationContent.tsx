@@ -7,7 +7,6 @@ import GlobeNetworkIcon from '@rolemodel/betanxt-design-system/components/icons/
 import LaptopPlayIcon from '@rolemodel/betanxt-design-system/components/icons/brand/LaptopPlayIcon'
 import TeamGroupIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGroupIcon'
 import TrendingUpIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TrendingUpIcon'
-import { useRouter } from 'next/navigation'
 import React from 'react'
 
 import { Card, CardContent, CardHeader, Container, Stack } from '@mui/material'
@@ -16,31 +15,27 @@ import Grid from '@mui/material/Grid'
 import FeatureTile from '@/components/FeatureTile'
 import ResourceTitle from '@/components/ResourceTitle'
 import ScrollContainer from '@/components/ScrollContainer'
+import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 
 import DocumentViewer from '../Documents/DocumentViewer'
 
 export default function EducationContent() {
-  const router = useRouter()
-
   const educationPaperItems = React.useMemo(
     () => [
       {
         title: 'Proxy Guide',
-        titleVariant: 'h2' as const,
         description: 'How the proxy process works',
         actionText: 'View Guide',
         icon: <ChecklistDocumentIcon fontSize="3xl" />,
       },
       {
         title: 'SPR Registration Guide',
-        titleVariant: 'h2' as const,
         description: 'Get started with SPR Registration',
         actionText: 'View Guide',
         icon: <DocumentEditIcon fontSize="3xl" />,
       },
       {
         title: 'Digital Shareholder Meeting Guide',
-        titleVariant: 'h2' as const,
         description: 'Insights to support the execution of your annual meeting',
         actionText: 'View Guide',
         onClick: () => {
@@ -52,30 +47,27 @@ export default function EducationContent() {
       },
       {
         title: 'Industry Trends',
-        titleVariant: 'h2' as const,
         description: "What's shaping proxy events",
         actionText: 'View Trends',
-        onClick: () => router.push('/education/industry-trends'),
+        href: '/education/industry-trends',
         icon: <TrendingUpIcon fontSize="3xl" />,
       },
       {
         title: 'Video Tutorials',
-        titleVariant: 'h2' as const,
         description: 'Watch and learn',
         actionText: 'Watch Tutorials',
-        onClick: () => router.push('/education/video-tutorials'),
+        href: '/education/video-tutorials',
         icon: <LaptopPlayIcon fontSize="3xl" />,
       },
       {
         title: 'FAQs',
-        titleVariant: 'h2' as const,
         description: 'Quick answers, real clarity',
         actionText: 'View FAQs',
-        onClick: () => router.push('/education/faqs'),
+        href: '/education/faqs',
         icon: <ChatQuestionIcon fontSize="3xl" />,
       },
     ],
-    [router]
+    []
   )
 
   const documentTemplates = React.useMemo(
@@ -149,26 +141,23 @@ export default function EducationContent() {
         description:
           'A suite of tools that helps you achieve quorum and proposal passage by generating greater participation from retail shareholders.',
         actionText: 'Learn More',
-        titleVariant: 'h2' as const,
         icon: <TrendingUpIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'primary' as const,
-        onClick: () => router.push('/products/engage'),
+        href: '/products/engage',
       },
       {
         title: 'Inspector of Elections',
         description: 'Ensures transparent vote counting and certified inspection',
         actionText: 'Learn More',
-        titleVariant: 'h2' as const,
         icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'secondary' as const,
-        onClick: () => router.push('/products/inspector-of-elections'),
+        href: '/products/inspector-of-elections',
       },
       {
         title: 'Digital Shareholder Meeting Guide',
         description:
           'Enable shareholders to participate in annual meetings remotely with the same level of access as in-person attendees',
         actionText: 'Learn More',
-        titleVariant: 'h2' as const,
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'info' as const,
         onClick: () => {
@@ -181,12 +170,11 @@ export default function EducationContent() {
         title: 'Marketing Assets',
         description: 'Description of Marketing Assets services',
         actionText: 'Learn More',
-        titleVariant: 'h2' as const,
         icon: <LaptopPlayIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'default' as const,
       },
     ],
-    [router]
+    []
   )
 
   const [viewerOpen, setViewerOpen] = React.useState(false)
@@ -198,14 +186,20 @@ export default function EducationContent() {
 
   return (
     <Container component="main" maxWidth="lg" sx={{ p: { xs: 1, md: 3 } }}>
-      <Grid order={1} container spacing={3}>
+      <GlobalStyle />
+      <Grid order={1} container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Grid container spacing={2}>
                 {educationPaperItems.map((item, index) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                    <FeatureTile {...item} height="100%" />
+                    <FeatureTile
+                      brandFont={true}
+                      titleVariant="h1"
+                      {...item}
+                      height="100%"
+                    />
                   </Grid>
                 ))}
               </Grid>
@@ -214,14 +208,19 @@ export default function EducationContent() {
         </Grid>
 
         <Grid order={{ xs: 2, sm: 2 }} size={12}>
-          <Grid container spacing={3} sx={{ height: '100%' }}>
+          <Grid container spacing={{ xs: 2, md: 3 }} sx={{ height: '100%' }}>
             <Grid size={{ xs: 12 }}>
               <Card>
                 <CardContent>
                   <Grid container spacing={2} alignItems="stretch">
                     {servicePapers.map((service, index) => (
                       <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                        <FeatureTile flex={true} {...service} height="100%" />
+                        <FeatureTile
+                          brandFont={true}
+                          flex={true}
+                          {...service}
+                          height="100%"
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -230,9 +229,14 @@ export default function EducationContent() {
             </Grid>
           </Grid>
         </Grid>
-        <Grid order={{ xs: 3, sm: 2 }} container spacing={3} size={{ xs: 12, md: 12 }}>
+        <Grid
+          order={{ xs: 3, sm: 2 }}
+          container
+          spacing={{ xs: 2, md: 3 }}
+          size={{ xs: 12, md: 12 }}
+        >
           <Grid size={{ xs: 12 }}>
-            <Stack spacing={3}>
+            <Stack spacing={{ xs: 2, md: 3 }}>
               <Card sx={{ height: 'auto' }}>
                 <CardHeader title="Document Resources" />
                 <CardContent sx={{ p: 0 }}>

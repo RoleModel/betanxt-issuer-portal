@@ -3,7 +3,7 @@
 import GearProcessIcon from '@rolemodel/betanxt-design-system/components/icons/brand/GearProcessIcon'
 import StarBadgeIcon from '@rolemodel/betanxt-design-system/components/icons/brand/StarBadgeIcon'
 import TeamDiscussionIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamDiscussionIcon'
-import Image from 'next/image'
+import React from 'react'
 
 import { Check } from '@mui/icons-material'
 import {
@@ -17,16 +17,18 @@ import {
   TableContainer,
   TableRow,
   Typography,
-  useTheme,
 } from '@mui/material'
 
+import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
 
 export default function DigitalShareholderMeetingsPage() {
-  const theme = useTheme()
+  const [open, setOpen] = React.useState(false)
+  const [fileUrl, setFileUrl] = React.useState<string>('')
+  const [viewerTitle, setViewerTitle] = React.useState<string>('')
 
   const benefits = [
     {
@@ -73,16 +75,6 @@ export default function DigitalShareholderMeetingsPage() {
 
   const leftColumnContent = (
     <Stack gap={2}>
-      <Typography
-        variant="h1"
-        sx={{
-          fontWeight: 700,
-          mb: 3,
-          color: theme.vars.palette.text.primary,
-        }}
-      >
-        Achieve quorum and proposal passage by generating greater participation
-      </Typography>
       <Typography variant="body1">
         <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to
         participate in annual meetings remotely with the same level of access as in-person
@@ -105,6 +97,8 @@ export default function DigitalShareholderMeetingsPage() {
           {benefits.map((benefit, index) => (
             <FeatureTile
               key={index}
+              brandFont={true}
+              titleVariant="h1"
               variant="base"
               title={benefit.title}
               description={benefit.description}
@@ -112,19 +106,6 @@ export default function DigitalShareholderMeetingsPage() {
               icon={benefit.icon}
             />
           ))}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent
-          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-        >
-          <Image
-            src="/images/Products/_Graphic_.svg"
-            alt="BetaNXT Engage Omni-channel Communication"
-            width={415}
-            height={420}
-            style={{ margin: '0 auto' }}
-          />
         </CardContent>
       </Card>
       <Card>
@@ -152,14 +133,23 @@ export default function DigitalShareholderMeetingsPage() {
 
   const rightColumnContent = (
     <>
-      <SidebarCard title="DSM Quickstart Guide">
-        <Typography variant="body2" component="p">
+      <SidebarCard
+        title="DSM Quickstart Guide"
+        button={true}
+        buttonText="Open PDF Guide"
+        onClick={() => {
+          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setViewerTitle('DSM Quickstart Guide')
+          setOpen(true)
+        }}
+      >
+        <Typography variant="body3" component="p">
           View the DSM Quickstart Guide for a step-by-step overview of how to run your
           next virtual shareholder meeting.
         </Typography>
       </SidebarCard>
       <SidebarCard title="Want to Know More?">
-        <Typography variant="body2" component="p">
+        <Typography variant="body3" component="p">
           View the DSM Quickstart Guide for a step-by-step overview of how to run your
           next virtual shareholder meeting.
         </Typography>
@@ -171,6 +161,14 @@ export default function DigitalShareholderMeetingsPage() {
     <ProductsLayout
       leftColumnContent={leftColumnContent}
       rightColumnContent={rightColumnContent}
+      documentViewer={
+        <DocumentViewer
+          open={open}
+          onClose={() => setOpen(false)}
+          fileUrl={fileUrl}
+          title={viewerTitle}
+        />
+      }
     />
   )
 }

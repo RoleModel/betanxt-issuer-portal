@@ -1,4 +1,4 @@
-import { Box, Grid } from '@mui/material'
+import { Container, Grid } from '@mui/material'
 
 import { IndustryTrendsCard } from '@/components/Education/IndustryTrendsCard'
 
@@ -67,14 +67,14 @@ const industryTrends = [
 
 export default function IndustryTrendsPage() {
   return (
-    <Box sx={{ p: { xs: 1, sm: 3 } }}>
-      <Grid container spacing={3}>
+    <Container maxWidth="lg" sx={{ p: { xs: 1, sm: 3 } }}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {industryTrends.map((industryTrend) => (
           <Grid size={{ sm: 12, md: 4, lg: 3 }} key={industryTrend.title}>
             <IndustryTrendsCard {...industryTrend} />
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </Container>
   )
 }

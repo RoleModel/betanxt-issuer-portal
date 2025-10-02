@@ -5,17 +5,15 @@ import FileSearchIcon from '@rolemodel/betanxt-design-system/components/icons/br
 import GlobeNetworkIcon from '@rolemodel/betanxt-design-system/components/icons/brand/GlobeNetworkIcon'
 // Import icons locally within the split chunk
 import TrendingUpIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TrendingUpIcon'
-import { useRouter } from 'next/navigation'
 import React from 'react'
 
 import { Card, CardContent, Container } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import FeatureTile from '@/components/FeatureTile'
+import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 
 export default function ProductsContent() {
-  const router = useRouter()
-
   const servicePaperItems = React.useMemo(
     () => [
       {
@@ -25,7 +23,8 @@ export default function ProductsContent() {
         actionText: 'Learn More',
         icon: <TrendingUpIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'default' as const,
-        onClick: () => router.push('/products/end-to-end-proxy-solutions'),
+        brandFont: true,
+        href: '/products/end-to-end-proxy-solutions',
       },
       {
         title: 'BetaNXT ENGAGE',
@@ -34,7 +33,8 @@ export default function ProductsContent() {
         actionText: 'Learn More',
         icon: <ChecklistDocumentIconIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'primary' as const,
-        onClick: () => router.push('/products/engage'),
+        brandFont: true,
+        href: '/products/engage',
       },
       {
         title: 'Inspector of Elections',
@@ -43,7 +43,8 @@ export default function ProductsContent() {
         actionText: 'Learn More',
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'secondary' as const,
-        onClick: () => router.push('/products/inspector-of-elections'),
+        brandFont: true,
+        href: '/products/inspector-of-elections',
       },
       {
         title: 'Digital Shareholder Meeting',
@@ -52,15 +53,17 @@ export default function ProductsContent() {
         actionText: 'Learn More',
         icon: <FileSearchIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'info' as const,
-        onClick: () => router.push('/products/digital-shareholder-meetings'),
+        brandFont: true,
+        href: '/products/digital-shareholder-meetings',
       },
     ],
-    [router]
+    []
   )
 
   return (
-    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
-      <Grid container spacing={3}>
+    <Container component="main" maxWidth="lg" sx={{ p: { xs: 1, md: 3 } }}>
+      <GlobalStyle />
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>

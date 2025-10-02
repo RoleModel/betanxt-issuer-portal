@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Paper,
   Stack,
   Table,
   TableBody,
@@ -79,9 +80,9 @@ export default function EngagePage() {
     <Stack gap={2}>
       <Typography
         variant="h1"
+        fontFamily={'var(--font-tungsten)'}
         sx={{
           fontWeight: 700,
-          mb: 3,
           color: theme.vars.palette.text.primary,
         }}
       >
@@ -114,9 +115,10 @@ export default function EngagePage() {
           {benefits.map((benefit, index) => (
             <FeatureTile
               key={index}
+              brandFont={true}
               variant="base"
               title={benefit.title}
-              titleVariant="h2"
+              titleVariant="h1"
               description={benefit.description}
               actionText={''}
               icon={benefit.icon}
@@ -124,13 +126,15 @@ export default function EngagePage() {
           ))}
         </CardContent>
       </Card>
-      <Image
-        src="/images/Products/_Graphic_.svg"
-        alt="BetaNXT Engage Omni-channel Communication"
-        width={415}
-        height={420}
-        style={{ margin: '0 auto' }}
-      />
+      <Paper elevation={5} sx={{ p: 4, textAlign: 'center' }}>
+        <Image
+          src="/images/Products/_Graphic_.svg"
+          alt="BetaNXT Engage Omni-channel Communication"
+          width={415}
+          height={420}
+          style={{ margin: '0 auto' }}
+        />
+      </Paper>
       <Card>
         <CardHeader title="Features" />
         <CardContent>
@@ -176,7 +180,7 @@ export default function EngagePage() {
 
   const rightColumnContent = (
     <SidebarCard title="BetaNXT Engage">
-      <Typography variant="body2" component="p">
+      <Typography variant="body3" component="p">
         gives you the tools and touchpoints you need to execute a winning strategy to
         reach and engage retail shareholders.
       </Typography>

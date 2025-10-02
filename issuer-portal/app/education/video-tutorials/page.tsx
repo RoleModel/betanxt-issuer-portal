@@ -86,7 +86,7 @@ export default function VideoTutorialsPage() {
     <Container component="main" maxWidth="xl" sx={{ py: 4 }}>
       <Card>
         <CardContent>
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, md: 3 }}>
             {/* Main video player */}
             <Grid size={{ xs: 12, md: 8 }}>
               <VideoPlayer

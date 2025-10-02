@@ -78,8 +78,8 @@ export default function InspectorOfElectionsPage() {
       <Typography
         variant="h1"
         sx={{
+          fontFamily: 'var(--font-tungsten)',
           fontWeight: 700,
-          mb: 3,
           color: theme.vars.palette.text.primary,
         }}
       >
@@ -111,11 +111,12 @@ export default function InspectorOfElectionsPage() {
           {benefits.map((benefit, index) => (
             <FeatureTile
               key={index}
-              titleVariant="h2"
+              titleVariant="h1"
               variant="base"
               title={benefit.title}
               description={benefit.description}
               actionText={''}
+              brandFont={true}
               icon={benefit.icon}
             />
           ))}
@@ -134,7 +135,7 @@ export default function InspectorOfElectionsPage() {
         window.open('https://www.betanxt.com/inspector-of-elections', '_blank')
       }}
     >
-      <Typography variant="body2" component="p">
+      <Typography variant="body3" component="p">
         Get detailed information about our certified Inspector of Elections services and
         compliance solutions.
       </Typography>

@@ -99,11 +99,15 @@ const FAQsPage: React.FC = () => {
             aria-controls={`panel-${index}-content`}
             id={`panel-${index}-header`}
           >
-            <Typography variant="body2" component="span">
+            <Typography variant="body2" fontWeight={500} component="span">
               {faq.question}
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>{faq.answer}</AccordionDetails>
+          <AccordionDetails>
+            <Typography variant="body2" component="span">
+              {faq.answer}
+            </Typography>
+          </AccordionDetails>
         </Accordion>
       ))}
     </Container>
