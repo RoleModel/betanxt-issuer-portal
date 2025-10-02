@@ -4,6 +4,7 @@
   "description": "Proxy voting and shareholder meeting management system",
   "license": "UNLICENSED",
   "private": true,
+  "type": "module",
   "workspaces": [
     "mock-api-server",
     "issuer-portal"

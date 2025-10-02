@@ -18,7 +18,7 @@ Draft Proxy Statement - (Issuer Uploads)
 
 Proxy Card (Issuer Uploads)
 
-Notice and Access Form (View and Approve)
+Notice (View and Approve)
 
 Voting Instruction Form
 
@@ -103,7 +103,7 @@ Phase 1 – Generated Forms with Signature Options
 4. **Given** a generated form already EXECUTED, **When** a user attempts to re-initiate digital signing, **Then** the system blocks the action with a message the form is finalized.
 5. **Given** all three Phase 1 forms are EXECUTED, **When** the user views Phase 1 readiness status, **Then** the system reports PHASE 1 COMPLETE.
 
-Phase 2 – Issuer Uploaded Core Proxy Materials 6. **Given** Phase 2 has begun and the issuer has not yet uploaded a Draft Proxy Statement, **When** the user uploads a file under that placeholder, **Then** the system stores it as version 1 in PENDING REVIEW state. 7. **Given** a Draft Proxy Statement in PENDING REVIEW, **When** an approver reviews and approves it, **Then** it transitions to APPROVED and is included in readiness calculations. 8. **Given** an APPROVED Draft Proxy Statement, **When** the issuer uploads a replacement, **Then** a new version is created in DRAFT (or PENDING REVIEW) while the prior approved version remains active until approval of the new version. 9. **Given** a Notice and Access Form placeholder, **When** the system renders a view-only generated version and the user approves it, **Then** its status becomes APPROVED with no upload required. 10. **Given** an Agenda file uploaded through the Agenda Tab, **When** it is saved successfully, **Then** it also appears as the current Agenda document in Documents Tab with synchronized status.
+Phase 2 – Issuer Uploaded Core Proxy Materials 6. **Given** Phase 2 has begun and the issuer has not yet uploaded a Draft Proxy Statement, **When** the user uploads a file under that placeholder, **Then** the system stores it as version 1 in PENDING REVIEW state. 7. **Given** a Draft Proxy Statement in PENDING REVIEW, **When** an approver reviews and approves it, **Then** it transitions to APPROVED and is included in readiness calculations. 8. **Given** an APPROVED Draft Proxy Statement, **When** the issuer uploads a replacement, **Then** a new version is created in DRAFT (or PENDING REVIEW) while the prior approved version remains active until approval of the new version. 9. **Given** a Notice placeholder, **When** the system renders a view-only generated version and the user approves it, **Then** its status becomes APPROVED with no upload required. 10. **Given** an Agenda file uploaded through the Agenda Tab, **When** it is saved successfully, **Then** it also appears as the current Agenda document in Documents Tab with synchronized status.
 
 Digital Shareholder Supporting Documents 11. **Given** supporting document placeholders (Slides, Rules of Conduct, Forward Looking Statements, Guest List) exist, **When** each file is uploaded, **Then** its status shifts from PLACEHOLDER to STORED. 12. **Given** a supporting document in STORED status, **When** a user replaces it, **Then** a new version is created and prior version retained for audit (if policy allows) pending approval if an approval step is required— [NEEDS CLARIFICATION: Is approval required for supporting documents?].
 
@@ -147,7 +147,7 @@ Phase 1 Core Generated Forms
 
 Phase 2 Core Proxy Materials
 
-- **FR-012**: System MUST provide a view-and-approve workflow for Notice and Access Form (no upload required if generated) transitioning from GENERATED to APPROVED.
+- **FR-012**: System MUST provide a view-and-approve workflow for Notice (no upload required if generated) transitioning from GENERATED to APPROVED.
 - **FR-013**: System MUST track statuses: NOT_UPLOADED → (UPLOADED | GENERATED) → PENDING REVIEW → APPROVED.
 - **FR-014**: System MUST allow version replacement for APPROVED Phase 2 documents creating a new version in PENDING REVIEW while previous approved version remains active until approval decision.
 - **FR-015**: System MUST prevent deletion of APPROVED versions; only supersession via new version is allowed.

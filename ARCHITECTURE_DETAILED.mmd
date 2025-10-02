@@ -1,9 +1,3 @@
-# BetaNXT Issuer Portal - Detailed Architecture
-
-Complete architecture diagram with all API calls, data flows, and component relationships.
-
-## Complete System Architecture
-
 ```mermaid
 graph TB
     subgraph Browser["User Browser"]
@@ -41,32 +35,32 @@ graph TB
         end
 
         subgraph Contexts["React Contexts"]
-            ClientContext["ClientContext<br/>━━━━━━━━━━━━<br/>• currentClient<br/>• availableClients<br/>• switchClient()<br/>• localStorage sync"]
+            ClientContext["ClientContext<br/>────────────<br/>• currentClient<br/>• availableClients<br/>• switchClient()<br/>• localStorage sync"]
 
-            MeetingContext["MeetingContext<br/>━━━━━━━━━━━━<br/>• currentMeeting<br/>• meetings[]<br/>• tasks[]<br/>• positions[]<br/>• keyDates[]<br/>• refreshMeetingData()"]
+            MeetingContext["MeetingContext<br/>────────────<br/>• currentMeeting<br/>• meetings[]<br/>• tasks[]<br/>• positions[]<br/>• keyDates[]<br/>• refreshMeetingData()"]
 
-            DocumentContext["DocumentContext<br/>━━━━━━━━━━━━<br/>• documents[]<br/>• loading states"]
+            DocumentContext["DocumentContext<br/>────────────<br/>• documents[]<br/>• loading states"]
 
-            PhaseDrawerContext["PhaseDrawerContext<br/>━━━━━━━━━━━━<br/>• phase drawer state"]
+            PhaseDrawerContext["PhaseDrawerContext<br/>────────────<br/>• phase drawer state"]
         end
 
         subgraph Hooks["Custom Hooks"]
             subgraph DataHooks["Data Fetching Hooks"]
-                useClients["useClients<br/>━━━━━━━━━━━━<br/>GET /clients<br/>5s cache"]
+                useClients["useClients<br/>────────────<br/>GET /clients<br/>5s cache"]
 
-                useTasks["useTasks<br/>━━━━━━━━━━━━<br/>GET /meetings/{id}/tasks<br/>PUT /tasks/{id}<br/>POST /meetings/{id}/tasks"]
+                useTasks["useTasks<br/>────────────<br/>GET /meetings/{id}/tasks<br/>PUT /tasks/{id}<br/>POST /meetings/{id}/tasks"]
 
-                useDocuments["useDocuments<br/>━━━━━━━━━━━━<br/>GET /meetings/{id}/documents<br/>POST /documents/types/{type}/upload<br/>GET /documents/{id}<br/>POST /documents/{id}/comments<br/>GET /documents/{id}/history"]
+                useDocuments["useDocuments<br/>────────────<br/>GET /meetings/{id}/documents<br/>POST /documents/types/{type}/upload<br/>GET /documents/{id}<br/>POST /documents/{id}/comments<br/>GET /documents/{id}/history"]
 
-                useMailing["useMailing<br/>━━━━━━━━━━━━<br/>GET /meetings/{id}/mailing"]
+                useMailing["useMailing<br/>────────────<br/>GET /meetings/{id}/mailing"]
 
-                usePhases["usePhases (SWR)<br/>━━━━━━━━━━━━<br/>GET /meetings/{id}/phases"]
+                usePhases["usePhases (SWR)<br/>────────────<br/>GET /meetings/{id}/phases"]
 
-                useVotingTab["useVotingTabulation (SWR)<br/>━━━━━━━━━━━━<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
+                useVotingTab["useVotingTabulation (SWR)<br/>────────────<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
 
-                useReporting["useReporting (SWR)<br/>━━━━━━━━━━━━<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
+                useReporting["useReporting (SWR)<br/>────────────<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
 
-                useDSM["useDigitalShareholderMeeting (SWR)<br/>━━━━━━━━━━━━<br/>GET /meetings/{id}/digital-shareholder-meeting<br/>POST /meetings/{id}/digital-shareholder-meeting"]
+                useDSM["useDigitalShareholderMeeting (SWR)<br/>────────────<br/>GET /meetings/{id}/digital-shareholder-meeting<br/>POST /meetings/{id}/digital-shareholder-meeting"]
             end
 
             subgraph UtilHooks["Utility Hooks"]
@@ -82,13 +76,13 @@ graph TB
             end
 
             subgraph Drawers["Drawers & Modals"]
-                TaskDrawer["TaskDrawer<br/>━━━━━━━━━━━━<br/>• Task details<br/>• File upload<br/>• Status updates<br/>• Document signing"]
+                TaskDrawer["TaskDrawer<br/>────────────<br/>• Task details<br/>• File upload<br/>• Status updates<br/>• Document signing"]
 
-                PhaseDrawer["PhaseDrawer<br/>━━━━━━━━━━━━<br/>• Phase task list<br/>• Batch operations"]
+                PhaseDrawer["PhaseDrawer<br/>────────────<br/>• Phase task list<br/>• Batch operations"]
 
-                ApprovalDrawer["ApprovalDrawer<br/>━━━━━━━━━━━━<br/>• Document approval"]
+                ApprovalDrawer["ApprovalDrawer<br/>────────────<br/>• Document approval"]
 
-                DocumentViewer["DocumentViewer<br/>━━━━━━━━━━━━<br/>• PDF viewing<br/>• Signature placement"]
+                DocumentViewer["DocumentViewer<br/>────────────<br/>• PDF viewing<br/>• Signature placement"]
             end
 
             subgraph DashboardComps["Dashboard Components"]
@@ -113,7 +107,7 @@ graph TB
             end
         end
 
-        Auth["NextAuth v5<br/>━━━━━━━━━━━━<br/>JWT Strategy<br/>Session Management"]
+        Auth["NextAuth v5<br/>────────────<br/>JWT Strategy<br/>Session Management"]
     end
 
     subgraph APIServer["Next.js API Server :3001 (mock-api-server/)"]
@@ -180,55 +174,55 @@ graph TB
         end
 
         subgraph DomainLayer["Domain Models Layer"]
-            DomainModels["Domain Transformers<br/>━━━━━━━━━━━━<br/>• Snake_case → camelCase<br/>• Type validation<br/>• Business logic"]
+            DomainModels["Domain Transformers<br/>────────────<br/>• Snake_case → camelCase<br/>• Type validation<br/>• Business logic"]
         end
     end
 
     subgraph Database["Supabase (PostgreSQL + Storage)"]
 
         subgraph Tables["Database Tables"]
-            ClientTable[("client<br/>━━━━━━━━━━━━<br/>ticker, company_name<br/>meeting_id, phase")]
+            ClientTable[("client<br/>────────────<br/>ticker, company_name<br/>meeting_id, phase")]
 
-            MeetingTable[("meeting<br/>━━━━━━━━━━━━<br/>id, ticker, title<br/>current_phase, status<br/>meeting_date, record_date")]
+            MeetingTable[("meeting<br/>────────────<br/>id, ticker, title<br/>current_phase, status<br/>meeting_date, record_date")]
 
-            TaskTable[("task<br/>━━━━━━━━━━━━<br/>id, meeting_id, phase_id<br/>title, owner, status<br/>due_date, links")]
+            TaskTable[("task<br/>────────────<br/>id, meeting_id, phase_id<br/>title, owner, status<br/>due_date, links")]
 
-            PhaseTable[("phase<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>name, order_index<br/>status, key_dates")]
+            PhaseTable[("phase<br/>────────────<br/>id, meeting_id<br/>name, order_index<br/>status, key_dates")]
 
-            ProposalTable[("proposal<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>proposal_number, title<br/>proposal_type<br/>total_votes_*")]
+            ProposalTable[("proposal<br/>────────────<br/>id, meeting_id<br/>proposal_number, title<br/>proposal_type<br/>total_votes_*")]
 
-            PositionTable[("position<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>shares, shares_voted<br/>vote_status, voting_source")]
+            PositionTable[("position<br/>────────────<br/>id, meeting_id<br/>shares, shares_voted<br/>vote_status, voting_source")]
 
-            PositionVoteTable[("position_vote<br/>━━━━━━━━━━━━<br/>position_id, proposal_id<br/>vote_choice, shares")]
+            PositionVoteTable[("position_vote<br/>────────────<br/>position_id, proposal_id<br/>vote_choice, shares")]
 
-            DocumentTable[("document<br/>━━━━━━━━━━━━<br/>id, meeting_id, task_id<br/>title, type, status<br/>file_path")]
+            DocumentTable[("document<br/>────────────<br/>id, meeting_id, task_id<br/>title, type, status<br/>file_path")]
 
-            DocumentVersionTable[("document_version<br/>━━━━━━━━━━━━<br/>id, document_id<br/>version_number<br/>file_path, notes")]
+            DocumentVersionTable[("document_version<br/>────────────<br/>id, document_id<br/>version_number<br/>file_path, notes")]
 
-            DocumentHistoryTable[("document_history<br/>━━━━━━━━━━━━<br/>id, document_id<br/>event_type, user_id<br/>timestamp, metadata")]
+            DocumentHistoryTable[("document_history<br/>────────────<br/>id, document_id<br/>event_type, user_id<br/>timestamp, metadata")]
 
-            UserTable[("user<br/>━━━━━━━━━━━━<br/>id, username, email<br/>type, account_id")]
+            UserTable[("user<br/>────────────<br/>id, username, email<br/>type, account_id")]
 
-            AccountTable[("account<br/>━━━━━━━━━━━━<br/>id, name<br/>primary_contact")]
+            AccountTable[("account<br/>────────────<br/>id, name<br/>primary_contact")]
 
-            NotificationTable[("notification<br/>━━━━━━━━━━━━<br/>id, user_id<br/>type, read_status")]
+            NotificationTable[("notification<br/>────────────<br/>id, user_id<br/>type, read_status")]
 
-            MailingTable[("mailing<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>status, tracking_data")]
+            MailingTable[("mailing<br/>────────────<br/>id, meeting_id<br/>status, tracking_data")]
 
-            DSMAttendeeTable[("digital_shareholder_meeting_attendee<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>registrant_type<br/>first_name, last_name")]
+            DSMAttendeeTable[("digital_shareholder_meeting_attendee<br/>────────────<br/>id, meeting_id<br/>registrant_type<br/>first_name, last_name")]
 
-            DSMConfigTable[("dsm_config<br/>━━━━━━━━━━━━<br/>id, meeting_id<br/>config_json")]
+            DSMConfigTable[("dsm_config<br/>────────────<br/>id, meeting_id<br/>config_json")]
         end
 
         subgraph Storage["Supabase Storage"]
-            DocumentsBucket["documents/<br/>━━━━━━━━━━━━<br/>{meetingId}/<br/>{documentType}/<br/>{timestamp}_{file}"]
+            DocumentsBucket["documents/<br/>────────────<br/>{meetingId}/<br/>{documentType}/<br/>{timestamp}_{file}"]
         end
 
         SupabaseAPI["Supabase REST API<br/>(Auto-generated from schema)"]
     end
 
     subgraph DevTools["Development Tools"]
-        OpenAPISpec["openapi.yaml<br/>━━━━━━━━━━━━<br/>Single Source of Truth"]
+        OpenAPISpec["openapi.yaml<br/>────────────<br/>Single Source of Truth"]
         TypeGen["openapi-typescript<br/>Type Generation"]
         SchemaGen["Schema Generation<br/>SQL Migrations"]
     end

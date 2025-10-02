@@ -36,7 +36,10 @@ This is a Turborepo workspace with two main applications:
 - `npm run supabase:start` - Start local Supabase instance
 - `npm run supabase:stop` - Stop local Supabase instance
 - `npm run supabase:reset` - Reset database with fresh schema and seed data
+- `supabase db reset --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` - Direct database reset
 - `npm run generate:seeds` - Generate fresh seed data from TypeScript
+- `npm run seed:documents` - Upload document files from /data directories to Supabase storage
+- `npm run seed:documents:clean` - Clean all documents then upload fresh files
 - `npm run generate:db-types` - Generate TypeScript types from database schema
 - `npm run full-reset` - Complete reset: schema → seeds → database → types
 
@@ -75,7 +78,8 @@ This is a Turborepo workspace with two main applications:
 - **Authentication**: NextAuth.js v5 with role-based access control
 - **UI Components**: MUI 7.3+ with BetaNXT design system
 - **Forms**: React Hook Form with Zod validation
-- **PDF Handling**: react-pdf for document viewing
+- **PDF Handling**: react-pdf for PDF viewing
+- **DOCX Handling**: Mammoth.js for Word document rendering (client-side conversion to HTML)
 - **Document Signing**: @docuseal integration
 
 ### Backend (mock-api-server/)
@@ -282,11 +286,59 @@ import './styles.css'
 
 **RLS Status**: Currently disabled for rapid development. Future migration will enable with role-based policies.
 
+### Seed Data Management
+
+**Location**: `/data` directory at project root contains document files organized by client
+
+**Structure**:
+
+```
+/data
+  /enliven    - ELVN client documents
+  /paycom     - PAYC client documents
+  /wendys     - WEN client documents
+  /woodward   - WWD client documents
+  *.csv       - Position and voting data files
+```
+
+**Document Seeding** (`mock-api-server/scripts/seed-documents.ts`):
+
+- Uploads files from `/data/{client}` to Supabase storage bucket `documents`
+- Supports: PDF, DOCX, XLSX, PPTX, MP4, M4A
+- Storage path pattern: `{meetingId}/{documentType}/{timestamp}_{filename}`
+- Creates database records with metadata (title, type, display_category, status)
+- All seeded documents default to `APPROVED` status
+
+**Task Status Logic** (`supabase/seed.ts:1603-1649`):
+
+- **Future special meetings (2026+)**: In-progress statuses (PENDING_AUTHORIZATION, SUBMITTED_AWAITING_RECORD_DATE)
+- **Future annual meetings (2026+)**: Incomplete statuses (NEEDS_AUTHORIZATION, INCOMPLETE)
+- **Past meetings (2025 and earlier)**: Completion statuses (AUTHORIZED, COMPLETE)
+- Key tasks for past meetings:
+  - DTCC Authorization → AUTHORIZED
+  - Broadridge/ICS Access → AUTHORIZED
+  - Plan File Request → COMPLETE
+  - Transfer Agent Request → COMPLETE
+
+**Mailing Data**: Automatically generated for all past meetings (year ≤ 2025) from `company_positions.json`
+
+### Office Document Rendering
+
+**DOCX Files** (`OfficeDocumentViewer.tsx`):
+
+- Uses Mammoth.js for client-side conversion to HTML
+- Works with localhost URLs (no external service required)
+- Styled to match PDFViewer appearance (white background, shadow, fade-in transition)
+- Fetches DOCX → converts to HTML → renders with MUI theme-aware styling
+- Handles tables, images, headings, lists, bold/italic/underline formatting
+
+**Why not react-doc-viewer**: The library uses Microsoft Office Online viewer which requires publicly accessible URLs. Since we use localhost (127.0.0.1) in development, Office Online cannot fetch our files. Mammoth.js works entirely client-side.
+
 ---
 
 **Node Version**: 22.15.x (enforced via engines)
 **Package Manager**: npm 10.9.3
-**Last Updated**: September 26, 2025
+**Last Updated**: October 1, 2025
 
-- Do not use 'any' type assetions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won’t type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
+- Do not use 'any' type assertions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won't type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.

@@ -30,6 +30,7 @@
       "@/hooks/*": ["./hooks/*"],
       "@/types/*": ["./types/*"],
       "@/utils/*": ["./utils/*"],
+      "@/lib/*": ["./lib/*"],
       "@/theme/*": ["./components/mui-styling/theme/*"],
       "@backend/*": ["../mock-api-server/*"],
       "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
@@ -42,6 +43,11 @@
     "node_modules",
     "playwright-report",
     "test-results",
-    "**/node_modules/openapi-fetch/**"
+    "**/node_modules/openapi-fetch/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }
