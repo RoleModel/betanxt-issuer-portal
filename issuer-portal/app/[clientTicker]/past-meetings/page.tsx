@@ -222,13 +222,15 @@ export default function PastMeetingsPage() {
                 params: {
                   query: {
                     meetingId: meetingId,
-                    limit: 100000
-                  }
+                    limit: 100000,
+                  },
                 },
               })) as ApiClientReturnType<unknown>
 
               if (positionsResult.error) {
-                console.warn(`No positions found for meeting ${meetingId}, using defaults`)
+                console.warn(
+                  `No positions found for meeting ${meetingId}, using defaults`
+                )
                 return {
                   ...meeting,
                   ...DEFAULT_METRICS,
@@ -253,9 +255,7 @@ export default function PastMeetingsPage() {
               const totalShares = parseNumericValue(positionsVoted.totalShares)
 
               const participationPercent =
-                totalShares > 0
-                  ? Math.round((votedShares / totalShares) * 1000) / 10
-                  : 0
+                totalShares > 0 ? Math.round((votedShares / totalShares) * 1000) / 10 : 0
 
               return {
                 ...meeting,

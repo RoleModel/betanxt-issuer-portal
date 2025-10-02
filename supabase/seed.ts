@@ -42,7 +42,7 @@ const escapeSql = (str: string | null | undefined): string => {
   // Dollar quoting syntax: $$string$$ - treats everything literally
   if (str.includes('\\') || str.includes('\n') || str.includes('\r')) {
     // Replace single $ with something else to avoid breaking dollar quoting
-    const safe = str.replace(/\$/g, '＄')  // Use fullwidth dollar sign
+    const safe = str.replace(/\$/g, '＄') // Use fullwidth dollar sign
     return `$$${safe}$$`
   }
   // For simple strings, use regular single quotes
@@ -212,7 +212,7 @@ const calculateParticipationTarget = (
     base *= 0.7
   }
 
-  return clamp(base, 0.25, 0.50)
+  return clamp(base, 0.25, 0.5)
 }
 
 // Function to generate proposal results based on meeting year and type
@@ -1196,7 +1196,10 @@ const main = async () => {
           const year = parseInt(meetingId.split('-').slice(-1)[0])
           const isSpecialMeeting = meetingId.includes('special-meeting')
           // Include 2025 and before, or 2026 special meetings
-          return meetingClient?.ticker === ticker && (year <= 2025 || (year === 2026 && isSpecialMeeting))
+          return (
+            meetingClient?.ticker === ticker &&
+            (year <= 2025 || (year === 2026 && isSpecialMeeting))
+          )
         })
 
         // Create mailing record for each past meeting
