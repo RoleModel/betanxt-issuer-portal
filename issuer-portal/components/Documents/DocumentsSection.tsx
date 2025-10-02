@@ -10,6 +10,7 @@ import React, { Suspense, useEffect, useState } from 'react'
 
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 import SearchIcon from '@mui/icons-material/Search'
+import { SmartDisplayOutlined } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -19,8 +20,8 @@ import {
   Container,
   FormControl,
   Grid,
+  IconButton,
   InputAdornment,
-  LinearProgress,
   MenuItem,
   Select,
   Stack,
@@ -38,12 +39,24 @@ import { components } from '@/domain-models/generated-schema'
 
 import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
+import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import {
   DOCUMENT_STATUS_VALUES,
   ExtendedDocumentStatus,
   getDocumentStatusLabel,
   getStoragePublicUrl,
 } from '@/utils/documentUtils'
+import * as XLSX from 'xlsx'
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
 
 /**
  * Documents page for managing meeting documents
@@ -66,27 +79,41 @@ type Document = Omit<components['schemas']['Document'], 'status'> & {
 
 // Dynamic imports for heavy document components to enable route-based code splitting
 const ApprovalDrawer = dynamic(() => import('@/components/Drawers/ApprovalDrawer'), {
-  loading: () => <LinearProgress />,
   ssr: false,
 })
 
 const DocumentViewer = dynamic(() => import('@/components/Documents/DocumentViewer'), {
-  loading: () => <LinearProgress />,
   ssr: false,
 })
 
 const FileUploadDialog = dynamic(
   () => import('@/components/FileUpload/FileUploadDialog'),
   {
-    loading: () => <LinearProgress />,
     ssr: false,
   }
 )
+
+const VideoPlayerDialog = dynamic(() => import('@/components/Video/VideoPlayerDialog'), {
+  ssr: false,
+})
 
 interface DocumentsPageProps {
   params: Promise<{
     meetingId: string
   }>
+}
+
+interface ParsedProposal {
+  proposalNumber: number
+  proposalTitle: string
+  proposalType: string
+  proposalSubtype?: string
+  directorName?: string
+  recommendation: string
+}
+
+interface ExcelRow {
+  [key: string]: string | number | boolean | Date | undefined
 }
 
 export default function DocumentsPage({ params }: DocumentsPageProps) {
@@ -100,6 +127,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     refreshDocuments,
     uploadDocument,
   } = useDocuments()
+  const { uploadProposals } = useVotingTabulation(currentMeeting?.id ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -109,11 +137,15 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // Calculate DSM progress
   const dsmProgress = React.useMemo(() => {
-    const uploadedDsm = dsmDocuments.filter((doc) => doc.status === 'APPROVED').length
+    // Count documents that have been uploaded (have filePath and status is not NOT_UPLOADED)
+    const uploadedDsm = dsmDocuments.filter(
+      (doc) => doc.filePath && doc.status !== 'NOT_UPLOADED'
+    ).length
+    const totalRequired = 6 // Number of placeholders defined below
     return {
       uploaded: uploadedDsm,
-      totalRequired: Math.max(dsmDocuments.length, 5),
-      percentage: dsmDocuments.length > 0 ? (uploadedDsm / dsmDocuments.length) * 100 : 0,
+      totalRequired,
+      percentage: totalRequired > 0 ? (uploadedDsm / totalRequired) * 100 : 0,
     }
   }, [dsmDocuments])
 
@@ -127,6 +159,9 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // DocumentViewer state for fullscreen view
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
+
+  // VideoPlayerDialog state
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false)
 
   // Set active meeting based on URL parameter
   // Meeting is set by layout - no need to set it again here
@@ -252,13 +287,107 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     setSelectedDsmDocument(null) // Clear selected document when closing
   }
 
+  // Parse Excel/CSV file for agenda proposals
+  const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result
+          const workbook = XLSX.read(data, { type: 'binary' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet)
+
+          if (jsonData.length === 0) {
+            reject(new Error('The file is empty or has no data rows'))
+            return
+          }
+
+          // Map the data to our format
+          const mappedData = jsonData
+            .map((row: ExcelRow) => {
+              const proposalNumber = row['Proposal Number'] || row['Number'] || ''
+              const proposalTitle = row['Proposal Title'] || row['Title'] || ''
+              const proposalType = row['Proposal Type'] || row['Type'] || ''
+              const proposalSubtype = row['Proposal Subtype'] || row['Subtype'] || ''
+              const directorName = row['Director Name'] || row['Director'] || ''
+              const recommendation = row['Recommendation'] || ''
+
+              // Skip rows without required fields
+              if (!proposalNumber || !proposalTitle) {
+                return null
+              }
+
+              const parsedProposal: ParsedProposal = {
+                proposalNumber:
+                  typeof proposalNumber === 'number'
+                    ? proposalNumber
+                    : parseFloat(proposalNumber as string) || 0,
+                proposalTitle: String(proposalTitle),
+                proposalType: String(proposalType),
+                recommendation: String(recommendation),
+              }
+
+              if (proposalSubtype) {
+                parsedProposal.proposalSubtype = String(proposalSubtype)
+              }
+
+              if (directorName) {
+                parsedProposal.directorName = String(directorName)
+              }
+
+              return parsedProposal
+            })
+            .filter((item): item is ParsedProposal => item !== null)
+
+          if (mappedData.length === 0) {
+            reject(new Error('No valid proposal data found in file'))
+            return
+          }
+
+          resolve(mappedData)
+        } catch (error) {
+          reject(error)
+        }
+      }
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'))
+      }
+
+      reader.readAsArrayBuffer(file)
+    })
+  }
+
   const handleFilesUpload = async (
     files: File[],
     associations?: { [fileId: string]: string }
   ) => {
     if (!currentMeeting?.id) return
     try {
-      await uploadDocument(currentMeeting.id, files, 'dsm-document', associations)
+      // Check if this is an Agenda upload with Excel/CSV file
+      const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
+      const file = files[0]
+      const isExcelOrCsv = file && (
+        file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel' ||
+        file.type === 'text/csv' ||
+        file.name.endsWith('.xlsx') ||
+        file.name.endsWith('.xls') ||
+        file.name.endsWith('.csv')
+      )
+
+      if (isAgendaUpload && isExcelOrCsv) {
+        // Parse and upload as proposals
+        const proposals = await parseAgendaFile(file)
+        await uploadProposals(proposals)
+        setUploadDialogOpen(false)
+        setSelectedDsmDocument(null)
+      } else {
+        // Upload as document
+        await uploadDocument(currentMeeting.id, files, 'dsm-document', associations)
+      }
     } catch {
       // Error is already handled by the context
     }
@@ -340,67 +469,81 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     Upload
                   </Button>
                 }
+                avatar={
+                  <IconButton
+                    onClick={() => setVideoDialogOpen(true)}
+                    aria-label="Watch tutorial"
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: (theme) => theme.vars.palette.action.hover,
+                      },
+                    }}
+                  >
+
+                    <SmartDisplayOutlined />
+                  </IconButton>
+                }
               />
 
               <CardContent sx={{ p: 0 }}>
                 {/* Search and Filter Bar */}
-                <Box sx={{ mb: 2, px: 2 }}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <TextField
-                      placeholder="Search Documents"
-                      size="small"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      sx={{ minWidth: 250 }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon fontSize="small" />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
-                      <Select
-                        value={statusFilter}
-                        aria-label="Status Filter"
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        displayEmpty
-                      >
-                        <MenuItem value="All">All</MenuItem>
-                        {availableStatuses.map((status) => {
-                          const label =
-                            status === 'UNKNOWN'
-                              ? 'Unknown'
-                              : getDocumentStatusLabel(
-                                  (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                                )
-                          return (
-                            <MenuItem key={status} value={status}>
-                              {label}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Stack>
-                </Box>
 
                 {loading ? (
                   <SkeletonTable rows={5} columns={4} />
                 ) : filteredDocuments.length === 0 ? (
                   <EmptyState
-                    title="No documents found"
+                    title="No documents"
                     description={
                       searchQuery || statusFilter !== 'All'
                         ? 'No documents match your search criteria.'
-                        : 'Upload documents to get started with your meeting materials.'
+                        : 'Upload documents to get started.'
                     }
                     minHeight={300}
                   />
-                ) : (
+                ) : (<>
+                  <Box sx={{ mb: 2, px: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <TextField
+                        placeholder="Search Documents"
+                        size="small"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{ minWidth: 250 }}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <SearchIcon fontSize="small" />
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                      <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <Select
+                          value={statusFilter}
+                          aria-label="Status Filter"
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          displayEmpty
+                        >
+                          <MenuItem value="All">All</MenuItem>
+                          {availableStatuses.map((status) => {
+                            const label =
+                              status === 'UNKNOWN'
+                                ? 'Unknown'
+                                : getDocumentStatusLabel(
+                                  (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                )
+                            return (
+                              <MenuItem key={status} value={status}>
+                                {label}
+                              </MenuItem>
+                            )
+                          })}
+                        </Select>
+                      </FormControl>
+                    </Stack>
+                  </Box>
                   <DocumentsTable
                     documents={filteredDocuments}
                     page={page}
@@ -410,11 +553,12 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     onOpenDocument={handleDocumentAction}
                   />
+                </>
                 )}
               </CardContent>
             </Card>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid size={{ xs: 12, md: 8 }}>
                 {loading ? (
                   <SkeletonTable rows={5} columns={4} />
@@ -434,6 +578,10 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                       setUploadDialogOpen(true)
                     }}
                     placeholders={[
+                      {
+                        id: 'placeholder-static-agenda',
+                        title: 'Agenda',
+                      },
                       {
                         id: 'placeholder-static-slide',
                         title: 'Static Slide or Presentation',
@@ -475,7 +623,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => {}}
+          onAddComment={() => { }}
         />
       )}
 
@@ -486,7 +634,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         onUpload={handleFilesUpload}
         meetingId={currentMeeting?.id}
         documentType="dsm-document"
-        preSelectedDocumentId={selectedDsmDocument?.id}
+        preSelectedDocumentId={selectedDsmDocument?.title}
       />
 
       {/* Hosting site UI moved to DocumentSiteCard */}
@@ -501,6 +649,15 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           documentId={selectedDocument.id}
         />
       )}
+
+      {/* VideoPlayerDialog for tutorial */}
+      <VideoPlayerDialog
+        open={videoDialogOpen}
+        onClose={() => setVideoDialogOpen(false)}
+        title="Uploading and Managing Documents"
+        description="Learn how to manage and upload documents for your meeting"
+        seriesNumber="#3"
+      />
     </>
   )
 }
