@@ -4136,14 +4136,45 @@ components:
           type: object
           description: DTC/CDS shareholder vote status breakdown
           x-sql-type: JSONB
+          properties:
+            unvotedShareholders:
+              type: integer
+            unvotedShares:
+              type: number
+            votedShareholders:
+              type: integer
+            votedShares:
+              type: number
+            grandTotalShareholders:
+              type: integer
+            grandTotalShares:
+              type: number
         voteDistribution:
           type: object
           description: Overall vote distribution by account type
           x-sql-type: JSONB
+          properties:
+            dtcVotedShares:
+              type: number
+            dtcUnvotedShares:
+              type: number
+            nonDtcVotedShares:
+              type: number
+            nonDtcUnvotedShares:
+              type: number
         positionsVoted:
           type: object
           description: Positions voted by shareholder type
           x-sql-type: JSONB
+          properties:
+            voted:
+              type: integer
+            unvoted:
+              type: integer
+            totalShares:
+              type: number
+            votedShares:
+              type: number
         lastCalculatedAt:
           type: string
           format: date-time

@@ -1839,22 +1839,38 @@ const main = async () => {
 
   const notificationTemplates = [
     {
-      title: 'Your 2026 Annual Meeting is Ready',
+      title: 'Your Event Has Been Created',
       message:
-        'Your 2026 Annual Meeting has been set up and is ready for you to begin working on tasks. Click here to view your meeting dashboard and get started.',
+        'Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.',
       type: 'success',
       priority: 'high',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%201`,
       forMeetings: ['annual-meeting-2026'],
     },
     {
-      title: 'Special Meeting - Tabulation Phase Active',
+      title: 'Schedule Your Logistics Call',
       message:
-        'Your 2026 Special Meeting has entered the tabulation phase. Daily vote counts are now available. Review the latest results on your dashboard.',
+        'Time to schedule your logistics call/dry run for your special meeting. Click here to view your dashboard and coordinate with your team.',
       type: 'info',
       priority: 'high',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/tabulation`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%207`,
       forMeetings: ['special-meeting-2026'],
+    },
+    {
+      title: 'Time to Setup Your DSM Meeting',
+      message:
+        'Your Digital Shareholder Meeting setup is ready to begin. Click here to configure your virtual meeting settings and get everything ready.',
+      type: 'info',
+      priority: 'high',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%207`,
+    },
+    {
+      title: 'Comment on Document',
+      message:
+        'Michael Chen left a comment on your Document Hosting Site: "Please update the shareholder letter section before final approval."',
+      type: 'info',
+      priority: 'medium',
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
       title: 'Document Requires Your Signature',
@@ -1890,14 +1906,6 @@ const main = async () => {
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
-      title: 'Comment on Hosting Site Document',
-      message:
-        'Michael Chen left a comment on your Document Hosting Site: "Please update the shareholder letter section before final approval."',
-      type: 'info',
-      priority: 'medium',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
-    },
-    {
       title: 'Filing Deadline Reminder',
       message:
         'Your DEF 14A filing deadline is in 5 business days. Please ensure all documents are finalized and ready for submission.',
@@ -1914,7 +1922,8 @@ const main = async () => {
     for (let i = 0; i < notificationCount; i++) {
       const template = notificationTemplates[i % notificationTemplates.length]
       const notificationId = copycat.uuid(`notification-${user.id}-${i}`)
-      const isRead = i > 0 // First notification is unread, rest are read
+      // First notification and "Comment on Document" notifications are unread for demo
+      const isRead = i > 0 && template.title !== 'Comment on Document'
 
       // Find a relevant meeting for this notification
       let meetingId: string | null = null
@@ -1948,20 +1957,21 @@ const main = async () => {
               .toISO()
           : null
 
-      // Replace {{meetingId}} placeholder in link
+      // Replace {{meetingId}} placeholder in link and generate action_url
       let message = template.message
+      let actionUrl: string | null = null
       if ('link' in template && template.link && meetingId) {
         const client = meetingToClient[meetingId]
         if (client) {
-          const linkUrl = template.link(client.ticker).replace('{{meetingId}}', meetingId)
-          message = template.message // Keep message as-is, link will be in a separate field if added
+          actionUrl = template.link(client.ticker).replace('{{meetingId}}', meetingId)
+          message = template.message // Keep message as-is, link will be in action_url field
         }
       }
 
       sqlStatements.push(
         `INSERT INTO notification(` +
           `id, title, message, type, priority, read, user_id, meeting_id, ` +
-          `created_at, read_at) VALUES (` +
+          `action_url, created_at, read_at) VALUES (` +
           `${sqlValue(notificationId)}, ` +
           `${sqlValue(template.title)}, ` +
           `${sqlValue(message)}, ` +
@@ -1970,6 +1980,7 @@ const main = async () => {
           `${sqlValue(isRead)}, ` +
           `${sqlValue(user.id)}, ` +
           `${sqlValue(meetingId)}, ` +
+          `${sqlValue(actionUrl)}, ` +
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(readAt)});`
       )

@@ -6,8 +6,7 @@ import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useMemo, useRef, useState } from 'react'
-import { useContext } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
@@ -19,6 +18,8 @@ import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
 // Custom hook to safely use meeting context when it might not be available
@@ -106,6 +107,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(
     null
   )
+  const [unreadCount, setUnreadCount] = useState(0)
   // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -114,6 +116,33 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Get theme context for toggle functionality
   const { mode, setMode } = useColorScheme()
+
+  // Fetch unread notification count on mount and when user is available
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!props.user) return
+
+      try {
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/notifications', {
+          params: { query: { read: false } },
+        })
+
+        if (error || !data) {
+          console.error('Failed to fetch notifications:', error)
+          return
+        }
+
+        type DbNotification = components['schemas']['Notification']
+        const notifications = data as DbNotification[]
+        setUnreadCount(notifications.length)
+      } catch (err) {
+        console.error('Error fetching unread notifications:', err)
+      }
+    }
+
+    void fetchUnreadCount()
+  }, [props.user])
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
@@ -314,7 +343,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
           disableRipple={false}
           disableTouchRipple={false}
         >
-          <Badge badgeContent={3} color="primary">
+          <Badge badgeContent={unreadCount} color="primary">
             <NotificationsOutlined />
           </Badge>
         </IconButton>
@@ -327,6 +356,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       </>
     ),
     [
+      unreadCount,
       notificationsOpen,
       notificationAnchor,
       handleNotificationClick,

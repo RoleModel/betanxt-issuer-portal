@@ -1,20 +1,12 @@
 import { NextResponse } from 'next/server'
 
-import { createClient } from '@/utils/supabase/server'
+import { supabase } from '@/utils/supabase/client'
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const supabase = await createClient()
-
-    // Get current user from auth
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // For mock API, we'll bypass auth and use a hardcoded user ID
+    // In production, you would use proper auth here
+    const userId = 'user-1' // Default mock user ID
 
     // Get query parameters
     const { searchParams } = new URL(request.url)
@@ -25,7 +17,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     let query = supabase
       .from('notification')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit)
 

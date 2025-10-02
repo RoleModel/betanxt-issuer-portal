@@ -75,6 +75,16 @@ export interface paths {
      */
     get: operations['listUserAccounts']
   }
+  '/users/{id}/avatar': {
+    /** Upload user profile photo */
+    post: operations['uploadUserAvatar']
+    /** Remove user profile photo */
+    delete: operations['deleteUserAvatar']
+  }
+  '/users/{id}/avatar/url': {
+    /** Get user profile photo URL */
+    get: operations['getUserAvatarUrl']
+  }
   '/meetings': {
     /** List meetings */
     get: operations['listMeetings']
@@ -370,6 +380,12 @@ export interface components {
       /** Format: uuid */
       accountId?: string | null
       account?: components['schemas']['Account']
+      /**
+       * Format: uri
+       * @description URL of the user's profile photo stored in Supabase Storage
+       * @example https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
+       */
+      avatar_url?: string | null
     }
     Meeting: {
       /** @example 01234567-89ab-cdef-0123-456789abcdef */
@@ -569,6 +585,24 @@ export interface components {
        * @description When the document was approved
        */
       approvedAt?: string | null
+      /**
+       * Format: uuid
+       * @description User ID who created the document
+       */
+      createdBy?: string | null
+      /** @description First name of user who created the document */
+      createdByFirstName?: string | null
+      /** @description Last name of user who created the document */
+      createdByLastName?: string | null
+      /**
+       * Format: uuid
+       * @description User ID who last updated the document
+       */
+      updatedBy?: string | null
+      /** @description First name of user who last updated the document */
+      updatedByFirstName?: string | null
+      /** @description Last name of user who last updated the document */
+      updatedByLastName?: string | null
       /** Format: date-time */
       createdAt?: string
       /** Format: date-time */
@@ -919,6 +953,12 @@ export interface components {
       type?: components['schemas']['UserType']
       /** Format: uuid */
       accountId?: string
+      /**
+       * Format: uri
+       * @description URL of the user's profile photo stored in Supabase Storage
+       * @example https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
+       */
+      avatar_url?: string | null
     }
     CreateMeetingRequest: {
       id: string
@@ -1302,11 +1342,28 @@ export interface components {
         grandTotalShares?: number
       }
       /** @description DTC/CDS shareholder vote status breakdown */
-      dtcVoteStatus?: Record<string, never>
+      dtcVoteStatus?: {
+        unvotedShareholders?: number
+        unvotedShares?: number
+        votedShareholders?: number
+        votedShares?: number
+        grandTotalShareholders?: number
+        grandTotalShares?: number
+      }
       /** @description Overall vote distribution by account type */
-      voteDistribution?: Record<string, never>
+      voteDistribution?: {
+        dtcVotedShares?: number
+        dtcUnvotedShares?: number
+        nonDtcVotedShares?: number
+        nonDtcUnvotedShares?: number
+      }
       /** @description Positions voted by shareholder type */
-      positionsVoted?: Record<string, never>
+      positionsVoted?: {
+        voted?: number
+        unvoted?: number
+        totalShares?: number
+        votedShares?: number
+      }
       /**
        * Format: date-time
        * @description Timestamp of last statistics calculation
@@ -1831,6 +1888,112 @@ export interface operations {
             accounts: components['schemas']['Account'][]
             /** @description Total number of accounts */
             total: number
+          }
+        }
+      }
+      401: components['responses']['Unauthorized']
+      403: components['responses']['Forbidden']
+      404: components['responses']['NotFound']
+    }
+  }
+  /** Upload user profile photo */
+  uploadUserAvatar: {
+    parameters: {
+      path: {
+        /** @description The ID of the user */
+        id: string
+      }
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          /**
+           * Format: binary
+           * @description The profile photo file (JPEG, PNG, WebP)
+           */
+          avatar: string
+          /**
+           * Format: float
+           * @description Scale factor for cropping (0.5x to 2x zoom)
+           * @default 1
+           */
+          scale?: number
+        }
+      }
+    }
+    responses: {
+      /** @description Avatar uploaded successfully */
+      201: {
+        content: {
+          'application/json': {
+            /**
+             * Format: uri
+             * @description Public URL of the uploaded avatar
+             */
+            avatarUrl?: string
+            /** @example Avatar uploaded successfully */
+            message?: string
+          }
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      403: components['responses']['Forbidden']
+      /** @description File too large */
+      413: {
+        content: {
+          'application/json': components['schemas']['Error']
+        }
+      }
+      /** @description Unsupported media type */
+      415: {
+        content: {
+          'application/json': components['schemas']['Error']
+        }
+      }
+    }
+  }
+  /** Remove user profile photo */
+  deleteUserAvatar: {
+    parameters: {
+      path: {
+        /** @description The ID of the user */
+        id: string
+      }
+    }
+    responses: {
+      /** @description Avatar removed successfully */
+      200: {
+        content: {
+          'application/json': {
+            /** @example Avatar removed successfully */
+            message?: string
+          }
+        }
+      }
+      401: components['responses']['Unauthorized']
+      403: components['responses']['Forbidden']
+      404: components['responses']['NotFound']
+    }
+  }
+  /** Get user profile photo URL */
+  getUserAvatarUrl: {
+    parameters: {
+      path: {
+        /** @description The ID of the user */
+        id: string
+      }
+    }
+    responses: {
+      /** @description Avatar URL retrieved successfully */
+      200: {
+        content: {
+          'application/json': {
+            /**
+             * Format: uri
+             * @description Public URL of the user's avatar, null if no avatar set
+             */
+            avatarUrl?: string | null
           }
         }
       }
@@ -2931,6 +3094,7 @@ export interface operations {
             | 'UPLOADED'
             | 'VIEWED'
             | 'DOWNLOADED'
+            | 'NOT_UPLOADED'
             | 'SIGNED'
             | 'APPROVED'
             | 'REJECTED'

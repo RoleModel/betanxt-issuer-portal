@@ -17,6 +17,7 @@ import {
   Typography,
   styled,
 } from '@mui/material'
+import { useRouter } from 'next/navigation'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
@@ -45,6 +46,11 @@ interface NotificationPopperProps {
 }
 
 const StyledTabs = styled(Tabs)({
+  '&.MuiTabs-root': {
+    height: 36,
+    minHeight: 36,
+    maxHeight: 36,
+  },
   '& .MuiTabs-flexContainer': {
     height: '100%',
     flexGrow: 1,
@@ -52,9 +58,9 @@ const StyledTabs = styled(Tabs)({
     maxHeight: 36,
   },
   '& .MuiTab-root': {
-    height: '100%',
+    height: 36,
     flexGrow: 1,
-    minHeight: 'unset',
+    minHeight: 36,
     maxHeight: 36,
   },
   '& .MuiBadge-root': {
@@ -107,6 +113,7 @@ export function NotificationPopper({
   onClose,
   onNotificationClick,
 }: NotificationPopperProps) {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<NotificationData[]>([])
   const [_loading, setLoading] = useState(true)
   const [tabValue, setTabValue] = useState('0')
@@ -164,6 +171,12 @@ export function NotificationPopper({
           n.id === notification.id ? { ...n, variant: 'read' as const } : n
         )
       )
+
+      // Navigate to the notification's link if it exists
+      if (notification.link) {
+        router.push(notification.link)
+        onClose?.() // Close the popover after navigation
+      }
 
       if (onNotificationClick) {
         onNotificationClick(notification)
