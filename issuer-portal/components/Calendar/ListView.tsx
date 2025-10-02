@@ -299,11 +299,14 @@ export const ListView: React.FC<ListViewProps> = ({
   }
 
   // Handle task update from edit modal
-  const handleTaskUpdated = () => {
-    // Note: With CalendarContext, updates should trigger a refresh
-    // The context will handle the actual data updates
+  const handleTaskUpdated = async () => {
+    // Trigger a refresh to get updated task data
+    // This will re-fetch from the API
     setEditModalOpen(false)
     setTaskToEdit(null)
+    // Force a re-render by updating the loaded state
+    setLoaded(false)
+    setTimeout(() => setLoaded(true), 100)
   }
 
   // Handle edit modal close
@@ -494,7 +497,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     if (combinedItems.length === 0) {
                       return (
                         <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body3" color="text.secondary">
                             No tasks match your search criteria
                           </Typography>
                         </Paper>
@@ -688,7 +691,7 @@ export const ListView: React.FC<ListViewProps> = ({
             </Stack>
           ) : (
             <Box display="flex" alignItems="center" justifyContent="center" height="100%">
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body3" color="text.secondary">
                 Select a phase to view tasks
               </Typography>
             </Box>

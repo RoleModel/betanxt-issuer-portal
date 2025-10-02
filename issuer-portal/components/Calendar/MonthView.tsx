@@ -325,13 +325,10 @@ const DayCell: React.FC<{
         {dayNumber}
       </Typography>
 
-      {/* Content area with proper spacing for day number */}
       <Box sx={{ mt: 2, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {/* Key dates - now using TaskCard */}
         {keyDates.map((keyDate) => {
           const isMeetingDate = keyDate.title.toLowerCase().includes('meeting date')
 
-          // Convert keyDate to Task format for TaskCard
           const keyDateTask: Task = {
             id: keyDate.id,
             title: keyDate.title,
@@ -530,15 +527,17 @@ export const MonthView: React.FC<MonthViewProps> = ({
     if (selectedTaskForContext) {
       setTaskToEdit(selectedTaskForContext)
       setEditModalOpen(true)
+      setContextMenuOpen(false)
     }
   }
 
-  const handleViewTask = () => {
+  const _handleViewTask = () => {
     if (selectedTaskForContext) {
       const taskId = selectedTaskForContext.taskId || selectedTaskForContext.id
       if (taskId) {
         onTaskClick(taskId)
       }
+      setContextMenuOpen(false)
     }
   }
 
@@ -573,7 +572,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
         <Typography variant="h6" color="text.secondary" gutterBottom>
           No tasks or events to display
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body3" color="text.secondary">
           Tasks and key dates will appear here once they are scheduled.
         </Typography>
       </Box>
@@ -643,7 +642,6 @@ export const MonthView: React.FC<MonthViewProps> = ({
           position={contextMenuPosition}
           onClose={handleContextMenuClose}
           onEdit={handleEditTask}
-          onView={handleViewTask}
         />
 
         {/* Task Edit Modal */}

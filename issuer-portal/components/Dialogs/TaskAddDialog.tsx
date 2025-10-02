@@ -218,7 +218,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
                           width: 16,
                           height: 16,
                           borderRadius: '50%',
-                          backgroundColor: `var(--mui-palette-phase${phaseNumber})`,
+                          backgroundColor: `var(--mui-palette-phase-${phaseNumber - 1}-main)`,
                           flexShrink: 0,
                         }}
                       />
@@ -289,7 +289,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
           {error && (
             <Typography
               color="error"
-              variant="body2"
+              variant="body3"
               sx={{ mt: 2, p: 1, background: 'error.light', borderRadius: 1 }}
             >
               {error}

@@ -599,7 +599,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                 {availableDocuments.map((doc) => (
                   <MenuItem key={doc.id} value={doc.id}>
                     <Box>
-                      <Typography variant="body2">{doc.title}</Typography>
+                      <Typography variant="body3">{doc.title}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {doc.filePath || 'N/A'} • {doc.type}
                       </Typography>
@@ -619,7 +619,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
                     return (
                       <Alert severity="info" sx={{ mb: 2 }}>
-                        <Typography variant="body2">
+                        <Typography variant="body3">
                           <strong>{selectedDoc.title}</strong>
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -639,7 +639,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
               )}
 
               {/* Upload New Document */}
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              <Typography variant="body3" color="text.secondary" sx={{ mb: 1 }}>
                 Or upload a new document:
               </Typography>
 
@@ -746,7 +746,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
           {error && (
             <Typography
               color="error"
-              variant="body2"
+              variant="body3"
               sx={{ mt: 2, p: 1, background: 'error.light', borderRadius: 1 }}
             >
               {error}

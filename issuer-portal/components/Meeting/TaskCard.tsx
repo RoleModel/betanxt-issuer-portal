@@ -194,7 +194,6 @@ export default function TaskCard({
 
       // Include incomplete Phase 1 tasks that carry over
       const carryOverTitles = [
-        'DTCC (SPR) Authorization Status',
         'DTCC authorization',
         'Plan File Request form',
         'Transfer Agent Registered File Request Form',

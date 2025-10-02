@@ -2,8 +2,10 @@
 
 import React from 'react'
 
+import { Upload as UploadIcon } from '@mui/icons-material'
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -19,7 +21,11 @@ import {
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 
-export default function AgendaTable() {
+interface AgendaTableProps {
+  onUploadClick?: () => void
+}
+
+export default function AgendaTable({ onUploadClick }: AgendaTableProps) {
   const { currentMeeting } = useMeeting()
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
@@ -41,6 +47,17 @@ export default function AgendaTable() {
     <Card>
       <CardHeader
         title="Meeting Agenda"
+        action={
+          onUploadClick && (
+            <Button
+              variant="contained"
+              startIcon={<UploadIcon />}
+              onClick={onUploadClick}
+            >
+              Upload More
+            </Button>
+          )
+        }
         sx={{
           backgroundColor: 'background.default',
           borderBottom: '1px solid',
