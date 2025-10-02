@@ -136,7 +136,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
       setSelectedFile(null)
       setPreviewUrl(null)
       onClose()
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to remove photo. Please try again.')
     } finally {
       setIsUploading(false)
@@ -202,7 +202,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
       onPhotoUpdate?.(updatedUser.avatarUrl)
 
       onClose()
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to upload photo. Please try again.')
     } finally {
       setIsUploading(false)

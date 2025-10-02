@@ -391,7 +391,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
         )
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('[PlanFileRequestForm] Logo loading failed:', error)
     }
   } else {

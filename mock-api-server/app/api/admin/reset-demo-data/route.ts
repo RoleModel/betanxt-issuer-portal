@@ -28,10 +28,6 @@ export async function POST(_req: NextRequest) {
 
     const supabaseDir = path.join(monorepoRoot, 'supabase')
 
-    console.log('Current working directory:', currentDir)
-    console.log('Monorepo root:', monorepoRoot)
-    console.log('Supabase directory:', supabaseDir)
-
     // Drop and recreate schema, then apply migrations and seed
     const resetCommands = [
       // Drop all tables in public schema
@@ -43,7 +39,7 @@ export async function POST(_req: NextRequest) {
     ]
 
     for (const cmd of resetCommands) {
-      const { stdout, stderr } = await execAsync(cmd, {
+      const { stderr } = await execAsync(cmd, {
         cwd: monorepoRoot,
         timeout: 60000,
         env: { ...process.env, PGPASSWORD: 'postgres' },
@@ -52,8 +48,6 @@ export async function POST(_req: NextRequest) {
       if (stderr && !stderr.includes('NOTICE') && !stderr.includes('DROP')) {
         console.error('Reset stderr:', stderr)
       }
-
-      console.log('Reset stdout:', stdout)
     }
 
     // Get stats from database after reset

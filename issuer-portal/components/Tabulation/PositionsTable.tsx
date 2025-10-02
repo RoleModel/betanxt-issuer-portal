@@ -337,7 +337,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
         day: '2-digit',
         year: 'numeric',
       })
-    } catch (error) {
+    } catch (_error) {
       return ''
     }
   }

@@ -46,7 +46,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         setLoading(false)
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
+           
           console.error('Error loading DOCX:', err)
         }
         setError(err instanceof Error ? err.message : 'Failed to load document')

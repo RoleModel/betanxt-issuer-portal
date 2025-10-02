@@ -198,7 +198,7 @@ const formatDate = (date: string | null): string => {
       day: '2-digit',
       year: 'numeric',
     })
-  } catch (error) {
+  } catch (_error) {
     return ''
   }
 }

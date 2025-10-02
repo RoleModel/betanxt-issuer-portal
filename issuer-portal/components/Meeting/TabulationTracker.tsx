@@ -17,7 +17,6 @@ import { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { calculateDaysUntil } from '@/utils/dateUtils'
-import { theme } from '../mui-styling/theme'
 
 type Phase = components['schemas']['Phase']
 type Meeting = components['schemas']['Meeting']
@@ -86,7 +85,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [loading])
+  }, [loading, loadingProgress])
 
   // Helpers for timezone-safe local day math
   const toLocalMidnight = (dateString?: string | null): Date | null => {

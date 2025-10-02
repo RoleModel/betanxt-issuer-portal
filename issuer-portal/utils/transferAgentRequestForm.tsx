@@ -391,7 +391,7 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
         )
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('[TransferAgentForm] Logo loading failed:', error)
     }
   } else {

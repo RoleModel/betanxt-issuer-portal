@@ -49,6 +49,12 @@ const eslintConfig = [
       'supabase/*.ts',
       'supabase/*.js',
       'scripts/**/*.js',
+      '**/__tests__/**',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      'supabase/functions/**',
     ],
   },
   {
