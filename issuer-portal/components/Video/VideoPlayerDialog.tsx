@@ -27,13 +27,7 @@ export default function VideoPlayerDialog({
   seriesNumber,
 }: VideoPlayerDialogProps) {
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="lg"
-      fullWidth
-    >
-
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogContent
         sx={{
           p: 0,
@@ -44,7 +38,7 @@ export default function VideoPlayerDialog({
           '&:hover .MuiIconButton-root': {
             visibility: 'visible',
             opacity: 1,
-          }
+          },
         }}
       >
         <IconButton

@@ -1,16 +1,20 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import React, { PropsWithChildren, Suspense, useMemo } from 'react'
 
 import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
-import { Box } from '@mui/material'
-import Fab from '@mui/material/Fab'
+import { Box, Stack } from '@mui/material'
 
+import { ResetDemoDataDialog } from '@/components/Dialogs/ResetDemoDataDialog'
+import { InfoDialog } from '@/components/InfoDialog'
 import { BNAppBarClient } from '@/components/Navigation/AppBar'
 import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
+import { EventTabs } from '@/components/Navigation/EventTabs'
+import IssuerSpeedDial from '@/components/SpeedDial'
 import SupportContactsPopover from '@/components/SupportContactsPopover'
 
 import { useClient } from '@/contexts/ClientContext'
@@ -20,22 +24,50 @@ import Loading from '../../app/loading'
 type LayoutProps = {
   activeNavLinkTitle?: string
   appSwitcher?: boolean
-  navBar?: boolean
   apps?: string
+  navBar?: boolean
+  eventTabs?: boolean
 }
 
 const currentApp = 'Issuer Portal'
 
 function Layout({
   children,
-  navBar = true,
   appSwitcher = true,
+  navBar = true,
+  eventTabs = false,
 }: PropsWithChildren<LayoutProps>) {
   const [open, setOpen] = React.useState(false)
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-    setOpen(!open)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
+  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false)
+  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
+
+  const handleGlossaryClick = () => {
+    setInfoDialogOpen(true)
+  }
+
+  const handleInfoDialogClose = () => {
+    setInfoDialogOpen(false)
+  }
+
+  const handleContactsClick = () => {
+    // Find the SpeedDial element to use as anchor
+    const speedDialElement = document.querySelector(
+      '[aria-label="Support Contacts"]'
+    ) as HTMLElement
+    if (speedDialElement) {
+      setAnchorEl(speedDialElement)
+    }
+    setOpen(true)
+  }
+
+  const handleResetClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setResetDialogOpen(true)
+  }
+
+  const handleResetDialogClose = () => {
+    setResetDialogOpen(false)
   }
   const { data: session } = useSession()
   const { currentClient } = useClient()
@@ -59,6 +91,7 @@ function Layout({
     id: string
     name?: string | null
     email?: string | null
+    image?: string | null
     username?: string
     type?: string
     accountId?: string
@@ -74,10 +107,12 @@ function Layout({
     const type = typeof u.type === 'string' ? u.type : undefined
     const accountId = typeof u.accountId === 'string' ? u.accountId : undefined
     const roles = Array.isArray(u.roles) ? (u.roles as string[]) : undefined
+    const userImage = (effectiveUser as User).image ?? null
     return {
       id,
       name: (effectiveUser as User).name ?? null,
       email: (effectiveUser as User).email ?? null,
+      image: userImage,
       username,
       type,
       accountId,
@@ -87,40 +122,41 @@ function Layout({
 
   return (
     <Suspense fallback={<Loading />}>
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'grid',
-          gridTemplateColumns: '100%',
-          gridTemplateRows: 'auto auto 1fr auto',
-          gridTemplateAreas: `
-            "appSwitcher"
-            "navBar"
-            "main"
-            "footer"
-          `,
-          '& > *': {
-            gridColumn: '1',
-            gridRow: 'auto',
-          },
-        }}
-      >
+      <Stack sx={{ minHeight: '100vh' }}>
         {appSwitcher && (
-          <Box aria-label="Client and Application Switcher" role="complementary">
+          <Box
+            aria-label="Client and Application Switcher"
+            role="complementary"
+            sx={{ flexShrink: 0 }}
+          >
             <ClientAppSwitcher currentAppTitle={currentApp} />
           </Box>
         )}
-        {navBar && <BNAppBarClient user={bnUser} />}
+        {navBar && (
+          <Box sx={{ flexShrink: 0 }}>
+            <BNAppBarClient user={bnUser} />
+          </Box>
+        )}
+        {eventTabs && (
+          <Box sx={{ flexShrink: 0 }}>
+            <EventTabs />
+          </Box>
+        )}
 
-        <Box component="main">{children}</Box>
-        <Fab
-          color="primary"
-          aria-label="Support contacts"
-          onClick={handleClick}
-          sx={{ position: 'fixed', bottom: 60, right: 20, zIndex: 50 }}
-        >
-          {open ? <CloseOutlined /> : <SupportAgentOutlined />}
-        </Fab>
+        <Box component="main" flex="1 0 auto">
+          {children}
+        </Box>
+        {navBar && (
+          <IssuerSpeedDial
+            ariaLabel="Support Contacts"
+            icon={<SupportAgentOutlined />}
+            closeIcon={<CloseOutlined />}
+            tooltipTitle="Support Contacts"
+            placement="top"
+            onGlossaryClick={handleGlossaryClick}
+            onContactsClick={handleContactsClick}
+          />
+        )}
         <SupportContactsPopover
           open={open}
           anchorEl={anchorEl}
@@ -129,8 +165,32 @@ function Layout({
             setAnchorEl(null)
           }}
         />
-        <BNAppFooter />
-      </Box>
+        <InfoDialog
+          open={infoDialogOpen}
+          onClose={handleInfoDialogClose}
+          term=""
+          definition=""
+        />
+        <ResetDemoDataDialog open={resetDialogOpen} onClose={handleResetDialogClose} />
+        <Box
+          sx={{ flexShrink: 0 }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement
+            if (target.textContent === 'Reset') {
+              handleResetClick(e)
+            }
+          }}
+        >
+          <BNAppFooter
+            links={[
+              {
+                label: 'Reset',
+                href: '#reset-demo',
+              },
+            ]}
+          />
+        </Box>
+      </Stack>
     </Suspense>
   )
 }

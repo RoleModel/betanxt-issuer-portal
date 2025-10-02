@@ -2,9 +2,8 @@ import * as React from 'react'
 
 import {
   Close as CloseIcon,
-  ContactSupportOutlined as ContactSupportOutlinedIcon,
-  ContactsOutlined as ContactsOutlinedIcon,
-  SmartToyOutlined as SmartToyOutlinedIcon,
+  ContactSupportOutlined,
+  TopicOutlined,
 } from '@mui/icons-material'
 import { Typography, styled } from '@mui/material'
 import Box from '@mui/material/Box'
@@ -13,22 +12,33 @@ import { SpeedDialProps } from '@mui/material/SpeedDial'
 import SpeedDialAction from '@mui/material/SpeedDialAction'
 import SpeedDialIcon from '@mui/material/SpeedDialIcon'
 
+type IssuerSpeedDialProps = {
+  ariaLabel?: string
+  icon?: React.ReactElement
+  closeIcon?: React.ReactElement
+  tooltipTitle?: string
+  placement?: 'top' | 'bottom' | 'left' | 'right'
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+  onGlossaryClick?: () => void
+  onContactsClick?: () => void
+}
+
 const actions = [
   {
     icon: (
       <Box display="flex" gap={1}>
-        <SmartToyOutlinedIcon />
+        <TopicOutlined />
         <Typography noWrap variant="button">
-          AI Assistant
+          Glossary of Terms
         </Typography>
       </Box>
     ),
-    name: 'AI Assistant',
+    name: 'Glossary of Terms',
   },
   {
     icon: (
       <Box display="flex" gap={1}>
-        <ContactsOutlinedIcon />
+        <ContactSupportOutlined />
         <Typography noWrap variant="button">
           Contacts
         </Typography>
@@ -60,14 +70,36 @@ export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => 
   },
 }))
 
-export default function IssuerSpeedDial() {
+export default function IssuerSpeedDial({
+  ariaLabel = 'Issuer Support Tools',
+  icon = <ContactSupportOutlined />,
+  closeIcon = <CloseIcon />,
+  tooltipTitle: _tooltipTitle,
+  placement: _placement,
+  onClick,
+  onGlossaryClick,
+  onContactsClick,
+}: IssuerSpeedDialProps) {
+  const handleActionClick = (actionName: string) => {
+    switch (actionName) {
+      case 'Glossary of Terms':
+        onGlossaryClick?.()
+        break
+      case 'Contacts':
+        onContactsClick?.()
+        break
+      default:
+        break
+    }
+  }
+
   return (
     <Box
       sx={(theme) => ({
         position: 'fixed',
         bottom: theme.spacing(7.5),
         right: 0,
-
+        zIndex: 2500,
         transform: 'translateZ(0px)',
         display: 'flex',
         flexDirection: 'column',
@@ -75,10 +107,9 @@ export default function IssuerSpeedDial() {
       })}
     >
       <StyledSpeedDial
-        ariaLabel="Issuer Support Tools"
-        icon={
-          <SpeedDialIcon icon={<ContactSupportOutlinedIcon />} openIcon={<CloseIcon />} />
-        }
+        ariaLabel={ariaLabel}
+        icon={<SpeedDialIcon icon={icon} openIcon={closeIcon} />}
+        onClick={onClick}
         sx={(theme) => ({
           bottom: theme.spacing(3),
           right: 0,
@@ -92,6 +123,7 @@ export default function IssuerSpeedDial() {
           <SpeedDialAction
             key={action.name}
             icon={action.icon}
+            onClick={() => handleActionClick(action.name)}
             slotProps={{
               fab: {
                 size: 'medium',
@@ -102,7 +134,7 @@ export default function IssuerSpeedDial() {
                   backgroundColor: 'primary.main',
                   color: 'primary.contrastText',
                 },
-                children: <Typography variant="body2">{action.name}</Typography>,
+                children: <Typography variant="body3">{action.name}</Typography>,
               },
             }}
           />

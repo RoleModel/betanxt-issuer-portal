@@ -3,7 +3,14 @@
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
@@ -107,11 +114,28 @@ const parsePhaseNumber = (phase: string | number | null | undefined): number => 
 export function EventTabs() {
   const router = useRouter()
   const pathname = usePathname()
+  const [isPending] = useTransition()
   const [activeMeetingTab, setActiveMeetingTab] = useState(0)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const { meetings, isLoading: loading, currentMeeting: activeMeeting } = useMeeting()
+
+  // Try to get meeting context, but handle pages without MeetingProvider
+  let meetingContextValue = null
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    meetingContextValue = useMeeting()
+  } catch {
+    // No MeetingProvider available (e.g., on past-meetings page)
+  }
+
+  const meetings = useMemo(
+    () => meetingContextValue?.meetings ?? [],
+    [meetingContextValue?.meetings]
+  )
+  const loading = meetingContextValue?.isLoading ?? false
+  const activeMeeting = meetingContextValue?.currentMeeting ?? null
+
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
@@ -119,6 +143,9 @@ export function EventTabs() {
   const meetingIdFromUrl = pathname.match(/\/meeting\/([^/]+)/)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  // Use a stable skeleton count that doesn't change after hydration to prevent flash
+  const skeletonCount = 2 // Always show 2 skeletons to avoid hydration flash
 
   // (Optimization) Memoize current phase parsing
   const currentPhase = useMemo(
@@ -147,8 +174,9 @@ export function EventTabs() {
   useRoutePreload(currentMeeting?.id)
 
   // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
+  // Only prefetch when not currently loading to avoid excessive API calls
   useEffect(() => {
-    if (currentMeeting?.id && currentClient?.ticker) {
+    if (currentMeeting?.id && currentClient?.ticker && !loading && !clientLoading) {
       const timeout = setTimeout(() => {
         navigationTabs.forEach((tab) => {
           const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
@@ -157,12 +185,26 @@ export function EventTabs() {
       }, 120)
       return () => clearTimeout(timeout)
     }
-  }, [currentMeeting?.id, currentClient?.ticker, router, navigationTabs])
+  }, [
+    currentMeeting?.id,
+    currentClient?.ticker,
+    router,
+    navigationTabs,
+    loading,
+    clientLoading,
+  ])
 
-  // Get active tab from current pathname
-  const currentRoute = pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, '')
-  const activeTab =
-    navigationTabs.find((tab) => tab.route === currentRoute)?.label || 'Meeting Dashboard'
+  // Get active tab from current pathname (memoized to prevent re-renders)
+  const currentRoute = useMemo(
+    () => pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, ''),
+    [pathname]
+  )
+  const activeTab = useMemo(
+    () =>
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ||
+      'Meeting Dashboard',
+    [navigationTabs, currentRoute]
+  )
 
   // Handle URL-based meeting selection for past meetings
   useEffect(() => {
@@ -243,6 +285,15 @@ export function EventTabs() {
     }
   }, [currentMeeting, transformedMeetings, activeMeetingTab])
 
+  // Check scroll position and update button visibility (memoized)
+  const checkScrollButtons = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 1) // Small tolerance for floating point precision
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }, [])
+
   // Helper function to scroll to active tab
   const scrollToActiveTab = useCallback(() => {
     if (scrollContainerRef.current && activeMeetingTab !== -1) {
@@ -257,16 +308,7 @@ export function EventTabs() {
         checkScrollButtons()
       }
     }
-  }, [activeMeetingTab])
-
-  // Check scroll position and update button visibility
-  const checkScrollButtons = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
-      setCanScrollLeft(scrollLeft > 1) // Small tolerance for floating point precision
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
-    }
-  }
+  }, [activeMeetingTab, checkScrollButtons])
 
   // Scroll to active tab when it changes
   useEffect(() => {
@@ -279,10 +321,10 @@ export function EventTabs() {
     const handleResize = () => checkScrollButtons()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [checkScrollButtons])
 
-  // Scroll functions
-  const scrollLeft = () => {
+  // Scroll functions (memoized)
+  const scrollLeft = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
@@ -322,9 +364,9 @@ export function EventTabs() {
         checkScrollButtons()
       }, 300)
     }
-  }
+  }, [checkScrollButtons])
 
-  const scrollRight = () => {
+  const scrollRight = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
@@ -399,7 +441,7 @@ export function EventTabs() {
         checkScrollButtons()
       }, 300)
     }
-  }
+  }, [checkScrollButtons])
 
   const renderSkeletonTab = (index: number) => (
     <Box
@@ -429,16 +471,18 @@ export function EventTabs() {
           flex: 1,
         })}
       >
-        <Stack spacing={1}>
-          <Skeleton variant="text" width="60%" height={40} />
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Skeleton variant="text" width={60} height={20} />
-            <Skeleton variant="text" width={80} height={20} />
-            <Skeleton variant="text" width={70} height={20} />
-            <Skeleton variant="text" width={80} height={20} />
-            <Skeleton variant="text" width={60} height={20} />
+        <Skeleton variant="text" width="60%" height={30} />
+        {!isMobile && (
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Skeleton variant="text" width={60} height={20} />
+              <Skeleton variant="text" width={80} height={20} />
+              <Skeleton variant="text" width={70} height={20} />
+              <Skeleton variant="text" width={80} height={20} />
+              <Skeleton variant="text" width={60} height={20} />
+            </Stack>
           </Stack>
-        </Stack>
+        )}
       </Box>
     </Box>
   )
@@ -457,7 +501,7 @@ export function EventTabs() {
 
     return (
       <Box sx={{ display: 'flex', color: 'text.primary' }}>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="start">
           <BNTypographyPair
             sx={{ whiteSpace: 'nowrap' }}
             primary={{
@@ -521,7 +565,7 @@ export function EventTabs() {
             </Typography>
             <Typography
               component="span"
-              variant="body2"
+              variant="body3"
               aria-label={`Open ${phaseLabel} phase details`}
               role="button"
               tabIndex={0}
@@ -539,11 +583,10 @@ export function EventTabs() {
               }}
               sx={(theme) => {
                 return {
-                  fontWeight: 600,
+                  fontSize: theme.typography.body3.fontSize,
+                  fontWeight: 500,
                   color: getPhaseColor(displayPhase),
                   cursor: 'pointer',
-                  fontSize: 'inherit',
-                  lineHeight: 1,
                   display: 'inline-flex',
                   alignItems: 'center',
                   alignSelf: 'start',
@@ -575,20 +618,22 @@ export function EventTabs() {
             >
               Overall Completion
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: 24 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
               <LinearProgress
                 variant="determinate"
                 color={getPhaseNumber(currentPhase) as 'primary'}
                 value={meeting.overallCompletion || 0}
                 aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
-                sx={{ flex: 1, height: 4 }}
+                sx={{ flex: 1, height: 6, borderRadius: 12 }}
               />
               <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                 {meeting.overallCompletion || 0}%
               </Typography>
             </Box>
           </Stack>
-          <StatusChip status={meeting.status || 'Unknown'} size="small" />
+          <Box display="flex" alignItems="center" height="100%">
+            <StatusChip status={meeting.status || 'Unknown'} size="small" />
+          </Box>
         </Stack>
       </Box>
     )
@@ -632,7 +677,7 @@ export function EventTabs() {
     setPhaseDrawerOpen(true)
   }, [])
 
-  function MeetingTab({
+  const MeetingTab = React.memo(function MeetingTab({
     meeting,
     src: _src,
     index,
@@ -723,7 +768,7 @@ export function EventTabs() {
         </Box>
       </Box>
     )
-  }
+  })
 
   // Show error state if there's a client error
   if (clientError) {
@@ -739,7 +784,7 @@ export function EventTabs() {
             p: 2,
           }}
         >
-          <Typography color="error" variant="body2">
+          <Typography color="error" variant="body3">
             Error loading client data: {clientError}
           </Typography>
         </Paper>
@@ -764,7 +809,9 @@ export function EventTabs() {
         >
           <Box sx={{ px: 3 }}>
             <Stack direction="row">
-              {[1, 2].map((index) => renderSkeletonTab(index))}
+              {Array.from({ length: skeletonCount }, (_, index) =>
+                renderSkeletonTab(index + 1)
+              )}
             </Stack>
           </Box>
         </Paper>
@@ -836,8 +883,10 @@ export function EventTabs() {
               }}
             >
               {loading && (!meetings || meetings.length === 0) ? (
-                // Show skeleton tabs while loading
-                [1, 2, 3].map((index) => renderSkeletonTab(index))
+                // Show skeleton tabs while loading - single skeleton on mobile, multiple on desktop
+                Array.from({ length: skeletonCount }, (_, index) =>
+                  renderSkeletonTab(index + 1)
+                )
               ) : transformedMeetings.length > 0 ? (
                 // Show actual meeting tabs
                 transformedMeetings.map(({ tab, src }, index) => (
@@ -850,11 +899,8 @@ export function EventTabs() {
                 ))
               ) : (
                 // Only show "No meetings" after loading is complete
-                <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                  No meetings available for{' '}
-                  {currentClient?.company_name ||
-                    currentClient?.short_name ||
-                    'this client'}
+                <Typography variant="body3" color="text.secondary" sx={{ p: 2 }}>
+                  No meetings available.
                 </Typography>
               )}
             </Stack>
@@ -871,8 +917,22 @@ export function EventTabs() {
           borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
           zIndex: 2,
+          position: 'relative',
         }}
       >
+        {/* Loading indicator when navigation is pending */}
+        {isPending && (
+          <LinearProgress
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 3,
+              height: 2,
+            }}
+          />
+        )}
         <Box sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
           <Stack direction="row" sx={{ position: 'relative' }}>
             <Tabs
@@ -881,7 +941,12 @@ export function EventTabs() {
               allowScrollButtonsMobile
               scrollButtons="auto"
               aria-label="Meeting Navigation"
-              sx={{ position: 'relative', pointerEvents: 'auto' }}
+              sx={{
+                position: 'relative',
+                pointerEvents: 'auto',
+                opacity: isPending ? 0.6 : 1,
+                transition: 'opacity 0.2s',
+              }}
             >
               {navigationTabs.map((tab) => {
                 const isActive = activeTab === tab.label
@@ -897,7 +962,8 @@ export function EventTabs() {
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    onClick={() => router.push(tabHref)}
+                    component={Link}
+                    href={tabHref}
                     sx={(theme) => ({
                       color: isActive
                         ? 'var(--mui-palette-primary-main)'

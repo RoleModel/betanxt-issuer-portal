@@ -55,7 +55,16 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
       }}
     >
       {childSegments.length > 0 && (
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 1 }}>
+        <Breadcrumbs
+          aria-label="breadcrumb"
+          sx={{
+            mb: 1,
+            'MuiBreadcrumbs-li': {
+              display: 'flex',
+              alignItems: 'center',
+            },
+          }}
+        >
           <MuiLink
             component={Link}
             variant="body3"
@@ -81,7 +90,12 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             const isLast = idx === childSegments.length - 1
             const label = toTitle(seg)
             return isLast ? (
-              <Typography key={href} variant="body3" sx={{ color: 'text.primary' }}>
+              <Typography
+                component="span"
+                key={href}
+                variant="body3"
+                sx={{ color: 'text.primary' }}
+              >
                 {label}
               </Typography>
             ) : (
@@ -98,7 +112,11 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
           })}
         </Breadcrumbs>
       )}
-      <Typography component="h1" variant="pageTitle">
+      <Typography
+        component="h1"
+        variant="pageTitle"
+        sx={{ fontFamily: 'var(--font-tungsten)' }}
+      >
         {getPageTitle()}
       </Typography>
     </Box>

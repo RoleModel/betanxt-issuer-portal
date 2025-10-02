@@ -177,7 +177,7 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
       >
         <Typography
           noWrap
-          variant="body2"
+          variant="body3"
           sx={{
             maxWidth: '100%',
             fontWeight: 600,

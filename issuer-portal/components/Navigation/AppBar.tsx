@@ -11,13 +11,13 @@ import { useContext } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
+import { useColorScheme } from '@mui/material/styles'
 
 import type { NotificationData } from '@/components/Notifications/NotificationPopper'
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
 import { useClient } from '@/contexts/ClientContext'
-import { useColorScheme } from '@mui/material/styles'
 import MeetingContext from '@/contexts/MeetingContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
@@ -110,7 +110,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
   // Get current client for logo and branding
-  const { currentClient, isHydrated } = useClient()
+  const { currentClient } = useClient()
 
   // Get theme context for toggle functionality
   const { mode, setMode } = useColorScheme()
@@ -140,18 +140,16 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Use the current client's ticker for dashboard path, fallback to '/' if no client
   const dashboardPath = useMemo(() => {
-    const clientToUse = isHydrated ? currentClient : null
-    // Find the first meeting that is not COMPLETE
-    if (clientToUse?.ticker) {
+    if (currentClient?.ticker) {
       const activeMeeting = meetings.find(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
       )
       if (activeMeeting?.id) {
-        return `/${clientToUse.ticker}/meeting/${activeMeeting.id}`
+        return `/${currentClient.ticker}/meeting/${activeMeeting.id}`
       }
     }
     return '/'
-  }, [isHydrated, currentClient, meetings])
+  }, [currentClient, meetings])
 
   // Extract ticker once per render - memoize regex execution
   const urlTicker = useMemo(() => {
@@ -162,9 +160,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   // Remove prefetch to improve performance - navigation is still instant with Next.js
   // Prefetch was causing unnecessary network requests and slowing down the app
 
-  // Memoize tabs array to prevent recreation - optimize dependencies
+  // Memoize tabs array to prevent recreation
   const exampleTabs = useMemo(() => {
-    const navTicker = urlTicker || (isHydrated ? currentClient?.ticker : null)
+    const navTicker = urlTicker || currentClient?.ticker
     const tickerPrefix = navTicker ? `/${navTicker}` : ''
 
     return [
@@ -178,7 +176,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       { label: 'Education', value: 'education', to: '/education' },
       { label: 'Products', value: 'products', to: '/products' },
     ]
-  }, [dashboardPath, urlTicker, isHydrated, currentClient?.ticker])
+  }, [dashboardPath, urlTicker, currentClient?.ticker])
 
   const currentTab = useMemo(() => {
     // Check if viewing a past meeting first
@@ -235,7 +233,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     } catch {
       return null
     }
-  }, [])
+  }, []) // localStorage access is safe with window check, no dependencies needed
 
   // Determine logo source - memoize expensive logo computation
   const logoTicker = useMemo(
@@ -247,21 +245,15 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // If we have a custom logoSrc prop, use it immediately
     if (props.logoSrc) return props.logoSrc
 
-    // Don't show ANY logo until we're fully hydrated
-    if (!isHydrated) {
-      return null
-    }
-
-    // After hydration, determine the appropriate logo
+    // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
+          currentClient?.company_name || currentClient?.short_name,
+          logoTicker
+        )
       : '/images/logo.svg'
   }, [
     props.logoSrc,
-    isHydrated,
     logoTicker,
     getClientLogo,
     currentClient?.company_name,
@@ -270,11 +262,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
-    // Don't render logo if logoSrc is null (waiting for hydration)
-    if (!logoSrc) {
-      return {} // Completely omit logoImg prop
-    }
-
     const isDefaultLogo = logoSrc === '/images/logo.svg'
     const defaultLogoStyles: React.CSSProperties = isDefaultLogo
       ? { height: 30, width: 120 }
@@ -298,11 +285,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
     const initials = props.user.name
       ? props.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
 
     // Use uploaded image if available, otherwise show initials
@@ -353,7 +340,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       { label: 'Profile', onClick: () => router.push('/profile') },
       {
         label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
-        onClick: () => setMode(mode === 'light' ? 'dark' : 'light')
+        onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
       },
       { label: 'Logout', onClick: () => signOut({ callbackUrl: '/login' }) },
     ],

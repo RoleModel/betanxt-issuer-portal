@@ -142,7 +142,7 @@ const Notification = ({
           {link && (
             <Link
               href="#"
-              variant="body2"
+              variant="body3"
               sx={{
                 color: 'primary.main',
                 textDecoration: 'none',

@@ -74,7 +74,7 @@ export function EmptyState({
           </Typography>
 
           <Typography
-            variant="body2"
+            variant="body3"
             sx={{
               fontWeight: 400,
               fontSize: '14px',

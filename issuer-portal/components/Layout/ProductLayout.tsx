@@ -7,16 +7,18 @@ import { Box, Container } from '@mui/material'
 interface ProductLayoutProps {
   leftColumnContent: React.ReactElement
   rightColumnContent: React.ReactElement
+  documentViewer?: React.ReactElement
 }
 
 export default function ProductLayout({
   leftColumnContent,
   rightColumnContent,
+  documentViewer,
 }: ProductLayoutProps) {
   return (
     <Container
       component="main"
-      maxWidth={false}
+      maxWidth="xl"
       sx={{
         my: {
           xs: 1,
@@ -74,6 +76,7 @@ export default function ProductLayout({
           {rightColumnContent}
         </Box>
       </Box>
+      {documentViewer && documentViewer}
     </Container>
   )
 }
