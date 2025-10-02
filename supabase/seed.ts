@@ -2,6 +2,7 @@ import { copycat } from '@snaplet/copycat'
 import * as fs from 'fs'
 import { DateTime } from 'luxon'
 import * as path from 'path'
+import { fileURLToPath } from 'url'
 
 import { CSVProcessor } from '../mock-api-server/csv-processor'
 import type {
@@ -9,6 +10,10 @@ import type {
   CompanyProposalData,
 } from '../mock-api-server/csv-processor'
 import { seedConfig } from './seed.config'
+
+// ES module compatibility for __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>
 
@@ -33,6 +38,14 @@ const shiftWeekendToMonday = (date: DateTime): DateTime => {
 // Function to escape SQL strings
 const escapeSql = (str: string | null | undefined): string => {
   if (!str) return 'NULL'
+  // Use dollar-quoted strings for strings with special characters (no escaping needed)
+  // Dollar quoting syntax: $$string$$ - treats everything literally
+  if (str.includes('\\') || str.includes('\n') || str.includes('\r')) {
+    // Replace single $ with something else to avoid breaking dollar quoting
+    const safe = str.replace(/\$/g, '＄')  // Use fullwidth dollar sign
+    return `$$${safe}$$`
+  }
+  // For simple strings, use regular single quotes
   return `'${str.replace(/'/g, "''")}'`
 }
 
@@ -160,33 +173,34 @@ const calculateParticipationTarget = (
   // For historical completed meetings (2024 and earlier), always use realistic participation
   if (year <= 2024 && phase === 8) {
     const seed = copycat.int(`${ticker}-${year}-participation`, { min: 0, max: 1000 })
-    // More realistic participation rates: 40-55% for historical meetings
-    const participation = 0.4 + seed / 6667 // 40-55% range
+    // More realistic participation rates: 25-50% for historical meetings
+    const participation = 0.25 + seed / 4000 // 25-50% range
     return participation
   }
 
   if (phase < 6) return 0
 
   const lowerMeetingType = meetingType.toLowerCase()
-  let base = 0.72
+  // Start with a lower base for more realistic participation
+  let base = 0.38
 
   if (year <= 2024) {
-    base -= 0.02 * (2024 - year)
+    base -= 0.01 * (2024 - year)
   }
 
   if (lowerMeetingType.includes('special')) {
-    base += 0.05
+    base += 0.03
   }
 
   const tickerAdjustment = copycat.int(`participation-${ticker}`, {
-    min: -200,
-    max: 200,
+    min: -100,
+    max: 100,
   })
   const meetingAdjustment = copycat.int(
     `participation-${ticker}-${year}-${meetingType}`,
     {
-      min: -150,
-      max: 150,
+      min: -75,
+      max: 75,
     }
   )
 
@@ -198,7 +212,7 @@ const calculateParticipationTarget = (
     base *= 0.7
   }
 
-  return clamp(base, 0.58, 0.86)
+  return clamp(base, 0.25, 0.50)
 }
 
 // Function to generate proposal results based on meeting year and type
@@ -324,8 +338,8 @@ const generateTaskDescription = (title: string, type: string, status: string): s
       'Please provide the current draft version of your proxy statement as we will need to generate your proxy card and/or notice using the agenda in the proxy statement. We also need to proof it to verify minimum vote requirements for each of your proposal agenda items, including director elections (plurality vs majority) and we will check for logistics regarding your meeting date (Digital/Hybrid/In-person).',
     'Proxy Card':
       'Please be sure to alert the BetaNXT team of any additional edits needed to the proxy card (and/or NAA Form).',
-    'Notice and Access Form':
-      'Please be sure to alert the BetaNXT team of any additional edits needed to Notice and Access form',
+    Notice:
+      'Please be sure to alert the BetaNXT team of any additional edits needed to Notice',
     'TA Registered File':
       'Registered file received from your Transfer Agent is typically completed anywhere between 2 and 4 business days. Mediant will be in touch if any additional action is needed on your part.',
     'DTCC SPR':
@@ -879,28 +893,28 @@ const main = async () => {
       year: 2025,
       meetings: [
         { type: 'Annual Meeting', useRealDates: true, phase: 8 },
-        { type: 'Special Meeting', monthOffset: -12, phase: 8 },
+        { type: 'Special Meeting', monthOffset: -2, phase: 8 }, // Oct 2024
       ],
     },
     {
       year: 2024,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: -9, phase: 8 },
-        { type: 'Special Meeting', monthOffset: -18, phase: 8 },
+        { type: 'Annual Meeting', monthOffset: -21, phase: 8 }, // Jan 2024
+        { type: 'Special Meeting', monthOffset: -18, phase: 8 }, // Apr 2024
       ],
     },
     {
       year: 2023,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: -21, phase: 8 },
-        { type: 'Special Meeting', monthOffset: -18, phase: 8 },
+        { type: 'Annual Meeting', monthOffset: -33, phase: 8 }, // Jan 2023
+        { type: 'Special Meeting', monthOffset: -30, phase: 8 }, // Apr 2023
       ],
     },
     {
       year: 2022,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: -33, phase: 8 },
-        { type: 'Special Meeting', monthOffset: -30, phase: 8 },
+        { type: 'Annual Meeting', monthOffset: -45, phase: 8 }, // Jan 2022
+        { type: 'Special Meeting', monthOffset: -42, phase: 8 }, // Apr 2022
       ],
     },
   ]
@@ -958,7 +972,15 @@ const main = async () => {
         const isPastMeeting = yearConfig.year <= 2024
         const status = currentPhase === 8 || isPastMeeting ? 'COMPLETE' : 'ACTIVE'
         const phaseName = `Phase ${currentPhase}`
-        const overallCompletion = currentPhase === 8 || isPastMeeting ? 100 : 0
+        // Special meetings in phase 7+ should show 100% completion (all tasks in completion status)
+        // Annual meetings in phase 1 should show 0% completion (all tasks incomplete)
+        const isSpecialMeeting = meeting.type === 'Special Meeting'
+        const overallCompletion =
+          currentPhase === 8 || isPastMeeting
+            ? 100
+            : isSpecialMeeting && currentPhase >= 7
+              ? 100
+              : 0
 
         meetingPhaseMap[meetingId] = currentPhase
 
@@ -1167,12 +1189,14 @@ const main = async () => {
       if (positionData && 'Active' in positionData && positionData.Active) {
         const data = positionData.Active
 
-        // Find all past meetings (2025 and earlier) for this company
+        // Find all past meetings (2025 and earlier) plus 2026 special meetings for this company
         const companyMeetings = meetingIds.filter((meetingId) => {
           // Use the meetingToClient mapping that was created during meeting generation
           const meetingClient = meetingToClient[meetingId]
           const year = parseInt(meetingId.split('-').slice(-1)[0])
-          return meetingClient?.ticker === ticker && year <= 2025
+          const isSpecialMeeting = meetingId.includes('special-meeting')
+          // Include 2025 and before, or 2026 special meetings
+          return meetingClient?.ticker === ticker && (year <= 2025 || (year === 2026 && isSpecialMeeting))
         })
 
         // Create mailing record for each past meeting
@@ -1597,23 +1621,29 @@ const main = async () => {
 
         let taskStatus: string
 
-        // Future special meetings (2026+) should have in-progress status
+        // Future special meetings (2026+) should have tasks completed up to phase 6
         if (isSpecialMeeting && year >= 2026) {
           const taskTitle = task.title.toLowerCase()
 
-          if (task.title.includes('DTCC') && task.type === 'Authorization') {
-            taskStatus = 'AUTHORIZED'
-          } else if (
-            task.title.includes('Broadridge/ICS') &&
-            task.type === 'Authorization'
-          ) {
-            taskStatus = 'PENDING_AUTHORIZATION'
-          } else if (taskTitle.includes('transfer agent')) {
-            taskStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-          } else if (taskTitle.includes('plan file request')) {
-            taskStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+          // Tasks in phases 1-6 should be complete, phases 7-8 should be incomplete
+          if (phaseNum <= 6) {
+            if (task.title.includes('DTCC') && task.type === 'Authorization') {
+              taskStatus = 'AUTHORIZED'
+            } else if (
+              task.title.includes('Broadridge/ICS') &&
+              task.type === 'Authorization'
+            ) {
+              taskStatus = 'PENDING_AUTHORIZATION'
+            } else if (taskTitle.includes('transfer agent')) {
+              taskStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+            } else if (taskTitle.includes('plan file request')) {
+              taskStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+            } else {
+              taskStatus = 'COMPLETE'
+            }
           } else {
-            taskStatus = 'COMPLETE'
+            // Phase 7-8 tasks should be incomplete
+            taskStatus = 'INCOMPLETE'
           }
         } else if (!isPastEvent && year >= 2026) {
           // Future meetings (2026+) that are not complete: most tasks incomplete, but special handling for authorization tasks
@@ -1807,7 +1837,8 @@ const main = async () => {
   const notificationTemplates = [
     {
       title: 'Your 2026 Annual Meeting is Ready',
-      message: 'Your 2026 Annual Meeting has been set up and is ready for you to begin working on tasks. Click here to view your meeting dashboard and get started.',
+      message:
+        'Your 2026 Annual Meeting has been set up and is ready for you to begin working on tasks. Click here to view your meeting dashboard and get started.',
       type: 'success',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}`,
@@ -1815,7 +1846,8 @@ const main = async () => {
     },
     {
       title: 'Special Meeting - Tabulation Phase Active',
-      message: 'Your 2026 Special Meeting has entered the tabulation phase. Daily vote counts are now available. Review the latest results on your dashboard.',
+      message:
+        'Your 2026 Special Meeting has entered the tabulation phase. Daily vote counts are now available. Review the latest results on your dashboard.',
       type: 'info',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/tabulation`,
@@ -1823,14 +1855,16 @@ const main = async () => {
     },
     {
       title: 'Document Requires Your Signature',
-      message: 'The Transfer Agent Request Form needs your signature. Please review and sign the document to proceed.',
+      message:
+        'The Transfer Agent Request Form needs your signature. Please review and sign the document to proceed.',
       type: 'warning',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
       title: 'DTCC Authorization Needed',
-      message: 'Please complete the DTCC (SPR) authorization to access shareholder proxy records. This is required to proceed with your meeting.',
+      message:
+        'Please complete the DTCC (SPR) authorization to access shareholder proxy records. This is required to proceed with your meeting.',
       type: 'warning',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}`,
@@ -1838,28 +1872,32 @@ const main = async () => {
     },
     {
       title: 'Task Due in 2 Days',
-      message: 'You have 3 tasks due within the next 2 days. Please review your task list and complete them on time.',
+      message:
+        'You have 3 tasks due within the next 2 days. Please review your task list and complete them on time.',
       type: 'warning',
       priority: 'medium',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%201`,
     },
     {
       title: 'Document Review Complete',
-      message: 'Sarah Johnson has approved your Draft Proxy Statement. You can now proceed to the next phase.',
+      message:
+        'Sarah Johnson has approved your Draft Proxy Statement. You can now proceed to the next phase.',
       type: 'success',
       priority: 'medium',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
       title: 'Comment on Hosting Site Document',
-      message: 'Michael Chen left a comment on your Document Hosting Site: "Please update the shareholder letter section before final approval."',
+      message:
+        'Michael Chen left a comment on your Document Hosting Site: "Please update the shareholder letter section before final approval."',
       type: 'info',
       priority: 'medium',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/documents`,
     },
     {
       title: 'Filing Deadline Reminder',
-      message: 'Your DEF 14A filing deadline is in 5 business days. Please ensure all documents are finalized and ready for submission.',
+      message:
+        'Your DEF 14A filing deadline is in 5 business days. Please ensure all documents are finalized and ready for submission.',
       type: 'warning',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%204`,
@@ -1881,16 +1919,19 @@ const main = async () => {
 
       if ('forMeetings' in template && template.forMeetings) {
         // Find specific meeting type for this client
-        meetingId = meetingIds.find(id =>
-          id.includes(accountClient.clientTicker.toLowerCase()) &&
-          template.forMeetings?.some(type => id.includes(type))
-        ) || null
+        meetingId =
+          meetingIds.find(
+            (id) =>
+              id.includes(accountClient.clientTicker.toLowerCase()) &&
+              template.forMeetings?.some((type) => id.includes(type))
+          ) || null
       } else {
         // Use any 2026 meeting for this client
-        meetingId = meetingIds.find(id =>
-          id.includes(accountClient.clientTicker.toLowerCase()) &&
-          id.includes('2026')
-        ) || null
+        meetingId =
+          meetingIds.find(
+            (id) =>
+              id.includes(accountClient.clientTicker.toLowerCase()) && id.includes('2026')
+          ) || null
       }
 
       // Calculate notification timing based on index
@@ -2729,9 +2770,10 @@ const main = async () => {
         min: 0,
         max: 999999,
       })
-      const basePositions = isWendys ? 150 : 100
-      const positionVariation = (meetingSeed % 300) + 50
-      const numPositions = Math.max(25, basePositions + positionVariation)
+      // Reduce positions to make seed file smaller
+      const basePositions = isWendys ? 30 : 20
+      const positionVariation = (meetingSeed % 50) + 10
+      const numPositions = Math.max(15, basePositions + positionVariation)
 
       const rawWeights: number[] = []
       for (let p = 0; p < numPositions; p++) {
@@ -3179,7 +3221,11 @@ const main = async () => {
           `${sqlValue(comment)}, ` +
           `${sqlValue(user.firstName)}, ` +
           `${sqlValue(user.lastName)}, ` +
-          `${sqlValue(DateTime.now().minus({ days: c * 2 + 1 }).toISO())});`
+          `${sqlValue(
+            DateTime.now()
+              .minus({ days: c * 2 + 1 })
+              .toISO()
+          )});`
       )
     }
   })
@@ -3281,7 +3327,7 @@ INSERT INTO tabulation_report(id, meeting_id, set_keys, broker_voting, share_ran
 VALUES (
     ${sqlValue(tabulationId)},
     ${sqlValue(meetingId)},
-    to_jsonb(ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key)),
+    (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
     jsonb_build_object(
         'proposal1', jsonb_build_array(
             jsonb_build_object('broker', 'CEDE & CO', 'for', 1500000, 'against', 75000, 'abstain', 25000),
@@ -3376,7 +3422,7 @@ VALUES (
         SELECT jsonb_build_object(
             'voted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Voted'), 0),
             'unvoted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Unvoted'), 0),
-            'totalShares', COALESCE(SUM(shares), 0),
+            'totalShares', (SELECT total_shares_outstanding FROM meeting WHERE id = ${sqlValue(meetingId)}),
             'votedShares', COALESCE(SUM(CASE WHEN vote_status = 'Voted' THEN shares_voted ELSE 0 END), 0)
         )
         FROM position WHERE meeting_id = ${sqlValue(meetingId)}
@@ -3392,7 +3438,7 @@ INSERT INTO tabulation_report(id, meeting_id, set_keys, broker_voting, share_ran
 SELECT
     ${sqlValue(tabulationId)},
     ${sqlValue(meetingId)},
-    ARRAY(SELECT DISTINCT set_key FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL ORDER BY set_key),
+    (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
     jsonb_build_object(
         'proposal1', jsonb_build_array(
             jsonb_build_object('broker', 'CEDE & CO', 'for', 1200000, 'against', 85000, 'abstain', 15000),
@@ -3479,7 +3525,7 @@ SELECT
     jsonb_build_object(
         'voted', (SELECT COALESCE(COUNT(*), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Voted'),
         'unvoted', (SELECT COALESCE(COUNT(*), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Unvoted'),
-        'totalShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)}),
+        'totalShares', (SELECT total_shares_outstanding FROM meeting WHERE id = ${sqlValue(meetingId)}),
         'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND vote_status = 'Voted')
     ),
     NOW(),
