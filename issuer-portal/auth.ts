@@ -17,7 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
           // Return a mock user for development
           return {
-            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID || 'dev-user-123',
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
@@ -34,12 +34,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // For development, allow these test users:
         const testUsers = [
           {
-            id: 'ce4b0ac1-095c-5e6f-a301-e489723079a3',
-            username: 'dev.user',
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
-            email: 'dev@betanxt.com',
-            type: 'ADMIN',
-            account_id: undefined,
+            email: 'dev@example.com',
+            type: 'admin' as const,
+            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client_ticker: null,
+            username: 'devuser',
           },
           {
             id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
@@ -89,22 +90,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updateData }) {
       if (user) {
+        token.id = user.id // Store the actual user ID
         token.type = user.type
         token.account_id = user.account_id
         token.client_ticker = user.client_ticker
         token.username = user.username
       }
+
+      // Handle session updates (like avatar uploads)
+      if (trigger === 'update' && updateData) {
+        if (updateData.image !== undefined) {
+          token.image = updateData.image
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
-      const t = token as JWT & { sub?: string }
-      session.user.id = t.sub ?? ''
+      const t = token as JWT & { sub?: string; id?: string; image?: string }
+      session.user.id = t.id ?? t.sub ?? '' // Use the stored user ID, fallback to sub
       session.user.type = t.type ?? undefined
       session.user.account_id = t.account_id ?? undefined
       session.user.client_ticker = t.client_ticker ?? null
       session.user.username = t.username ?? undefined
+      session.user.image = t.image ?? null // Include the image field
       return session
     },
     async redirect({ url, baseUrl }) {

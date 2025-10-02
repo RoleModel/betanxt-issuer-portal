@@ -17,6 +17,7 @@ import type { NotificationData } from '@/components/Notifications/NotificationPo
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
 import { useClient } from '@/contexts/ClientContext'
+import { useColorScheme } from '@mui/material/styles'
 import MeetingContext from '@/contexts/MeetingContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
@@ -58,9 +59,15 @@ NextLinkComponent.displayName = 'NextLinkComponent'
 const NextImageComponent = React.memo(
   (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
     const { src, alt, width, height, style } = props
+
+    // Don't render anything if no src is provided (prevents flash)
+    if (!src) {
+      return null
+    }
+
     return (
       <Image
-        src={src || '/images/logo.svg'}
+        src={src}
         alt={alt || 'Logo'}
         width={typeof width === 'number' ? width : 30}
         height={typeof height === 'number' ? height : 30}
@@ -68,7 +75,7 @@ const NextImageComponent = React.memo(
         loading="eager"
         priority
         placeholder="blur"
-        blurDataURL={src || '/images/logo.svg'}
+        blurDataURL={src}
         sizes="(max-width: 600px) 40px, 40px"
       />
     )
@@ -104,6 +111,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Get current client for logo and branding
   const { currentClient, isHydrated } = useClient()
+
+  // Get theme context for toggle functionality
+  const { mode, setMode } = useColorScheme()
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
@@ -233,26 +243,38 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     [urlTicker, currentClient?.ticker, storedClient?.ticker]
   )
 
-  const logoSrc = useMemo(
-    () =>
-      props.logoSrc ||
-      (logoTicker
-        ? getClientLogo(
-            currentClient?.company_name || currentClient?.short_name,
-            logoTicker
-          )
-        : '/images/logo.svg'),
-    [
-      props.logoSrc,
-      logoTicker,
-      getClientLogo,
-      currentClient?.company_name,
-      currentClient?.short_name,
-    ]
-  )
+  const logoSrc = useMemo(() => {
+    // If we have a custom logoSrc prop, use it immediately
+    if (props.logoSrc) return props.logoSrc
+
+    // Don't show ANY logo until we're fully hydrated
+    if (!isHydrated) {
+      return null
+    }
+
+    // After hydration, determine the appropriate logo
+    return logoTicker
+      ? getClientLogo(
+        currentClient?.company_name || currentClient?.short_name,
+        logoTicker
+      )
+      : '/images/logo.svg'
+  }, [
+    props.logoSrc,
+    isHydrated,
+    logoTicker,
+    getClientLogo,
+    currentClient?.company_name,
+    currentClient?.short_name,
+  ])
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
+    // Don't render logo if logoSrc is null (waiting for hydration)
+    if (!logoSrc) {
+      return {} // Completely omit logoImg prop
+    }
+
     const isDefaultLogo = logoSrc === '/images/logo.svg'
     const defaultLogoStyles: React.CSSProperties = isDefaultLogo
       ? { height: 30, width: 120 }
@@ -273,18 +295,26 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     if (!props.user) {
       return { src: '/avatars/user.png', alt: 'User Avatar', children: 'US' }
     }
+
     const initials = props.user.name
       ? props.user.name
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
-    return { alt: `${props.user.name || props.user.username} Avatar`, children: initials }
+
+    // Use uploaded image if available, otherwise show initials
+    return {
+      src: props.user.image || undefined,
+      alt: `${props.user.name || props.user.username} Avatar`,
+      children: !props.user.image ? initials : undefined,
+    }
   }, [props.user])
 
-  // Only hide tabs for actual 404/error pages, not for profile or other valid pages
-  const isGlobalNotFound = false
+  // Hide tabs for specific pages that shouldn't have navigation tabs
+  const shouldHideTabs = false // Show tabs on all pages including profile
 
   const endSlot = useCallback(
     () => (
@@ -321,23 +351,37 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const menuItems = useMemo(
     () => [
       { label: 'Profile', onClick: () => router.push('/profile') },
+      {
+        label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
+        onClick: () => setMode(mode === 'light' ? 'dark' : 'light')
+      },
       { label: 'Logout', onClick: () => signOut({ callbackUrl: '/login' }) },
     ],
-    [router]
+    [router, mode, setMode]
   )
 
-  return (
-    <BNAppBar
-      slots={{ logoImg: NextImageComponent, end: endSlot }}
-      slotProps={slotProps}
-      color="secondary"
-      selectedTabValue={currentTab || undefined}
-      LinkComponent={NextLinkComponent}
-      tabs={isGlobalNotFound ? [] : exampleTabs}
-      avatar={avatar}
-      menuItems={menuItems}
-    />
-  )
+  // Create a selectedTabValue that's always a valid tab value
+  // Default to 'meeting' (Dashboard) when no current tab matches
+  const selectedTabValue = currentTab || 'meeting'
+
+  // Prepare props object
+  const appBarProps = {
+    slots: { logoImg: NextImageComponent, end: endSlot },
+    slotProps,
+    color: 'secondary' as const,
+    LinkComponent: NextLinkComponent,
+    tabs: shouldHideTabs ? [] : exampleTabs,
+    avatar,
+    menuItems,
+    selectedTabValue,
+  }
+
+  // Handle SSR where mode might be undefined
+  if (!mode) {
+    return null
+  }
+
+  return <BNAppBar {...appBarProps} />
 })
 
 export { BNAppBar }
