@@ -35,14 +35,13 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
   const [error, setError] = useState<string | null>(null)
 
   const checkDocumentExists = useCallback(
-    async (documentId: string): Promise<boolean> => {
+    async (_documentId: string): Promise<boolean> => {
       try {
         // This would need to call a document API endpoint
         // For now, we'll return true to avoid breaking functionality
         // In production, this should call: await getDocumentById(documentId)
         return true
-      } catch (err) {
-        console.error('Error checking document:', err)
+      } catch {
         return false
       }
     },

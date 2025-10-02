@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react'
 
-import { Close as CloseIcon } from '@mui/icons-material'
+import { CheckCircleOutline, Close as CloseIcon } from '@mui/icons-material'
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
+  Snackbar,
   TextField,
   Typography,
 } from '@mui/material'
@@ -32,6 +34,7 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
   const [revisionText, setRevisionText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
 
   const handleSubmit = async () => {
     if (!revisionText.trim()) {
@@ -46,6 +49,7 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
       await onSubmit(revisionText.trim())
       // Reset form on successful submission
       setRevisionText('')
+      setShowSuccessToast(true)
       onClose()
     } catch (err) {
       console.error('Error submitting revision request:', err)
@@ -64,62 +68,81 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ pb: 1 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          {title}
-          <IconButton
-            onClick={handleClose}
-            disabled={loading}
-            size="small"
-            sx={{ color: 'text.secondary' }}
+    <>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ pb: 1 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <CloseIcon />
-          </IconButton>
-        </div>
-      </DialogTitle>
+            {title}
+            <IconButton
+              onClick={handleClose}
+              disabled={loading}
+              size="small"
+              sx={{ color: 'text.secondary' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
+        </DialogTitle>
 
-      <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {description}
-        </Typography>
+        <DialogContent>
+          <Typography variant="body3" color="text.secondary" sx={{ mb: 2 }}>
+            {description}
+          </Typography>
 
-        <TextField
-          fullWidth
-          label="Revision Details"
-          multiline
-          rows={4}
-          value={revisionText}
-          onChange={(e) => setRevisionText(e.target.value)}
-          placeholder="Please describe the specific revisions needed..."
-          variant="outlined"
-          disabled={loading}
-          error={!!error}
-          helperText={error}
-          sx={{ mb: 2 }}
-        />
-      </DialogContent>
+          <TextField
+            fullWidth
+            label="Revision Details"
+            multiline
+            rows={4}
+            value={revisionText}
+            onChange={(e) => setRevisionText(e.target.value)}
+            placeholder="Please describe the specific revisions needed..."
+            variant="outlined"
+            disabled={loading}
+            error={!!error}
+            helperText={error}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading} variant="outlined">
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={loading || !revisionText.trim()}
-          variant="contained"
-          color="primary"
+        <DialogActions>
+          <Button onClick={handleClose} disabled={loading} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !revisionText.trim()}
+            variant="contained"
+            color="primary"
+          >
+            {loading ? 'Submitting...' : 'Submit Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={showSuccessToast}
+        autoHideDuration={6000}
+        onClose={() => setShowSuccessToast(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setShowSuccessToast(false)}
+          severity="success"
+          icon={<CheckCircleOutline />}
+          sx={{ width: '100%' }}
         >
-          {loading ? 'Submitting...' : 'Submit Request'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          We received your revision request and will review it promptly. You will be
+          notified once the updates are complete.
+        </Alert>
+      </Snackbar>
+    </>
   )
 }
 

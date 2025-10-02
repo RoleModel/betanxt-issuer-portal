@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-17T01:20:22.511Z
+// Generated on 2025-09-30T00:31:43.168Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-// import { supabase } from '@/utils/supabase/client'
+
+import { getDocumentById, updateDocument } from '@/domain-models/api/documents'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -12,35 +14,29 @@ interface RouteParams {
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<RouteParams> }
-) {
+): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params; const id = resolvedParams.id
+    const resolvedParams = await params
+    const id = resolvedParams.id
 
-    // TODO: Implement getDocumentById
-    // Operation: getDocumentById
-    // This route was auto-generated from OpenAPI spec
-    
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .eq('id', id)
+    // Use existing domain model function
+    const { data, error } = await getDocumentById(id)
 
-    return NextResponse.json({
-      message: 'Route /documents/{id} GET not yet implemented',
-      operationId: 'getDocumentById',
-      method: 'GET',
-      path: '/documents/{id}',
-      params: { id },
-    }, { status: 501 }) // 501 Not Implemented
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 500 }
+      )
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /documents/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDocumentById'
+        operationId: 'getDocumentById',
       },
       { status: 500 }
     )
@@ -50,43 +46,34 @@ export async function GET(
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<RouteParams> }
-) {
+): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params; const id = resolvedParams.id
+    const resolvedParams = await params
+    const id = resolvedParams.id
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdateDocumentRequest']
 
-    // TODO: Implement updateDocument
-    // Operation: updateDocument
-    // This route was auto-generated from OpenAPI spec
-    
-    // Example: Update data in Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .update(body)
-    //   .eq('id', id)
-    //   .select()
+    // Use existing domain model function
+    const { data, error } = await updateDocument(id, body)
 
-    return NextResponse.json({
-      message: 'Route /documents/{id} PUT not yet implemented',
-      operationId: 'updateDocument',
-      method: 'PUT',
-      path: '/documents/{id}',
-      params: { id },
-      body,
-    }, { status: 501 }) // 501 Not Implemented
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 500 }
+      )
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PUT /documents/{id}:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateDocument'
+        operationId: 'updateDocument',
       },
       { status: 500 }
     )
   }
 }
-

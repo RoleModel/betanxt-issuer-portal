@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+import type { components } from '@/types/api'
+
+type Meeting = components['schemas']['Meeting']
+
 test.describe('Meeting API Endpoints', () => {
   const API_BASE_URL = 'http://localhost:3001/api'
 
@@ -41,7 +45,7 @@ test.describe('Meeting API Endpoints', () => {
     expect(data).toHaveProperty('meetings')
 
     // All returned meetings should have ACTIVE status
-    data.meetings.forEach((meeting: any) => {
+    data.meetings.forEach((meeting: Meeting) => {
       expect(meeting.status).toBe('ACTIVE')
     })
   })
@@ -53,14 +57,15 @@ test.describe('Meeting API Endpoints', () => {
 
     const data = await response.json()
     expect(data).toHaveProperty('meetings')
-    expect(data).toHaveProperty('total')
-    expect(data).toHaveProperty('page')
-    expect(data).toHaveProperty('limit')
+    expect(data).toHaveProperty('pagination')
+    expect(data.pagination).toHaveProperty('total')
+    expect(data.pagination).toHaveProperty('page')
+    expect(data.pagination).toHaveProperty('limit')
 
     // Should not return more than the limit
     expect(data.meetings.length).toBeLessThanOrEqual(5)
-    expect(data.page).toBe(1)
-    expect(data.limit).toBe(5)
+    expect(data.pagination.page).toBe(1)
+    expect(data.pagination.limit).toBe(5)
   })
 
   test('GET /api/meetings/{id} should return specific meeting', async ({ request }) => {

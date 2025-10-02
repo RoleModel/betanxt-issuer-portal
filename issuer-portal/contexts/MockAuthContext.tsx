@@ -43,11 +43,13 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
         id: session.user.id || '',
         name: session.user.name || '',
         email: session.user.email || '',
-        username: (session.user as any).username || '',
-        type: (session.user as any).type || 'user',
-        accountId: (session.user as any).accountId || '',
-        client: (session.user as any).client || null,
-        roles: (session.user as any).roles || [],
+        username: (session.user as { username?: string }).username || '',
+        type: (session.user as { type?: string }).type || 'user',
+        accountId: (session.user as { accountId?: string }).accountId || '',
+        client:
+          (session.user as { client?: { id: number; name: string } | null }).client ||
+          null,
+        roles: (session.user as { roles?: string[] }).roles || [],
       })
     } else {
       setUser(null)
@@ -60,6 +62,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
       // For now, return true if we have mock credentials
       return username === 'admin' && password === 'admin'
     } catch (error) {
+      console.error('Login failed in MockAuthContext', error)
       return false
     }
   }
@@ -69,7 +72,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
       // This would typically call the NextAuth signOut function
       setUser(null)
     } catch (error) {
-      // Handle logout error
+      console.error('Logout failed in MockAuthContext', error)
     }
   }
 
@@ -96,7 +99,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
         throw new Error('Failed to switch client')
       }
     } catch (error) {
-      // Handle error - maybe show a toast notification
+      console.error('Client switch failed in MockAuthContext', error)
     }
   }
 

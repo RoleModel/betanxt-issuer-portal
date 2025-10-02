@@ -1,66 +1,79 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.100Z
+// Generated on 2025-09-30T00:31:43.170Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
+
+import { getPositionById, updatePosition } from '@/domain-models/api/positions'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+): Promise<NextResponse> {
   try {
-    // TODO: Implement getPositionById
-    // Operation: getPositionById
-    // This route was auto-generated from OpenAPI spec
+    // Extract path parameters
+    const resolvedParams = await params
+    const id = resolvedParams.id
 
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .eq('id', id)
+    // Use existing domain model function
+    const { data, error } = await getPositionById(id)
 
-    return NextResponse.json([])
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 500 }
+      )
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /positions/{id}:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getPositionById'
+        operationId: 'getPositionById',
       },
       { status: 500 }
     )
   }
 }
 
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+): Promise<NextResponse> {
   try {
+    // Extract path parameters
+    const resolvedParams = await params
+    const id = resolvedParams.id
+
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdatePositionRequest']
 
-    // TODO: Implement updatePosition
-    // Operation: updatePosition
-    // This route was auto-generated from OpenAPI spec
+    // Use existing domain model function
+    const { data, error } = await updatePosition(id, body)
 
-    // Example: Update data in Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .update(body)
-    //   .eq('id', id)
-    //   .select()
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 500 }
+      )
+    }
 
-    return NextResponse.json(body)
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PUT /positions/{id}:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updatePosition'
+        operationId: 'updatePosition',
       },
       { status: 500 }
     )
   }
 }
-

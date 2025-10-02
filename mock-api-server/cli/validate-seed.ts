@@ -1,12 +1,86 @@
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
 
 /**
  * Comprehensive database validation - validates every column in every table
  */
 
+type FieldType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'email'
+  | 'url'
+  | 'date'
+  | 'timestamp'
+  | 'decimal'
+  | 'json'
+  | 'enum'
+
+interface TableSchema {
+  required: string[]
+  optional: string[]
+  types: Record<string, FieldType>
+}
+
+interface TableValidationSummary {
+  recordCount: number
+  validation: {
+    valid: boolean
+    errors: string[]
+    warnings: string[]
+    columnStats: Record<
+      string,
+      { totalCount: number; nullCount: number; typeErrors: number }
+    >
+  }
+  data: unknown[]
+}
+
+type ValidationResultsMap = Record<string, { error: string } | TableValidationSummary>
+
+// Minimal structural interfaces (original richer forms were removed during cleanup).
+// Retain only fields accessed later in the script.
+interface Phase {
+  id: string
+  meeting_id: string
+  name: string
+  order_index: number
+}
+
+interface Task {
+  id: string
+  phase_id: string
+  meeting_id: string
+  phase_number?: number
+  title: string
+}
+
+// Added minimal table row interfaces to eliminate `any`
+interface Meeting {
+  id: string
+}
+
+interface Position {
+  id: string
+  meeting_id: string
+  vote_status?: string
+}
+
+interface PositionVote {
+  id: string
+  position_id: string
+}
+
+interface Proposal {
+  id: string
+  meeting_id: string
+}
+
 // Define table schemas with column validation rules
-const TABLE_SCHEMAS = {
+const TABLE_SCHEMAS: Record<string, TableSchema> = {
   account: {
     required: ['id', 'account', 'name'],
     optional: ['primary_contact', 'created_at', 'users', 'meeting'],
@@ -423,9 +497,8 @@ const validateUrl = (url: string): boolean => {
 }
 
 const validateType = (
-  value: any,
-  type: string,
-  _columnName: string
+  value: unknown,
+  type: FieldType
 ): { valid: boolean; error?: string } => {
   if (value === null || value === undefined) {
     return { valid: true } // NULL values are handled separately
@@ -508,7 +581,7 @@ const validateType = (
 
 const validateTableData = (
   tableName: string,
-  data: any[]
+  data: Record<string, unknown>[]
 ): {
   valid: boolean
   errors: string[]
@@ -518,7 +591,7 @@ const validateTableData = (
     { nullCount: number; totalCount: number; typeErrors: number }
   >
 } => {
-  const schema = TABLE_SCHEMAS[tableName as keyof typeof TABLE_SCHEMAS]
+  const schema = TABLE_SCHEMAS[tableName]
   if (!schema) {
     return {
       valid: false,
@@ -551,11 +624,7 @@ const validateTableData = (
         errors.push(`Row ${index + 1}: Required field '${field}' is missing or empty`)
       } else {
         // Validate type
-        const typeValidation = validateType(
-          row[field],
-          (schema.types as any)[field],
-          field
-        )
+        const typeValidation = validateType(row[field], schema.types[field])
         if (!typeValidation.valid) {
           columnStats[field].typeErrors++
           errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`)
@@ -571,11 +640,7 @@ const validateTableData = (
         if (row[field] === null || row[field] === undefined) {
           columnStats[field].nullCount++
         } else {
-          const typeValidation = validateType(
-            row[field],
-            (schema.types as any)[field],
-            field
-          )
+          const typeValidation = validateType(row[field], schema.types[field])
           if (!typeValidation.valid) {
             columnStats[field].typeErrors++
             errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`)
@@ -601,31 +666,22 @@ const validateTableData = (
 }
 
 async function validateSeedData() {
-  console.log('🔍 Comprehensive Database Validation Starting...')
-  console.log('📋 Validating every column in every table\n')
-
   if (!supabase) {
-    console.error(
-      '❌ Supabase client not initialized. Please check your environment variables:'
-    )
-    console.error('   - SUPABASE_URL')
-    console.error('   - SUPABASE_ANON_KEY')
     process.exit(1)
   }
 
-  const validationResults: Record<string, any> = {}
+  const validationResults: ValidationResultsMap = {}
   let totalErrors = 0
   let totalWarnings = 0
 
   try {
     // Validate each table
-    for (const [tableName, _schema] of Object.entries(TABLE_SCHEMAS)) {
-      console.log(`\n🔍 Validating table: ${tableName}`)
-
-      const { data, error } = await supabase.from(tableName).select('*')
+    for (const [tableName] of Object.entries(TABLE_SCHEMAS)) {
+      const { data, error } = await supabase
+        .from(tableName as keyof Database['public']['Tables'])
+        .select('*')
 
       if (error) {
-        console.error(`❌ Error fetching ${tableName}:`, error.message)
         validationResults[tableName] = { error: error.message }
         totalErrors++
         continue
@@ -653,77 +709,89 @@ async function validateSeedData() {
       }
 
       // Show column statistics
-      console.log(`📊 Column Statistics for ${tableName}:`)
-      Object.entries(validation.columnStats).forEach(([col, stats]) => {
-        const nullPercent =
+      Object.entries(validation.columnStats).forEach(([_col, stats]) => {
+        const _nullPercent =
           stats.totalCount > 0
             ? ((stats.nullCount / stats.totalCount) * 100).toFixed(1)
             : '0.0'
-        const errorPercent =
+        const _errorPercent =
           stats.totalCount > 0
             ? ((stats.typeErrors / stats.totalCount) * 100).toFixed(1)
             : '0.0'
 
-        let status = '✅'
-        if (stats.typeErrors > 0) status = '❌'
-        else if (stats.nullCount > stats.totalCount * 0.5) status = '⚠️'
-
-        console.log(
-          `   ${status} ${col}: ${stats.totalCount} records, ${stats.nullCount} nulls (${nullPercent}%), ${stats.typeErrors} type errors (${errorPercent}%)`
-        )
+        // Determine status (not currently output; retained for potential future use)
+        const _status =
+          stats.typeErrors > 0
+            ? '❌'
+            : stats.nullCount > stats.totalCount * 0.5
+              ? '⚠️'
+              : '✅'
       })
 
       // Show first few errors if any
       if (validation.errors.length > 0) {
-        console.log(`🚨 First 5 errors in ${tableName}:`)
+        console.log('   First 5 errors:')
         validation.errors.slice(0, 5).forEach((error) => {
-          console.log(`   • ${error}`)
+          console.log(`     - ${error}`)
         })
         if (validation.errors.length > 5) {
-          console.log(`   ... and ${validation.errors.length - 5} more errors`)
+          console.log(`     ... and ${validation.errors.length - 5} more errors`)
         }
       }
     }
 
     // Business rule validations
-    console.log('\n🔍 Validating Business Rules...')
 
-    const meetings = validationResults.meeting?.data || []
-    const positions = validationResults.position?.data || []
-    const positionVotes = validationResults.position_vote?.data || []
-    const proposals = validationResults.proposal?.data || []
-    const tasks = validationResults.task?.data || []
-    const phases = validationResults.phase?.data || []
+    const meetings =
+      ((validationResults.meeting as TableValidationSummary | undefined)
+        ?.data as Meeting[]) || []
+    const positions =
+      ((validationResults.position as TableValidationSummary | undefined)
+        ?.data as Position[]) || []
+    const positionVotes =
+      ((validationResults.position_vote as TableValidationSummary | undefined)
+        ?.data as PositionVote[]) || []
+    const proposals =
+      ((validationResults.proposal as TableValidationSummary | undefined)
+        ?.data as Proposal[]) || []
+    const tasks =
+      ((validationResults.task as TableValidationSummary | undefined)?.data as Task[]) ||
+      []
+    const phases =
+      ((validationResults.phase as TableValidationSummary | undefined)
+        ?.data as Phase[]) || []
 
     // Rule 1: Every meeting should have positions
     if (meetings.length > 0 && positions.length > 0) {
-      const meetingsWithPositions = new Set(positions.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
+      const meetingsWithPositions = new Set(positions.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
       const meetingsWithoutPositions = meetingIds.filter(
-        (id: any) => !meetingsWithPositions.has(id)
+        (id) => !meetingsWithPositions.has(id)
       )
 
       if (meetingsWithoutPositions.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have positions`)
+        console.log('✅ Business Rule 1: All meetings have positions')
       } else {
-        console.warn(`⚠️  ${meetingsWithoutPositions.length} meetings missing positions`)
+        console.log(
+          `⚠️  Business Rule 1: ${meetingsWithoutPositions.length} meetings without positions`
+        )
         totalWarnings++
       }
     }
 
     // Rule 2: Voted positions should have position votes
     if (positions.length > 0 && positionVotes.length > 0) {
-      const votedPositions = positions.filter((p: any) => p.vote_status === 'Voted')
-      const positionsWithVotes = new Set(positionVotes.map((pv: any) => pv.position_id))
+      const votedPositions = positions.filter((p) => p.vote_status === 'Voted')
+      const positionsWithVotes = new Set(positionVotes.map((pv) => pv.position_id))
       const votedPositionsWithoutVotes = votedPositions.filter(
-        (p: any) => !positionsWithVotes.has(p.id)
+        (p) => !positionsWithVotes.has(p.id)
       )
 
       if (votedPositionsWithoutVotes.length === 0) {
-        console.log(`✅ All ${votedPositions.length} voted positions have votes`)
+        console.log('✅ Business Rule 2: All voted positions have position votes')
       } else {
-        console.warn(
-          `⚠️  ${votedPositionsWithoutVotes.length} voted positions missing votes`
+        console.log(
+          `⚠️  Business Rule 2: ${votedPositionsWithoutVotes.length} voted positions without votes`
         )
         totalWarnings++
       }
@@ -731,57 +799,60 @@ async function validateSeedData() {
 
     // Rule 3: Every meeting should have proposals
     if (meetings.length > 0 && proposals.length > 0) {
-      const meetingsWithProposals = new Set(proposals.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
+      const meetingsWithProposals = new Set(proposals.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
       const meetingsWithoutProposals = meetingIds.filter(
-        (id: any) => !meetingsWithProposals.has(id)
+        (id) => !meetingsWithProposals.has(id)
       )
 
       if (meetingsWithoutProposals.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have proposals`)
+        console.log('✅ Business Rule 3: All meetings have proposals')
       } else {
-        console.warn(`⚠️  ${meetingsWithoutProposals.length} meetings missing proposals`)
+        console.log(
+          `⚠️  Business Rule 3: ${meetingsWithoutProposals.length} meetings without proposals`
+        )
         totalWarnings++
       }
     }
 
     // Rule 4: Every meeting should have phases
     if (meetings.length > 0 && phases.length > 0) {
-      const meetingsWithPhases = new Set(phases.map((p: any) => p.meeting_id))
-      const meetingIds = meetings.map((m: any) => m.id)
-      const meetingsWithoutPhases = meetingIds.filter(
-        (id: any) => !meetingsWithPhases.has(id)
-      )
+      const meetingsWithPhases = new Set(phases.map((p) => p.meeting_id))
+      const meetingIds = meetings.map((m) => m.id)
+      const meetingsWithoutPhases = meetingIds.filter((id) => !meetingsWithPhases.has(id))
 
       if (meetingsWithoutPhases.length === 0) {
-        console.log(`✅ All ${meetings.length} meetings have phases`)
+        console.log('✅ Business Rule 4: All meetings have phases')
       } else {
-        console.warn(`⚠️  ${meetingsWithoutPhases.length} meetings missing phases`)
+        console.log(
+          `⚠️  Business Rule 4: ${meetingsWithoutPhases.length} meetings without phases`
+        )
         totalWarnings++
       }
     }
 
     // Rule 5: Every phase should have tasks
     if (phases.length > 0 && tasks.length > 0) {
-      const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
-      const phaseIds = phases.map((p: any) => p.id)
-      const phasesWithoutTasks = phaseIds.filter((id: any) => !phasesWithTasks.has(id))
+      const phasesWithTasksSet = new Set(tasks.map((t) => t.phase_id))
+      const phaseIds = phases.map((p) => p.id)
+      const phasesWithoutTasks = phaseIds.filter((id) => !phasesWithTasksSet.has(id))
 
       if (phasesWithoutTasks.length === 0) {
-        console.log(`✅ All ${phases.length} phases have tasks`)
+        console.log('✅ Business Rule 5: All phases have tasks')
       } else {
-        console.warn(`⚠️  ${phasesWithoutTasks.length} phases missing tasks`)
+        console.log(
+          `⚠️  Business Rule 5: ${phasesWithoutTasks.length} phases without tasks`
+        )
         totalWarnings++
       }
     }
 
     // Rule 6: Task-Phase Assignment Validation
-    console.log('\n🔍 Validating Task-Phase Assignments...')
 
     // Define expected tasks by phase number (from seed.ts)
     const EXPECTED_TASKS_BY_PHASE: Record<number, string[]> = {
       1: [
-        'DTCC (SPR) Authorization Status',
+        'DTCC authorization',
         'Plan File Request form',
         'Transfer Agent Registered File Request Form',
         'Broadridge/ICS Access',
@@ -870,112 +941,76 @@ async function validateSeedData() {
     let taskPhaseWarnings = 0
 
     if (tasks.length > 0 && phases.length > 0) {
-      // Create phase lookup maps
-      const phaseById = new Map(phases.map((p: any) => [p.id, p]))
-      const phasesByMeetingAndOrder = new Map<string, Map<number, any>>()
-
-      phases.forEach((phase: any) => {
-        if (!phasesByMeetingAndOrder.has(phase.meeting_id)) {
-          phasesByMeetingAndOrder.set(phase.meeting_id, new Map())
-        }
-        phasesByMeetingAndOrder.get(phase.meeting_id)!.set(phase.order_index, phase)
-      })
+      // Create phase lookup map
+      const phaseById: Record<string, Phase> = phases.reduce<Record<string, Phase>>(
+        (acc, p) => {
+          acc[p.id] = p
+          return acc
+        },
+        {}
+      )
 
       // Validate each task
-      tasks.forEach((task: any, _index: any) => {
-        const phase = phaseById.get(task.phase_id)
+      tasks.forEach((task) => {
+        const phase = phaseById[task.phase_id]
 
         if (!phase) {
-          console.error(
-            `❌ Task ${task.id}: References non-existent phase_id '${task.phase_id}'`
-          )
           taskPhaseErrors++
           return
         }
 
-        // Check if task.phase_number matches the phase's order_index
-        // Key date phases have negative order_index (-3, -2, -1), regular phases have positive (1-8)
-        if (
-          task.phase_number !== (phase as any).order_index &&
-          (phase as any).order_index > 0
-        ) {
-          // Only check for regular phases (positive order_index)
-          console.error(
-            `❌ Task ${task.id}: phase_number (${task.phase_number}) doesn't match phase order_index (${(phase as any).order_index})`
-          )
+        if (phase.order_index > 0 && task.phase_number !== phase.order_index) {
           taskPhaseErrors++
         }
 
-        // Check if task.meeting_id matches phase.meeting_id
-        if (task.meeting_id !== (phase as any).meeting_id) {
-          console.error(
-            `❌ Task ${task.id}: meeting_id (${task.meeting_id}) doesn't match phase meeting_id (${(phase as any).meeting_id})`
-          )
+        if (task.meeting_id !== phase.meeting_id) {
           taskPhaseErrors++
         }
 
-        // Check if task title matches expected tasks for this phase number
         if (task.phase_number && EXPECTED_TASKS_BY_PHASE[task.phase_number]) {
           const expectedTasks = EXPECTED_TASKS_BY_PHASE[task.phase_number]
           if (!expectedTasks.includes(task.title)) {
-            console.warn(
-              `⚠️  Task ${task.id}: Unexpected task '${task.title}' in phase ${task.phase_number}`
-            )
             taskPhaseWarnings++
           }
         }
 
-        // Check if phase_id actually exists in phases table
-        if (!phases.find((p: any) => p.id === task.phase_id)) {
-          console.error(
-            `❌ Task ${task.id}: phase_id '${task.phase_id}' not found in phases table`
-          )
+        if (!phaseById[task.phase_id]) {
           taskPhaseErrors++
         }
       })
 
       // Validate phase structure for each meeting
-      const meetingIds = [...new Set(phases.map((p: any) => p.meeting_id))]
-      meetingIds.forEach((meetingId: any) => {
-        const meetingPhases = phases.filter((p: any) => p.meeting_id === meetingId)
+      const meetingIds = Array.from(new Set(phases.map((p) => p.meeting_id)))
+      meetingIds.forEach((meetingId) => {
+        const meetingPhases = phases.filter((p) => p.meeting_id === meetingId)
 
-        // Check if all expected phases exist
         EXPECTED_PHASE_STRUCTURE.forEach((expectedPhase) => {
           const actualPhase = meetingPhases.find(
-            (p: any) => p.order_index === expectedPhase.orderIndex // Direct integer comparison
+            (p) => p.order_index === expectedPhase.orderIndex
           )
 
           if (!actualPhase) {
-            console.error(
-              `❌ Meeting ${meetingId}: Missing expected phase '${expectedPhase.name}' with order_index ${expectedPhase.orderIndex}`
-            )
             taskPhaseErrors++
           } else if (actualPhase.name !== expectedPhase.name) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}: Phase at order_index ${expectedPhase.orderIndex} has name '${actualPhase.name}', expected '${expectedPhase.name}'`
-            )
             taskPhaseWarnings++
           }
         })
 
-        // Check for unexpected phases
-        meetingPhases.forEach((phase: any) => {
+        // Unexpected phases
+        meetingPhases.forEach((phase) => {
           const expectedPhase = EXPECTED_PHASE_STRUCTURE.find(
             (ep) => Math.abs(phase.order_index - ep.orderIndex) < 0.01
           )
           if (!expectedPhase) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}: Unexpected phase '${phase.name}' with order_index ${phase.order_index}`
-            )
             taskPhaseWarnings++
           }
         })
 
-        // Validate task distribution across phases
-        const meetingTasks = tasks.filter((t: any) => t.meeting_id === meetingId)
-        const tasksByPhaseNumber = new Map<number, any[]>()
+        // Task distribution per phase
+        const meetingTasks = tasks.filter((t) => t.meeting_id === meetingId)
+        const tasksByPhaseNumber = new Map<number, Task[]>()
 
-        meetingTasks.forEach((task: any) => {
+        meetingTasks.forEach((task) => {
           if (task.phase_number) {
             if (!tasksByPhaseNumber.has(task.phase_number)) {
               tasksByPhaseNumber.set(task.phase_number, [])
@@ -984,23 +1019,17 @@ async function validateSeedData() {
           }
         })
 
-        // Check if each phase has the expected number of tasks
         Object.entries(EXPECTED_TASKS_BY_PHASE).forEach(([phaseNum, expectedTasks]) => {
-          const phaseNumber = parseInt(phaseNum)
+          const phaseNumber = parseInt(phaseNum, 10)
           const actualTasks = tasksByPhaseNumber.get(phaseNumber) || []
-
           if (actualTasks.length !== expectedTasks.length) {
-            console.warn(
-              `⚠️  Meeting ${meetingId}, Phase ${phaseNumber}: Has ${actualTasks.length} tasks, expected ${expectedTasks.length}`
-            )
             taskPhaseWarnings++
           }
         })
       })
 
-      // Summary of task-phase validation
       if (taskPhaseErrors === 0 && taskPhaseWarnings === 0) {
-        console.log(`✅ All ${tasks.length} tasks are correctly assigned to phases`)
+        console.log('✅ Task-Phase Assignment: All validations passed')
       } else {
         console.log(
           `❌ Task-Phase Assignment Issues: ${taskPhaseErrors} errors, ${taskPhaseWarnings} warnings`
@@ -1010,90 +1039,90 @@ async function validateSeedData() {
       }
 
       // Additional task validation statistics
-      const tasksWithValidPhaseId = tasks.filter((t: any) =>
-        phases.find((p: any) => p.id === t.phase_id)
-      ).length
-      const tasksWithMatchingMeetingId = tasks.filter((t: any) => {
-        const phase = phases.find((p: any) => p.id === t.phase_id)
+      const tasksWithValidPhaseId = tasks.filter((t) => phaseById[t.phase_id]).length
+      const tasksWithMatchingMeetingId = tasks.filter((t) => {
+        const phase = phaseById[t.phase_id]
         return phase && t.meeting_id === phase.meeting_id
       }).length
 
-      console.log(`📊 Task-Phase Statistics:`)
       console.log(
-        `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${((tasksWithValidPhaseId / tasks.length) * 100).toFixed(1)}%)`
+        `   • Tasks with valid phase_id: ${tasksWithValidPhaseId}/${tasks.length} (${(
+          (tasksWithValidPhaseId / tasks.length) *
+          100
+        ).toFixed(1)}%)`
       )
       console.log(
-        `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${((tasksWithMatchingMeetingId / tasks.length) * 100).toFixed(1)}%)`
+        `   • Tasks with matching meeting_id: ${tasksWithMatchingMeetingId}/${tasks.length} (${(
+          (tasksWithMatchingMeetingId / tasks.length) *
+          100
+        ).toFixed(1)}%)`
       )
 
       // Phase utilization statistics
-      const phasesWithTasks = new Set(tasks.map((t: any) => t.phase_id))
-      const unusedPhases = phases.filter((p: any) => !phasesWithTasks.has(p.id))
+      const phasesWithTasksSet = new Set(tasks.map((t) => t.phase_id))
+      const unusedPhases = phases.filter((p) => !phasesWithTasksSet.has(p.id))
 
       if (unusedPhases.length > 0) {
-        console.log(`   • Unused phases: ${unusedPhases.length}/${phases.length}`)
+        console.log(`   • Phases with no tasks: ${unusedPhases.length}/${phases.length}`)
         if (unusedPhases.length <= 5) {
           console.log(
-            `     Unused: ${unusedPhases.map((p: any) => `${p.name} (${p.meeting_id})`).join(', ')}`
+            `     Unused: ${unusedPhases
+              .map((p) => `${p.name} (${p.meeting_id})`)
+              .join(', ')}`
           )
         }
       }
     }
 
     // Final Summary
-    console.log('\n📊 COMPREHENSIVE VALIDATION SUMMARY')
-    console.log('='.repeat(50))
 
-    let totalRecords = 0
+    // Aggregate record count (kept for potential future metrics)
+    let _totalRecords = 0
+    console.log('\n📊 Summary by Table:')
     Object.entries(validationResults).forEach(([tableName, result]) => {
-      if (result.recordCount) {
-        totalRecords += result.recordCount
-        const status = result.validation?.valid ? '✅' : '❌'
-        console.log(`${status} ${tableName}: ${result.recordCount} records`)
+      if ('recordCount' in result) {
+        _totalRecords += result.recordCount
+        const status = result.validation.valid ? '✅' : '❌'
+        console.log(`   ${status} ${tableName}: ${result.recordCount} records`)
       }
     })
-
-    console.log(`\n📈 Total Records: ${totalRecords}`)
     console.log(
       `🎯 Key Tables: ${positions.length} positions, ${positionVotes.length} position votes`
     )
 
     if (totalErrors === 0 && totalWarnings === 0) {
-      console.log('\n🎉 ALL VALIDATIONS PASSED! Database is in perfect condition.')
+      console.log('\n✅ All validations passed successfully!')
     } else {
       console.log(
         `\n⚠️  Validation completed with ${totalErrors} errors and ${totalWarnings} warnings`
       )
 
       if (totalErrors > 0) {
-        console.log('❌ CRITICAL ISSUES FOUND - Please review and fix errors above')
+        console.log('❌ Please fix the errors above before proceeding')
       }
 
       if (totalWarnings > 0) {
-        console.log('⚠️  WARNINGS FOUND - Review warnings for potential improvements')
+        console.log('⚠️  Review warnings for potential issues')
       }
     }
 
     // Data quality recommendations
     if (positions.length < 1000) {
-      console.warn(
+      console.log(
         '\n💡 RECOMMENDATION: Expected thousands of positions for realistic testing'
       )
     }
 
     if (positionVotes.length < 1000) {
-      console.warn(
+      console.log(
         '💡 RECOMMENDATION: Expected thousands of position votes for realistic testing'
       )
     }
 
-    console.log('\n✅ Comprehensive validation complete!')
-
     if (totalErrors > 0) {
       process.exit(1)
     }
-  } catch (error) {
-    console.error('❌ Validation failed:', error)
+  } catch (_error) {
     process.exit(1)
   }
 }

@@ -1,10 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Client Communications Mock API",
+  "display": "Mock API Server",
   "compilerOptions": {
-    "paths": {
-      "@/*": ["./*"]
-    },
     "target": "es2022",
     "lib": ["esnext"],
     "allowJs": true,
@@ -13,29 +10,41 @@
     "strict": true,
     "noImplicitOverride": true,
     "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "types": ["node"],
-    "noErrorTruncation": true,
-    "noEmit": true,
-    "jsx": "preserve"
+    "noErrorTruncation": true
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.js",
     "**/*.cjs",
+    "**/*.js",
     "**/*.mjs",
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["dist", "node_modules", "eslint.config.js"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "eslint.config.js",
+    "playwright-report",
+    "test-results",
+    "**/node_modules/openapi-fetch/**"
+  ]
 }

@@ -1,0 +1,34 @@
+
+> issuer-portal@1.0.0 build
+> next build
+
+   ▲ Next.js 15.5.4
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     ✓ globalNotFound
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 6.3s
+   Linting and checking validity of types ...
+ ⨯ ESLint: Invalid Options: - Unknown options: useEslintrc, extensions - 'extensions' has been removed.
+Failed to compile.
+
+./components/Drawers/PhaseDrawer.tsx:705:61
+Type error: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+[0m [90m 703 |[39m                         sx[33m=[39m{{ fontSize[33m:[39m [32m'14px'[39m[33m,[39m fontWeight[33m:[39m [35m500[39m }}
+ [90m 704 |[39m                       [33m>[39m
+[31m[1m>[22m[39m[90m 705 |[39m                         {formatDaysUntil(calculateDaysUntil(keyDate[33m.[39mdate))}
+ [90m     |[39m                                                             [31m[1m^[22m[39m
+ [90m 706 |[39m                       [33m<[39m[33m/[39m[33mTypography[39m[33m>[39m
+ [90m 707 |[39m                     [33m<[39m[33m/[39m[33mCardContent[39m[33m>[39m
+ [90m 708 |[39m                   [33m<[39m[33m/[39m[33mCard[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /Users/dallas/Development/betanxt-issuer-portal/issuer-portal
+npm error workspace issuer-portal@1.0.0
+npm error location /Users/dallas/Development/betanxt-issuer-portal/issuer-portal
+npm error command failed
+npm error command sh -c next build

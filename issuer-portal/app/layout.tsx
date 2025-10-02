@@ -1,29 +1,36 @@
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import type { Viewport } from 'next'
+import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
 import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type {} from '@mui/material/themeCssVarsAugmentation'
+import type { } from '@mui/material/themeCssVarsAugmentation'
+import { GlobalStyles } from '@mui/material'
+
+import '@/components/Documents/react-pdf.css'
 
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
-import BreakpointIndicator from '@/components/utils/BreakpointIndicator'
+
+import { ClientProvider } from '@/contexts/ClientContext'
 
 const roboto = Roboto({
-  variable: '--font-roboto',
-  display: 'swap',
+  weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto',
   preload: true,
-  weight: ['300', '400', '500', '700'], // Only load needed weights
 })
 
 const robotoCondensed = Roboto_Condensed({
-  variable: '--font-roboto-condensed',
-  display: 'swap',
+  weight: ['400', '500', '700'],
   subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto-condensed',
   preload: true,
-  weight: ['400', '500', '700'], // Only load needed weights
 })
 
 export const viewport: Viewport = {
@@ -40,15 +47,31 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${roboto.variable} ${robotoCondensed.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${roboto.variable} ${robotoCondensed.variable}`}
+    >
+      <GlobalStyles
+        styles={{
+          'html, body': {
+            height: '100%',
+          },
+        }}
+      />
+      <body>
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider>
-          <ThemeRegistry>
-            {children}
-            {process.env.NODE_ENV === 'development' && <BreakpointIndicator />}
-          </ThemeRegistry>
+          <SessionProvider>
+            <ClientProvider>
+              <ThemeRegistry>
+                {children}
+              </ThemeRegistry>
+            </ClientProvider>
+          </SessionProvider>
         </AppRouterCacheProvider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )

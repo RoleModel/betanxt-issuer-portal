@@ -2,9 +2,38 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { getMeetingById, listMeetings } from '@/domain-models/api/meetings'
-import { getPhaseById, listPhases } from '@/domain-models/api/phases'
-import { listPositions } from '@/domain-models/api/positions'
+import buildApiClient from '@/domain-models/apiClient'
+
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
+
+// Type for normalized position with guaranteed fields
+interface NormalizedPosition {
+  id: string
+  voteStatus: string
+  shares: number
+  sharesVoted: number
+  votingSource?: string
+}
+
+// Normalize position data to ensure consistent fields
+function normalizePosition(position: unknown): NormalizedPosition | null {
+  if (!position) return null
+
+  const record = asRecord(position)
+  if (!record) return null
+
+  return {
+    id: asString(record.id) || '',
+    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
+    shares: Number(record.shares) || 0,
+    sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
+    votingSource:
+      asString(record.votingSource) ||
+      asString(record.voting_source) ||
+      asString(record.source) ||
+      undefined,
+  }
+}
 
 export interface TabulationData {
   meeting_id: string
@@ -44,41 +73,58 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
     setError(null)
 
     try {
+      const apiClient = await buildApiClient()
+
       // Fetch meeting details
-      const meetingResult = await getMeetingById(meetingId)
+      const meetingResult = await apiClient.GET('/meetings/{meetingId}', {
+        params: { path: { meetingId } },
+      })
       if (meetingResult.error) {
         throw new Error('Failed to fetch meeting')
       }
 
-      const meeting = meetingResult.data as any
-      if (!meeting) {
+      const meetingRecord = asRecord(meetingResult.data)
+      if (!meetingRecord) {
         throw new Error('Meeting not found')
       }
 
+      const meetingTitle =
+        asString(meetingRecord.title) ?? asString(meetingRecord.meetingTitle) ?? 'Meeting'
+      const meetingDate =
+        asString(meetingRecord.date) ?? asString(meetingRecord.meetingDate) ?? ''
+      const meetingStatus = asString(meetingRecord.status) ?? 'active'
+
       // Fetch positions to calculate tabulation
-      const positionsResult = await listPositions({ meetingId })
-      const positions = (positionsResult.data?.positions || []) as any[]
+      const positionsResult = await apiClient.GET('/positions', {
+        params: { query: { meetingId } },
+      })
+      const positionsRaw = Array.isArray(positionsResult.data)
+        ? positionsResult.data
+        : asArray(asRecord(positionsResult.data)?.positions)
+      const positions = positionsRaw
+        .map((position) => normalizePosition(position))
+        .filter((position): position is NormalizedPosition => position !== null)
 
       // Calculate tabulation summary from positions
       const totalPositions = positions.length
-      const positionsVoted = positions.filter((p) => p.voteStatus === 'Voted').length
-      const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+      const positionsVoted = positions.filter((p) => p.voteStatus === 'VOTED').length
+      const totalShares = positions.reduce((sum, p) => sum + p.shares, 0)
       const sharesVoted = positions
-        .filter((p) => p.voteStatus === 'Voted')
-        .reduce((sum, p) => sum + (p.shares || 0), 0)
+        .filter((p) => p.voteStatus === 'VOTED')
+        .reduce((sum, p) => sum + p.sharesVoted, 0)
 
       const votePercentage =
         totalShares > 0 ? ((sharesVoted / totalShares) * 100).toFixed(2) : '0.00'
 
       // Count voting methods
       const webVotes = positions.filter((p) => p.votingSource === 'WEB').length
-      const paperVotes = positions.filter((p) => p.votingSource === 'PAPER').length
-      const phoneVotes = positions.filter((p) => p.votingSource === 'PHONE').length
+      const paperVotes = positions.filter((p) => p.votingSource === 'PRINT').length
+      const phoneVotes = positions.filter((p) => p.votingSource === 'IVR').length
 
       const tabulationData: TabulationData = {
         meeting_id: meetingId,
-        meeting_title: meeting.title || meeting.meetingTitle || 'Meeting',
-        meeting_date: meeting.date || meeting.meetingDate || '',
+        meeting_title: meetingTitle,
+        meeting_date: meetingDate,
         total_positions: totalPositions,
         positions_voted: positionsVoted,
         total_shares: totalShares.toString(),
@@ -87,30 +133,38 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
         web_votes: webVotes,
         paper_votes: paperVotes,
         phone_votes: phoneVotes,
-        status: meeting.status || 'active',
+        status: meetingStatus,
       }
 
       setData(tabulationData)
 
       // For active meetings, try to get phase dates
-      if (meeting.status !== 'completed') {
+      if (meetingStatus.toLowerCase() !== 'completed') {
         // Fetch phases to find upcoming dates
-        const phasesResult = await listPhases(meetingId)
-        const phases = (phasesResult.data || []) as any[]
+        const phasesResult = await apiClient.GET('/meetings/{meetingId}/phases', {
+          params: { path: { meetingId } },
+        })
+        const phases = asArray(
+          asRecord(phasesResult.data)?.phases ?? phasesResult.data
+        ).map((phase) => asRecord(phase))
 
         // Find the next phase date
         const today = new Date().toISOString().split('T')[0]
         const upcomingPhases = phases
-          .filter((p: any) => p.targetDate && p.targetDate > today)
-          .sort((a: any, b: any) => a.targetDate.localeCompare(b.targetDate))
+          .filter((phase): phase is Record<string, unknown> => Boolean(phase))
+          .map((phase) => ({
+            targetDate: asString(phase.targetDate) ?? asString(phase.target_date) ?? null,
+          }))
+          .filter((phase) => phase.targetDate && phase.targetDate > today)
+          .sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''))
 
         if (upcomingPhases.length > 0) {
-          setNextPhaseDate(upcomingPhases[0].targetDate)
+          setNextPhaseDate(upcomingPhases[0].targetDate || null)
         }
 
         // Set vote cutoff as meeting date
-        if (meeting.date || meeting.meetingDate) {
-          setVoteCutoffDate(meeting.date || meeting.meetingDate)
+        if (meetingDate) {
+          setVoteCutoffDate(meetingDate)
         }
       }
     } catch (err) {

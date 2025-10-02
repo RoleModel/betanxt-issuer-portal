@@ -2,8 +2,10 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
+
+import { ChartDataProvider } from '@/components/Reporting/ChartDataContext'
 
 interface DirectorPerformanceData {
   directorName: string
@@ -24,8 +26,6 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
   loading = false,
   title: _title = 'Director Performance',
 }) => {
-  const theme = useTheme()
-
   if (loading) {
     return (
       <Box
@@ -37,18 +37,8 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
         gap={2}
       >
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body3" color="text.secondary">
           Loading director performance data...
-        </Typography>
-      </Box>
-    )
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
-        <Typography variant="body1" color="text.secondary">
-          No director performance data available for this meeting
         </Typography>
       </Box>
     )
@@ -70,56 +60,93 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
   const abstainPercentageData = chartData.map((item) => item.abstainPercentage)
 
   return (
-    <BarChart
-      height={300}
-      layout="horizontal"
-      series={[
-        {
-          data: forPercentageData,
-          label: 'For',
-          color: theme.palette.success?.main || '#4caf50',
-          stack: 'votes',
-        },
-        {
-          data: againstPercentageData,
-          label: 'Against',
-          color: theme.palette.error?.main || '#f44336',
-          stack: 'votes',
-        },
-        {
-          data: abstainPercentageData,
-          label: 'Abstain',
-          color: theme.palette.warning?.main || '#ff9800',
-          stack: 'votes',
-        },
-      ]}
-      yAxis={[
-        {
-          data: directorNames,
-          scaleType: 'band',
-          tickSize: 7,
-          tickLabelStyle: {
-            fontSize: 12,
-            width: 15,
+    <ChartDataProvider
+      value={{
+        series: [
+          {
+            data: forPercentageData,
+            label: 'For',
+            color: 'var(--mui-palette-chartSeries-1-main)',
+            stack: 'votes',
           },
-        },
-      ]}
-      xAxis={[
-        {
-          min: 0,
-          max: 100,
-          tickNumber: 11,
-        },
-      ]}
-      margin={{ left: 120, right: 10, top: 10, bottom: 40 }}
-      grid={{ vertical: true, horizontal: true }}
-      slotProps={{
-        legend: {
-          direction: 'horizontal',
-          position: { vertical: 'bottom', horizontal: 'center' },
-        },
+          {
+            data: againstPercentageData,
+            label: 'Against',
+            color: 'var(--mui-palette-chartSeries-5-main)',
+            stack: 'votes',
+          },
+          {
+            data: abstainPercentageData,
+            label: 'Abstain',
+            color: 'var(--mui-palette-chartSeries-2-main)',
+            stack: 'votes',
+          },
+        ],
+        yAxis: [
+          {
+            data: directorNames,
+            scaleType: 'band',
+            tickSize: 7,
+            tickLabelStyle: { fontSize: 12, width: 15 },
+          },
+        ],
+        xAxis: [
+          {
+            min: 0,
+            max: 100,
+            tickNumber: 11,
+          },
+        ],
       }}
-    />
+    >
+      <BarChart
+        height={300}
+        layout="horizontal"
+        series={[
+          {
+            data: forPercentageData,
+            label: 'For',
+            color: 'var(--mui-palette-chartSeries-1-main)',
+            stack: 'votes',
+          },
+          {
+            data: againstPercentageData,
+            label: 'Against',
+            color: 'var(--mui-palette-chartSeries-5-main)',
+            stack: 'votes',
+          },
+          {
+            data: abstainPercentageData,
+            label: 'Abstain',
+            color: 'var(--mui-palette-chartSeries-2-main)',
+            stack: 'votes',
+          },
+        ]}
+        yAxis={[
+          {
+            data: directorNames,
+            scaleType: 'band',
+            tickSize: 7,
+            tickLabelStyle: { fontSize: 12, width: 15 },
+          },
+        ]}
+        xAxis={[
+          {
+            min: 0,
+            max: 100,
+            tickNumber: 11,
+          },
+        ]}
+        margin={{ left: 130, right: 30, top: 10, bottom: 10 }}
+        grid={{ vertical: true, horizontal: true }}
+        slotProps={{
+          legend: {
+            direction: 'horizontal',
+            position: { vertical: 'bottom', horizontal: 'center' },
+          },
+        }}
+      />
+    </ChartDataProvider>
   )
 }
 

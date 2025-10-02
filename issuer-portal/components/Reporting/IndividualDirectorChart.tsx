@@ -2,34 +2,29 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography, useTheme } from '@mui/material'
-import { BarChart } from '@mui/x-charts'
+import { Box, CircularProgress, Typography } from '@mui/material'
+import { LineChart } from '@mui/x-charts'
 
-interface IndividualDirectorData {
-  directorName: string
-  proposalTitle: string
-  forVotes: number
-  againstVotes: number
-  abstainVotes: number
-  totalVotes: number
-  finalResult: string
+import { CustomLegend } from './index'
+
+interface DirectorVotingData {
+  year: number
+  forPercentage: number
+  againstPercentage: number
+  abstainPercentage: number
 }
 
 interface IndividualDirectorChartProps {
-  data: IndividualDirectorData[]
+  directorName: string
+  data: DirectorVotingData[]
   loading?: boolean
-  title?: string
-  selectedDirector?: string
 }
 
 const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
+  directorName,
   data,
   loading = false,
-  title: _title = 'Individual Director Performance',
-  selectedDirector,
 }) => {
-  const theme = useTheme()
-
   if (loading) {
     return (
       <Box
@@ -41,106 +36,97 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
         gap={2}
       >
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
-          Loading individual director data...
+        <Typography variant="body3" color="text.secondary">
+          Loading director voting data...
         </Typography>
       </Box>
     )
   }
 
-  // Filter data for selected director if specified
-  const filteredData = selectedDirector
-    ? data.filter((item) => item.directorName === selectedDirector)
-    : data
-
-  if (!filteredData || filteredData.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" height={300}>
         <Typography variant="body1" color="text.secondary">
-          {selectedDirector
-            ? `No data available for director: ${selectedDirector}`
-            : 'No individual director data available'}
+          No voting data available for {directorName}
         </Typography>
       </Box>
     )
   }
 
-  const chartData = filteredData.map((item) => {
-    const total = item.totalVotes || item.forVotes + item.againstVotes + item.abstainVotes
-    return {
-      proposalTitle:
-        item.proposalTitle.length > 30
-          ? `${item.proposalTitle.substring(0, 30)}...`
-          : item.proposalTitle,
-      forPercentage: total > 0 ? Math.round((item.forVotes / total) * 100) : 0,
-      againstPercentage: total > 0 ? Math.round((item.againstVotes / total) * 100) : 0,
-      abstainPercentage: total > 0 ? Math.round((item.abstainVotes / total) * 100) : 0,
-      result: item.finalResult,
-    }
-  })
+  // Sort data by year and extract series
+  const sortedData = [...data].sort((a, b) => a.year - b.year)
+  const years = sortedData.map((d) => d.year)
+  const forVotes = sortedData.map((d) => d.forPercentage)
+  const againstVotes = sortedData.map((d) => d.againstPercentage)
+  const abstainVotes = sortedData.map((d) => d.abstainPercentage)
 
-  const proposalTitles = chartData.map((item) => item.proposalTitle)
-  const forPercentageData = chartData.map((item) => item.forPercentage)
-  const againstPercentageData = chartData.map((item) => item.againstPercentage)
-  const abstainPercentageData = chartData.map((item) => item.abstainPercentage)
+  const legendItems = [
+    {
+      label: 'For',
+      color: 'var(--mui-palette-chartSeries-1-main)',
+      type: 'line' as const,
+    },
+    {
+      label: 'Against',
+      color: 'var(--mui-palette-chartSeries-5-main)',
+      type: 'line' as const,
+    },
+    {
+      label: 'Abstain',
+      color: 'var(--mui-palette-chartSeries-2-main)',
+      type: 'line' as const,
+    },
+  ]
 
   return (
     <Box>
-      {selectedDirector && (
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          {selectedDirector} - Voting History
-        </Typography>
-      )}
-      <BarChart
-        height={Math.max(300, filteredData.length * 40)}
-        layout="horizontal"
+      <LineChart
+        height={300}
         series={[
           {
-            data: forPercentageData,
+            data: forVotes,
             label: 'For',
-            color: theme.palette.success?.main || '#4caf50',
-            stack: 'votes',
+            color: 'var(--mui-palette-chartSeries-1-main)',
+            curve: 'catmullRom',
+            showMark: false,
           },
           {
-            data: againstPercentageData,
+            data: againstVotes,
             label: 'Against',
-            color: theme.palette.error?.main || '#f44336',
-            stack: 'votes',
+            color: 'var(--mui-palette-chartSeries-5-main)',
+            curve: 'catmullRom',
+            showMark: false,
           },
           {
-            data: abstainPercentageData,
+            data: abstainVotes,
             label: 'Abstain',
-            color: theme.palette.warning?.main || '#ff9800',
-            stack: 'votes',
-          },
-        ]}
-        yAxis={[
-          {
-            data: proposalTitles,
-            scaleType: 'band',
-            tickSize: 7,
-            tickLabelStyle: {
-              fontSize: 11,
-              width: 200,
-            },
+            color: 'var(--mui-palette-chartSeries-2-main)',
+            curve: 'catmullRom',
+            showMark: false,
           },
         ]}
         xAxis={[
           {
+            data: years,
+            scaleType: 'point',
+            tickNumber: years.length,
+          },
+        ]}
+        yAxis={[
+          {
             min: 0,
             max: 100,
             tickNumber: 6,
+            label: 'Share of Votes %',
           },
         ]}
-        margin={{ left: 200, right: 10, top: 10, bottom: 40 }}
+        margin={{ left: 20, right: 20, top: 20, bottom: 0 }}
         grid={{ vertical: true, horizontal: true }}
-        slotProps={{
-          legend: {
-            direction: 'horizontal',
-            position: { vertical: 'bottom', horizontal: 'center' },
-          },
+        slots={{
+          legend: () => null,
         }}
       />
+      <CustomLegend items={legendItems} />
     </Box>
   )
 }

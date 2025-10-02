@@ -1,34 +1,16 @@
 import createClient from 'openapi-fetch'
+
 import type { paths } from '@/types/api'
-import { supabase } from '@/utils/supabase/client'
 
 // Create the openapi-fetch client with proper typing
+// Use environment variable to avoid circular dependency when running as mock server
+const baseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:54321/rest/v1'
 const client = createClient<paths>({
-  baseUrl: 'http://localhost:3001/api'
+  baseUrl,
 })
 
 // Export the client directly
 export const apiClient = client
-
-// For backward compatibility with domain models that still use Supabase directly
-// TODO: Refactor domain models to use openapi-fetch instead of direct Supabase access
-export const buildApiClient = () => {
-  return supabase
-}
-
-// Export type for backward compatibility with domain models
-export type ApiClientReturnType<T> =
-  | {
-    data: T
-    error: undefined
-  }
-  | {
-    data: undefined
-    error: {
-      message: string
-      statusCode?: number
-    }
-  }
 
 // Export as default
 export default client

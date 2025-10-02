@@ -6,161 +6,101 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import React, { Suspense, useEffect, useMemo, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
+import * as XLSX from 'xlsx'
 
+import { SmartDisplayOutlined } from '@mui/icons-material'
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 import SearchIcon from '@mui/icons-material/Search'
 import {
   Box,
   Button,
   Card,
-  CardActions,
   CardContent,
   CardHeader,
+  Container,
   FormControl,
   Grid,
+  IconButton,
   InputAdornment,
-  LinearProgress,
-  Link,
   MenuItem,
   Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableFooter,
-  TableHead,
-  TablePagination,
-  TablePaginationActions,
-  TableRow,
   TextField,
   Typography,
 } from '@mui/material'
 
-import StatusChip from '@/components/ui/StatusChip'
+import DSMDocuments from '@/components/Documents/DSMDocuments'
+import DocumentSiteCard from '@/components/Documents/DocumentSiteCard'
+import DocumentsTable from '@/components/Documents/DocumentsTable'
+import EmptyState from '@/components/EmptyState'
+import SkeletonTable from '@/components/ui/SkeletonTable'
 
-import { listDocumentsByMeetingId } from '@/domain-models/api/documents'
 import { components } from '@/domain-models/generated-schema'
 
+import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
-import { formatDate } from '@/lib/formats'
+import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import {
+  DOCUMENT_STATUS_VALUES,
+  ExtendedDocumentStatus,
+  getDocumentStatusLabel,
+  getStoragePublicUrl,
+} from '@/utils/documentUtils'
 
 /**
  * Documents page for managing meeting documents
  * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
  */
 
-type Document = components['schemas']['Document']
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
 
 /**
  * Documents page for managing meeting documents
  * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
  */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+type Document = Omit<components['schemas']['Document'], 'status'> & {
+  status?: ExtendedDocumentStatus
+}
 
 // Dynamic imports for heavy document components to enable route-based code splitting
 const ApprovalDrawer = dynamic(() => import('@/components/Drawers/ApprovalDrawer'), {
-  loading: () => <LinearProgress />,
   ssr: false,
 })
 
 const DocumentViewer = dynamic(() => import('@/components/Documents/DocumentViewer'), {
-  loading: () => <LinearProgress />,
   ssr: false,
 })
 
-const RevisionRequestDialog = dynamic(
-  () => import('@/components/Documents/RevisionRequestDialog'),
-  {
-    loading: () => <LinearProgress />,
-    ssr: false,
-  }
-)
-
 const FileUploadDialog = dynamic(
-  () => import('@/components/file-upload/FileUploadDialog'),
+  () => import('@/components/FileUpload/FileUploadDialog'),
   {
-    loading: () => <LinearProgress />,
     ssr: false,
   }
 )
 
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-// Status types are now handled by the centralized StatusChip component
-
-// Document thumbnail component with proper caching and error handling
-const DocumentThumbnail: React.FC<{
-  filePath?: string | null
-}> = ({ filePath }) => {
-
-  const fileUrl = useMemo(() => {
-    if (!filePath) {
-      return null // No file to display
-    }
-    // For now, just return the file path as is
-    return filePath
-  }, [filePath])
-
-
-  if (!fileUrl) {
-    return (
-      <Box
-        sx={{
-          width: 30,
-          height: 40,
-          maxHeight: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'action.hover',
-          borderRadius: 1,
-          fontSize: '10px',
-        }}
-      >
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '8px' }}>
-          {!fileUrl ? 'No File' : 'Error'}
-        </Typography>
-      </Box>
-    )
-  }
-
-  return (
-    <Box sx={{ position: 'relative', display: 'inline-block' }}>
-      {/* TODO: Add PDFViewer here */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'action.hover',
-          borderRadius: 1,
-          zIndex: 1,
-        }}
-      >
-        <LinearProgress />
-      </Box>
-    </Box>
-  )
-}
+const VideoPlayerDialog = dynamic(() => import('@/components/Video/VideoPlayerDialog'), {
+  ssr: false,
+})
 
 interface DocumentsPageProps {
   params: Promise<{
@@ -168,25 +108,51 @@ interface DocumentsPageProps {
   }>
 }
 
+interface ParsedProposal {
+  proposalNumber: number
+  proposalTitle: string
+  proposalType: string
+  proposalSubtype?: string
+  directorName?: string
+  recommendation: string
+}
+
+interface ExcelRow {
+  [key: string]: string | number | boolean | Date | undefined
+}
+
 export default function DocumentsPage({ params }: DocumentsPageProps) {
-  const resolvedParams = React.use(params)
+  React.use(params) // Consume params but don't store
   const { currentMeeting } = useMeeting()
+  const {
+    documents: regularDocuments,
+    dsmDocuments,
+    loading,
+    error,
+    refreshDocuments,
+    uploadDocument,
+  } = useDocuments()
+  const { uploadProposals } = useVotingTabulation(currentMeeting?.id ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [dsmPage, setDsmPage] = useState(0)
   const [dsmRowsPerPage, setDsmRowsPerPage] = useState(6)
+  const previousMeetingIdRef = React.useRef<string | null>(null)
 
-  // State for documents data
-  const [regularDocuments, setRegularDocuments] = useState<Document[]>([])
-  const [dsmDocuments, setDsmDocuments] = useState<Document[]>([])
-  const [dsmProgress, setDsmProgress] = useState({
-    uploaded: 0,
-    totalRequired: 5,
-    percentage: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Calculate DSM progress
+  const dsmProgress = React.useMemo(() => {
+    // Count documents that have been uploaded (have filePath and status is not NOT_UPLOADED)
+    const uploadedDsm = dsmDocuments.filter(
+      (doc) => doc.filePath && doc.status !== 'NOT_UPLOADED'
+    ).length
+    const totalRequired = 6 // Number of placeholders defined below
+    return {
+      uploaded: uploadedDsm,
+      totalRequired,
+      percentage: totalRequired > 0 ? (uploadedDsm / totalRequired) * 100 : 0,
+    }
+  }, [dsmDocuments])
 
   // ApprovalDrawer state
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false)
@@ -196,64 +162,85 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedDsmDocument, setSelectedDsmDocument] = useState<Document | null>(null)
 
-  // Hosting site states
-  const [hostingSiteStatus, setHostingSiteStatus] = useState<string>('Incomplete')
-  const [revisionDialogOpen, setRevisionDialogOpen] = useState(false)
-  const [hostingSiteViewerOpen, setHostingSiteViewerOpen] = useState(false)
-
   // DocumentViewer state for fullscreen view
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
+
+  // VideoPlayerDialog state
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false)
 
   // Set active meeting based on URL parameter
   // Meeting is set by layout - no need to set it again here
 
-  // Fetch documents from API
+  // Fetch documents from API when meeting changes
   useEffect(() => {
-    const fetchDocuments = async () => {
-      const meetingId = resolvedParams.meetingId
+    if (currentMeeting?.id && previousMeetingIdRef.current !== currentMeeting.id) {
+      previousMeetingIdRef.current = currentMeeting.id
+      refreshDocuments(currentMeeting.id)
+    }
+  }, [currentMeeting?.id, refreshDocuments])
 
-      try {
-        setLoading(true)
-        setError(null)
+  // Refresh documents when page gains focus or becomes visible
+  useEffect(() => {
+    let isInitialMount = true
 
-        const { data, error } = await listDocumentsByMeetingId(meetingId)
-
-        if (error) {
-          setError('Failed to fetch documents')
-          return
-        }
-
-        const documents = data ?? []
-
-        // Separate regular documents from DSM documents
-        const regular = documents.filter((doc) => doc.type !== 'dsm-document')
-        const dsm = documents.filter((doc) => doc.type === 'dsm-document')
-
-        setRegularDocuments(regular)
-        setDsmDocuments(dsm)
-
-        // Calculate DSM progress
-        const uploadedDsm = dsm.filter((doc) => doc.status === 'AUTHORIZED').length
-        setDsmProgress({
-          uploaded: uploadedDsm,
-          totalRequired: Math.max(dsm.length, 5),
-          percentage: Math.round((uploadedDsm / Math.max(dsm.length, 5)) * 100),
-        })
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch documents')
-      } finally {
-        setLoading(false)
+    const handleFocus = () => {
+      if (isInitialMount) {
+        isInitialMount = false
+        return
+      }
+      if (currentMeeting?.id) {
+        refreshDocuments(currentMeeting.id)
       }
     }
 
-    fetchDocuments()
-  }, [resolvedParams.meetingId])
+    const handleVisibilityChange = () => {
+      if (isInitialMount) {
+        isInitialMount = false
+        return
+      }
+      if (!document.hidden && currentMeeting?.id) {
+        refreshDocuments(currentMeeting.id)
+      }
+    }
 
-  // Filter documents based on search and status
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [currentMeeting?.id, refreshDocuments])
+
+  // Helper to normalize raw status values from API / placeholders.
+  const normalizeStatus = React.useCallback(
+    (raw: unknown): ExtendedDocumentStatus | 'UNKNOWN' => {
+      if (!raw || typeof raw !== 'string') return 'NOT_UPLOADED'
+      if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
+        return raw as ExtendedDocumentStatus
+      if (raw === 'NOT_UPLOADED') return 'NOT_UPLOADED'
+      return 'UNKNOWN'
+    },
+    []
+  )
+
+  // Derive unique normalized statuses present in the dataset.
+  const availableStatuses = React.useMemo(() => {
+    const set = new Set<string>()
+    regularDocuments.forEach((doc) => {
+      set.add(normalizeStatus(doc.status))
+    })
+    // Ensure NOT_UPLOADED present if there are documents with no status
+    if (regularDocuments.some((d) => !d.status)) set.add('NOT_UPLOADED')
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [regularDocuments, normalizeStatus])
+
+  // Filter documents based on search and selected (normalized) status
   const filteredDocuments = regularDocuments.filter((doc) => {
     const matchesSearch =
       doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false
-    const matchesStatus = statusFilter === 'All' || doc.status === statusFilter
+    const normalized = normalizeStatus(doc.status)
+    const matchesStatus = statusFilter === 'All' || normalized === statusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -305,78 +292,120 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     setSelectedDsmDocument(null) // Clear selected document when closing
   }
 
-  const handleFilesUpload = async (
-    _files: File[],
-    _associations?: { [fileId: string]: string }
-  ) => {
-    // TODO: Implement file upload using API endpoints
-    // For now, just log the action
-    try {
-      // Would use createDocument API here
-      await handleUploadSuccess()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed')
-    }
-  }
+  // Parse Excel/CSV file for agenda proposals
+  const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
 
-  const handleUploadSuccess = async () => {
-    // Refresh documents after successful upload
-    if (!resolvedParams.meetingId) return
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result
+          const workbook = XLSX.read(data, { type: 'binary' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet)
 
-    const { data } = await listDocumentsByMeetingId(resolvedParams.meetingId)
-    const documents = data ?? []
+          if (jsonData.length === 0) {
+            reject(new Error('The file is empty or has no data rows'))
+            return
+          }
 
-    const regular = documents.filter((doc) => doc.type !== 'dsm-document')
-    const dsm = documents.filter((doc) => doc.type === 'dsm-document')
+          // Map the data to our format
+          const mappedData = jsonData
+            .map((row: ExcelRow) => {
+              const proposalNumber = row['Proposal Number'] || row['Number'] || ''
+              const proposalTitle = row['Proposal Title'] || row['Title'] || ''
+              const proposalType = row['Proposal Type'] || row['Type'] || ''
+              const proposalSubtype = row['Proposal Subtype'] || row['Subtype'] || ''
+              const directorName = row['Director Name'] || row['Director'] || ''
+              const recommendation = row['Recommendation'] || ''
 
-    setRegularDocuments(regular)
-    setDsmDocuments(dsm)
+              // Skip rows without required fields
+              if (!proposalNumber || !proposalTitle) {
+                return null
+              }
 
-    // Calculate DSM progress
-    const uploadedDsm = dsm.filter((doc) => doc.status === 'AUTHORIZED').length
-    setDsmProgress({
-      uploaded: uploadedDsm,
-      totalRequired: Math.max(dsm.length, 5),
-      percentage: Math.round((uploadedDsm / Math.max(dsm.length, 5)) * 100),
+              const parsedProposal: ParsedProposal = {
+                proposalNumber:
+                  typeof proposalNumber === 'number'
+                    ? proposalNumber
+                    : parseFloat(proposalNumber as string) || 0,
+                proposalTitle: String(proposalTitle),
+                proposalType: String(proposalType),
+                recommendation: String(recommendation),
+              }
+
+              if (proposalSubtype) {
+                parsedProposal.proposalSubtype = String(proposalSubtype)
+              }
+
+              if (directorName) {
+                parsedProposal.directorName = String(directorName)
+              }
+
+              return parsedProposal
+            })
+            .filter((item): item is ParsedProposal => item !== null)
+
+          if (mappedData.length === 0) {
+            reject(new Error('No valid proposal data found in file'))
+            return
+          }
+
+          resolve(mappedData)
+        } catch (error) {
+          reject(error)
+        }
+      }
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'))
+      }
+
+      reader.readAsArrayBuffer(file)
     })
   }
 
-  const handleRevisionRequest = () => {
-    setRevisionDialogOpen(true)
-  }
-
-  const handleRevisionDialogClose = () => {
-    setRevisionDialogOpen(false)
-  }
-
-  const handleRevisionSubmit = async (_revisionText: string) => {
+  const handleFilesUpload = async (
+    files: File[],
+    associations?: { [fileId: string]: string }
+  ) => {
+    if (!currentMeeting?.id) return
     try {
-      // Update the hosting site status to "Revisions Requested"
-      setHostingSiteStatus('Revisions Requested')
-      // TODO: Save revision request to database via API
-    } catch (err) {
-      throw err
-    }
-  }
+      // Check if this is an Agenda upload with Excel/CSV file
+      const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
+      const file = files[0]
+      const isExcelOrCsv =
+        file &&
+        (file.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.type === 'application/vnd.ms-excel' ||
+          file.type === 'text/csv' ||
+          file.name.endsWith('.xlsx') ||
+          file.name.endsWith('.xls') ||
+          file.name.endsWith('.csv'))
 
-  const handleViewHostingSite = () => {
-    setHostingSiteViewerOpen(true)
-  }
-
-  const handleHostingSiteViewerClose = () => {
-    setHostingSiteViewerOpen(false)
-  }
-
-  const handleApproveSite = async (): Promise<void> => {
-    try {
-      setHostingSiteStatus('Approved')
-      setHostingSiteViewerOpen(false)
-    } catch (err) {
-      // Handle error
+      if (isAgendaUpload && isExcelOrCsv) {
+        // Parse and upload as proposals
+        const proposals = await parseAgendaFile(file)
+        await uploadProposals(proposals)
+        setUploadDialogOpen(false)
+        setSelectedDsmDocument(null)
+      } else {
+        // Upload as document
+        await uploadDocument(currentMeeting.id, files, 'dsm-document', associations)
+      }
+    } catch {
+      // Error is already handled by the context
     }
   }
 
   const handleDocumentAction = (doc: Document) => {
+    // If this is a placeholder DSM document not yet uploaded, route to upload
+    if (doc.status === 'NOT_UPLOADED') {
+      setSelectedDsmDocument(doc)
+      setUploadDialogOpen(true)
+      return
+    }
     setSelectedDocument(doc)
     setApprovalDrawerOpen(true)
   }
@@ -405,15 +434,12 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     try {
       // TODO: Implement document approval via API
       handleApprovalDrawerClose()
-      await handleUploadSuccess() // Refresh documents
-    } catch (err) {
+      if (currentMeeting?.id) {
+        await refreshDocuments(currentMeeting.id)
+      }
+    } catch {
       // Handle error
     }
-  }
-
-  // Show loading state
-  if (loading) {
-    return <LinearProgress />
   }
 
   // Show error state
@@ -427,380 +453,183 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   return (
     <>
-      <Suspense fallback={<LinearProgress />}>
-        <Box
-          component="main"
-          display="flex"
-          flexDirection="column"
-          gap={3}
-          sx={{ p: { xs: 1, sm: 3 } }}
-        >
-          {/* Main Documents Section */}
-          <Card>
-            <CardHeader
-              title="Documents"
-              action={
-                <Button
-                  variant="contained"
-                  startIcon={<FileUploadOutlinedIcon />}
-                  onClick={handleUpload}
-                >
-                  Upload
-                </Button>
-              }
-            />
-
-            <CardContent sx={{ p: 0 }}>
-              {/* Search and Filter Bar */}
-              <Box sx={{ mb: 2, px: 2 }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <TextField
-                    placeholder="Search Documents"
-                    size="small"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{ minWidth: 250 }}
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                          </InputAdornment>
-                        ),
+      <Suspense>
+        <Container component="main" maxWidth="xl">
+          <Box
+            component="main"
+            display="flex"
+            flexDirection="column"
+            gap={3}
+            sx={{ p: { xs: 1, sm: 3 } }}
+          >
+            {/* Main Documents Section */}
+            <Card>
+              <CardHeader
+                title="Documents"
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<FileUploadOutlinedIcon />}
+                    onClick={handleUpload}
+                  >
+                    Upload
+                  </Button>
+                }
+                avatar={
+                  <IconButton
+                    onClick={() => setVideoDialogOpen(true)}
+                    aria-label="Watch tutorial"
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: (theme) => theme.vars.palette.action.hover,
                       },
                     }}
+                  >
+                    <SmartDisplayOutlined />
+                  </IconButton>
+                }
+              />
+
+              <CardContent sx={{ p: 0 }}>
+                {/* Search and Filter Bar */}
+
+                {loading ? (
+                  <SkeletonTable rows={5} columns={4} />
+                ) : filteredDocuments.length === 0 ? (
+                  <EmptyState
+                    title="No documents"
+                    description={
+                      searchQuery || statusFilter !== 'All'
+                        ? 'No documents match your search criteria.'
+                        : 'Upload documents to get started.'
+                    }
+                    minHeight={300}
                   />
-                  <FormControl size="small" sx={{ minWidth: 150 }}>
-                    <Select
-                      value={statusFilter}
-                      aria-label="Status Filter"
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      displayEmpty
-                    >
-                      <MenuItem value="All">All</MenuItem>
-                      <MenuItem value="Approved">Approved</MenuItem>
-                      <MenuItem value="1/3 Reviews Complete">In Review</MenuItem>
-                      <MenuItem value="Not Uploaded">Not Uploaded</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Stack>
-              </Box>
-
-              {/* Documents Table */}
-              <TableContainer>
-                <Table size="small" sx={{ minWidth: 500 }} aria-label="Event Documents">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ p: 2 }}>Document</TableCell>
-                      <TableCell>Added/Updated</TableCell>
-                      <TableCell sx={{ width: '200px' }}>Status</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(rowsPerPage > 0
-                      ? filteredDocuments.slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      : filteredDocuments
-                    ).map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <DocumentThumbnail filePath={doc.filePath} />
-                            <Typography variant="body2">
-                              {doc.title ?? 'Untitled Document'}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box>
-                            <Typography>System</Typography>
-                            <Typography>
-                              {doc.updatedAt ? formatDate(doc.updatedAt) : 'No date'}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <StatusChip status={(doc.status ?? null) as string | null} />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Button
-                            variant="text"
-                            onClick={() => handleDocumentAction(doc)}
-                          >
-                            {doc.filePath ? 'View' : 'Review'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
-                  </TableBody>
-                  {/* Pagination */}
-                  <TableFooter>
-                    <TableRow sx={{ minWidth: '100%' }}>
-                      <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-                        colSpan={4}
-                        count={filteredDocuments.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        slotProps={{
-                          select: {
-                            inputProps: {
-                              'aria-label': 'rows per page',
+                ) : (
+                  <>
+                    <Box sx={{ mb: 2, px: 2 }}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <TextField
+                          placeholder="Search Documents"
+                          size="small"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          sx={{ minWidth: 250 }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                              ),
                             },
-                            native: true,
-                          },
-                        }}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        ActionsComponent={TablePaginationActions}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
+                          }}
+                        />
+                        <FormControl size="small" sx={{ minWidth: 150 }}>
+                          <Select
+                            value={statusFilter}
+                            aria-label="Status Filter"
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            displayEmpty
+                          >
+                            <MenuItem value="All">All</MenuItem>
+                            {availableStatuses.map((status) => {
+                              const label =
+                                status === 'UNKNOWN'
+                                  ? 'Unknown'
+                                  : getDocumentStatusLabel(
+                                      (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                    )
+                              return (
+                                <MenuItem key={status} value={status}>
+                                  {label}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                    <DocumentsTable
+                      documents={filteredDocuments}
+                      page={page}
+                      rowsPerPage={rowsPerPage}
+                      emptyRows={emptyRows}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      onOpenDocument={handleDocumentAction}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
 
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 8 }}>
-              {/* DSM Documents Section */}
-              <Card>
-                <CardHeader
-                  title={' Digital Shareholder Meeting Documents'}
-                  subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
-                  action={
-                    <Button
-                      variant="contained"
-                      startIcon={<FileUploadOutlinedIcon />}
-                      onClick={handleUpload}
-                      sx={{ textTransform: 'none' }}
-                    >
-                      Upload
-                    </Button>
-                  }
-                />
-
-                <CardContent sx={{ p: 0 }}>
-                  {/* DSM Documents Table */}
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Document</TableCell>
-                          <TableCell>Added/Updated</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {(dsmRowsPerPage > 0
-                          ? dsmDocuments.slice(
-                            dsmPage * dsmRowsPerPage,
-                            dsmPage * dsmRowsPerPage + dsmRowsPerPage
-                          )
-                          : dsmDocuments
-                        ).map((doc) => (
-                          <TableRow key={doc.id}>
-                            <TableCell>
-                              <Typography>{doc.title}</Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Box>
-                                <Typography>System</Typography>
-                                <Typography color="text.secondary">
-                                  {doc.updatedAt ? formatDate(doc.updatedAt) : '—'}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <StatusChip
-                                status={(doc.status ?? null) as string | null}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <Button
-                                variant="text"
-                                onClick={() => {
-                                  if (!doc.filePath) {
-                                    // Open upload dialog for documents without files
-                                    setSelectedDsmDocument(doc) // Set the specific document being uploaded to
-                                    setUploadDialogOpen(true)
-                                  } else {
-                                    // Open approval drawer for documents with files
-                                    handleDocumentAction(doc)
-                                  }
-                                }}
-                              >
-                                {!doc.filePath ? 'Upload' : 'View'}
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {dsmEmptyRows > 0 && (
-                          <TableRow style={{ height: 53 * dsmEmptyRows }}>
-                            <TableCell colSpan={4} />
-                          </TableRow>
-                        )}
-                      </TableBody>
-                      <TableFooter>
-                        <TableRow>
-                          <TablePagination
-                            rowsPerPageOptions={[6, 10, 25, { label: 'All', value: -1 }]}
-                            colSpan={4}
-                            count={dsmDocuments.length}
-                            rowsPerPage={dsmRowsPerPage}
-                            page={dsmPage}
-                            slotProps={{
-                              select: {
-                                inputProps: {
-                                  'aria-label': 'rows per page',
-                                },
-                                native: true,
-                              },
-                            }}
-                            onPageChange={handleDsmChangePage}
-                            onRowsPerPageChange={handleDsmChangeRowsPerPage}
-                            ActionsComponent={TablePaginationActions}
-                          />
-                        </TableRow>
-                      </TableFooter>
-                    </Table>
-                  </TableContainer>
-                </CardContent>
-              </Card>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
+              <Grid size={{ xs: 12, md: 8 }}>
+                {loading ? (
+                  <SkeletonTable rows={5} columns={4} />
+                ) : (
+                  <DSMDocuments
+                    dsmDocuments={dsmDocuments}
+                    dsmPage={dsmPage}
+                    dsmRowsPerPage={dsmRowsPerPage}
+                    dsmEmptyRows={dsmEmptyRows}
+                    dsmProgress={dsmProgress}
+                    onUpload={handleUpload}
+                    onPageChange={handleDsmChangePage}
+                    onRowsPerPageChange={handleDsmChangeRowsPerPage}
+                    onOpenDocument={handleDocumentAction}
+                    onOpenUploadFor={(doc) => {
+                      setSelectedDsmDocument(doc)
+                      setUploadDialogOpen(true)
+                    }}
+                    placeholders={[
+                      {
+                        id: 'placeholder-static-agenda',
+                        title: 'Agenda',
+                      },
+                      {
+                        id: 'placeholder-static-slide',
+                        title: 'Static Slide or Presentation',
+                      },
+                      {
+                        id: 'placeholder-documents-display',
+                        title: 'Documents to Display',
+                      },
+                      { id: 'placeholder-speaker-list', title: 'Speaker List' },
+                      {
+                        id: 'placeholder-guest-registration',
+                        title: 'Guest Link Registration',
+                      },
+                      {
+                        id: 'placeholder-rules',
+                        title: '2025 Virtual Annual Meeting Rules of Conduct',
+                      },
+                      {
+                        id: 'placeholder-forward-looking',
+                        title: 'Forward Looking Statements',
+                      },
+                    ]}
+                  />
+                )}
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <DocumentSiteCard />
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              {/* Document Hosting Site Card */}
-              <Card sx={{ height: 'auto' }}>
-                <CardContent>
-                  <Box
-                    sx={{
-                      p: 2,
-                      backgroundColor: 'background.default',
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'start',
-                      gap: 2,
-                    }}
-                  >
-                    <Typography variant="h4" component="p">
-                      Document Hosting Site
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Verify all shareholder facing sites, you will use the test control
-                      number (123456782) to enter the voting site. Once approved, sites
-                      will be made active in conjunction with the filing mailing date.
-                    </Typography>
-                    <Link
-                      href={
-                        currentMeeting?.client?.brandingId
-                          ? `https://www.proxydocs.com/branding/${currentMeeting.client.brandingId}/2024/issuer/`
-                          : 'https://www.proxydocs.com/branding/966152/2024/issuer/'
-                      }
-                      target="_blank"
-                    >
-                      View Document Hosting Site
-                    </Link>
-                    <StatusChip status={hostingSiteStatus} />
-                  </Box>
-                </CardContent>
-                <CardActions>
-                  <Button
-                    variant="outlined"
-                    onClick={handleViewHostingSite}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    View Site
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={handleRevisionRequest}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Request Revision
-                  </Button>
-                </CardActions>
-              </Card>
-
-              {/* Proxy Push Site Card */}
-              <Card sx={{ height: 'auto', mt: 2 }}>
-                <CardContent>
-                  <Box
-                    sx={{
-                      p: 2,
-                      backgroundColor: 'background.default',
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'start',
-                      gap: 2,
-                    }}
-                  >
-                    <Typography variant="h4" component="p">
-                      Proxy Push Voting Site
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Access the electronic voting platform for shareholders to cast their
-                      votes. Use test control number (123456782) to verify voting
-                      functionality.
-                    </Typography>
-                    <Link
-                      href={
-                        currentMeeting?.ticker
-                          ? `https://www.proxypush.com/evote/${currentMeeting.ticker}/login`
-                          : 'https://www.proxypush.com/evote/WEN/login'
-                      }
-                      target="_blank"
-                    >
-                      View Proxy Push Site
-                    </Link>
-                    <StatusChip status="Incomplete" />
-                  </Box>
-                </CardContent>
-                <CardActions>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      const proxyPushUrl = currentMeeting?.ticker
-                        ? `https://www.proxypush.com/evote/${currentMeeting.ticker}/login`
-                        : 'https://www.proxypush.com/evote/WEN/login'
-                      window.open(proxyPushUrl, '_blank')
-                    }}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Test Voting Site
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+          </Box>
+        </Container>
       </Suspense>
-
-      {/* ApprovalDrawer for document review/view */}
       {selectedDocument && (
         <ApprovalDrawer
           open={approvalDrawerOpen}
           onClose={handleApprovalDrawerClose}
           title={selectedDocument.title || 'Document'}
-          pdfUrl={selectedDocument.filePath || ''}
+          fileUrl={getStoragePublicUrl(selectedDocument.filePath || '')}
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => { }}
+          onAddComment={() => {}}
         />
       )}
 
@@ -809,46 +638,32 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         open={uploadDialogOpen}
         onClose={handleUploadDialogClose}
         onUpload={handleFilesUpload}
-        onUploadSuccess={handleUploadSuccess}
-        meetingId={resolvedParams.meetingId}
+        meetingId={currentMeeting?.id}
         documentType="dsm-document"
-        preSelectedDocumentId={selectedDsmDocument?.id}
+        preSelectedDocumentId={selectedDsmDocument?.title}
       />
 
-      {/* RevisionRequestDialog for requesting hosting site revisions */}
-      <RevisionRequestDialog
-        open={revisionDialogOpen}
-        onClose={handleRevisionDialogClose}
-        onSubmit={handleRevisionSubmit}
-        title="Request Site Revision"
-        description="Please describe the revisions needed for the document hosting site."
-      />
-
-      {/* DocumentViewer for viewing hosting site in iframe */}
-      <DocumentViewer
-        open={hostingSiteViewerOpen}
-        onClose={handleHostingSiteViewerClose}
-        pdfUrl={
-          currentMeeting?.client?.brandingId
-            ? `https://www.proxydocs.com/branding/${currentMeeting.client.brandingId}/2024/issuer/`
-            : 'https://www.proxydocs.com/branding/966152/2024/issuer/'
-        }
-        title="Document Hosting Site"
-        isWebsiteView={true}
-        onApproveSite={handleApproveSite}
-        onRequestRevision={handleRevisionRequest}
-      />
+      {/* Hosting site UI moved to DocumentSiteCard */}
 
       {/* DocumentViewer for fullscreen document view */}
       {selectedDocument && (
         <DocumentViewer
           open={documentViewerOpen}
           onClose={handleDocumentViewerClose}
-          pdfUrl={selectedDocument.filePath || ''}
+          fileUrl={getStoragePublicUrl(selectedDocument.filePath || '')}
           title={selectedDocument.title || 'Document'}
           documentId={selectedDocument.id}
         />
       )}
+
+      {/* VideoPlayerDialog for tutorial */}
+      <VideoPlayerDialog
+        open={videoDialogOpen}
+        onClose={() => setVideoDialogOpen(false)}
+        title="Uploading and Managing Documents"
+        description="Learn how to manage and upload documents for your meeting"
+        seriesNumber="#3"
+      />
     </>
   )
 }

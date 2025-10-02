@@ -1,89 +1,230 @@
-import { type ApiClientReturnType, buildApiClient } from '../apiClient'
+import { randomUUID } from 'crypto'
 
-export async function listPositions(params: {
+import type { components } from '@/types/api'
+import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
+
+// Use generated types from OpenAPI schema
+type Position = components['schemas']['Position']
+type CreatePositionRequest = components['schemas']['CreatePositionRequest']
+type UpdatePositionRequest = components['schemas']['UpdatePositionRequest']
+type PositionRow = Database['public']['Tables']['position']['Row']
+type PositionUpdate = Database['public']['Tables']['position']['Update']
+
+// Helper type for backend responses
+type ApiResponse<T> = {
+  data?: T
+  error?: {
+    message: string
+    statusCode?: number
+  }
+}
+
+// Transform snake_case database fields to camelCase API fields
+function transformPosition(dbPosition: PositionRow): Position {
+  return {
+    id: dbPosition.id,
+    meetingId: nullToUndefined(dbPosition.meeting_id),
+    cusip: nullToUndefined(dbPosition.cusip),
+    accountType: nullToUndefined(dbPosition.account_type),
+    setKey: nullToUndefined(dbPosition.set_key),
+    name: nullToUndefined(dbPosition.name),
+    accountNumber: nullToUndefined(dbPosition.account_number),
+    controlNumber: nullToUndefined(dbPosition.control_number),
+    voteStatus: nullToUndefined(dbPosition.vote_status) as
+      | 'Voted'
+      | 'Unvoted'
+      | undefined,
+    shares: nullToUndefined(dbPosition.shares),
+    sharesVoted: nullToUndefined(dbPosition.shares_voted),
+    source: nullToUndefined(dbPosition.source),
+    dateVoted: nullToUndefined(dbPosition.date_voted),
+    createdAt: nullToUndefined(dbPosition.created_at),
+    updatedAt: nullToUndefined(dbPosition.updated_at),
+  }
+}
+
+export async function listPositions(params?: {
   meetingId?: string
   cusip?: string
   accountType?: string
-  voteStatus?: string
+  voteStatus?: Position['voteStatus']
   page?: number
   limit?: number
   order?: string
   offset?: number
-}): Promise<ApiClientReturnType<any[]>> {
+  select?: string
+}): Promise<ApiResponse<{ positions: Position[] }>> {
   try {
-    const supabase = buildApiClient()
-    const page = params.page || 1
-    const limit = params.limit || 50
-    const offset = params.offset ?? (page - 1) * limit
+    let query = supabase.from('position').select('*')
 
-    let query = supabase.from('position').select('*', { count: 'exact' })
-
-    if (params.meetingId) query = query.eq('meeting_id', params.meetingId)
-    if (params.cusip) query = query.eq('cusip', params.cusip)
-    if (params.accountType) query = query.eq('account_type', params.accountType)
-    if (params.voteStatus) query = query.eq('vote_status', params.voteStatus)
-
-    // Apply ordering if provided (e.g., "shares.desc" or "name.asc")
-    let orderedQuery = query
-    if (params.order) {
-      const [column, direction] = params.order.split('.')
-      orderedQuery = orderedQuery.order(column, { ascending: direction !== 'desc' })
-    } else {
-      orderedQuery = orderedQuery.order('shares', { ascending: false })
+    // Apply filters
+    if (params?.meetingId) {
+      query = query.eq('meeting_id', params.meetingId)
+    }
+    if (params?.voteStatus) {
+      query = query.eq('vote_status', params.voteStatus)
     }
 
-    const { data, error } = await orderedQuery.range(offset, offset + limit - 1)
-
-    if (error)
-      return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
+    // Apply pagination
+    if (params?.limit) {
+      // Supabase range() has internal limits, so we need to be careful
+      // For limits up to 1000, range works fine
+      // For higher limits, we should use limit() directly
+      const offset = params?.offset || 0
+      if (params.limit <= 1000 && offset === 0) {
+        query = query.limit(params.limit)
+      } else if (offset > 0) {
+        query = query.range(offset, offset + params.limit - 1)
+      } else {
+        // For large limits without offset, use limit directly
+        query = query.limit(params.limit)
       }
+    } else {
+      // No limit specified - use default of 1000
+      query = query.limit(1000)
+    }
 
-    // Convert snake_case to camelCase
-    const convertedData = (data || []).map(item => ({
-      ...item,
-      meetingId: item.meeting_id,
-      voteStatus: item.vote_status,
-      accountType: item.account_type,
-      setKey: item.set_key,
-      accountNumber: item.account_number,
-      sharesVoted: item.shares_voted,
-      dateVoted: item.date_voted
-    }))
+    // Apply ordering
+    if (params?.order) {
+      const [column, direction] = params.order.split('.')
+      query = query.order(column, { ascending: direction !== 'desc' })
+    }
 
-    return { data: convertedData, error: undefined }
+    const { data, error } = await query
+
+    if (error) {
+      return {
+        error: { message: error.message || 'Failed to fetch positions' },
+      }
+    }
+
+    return {
+      data: {
+        positions: data.map(transformPosition),
+      },
+    }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to fetch positions',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function createPosition(body: any): Promise<ApiClientReturnType<any>> {
+export async function createPosition(
+  body: CreatePositionRequest
+): Promise<ApiResponse<Position>> {
   try {
-    const supabase = buildApiClient()
+    const request = body
     const { data, error } = await supabase
       .from('position')
-      .insert([body])
+      .insert({
+        id: randomUUID(),
+        meeting_id: request.meetingId,
+        cusip: request.cusip,
+        account_type: request.accountType,
+        set_key: request.setKey,
+        name: request.name,
+        account_number: request.accountNumber,
+        control_number: request.controlNumber,
+        vote_status: request.voteStatus,
+        shares: request.shares,
+        shares_voted: request.sharesVoted || 0,
+        source: request.source,
+        date_voted: request.dateVoted,
+      })
       .select()
       .single()
-    if (error)
+
+    if (error) {
       return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
+        error: { message: error.message || 'Failed to create position' },
       }
-    return { data, error: undefined }
+    }
+
+    return {
+      data: transformPosition(data),
+    }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to create position',
-        statusCode: 500,
+      },
+    }
+  }
+}
+
+export async function getPositionById(id: string): Promise<ApiResponse<Position>> {
+  try {
+    const { data, error } = await supabase
+      .from('position')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      return {
+        error: { message: error.message || 'Failed to fetch position' },
+      }
+    }
+
+    return {
+      data: transformPosition(data),
+    }
+  } catch (error) {
+    return {
+      error: {
+        message: error instanceof Error ? error.message : 'Failed to fetch position',
+      },
+    }
+  }
+}
+
+export async function updatePosition(
+  id: string,
+  body: UpdatePositionRequest
+): Promise<ApiResponse<Position>> {
+  try {
+    const request = body
+    const updateData: Partial<PositionUpdate> = {}
+    if (request.name !== undefined) updateData.name = request.name
+    if (request.accountNumber !== undefined)
+      updateData.account_number = request.accountNumber
+    if (request.controlNumber !== undefined)
+      updateData.control_number = request.controlNumber
+    if (request.shares !== undefined) updateData.shares = request.shares
+    if (request.sharesVoted !== undefined) updateData.shares_voted = request.sharesVoted
+    if (request.voteStatus !== undefined) updateData.vote_status = request.voteStatus
+    if (request.source !== undefined) updateData.source = request.source
+    if (request.dateVoted !== undefined) updateData.date_voted = request.dateVoted
+
+    const { data, error } = await supabase
+      .from('position')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      return {
+        error: { message: error.message || 'Failed to update position' },
+      }
+    }
+
+    return {
+      data: transformPosition(data),
+    }
+  } catch (error) {
+    return {
+      error: {
+        message: error instanceof Error ? error.message : 'Failed to update position',
       },
     }
   }

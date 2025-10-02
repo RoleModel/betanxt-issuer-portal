@@ -1,9 +1,11 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.097Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserById, updateUser, deleteUser } from '@/domain-models/api/users'
+
+import { deleteUser, getUserById, updateUser } from '@/domain-models/api/users'
+
+import type { components } from '@/types/api'
 
 interface RouteParams {
   id: string
@@ -30,12 +32,11 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /users/{id}:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getUserById'
+        operationId: 'getUserById',
       },
       { status: 500 }
     )
@@ -52,7 +53,7 @@ export async function PUT(
     const id = resolvedParams.id
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['UpdateUserRequest']
 
     // Use existing domain model function
     const { data, error } = await updateUser(id, body)
@@ -66,12 +67,11 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PUT /users/{id}:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateUser'
+        operationId: 'updateUser',
       },
       { status: 500 }
     )
@@ -99,15 +99,13 @@ export async function DELETE(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in DELETE /users/{id}:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteUser'
+        operationId: 'deleteUser',
       },
       { status: 500 }
     )
   }
 }
-

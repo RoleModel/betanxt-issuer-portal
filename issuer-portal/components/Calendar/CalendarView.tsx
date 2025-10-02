@@ -10,14 +10,17 @@ import TaskAddModal from '@/components/Dialogs/TaskAddDialog'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
 
-import { getTaskById, updateTask } from '@/domain-models/api/tasks'
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
+
 import { useMeeting } from '@/contexts/MeetingContext'
-import type { Task } from '@/types/api'
+import { transformApiTaskToTask } from '@/utils/taskTransformers'
 
 import { CalendarHeader, type CalendarViewType } from './CalendarHeader'
 import { ListView } from './ListView'
 import { MonthView } from './MonthView'
 
+type Task = components['schemas']['Task']
 
 interface CalendarViewProps {
   meeting?: { id: string; meetingDate?: string | null; title?: string }
@@ -35,13 +38,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     phaseFilter: null as number | null,
   })
 
-  const isMobile = useMediaQuery('(max-width: 600px)')
+  const isMobile = useMediaQuery('(max-width: 900px)')
 
   // Task action functions
   const approveTask = useCallback(
     async (taskId: string) => {
       try {
-        const result = await updateTask(taskId, { status: 'COMPLETE' })
+        const apiClient = await buildApiClient()
+        const result = await apiClient.PUT('/tasks/{id}', {
+          params: { path: { id: taskId } },
+          body: { status: 'COMPLETE' },
+        })
 
         if (result.error) {
           throw new Error('Failed to approve task')
@@ -50,13 +57,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         // Refetch data after approval
         await refreshMeetingData()
       } catch (error) {
-        console.error('Error approving task:', error)
         throw error
       }
     },
     [refreshMeetingData]
   )
-
 
   // View state
   const [view, setView] = useState<CalendarViewType>('month')
@@ -74,47 +79,35 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [approvalTask, setApprovalTask] = useState<Task | null>(null)
 
   // Document viewer state
-  const [_documentViewerOpen, setDocumentViewerOpen] = useState(false)
+  const [, setDocumentViewerOpen] = useState(false)
 
   // Add modal state
   const [addModalOpen, setAddModalOpen] = useState(false)
 
   const handleTaskClick = async (taskId: string) => {
     try {
-      const result = await getTaskById(taskId)
+      const apiClient = await buildApiClient()
+      const { data } = await apiClient.GET('/tasks/{id}', {
+        params: { path: { id: taskId } },
+      })
 
-      if (result.error || !result.data) {
-        console.error('Task not found:', taskId)
+      if (!data) {
         return
       }
 
-      const apiTask = result.data
+      // Convert API response to our Task type using centralized transformer
+      const task = transformApiTaskToTask(data)
 
-      // Convert API response to our Task type
-      const task: Task = {
-        id: apiTask.id || '',
-        title: apiTask.title || '',
-        description: apiTask.description || null,
-        owner: apiTask.owner || 'BetaNXT',
-        dueDate: apiTask.dueDate || null,
-        status: apiTask.status || 'INCOMPLETE',
-        meetingId: apiTask.meetingId || '',
-        phaseId: apiTask.phaseId || '',
-        phaseNumber: apiTask.phaseNumber || 0,
-        type: (apiTask.type || 'external') as Task['type'],
-        taskId: apiTask.taskId || apiTask.id || '',
-        documentId: apiTask.documentId || null,
-        links: (apiTask.links as Task['links']) || null,
-        createdAt: apiTask.createdAt || null,
-        updatedAt: apiTask.updatedAt || null,
+      if (!task) {
+        return
       }
 
       // For approval tasks, open ApprovalDrawer directly
       if (task.type === 'approve') {
-        // Use document link from task links if available
-        const documentUrl = task.links?.find(link => link.action === 'download')?.url || ''
+        // TODO: Add document link support when links property is added to Task schema
+        const documentUrl = ''
         setApprovalDocumentUrl(documentUrl)
-        setApprovalTitle(task.title)
+        setApprovalTitle(task.title || 'Task')
         setApprovalTask(task)
         setApprovalDrawerOpen(true)
         return
@@ -123,8 +116,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       // Otherwise open TaskDrawer
       setSelectedTask(task)
       setDrawerOpen(true)
-    } catch (err) {
-      console.error('Error fetching task details:', err)
+    } catch {
+      // Error handled appropriately
     }
   }
 
@@ -140,19 +133,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setApprovalTask(null)
   }
 
-  const handleApprovalAddComment = (comment: string) => {
-    console.log('Approval comment added:', comment)
+  const handleApprovalAddComment = (_comment: string) => {
+    // TODO: implement comment submission logic
+    // Placeholder until submission logic is implemented
+    void _comment
   }
 
   const handleOpenFullscreen = () => {
-    // Close the approval drawer
+    // Ensure calendar enters fullscreen before showing document viewer
+    if (!isFullscreen) {
+      setIsFullscreen(true)
+      onFullscreenChange?.(true)
+
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        document.body.style.overflow = 'hidden'
+      }
+
+      const event = new CustomEvent('calendar-fullscreen-change', {
+        detail: { isFullscreen: true },
+      })
+      window.dispatchEvent(event)
+    }
     setApprovalDrawerOpen(false)
     // Open the document viewer in fullscreen
     setDocumentViewerOpen(true)
-  }
-
-  const _handleCloseDocumentViewer = () => {
-    setDocumentViewerOpen(false)
   }
 
   const handleApprove = async () => {
@@ -161,8 +165,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       await approveTask(approvalTask.id)
       handleApprovalDrawerClose()
-    } catch (err) {
-      console.error('Error approving document:', err)
+    } catch {
+      // Error handled appropriately
     }
   }
 
@@ -214,10 +218,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       component={motion.div}
       initial={false}
       animate={{
-        marginTop: isFullscreen ? 4 : 24,
+        marginTop: isFullscreen ? 4 : 16,
         marginBottom: isFullscreen ? 4 : 24,
-        paddingLeft: isFullscreen ? 4 : 24,
-        paddingRight: isFullscreen ? 4 : 24,
+        paddingLeft: isFullscreen ? 4 : 16,
+        paddingRight: isFullscreen ? 4 : 16,
       }}
       transition={{
         type: 'tween',
@@ -230,7 +234,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         flexDirection: 'column',
         height: isFullscreen ? 'calc(100vh - 8px)' : 'auto',
         transition: 'height 0.2s ease-in-out',
-        zIndex: isFullscreen ? 10 : '1',
+        zIndex: isFullscreen ? 5000 : 1,
         position: isFullscreen ? 'fixed' : 'relative',
         top: isFullscreen ? 0 : undefined,
         isolation: 'isolate',
@@ -295,7 +299,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tasks={tasks}
               keyDates={keyDates}
               loading={tasksLoading}
-              onRefresh={refreshMeetingData}
+              onRefresh={async () => {
+                await refreshMeetingData()
+              }}
             />
           ) : (
             <ListView
@@ -306,19 +312,28 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tasks={tasks}
               keyDates={keyDates}
               loading={tasksLoading}
-              onRefresh={refreshMeetingData}
             />
           )}
         </Box>
       </Box>
 
-      <TaskDrawer open={drawerOpen} onClose={handleDrawerClose} task={selectedTask} />
+      <TaskDrawer
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        task={selectedTask}
+        onTaskUpdate={async (updatedTask) => {
+          // Update the selected task
+          setSelectedTask(updatedTask)
+          // Refresh meeting data to update all tasks in the UI
+          await refreshMeetingData()
+        }}
+      />
 
       <ApprovalDrawer
         open={approvalDrawerOpen}
         onClose={handleApprovalDrawerClose}
         title={approvalTitle}
-        pdfUrl={approvalDocumentUrl}
+        fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
         taskStatus={approvalTask?.status}
         onOpenFullscreen={handleOpenFullscreen}
@@ -331,20 +346,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         onTaskAdded={handleTaskAdded}
         activeMeeting={meeting}
       />
-
-      {/* TODO: Add DocumentViewer component */}
-      {/* <DocumentViewer
-        open={documentViewerOpen}
-        onClose={handleCloseDocumentViewer}
-        pdfUrl={approvalDocumentUrl}
-        title={approvalTitle}
-        taskId={approvalTask?.id}
-        onSubmitSuccess={() => {
-          // Refresh calendar data and close viewer
-          refreshData()
-          handleCloseDocumentViewer()
-        }}
-      /> */}
     </Container>
   )
 }

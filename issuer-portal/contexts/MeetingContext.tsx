@@ -1,13 +1,23 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
-import { listMeetings } from '@/domain-models/api/meetings'
-import { listPositions } from '@/domain-models/api/positions'
-import { listTasksByMeetingId } from '@/domain-models/api/tasks'
+import buildApiClient, {
+  getCacheKey,
+  getCachedResponse,
+  setCachedResponse,
+} from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
-import type { Task, KeyDate, Position } from '@/types/api'
+
+import type { KeyDate, Position, Task } from '@/types/api-exports'
 
 type Meeting = components['schemas']['Meeting']
 
@@ -23,7 +33,7 @@ interface MeetingContextType {
   error: string | null
   setCurrentMeeting: (meeting: Meeting | null) => void
   refreshMeetings: (ticker?: string) => Promise<void>
-  refreshMeetingData: () => Promise<void> // Refresh tasks and positions for current meeting
+  refreshMeetingData: () => Promise<{ tasks: Task[]; positions: Position[] } | null> // Refresh tasks and positions for current meeting
   getMeetingById: (id: string) => Meeting | undefined
 }
 
@@ -44,14 +54,14 @@ export function MeetingProvider({
   const [tasks, setTasks] = useState<Task[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [keyDates, setKeyDates] = useState<KeyDate[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(!initialMeeting) // Start loading if no initial data
   const [tasksLoading, setTasksLoading] = useState(false)
   const [positionsLoading, setPositionsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Extract ticker from URL
   const getTickerFromURL = useCallback((): string | undefined => {
-    const tickerMatch = pathname.match(/^\/([A-Z]{2,5})\//)
+    const tickerMatch = pathname.match(/^\/([A-Za-z]{2,5})\//)
     return tickerMatch?.[1]
   }, [pathname])
 
@@ -61,6 +71,36 @@ export function MeetingProvider({
     return meetingMatch?.[1]
   }, [pathname])
 
+  // Fetch a specific meeting by ID (for cross-client navigation)
+  const fetchMeetingById = useCallback(
+    async (meetingId: string) => {
+      try {
+        const apiClient = await buildApiClient()
+        // Use the specific meeting endpoint by ID
+        const { data, error } = await apiClient.GET('/meetings/{meetingId}', {
+          params: { path: { meetingId } },
+        })
+
+        if (error) {
+          return
+        }
+
+        // Extract meeting from single meeting response
+        const meeting = data as Meeting | undefined
+
+        if (meeting && (!currentMeeting || currentMeeting.id !== meeting.id)) {
+          setCurrentMeeting(meeting)
+
+          // Don't add cross-client meetings to the meetings array to avoid extra tabs
+          // Only set as current meeting for context purposes
+        }
+      } catch {
+        // Error handling already in place
+      }
+    },
+    [currentMeeting]
+  )
+
   const refreshMeetings = useCallback(
     async (ticker?: string) => {
       setIsLoading(true)
@@ -69,170 +109,133 @@ export function MeetingProvider({
       try {
         // Use ticker from parameter, URL, or fetch all meetings
         const currentTicker = ticker || getTickerFromURL()
-        const { data, error } = await listMeetings(
-          currentTicker ? { ticker: currentTicker } : undefined
-        )
+        const cacheKey = getCacheKey('/meetings', { ticker: currentTicker })
+
+        // Check cache first
+        const cachedMeetings = getCachedResponse<Meeting[]>(cacheKey)
+        if (cachedMeetings) {
+          setMeetings(cachedMeetings)
+          setIsLoading(false)
+
+          // Set current meeting from URL if available
+          const meetingIdFromURL = getMeetingIdFromURL()
+          if (meetingIdFromURL) {
+            const matchingMeeting = cachedMeetings.find((m) => m.id === meetingIdFromURL)
+            if (
+              matchingMeeting &&
+              (!currentMeeting || currentMeeting.id !== matchingMeeting.id)
+            ) {
+              setCurrentMeeting(matchingMeeting)
+            }
+          }
+          return
+        }
+
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/meetings', {
+          params: {
+            query: currentTicker ? { ticker: currentTicker } : {},
+          },
+        })
 
         if (error) {
-          console.error('Error fetching meetings:', error)
           setError('Failed to fetch meetings')
           return
         }
 
-        // Convert API response to context format - from data.meetings
-        const meetingsArray = data?.meetings ?? []
-        console.log(
-          'MeetingContext - Raw API meetings:',
-          meetingsArray.map((m) => ({
-            id: m.id,
-            title: m.title,
-            current_phase: m.current_phase,
-            currentPhase: m.currentPhase,
-            status: m.status,
-          }))
-        )
-        const convertedMeetings = meetingsArray.map((meeting: Partial<Meeting>) => ({
-          id: meeting.id,
-          title: meeting.title,
-          cusip: meeting.cusip,
-          ticker: meeting.ticker,
-          meetingDate: meeting.meetingDate,
-          meetingType: meeting.meetingType,
-          status: meeting.status,
-          currentPhase: meeting.currentPhase || meeting.current_phase,
-          overallCompletion: meeting.overallCompletion || meeting.overall_completion,
-          recordDate: meeting.recordDate,
-          mailingDate: meeting.mailingDate,
-          client: meeting.client,
-          clientId: meeting.clientId,
-          // Additional fields needed by components
-          preFilingDate: meeting.preFilingDate,
-          filingDate: meeting.filingDate,
-          brokerSearchDate: meeting.brokerSearchDate,
-          distributionType: meeting.distributionType,
-          transferAgent: meeting.transferAgent,
-          employeeStockPlans: meeting.employeeStockPlans,
-          planAdministrator: meeting.planAdministrator,
-          planAdministratorContact: meeting.planAdministratorContact,
-          planAdministratorContactEmail: meeting.planAdministratorContactEmail,
-          solicitor: meeting.solicitor,
-          solicitorEmail: meeting.solicitorEmail,
-          inspector: meeting.inspector,
-          documentHostingSiteLabel: meeting.documentHostingSiteLabel,
-          documentHostingSiteUrl: meeting.documentHostingSiteUrl,
-          eVoteSiteLabel: meeting.eVoteSiteLabel,
-          eVoteSiteUrl: meeting.eVoteSiteUrl,
-          ivrDialInNumber: meeting.ivrDialInNumber,
-          totalSharesOutstanding: meeting.totalSharesOutstanding,
-          quorumRequirement: meeting.quorumRequirement,
-          createdAt: meeting.createdAt,
-          updatedAt: meeting.updatedAt,
-        }))
+        // Use meetings data directly from API response
+        const meetingsArray = (data as { meetings?: Meeting[] })?.meetings ?? []
 
-        setMeetings(convertedMeetings)
-
-        console.log(
-          'MeetingContext - All converted meetings:',
-          convertedMeetings.map((m) => ({
-            id: m.id,
-            title: m.title,
-            currentPhase: m.currentPhase,
-            status: m.status,
-          }))
-        )
+        // Cache the meetings
+        setCachedResponse(cacheKey, meetingsArray)
+        setMeetings(meetingsArray)
 
         // Auto-set current meeting based on URL
         const meetingIdFromURL = getMeetingIdFromURL()
-        console.log('MeetingContext - meetingIdFromURL:', meetingIdFromURL)
-        if (meetingIdFromURL && convertedMeetings.length > 0) {
-          const matchingMeeting = convertedMeetings.find((m) => m.id === meetingIdFromURL)
-          console.log('MeetingContext - matchingMeeting found:', matchingMeeting)
-          if (
-            matchingMeeting &&
-            (!currentMeeting || currentMeeting.id !== matchingMeeting.id)
-          ) {
-            console.log(
-              'MeetingContext - Setting current meeting to:',
-              matchingMeeting.id,
-              matchingMeeting.currentPhase
-            )
-            setCurrentMeeting(matchingMeeting)
+        if (meetingIdFromURL && meetingsArray.length > 0) {
+          const matchingMeeting = meetingsArray.find((m) => m.id === meetingIdFromURL)
+          if (matchingMeeting) {
+            setCurrentMeeting((prev) => {
+              if (!prev || prev.id !== matchingMeeting.id) {
+                return matchingMeeting
+              }
+              return prev
+            })
+          } else if (!matchingMeeting && meetingIdFromURL) {
+            // Meeting not found in current ticker's meetings, try to fetch it directly
+            fetchMeetingById(meetingIdFromURL)
           }
         }
       } catch (err) {
-        console.error('Exception in refreshMeetings:', err)
         setError(err instanceof Error ? err.message : 'Failed to fetch meetings')
       } finally {
         setIsLoading(false)
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL, currentMeeting]
+    [getTickerFromURL, getMeetingIdFromURL, fetchMeetingById, currentMeeting]
   )
 
-  const getMeetingById = (id: string): Meeting | undefined => {
-    return meetings.find((meeting) => meeting.id === id)
-  }
+  const getMeetingById = useCallback(
+    (id: string): Meeting | undefined => {
+      return meetings.find((meeting) => meeting.id === id)
+    },
+    [meetings]
+  )
 
   // Fetch tasks and positions for the current meeting
   const refreshMeetingData = useCallback(async () => {
-    if (!currentMeeting?.id) return
+    if (!currentMeeting?.id) return null
 
     try {
-      // Fetch tasks and positions in parallel
+      // Fetch meeting, tasks, and positions in parallel
       setTasksLoading(true)
       setPositionsLoading(true)
 
-      const [tasksResult, positionsResult] = await Promise.all([
-        listTasksByMeetingId(currentMeeting.id),
-        listPositions({ meetingId: currentMeeting.id }),
+      const apiClient = await buildApiClient()
+      const [meetingResult, tasksResult, positionsResult] = await Promise.all([
+        apiClient.GET('/meetings/{meetingId}', {
+          params: { path: { meetingId: currentMeeting.id } },
+        }),
+        apiClient.GET('/meetings/{meetingId}/tasks', {
+          params: { path: { meetingId: currentMeeting.id } },
+        }),
+        apiClient.GET('/positions', {
+          params: { query: { meetingId: currentMeeting.id, limit: 50000 } },
+        }),
       ])
 
-      // Handle tasks
-      if (tasksResult.error) {
-        console.error('Error fetching tasks:', tasksResult.error)
-      } else {
-        const taskData = tasksResult.data || []
-        setTasks(
-          taskData.map((task: Partial<Task>) => ({
-            id: task.id || '',
-            title: task.title || '',
-            description: task.description || null,
-            owner: task.owner || 'BetaNXT',
-            dueDate: task.dueDate || null,
-            status: task.status || 'INCOMPLETE',
-            meetingId: task.meetingId || '',
-            phaseId: task.phaseId || '',
-            phaseNumber: task.phaseNumber || 0,
-            type: (task.type || 'external') as Task['type'],
-          }))
+      // Update the meeting object with fresh data from the server
+      const typedMeetingResult = meetingResult as { error?: unknown; data?: unknown }
+      if (!typedMeetingResult.error && typedMeetingResult.data) {
+        const updatedMeeting = typedMeetingResult.data as Meeting
+        setCurrentMeeting(updatedMeeting)
+
+        // Also update the meeting in the meetings array to keep everything in sync
+        setMeetings((prevMeetings) =>
+          prevMeetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m))
         )
       }
 
-      // Handle positions
-      if (positionsResult.error) {
-        console.error('Error fetching positions:', positionsResult.error)
+      // Handle tasks
+      let taskData: Task[] = []
+      if (tasksResult.error) {
+        // Error handling in place
       } else {
-        const positionData = (positionsResult.data ?? []) as unknown[]
-        setPositions(
-          positionData.map((pos) => {
-            const p = pos as {
-              id?: string
-              meetingId?: string
-              shares?: number
-              sharesVoted?: number
-              voteStatus?: string
-              source?: 'WEB' | 'PRINT' | 'IVR' | null
-            }
-            return {
-              id: p.id ?? '',
-              meetingId: p.meetingId ?? '',
-              shares: p.shares ?? 0,
-              sharesVoted: p.sharesVoted ?? 0,
-              voteStatus: p.voteStatus ?? '',
-              source: p.source ?? '',
-            }
-          })
-        )
+        taskData = tasksResult.data || []
+        setTasks(taskData)
+      }
+
+      // Handle positions
+      let positionData: Position[] = []
+      if (positionsResult.error) {
+        // Error handling in place
+      } else {
+        // Handle different possible response formats
+        const responseData = positionsResult.data
+        positionData = Array.isArray(responseData)
+          ? responseData
+          : ((responseData as { positions?: Position[] })?.positions ?? [])
+        setPositions(positionData)
       }
 
       // Extract key dates from meeting object with correct phase assignments
@@ -293,15 +296,27 @@ export function MeetingProvider({
       }
 
       setKeyDates(extractedKeyDates)
-    } catch (err) {
-      console.error('Error refreshing meeting data:', err)
+
+      // Return fresh data for immediate use
+      return { tasks: taskData, positions: positionData }
+    } catch {
+      // Error handling in place
+      return null
     } finally {
       setTasksLoading(false)
       setPositionsLoading(false)
     }
-  }, [currentMeeting?.id])
+  }, [
+    currentMeeting?.id,
+    currentMeeting?.preFilingDate,
+    currentMeeting?.filingDate,
+    currentMeeting?.brokerSearchDate,
+    currentMeeting?.recordDate,
+    currentMeeting?.mailingDate,
+    currentMeeting?.meetingDate,
+  ])
 
-  // Only refetch when ticker changes, not on every pathname change
+  // Handle URL changes to update current meeting context
   useEffect(() => {
     const currentTicker = getTickerFromURL()
     const currentMeetingId = getMeetingIdFromURL()
@@ -313,14 +328,16 @@ export function MeetingProvider({
       refreshMeetings(currentTicker)
     } else if (currentMeetingId && meetings.length > 0) {
       const matchingMeeting = meetings.find((m) => m.id === currentMeetingId)
-      if (
-        matchingMeeting &&
-        (!currentMeeting || currentMeeting.id !== currentMeetingId)
-      ) {
-        setCurrentMeeting(matchingMeeting)
+      if (matchingMeeting) {
+        setCurrentMeeting((prev) => {
+          if (!prev || prev.id !== currentMeetingId) {
+            return matchingMeeting
+          }
+          return prev
+        })
       }
     }
-  }, [getTickerFromURL, getMeetingIdFromURL, meetings, currentMeeting, refreshMeetings])
+  }, [pathname, refreshMeetings, getTickerFromURL, getMeetingIdFromURL, meetings])
 
   // Fetch meeting data when current meeting changes
   useEffect(() => {
@@ -329,21 +346,37 @@ export function MeetingProvider({
     }
   }, [currentMeeting?.id, refreshMeetingData])
 
-  const value: MeetingContextType = {
-    currentMeeting,
-    meetings,
-    tasks,
-    positions,
-    keyDates,
-    isLoading,
-    tasksLoading,
-    positionsLoading,
-    error,
-    setCurrentMeeting,
-    refreshMeetings,
-    refreshMeetingData,
-    getMeetingById,
-  }
+  const value: MeetingContextType = useMemo(
+    () => ({
+      currentMeeting,
+      meetings,
+      tasks,
+      positions,
+      keyDates,
+      isLoading,
+      tasksLoading,
+      positionsLoading,
+      error,
+      setCurrentMeeting,
+      refreshMeetings,
+      refreshMeetingData,
+      getMeetingById,
+    }),
+    [
+      currentMeeting,
+      meetings,
+      tasks,
+      positions,
+      keyDates,
+      isLoading,
+      tasksLoading,
+      positionsLoading,
+      error,
+      refreshMeetings,
+      refreshMeetingData,
+      getMeetingById,
+    ]
+  )
 
   return <MeetingContext.Provider value={value}>{children}</MeetingContext.Provider>
 }

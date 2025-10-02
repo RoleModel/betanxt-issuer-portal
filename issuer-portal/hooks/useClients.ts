@@ -3,8 +3,13 @@
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { listClients } from '@/domain-models/api/clients'
-import type { components } from '@/domain-models/generated-schema'
+import buildApiClient, {
+  getCacheKey,
+  getCachedResponse,
+  setCachedResponse,
+} from '@/domain-models/apiClient'
+
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 export interface Client {
   id: string
@@ -18,8 +23,11 @@ export interface Client {
   primary_contact?: string
   primary_contact_email?: string
   is_active?: boolean
+  branding_id?: number
   created_at?: string
   updated_at?: string
+  phase?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 // Event phase for routing logic
+  meeting_id?: string // Default meeting ID for the client
   // Added: accounts returned by /clients API (used for filtering meetings by accountId)
   accounts?: Array<{
     id: string
@@ -35,30 +43,124 @@ export interface UseClientsResult {
   refetch: () => Promise<void>
 }
 
-type ApiClient = components['schemas']['Client']
+const pickNumber = (
+  source: Record<string, unknown>,
+  keys: string[]
+): number | undefined => {
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string') {
+      const parsed = Number(value)
+      if (Number.isFinite(parsed)) return parsed
+    }
+  }
+  return undefined
+}
 
-export const transformApiClients = (apiClients: ApiClient[]): Client[] => {
-  return apiClients
-    .filter(
-      (client) => client.id && client.ticker && (client.companyName || client.shortName)
-    )
-    .map((client) => ({
-      id: client.id as string,
-      name: (client.companyName || client.shortName) as string,
-      ticker: client.ticker as string,
-      company_name: client.companyName || undefined,
-      short_name: client.shortName || undefined,
-      industry: (client.industry ?? undefined) as string | undefined,
-      description: (client.description ?? undefined) as string | undefined,
-      website: (client.website ?? undefined) as string | undefined,
-      primary_contact: (client.primaryContact ?? undefined) as string | undefined,
-      primary_contact_email: (client.primaryContactEmail ?? undefined) as
-        | string
-        | undefined,
-      is_active: client.isActive as boolean | undefined,
-      created_at: client.createdAt || undefined,
-      updated_at: client.updatedAt || undefined,
-    }))
+const normalizeClient = (raw: unknown): Client | null => {
+  const record = asRecord(raw)
+  if (!record) return null
+
+  const id = asString(record.id)
+  const ticker = asString(record.ticker)
+  const companyName =
+    asString(record.companyName) ??
+    asString(record.company_name) ??
+    asString(record.shortName) ??
+    asString(record.short_name)
+
+  if (!id || !ticker || !companyName) {
+    return null
+  }
+
+  const accountsRaw = record.accounts
+  const accounts = Array.isArray(accountsRaw)
+    ? accountsRaw
+        .map((account) => asRecord(account))
+        .filter((account): account is Record<string, unknown> => Boolean(account))
+        .map((account) => ({
+          id: asString(account.id) ?? '',
+          name: asString(account.name) ?? undefined,
+          primary_contact: asString(account.primary_contact) ?? undefined,
+        }))
+        .filter((account) => account.id)
+    : undefined
+
+  const phaseValue = pickNumber(record, ['phase']) ?? 2
+  const phase = (phaseValue >= 1 && phaseValue <= 8 ? phaseValue : 2) as
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5
+    | 6
+    | 7
+    | 8
+
+  return {
+    id,
+    name: companyName,
+    ticker,
+    company_name: companyName,
+    short_name: asString(record.shortName) ?? asString(record.short_name) ?? companyName,
+    industry: asString(record.industry) ?? undefined,
+    description: asString(record.description) ?? undefined,
+    website: asString(record.website) ?? undefined,
+    primary_contact:
+      asString(record.primaryContact) ?? asString(record.primary_contact) ?? undefined,
+    primary_contact_email:
+      asString(record.primaryContactEmail) ??
+      asString(record.primary_contact_email) ??
+      undefined,
+    is_active:
+      typeof record.isActive === 'boolean'
+        ? record.isActive
+        : typeof record.is_active === 'boolean'
+          ? record.is_active
+          : undefined,
+    branding_id: pickNumber(record, ['brandingId', 'branding_id']),
+    created_at: asString(record.createdAt) ?? asString(record.created_at) ?? undefined,
+    updated_at: asString(record.updatedAt) ?? asString(record.updated_at) ?? undefined,
+    phase,
+    meeting_id: asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
+    accounts,
+  }
+}
+
+export const transformApiClients = (apiClients: unknown[]): Client[] => {
+  return apiClients.reduce<Client[]>((acc, rawClient) => {
+    const client = normalizeClient(rawClient)
+    if (client) {
+      acc.push(client)
+    }
+    return acc
+  }, [])
+}
+
+const extractClientPayload = (payload: unknown): unknown[] => {
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  const record = asRecord(payload)
+  if (!record) {
+    return []
+  }
+
+  return asArray(record.clients)
+}
+
+const getApiErrorMessage = (err: unknown, fallback: string): string => {
+  if (!err) return fallback
+  if (typeof err === 'string') return err
+  if (typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message
+    }
+  }
+  return fallback
 }
 
 export const useClients = (): UseClientsResult => {
@@ -73,18 +175,33 @@ export const useClients = (): UseClientsResult => {
       setLoading(true)
       setError(null)
 
+      const cacheKey = getCacheKey('/clients', { bypassAuth, userId: session?.user?.id })
+
+      // Check cache first
+      const cachedClients = getCachedResponse<Client[]>(cacheKey)
+      if (cachedClients) {
+        setClients(cachedClients)
+        setLoading(false)
+        return
+      }
+
       // If using auth bypass, just fetch all clients directly
       if (bypassAuth) {
-        const result = await listClients()
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/clients')
 
-        if ('error' in result && result.error) {
+        if (error) {
           throw new Error(
-            `API Error: ${result.error.message || 'Failed to fetch clients'}`
+            `API Error: ${getApiErrorMessage(error, 'Failed to fetch clients')}`
           )
         }
 
-        const apiClients: ApiClient[] = result.data?.clients ?? []
-        setClients(transformApiClients(apiClients))
+        const apiClients = extractClientPayload(data)
+        const transformedClients = transformApiClients(apiClients)
+
+        // Cache the transformed clients
+        setCachedResponse(cacheKey, transformedClients)
+        setClients(transformedClients)
         return
       }
 
@@ -97,16 +214,22 @@ export const useClients = (): UseClientsResult => {
 
       // For authenticated users, fetch clients they have access to
       // For now, just fetch all clients (can be refined later for user-specific access)
-      const result = await listClients()
+      const apiClient = await buildApiClient()
+      const { data, error } = await apiClient.GET('/clients')
 
-      if ('error' in result && result.error) {
-        const errorMsg = `API Error: ${result.error.message || 'Failed to fetch clients'}`
-        throw new Error(errorMsg)
+      if (error) {
+        const message = getApiErrorMessage(error, 'Failed to fetch clients')
+        throw new Error(`API Error: ${message}`)
       }
 
       // Transform the API response to match our Client interface
-      const apiClients: ApiClient[] = result.data?.clients ?? []
-      setClients(transformApiClients(apiClients))
+      // The API returns an array directly, not wrapped in a 'clients' property
+      const apiClients = extractClientPayload(data)
+      const transformedClients = transformApiClients(apiClients)
+
+      // Cache the transformed clients
+      setCachedResponse(cacheKey, transformedClients)
+      setClients(transformedClients)
     } catch (err) {
       let errorMessage = 'Failed to fetch clients'
 

@@ -1,8 +1,8 @@
-import '@mui/material/styles'
-
 import '@rolemodel/betanxt-design-system/components'
 // Import betanxt design system type customizations
 import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+
+import '@mui/material/styles'
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {

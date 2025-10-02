@@ -335,7 +335,7 @@ paths:
                   clients:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Client'
+                      $ref: '#/components/schemas/Clients'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
         '401':
@@ -359,7 +359,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -385,7 +385,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
@@ -414,7 +414,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/Clients'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -651,6 +651,136 @@ paths:
                 required:
                   - accounts
                   - total
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # User Profile Photo Endpoints
+  /users/{id}/avatar:
+    post:
+      operationId: uploadUserAvatar
+      summary: Upload user profile photo
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The profile photo file (JPEG, PNG, WebP)
+                scale:
+                  type: number
+                  format: float
+                  minimum: 0.5
+                  maximum: 2.0
+                  default: 1.0
+                  description: Scale factor for cropping (0.5x to 2x zoom)
+      responses:
+        '201':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+                    format: uri
+                    description: Public URL of the uploaded avatar
+                  message:
+                    type: string
+                    example: 'Avatar uploaded successfully'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteUserAvatar
+      summary: Remove user profile photo
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      responses:
+        '200':
+          description: Avatar removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Avatar removed successfully'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}/avatar/url:
+    get:
+      operationId: getUserAvatarUrl
+      summary: Get user profile photo URL
+      tags: [Users, Profile]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user
+      responses:
+        '200':
+          description: Avatar URL retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: Public URL of the user's avatar, null if no avatar set
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
@@ -1088,6 +1218,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Document'
+                  meetingId:
+                    type: string
+                    description: Meeting identifier (redundant with path but useful for backend validation)
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -1204,6 +1337,359 @@ paths:
           $ref: '#/components/responses/NotFound'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  # Phase 1 & 2 Document Workflow Endpoints
+  /documents/forms/{formType}/sign-digital:
+    post:
+      operationId: signFormDigital
+      summary: Digitally sign a generated form
+      tags: [Documents]
+      parameters:
+        - name: formType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [FORM_OF_PROXY, VIF, CONTROLLED_ACCOUNT_REPORT]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meetingId, signerUserId]
+              properties:
+                meetingId:
+                  type: string
+                signerUserId:
+                  type: string
+                  description: User performing the digital signature
+                signatureReason:
+                  type: string
+                  description: Optional reason or context for the signature
+                replaceExisting:
+                  type: boolean
+                  description: If true, replaces any existing signature artifact
+      responses:
+        '200':
+          description: Form executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /documents/forms/{formType}/upload-executed:
+    post:
+      operationId: uploadExecutedForm
+      summary: Upload executed (wet-signed) form PDF
+      tags: [Documents]
+      parameters:
+        - name: formType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [FORM_OF_PROXY, VIF, CONTROLLED_ACCOUNT_REPORT]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file]
+              properties:
+                meetingId:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                  description: Executed (signed) form PDF
+                originalGeneratedId:
+                  type: string
+                  description: If provided, links the upload to a previously generated draft form
+      responses:
+        '201':
+          description: Form executed via upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: File too large
+
+  /documents/types/{documentType}/upload:
+    post:
+      operationId: uploadDocumentVersion
+      summary: Upload or create a new document version (proxy or supporting)
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ProxyMaterialType or SupportingDocumentType
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file]
+              properties:
+                meetingId:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                  description: Document file content
+                versionNotes:
+                  type: string
+                  description: Optional notes describing the changes or purpose of this version
+      responses:
+        '201':
+          description: Version uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: File too large
+
+  /documents/types/{documentType}/{versionId}/approve:
+    post:
+      operationId: approveDocumentVersion
+      summary: Approve a pending proxy material version
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: versionId
+
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meetingId]
+              properties:
+                meetingId:
+                  type: string
+                comment:
+                  type: string
+                  description: Optional approval comment
+      responses:
+        '200':
+          description: Version approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Invalid state transition
+
+  /documents/types/{documentType}/{versionId}/replace:
+    post:
+      operationId: replaceApprovedVersion
+      summary: Replace an approved proxy material (creates new pending version)
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [meetingId, file, reason]
+              properties:
+                meetingId:
+                  type: string
+                reason:
+                  type: string
+                  description: Business justification for replacement
+                file:
+                  type: string
+                  format: binary
+                  description: Replacement document file content
+      responses:
+        '201':
+          description: Replacement version uploaded (previous approved retained)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Invalid state transition
+
+  /documents/readiness:
+    get:
+      operationId: getDocumentsReadiness
+      summary: Get readiness aggregation for a meeting
+      tags: [Documents]
+      parameters:
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Readiness status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phase1Ready:
+                    type: boolean
+                  phase2Ready:
+                    type: boolean
+                  overallReady:
+                    type: boolean
+                  outstandingPhase1:
+                    type: array
+                    items:
+                      type: object
+                  outstandingPhase2:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /documents/types/{documentType}/history:
+    get:
+      operationId: getDocumentHistory
+      summary: Get version history for a document type within a meeting
+      tags: [Documents]
+      parameters:
+        - name: documentType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # DSM Configuration Endpoints
+  /meetings/{meetingId}/dsm-config:
+    get:
+      operationId: getDSMConfig
+      summary: Get DSM configuration for a meeting
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DSM configuration retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createOrUpdateDSMConfig
+      summary: Create or update DSM configuration
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DSMConfig'
+      responses:
+        '200':
+          description: DSM configuration saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    put:
+      operationId: updateDSMConfig
+      summary: Update DSM configuration
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DSMConfig'
+      responses:
+        '200':
+          description: DSM configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DSMConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # Position Management Endpoints (Supabase PostgREST)
   /positions:
@@ -1355,6 +1841,111 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   # Proposal Management Endpoints
+  /meetings/{meetingId}/tabulation-report:
+    get:
+      operationId: getTabulationReport
+      summary: Get pre-calculated tabulation report for a meeting
+      tags: [Reports]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tabulation report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TabulationReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /meetings/{meetingId}/mailing:
+    get:
+      operationId: getMailingStatistics
+      summary: Get mailing statistics for a meeting
+      tags: [Reports]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Meeting ID to get mailing statistics for
+      responses:
+        '200':
+          description: Mailing statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mailing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /meetings/{meetingId}/digital-shareholder-meeting:
+    get:
+      operationId: getDigitalShareholderMeeting
+      summary: Get digital shareholder meeting attendees
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Meeting ID
+      responses:
+        '200':
+          description: Digital shareholder meeting data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DigitalShareholderMeeting'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      operationId: createDigitalShareholderMeetingAttendees
+      summary: Bulk create digital shareholder meeting attendees
+      tags: [Meetings]
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateDigitalShareholderMeetingRequest'
+      responses:
+        '201':
+          description: Attendees created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DigitalShareholderMeeting'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /meetings/{meetingId}/proposals:
     get:
       operationId: listProposals
@@ -1470,7 +2061,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
 
   # Voting Endpoints (Supabase PostgREST)
   # Note: Supabase auto-generates endpoints based on table names
@@ -1646,6 +2236,82 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /documents/{id}/events:
+    get:
+      operationId: getDocumentEvents
+      summary: Get event history for a specific document
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: addDocumentEvent
+      summary: Add event to document history
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventType]
+              properties:
+                eventType:
+                  type: string
+                  enum:
+                    [
+                      CREATED,
+                      UPLOADED,
+                      VIEWED,
+                      DOWNLOADED,
+                      NOT_UPLOADED,
+                      SIGNED,
+                      APPROVED,
+                      REJECTED,
+                      COMMENTED,
+                      UPDATED,
+                      DELETED,
+                    ]
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Event added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # Notification Management Endpoints
   /notifications:
     get:
@@ -1753,11 +2419,34 @@ components:
 
     TaskStatus:
       type: string
-      enum: [INCOMPLETE, COMPLETE, CANCELLED, NEEDS_AUTHORIZATION, AUTHORIZED]
+      enum:
+        [
+          INCOMPLETE,
+          COMPLETE,
+          CANCELLED,
+          NEEDS_AUTHORIZATION,
+          AUTHORIZED,
+          PENDING_AUTHORIZATION,
+          WAITING_FOR_FORM_RETURN,
+          AUTHORIZATION_NEEDED,
+          SUBMITTED_AWAITING_RECORD_DATE,
+          REQUEST_FORM_TO_FOLLOW,
+        ]
 
     DocumentStatus:
       type: string
-      enum: [DRAFT, UPLOADED, IN_PROGRESS, SIGNED, AUTHORIZED, COMPLETED]
+      enum:
+        [
+          DRAFT,
+          AWAITING_DRAFT,
+          AWAITING_REVIEW,
+          APPROVED,
+          UPLOADED,
+          IN_PROGRESS,
+          SIGNED,
+          AUTHORIZED,
+          COMPLETED,
+        ]
 
     # Core Models
     Account:
@@ -1778,10 +2467,10 @@ components:
           type: string
           format: date-time
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: '#/components/schemas/Clients'
           description: The client this account belongs to (relationship)
 
-    Client:
+    Clients:
       type: object
       properties:
         id:
@@ -1832,14 +2521,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        accounts:
-          type: object
-          nullable: true
-          description: JSON array of related account information
-        meetings:
-          type: object
-          nullable: true
-          description: JSON array of related meeting information
 
     User:
       type: object
@@ -1868,49 +2549,55 @@ components:
           nullable: true
         account:
           $ref: '#/components/schemas/Account'
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL of the user's profile photo stored in Supabase Storage
+          example: https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
 
     Meeting:
       type: object
       properties:
         id:
           type: string
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         title:
           type: string
-          example: "2025 Annual Shareholder Meeting"
+          example: '2025 Annual Shareholder Meeting'
         cusip:
           type: string
-          example: "12345A678"
+          example: '12345A678'
         ticker:
           type: string
-          example: "ACME"
+          example: 'ACME'
         preFilingDate:
           type: string
           format: date
           nullable: true
-          example: "2025-02-15"
+          example: '2025-02-15'
         filingDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-01"
+          example: '2025-03-01'
         brokerSearchDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-15"
+          example: '2025-03-15'
         recordDate:
           type: string
           format: date
-          example: "2025-04-01"
+          example: '2025-04-01'
         mailingDate:
           type: string
           format: date
-          example: "2025-04-15"
+          example: '2025-04-15'
         meetingDate:
           type: string
           format: date
-          example: "2025-05-15"
+          example: '2025-05-15'
         meetingType:
           type: string
         meetingYear:
@@ -1920,7 +2607,7 @@ components:
           $ref: '#/components/schemas/MeetingStatus'
         currentPhase:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         overallCompletion:
           type: integer
           minimum: 0
@@ -1928,10 +2615,10 @@ components:
           example: 75
         distributionType:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         transferAgent:
           type: string
-          example: "Computershare Trust Company"
+          example: 'Computershare Trust Company'
         employeeStockPlans:
           type: string
           nullable: true
@@ -1976,7 +2663,7 @@ components:
           type: string
           format: date-time
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: '#/components/schemas/Clients'
           description: The client this meeting belongs to (relationship)
 
     Phase:
@@ -1985,15 +2672,15 @@ components:
         id:
           type: string
           format: uuid
-          example: "11111111-2222-3333-4444-555555555555"
+          example: '11111111-2222-3333-4444-555555555555'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         name:
           type: string
-          example: "Notice & Access"
+          example: 'Notice & Access'
         orderIndex:
           type: integer
           example: 1
@@ -2007,22 +2694,22 @@ components:
               type: string
               format: date
               nullable: true
-              example: "2025-03-01"
+              example: '2025-03-01'
             endDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-31"
+              example: '2025-03-31'
             dueDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-25"
+              example: '2025-03-25'
             completionDate:
               type: string
               format: date
               nullable: true
-              example: "2025-03-20"
+              example: '2025-03-20'
         createdAt:
           type: string
           format: date-time
@@ -2036,45 +2723,45 @@ components:
         id:
           type: string
           format: uuid
-          example: "22222222-3333-4444-5555-666666666666"
+          example: '22222222-3333-4444-5555-666666666666'
         taskId:
           type: string
-          example: "T001"
+          example: 'T001'
         phaseId:
           type: string
           format: uuid
-          example: "11111111-2222-3333-4444-555555555555"
+          example: '11111111-2222-3333-4444-555555555555'
         meetingId:
           type: string
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         phaseNumber:
           type: integer
           example: 1
         title:
           type: string
-          example: "Prepare proxy statement"
+          example: 'Prepare proxy statement'
         description:
           type: string
           nullable: true
-          example: "Draft and review the preliminary proxy statement for the annual meeting"
+          example: 'Draft and review the preliminary proxy statement for the annual meeting'
         type:
           type: string
-          example: "DOCUMENT_PREPARATION"
+          example: 'DOCUMENT_PREPARATION'
         status:
           $ref: '#/components/schemas/TaskStatus'
         dueDate:
           type: string
           format: date
           nullable: true
-          example: "2025-03-15"
+          example: '2025-03-15'
         owner:
           type: string
-          example: "Legal Team"
+          example: 'Legal Team'
         documentId:
           type: string
           format: uuid
           nullable: true
-          example: "33333333-4444-5555-6666-777777777777"
+          example: '33333333-4444-5555-6666-777777777777'
         links:
           type: object
           nullable: true
@@ -2136,15 +2823,65 @@ components:
           type: string
           format: date-time
           nullable: true
+        deadline:
+          type: string
+          format: date-time
+          nullable: true
         history:
           type: object
           nullable: true
+        approvedBy:
+          type: string
+          nullable: true
+          description: User who approved the document
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the document was approved
+        createdBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: User ID who created the document
+        createdByFirstName:
+          type: string
+          nullable: true
+          description: First name of user who created the document
+        createdByLastName:
+          type: string
+          nullable: true
+          description: Last name of user who created the document
+        updatedBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: User ID who last updated the document
+        updatedByFirstName:
+          type: string
+          nullable: true
+          description: First name of user who last updated the document
+        updatedByLastName:
+          type: string
+          nullable: true
+          description: Last name of user who last updated the document
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+        displayCategory:
+          type: string
+          nullable: true
+          description: Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
+          enum:
+            - general
+            - dsm
+            - proxy-materials
+            - meeting-materials
+            - post-meeting
+            - internal
         meeting:
           $ref: '#/components/schemas/Meeting'
         comments:
@@ -2162,24 +2899,24 @@ components:
         id:
           type: string
           format: uuid
-          example: "44444444-5555-6666-7777-888888888888"
+          example: '44444444-5555-6666-7777-888888888888'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         cusip:
           type: string
-          example: "12345A678"
+          example: '12345A678'
         accountType:
           type: string
-          example: "BENEFICIAL"
+          example: 'BENEFICIAL'
         setKey:
           type: string
-          example: "BEN001"
+          example: 'BEN001'
         name:
           type: string
-          example: "VANGUARD GROUP INC"
+          example: 'VANGUARD GROUP INC'
         accountNumber:
           type: string
           nullable: true
@@ -2215,30 +2952,30 @@ components:
         id:
           type: string
           format: uuid
-          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: "01234567-89ab-cdef-0123-456789abcdef"
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         proposalNumber:
           type: number
           format: double
           example: 1.01
         proposalTitle:
           type: string
-          example: "Election of Directors"
+          example: 'Election of Directors'
         proposalType:
           type: string
-          example: "DIRECTOR_ELECTION"
+          example: 'DIRECTOR_ELECTION'
         proposalSubtype:
           type: string
           nullable: true
-          example: "BOARD_MEMBER"
+          example: 'BOARD_MEMBER'
         directorName:
           type: string
           nullable: true
-          example: "John A. Smith"
+          example: 'John A. Smith'
         directorTermYears:
           type: integer
           nullable: true
@@ -2258,62 +2995,62 @@ components:
         finalResult:
           type: string
           nullable: true
-          enum: ["PASSED", "FAILED", "PENDING"]
-          description: "Final result of the proposal voting"
-          example: "PASSED"
+          enum: ['PASSED', 'FAILED', 'PENDING']
+          description: 'Final result of the proposal voting'
+          example: 'PASSED'
         totalVotesFor:
           type: integer
           nullable: true
-          description: "Total number of votes in favor"
+          description: 'Total number of votes in favor'
           example: 150000000
         totalVotesAgainst:
           type: integer
           nullable: true
-          description: "Total number of votes against"
+          description: 'Total number of votes against'
           example: 25000000
         totalVotesAbstain:
           type: integer
           nullable: true
-          description: "Total number of abstained votes"
+          description: 'Total number of abstained votes'
           example: 5000000
         totalSharesEligible:
           type: integer
           nullable: true
-          description: "Total number of shares eligible to vote"
+          description: 'Total number of shares eligible to vote'
           example: 200000000
         forPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of votes in favor"
+          description: 'Percentage of votes in favor'
           example: 85.7
         againstPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of votes against"
+          description: 'Percentage of votes against'
           example: 12.5
         abstainPercentage:
           type: number
           format: float
           nullable: true
-          description: "Percentage of abstained votes"
+          description: 'Percentage of abstained votes'
           example: 2.5
         participationRate:
           type: number
           format: float
           nullable: true
-          description: "Overall participation rate"
+          description: 'Overall participation rate'
           example: 90.0
         votingCompleted:
           type: boolean
           default: false
-          description: "Whether voting on this proposal has been completed"
+          description: 'Whether voting on this proposal has been completed'
         votingCompletedAt:
           type: string
           format: date-time
           nullable: true
-          description: "When voting was completed"
+          description: 'When voting was completed'
         createdAt:
           type: string
           format: date-time
@@ -2327,24 +3064,24 @@ components:
         id:
           type: string
           format: uuid
-          example: "55555555-6666-7777-8888-999999999999"
+          example: '55555555-6666-7777-8888-999999999999'
         positionId:
           type: string
           format: uuid
           x-foreign-key: position.id
-          example: "44444444-5555-6666-7777-888888888888"
+          example: '44444444-5555-6666-7777-888888888888'
         proposalId:
           type: string
           format: uuid
           x-foreign-key: proposal.id
-          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
+          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
         vote:
           type: string
-          example: "FOR"
+          example: 'FOR'
         sharesVoting:
           type: string
           format: int64
-          example: "1000000"
+          example: '1000000'
         createdAt:
           type: string
           format: date-time
@@ -2410,6 +3147,46 @@ components:
           format: date-time
         document:
           $ref: '#/components/schemas/Document'
+
+    DocumentHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            [
+              CREATED,
+              UPLOADED,
+              VIEWED,
+              DOWNLOADED,
+              SIGNED,
+              APPROVED,
+              REJECTED,
+              COMMENTED,
+              UPDATED,
+              DELETED,
+            ]
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        document:
+          $ref: '#/components/schemas/Document'
+        user:
+          $ref: '#/components/schemas/User'
 
     # Request/Response Models
     CreateAccountRequest:
@@ -2604,6 +3381,12 @@ components:
         accountId:
           type: string
           format: uuid
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL of the user's profile photo stored in Supabase Storage
+          example: https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
 
     CreateMeetingRequest:
       type: object
@@ -2858,14 +3641,20 @@ components:
           maxLength: 200
         description:
           type: string
+          nullable: true
+          description: Optional human readable description for the document
         type:
           type: string
+          description: Canonical document type (proxy material or supporting)
         taskId:
           type: string
           format: uuid
+          nullable: true
+          description: Optional task linkage identifier
         file:
           type: string
           format: binary
+          description: Document file content upload
 
     UpdateDocumentRequest:
       type: object
@@ -3069,6 +3858,333 @@ components:
           type: string
           format: date-time
           nullable: true
+
+    Mailing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+          example: '01234567-89ab-cdef-0123-456789abcdef'
+        ticker:
+          type: string
+          example: 'PAYC'
+        totalAccounts:
+          type: integer
+          description: Total number of accounts
+        totalPositions:
+          type: integer
+          description: Total number of positions
+        totalRetransmissions:
+          type: integer
+          nullable: true
+          description: Number of retransmissions
+        totalRollups:
+          type: integer
+          nullable: true
+          description: Number of rollups
+        fullsetMailPositions:
+          type: integer
+          description: Number of fullset mail positions
+        naaMailPositions:
+          type: integer
+          description: Number of NAA mail positions
+        courtesyOtherMailPositions:
+          type: integer
+          nullable: true
+          description: Number of courtesy/other mail positions
+        electronicSuppressedPositions:
+          type: integer
+          description: Number of electronic suppressed positions
+        householdSuppressedPositions:
+          type: integer
+          description: Number of household suppressed positions
+        managedSuppressedPositions:
+          type: integer
+          nullable: true
+          description: Number of managed suppressed positions
+        consolidatedSuppressedPositions:
+          type: integer
+          nullable: true
+          description: Number of consolidated suppressed positions
+        canceledSuppressedPositions:
+          type: integer
+          description: Number of canceled suppressed positions
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DigitalShareholderMeeting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+        registrantType:
+          type: string
+          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailAddress:
+          type: string
+          format: email
+        registrationQuestions:
+          type: string
+          nullable: true
+          description: Pre-meeting questions submitted during registration
+        minutesAttendedMeeting:
+          type: integer
+          nullable: true
+          description: Minutes attended in the meeting
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DSMConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+        liveQa:
+          type: boolean
+          default: false
+        audioOnly:
+          type: boolean
+          default: false
+        meetingRecording:
+          type: boolean
+          default: false
+        staticSlideDocId:
+          type: string
+          nullable: true
+        displayDocsDocId:
+          type: string
+          nullable: true
+        isConfirmed:
+          type: boolean
+          default: false
+        logisticsCallDate:
+          type: string
+          format: date-time
+          nullable: true
+        logisticsCallNotes:
+          type: string
+          nullable: true
+        logisticsCallScheduled:
+          type: boolean
+          default: false
+        dryRunDate:
+          type: string
+          format: date-time
+          nullable: true
+        dryRunNotes:
+          type: string
+          nullable: true
+        dryRunScheduled:
+          type: boolean
+          default: false
+        dsmEnabled:
+          type: boolean
+          default: true
+        ioeEnabled:
+          type: boolean
+          default: true
+        dsmProducerName:
+          type: string
+          nullable: true
+        dsmProducerEmail:
+          type: string
+          format: email
+          nullable: true
+        inspectorName:
+          type: string
+          nullable: true
+        inspectorEmail:
+          type: string
+          format: email
+          nullable: true
+        speakerListDocId:
+          type: string
+          nullable: true
+        guestLinkRegistrationDocId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDigitalShareholderMeetingRequest:
+      type: object
+      required: [registrantType, firstName, lastName, emailAddress]
+      properties:
+        registrantType:
+          type: string
+          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailAddress:
+          type: string
+          format: email
+        registrationQuestions:
+          type: string
+          nullable: true
+        minutesAttendedMeeting:
+          type: integer
+          nullable: true
+
+    TabulationReport:
+      type: object
+      required:
+        - id
+        - meetingId
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-sql-type: UUID
+          description: Primary key
+        meetingId:
+          type: string
+          description: Foreign key to meeting table
+          x-sql-type: TEXT
+        setKeys:
+          type: array
+          items:
+            type: string
+          description: Unique set keys from position records
+          x-sql-type: TEXT[]
+        brokerVoting:
+          type: array
+          description: Top 6 brokers by total shares
+          x-sql-type: JSONB
+          items:
+            type: object
+            properties:
+              broker:
+                type: string
+              sharesFor:
+                type: number
+              sharesAgainst:
+                type: number
+              sharesAbstain:
+                type: number
+        shareRangePerformance:
+          type: array
+          description: Performance metrics across 18 share ranges
+          x-sql-type: JSONB
+          items:
+            type: object
+            properties:
+              rangeLabel:
+                type: string
+              positionCount:
+                type: integer
+              totalShares:
+                type: number
+              percentVoted:
+                type: number
+        nonDtcVoteStatus:
+          type: object
+          description: Non-DTC shareholder vote status breakdown
+          x-sql-type: JSONB
+          properties:
+            unvotedShareholders:
+              type: integer
+            unvotedShares:
+              type: number
+            printShareholders:
+              type: integer
+            printShares:
+              type: number
+            ivrShareholders:
+              type: integer
+            ivrShares:
+              type: number
+            webShareholders:
+              type: integer
+            webShares:
+              type: number
+            votedSubtotalShareholders:
+              type: integer
+            votedSubtotalShares:
+              type: number
+            grandTotalShareholders:
+              type: integer
+            grandTotalShares:
+              type: number
+        dtcVoteStatus:
+          type: object
+          description: DTC/CDS shareholder vote status breakdown
+          x-sql-type: JSONB
+          properties:
+            unvotedShareholders:
+              type: integer
+            unvotedShares:
+              type: number
+            votedShareholders:
+              type: integer
+            votedShares:
+              type: number
+            grandTotalShareholders:
+              type: integer
+            grandTotalShares:
+              type: number
+        voteDistribution:
+          type: object
+          description: Overall vote distribution by account type
+          x-sql-type: JSONB
+          properties:
+            dtcVotedShares:
+              type: number
+            dtcUnvotedShares:
+              type: number
+            nonDtcVotedShares:
+              type: number
+            nonDtcUnvotedShares:
+              type: number
+        positionsVoted:
+          type: object
+          description: Positions voted by shareholder type
+          x-sql-type: JSONB
+          properties:
+            voted:
+              type: integer
+            unvoted:
+              type: integer
+            totalShares:
+              type: number
+            votedShares:
+              type: number
+        lastCalculatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last statistics calculation
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     Pagination:
       type: object

@@ -63,23 +63,6 @@ import {
  * Provides controls for switching between month and list views
  */
 
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-// Removed CalendarColors import - now using theme.vars for dark mode support
-
 export type CalendarViewType = 'month' | 'list'
 
 interface CalendarHeaderProps {
@@ -143,7 +126,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           <Typography variant="h3" fontWeight={700} color="inherit">
             Meeting Calendar
           </Typography>
-          <Typography variant="body2" color="inherit" sx={{ opacity: 0.9 }}>
+          <Typography variant="body3" color="inherit" sx={{ opacity: 0.9 }}>
             Annual Meeting
           </Typography>
         </Box>
@@ -249,6 +232,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
             aria-label="calendar view"
             size="small"
             sx={{
+              display: { xs: 'none', sm: 'flex' },
               height: 40,
               '& .MuiToggleButton-root': {
                 color: 'white',

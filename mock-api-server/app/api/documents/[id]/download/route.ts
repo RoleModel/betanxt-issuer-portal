@@ -1,14 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.099Z
+// Generated on 2025-09-30T00:31:43.168Z
 // Source: openapi-schema/openapi.yaml
+import { NextResponse } from 'next/server'
 
-import { NextRequest, NextResponse } from 'next/server'
-
-interface RouteParams {
-  id: string
-}
-
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     // TODO: Implement downloadDocument
     // Operation: downloadDocument
@@ -22,15 +17,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json([])
   } catch (error) {
-    console.error('Error in GET /documents/{id}/download:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'downloadDocument'
+        operationId: 'downloadDocument',
       },
       { status: 500 }
     )
   }
 }
-

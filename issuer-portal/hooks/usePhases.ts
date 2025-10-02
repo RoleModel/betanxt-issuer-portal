@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import useSWR from 'swr'
 
-import { getMeetingPhases } from '@/domain-models/api/meetings'
+import buildApiClient from '@/domain-models/apiClient'
 
 export interface Phase {
   id: string
@@ -101,10 +101,13 @@ const normalizePhase = (raw: unknown): Phase | null => {
 }
 
 const fetchPhases = async (meetingId: string): Promise<Phase[]> => {
-  const result = await getMeetingPhases(meetingId)
-  if (result.error) throw new Error('Failed to fetch phases')
+  const apiClient = await buildApiClient()
+  const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
+    params: { path: { meetingId } },
+  })
+  if (error) throw new Error('Failed to fetch phases')
 
-  const items: unknown[] = Array.isArray(result.data) ? (result.data as unknown[]) : []
+  const items: unknown[] = Array.isArray(data) ? (data as unknown[]) : []
   const normalized: Phase[] = []
   for (const item of items) {
     const n = normalizePhase(item)
@@ -121,27 +124,28 @@ export interface UsePhasesResult {
 }
 
 export const usePhases = (meetingId?: string): UsePhasesResult => {
-  const [phases, setPhases] = useState<Phase[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const refetch = useCallback(async () => {
-    if (!meetingId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchPhases(meetingId)
-      setPhases(data)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to fetch phases')
-    } finally {
-      setLoading(false)
+  // Use SWR to cache the phases data and prevent duplicate fetches
+  const { data, error, isLoading, mutate } = useSWR(
+    meetingId ? `/meetings/${meetingId}/phases` : null,
+    () => fetchPhases(meetingId!),
+    {
+      // Cache for 30 seconds
+      refreshInterval: 30000,
+      // Revalidate on focus
+      revalidateOnFocus: false,
+      // Don't revalidate on mount if data exists
+      revalidateOnMount: true,
+      // Keep previous data while revalidating
+      keepPreviousData: true,
+      // Dedupe multiple requests in 2 second window
+      dedupingInterval: 2000,
     }
-  }, [meetingId])
+  )
 
-  useEffect(() => {
-    void refetch()
-  }, [refetch])
-
-  return { phases, loading, error, refetch }
+  return {
+    phases: data || [],
+    loading: isLoading,
+    error: error ? error.message : null,
+    refetch: () => mutate(),
+  }
 }

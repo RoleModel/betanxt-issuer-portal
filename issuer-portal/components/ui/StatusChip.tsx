@@ -4,11 +4,17 @@ import React from 'react'
 
 import { Chip, SxProps, Theme } from '@mui/material'
 
+import {
+  DOCUMENT_STATUS_VALUES,
+  type DocumentStatus,
+  getDocumentStatusLabel,
+} from '@/utils/documentUtils'
+
 // Unified status types - combining document and task statuses
 export type UnifiedStatus =
   // Document statuses
   | 'active' // Database status -> "Approved"
-  | 'pending' // Database status -> "1/3 Reviews Complete"
+  | 'pending' // Database status ->
   | 'inactive' // Database status -> "Not Uploaded"
   // Task statuses (from global TaskStatus)
   | 'Complete'
@@ -18,37 +24,68 @@ export type UnifiedStatus =
   | 'Not Started'
   | 'Incomplete'
 
-// Display text mapping with dynamic review count support
+// Display text mapping with dynamic review count support and friendly casing for document statuses
 const getStatusDisplayText = (
   status: UnifiedStatus | string | null,
   reviewCount?: number,
   totalReviews?: number
 ): string => {
+  if (status == null) return 'Not Uploaded'
+
+  // Support placeholder UI status
+  if (status === 'NOT_UPLOADED' || status === 'inactive') return 'Not Uploaded'
+
+  // If this is a known document status (uppercase API enum) use helper for friendly label
+  if (
+    typeof status === 'string' &&
+    (DOCUMENT_STATUS_VALUES as readonly string[]).includes(status)
+  ) {
+    return getDocumentStatusLabel(status as DocumentStatus)
+  }
+
   switch (status) {
     case 'active':
       return 'Approved'
     case 'pending':
-      // Use dynamic review count if provided, otherwise default to 1/3
       if (reviewCount !== undefined && totalReviews !== undefined) {
         return `${reviewCount}/${totalReviews} Reviews Complete`
       }
-      return '1/3 Reviews Complete'
-    case 'inactive':
-    case null:
-    case undefined:
-      return 'Not Uploaded'
     case 'Incomplete':
+    case 'INCOMPLETE':
       return 'Incomplete'
-    // Task statuses - use as-is
+    case 'NEEDS_AUTHORIZATION':
+      return 'Needs Authorization'
+    case 'AUTHORIZED':
+      return 'Authorized'
+    case 'PENDING_AUTHORIZATION':
+      return 'Pending Authorization'
+    case 'WAITING_FOR_FORM_RETURN':
+      return 'Waiting for Form Return'
+    case 'AUTHORIZATION_NEEDED':
+      return 'Authorization Needed'
+    case 'SUBMITTED_AWAITING_RECORD_DATE':
+      return 'Submitted Awaiting Record Date'
+    case 'REQUEST_FORM_TO_FOLLOW':
+      return 'Request Form to Follow'
+    case 'COMPLETE':
+      return 'Complete'
+    case 'Unvoted':
+      return 'Unvoted'
+    case 'Voted':
+      return 'Voted'
     case 'Complete':
     case 'Pending Approval':
     case 'Pending':
     case 'Approved':
     case 'Not Started':
       return status
-    // Fallback for any other status
     default:
-      return typeof status === 'string' ? status : 'Unknown'
+      return typeof status === 'string'
+        ? status
+            .split('_')
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(' ')
+        : 'Unknown'
   }
 }
 
@@ -63,10 +100,13 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'completed',
     'Completed',
     'COMPLETE',
+    'Complete',
+    'Voted',
     'Shares Balanced',
     'Mailing Complete',
     'Ordered',
     'Authorized',
+    'AUTHORIZED',
     'Approved to Send',
     'Approved',
     'Submitted',
@@ -78,8 +118,11 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
   const warningStatuses = [
     'Pending Approval',
     'Pending',
+    'Pending Authorization',
+    'PENDING_AUTHORIZATION',
+    'Waiting for Form Return',
+    'WAITING_FOR_FORM_RETURN',
     'Delayed',
-    '1/3 Reviews Complete',
     'Awaiting Review',
     'Pending Client Review',
     'Making Revisions',
@@ -92,6 +135,18 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'Access Needed',
     'Needs Authorization',
     'NEEDS_AUTHORIZATION',
+    'Authorization Needed',
+    'AUTHORIZATION_NEEDED',
+  ]
+
+  // Grey/Neutral - Default/Incomplete statuses
+  const neutralStatuses = [
+    'Incomplete',
+    'INCOMPLETE',
+    'Unvoted',
+    'Not Started',
+    'Submitted Awaiting Record Date',
+    'SUBMITTED_AWAITING_RECORD_DATE',
   ]
 
   // Blue - Info/In Progress statuses
@@ -102,6 +157,8 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     'Mailing',
     'In Edit Process',
     'Request form to follow',
+    'Request Form to Follow',
+    'REQUEST_FORM_TO_FOLLOW',
     'In Progress',
   ]
 
@@ -136,6 +193,13 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
     }
   }
 
+  if (neutralStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+    return {
+      backgroundColor: (theme) => theme.vars.palette.action.selected,
+      color: (theme) => theme.vars.palette.text.secondary,
+    }
+  }
+
   // Default - Neutral/Grey statuses
   return {
     backgroundColor: (theme) => theme.vars.palette.action.selected,
@@ -152,11 +216,7 @@ export interface StatusChipProps {
   variant?: 'outlined' | 'filled'
 }
 
-declare module '@mui/material/Chip' {
-  interface ChipOwnProps {
-    status?: string | null
-  }
-}
+// We avoid module augmentation for Chip props; use data-status attribute instead
 
 const StatusChip: React.FC<StatusChipProps> = ({
   status,
@@ -171,8 +231,8 @@ const StatusChip: React.FC<StatusChipProps> = ({
 
   return (
     <Chip
-      status={status}
-      className={`status-chip-${status}`}
+      data-status={status || undefined}
+      className={`status-chip-${status || 'unknown'}`}
       variant={variant}
       label={displayText}
       size={size}

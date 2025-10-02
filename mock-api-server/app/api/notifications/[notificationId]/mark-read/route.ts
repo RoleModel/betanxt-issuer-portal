@@ -1,33 +1,48 @@
-// AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.101Z
-// Source: openapi-schema/openapi.yaml
+import { NextResponse } from 'next/server'
 
-import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/utils/supabase/client'
 
-interface RouteParams {
-  notificationId: string
-}
-
-export async function PATCH(request: NextRequest): Promise<NextResponse> {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ notificationId: string }> }
+): Promise<NextResponse> {
   try {
-    // Parse request body
-    const body = await request.json()
+    const { notificationId } = await params
 
-    // TODO: Implement markNotificationRead
-    // Operation: markNotificationRead
-    // This route was auto-generated from OpenAPI spec
+    // For mock API, we'll bypass auth and use a hardcoded user ID
+    const userId = 'user-1' // Default mock user ID
 
-    return NextResponse.json({ status: 'OK' })
+    // Update notification to mark as read
+    const { data, error } = await supabase
+      .from('notification')
+      .update({
+        read: true,
+        read_at: new Date().toISOString(),
+      })
+      .eq('id', notificationId)
+      .eq('user_id', userId) // Ensure user owns this notification
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to update notification', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in PATCH /notifications/{notificationId}/mark-read:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'markNotificationRead'
       },
       { status: 500 }
     )
   }
 }
-

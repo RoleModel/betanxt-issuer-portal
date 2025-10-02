@@ -3,6 +3,9 @@
 import React from 'react'
 
 import {
+  Card,
+  CardContent,
+  CardHeader,
   Table,
   TableBody,
   TableCell,
@@ -81,105 +84,110 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({ dat
   }, [data, order, orderBy])
 
   return (
-    <TableContainer>
-      <Table size="small" sx={{ tableLayout: 'fixed' }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'type'}
-                direction={orderBy === 'type' ? order : 'asc'}
-                onClick={() => handleRequestSort('type')}
-              >
-                Proposal Type
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'totalPresented'}
-                direction={orderBy === 'totalPresented' ? order : 'asc'}
-                onClick={() => handleRequestSort('totalPresented')}
-              >
-                Total Presented
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'averageSupport'}
-                direction={orderBy === 'averageSupport' ? order : 'asc'}
-                onClick={() => handleRequestSort('averageSupport')}
-              >
-                Average Support
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'min'}
-                direction={orderBy === 'min' ? order : 'asc'}
-                onClick={() => handleRequestSort('min')}
-              >
-                Min
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'max'}
-                direction={orderBy === 'max' ? order : 'asc'}
-                onClick={() => handleRequestSort('max')}
-              >
-                Max
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === 'percentPassed'}
-                direction={orderBy === 'percentPassed' ? order : 'asc'}
-                onClick={() => handleRequestSort('percentPassed')}
-              >
-                Percent Passed
-              </TableSortLabel>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(rowsPerPage > 0
-            ? sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            : sortedData
-          ).map((row, index) => (
-            <TableRow key={index} hover>
-              <TableCell>{row.type}</TableCell>
-              <TableCell>{row.totalPresented}</TableCell>
-              <TableCell>{row.averageSupport}</TableCell>
-              <TableCell>{row.min}</TableCell>
-              <TableCell>{row.max}</TableCell>
-              <TableCell>{row.percentPassed}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-              colSpan={6}
-              count={sortedData.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              slotProps={{
-                select: {
-                  inputProps: {
-                    'aria-label': 'rows per page',
-                  },
-                  native: true,
-                },
-              }}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+    <Card>
+      <CardHeader title="Proposal Performance" />
+      <CardContent>
+        <TableContainer>
+          <Table sx={{ tableLayout: 'fixed' }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'type'}
+                    direction={orderBy === 'type' ? order : 'asc'}
+                    onClick={() => handleRequestSort('type')}
+                  >
+                    Proposal Type
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'totalPresented'}
+                    direction={orderBy === 'totalPresented' ? order : 'asc'}
+                    onClick={() => handleRequestSort('totalPresented')}
+                  >
+                    Total Presented
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'averageSupport'}
+                    direction={orderBy === 'averageSupport' ? order : 'asc'}
+                    onClick={() => handleRequestSort('averageSupport')}
+                  >
+                    Average Support
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'min'}
+                    direction={orderBy === 'min' ? order : 'asc'}
+                    onClick={() => handleRequestSort('min')}
+                  >
+                    Min
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'max'}
+                    direction={orderBy === 'max' ? order : 'asc'}
+                    onClick={() => handleRequestSort('max')}
+                  >
+                    Max
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'percentPassed'}
+                    direction={orderBy === 'percentPassed' ? order : 'asc'}
+                    onClick={() => handleRequestSort('percentPassed')}
+                  >
+                    Percent Passed
+                  </TableSortLabel>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(rowsPerPage > 0
+                ? sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                : sortedData
+              ).map((row, index) => (
+                <TableRow key={index} hover>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{row.totalPresented}</TableCell>
+                  <TableCell>{row.averageSupport}</TableCell>
+                  <TableCell>{row.min}</TableCell>
+                  <TableCell>{row.max}</TableCell>
+                  <TableCell>{row.percentPassed}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                  colSpan={6}
+                  count={sortedData.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  slotProps={{
+                    select: {
+                      inputProps: {
+                        'aria-label': 'rows per page',
+                      },
+                      native: true,
+                    },
+                  }}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   )
 }
 

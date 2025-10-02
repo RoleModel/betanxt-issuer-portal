@@ -2,6 +2,8 @@
 
 import { useSession } from 'next-auth/react'
 import React, { useState } from 'react'
+import ReactAudioPlayer from 'react-audio-player'
+import ReactPlayer from 'react-player'
 
 import {
   ChevronLeftOutlined as ChevronLeftIcon,
@@ -9,7 +11,6 @@ import {
   Close as CloseIcon,
   CommentOutlined as CommentIcon,
   DownloadOutlined as DownloadIcon,
-  EditOutlined as EditIcon,
   HistoryOutlined as HistoryOulinedIcon,
   OpenInFullOutlined as OpenInFullOutlinedIcon,
 } from '@mui/icons-material'
@@ -28,23 +29,34 @@ import {
   Typography,
 } from '@mui/material'
 
+import OfficeDocumentViewer from '@/components/Documents/OfficeDocumentViewer'
 import PDFViewer from '@/components/Documents/PDFViewer'
 import StatusChip, { type UnifiedStatus } from '@/components/ui/StatusChip'
 
-import { useDocuments } from '@/hooks/useDocuments'
-import { type DocumentHistoryEntry } from '@/utils/documentUtils'
+import {
+  type DocumentComment,
+  type DocumentHistoryEvent,
+  useDocuments,
+} from '@/hooks/useDocuments'
+
+interface DocumentHistoryEntryUI {
+  action: string
+  userName: string
+  timestamp: string
+}
 
 interface ApprovalDrawerProps {
   open: boolean
   onClose: () => void
   title: string
-  pdfUrl: string
+  fileUrl: string
   onApprove: () => void
   taskStatus?: UnifiedStatus | string | null
   onOpenFullscreen?: () => void
   reviewCount?: number
   totalReviews?: number
   onAddComment: (comment: string) => void
+  documentId?: string
 }
 
 interface CommentWithUser {
@@ -63,19 +75,20 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   open,
   onClose,
   title,
-  pdfUrl,
+  fileUrl,
   onApprove,
   taskStatus = 'Pending Approval',
   onOpenFullscreen,
   reviewCount,
   totalReviews,
   onAddComment,
+  documentId,
 }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [numPages, setNumPages] = useState(1)
   const [showHistory, setShowHistory] = useState(false)
   const [showComments, setShowComments] = useState(false)
-  const [documentHistory, setDocumentHistory] = useState<DocumentHistoryEntry[]>([])
+  const [documentHistory, setDocumentHistory] = useState<DocumentHistoryEntryUI[]>([])
   const [comments, setComments] = useState<CommentWithUser[]>([])
   const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null)
   const [comment, setComment] = useState('')
@@ -83,7 +96,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   // Get current user from NextAuth
   const { data: session } = useSession()
-  const { getCommentsForDocument: _getCommentsForDocument, addCommentToDocument } = useDocuments()
+  const { getCommentsForDocument, addCommentToDocument, getDocumentHistory } =
+    useDocuments()
 
   // Reset state when drawer opens/closes
   React.useEffect(() => {
@@ -93,65 +107,51 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       setShowComments(false)
       setShowCommentField(false)
       setComment('')
-      setComments([])
-      setCurrentDocumentId(null)
+      // Don't clear comments here - they will be loaded in the next useEffect
+      // Use passed documentId or generate one for the session
+      setCurrentDocumentId(documentId || `temp-doc-${Date.now()}`)
     }
-  }, [open])
+  }, [open, documentId])
 
   // Fetch document history and comments when drawer opens
   React.useEffect(() => {
     const loadDocumentData = async () => {
-      if (open && pdfUrl) {
+      if (open && currentDocumentId) {
         try {
-          // Extract filename from URL if it's a full Supabase Storage URL
-          const getFilePathForQuery = (url: string) => {
-            if (url.includes('/storage/v1/object/public/')) {
-              // Extract filename from Supabase Storage URL
-              return url.split('/').pop() || url
-            }
-            if (url.startsWith('/docs/')) {
-              // Extract filename from local path
-              return url.replace('/docs/', '')
-            }
-            // Handle any other path-like URLs by extracting the filename
-            if (url.includes('/')) {
-              return url.split('/').pop() || url
-            }
-            // Already a filename
-            return url
-          }
-
-          const filePathForQuery = getFilePathForQuery(pdfUrl)
-          console.log('ApprovalDrawer URL debug:', {
-            pdfUrl,
-            filePathForQuery,
-            urlType: pdfUrl.includes('/storage/v1/object/public/')
-              ? 'storage'
-              : pdfUrl.startsWith('/docs/')
-                ? 'local'
-                : 'filename',
-          })
-
-          // For now, use placeholder data - these operations will need proper API endpoints
-          console.warn(
-            'ApprovalDrawer: loadDocumentData - Placeholder implementation - needs API endpoint',
-            {
-              filePathForQuery,
-            }
+          // Load comments for the document
+          const fetchedComments = await getCommentsForDocument(currentDocumentId)
+          // Map comments with safe fallbacks but preserve typing
+          const transformedComments: CommentWithUser[] = fetchedComments.map(
+            (c: DocumentComment) => ({
+              id: c.id,
+              comment: c.comment,
+              user: c.user,
+              first_name: c.first_name,
+              last_name: c.last_name,
+              created_at: c.created_at,
+              users: c.users ?? { avatar: null },
+            })
           )
+          setComments(transformedComments)
 
-          // Set placeholder data
-          setDocumentHistory([])
-          setComments([])
-          setCurrentDocumentId('placeholder-doc-id')
+          const history = await getDocumentHistory(currentDocumentId)
+          const transformedHistory: DocumentHistoryEntryUI[] = history.map(
+            (h: DocumentHistoryEvent) => ({
+              action: h.event_type,
+              userName: h.user,
+              timestamp: h.timestamp,
+            })
+          )
+          setDocumentHistory(transformedHistory)
         } catch (err) {
           console.error('Error loading document data:', err)
+          // Don't clear existing comments or history on error
         }
       }
     }
 
     loadDocumentData()
-  }, [open, pdfUrl])
+  }, [open, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(Math.min(Math.max(1, newPage), numPages))
@@ -159,8 +159,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   const handleDownload = () => {
     const link = document.createElement('a')
-    link.href = pdfUrl
-    link.download = `${title}.pdf`
+    link.href = fileUrl
+    const fileExtension = fileUrl?.split('.').pop()?.toLowerCase() || 'pdf'
+    link.download = `${title}.${fileExtension}`
     link.click()
   }
 
@@ -175,11 +176,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   }
 
   const handleFullscreen = () => {
-    console.log('ApprovalDrawer: handleFullscreen called')
-    console.log('ApprovalDrawer: onOpenFullscreen prop:', onOpenFullscreen)
-
     if (onOpenFullscreen) {
-      console.log('ApprovalDrawer: Calling onOpenFullscreen()')
       onOpenFullscreen()
     } else {
       console.warn('ApprovalDrawer: onOpenFullscreen prop is not provided')
@@ -188,16 +185,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
     }
 
     // Let the parent component handle closing this drawer
-  }
-
-  const handleEdit = () => {
-    // Handle edit action - could open external editor
-    console.log('Edit document')
-  }
-
-  const handleView = () => {
-    // Handle view action - same as fullscreen
-    handleFullscreen()
   }
 
   const handleAddComment = () => {
@@ -216,31 +203,41 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
   const handleSubmitComment = async () => {
     if (!comment.trim()) {
-      console.error('Comment is empty')
+      console.error('ApprovalDrawer: Comment is empty')
       return
     }
 
     if (!currentDocumentId) {
-      console.error('No document ID available')
+      console.error('ApprovalDrawer: No document ID available')
       return
     }
 
-    if (!session?.user?.username) {
-      console.error('No current user available')
-      return
-    }
+    // Remove the username check for now since NextAuth might not have username
+    // if (!session?.user?.username) {
+    //   console.error('No current user available')
+    //   return
+    // }
 
     try {
+      // Extract user info from session
+      const firstName = (session?.user?.name || '').split(' ')[0] || 'User'
+      const lastName = (session?.user?.name || '').split(' ').slice(1).join(' ') || ''
+      const userId = session?.user?.email || session?.user?.id || 'unknown'
+
       // Use hook to add comment
-      await addCommentToDocument(currentDocumentId, comment.trim())
+      await addCommentToDocument(currentDocumentId, comment.trim(), {
+        firstName,
+        lastName,
+        userId,
+      })
 
       // Create optimistic comment for immediate UI update
       const optimisticComment: CommentWithUser = {
         id: `temp-${Date.now()}`,
         comment: comment.trim(),
-        user: session.user.username || '',
-        first_name: (session.user.name || '').split(' ')[0] || '',
-        last_name: (session.user.name || '').split(' ').slice(1).join(' ') || '',
+        user: session?.user?.email || session?.user?.name || 'Current User',
+        first_name: (session?.user?.name || '').split(' ')[0] || 'User',
+        last_name: (session?.user?.name || '').split(' ').slice(1).join(' ') || '',
         created_at: new Date().toISOString(),
         users: null,
       }
@@ -283,10 +280,10 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   return (
     <Drawer
       anchor="left"
+      variant="temporary"
       open={open}
       onClose={onClose}
       elevation={8}
-      keepMounted={false}
       sx={{
         zIndex: 1400, // Higher than other drawers
       }}
@@ -382,13 +379,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             <ChevronRightIcon fontSize="medium" />
           </IconButton>
         </Box>
-        <Tooltip title="Edit">
-          <IconButton size="small" onClick={handleEdit} sx={{ color: 'white' }}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="View">
-          <IconButton size="small" onClick={handleView} sx={{ color: 'white' }}>
+        <Tooltip title="View in Fullscreen">
+          <IconButton size="small" onClick={handleFullscreen} sx={{ color: 'white' }}>
             <OpenInFullOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -455,22 +447,194 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             overflow: 'auto',
           }}
         >
-          <Box sx={{ maxWidth: 350 }}>
-            <PDFViewer
-              file={pdfUrl}
-              pageNumber={currentPage}
-              onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
-            />
+          <Box
+            sx={{
+              p: 2,
+              width: '100%',
+              '& .react-pdf__Document': {
+                padding: 1,
+              },
+              '& .react-pdf__Page': {
+                maxHeight: 100,
+              },
+            }}
+          >
+            {(() => {
+              // Extract file extension, handling URLs with query parameters and data URLs
+              let fileExtension: string | undefined
+              let isPdf = false
+
+              // Check if it's a data URL (base64 encoded)
+              if (fileUrl?.startsWith('data:')) {
+                const mimeType = fileUrl.split(';')[0].split(':')[1]
+                isPdf = mimeType === 'application/pdf'
+                fileExtension = mimeType?.split('/')[1] // e.g., 'pdf' from 'application/pdf'
+              } else {
+                // Regular URL - extract extension from filename
+                const urlWithoutQuery = fileUrl?.split('?')[0] || ''
+                fileExtension = urlWithoutQuery.split('.').pop()?.toLowerCase()
+                isPdf = fileExtension === 'pdf' || fileUrl?.includes('/test-pdf')
+              }
+              const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
+                fileExtension || ''
+              )
+              const isAudio = ['m4a', 'mp3', 'wav', 'aac'].includes(fileExtension || '')
+              const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension || '')
+
+              if (isPdf) {
+                return (
+                  <PDFViewer
+                    file={fileUrl}
+                    pageNumber={currentPage}
+                    onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
+                  />
+                )
+              } else if (isOfficeDoc) {
+                // For Excel files, provide download option since preview is often problematic
+                if (fileExtension === 'xls' || fileExtension === 'xlsx') {
+                  return (
+                    <Box sx={{ p: 4, textAlign: 'center', width: '100%' }}>
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 80,
+                          mx: 'auto',
+                          mb: 3,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: 'success.main',
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Typography variant="h4" color="success.contrastText">
+                          {fileExtension === 'xlsx' ? 'XLSX' : 'XLS'}
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" gutterBottom>
+                        {title || 'Excel Spreadsheet'}
+                      </Typography>
+                      <Typography variant="body3" color="text.secondary" paragraph>
+                        Download to view this Excel file.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        onClick={handleDownload}
+                        startIcon={<DownloadIcon />}
+                        size="large"
+                        sx={{ mt: 2 }}
+                      >
+                        Download Excel File
+                      </Button>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ mt: 2, display: 'block' }}
+                      >
+                        File type: {fileExtension?.toUpperCase()}
+                      </Typography>
+                    </Box>
+                  )
+                } else {
+                  // Use react-doc-viewer for Word and PowerPoint docs
+                  return (
+                    <OfficeDocumentViewer
+                      url={fileUrl}
+                      title={title}
+                      fileType={fileExtension}
+                    />
+                  )
+                }
+              } else if (isAudio) {
+                return (
+                  <Box sx={{ p: 2, width: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                      {title}
+                    </Typography>
+                    <ReactAudioPlayer src={fileUrl} controls style={{ width: '100%' }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 2, display: 'block', textAlign: 'center' }}
+                    >
+                      Audio file: {fileExtension?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                )
+              } else if (isVideo) {
+                return (
+                  <Box sx={{ p: 2, width: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                      {title}
+                    </Typography>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        paddingTop: '56.25%' /* 16:9 aspect ratio */,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      >
+                        <ReactPlayer
+                          src={fileUrl}
+                          controls
+                          width="100%"
+                          height="100%"
+                          playing={false}
+                        />
+                      </div>
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 2, display: 'block', textAlign: 'center' }}
+                    >
+                      Video file: {fileExtension?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                )
+              } else {
+                return (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body3" color="text.secondary">
+                      This file type cannot be previewed
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = fileUrl
+                        link.download = title || 'document'
+                        link.click()
+                      }}
+                      sx={{ mt: 2 }}
+                    >
+                      Download File
+                    </Button>
+                  </Box>
+                )
+              }
+            })()}
           </Box>
         </Box>
         {/* Approve Button - only show if not already approved/complete */}
         {!showComments &&
           !showHistory &&
           taskStatus !== 'Complete' &&
-          taskStatus !== 'Approved' && (
+          taskStatus !== 'COMPLETE' &&
+          taskStatus !== 'Approved' &&
+          taskStatus !== 'APPROVED' && (
             <Box
               sx={(theme) => ({
                 p: 1,
+                zIndex: 10,
                 display: 'flex',
                 justifyContent: 'end',
                 borderTop: `1px solid ${theme.vars.palette.divider}`,
@@ -497,10 +661,11 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           flexDirection: 'column',
           position: 'absolute',
           bottom: 0,
-          height: '60%',
+          height: '50%',
           maxHeight: showHistory ? '60%' : '0%',
           overflowY: 'auto',
           left: 0,
+          zIndex: 1200,
           transition: theme.transitions.create(['max-height']),
         })}
       >
@@ -532,7 +697,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             ))
           ) : (
             <Box sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body3" color="text.secondary">
                 No history available
               </Typography>
             </Box>
@@ -550,9 +715,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           flexDirection: 'column',
           height: '100%',
           position: 'absolute',
-          // top: showComments ? '50%' : '50%',
           bottom: 0,
-          maxHeight: showComments ? '60%' : '0%',
+          maxHeight: showComments ? '50%' : '0%',
           overflowY: 'auto',
           left: 0,
           transition: theme.transitions.create(['top', 'max-height']),
@@ -624,7 +788,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               <ListItem>
                 <ListItemText
                   primary={
-                    <Typography variant="body2" color="text.secondary" align="center">
+                    <Typography variant="body3" color="text.secondary" align="center">
                       No comments yet
                     </Typography>
                   }
@@ -659,7 +823,13 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={showCommentField ? handleSubmitComment : handleAddComment}
+              onClick={() => {
+                if (showCommentField) {
+                  handleSubmitComment()
+                } else {
+                  handleAddComment()
+                }
+              }}
             >
               {showCommentField ? 'Submit Comment' : 'Add Comment'}
             </Button>

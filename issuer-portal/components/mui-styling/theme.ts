@@ -3,7 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -18,6 +18,14 @@ import {
 } from '@mui/material/colors'
 import { Theme, createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
+
+export interface LayoutVars {
+  navbarHeight: number
+  appSwitcherHeight: number
+  footerHeight: number
+  drawerWidth: number
+  eventTabsHeight: number
+}
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -66,6 +74,14 @@ declare module '@mui/material/styles' {
 declare module '@mui/material/LinearProgress' {
   interface LinearProgressPropsColorOverrides {
     phase: true
+    'chartSeries[0].main': true
+    'chartSeries[1].main': true
+    'chartSeries[2].main': true
+    'chartSeries[3].main': true
+    'chartSeries[4].main': true
+    'chartSeries[5].main': true
+    'chartSeries[6].main': true
+    'chartSeries[7].main': true
   }
 }
 
@@ -85,9 +101,58 @@ export type PhaseColor =
 export const getPhaseColor = (phase: number) => {
   return `var(--mui-palette-phase-${phase - 1}-main)`
 }
+export const getPhaseContrastText = (phase: number) => {
+  return `var(--mui-palette-phase-${phase - 1}-contrastText)`
+}
+
+// Utility function to get phase color format for MUI components (e.g., LinearProgress)
+export const getPhaseNumber = (phase: number) => {
+  return `phase[${phase - 1}].main` as PhaseColor
+}
+
+// Status color categories (matching StatusChip logic)
+// Only these statuses override the phase color
+const STATUS_COLORS: {
+  success: string[]
+  warning: string[]
+  neutral: string[]
+} = {
+  success: ['COMPLETE', 'AUTHORIZED'],
+  warning: ['PENDING_AUTHORIZATION', 'WAITING_FOR_FORM_RETURN'],
+  neutral: ['SUBMITTED_AWAITING_RECORD_DATE', 'REQUEST_FORM_TO_FOLLOW'],
+}
+
+// Utility function to get task/calendar border color based on status
+// Returns phase color for INCOMPLETE and other statuses that don't have special colors
+export const getStatusBorderColor = (
+  status: string | null | undefined,
+  phaseColor: string,
+  theme: Theme
+) => {
+  if (!status) {
+    return phaseColor
+  }
+
+  if (STATUS_COLORS.success.includes(status)) {
+    return theme.vars.palette.success.main
+  }
+
+  if (STATUS_COLORS.warning.includes(status)) {
+    return '#EBB322'
+  }
+
+  if (STATUS_COLORS.neutral.includes(status)) {
+    return theme.vars.palette.grey[400]
+  }
+
+  // All other statuses use phase color
+  return phaseColor
+}
 
 const issuerOverrides = {
-  cssVariables: true,
+  cssVariables: {
+    colorScemeSelector: 'class',
+  },
   colorSchemes: {
     light: {
       palette: {
@@ -100,50 +165,50 @@ const issuerOverrides = {
         },
         phase: [
           {
-            main: cyan[700],
+            main: cyan[800],
             light: cyan[600],
             dark: cyan[900],
-            contrastText: cyan[50],
+            contrastText: '#ffffff',
           },
           {
-            main: teal[600],
-            light: teal[400],
+            main: teal[800],
+            light: teal[700],
             dark: teal[900],
             contrastText: teal[50],
           },
           {
             main: purple[700],
-            light: purple[400],
+            light: purple[500],
             dark: purple[900],
             contrastText: purple[50],
           },
           {
             main: lightBlue[700],
-            light: lightBlue[400],
+            light: lightBlue[500],
             dark: lightBlue[900],
             contrastText: lightBlue[50],
           },
           {
             main: pink[900],
-            light: pink[400],
+            light: pink[500],
             dark: pink[900],
             contrastText: pink[50],
           },
           {
-            main: blue[700],
+            main: blue[800],
             light: blue[400],
             dark: blue[900],
             contrastText: blue[50],
           },
           {
-            main: green[700],
-            light: green[400],
+            main: green[800],
+            light: green[500],
             dark: green[900],
             contrastText: green[50],
           },
           {
-            main: deepPurple[700],
-            light: deepPurple[400],
+            main: deepPurple[800],
+            light: deepPurple[500],
             dark: deepPurple[900],
             contrastText: deepPurple[50],
           },
@@ -155,20 +220,20 @@ const issuerOverrides = {
       palette: {
         aquaLight: '#CFE2E5',
         keydate: {
-          main: nxtBlue[800],
-          light: nxtBlue[600],
+          main: nxtBlue[900],
+          light: nxtBlue[700],
           dark: nxtBlue[600],
           contrastText: nxtBlue[100],
         },
         phase: [
           {
-            main: cyan[400],
+            main: cyan[800],
             light: cyan[300],
             dark: cyan[900],
             contrastText: cyan[50],
           },
           {
-            main: teal[400],
+            main: teal[600],
             light: teal[400],
             dark: teal[900],
             contrastText: teal[50],
@@ -205,7 +270,7 @@ const issuerOverrides = {
             contrastText: green[50],
           },
           {
-            main: deepPurple[500],
+            main: deepPurple[600],
             light: deepPurple[400],
             dark: deepPurple[900],
             contrastText: deepPurple[50],
@@ -215,14 +280,61 @@ const issuerOverrides = {
       },
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1800,
+    },
+  },
+  layout: {
+    eventTabsHeight: 158,
+    navbarHeight: 66,
+    appSwitcherHeight: 38,
+    footerHeight: 60,
+    drawerWidth: 500,
+  },
   components: {
+    MuiLink: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          ...theme.typography.body3,
+          color: theme.vars.palette.link,
+          fontWeight: 500,
+        }),
+      },
+    },
     MuiCardContent: {
       styleOverrides: {
-        root: {
+        root: ({ theme }: { theme: Theme }) => ({
           '&:has(.MuiTable-root)': {
             padding: 0,
           },
-        },
+          [theme.breakpoints.down('md')]: {
+            padding: theme.spacing(1),
+          },
+          '&:last-child': {
+            [theme.breakpoints.down('md')]: {
+              padding: theme.spacing(1),
+            },
+          },
+        }),
+      },
+    },
+    MuiCard: {
+      defaultProps: {
+        elevation: 5,
+      },
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          height: 'auto',
+          [theme.breakpoints.down('md')]: {
+            boxShadow: 'none',
+            border: `solid 1px ${theme.vars?.palette.divider}`,
+          },
+        }),
       },
     },
     MuiAppBar: {
@@ -280,6 +392,17 @@ const issuerOverrides = {
             'phase[7].main',
           ]
 
+          const chartColors = [
+            'chartSeries[0].main',
+            'chartSeries[1].main',
+            'chartSeries[2].main',
+            'chartSeries[3].main',
+            'chartSeries[4].main',
+            'chartSeries[5].main',
+            'chartSeries[6].main',
+            'chartSeries[7].main',
+          ]
+
           if (ownerState.color && phaseColors.includes(ownerState.color)) {
             // Extract phase index from 'phase[X].main' format
             const phaseMatch = ownerState.color.match(/phase\[(\d+)\]\.main/)
@@ -291,6 +414,21 @@ const issuerOverrides = {
                 backgroundColor: `color-mix(in srgb, ${phaseColor} 20%, transparent)`,
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: phaseColor,
+                },
+              }
+            }
+          }
+
+          if (ownerState.color && chartColors.includes(ownerState.color)) {
+            const match = ownerState.color.match(/chartSeries\[(\d+)\]\.main/)
+            if (match) {
+              const idx = match[1]
+              const chartColor = `var(--mui-palette-chartSeries-${idx}-main)`
+
+              return {
+                backgroundColor: `color-mix(in srgb, ${chartColor} 20%, transparent)`,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: chartColor,
                 },
               }
             }

@@ -1,24 +1,42 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.097Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listMeetings, createMeeting } from '@/domain-models/api/meetings'
+
+import { createMeeting, listMeetings } from '@/domain-models/api/meetings'
+
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : undefined
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
-    const status = searchParams.get('status') || undefined
+    const page = searchParams.get('page')
+      ? parseInt(searchParams.get('page')!, 10)
+      : undefined
+    const limit = searchParams.get('limit')
+      ? parseInt(searchParams.get('limit')!, 10)
+      : undefined
+    const statusParam = searchParams.get('status') || undefined
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
+        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
+        : undefined
     const clientId = searchParams.get('clientId') || undefined
-    const meetingYear = searchParams.get('meetingYear') ? parseInt(searchParams.get('meetingYear')!, 10) : undefined
+    const meetingYear = searchParams.get('meetingYear')
+      ? parseInt(searchParams.get('meetingYear')!, 10)
+      : undefined
     const cusip = searchParams.get('cusip') || undefined
     const ticker = searchParams.get('ticker') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listMeetings(page, limit, { status, clientId, meetingYear, cusip, ticker })
+    const { data, error } = await listMeetings(page, limit, {
+      status,
+      clientId,
+      meetingYear,
+      cusip,
+      ticker,
+    })
 
     if (error) {
       return NextResponse.json(
@@ -29,12 +47,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /meetings:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listMeetings'
+        operationId: 'listMeetings',
       },
       { status: 500 }
     )
@@ -44,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateMeetingRequest']
 
     // Use existing domain model function
     const { data, error } = await createMeeting(body)
@@ -58,15 +75,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /meetings:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createMeeting'
+        operationId: 'createMeeting',
       },
       { status: 500 }
     )
   }
 }
-

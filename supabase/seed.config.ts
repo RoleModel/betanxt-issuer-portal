@@ -76,7 +76,7 @@ export const seedConfig = {
       clientTicker: 'WWD',
       accountName: 'Woodward, Inc.',
       primaryContact: 'David Kim',
-      cusip: '98056C108',
+      cusip: '980745103',
       totalSharesOutstanding: 63200000,
       quorumRequirement: 50.0,
     },
@@ -84,7 +84,7 @@ export const seedConfig = {
       clientTicker: 'ELVN',
       accountName: 'Enliven Therapeutics, Inc.',
       primaryContact: 'Jenny Patel',
-      cusip: '29265M108',
+      cusip: '29337E102',
       totalSharesOutstanding: 42800000,
       quorumRequirement: 50.0,
     },
@@ -151,10 +151,31 @@ export const seedConfig = {
     generateVotes: true,
   },
 
-  // CSV data files
+  // CSV data files - Three files per company minimum
   csvFiles: {
-    wendysVotes: '../data/wendys_shareholder_votes_combined.csv',
-    wendysTabulation: '../data/wendys_tabulation_data.csv',
-    wendysNonDTC: '../data/wendys-Non-DTC_CDS_Vote_Status_Summary.csv',
+    // Wendy's data files
+    wendysMeetingInfo: '../data/wendys_meeting_info.csv',
+    wendysProposals: '../data/wendys_proposals.csv',
+    wendysPositions: '../data/wendys_positions_2025.csv',
+    wendysDTC: '../data/wendys_dtc_vote_status.csv',
+    wendysNonDTC: '../data/wendys_non_dtc_vote_status.csv',
+    // Enliven data files
+    enlivenMeetingInfo: '../data/enliven_meeting_info.csv',
+    enlivenProposals: '../data/enliven_proposals_2025.csv',
+    enlivenPositions: '../data/enliven_positions_2025.csv',
+    enlivenDTC: '../data/enliven_dtc_vote_status.csv',
+    enlivenNonDTC: '../data/enliven_non_dtc_vote_status.csv',
+    // Paycom data files
+    paycomMeetingInfo: '../data/paycom_meeting_info.csv',
+    paycomProposals: '../data/paycom_proposals_2025.csv',
+    paycomPositions: '../data/paycom_positions_2025.csv',
+    paycomDTC: '../data/paycom_dtc_vote_status.csv',
+    paycomNonDTC: '../data/paycom_non_dtc_vote_status.csv',
+    // Woodward data files
+    woodwardMeetingInfo: '../data/woodward_meeting_info.csv',
+    woodwardProposals: '../data/woodward_proposals_2025.csv',
+    woodwardPositions: '../data/woodward_positions_2025.csv',
+    woodwardDTC: '../data/woodward_dtc_vote_status.csv',
+    woodwardNonDTC: '../data/woodward_non_dtc_vote_status.csv',
   },
 }

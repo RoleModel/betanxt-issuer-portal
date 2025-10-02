@@ -2,34 +2,32 @@
 
 import React from 'react'
 
-import {
-  Card,
-  CardActionArea,
-  CardContent,
-  Link,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Card, CardActionArea, CardContent, Link, Stack, Typography } from '@mui/material'
 
 import { components } from '@/domain-models/generated-schema'
+
+import { useClient } from '@/contexts/ClientContext'
+import type { Client } from '@/hooks/useClients'
 
 type Meeting = components['schemas']['Meeting']
 
 interface DocumentHostingCardProps {
   meeting?: Meeting
+  client?: Client
   className?: string
 }
 
 interface SiteHostingButtonProps {
   label: string
   url: string
-  hasUrl: boolean
 }
 
-const SiteHostingButton = ({ label, url, hasUrl }: SiteHostingButtonProps) => {
+const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
   const isPhoneNumber = url.startsWith('1-800') || url.startsWith('+1')
+  const isDisabled = !url
 
   const handleClick = () => {
+    if (isDisabled) return
     if (isPhoneNumber) {
       window.open(`tel:${url}`, '_self')
     } else {
@@ -43,21 +41,36 @@ const SiteHostingButton = ({ label, url, hasUrl }: SiteHostingButtonProps) => {
       onClick={handleClick}
       sx={{
         backgroundColor: 'background.default',
-        cursor: 'pointer',
+        cursor: isDisabled ? 'default' : 'pointer',
       }}
     >
-      <CardActionArea>
+      <CardActionArea disabled={isDisabled}>
         <CardContent>
           <Typography variant="h5" fontWeight="medium" gutterBottom>
             {label}
           </Typography>
-          {hasUrl && (
-            <Link variant="body3" href={url} target="_blank">
+          {!isPhoneNumber && !!url && (
+            <Link
+              sx={{
+                wordBreak: 'break-all',
+                overflowWrap: 'break-word',
+                wordWrap: 'break-word',
+              }}
+              variant="body3"
+              fontWeight={500}
+              href={url}
+              target="_blank"
+            >
               {url}
             </Link>
           )}
-          {!hasUrl && (
-            <Typography variant="body3" color="text.secondary">
+          {!isPhoneNumber && !url && (
+            <Typography variant="body3" color="text.secondary" fontWeight={500}>
+              Not available
+            </Typography>
+          )}
+          {isPhoneNumber && (
+            <Typography variant="body3" color="text.secondary" fontWeight={500}>
               {url}
             </Typography>
           )}
@@ -71,6 +84,8 @@ export default function DocumentHostingCard({
   meeting,
   className,
 }: DocumentHostingCardProps) {
+  const { currentClient } = useClient()
+
   // Get year from meetingYear or derive from meetingDate, fallback to 2024
   const getYear = () => {
     if (meeting?.meetingYear) return meeting.meetingYear
@@ -78,12 +93,12 @@ export default function DocumentHostingCard({
     return 2024
   }
 
+  // Get brandingId from client prop, currentClient context, or meeting's ticker as fallback
+
   // Generate dynamic URLs based on client branding and ticker
   const hostingSite = {
     label: 'Document Hosting Site',
-    url: meeting?.client?.brandingId
-      ? `https://www.proxydocs.com/branding/${meeting.client.brandingId}/${getYear()}/issuer/`
-      : '',
+    url: `https://www.proxydocs.com/branding/${currentClient?.branding_id}/${getYear()}/issuer/`,
     status: meeting?.status,
     hasUrl: true,
   }
@@ -103,23 +118,15 @@ export default function DocumentHostingCard({
     hasUrl: false,
   }
 
-  // Only show sites that have URLs
-  const sites = [hostingSite, eVoteSite, ivrNumber].filter((site) => site.url)
+  // Always show all sites; disable click when URL is missing
+  const sites = [hostingSite, eVoteSite, ivrNumber]
 
   return (
-    <Card
-      className={className}
-      sx={{ height: 'auto', gridArea: 'documentLinks', alignSelf: 'start' }}
-    >
+    <Card className={className} sx={{ height: 'auto', gridArea: 'documentLinks' }}>
       <CardContent>
         <Stack spacing={1.5}>
           {sites.map((site, index) => (
-            <SiteHostingButton
-              key={index}
-              label={site.label}
-              url={site.url}
-              hasUrl={site.hasUrl}
-            />
+            <SiteHostingButton key={index} label={site.label} url={site.url} />
           ))}
         </Stack>
       </CardContent>

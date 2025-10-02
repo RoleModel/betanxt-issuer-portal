@@ -12,19 +12,24 @@ const __dirname = dirname(__filename)
  */
 
 const CORE_TABLES = [
-  'client',
+  'clients',
   'account',
   'user',
   'meeting',
   'phase',
   'task',
   'document',
+  'document_history',
+  'digital_shareholder_meeting',
   'comment',
   'signature',
   'position',
   'position_vote',
   'proposal',
   'notification',
+  'mailing',
+  'tabulation_report',
+  'dsm_config',
 ]
 
 function extractCoreSchema() {
@@ -36,7 +41,7 @@ function extractCoreSchema() {
   try {
     fullSchema = readFileSync(schemaPath, 'utf-8')
   } catch (error) {
-    console.error('Error reading postgresql_schema.sql:', error)
+    console.error(`Failed to load schema from ${schemaPath}`, error)
     process.exit(1)
   }
 
@@ -46,7 +51,6 @@ function extractCoreSchema() {
     // Remove old initial schema migrations
     if (file.match(/^\d{14}_initial_schema\.sql$/)) {
       unlinkSync(join(migrationsDir, file))
-      console.log(`🗑️  Removed old migration: ${file}`)
     }
   })
 
@@ -76,30 +80,50 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 `
 
   // Extract enum definitions first
+  const SKIP_TYPES: string[] = []
+
   const enumMatches = fullSchema.match(/CREATE TYPE[^;]+;/g) || []
   enumMatches.forEach((enumDef) => {
-    // Extract type name and add DROP IF EXISTS first
+    // Extract type name
     const typeNameMatch = enumDef.match(/CREATE TYPE (\w+)/)
     if (typeNameMatch) {
       const typeName = typeNameMatch[1]
-      coreSchema += `DROP TYPE IF EXISTS ${typeName};\n`
+
+      // Skip types that are managed by other migrations
+      if (SKIP_TYPES.includes(typeName)) {
+        return
+      }
+
+      // Add DROP IF EXISTS with CASCADE for types that might have dependencies
+      coreSchema += `DROP TYPE IF EXISTS ${typeName} CASCADE;\n`
     }
     coreSchema += enumDef + '\n\n'
   })
 
   // Extract core table definitions and their comments
-  const usedComments = new Set()
+  const _usedComments = new Set()
 
   CORE_TABLES.forEach((tableName) => {
     // Look for the table definition including its full structure
+    // Updated regex to handle the actual format: "-- Table 'name' generated from model...\n--\nCREATE TABLE..."
     const tableStartRegex = new RegExp(
-      `-- Table '${tableName}'.*?CREATE TABLE[^;]*?\\);`,
-      'gs'
+      `-- Table '${tableName}'[\\s\\S]*?CREATE TABLE[\\s\\S]*?\\);`,
+      'g'
     )
     const matches = fullSchema.match(tableStartRegex)
 
     if (matches && matches[0]) {
-      const tableSection = matches[0]
+      let tableSection = matches[0]
+
+      // Replace CREATE TABLE IF NOT EXISTS with DROP + CREATE TABLE
+      // This ensures clean migrations that always recreate tables
+      tableSection = tableSection.replace(
+        /CREATE TABLE IF NOT EXISTS (public\.)?("?\w+"?)/,
+        (match, schema, tableName) => {
+          return `DROP TABLE IF EXISTS ${schema || ''}${tableName} CASCADE;\nCREATE TABLE ${schema || ''}${tableName}`
+        }
+      )
+
       coreSchema += tableSection + '\n'
 
       // Add COMMENT statements for this table only (exact matches only)
@@ -117,17 +141,37 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       tableCommentRegex.lastIndex = 0
       columnCommentRegex.lastIndex = 0
 
+      // Function to sanitize COMMENT statements
+      const _sanitizeComment = (_comment: string): string => {
+        return _comment
+          .replace(/&#x60;/g, '') // Remove HTML encoded backticks entirely
+          .replace(/&#x27;/g, "'") // Replace HTML encoded single quotes
+          .replace(/&quot;/g, '"') // Replace HTML entities for double quotes
+          .replace(/&amp;/g, '&') // Replace HTML entities for ampersands
+          .replace(/&lt;/g, '<') // Replace HTML entities for less than
+          .replace(/&gt;/g, '>') // Replace HTML entities for greater than
+          .replace(/`/g, '') // Remove any remaining backticks to avoid SQL syntax issues
+          .replace(/\r\n/g, ' ') // Replace Windows line endings
+          .replace(/\n/g, ' ') // Replace Unix line endings
+          .replace(/\r/g, ' ') // Replace Mac line endings
+          .replace(/\s+/g, ' ') // Collapse multiple spaces
+          .replace(/\.\s*\.\s*/, '. ') // Fix double periods
+          .trim()
+      }
+
+      // Extract and sanitize COMMENT statements to fix HTML entities
       let tableMatch
       while ((tableMatch = tableCommentRegex.exec(fullSchema)) !== null) {
         const comment = tableMatch[0]
         if (
-          !usedComments.has(comment) &&
+          !_usedComments.has(comment) &&
           !comment.includes('\\&quot;') &&
           !comment.includes('\\"') &&
           comment.trim().endsWith(';')
         ) {
-          coreSchema += comment + '\n'
-          usedComments.add(comment)
+          const sanitizedComment = _sanitizeComment(comment)
+          coreSchema += sanitizedComment + '\n'
+          _usedComments.add(comment)
         }
       }
 
@@ -135,26 +179,22 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       while ((columnMatch = columnCommentRegex.exec(fullSchema)) !== null) {
         const comment = columnMatch[0]
         if (
-          !usedComments.has(comment) &&
+          !_usedComments.has(comment) &&
           !comment.includes('\\&quot;') &&
           !comment.includes('\\"') &&
           comment.trim().endsWith(';')
         ) {
-          coreSchema += comment + '\n'
-          usedComments.add(comment)
+          const sanitizedComment = _sanitizeComment(comment)
+          coreSchema += sanitizedComment + '\n'
+          _usedComments.add(comment)
         }
       }
-
       coreSchema += '\n'
-    } else {
-      console.warn(`⚠️ Table '${tableName}' not found in schema`)
     }
   })
 
   // Write the clean schema
   writeFileSync(migrationPath, coreSchema)
-  console.log(`✅ Core schema extracted to ${migrationPath}`)
-  console.log(`📊 Included ${CORE_TABLES.length} core tables`)
 }
 
 // Run the extraction when script is executed directly

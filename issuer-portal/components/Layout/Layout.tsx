@@ -1,14 +1,21 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import { PropsWithChildren, Suspense, useMemo } from 'react'
+import React, { PropsWithChildren, Suspense, useMemo } from 'react'
 
-import { Box } from '@mui/material'
+import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
+import { Box, Stack } from '@mui/material'
 
+import { ResetDemoDataDialog } from '@/components/Dialogs/ResetDemoDataDialog'
+import { InfoDialog } from '@/components/InfoDialog'
 import { BNAppBarClient } from '@/components/Navigation/AppBar'
 import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
+import { EventTabs } from '@/components/Navigation/EventTabs'
+import IssuerSpeedDial from '@/components/SpeedDial'
+import SupportContactsPopover from '@/components/SupportContactsPopover'
 
 import { useClient } from '@/contexts/ClientContext'
 
@@ -17,17 +24,51 @@ import Loading from '../../app/loading'
 type LayoutProps = {
   activeNavLinkTitle?: string
   appSwitcher?: boolean
-  navBar?: boolean
   apps?: string
+  navBar?: boolean
+  eventTabs?: boolean
 }
 
 const currentApp = 'Issuer Portal'
 
 function Layout({
   children,
-  navBar = true,
   appSwitcher = true,
+  navBar = true,
+  eventTabs = false,
 }: PropsWithChildren<LayoutProps>) {
+  const [open, setOpen] = React.useState(false)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
+  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false)
+  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
+
+  const handleGlossaryClick = () => {
+    setInfoDialogOpen(true)
+  }
+
+  const handleInfoDialogClose = () => {
+    setInfoDialogOpen(false)
+  }
+
+  const handleContactsClick = () => {
+    // Find the SpeedDial element to use as anchor
+    const speedDialElement = document.querySelector(
+      '[aria-label="Support Contacts"]'
+    ) as HTMLElement
+    if (speedDialElement) {
+      setAnchorEl(speedDialElement)
+    }
+    setOpen(true)
+  }
+
+  const handleResetClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setResetDialogOpen(true)
+  }
+
+  const handleResetDialogClose = () => {
+    setResetDialogOpen(false)
+  }
   const { data: session } = useSession()
   const { currentClient } = useClient()
 
@@ -50,6 +91,7 @@ function Layout({
     id: string
     name?: string | null
     email?: string | null
+    image?: string | null
     username?: string
     type?: string
     accountId?: string
@@ -65,10 +107,12 @@ function Layout({
     const type = typeof u.type === 'string' ? u.type : undefined
     const accountId = typeof u.accountId === 'string' ? u.accountId : undefined
     const roles = Array.isArray(u.roles) ? (u.roles as string[]) : undefined
+    const userImage = (effectiveUser as User).image ?? null
     return {
       id,
       name: (effectiveUser as User).name ?? null,
       email: (effectiveUser as User).email ?? null,
+      image: userImage,
       username,
       type,
       accountId,
@@ -78,16 +122,77 @@ function Layout({
 
   return (
     <Suspense fallback={<Loading />}>
-      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Stack sx={{ minHeight: '100vh' }}>
+        {appSwitcher && (
+          <Box
+            aria-label="Client and Application Switcher"
+            role="complementary"
+            sx={{ flexShrink: 0 }}
+          >
+            <ClientAppSwitcher currentAppTitle={currentApp} />
+          </Box>
+        )}
+        {navBar && (
+          <Box sx={{
+            flexShrink: 0,
+          }}>
+            <BNAppBarClient user={bnUser} />
+          </Box>
+        )}
+        {eventTabs && (
+          <Box sx={{ flexShrink: 0 }}>
+            <EventTabs />
+          </Box>
+        )}
 
-        {appSwitcher && <Box aria-label="Client and Application Switcher" role="complementary"><ClientAppSwitcher currentAppTitle={currentApp} /></Box>}
-        {navBar && <BNAppBarClient user={bnUser} />}
-
-        <Box component="main" sx={{ flexGrow: 1, flex: 1 }}>
+        <Box component="main" flex="1 0 auto">
           {children}
         </Box>
-        <BNAppFooter />
-      </Box>
+        {navBar && (
+          <IssuerSpeedDial
+            ariaLabel="Support Contacts"
+            icon={<SupportAgentOutlined />}
+            closeIcon={<CloseOutlined />}
+            tooltipTitle="Support Contacts"
+            placement="top"
+            onGlossaryClick={handleGlossaryClick}
+            onContactsClick={handleContactsClick}
+          />
+        )}
+        <SupportContactsPopover
+          open={open}
+          anchorEl={anchorEl}
+          onClose={() => {
+            setOpen(false)
+            setAnchorEl(null)
+          }}
+        />
+        <InfoDialog
+          open={infoDialogOpen}
+          onClose={handleInfoDialogClose}
+          term=""
+          definition=""
+        />
+        <ResetDemoDataDialog open={resetDialogOpen} onClose={handleResetDialogClose} />
+        <Box
+          sx={{ flexShrink: 0 }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement
+            if (target.textContent === 'Reset') {
+              handleResetClick(e)
+            }
+          }}
+        >
+          <BNAppFooter
+            links={[
+              {
+                label: 'Reset',
+                href: '#reset-demo',
+              },
+            ]}
+          />
+        </Box>
+      </Stack>
     </Suspense>
   )
 }

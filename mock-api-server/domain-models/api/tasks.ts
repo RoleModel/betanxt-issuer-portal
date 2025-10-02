@@ -1,183 +1,210 @@
-import { type ApiClientReturnType, buildApiClient } from '../apiClient'
+import { randomUUID } from 'crypto'
+
+import type { components } from '@/types/api'
+import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
+
+// Use generated types from OpenAPI schema
+type Task = components['schemas']['Task']
+type CreateTaskRequest = components['schemas']['CreateTaskRequest']
+type UpdateTaskRequest = components['schemas']['UpdateTaskRequest']
+type TaskRow = Database['public']['Tables']['task']['Row']
+type TaskUpdate = Database['public']['Tables']['task']['Update']
+
+// Helper type for backend responses
+type ApiResponse<T> = {
+  data?: T
+  error?: {
+    message: string
+    statusCode?: number
+  }
+}
+
+// Transform snake_case database fields to camelCase API fields
+function transformTask(dbTask: TaskRow): Task {
+  return {
+    id: dbTask.id,
+    title: nullToUndefined(dbTask.title),
+    description: nullToUndefined(dbTask.description),
+    dueDate: nullToUndefined(dbTask.due_date),
+    owner: nullToUndefined(dbTask.owner),
+    status: nullToUndefined(dbTask.status) as
+      | 'COMPLETE'
+      | 'INCOMPLETE'
+      | 'CANCELLED'
+      | 'NEEDS_AUTHORIZATION'
+      | 'AUTHORIZED'
+      | 'PENDING_AUTHORIZATION'
+      | 'WAITING_FOR_FORM_RETURN'
+      | 'AUTHORIZATION_NEEDED'
+      | 'SUBMITTED_AWAITING_RECORD_DATE'
+      | 'REQUEST_FORM_TO_FOLLOW'
+      | undefined,
+    meetingId: nullToUndefined(dbTask.meeting_id),
+    phaseId: nullToUndefined(dbTask.phase_id),
+    phaseNumber: nullToUndefined(dbTask.phase_number),
+    type: nullToUndefined(dbTask.type),
+    documentId: nullToUndefined(dbTask.document_id),
+    links: dbTask.links as Record<string, never> | null,
+    createdAt: nullToUndefined(dbTask.created_at),
+    updatedAt: nullToUndefined(dbTask.updated_at),
+  }
+}
 
 export async function listTasks(
-  meetingId?: string,
-  opts?: { phaseId?: string; status?: string }
-): Promise<ApiClientReturnType<any[]>> {
+  meetingId: string,
+  opts?: { phaseId?: string; status?: string; owner?: string }
+): Promise<ApiResponse<Task[]>> {
   try {
-    const supabase = buildApiClient()
-    let query = supabase.from('task').select('*')
-    if (meetingId) query = query.eq('meeting_id', meetingId)
-    if (opts?.phaseId) query = query.eq('phase_id', opts.phaseId)
-    if (opts?.status) query = query.eq('status', opts.status)
-    query = query.order('phase_number', { ascending: true })
+    let query = supabase.from('task').select('*').eq('meeting_id', meetingId)
+
+    // Apply filters
+    if (opts?.phaseId) {
+      query = query.eq('phase_id', opts.phaseId)
+    }
+    if (opts?.status) {
+      query = query.eq('status', opts.status)
+    }
+    if (opts?.owner) {
+      query = query.eq('owner', opts.owner)
+    }
+
     const { data, error } = await query
-    if (error)
+
+    if (error) {
       return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
+        error: { message: error.message || 'Failed to fetch tasks' },
       }
-    // Convert snake_case from DB to camelCase expected by app
-    const converted = (data || []).map((t: any) => ({
-      ...t,
-      taskId: t.task_id,
-      meetingId: t.meeting_id,
-      phaseId: t.phase_id,
-      phaseNumber: t.phase_number,
-      dueDate: t.due_date,
-      documentId: t.document_id ?? null,
-      createdAt: t.created_at ?? null,
-      updatedAt: t.updated_at ?? null,
-      status: t.status?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || t.status, // Transform NEEDS_AUTHORIZATION to Needs Authorization
-    }))
-    return { data: converted, error: undefined }
+    }
+
+    return {
+      data: data.map(transformTask),
+    }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to fetch tasks',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function createTask(meetingId: string, body: any): Promise<ApiClientReturnType<any>> {
+export async function createTask(
+  meetingId: string,
+  body: CreateTaskRequest
+): Promise<ApiResponse<Task>> {
   try {
-    const supabase = buildApiClient()
-    const payload = { ...body, meeting_id: body.meeting_id || meetingId }
-    const { data, error } = await supabase.from('task').insert([payload]).select().single()
-    if (error)
+    const request = body
+    const { data, error } = await supabase
+      .from('task')
+      .insert({
+        id: randomUUID(),
+        meeting_id: meetingId,
+        task_id: request.taskId,
+        title: request.title,
+        description: request.description,
+        due_date: request.dueDate,
+        owner: request.owner,
+        status: request.status || 'INCOMPLETE',
+        phase_id: request.phaseId,
+        phase_number: request.phaseNumber,
+        type: request.type,
+        document_id: request.documentId,
+        links: request.links,
+      })
+      .select()
+      .single()
+
+    if (error) {
       return {
-        data: undefined,
-        error: { message: error.message, statusCode: 500 },
+        error: { message: error.message || 'Failed to create task' },
       }
-    // Convert to camelCase on return
-    const converted = data
-      ? {
-        ...data,
-        taskId: data.task_id,
-        meetingId: data.meeting_id,
-        phaseId: data.phase_id,
-        phaseNumber: data.phase_number,
-        dueDate: data.due_date,
-        documentId: data.document_id ?? null,
-        createdAt: data.created_at ?? null,
-        updatedAt: data.updated_at ?? null,
-      }
-      : null
-    return { data: converted, error: undefined }
+    }
+
+    return {
+      data: transformTask(data),
+    }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to create task',
-        statusCode: 500,
       },
     }
   }
 }
 
-export async function getTaskById(id: string): Promise<ApiClientReturnType<any>> {
+export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
   try {
-    const supabase = buildApiClient()
     const { data, error } = await supabase.from('task').select('*').eq('id', id).single()
-    if (error)
-      return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
-      }
 
-    // Convert snake_case from DB to camelCase expected by app (same as listTasks)
-    const converted = {
-      ...data,
-      taskId: data.task_id,
-      meetingId: data.meeting_id,
-      phaseId: data.phase_id,
-      phaseNumber: data.phase_number,
-      dueDate: data.due_date,
-      documentId: data.document_id ?? null,
-      createdAt: data.created_at ?? null,
-      updatedAt: data.updated_at ?? null,
+    if (error) {
+      return {
+        error: { message: error.message || 'Failed to fetch task' },
+      }
     }
 
-    return { data: converted, error: undefined }
+    return {
+      data: transformTask(data),
+    }
   } catch (error) {
     return {
-      data: undefined,
-      error: {
-        message: error instanceof Error ? error.message : 'Failed to fetch task',
-        statusCode: 500,
-      },
+      error: { message: error instanceof Error ? error.message : 'Failed to fetch task' },
     }
   }
 }
 
 export async function updateTask(
   id: string,
-  body: any
-): Promise<ApiClientReturnType<any>> {
+  body: UpdateTaskRequest
+): Promise<ApiResponse<Task>> {
   try {
-    const supabase = buildApiClient()
-
-    // Convert camelCase to snake_case for database
-    const dbPayload = {
-      title: body.title,
-      description: body.description,
-      type: body.type,
-      status: body.status,
-      phase_number: body.phaseNumber, // Convert phaseNumber to phase_number
-      due_date: body.dueDate,
-      owner: body.owner,
-      updated_at: new Date().toISOString()
+    const request = body
+    const updateData: Partial<TaskUpdate> = {
+      updated_at: new Date().toISOString(),
     }
-
-    // Remove undefined values
-    Object.keys(dbPayload).forEach(key => {
-      if (dbPayload[key as keyof typeof dbPayload] === undefined) {
-        delete dbPayload[key as keyof typeof dbPayload]
-      }
-    })
+    if (request.title !== undefined) updateData.title = request.title
+    if (request.description !== undefined) updateData.description = request.description
+    if (request.dueDate !== undefined) updateData.due_date = request.dueDate
+    if (request.owner !== undefined) updateData.owner = request.owner
+    if (request.status !== undefined) updateData.status = request.status
+    if (request.phaseNumber !== undefined) updateData.phase_number = request.phaseNumber
+    if (request.type !== undefined) updateData.type = request.type
+    if (request.documentId !== undefined) updateData.document_id = request.documentId
+    if (request.links !== undefined) updateData.links = request.links ?? null
 
     const { data, error } = await supabase
       .from('task')
-      .update(dbPayload)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
-    if (error)
-      return {
-        data: undefined,
-        error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
-        },
-      }
 
-    // Convert snake_case back to camelCase for frontend (same as other functions)
-    const converted = {
-      ...data,
-      taskId: data.task_id,
-      meetingId: data.meeting_id,
-      phaseId: data.phase_id,
-      phaseNumber: data.phase_number,
-      dueDate: data.due_date,
-      documentId: data.document_id ?? null,
-      createdAt: data.created_at ?? null,
-      updatedAt: data.updated_at ?? null,
+    if (error) {
+      return {
+        error: { message: error.message || 'Failed to update task' },
+      }
     }
 
-    return { data: converted, error: undefined }
+    return {
+      data: transformTask(data),
+    }
   } catch (error) {
     return {
-      data: undefined,
       error: {
         message: error instanceof Error ? error.message : 'Failed to update task',
-        statusCode: 500,
       },
     }
   }
+}
+
+// Helper function for backward compatibility
+export async function listTasksByMeetingId(
+  meetingId: string
+): Promise<ApiResponse<Task[]>> {
+  return listTasks(meetingId)
 }

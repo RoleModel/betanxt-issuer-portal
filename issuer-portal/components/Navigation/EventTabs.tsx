@@ -3,12 +3,18 @@
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from 'react'
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
-  Grow,
   IconButton,
   LinearProgress,
   Paper,
@@ -18,9 +24,15 @@ import {
   Tabs,
   Typography,
   styled,
+  useMediaQuery,
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
+import {
+  getPhaseColor,
+  getPhaseContrastText,
+  getPhaseNumber,
+} from '@/components/mui-styling/theme'
 import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -28,10 +40,9 @@ import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
-// import { usePhaseDrawer } from '@/contexts/PhaseDrawerContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
+import { formatDate } from '@/lib/formats'
 
-// View-model for meetings used in tabs
 interface MeetingTab {
   id: string
   title: string
@@ -46,8 +57,8 @@ interface MeetingTab {
   client: string
 }
 
-const navigationTabs = [
-  { label: 'Meeting Dashboard', route: '/dashboard' },
+const getNavigationTabs = (currentPhase: number) => [
+  { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
   { label: 'Calendar', route: '/calendar' },
   { label: 'Documents', route: '/documents' },
   { label: 'Mailing', route: '/mailing' },
@@ -82,31 +93,77 @@ const ScrollButton = styled(IconButton, {
   },
 }))
 
-export const EventTabs = React.memo((): React.ReactElement => {
+const parsePhaseNumber = (phase: string | number | null | undefined): number => {
+  if (typeof phase === 'number' && Number.isFinite(phase)) {
+    return Math.max(1, phase)
+  }
+
+  if (typeof phase === 'string') {
+    const match = phase.match(/(\d+)/)
+    if (match?.[1]) {
+      const value = Number.parseInt(match[1], 10)
+      if (Number.isFinite(value) && value > 0) {
+        return value
+      }
+    }
+  }
+
+  return 1
+}
+
+export function EventTabs() {
   const router = useRouter()
   const pathname = usePathname()
+  const [isPending] = useTransition()
   const [activeMeetingTab, setActiveMeetingTab] = useState(0)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const lastClickTime = useRef<number>(0)
-  // const { openDrawer } = usePhaseDrawer()
-  const { meetings, isLoading: loading, currentMeeting: activeMeeting } = useMeeting()
-  const { currentClient, loading: clientLoading, error: clientError } = useClient()
 
-  // Phase drawer state (lifted to top-level scope)
+  // Try to get meeting context, but handle pages without MeetingProvider
+  let meetingContextValue = null
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    meetingContextValue = useMeeting()
+  } catch {
+    // No MeetingProvider available (e.g., on past-meetings page)
+  }
+
+  const meetings = useMemo(
+    () => meetingContextValue?.meetings ?? [],
+    [meetingContextValue?.meetings]
+  )
+  const loading = meetingContextValue?.isLoading ?? false
+  const activeMeeting = meetingContextValue?.currentMeeting ?? null
+
+  const { currentClient, loading: clientLoading, error: clientError } = useClient()
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
-  // Get meeting ID from URL if activeMeeting is not set
   const meetingIdFromUrl = pathname.match(/\/meeting\/([^/]+)/)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const currentPhase = (() => {
-    const label = currentMeeting?.currentPhase || 'Phase 1'
-    const parsed = parseInt(label.replace('Phase ', ''))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
-  })()
+  // Use a stable skeleton count that doesn't change after hydration to prevent flash
+  const skeletonCount = 2 // Always show 2 skeletons to avoid hydration flash
+
+  // (Optimization) Memoize current phase parsing
+  const currentPhase = useMemo(
+    () => parsePhaseNumber(currentMeeting?.currentPhase),
+    [currentMeeting?.currentPhase]
+  )
+
+  // Extract phase from URL if on a dashboard route
+  const phaseFromUrl = useMemo(() => {
+    const match = pathname.match(/\/dashboard\/(\d+)/)
+    return match ? parseInt(match[1], 10) : null
+  }, [pathname])
+
+  // Use URL phase for display if available, otherwise use meeting's current phase
+  const displayPhase = phaseFromUrl ?? currentPhase
+
+  // Memoize navigation tabs with current phase
+  const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
 
   // Keep drawerPhase in sync with currentPhase when meeting changes
   useEffect(() => {
@@ -116,12 +173,38 @@ export const EventTabs = React.memo((): React.ReactElement => {
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)
 
-  // Get active tab from current pathname
-  // Extract the route part after /[ticker]/meeting/[meetingId]
-  const currentRoute = pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, '')
+  // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
+  // Only prefetch when not currently loading to avoid excessive API calls
+  useEffect(() => {
+    if (currentMeeting?.id && currentClient?.ticker && !loading && !clientLoading) {
+      const timeout = setTimeout(() => {
+        navigationTabs.forEach((tab) => {
+          const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
+          router.prefetch(route)
+        })
+      }, 120)
+      return () => clearTimeout(timeout)
+    }
+  }, [
+    currentMeeting?.id,
+    currentClient?.ticker,
+    router,
+    navigationTabs,
+    loading,
+    clientLoading,
+  ])
 
-  const activeTab =
-    navigationTabs.find((tab) => tab.route === currentRoute)?.label || 'Meeting Dashboard'
+  // Get active tab from current pathname (memoized to prevent re-renders)
+  const currentRoute = useMemo(
+    () => pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, ''),
+    [pathname]
+  )
+  const activeTab = useMemo(
+    () =>
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ||
+      'Meeting Dashboard',
+    [navigationTabs, currentRoute]
+  )
 
   // Handle URL-based meeting selection for past meetings
   useEffect(() => {
@@ -144,53 +227,51 @@ export const EventTabs = React.memo((): React.ReactElement => {
     }
 
     handleMeetingFromURL()
-  }, [pathname, activeMeeting, meetings])
-
-  // Helper function to format dates
-  const formatDate = (dateString: string) => {
-    if (!dateString) return ''
-    try {
-      const date = new Date(dateString)
-      return isNaN(date.getTime())
-        ? dateString
-        : date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        })
-    } catch {
-      return dateString || ''
-    }
-  }
+  }, [pathname, activeMeeting, meetings, currentMeeting])
 
   // Helper: map API/Context meeting to simplified tab data
-  const mapToMeetingTab = (m: components['schemas']['Meeting']): MeetingTab => ({
-    id: m.id ?? '',
-    title: m.title ?? 'Meeting',
-    ticker: m.ticker ?? '',
-    cusip: m.cusip ?? '',
-    recordDate: formatDate(m.recordDate ?? ''),
-    mailingDate: formatDate(m.mailingDate ?? ''),
-    meetingDate: formatDate(m.meetingDate ?? ''),
-    status: (m.status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED') ?? 'ACTIVE',
-    currentPhase: m.currentPhase ?? 'Phase 1',
-    overallCompletion: m.overallCompletion ?? 0,
-    client: currentClient?.company_name ?? '',
-  })
+  const mapToMeetingTab = useCallback(
+    (m: components['schemas']['Meeting']): MeetingTab => ({
+      id: m.id ?? '',
+      title: m.title ?? 'Meeting',
+      ticker: m.ticker ?? '',
+      cusip: m.cusip ?? '',
+      recordDate: formatDate(m.recordDate ?? ''),
+      mailingDate: formatDate(m.mailingDate ?? ''),
+      meetingDate: formatDate(m.meetingDate ?? ''),
+      status: (m.status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED') ?? 'ACTIVE',
+      currentPhase: m.currentPhase ?? 'Phase 1',
+      overallCompletion: m.overallCompletion ?? 0,
+      client: currentClient?.company_name ?? '',
+    }),
+    [currentClient?.company_name]
+  )
 
-  // Show only active meetings (meetings are already filtered by ticker in MeetingContext)
+  // Show only active meetings OR the currently selected past meeting
   const transformedMeetings: {
     tab: MeetingTab
     src: components['schemas']['Meeting']
-  }[] = (() => {
-    // Ensure meetings is an array before filtering
+  }[] = useMemo(() => {
     const meetingsArray = meetings || []
-    // Filter to only show active meetings
-    const activeMeetings = meetingsArray.filter((meeting) => meeting.status === 'ACTIVE')
-    return activeMeetings.map((meeting) => ({
-      tab: mapToMeetingTab(meeting),
-      src: meeting,
-    }))
-  })()
+    if (currentMeeting && currentMeeting.status === 'COMPLETE') {
+      return [
+        {
+          tab: mapToMeetingTab(currentMeeting),
+          src: currentMeeting,
+        },
+      ]
+    }
+    const activeMeetings = meetingsArray.filter((m) => m.status === 'ACTIVE')
+    activeMeetings.sort((a, b) => {
+      const dateA = a.meetingDate ? new Date(a.meetingDate).getTime() : 0
+      const dateB = b.meetingDate ? new Date(b.meetingDate).getTime() : 0
+      if (dateA === dateB) {
+        return (a.title || '').localeCompare(b.title || '')
+      }
+      return dateA - dateB
+    })
+    return activeMeetings.map((m) => ({ tab: mapToMeetingTab(m), src: m }))
+  }, [meetings, currentMeeting, mapToMeetingTab])
 
   // Sync activeMeetingTab with current meeting
   useEffect(() => {
@@ -204,53 +285,30 @@ export const EventTabs = React.memo((): React.ReactElement => {
     }
   }, [currentMeeting, transformedMeetings, activeMeetingTab])
 
-  const handleTabClick = (tabLabel: string) => {
-    // Debounce rapid clicks (250ms minimum between clicks)
-    const now = Date.now()
-    if (now - lastClickTime.current < 250) {
-      return
-    }
-    lastClickTime.current = now
-
-    const tab = navigationTabs.find((t) => t.label === tabLabel)
-    if (tab && currentMeeting && currentClient?.ticker) {
-      const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`
-
-      // Use router.push for client-side navigation
-      router.push(route, { scroll: false })
-    }
-  }
-
-  // Helper function to scroll to active tab
-  const scrollToActiveTab = useCallback(() => {
-    if (scrollContainerRef.current && activeMeetingTab !== -1) {
-      const container = scrollContainerRef.current
-      const activeTab = container.querySelector(
-        `[data-tab-index="${activeMeetingTab}"]`
-      ) as HTMLElement
-
-      if (activeTab) {
-        const tabLeft = activeTab.offsetLeft
-        const targetScroll = activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12)
-
-        container.scrollTo({
-          left: targetScroll,
-          behavior: 'smooth',
-        })
-
-        checkScrollButtons()
-      }
-    }
-  }, [activeMeetingTab])
-
-  // Check scroll position and update button visibility
-  const checkScrollButtons = () => {
+  // Check scroll position and update button visibility (memoized)
+  const checkScrollButtons = useCallback(() => {
     if (scrollContainerRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
       setCanScrollLeft(scrollLeft > 1) // Small tolerance for floating point precision
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
     }
-  }
+  }, [])
+
+  // Helper function to scroll to active tab
+  const scrollToActiveTab = useCallback(() => {
+    if (scrollContainerRef.current && activeMeetingTab !== -1) {
+      const container = scrollContainerRef.current
+      const activeTabEl = container.querySelector(
+        `[data-tab-index="${activeMeetingTab}"]`
+      ) as HTMLElement
+      if (activeTabEl) {
+        const tabLeft = activeTabEl.offsetLeft
+        const targetScroll = activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12)
+        container.scrollTo({ left: targetScroll, behavior: 'smooth' })
+        checkScrollButtons()
+      }
+    }
+  }, [activeMeetingTab, checkScrollButtons])
 
   // Scroll to active tab when it changes
   useEffect(() => {
@@ -263,10 +321,10 @@ export const EventTabs = React.memo((): React.ReactElement => {
     const handleResize = () => checkScrollButtons()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [checkScrollButtons])
 
-  // Scroll functions
-  const scrollLeft = () => {
+  // Scroll functions (memoized)
+  const scrollLeft = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
@@ -306,9 +364,9 @@ export const EventTabs = React.memo((): React.ReactElement => {
         checkScrollButtons()
       }, 300)
     }
-  }
+  }, [checkScrollButtons])
 
-  const scrollRight = () => {
+  const scrollRight = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
@@ -383,7 +441,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
         checkScrollButtons()
       }, 300)
     }
-  }
+  }, [checkScrollButtons])
 
   const renderSkeletonTab = (index: number) => (
     <Box
@@ -396,8 +454,12 @@ export const EventTabs = React.memo((): React.ReactElement => {
         position: 'relative',
         flex: '0 1 auto',
         borderRight: `1px solid ${theme.vars.palette.divider}`,
+        borderLeft: `1px solid ${theme.vars.palette.divider}`,
         minWidth: theme.spacing(30),
         overflowX: 'hidden',
+        '&:last-child': {
+          borderLeft: 'none',
+        },
       })}
     >
       <Box
@@ -409,44 +471,241 @@ export const EventTabs = React.memo((): React.ReactElement => {
           flex: 1,
         })}
       >
-        <Stack spacing={1}>
-          <Skeleton variant="text" width="60%" height={40} />
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Skeleton variant="text" width={60} height={20} />
-            <Skeleton variant="text" width={80} height={20} />
-            <Skeleton variant="text" width={70} height={20} />
-            <Skeleton variant="text" width={80} height={20} />
-            <Skeleton variant="text" width={60} height={20} />
+        <Skeleton variant="text" width="60%" height={30} />
+        {!isMobile && (
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Skeleton variant="text" width={60} height={20} />
+              <Skeleton variant="text" width={80} height={20} />
+              <Skeleton variant="text" width={70} height={20} />
+              <Skeleton variant="text" width={80} height={20} />
+              <Skeleton variant="text" width={60} height={20} />
+            </Stack>
           </Stack>
-        </Stack>
+        )}
       </Box>
     </Box>
   )
 
-  const renderMeetingTab = (
-    meeting: MeetingTab,
-    sourceMeeting: components['schemas']['Meeting'],
-    index: number
-  ) => {
-    const isActive = currentMeeting?.id === meeting.id
-    const _isPastMeeting = meeting.status === 'COMPLETE'
+  // Subcomponents for active/inactive meeting detail sections
+  const ActiveMeetingDetails = ({
+    meeting,
+    currentPhase,
+    onOpenPhaseDrawer,
+  }: {
+    meeting: MeetingTab
+    currentPhase: number
+    onOpenPhaseDrawer: () => void
+  }) => {
+    const phaseLabel = meeting.currentPhase || `Phase ${currentPhase}`
 
-    // Build the target URL for this meeting (use current client ticker)
+    return (
+      <Box sx={{ display: 'flex', color: 'text.primary' }}>
+        <Stack direction="row" spacing={2} alignItems="start">
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'CUSIP',
+            }}
+            secondary={{ variant: 'body3', fontWeight: 500, text: meeting.cusip }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Record Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.recordDate,
+            }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Mailing Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.mailingDate,
+            }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
+              text: 'Meeting Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: meeting.meetingDate,
+            }}
+          />
+          <Stack>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              sx={{ fontWeight: 500 }}
+            >
+              Current Phase
+            </Typography>
+            <Typography
+              component="span"
+              variant="body3"
+              aria-label={`Open ${phaseLabel} phase details`}
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onOpenPhaseDrawer()
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onOpenPhaseDrawer()
+                }
+              }}
+              sx={(theme) => {
+                return {
+                  fontSize: theme.typography.body3.fontSize,
+                  fontWeight: 500,
+                  color: getPhaseColor(displayPhase),
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  alignSelf: 'start',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                  '&:focus': {
+                    outline: `2px solid ${theme.vars?.palette?.primary?.main}`,
+                    outlineOffset: 2,
+                  },
+                  ...theme.applyStyles('dark', {
+                    paddingY: 0.25,
+                    paddingX: 0.5,
+                    borderRadius: 1,
+                    background: getPhaseColor(displayPhase),
+                    color: getPhaseContrastText(displayPhase),
+                  }),
+                }
+              }}
+            >
+              {phaseLabel}
+            </Typography>
+          </Stack>
+          <Stack sx={{ minWidth: 120 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              sx={{ fontWeight: 500 }}
+            >
+              Overall Completion
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
+              <LinearProgress
+                variant="determinate"
+                color={getPhaseNumber(currentPhase) as 'primary'}
+                value={meeting.overallCompletion || 0}
+                aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
+                sx={{ flex: 1, height: 6, borderRadius: 12 }}
+              />
+              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                {meeting.overallCompletion || 0}%
+              </Typography>
+            </Box>
+          </Stack>
+          <Box display="flex" alignItems="center" height="100%">
+            <StatusChip status={meeting.status || 'Unknown'} size="small" />
+          </Box>
+        </Stack>
+      </Box>
+    )
+  }
+
+  const InactiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <Stack sx={{ alignItems: 'flex-end' }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 500,
+              fontSize: '0.75rem',
+              lineHeight: 1.5,
+              letterSpacing: '3.33%',
+              color: 'inherit',
+            }}
+          >
+            Meeting Date
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              lineHeight: 1.286,
+              letterSpacing: '0.71%',
+              color: 'inherit',
+            }}
+          >
+            {meeting.meetingDate}
+          </Typography>
+        </Stack>
+      </Box>
+    )
+  }
+
+  const handleOpenPhaseDrawer = useCallback((phase: number) => {
+    setDrawerPhase(phase)
+    setPhaseDrawerOpen(true)
+  }, [])
+
+  const MeetingTab = React.memo(function MeetingTab({
+    meeting,
+    src: _src,
+    index,
+  }: {
+    meeting: MeetingTab
+    src: components['schemas']['Meeting']
+    index: number
+  }) {
+    const isActive = currentMeeting?.id === meeting.id
     const ticker = currentClient?.ticker
     const meetingId = meeting.id
     const currentPath = pathname.replace(/\/[^/]+\/meeting\/[^/]+/, '')
-    const targetPath =
-      currentPath === ''
-        ? `/${ticker}/meeting/${meetingId}`
-        : `/${ticker}/meeting/${meetingId}${currentPath}`
 
-    // removed nested state; using top-level phaseDrawerOpen
+    // If on dashboard with phase, navigate to the target meeting's phase
+    const targetPath = useMemo(() => {
+      if (currentPath.match(/^\/dashboard(\/\d+)?$/)) {
+        const targetPhase = parsePhaseNumber(meeting.currentPhase)
+        return `/${ticker}/meeting/${meetingId}/dashboard/${targetPhase}`
+      } else if (currentPath === '') {
+        return `/${ticker}/meeting/${meetingId}`
+      } else {
+        return `/${ticker}/meeting/${meetingId}${currentPath}`
+      }
+    }, [currentPath, ticker, meetingId, meeting.currentPhase])
 
     return (
       <Box
-        component={Link}
-        key={index}
-        href={targetPath}
+        key={meeting.id || index}
         data-tab-index={index}
         tabIndex={0}
         role="tab"
@@ -455,7 +714,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
           textDecoration: 'none',
           display: 'flex',
           flexDirection: 'row',
-          height: 110,
+          height: isMobile ? 'auto' : 110,
           cursor: isActive ? 'default' : 'pointer',
           overflowX: 'hidden',
           backgroundColor: isActive
@@ -473,294 +732,43 @@ export const EventTabs = React.memo((): React.ReactElement => {
           borderRight: `1px solid ${theme.vars.palette.divider}`,
           minWidth: 'fit-content',
           transition: theme.transitions.create(['color']),
-          '&:hover': {
-            color: theme.vars.palette.primary.main,
-          },
+          '&:hover': { color: theme.vars.palette.primary.main },
         })}
       >
-        <Box
-          sx={(theme) => ({
-            px: theme.spacing(2),
-            pt: theme.spacing(1.5),
-          })}
-        >
+        <Box sx={(theme) => ({ px: theme.spacing(2), pt: theme.spacing(1.5) })}>
           <Stack>
             <Typography
+              href={targetPath}
               variant="h1"
-              component="h1"
+              component={Link}
               sx={{
                 fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
                 fontWeight: 500,
                 fontSize: '2rem',
                 lineHeight: 1.125,
                 letterSpacing: '0.47%',
+                textDecoration: 'none',
                 color: 'inherit',
                 mb: 1,
-                fontDisplay: 'swap', // Ensure font swapping for faster render
+                fontDisplay: 'swap',
               }}
             >
               {meeting.title}
             </Typography>
-
-            {isActive && (
-              <Grow
-                in={isActive}
-                timeout={{
-                  enter: 300,
-                  exit: 200,
-                }}
-                unmountOnExit
-                style={{ transformOrigin: '0 0 0' }}
-              >
-                <Box sx={{ display: 'flex', color: 'text.primary' }}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'CUSIP',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.cusip,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Record Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.recordDate,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Mailing Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.mailingDate,
-                      }}
-                    />
-                    <BNTypographyPair
-                      sx={{
-                        whiteSpace: 'nowrap',
-                      }}
-                      primary={{
-                        color: 'text.secondary',
-                        variant: 'caption',
-                        fontWeight: 500,
-                        text: 'Meeting Date',
-                      }}
-                      secondary={{
-                        variant: 'body3',
-                        fontWeight: 500,
-                        text: meeting.meetingDate,
-                      }}
-                    />
-
-                    <Stack>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                        sx={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        Current Phase
-                      </Typography>
-                      <Typography
-                        component="span"
-                        variant="body2"
-                        aria-label={`Open ${meeting.currentPhase} phase details`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setDrawerPhase(currentPhase)
-                          togglePhaseDrawer(true)()
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setDrawerPhase(currentPhase)
-                            togglePhaseDrawer(true)()
-                          }
-                        }}
-                        sx={{
-                          fontWeight: 600,
-                          color:
-                            theme.vars.palette.phase[
-                              parseInt(
-                                (meeting.currentPhase || 'Phase 1').replace('Phase ', '')
-                              ) - 1
-                            ].main,
-                          cursor: 'pointer',
-                          fontSize: 'inherit',
-                          lineHeight: 1.5,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                          '&:focus': {
-                            outline: `2px solid ${theme.vars.palette.primary.main}`,
-                            outlineOffset: 2,
-                          },
-                          ...theme.applyStyles('dark', {
-                            color:
-                              theme.vars.palette.phase[
-                                parseInt(
-                                  (meeting.currentPhase || 'Phase 1').replace(
-                                    'Phase ',
-                                    ''
-                                  )
-                                ) - 1
-                              ].light,
-                          }),
-                        }}
-                      >
-                        {meeting.currentPhase}
-                      </Typography>
-                    </Stack>
-
-                    <Stack sx={{ minWidth: 120 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                        sx={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        Overall Completion
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          minHeight: (theme) => theme.spacing(3),
-                        }}
-                      >
-                        <LinearProgress
-                          variant="determinate"
-                          color="primary"
-                          value={meeting.overallCompletion || 0}
-                          aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
-                          sx={{
-                            flex: 1,
-                            height: (theme) => theme.spacing(0.5),
-                          }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          {meeting.overallCompletion || 0}%
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    <StatusChip status={meeting.status || 'Unknown'} size="small" />
-                  </Stack>
-                </Box>
-              </Grow>
-            )}
-
-            {!isActive && (
-              // Inactive tab shows only meeting date
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                }}
-              >
-                <Stack sx={{ alignItems: 'flex-end' }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '0.75rem',
-                      lineHeight: 1.5,
-                      letterSpacing: '3.33%',
-                      color: 'inherit',
-                    }}
-                  >
-                    Meeting Date
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '0.875rem',
-                      lineHeight: 1.286,
-                      letterSpacing: '0.71%',
-                      color: 'inherit',
-                    }}
-                  >
-                    {meeting.meetingDate}
-                  </Typography>
-                </Stack>
-              </Box>
+            {isActive && !isMobile ? (
+              <ActiveMeetingDetails
+                meeting={meeting}
+                currentPhase={currentPhase}
+                onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
+              />
+            ) : (
+              !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
             )}
           </Stack>
         </Box>
       </Box>
     )
-  }
-
-  // Show loading state if clients are still loading
-  const meetingsArray = meetings || []
-  if (clientLoading || (loading && meetingsArray.length === 0)) {
-    return (
-      <Box>
-        <Paper
-          sx={{
-            borderBottom: '1px solid',
-            borderColor: (theme) => theme.vars.palette.divider,
-            boxShadow: 'none',
-            borderRadius: 0,
-            backgroundColor: (theme) => theme.vars.palette.appBarSecondary.defaultFill,
-          }}
-        >
-          <Box sx={{ px: 3 }}>
-            <Stack direction="row">
-              {[1, 2, 3].map((index) => renderSkeletonTab(index))}
-            </Stack>
-          </Box>
-        </Paper>
-      </Box>
-    )
-  }
+  })
 
   // Show error state if there's a client error
   if (clientError) {
@@ -776,7 +784,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
             p: 2,
           }}
         >
-          <Typography color="error" variant="body2">
+          <Typography color="error" variant="body3">
             Error loading client data: {clientError}
           </Typography>
         </Paper>
@@ -784,8 +792,35 @@ export const EventTabs = React.memo((): React.ReactElement => {
     )
   }
 
+  // Show loading state if clients are still loading
+  const meetingsArray = meetings || []
+
+  if (clientLoading || (loading && meetingsArray.length === 0)) {
+    return (
+      <Box>
+        <Paper
+          sx={{
+            borderBottom: '1px solid',
+            borderColor: (theme) => theme.vars.palette.divider,
+            boxShadow: 'none',
+            borderRadius: 0,
+            background: (theme) => theme.vars.palette.tableCellRow.fill,
+          }}
+        >
+          <Box sx={{ px: 3 }}>
+            <Stack direction="row">
+              {Array.from({ length: skeletonCount }, (_, index) =>
+                renderSkeletonTab(index + 1)
+              )}
+            </Stack>
+          </Box>
+        </Paper>
+      </Box>
+    )
+  }
+
   return (
-    <Box>
+    <Box component="nav">
       {/* Meeting Tabs Section */}
       <Paper
         sx={{
@@ -793,7 +828,7 @@ export const EventTabs = React.memo((): React.ReactElement => {
           borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
           boxShadow: 'none',
-          backgroundColor: (theme) => theme.vars.palette.appBarSecondary.defaultFill,
+          background: (theme) => theme.vars.palette.tableCellRow.fill,
           position: 'relative', // Add relative positioning
           '& .MuiPaper-root': {
             borderRadius: 0,
@@ -801,8 +836,8 @@ export const EventTabs = React.memo((): React.ReactElement => {
         }}
       >
         <Box sx={{ position: 'relative' }}>
-          {/* Left Scroll Button */}
-          {canScrollLeft && currentMeeting && currentMeeting.status !== 'COMPLETE' && (
+          {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
+          {canScrollLeft && transformedMeetings.length > 1 && (
             <ScrollButton
               direction="left"
               onClick={scrollLeft}
@@ -812,8 +847,8 @@ export const EventTabs = React.memo((): React.ReactElement => {
             </ScrollButton>
           )}
 
-          {/* Right Scroll Button */}
-          {canScrollRight && currentMeeting && currentMeeting.status !== 'COMPLETE' && (
+          {/* Right Scroll Button - Only show for active meetings with multiple tabs */}
+          {canScrollRight && transformedMeetings.length > 1 && (
             <ScrollButton
               direction="right"
               onClick={scrollRight}
@@ -847,21 +882,25 @@ export const EventTabs = React.memo((): React.ReactElement => {
                 borderColor: (theme) => theme.vars.palette.divider,
               }}
             >
-              {loading && meetingsArray.length === 0 ? (
-                // Show skeleton tabs while loading
-                [1, 2, 3].map((index) => renderSkeletonTab(index))
+              {loading && (!meetings || meetings.length === 0) ? (
+                // Show skeleton tabs while loading - single skeleton on mobile, multiple on desktop
+                Array.from({ length: skeletonCount }, (_, index) =>
+                  renderSkeletonTab(index + 1)
+                )
               ) : transformedMeetings.length > 0 ? (
                 // Show actual meeting tabs
-                transformedMeetings.map(({ tab, src }, index) =>
-                  renderMeetingTab(tab, src, index)
-                )
+                transformedMeetings.map(({ tab, src }, index) => (
+                  <MeetingTab
+                    key={tab.id || index}
+                    meeting={tab}
+                    src={src}
+                    index={index}
+                  />
+                ))
               ) : (
                 // Only show "No meetings" after loading is complete
-                <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                  No meetings available for{' '}
-                  {currentClient?.company_name ||
-                    currentClient?.short_name ||
-                    'this client'}
+                <Typography variant="body3" color="text.secondary" sx={{ p: 2 }}>
+                  No meetings available.
                 </Typography>
               )}
             </Stack>
@@ -874,11 +913,26 @@ export const EventTabs = React.memo((): React.ReactElement => {
         sx={{
           boxShadow: 'none',
           backgroundColor: 'var(--mui-palette-background-default)',
-          borderBottom: '1px solid var(--mui-palette-divider)',
+          borderBottom: '1px solid',
+          borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
           zIndex: 2,
+          position: 'relative',
         }}
       >
+        {/* Loading indicator when navigation is pending */}
+        {isPending && (
+          <LinearProgress
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 3,
+              height: 2,
+            }}
+          />
+        )}
         <Box sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
           <Stack direction="row" sx={{ position: 'relative' }}>
             <Tabs
@@ -887,35 +941,43 @@ export const EventTabs = React.memo((): React.ReactElement => {
               allowScrollButtonsMobile
               scrollButtons="auto"
               aria-label="Meeting Navigation"
-              sx={{ position: 'relative' }}
+              sx={{
+                position: 'relative',
+                pointerEvents: 'auto',
+                opacity: isPending ? 0.6 : 1,
+                transition: 'opacity 0.2s',
+              }}
             >
               {navigationTabs.map((tab) => {
+                const isActive = activeTab === tab.label
+                // Use ticker from currentMeeting if available, fallback to currentClient
+                const ticker = currentMeeting?.ticker || currentClient?.ticker
+                const tabHref =
+                  currentMeeting && ticker
+                    ? `/${ticker}/meeting/${currentMeeting.id}${tab.route}`
+                    : '#'
+
                 return (
                   <Tab
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (currentMeeting) {
-                        handleTabClick(tab.label)
-                      }
-                    }}
-                    component="button"
+                    component={Link}
+                    href={tabHref}
                     sx={(theme) => ({
-                      color:
-                        activeTab === tab.label
-                          ? 'var(--mui-palette-primary-main)'
-                          : 'var(--mui-palette-text-secondary)',
+                      color: isActive
+                        ? 'var(--mui-palette-primary-main)'
+                        : 'var(--mui-palette-text-secondary)',
                       fontWeight: 500,
                       fontSize: '0.875rem',
                       textTransform: 'none',
+                      textDecoration: 'none',
                       px: 2,
                       py: 1.125,
                       minWidth: 'fit-content',
                       borderRadius: 0,
                       cursor: 'pointer',
+                      pointerEvents: 'auto',
                       '&:hover': {
                         backgroundColor: 'transparent',
                         color: theme.vars?.palette.primary.main,
@@ -936,6 +998,6 @@ export const EventTabs = React.memo((): React.ReactElement => {
       />
     </Box>
   )
-})
+}
 
 EventTabs.displayName = 'EventTabs'

@@ -1,11 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.094Z
+// Generated on 2025-09-30T00:31:43.164Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listAccounts, createAccount } from '@/domain-models/api/accounts'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+import { createAccount, listAccounts } from '@/domain-models/api/accounts'
+
+import type { components } from '@/types/api'
+
+export async function GET(): Promise<NextResponse> {
   try {
     // Use existing domain model function
     const { data, error } = await listAccounts()
@@ -19,12 +21,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /accounts:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listAccounts'
+        operationId: 'listAccounts',
       },
       { status: 500 }
     )
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateAccountRequest']
 
     // Use existing domain model function
     const { data, error } = await createAccount(body)
@@ -48,15 +49,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /accounts:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createAccount'
+        operationId: 'createAccount',
       },
       { status: 500 }
     )
   }
 }
-

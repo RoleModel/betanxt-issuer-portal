@@ -1,5 +1,6 @@
 'use client'
 
+import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 import { getSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -9,11 +10,15 @@ import {
   Box,
   Button,
   Card,
+  CardActions,
   CardContent,
+  CardMedia,
   Container,
   TextField,
   Typography,
 } from '@mui/material'
+
+import Layout from '@/components/Layout/Layout'
 
 const LoginPage = () => {
   const [username, setUsername] = useState('')
@@ -45,6 +50,7 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
+      console.error('Login failed', err)
       setError('An error occurred during login')
     } finally {
       setIsLoading(false)
@@ -52,67 +58,72 @@ const LoginPage = () => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
-        <Card sx={{ width: '100%', maxWidth: 400 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              BetaNXT Portal
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              align="center"
-              sx={{ mb: 3 }}
+    <Layout navBar={false} appSwitcher={false}>
+      <Container component="main" maxWidth="sm">
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh"
+        >
+          <Card sx={{ width: '100%', maxWidth: 500 }}>
+            <CardMedia
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 4,
+                mt: 2,
+              }}
             >
-              Sign in to access your account
-            </Typography>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+              <BNLogo height={36} />
+            </CardMedia>
 
             <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                margin="normal"
-                required
-                autoFocus
-              />
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                required
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={isLoading}
-                sx={{ mt: 3, mb: 2 }}
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                align="center"
+                sx={{ mb: 3 }}
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
+                Welcome to the BetaNXT Issuer Portal
+              </Typography>
+              <CardContent>
+                <TextField
+                  fullWidth
+                  label="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  margin="dense"
+                  required
+                  autoFocus
+                />
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  margin="dense"
+                  required
+                />
+              </CardContent>
+              {error && (
+                <CardContent>
+                  <Alert severity="error">{error}</Alert>
+                </CardContent>
+              )}
+              <CardActions>
+                <Button type="submit" variant="contained" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </CardActions>
             </form>
-          </CardContent>
-        </Card>
-      </Box>
-    </Container>
+          </Card>
+        </Box>
+      </Container>
+    </Layout>
   )
 }
 

@@ -23,7 +23,7 @@ import {
 
 import StatusChip from '@/components/ui/StatusChip'
 
-import { listMeetings } from '@/domain-models/api/meetings'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type Meeting = components['schemas']['Meeting']
@@ -49,17 +49,27 @@ export default function MeetingsPage() {
 
   const fetchMeetings = async () => {
     try {
-      // Fetch active and upcoming meetings using API
-      const meetingsResult = await listMeetings({
-        ticker: clientTicker,
-        status: 'ACTIVE',
+      // Fetch active and upcoming meetings using openapi-fetch
+      const apiClient = await buildApiClient()
+      const result = await apiClient.GET('/meetings', {
+        params: {
+          query: {
+            ticker: clientTicker,
+            status: 'ACTIVE',
+          },
+        },
       })
 
-      if (meetingsResult.error) {
-        throw new Error('Failed to fetch meetings')
+      const { data, error } = result
+
+      if (!data) {
+        if (error) {
+          throw new Error('Failed to fetch meetings')
+        }
+        throw new Error('No data returned from API')
       }
 
-      const meetingsData = meetingsResult.data?.meetings ?? []
+      const meetingsData = data as Meeting[]
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
@@ -134,7 +144,7 @@ export default function MeetingsPage() {
   }, [meetings, order, orderBy])
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Card>
         <CardHeader title="Active Meetings" />
         <CardContent sx={{ p: 0 }}>
@@ -188,12 +198,12 @@ export default function MeetingsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body3" color="text.secondary">
                         {meeting.cusip || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
+                      <Typography variant="body3">
                         {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
                       </Typography>
                       {meeting.daysUntilMeeting > 0 && (

@@ -11,11 +11,12 @@ interface SidebarCardProps extends CardProps {
   title: string
   button?: boolean
   buttonText?: string
+  icon?: React.ReactNode
   onClick?: () => void
 }
 
 export const SidebarCard = (props: SidebarCardProps) => {
-  const { children, title, sx: sxProps, button, buttonText, onClick } = props
+  const { children, title, sx: sxProps, button, buttonText, onClick, icon } = props
   return (
     <Card
       sx={{
@@ -28,6 +29,7 @@ export const SidebarCard = (props: SidebarCardProps) => {
         title={
           <Typography
             variant="pageTitle"
+            fontFamily="var(--font-tungsten)"
             component="h3"
             sx={{ color: (theme) => theme.vars.palette.primary.main }}
           >
@@ -35,10 +37,20 @@ export const SidebarCard = (props: SidebarCardProps) => {
           </Typography>
         }
       />
-      <CardContent>
+      <CardContent
+        sx={{
+          pt: 0,
+        }}
+      >
         {children}
         {button && (
-          <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={onClick}>
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{ mt: 2 }}
+            onClick={onClick}
+            startIcon={icon ? icon : null}
+          >
             {buttonText}
           </Button>
         )}

@@ -16,8 +16,10 @@ export interface CalendarWeek {
 }
 
 export interface CalendarMonth {
+  year: number
   month: Date
   weeks: CalendarWeek[]
+  monthName: string
 }
 
 // UI Context Menu types

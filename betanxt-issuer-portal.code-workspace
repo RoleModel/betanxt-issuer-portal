@@ -1,0 +1,40 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": ".",
+    },
+    {
+      "name": "Supabase",
+      "path": "supabase",
+    },
+    {
+      "name": "Mock Server",
+      "path": "mock-api-server",
+    },
+    {
+      "name": "Issuer Portal",
+      "path": "issuer-portal",
+    },
+    {
+      "name": "Specs",
+      "path": "specs",
+    },
+  ],
+  "settings": {
+    "npm.scriptRunner": "npm",
+    "npm.enableRunFromFolder": true,
+    "npm.packageManager": "npm",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "task.autoDetect": "on",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "search.useParentIgnoreFiles": true,
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "files.eol": "\n",
+    "eslint.useFlatConfig": true,
+  },
+}

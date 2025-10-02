@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { listKeyDatesForMeeting } from '@/domain-models/api/keyDates'
 
+interface RouteParams {
+  meetingId: string
+}
+
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { meetingId: string } }
-) {
+  _request: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    const { meetingId } = await params
 
     if (!meetingId) {
       return NextResponse.json({ error: 'Meeting ID is required' }, { status: 400 })
@@ -23,11 +27,8 @@ export async function GET(
     }
 
     return NextResponse.json(result.data || [])
-  } catch (error) {
-    console.error('Error in key dates API route:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+  } catch {
+    // Intentionally hide internal error details from client
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

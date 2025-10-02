@@ -11,6 +11,7 @@ interface VideoPlayerProps {
   description?: string
   poster?: string
   seriesNumber?: string
+  showSeries?: boolean
   onVideoEnd?: () => void
 }
 
@@ -20,6 +21,7 @@ export default function VideoPlayer({
   description = 'Overview tour of main navigation and dashboard',
   poster,
   seriesNumber = '#1',
+  showSeries = false,
   onVideoEnd,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -102,10 +104,13 @@ export default function VideoPlayer({
         alignItems: 'center',
         justifyContent: 'center',
         cursor: src ? 'pointer' : 'default',
-        border: '1px solid',
-        borderColor: (theme) => theme.vars.palette.divider,
         '&:hover .video-controls': {
           opacity: 1,
+        },
+        '&:hover .video-play-button': {
+          transform: 'translate(-50%, -50%) scale(1.2)',
+          transformOrigin: 'center',
+          transition: 'transform 0.2s ease-in-out',
         },
       }}
       onMouseEnter={() => setShowControls(true)}
@@ -164,6 +169,7 @@ export default function VideoPlayer({
             left: '50%',
             transform: 'translate(-50%, -50%)',
             zIndex: 2,
+            cursor: 'pointer',
           }}
         >
           <IconButton
@@ -328,12 +334,12 @@ export default function VideoPlayer({
         </Typography>
       </Box>
 
-      {title && (
+      {showSeries && (
         <Box
           sx={(theme) => ({
             position: 'absolute',
             top: 6.58,
-            right: 8.22,
+            left: 8.22,
             backgroundColor: theme.vars.palette.secondary.main,
             borderRadius: 4,
             px: theme.spacing(1),
@@ -350,7 +356,6 @@ export default function VideoPlayer({
               color: (theme) => theme.vars.palette.common.white,
               fontSize: 12,
               fontWeight: 600,
-              fontFamily: 'Inter',
               lineHeight: 0,
             }}
           >

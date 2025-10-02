@@ -1,38 +1,47 @@
-// AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.100Z
-// Source: openapi-schema/openapi.yaml
+import { NextResponse } from 'next/server'
 
-import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/utils/supabase/client'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    // Extract query parameters
+    // For mock API, we'll bypass auth and use a hardcoded user ID
+    // In production, you would use proper auth here
+    const userId = 'user-1' // Default mock user ID
+
+    // Get query parameters
     const { searchParams } = new URL(request.url)
-    const read = searchParams.get('read') || undefined
-    const type = searchParams.get('type') || undefined
-    const priority = searchParams.get('priority') || undefined
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const unreadOnly = searchParams.get('unread') === 'true'
 
-    // TODO: Implement listNotifications
-    // Operation: listNotifications
-    // This route was auto-generated from OpenAPI spec
+    // Query notifications for the current user
+    let query = supabase
+      .from('notification')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
 
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .limit(20)
+    if (unreadOnly) {
+      query = query.eq('read', false)
+    }
 
-    return NextResponse.json([])
+    const { data: notifications, error } = await query
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch notifications', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(notifications || [])
   } catch (error) {
-    console.error('Error in GET /notifications:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listNotifications'
       },
       { status: 500 }
     )
   }
 }
-

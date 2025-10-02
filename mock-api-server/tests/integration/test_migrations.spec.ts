@@ -52,7 +52,7 @@ test.describe('Database Migrations', () => {
 
     // Function might not exist or require auth, but should not have connection errors
     if (funcError && funcError.code !== 'PGRST116' && funcError.code !== 'PGRST202') {
-      console.log('Function check:', funcError.message)
+      console.warn('Function check:', funcError.message)
     }
 
     // Check for enums by trying to query tables that use them

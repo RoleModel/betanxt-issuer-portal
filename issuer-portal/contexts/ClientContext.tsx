@@ -111,7 +111,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               }
             } else {
             }
-          } catch (error) {}
+          } catch (error) {
+            console.warn('Failed to parse selectedClient from localStorage:', error)
+          }
         }
 
         // 2. If no localStorage client, check if URL implies a specific client (meeting page)
@@ -176,46 +178,82 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Handle client switching
   const switchClient = (client: Client) => {
-    if (!canAccessClient(client.id)) {
-      setError(`Access denied to ${client.company_name || client.short_name}`)
-      return
-    }
+    try {
+      if (!canAccessClient(client.id)) {
+        setError(`Access denied to ${client.company_name || client.short_name}`)
+        return
+      }
 
-    // Set flag to prevent automatic client determination during switch
-    setIsUserSwitching(true)
+      // Set flag to prevent automatic client determination during switch
+      setIsUserSwitching(true)
 
-    // Update localStorage first
-    localStorage.setItem(
-      'selectedClient',
-      JSON.stringify({
-        id: client.id,
-        name: client.company_name || client.short_name,
-        ticker: client.ticker,
-      })
-    )
+      // Update localStorage first
+      localStorage.setItem(
+        'selectedClient',
+        JSON.stringify({
+          id: client.id,
+          name: client.company_name || client.short_name,
+          ticker: client.ticker,
+        })
+      )
 
-    // Update current client state immediately
-    setCurrentClient(client)
+      // Update current client state immediately
+      setCurrentClient(client)
 
-    // Navigate to an appropriate meeting for the selected client using ticker-based routing
-    // Use the client's ticker to generate the default meeting ID dynamically
-    if (client.ticker) {
-      const defaultMeetingId = `${client.ticker.toLowerCase()}-annual-meeting-2025`
+      // Navigate to the equivalent page for the selected client using ticker-based routing
+      if (client.ticker) {
+        let newPath: string
 
-      // Extract current route (everything after /[TICKER]/meeting/meetingId)
-      const currentPath = pathname.replace(/^\/[A-Z]{2,5}\/meeting\/[^/]+/, '')
-      const newPath =
-        currentPath === ''
-          ? `/${client.ticker}/meeting/${defaultMeetingId}`
-          : `/${client.ticker}/meeting/${defaultMeetingId}${currentPath}`
+        // Check the current route type and navigate to the equivalent page for the new client
+        if (pathname.includes('/past-meetings')) {
+          // For past-meetings page, navigate to the new client's past-meetings
+          newPath = `/${client.ticker}/past-meetings`
+        } else if (pathname.startsWith('/education')) {
+          // Education pages are now at root level - stay on the same education page
+          // No navigation needed when switching clients on education pages
+          return
+        } else if (pathname.startsWith('/products')) {
+          // Products pages are now at root level - stay on the same products page
+          // No navigation needed when switching clients on products pages
+          return
+        } else if (pathname.includes('/meeting/')) {
+          // For meeting pages, extract the current route part after meetingId
+          const meetingMatch = pathname.match(/^\/[A-Z]{2,5}\/meeting\/[^/]+(.*)$/)
+          const routeAfterMeeting = meetingMatch ? meetingMatch[1] : ''
 
-      router.replace(newPath)
-    }
+          // Use the client's default meeting ID
+          const defaultMeetingId = client.meeting_id
+          if (defaultMeetingId) {
+            newPath = `/${client.ticker}/meeting/${defaultMeetingId}${routeAfterMeeting}`
+          } else {
+            // Fallback if no meeting_id available
+            newPath = `/${client.ticker}/past-meetings`
+          }
+        } else {
+          // Default fallback: navigate to the client's default meeting based on meeting_id
+          const defaultMeetingId = client.meeting_id
+          if (defaultMeetingId) {
+            newPath = `/${client.ticker}/meeting/${defaultMeetingId}`
+          } else {
+            // Fallback if no meeting_id available
+            newPath = `/${client.ticker}/past-meetings`
+          }
+        }
+        router.replace(newPath)
+      }
 
-    // Reset the switching flag after navigation completes
-    setTimeout(() => {
+      // Reset the switching flag after navigation completes
+      setTimeout(() => {
+        setIsUserSwitching(false)
+      }, 500)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to switch client'
+      setError(errorMessage)
+      console.error('Client switch error:', error)
+      // Reset the switching flag on error
       setIsUserSwitching(false)
-    }, 500)
+    }
   }
 
   // Debug: Show current client state

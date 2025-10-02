@@ -1,7 +1,11 @@
 import { getSession } from 'next-auth/react'
 import createClient from 'openapi-fetch'
 
-import type { paths } from './generated-schema'
+import type { paths as ExpandedPaths } from '@/types/api'
+
+import type { paths as LegacyPaths } from './generated-schema'
+
+type CombinedPaths = LegacyPaths & ExpandedPaths
 
 export type ApiClientReturnType<T> =
   | {
@@ -16,6 +20,31 @@ export type ApiClientReturnType<T> =
       }
     }
 
+// Simple cache to prevent duplicate API calls within a short time window
+interface CacheEntry {
+  data: unknown
+  timestamp: number
+}
+
+const apiCache = new Map<string, CacheEntry>()
+const CACHE_TTL = 5000 // 5 seconds cache TTL for performance
+
+export const getCacheKey = (url: string, params?: Record<string, unknown>): string => {
+  return `${url}:${JSON.stringify(params || {})}`
+}
+
+export const getCachedResponse = <T>(key: string): T | null => {
+  const entry = apiCache.get(key)
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry.data as T
+  }
+  return null
+}
+
+export const setCachedResponse = <T>(key: string, data: T): void => {
+  apiCache.set(key, { data, timestamp: Date.now() })
+}
+
 export const buildApiClient = async () => {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
 
@@ -26,11 +55,11 @@ export const buildApiClient = async () => {
     try {
       session = await getSession()
     } catch (error) {
-      // Silently handle session fetch errors in development
+      console.error('Failed to retrieve session in buildApiClient', error)
     }
   }
 
-  const client = createClient<paths>({
+  const client = createClient<CombinedPaths>({
     baseUrl,
     headers: {
       ...(session?.user?.id && { Authorization: `Bearer ${session.user.id}` }),

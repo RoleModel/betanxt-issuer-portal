@@ -1,107 +1,181 @@
-import { type ApiClientReturnType, buildApiClient } from '../apiClient'
+import { randomUUID } from 'crypto'
+
+import type { components } from '@/types/api'
+import { supabase } from '@/utils/supabase/client'
+import type { Database } from '@/utils/supabase/database.types'
+
+// Use generated types from OpenAPI schema
+type Proposal = components['schemas']['Proposal']
+type CreateProposalRequest = components['schemas']['CreateProposalRequest']
+type UpdateProposalRequest = components['schemas']['UpdateProposalRequest']
+type ProposalRow = Database['public']['Tables']['proposal']['Row']
+type ProposalUpdate = Database['public']['Tables']['proposal']['Update']
+
+// Helper function to convert null to undefined
+function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value
+}
+
+function transformProposalRow(row: ProposalRow): Proposal {
+  return {
+    id: nullToUndefined(row.id),
+    proposalNumber: nullToUndefined(row.proposal_number),
+    proposalTitle: nullToUndefined(row.proposal_title),
+    directorName: nullToUndefined(row.director_name),
+    proposalType: nullToUndefined(row.proposal_type),
+    proposalSubtype: nullToUndefined(row.proposal_subtype),
+    directorTermYears: nullToUndefined(row.director_term_years),
+    directorClass: nullToUndefined(row.director_class),
+    termExpirationYear: nullToUndefined(row.term_expiration_year),
+    frequencyOptions: nullToUndefined(row.frequency_options as Record<string, never>),
+    recommendation: nullToUndefined(row.recommendation),
+    meetingId: nullToUndefined(row.meeting_id),
+    totalVotesFor: nullToUndefined(row.total_votes_for),
+    totalVotesAgainst: nullToUndefined(row.total_votes_against),
+    totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
+    totalSharesEligible: nullToUndefined(row.total_shares_eligible),
+    forPercentage: nullToUndefined(row.for_percentage),
+    againstPercentage: nullToUndefined(row.against_percentage),
+    abstainPercentage: nullToUndefined(row.abstain_percentage),
+    participationRate: nullToUndefined(row.participation_rate),
+    finalResult: nullToUndefined(row.final_result),
+    votingCompleted: row.voting_completed || false,
+    votingCompletedAt: nullToUndefined(row.voting_completed_at),
+    createdAt: nullToUndefined(row.created_at),
+    updatedAt: nullToUndefined(row.updated_at),
+  }
+}
+
+// Helper type for consistent response format
+type ApiResponse<T> = {
+  data?: T
+  error?: {
+    message: string
+    statusCode?: number
+  }
+}
 
 export async function listProposals(
-  meetingId?: string,
+  meetingId: string,
   proposalType?: string
-): Promise<ApiClientReturnType<any[]>> {
+): Promise<ApiResponse<Proposal[]>> {
   try {
-    const supabase = buildApiClient()
-    let query = supabase.from('proposal').select('*')
-    if (meetingId) query = query.eq('meeting_id', meetingId)
-    if (proposalType) query = query.eq('proposal_type', proposalType)
-    query = query.order('proposal_number', { ascending: true })
+    let query = supabase.from('proposal').select('*').eq('meeting_id', meetingId)
+
+    if (proposalType) {
+      query = query.eq('proposal_type', proposalType)
+    }
+
     const { data, error } = await query
-    if (error)
+
+    if (error) {
       return {
         data: undefined,
-        error: { message: error.message, statusCode: 500 },
+        error: {
+          message: error.message || 'Failed to fetch proposals',
+          statusCode: 500,
+        },
       }
+    }
 
-    // Convert snake_case to camelCase for proposals
-    const convertedProposals = (data || []).map(proposal => ({
-      ...proposal,
-      proposalNumber: proposal.proposal_number,
-      proposalTitle: proposal.proposal_title,
-      proposalType: proposal.proposal_type,
-      proposalDescription: proposal.proposal_description,
-      directorName: proposal.director_name,
-      directorClass: proposal.director_class,
-      directorTermYears: proposal.director_term_years,
-      meetingId: proposal.meeting_id,
-      totalVotesFor: proposal.total_votes_for,
-      totalVotesAgainst: proposal.total_votes_against,
-      totalVotesAbstain: proposal.total_votes_abstain,
-      percentageFor: proposal.percentage_for,
-      percentageAgainst: proposal.percentage_against,
-      percentageAbstain: proposal.percentage_abstain,
-      finalResult: proposal.final_result,
-      createdAt: proposal.created_at,
-      updatedAt: proposal.updated_at
-    }))
+    // Transform database rows to API response format
+    const proposals = (data ?? []).map(transformProposalRow)
 
-    return { data: convertedProposals, error: undefined }
-  } catch (error) {
+    return {
+      data: proposals,
+      error: undefined,
+    }
+  } catch (err) {
     return {
       data: undefined,
       error: {
-        message: error instanceof Error ? error.message : 'Failed to fetch proposals',
+        message: err instanceof Error ? err.message : 'Unknown error',
         statusCode: 500,
       },
     }
   }
 }
 
-export async function createProposal(body: any, meetingId?: string): Promise<ApiClientReturnType<any>> {
+export async function createProposal(
+  meetingId: string,
+  body: CreateProposalRequest
+): Promise<ApiResponse<Proposal>> {
   try {
-    const supabase = buildApiClient()
-
-    // Ensure meetingId is set in the body if provided in the URL
-    const proposalData = meetingId ? { ...body, meeting_id: meetingId } : body
-
+    const request = body
     const { data, error } = await supabase
       .from('proposal')
-      .insert([proposalData])
+      .insert({
+        id: randomUUID(),
+        meeting_id: meetingId,
+        proposal_number: request.proposalNumber,
+        proposal_title: request.proposalTitle,
+        proposal_type: request.proposalType,
+        proposal_subtype: request.proposalSubtype,
+        director_name: request.directorName,
+        director_term_years: request.directorTermYears,
+        director_class: request.directorClass,
+        term_expiration_year: request.termExpirationYear,
+        frequency_options: request.frequencyOptions,
+        recommendation: request.recommendation,
+        voting_completed: false,
+      })
       .select()
       .single()
-    if (error)
+
+    if (error) {
       return {
         data: undefined,
-        error: { message: error.message, statusCode: 500 },
+        error: {
+          message: error.message || 'Failed to create proposal',
+          statusCode: 400,
+        },
       }
-    return { data, error: undefined }
-  } catch (error) {
+    }
+
+    // Transform database row to API response format
+    return {
+      data: transformProposalRow(data as ProposalRow),
+      error: undefined,
+    }
+  } catch (err) {
     return {
       data: undefined,
       error: {
-        message: error instanceof Error ? error.message : 'Failed to create proposal',
+        message: err instanceof Error ? err.message : 'Unknown error',
         statusCode: 500,
       },
     }
   }
 }
 
-export async function getProposalById(id: string): Promise<ApiClientReturnType<any>> {
+export async function getProposalById(id: string): Promise<ApiResponse<Proposal>> {
   try {
-    const supabase = buildApiClient()
     const { data, error } = await supabase
       .from('proposal')
       .select('*')
       .eq('id', id)
       .single()
-    if (error)
+
+    if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
+          message: error.message || 'Failed to fetch proposal',
+          statusCode: 404,
         },
       }
-    return { data, error: undefined }
-  } catch (error) {
+    }
+
+    // Transform database row to API response format
+    return {
+      data: transformProposalRow(data as ProposalRow),
+      error: undefined,
+    }
+  } catch (err) {
     return {
       data: undefined,
       error: {
-        message: error instanceof Error ? error.message : 'Failed to fetch proposal',
+        message: err instanceof Error ? err.message : 'Unknown error',
         statusCode: 500,
       },
     }
@@ -110,30 +184,57 @@ export async function getProposalById(id: string): Promise<ApiClientReturnType<a
 
 export async function updateProposal(
   id: string,
-  body: any
-): Promise<ApiClientReturnType<any>> {
+  body: UpdateProposalRequest
+): Promise<ApiResponse<Proposal>> {
   try {
-    const supabase = buildApiClient()
+    const request = body
+    const updateData: Partial<ProposalUpdate> = {}
+    if (request.proposalTitle !== undefined)
+      updateData.proposal_title = request.proposalTitle
+    if (request.proposalType !== undefined)
+      updateData.proposal_type = request.proposalType
+    if (request.proposalSubtype !== undefined)
+      updateData.proposal_subtype = request.proposalSubtype
+    if (request.directorName !== undefined)
+      updateData.director_name = request.directorName
+    if (request.directorTermYears !== undefined)
+      updateData.director_term_years = request.directorTermYears
+    if (request.directorClass !== undefined)
+      updateData.director_class = request.directorClass
+    if (request.termExpirationYear !== undefined)
+      updateData.term_expiration_year = request.termExpirationYear
+    if (request.frequencyOptions !== undefined)
+      updateData.frequency_options = request.frequencyOptions
+    if (request.recommendation !== undefined)
+      updateData.recommendation = request.recommendation
+
     const { data, error } = await supabase
       .from('proposal')
-      .update({ ...body, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
-    if (error)
+
+    if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message,
-          statusCode: error.code === 'PGRST116' ? 404 : 500,
+          message: error.message || 'Failed to update proposal',
+          statusCode: 400,
         },
       }
-    return { data, error: undefined }
-  } catch (error) {
+    }
+
+    // Transform database row to API response format
+    return {
+      data: transformProposalRow(data as ProposalRow),
+      error: undefined,
+    }
+  } catch (err) {
     return {
       data: undefined,
       error: {
-        message: error instanceof Error ? error.message : 'Failed to update proposal',
+        message: err instanceof Error ? err.message : 'Unknown error',
         statusCode: 500,
       },
     }

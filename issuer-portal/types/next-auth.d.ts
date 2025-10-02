@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import 'next-auth'
 
 type Client = {
   id: number
@@ -15,6 +15,8 @@ declare module 'next-auth' {
       username?: string
       type?: string
       accountId?: string
+      account_id?: string
+      client_ticker?: string | null
       client?: Client | null
       roles?: string[]
     }
@@ -25,6 +27,8 @@ declare module 'next-auth' {
     username?: string
     type?: string
     accountId?: string
+    account_id?: string
+    client_ticker?: string | null
     client?: Client | null
     roles?: string[]
   }
@@ -35,6 +39,8 @@ declare module 'next-auth/jwt' {
     username?: string
     type?: string
     accountId?: string
+    account_id?: string
+    client_ticker?: string | null
     client?: Client | null
     roles?: string[]
   }

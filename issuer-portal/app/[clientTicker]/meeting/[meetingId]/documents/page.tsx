@@ -1,28 +1,13 @@
-'use client'
+import React from 'react'
 
-import dynamic from 'next/dynamic'
-import React, { Suspense } from 'react'
+import DocumentsSection from '@/components/Documents/DocumentsSection'
 
-import { LinearProgress } from '@mui/material'
+export const revalidate = 60
 
-import { useMeeting } from '@/contexts/MeetingContext'
+interface PageProps {
+  params: Promise<{ clientTicker: string; meetingId: string }>
+}
 
-// Dynamic import for the heavy documents component
-const DocumentsComponent = dynamic(
-  () => import('@/components/Documents/DocumentsSection'),
-  {
-    ssr: false,
-  }
-)
-
-export default function DocumentsPage() {
-  const { currentMeeting, getMeetingById: _getMeetingById } = useMeeting()
-
-  return (
-    <Suspense fallback={<LinearProgress />}>
-      <DocumentsComponent
-        params={Promise.resolve({ meetingId: `${currentMeeting?.id ?? ''}` })}
-      />
-    </Suspense>
-  )
+export default async function DocumentsPage({ params }: PageProps) {
+  return <DocumentsSection params={params} />
 }

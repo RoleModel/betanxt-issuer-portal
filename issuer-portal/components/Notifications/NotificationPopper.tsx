@@ -17,8 +17,14 @@ import {
   Typography,
   styled,
 } from '@mui/material'
+import { useRouter } from 'next/navigation'
+
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 
 import Notification from './Notification'
+
+type DbNotification = components['schemas']['Notification']
 
 interface NotificationData {
   id: string
@@ -39,80 +45,12 @@ interface NotificationPopperProps {
   onNotificationClick?: (notification: NotificationData) => void
 }
 
-const dummyNotifications: NotificationData[] = [
-  {
-    id: '1',
-    user: 'System',
-    title: 'Filing Complete',
-    date: 'Jun 18',
-    message: '10-K filed 61 days ahead of Record Date',
-    link: '',
-    variant: 'unread',
-    isSystemNotification: true,
-  },
-  {
-    id: '2',
-    user: 'System',
-    title: 'Search Request',
-    date: 'Jun 18',
-    message: 'Search requests sent to intermediaries for beneficial holder counts',
-    link: '',
-    variant: 'unread',
-    isSystemNotification: true,
-  },
-  {
-    id: '3',
-    user: 'Ellen Park',
-    title: 'Comment on File 10-K',
-    date: 'Jul 18',
-    message: 'Please confirm financials before sending for typesetting.',
-    link: 'Review Comment',
-    variant: 'unread',
-    avatar: 'https://untitledui.com/images/avatars/transparent/olivia-rhye',
-  },
-  {
-    id: '4',
-    user: 'System',
-    title: 'Document Review',
-    date: 'Aug 5',
-    message: 'Draft proxy statement ready for initial review',
-    link: 'Review Document',
-    variant: 'read',
-    isSystemNotification: true,
-  },
-  {
-    id: '5',
-    user: 'Michael Chen',
-    title: 'Comment',
-    date: 'Aug 5',
-    message: 'Proxy statement draft needs more detail on board diversity initiatives',
-    link: 'Review Comment',
-    variant: 'read',
-    avatar: 'https://untitledui.com/images/avatars/transparent/maxwell-tan',
-  },
-  {
-    id: '6',
-    user: 'System',
-    title: 'Document Review',
-    date: 'Aug 5',
-    message: 'DEF 14A proof received from financial printer',
-    link: 'Review Document',
-    variant: 'read',
-    isSystemNotification: true,
-  },
-  {
-    id: '7',
-    user: 'Sarah Johnson',
-    title: 'Comment',
-    date: 'Jul 18',
-    message: 'Suggesting adding QR codes to printed materials for easier digital access',
-    link: 'Review Comment',
-    variant: 'read',
-    avatar: 'https://untitledui.com/images/avatars/transparent/eva-bond',
-  },
-]
-
 const StyledTabs = styled(Tabs)({
+  '&.MuiTabs-root': {
+    height: 36,
+    minHeight: 36,
+    maxHeight: 36,
+  },
   '& .MuiTabs-flexContainer': {
     height: '100%',
     flexGrow: 1,
@@ -120,9 +58,9 @@ const StyledTabs = styled(Tabs)({
     maxHeight: 36,
   },
   '& .MuiTab-root': {
-    height: '100%',
+    height: 36,
     flexGrow: 1,
-    minHeight: 'unset',
+    minHeight: 36,
     maxHeight: 36,
   },
   '& .MuiBadge-root': {
@@ -131,14 +69,53 @@ const StyledTabs = styled(Tabs)({
   },
 })
 
+const formatNotificationDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) {
+    return 'Today'
+  } else if (diffDays === 1) {
+    return 'Yesterday'
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`
+  } else {
+    const month = date.toLocaleString('en-US', { month: 'short' })
+    const day = date.getDate()
+    return `${month} ${day}`
+  }
+}
+
+const convertDbNotificationToNotificationData = (
+  dbNotification: DbNotification
+): NotificationData => {
+  return {
+    id: dbNotification.id || '',
+    user: 'System',
+    title: dbNotification.title || '',
+    date: dbNotification.createdAt
+      ? formatNotificationDate(dbNotification.createdAt)
+      : '',
+    message: dbNotification.message || '',
+    link: dbNotification.actionUrl || '',
+    variant: dbNotification.read ? 'read' : 'unread',
+    avatar: undefined,
+    isSystemNotification:
+      dbNotification.type === 'info' || dbNotification.type === 'success',
+  }
+}
+
 export function NotificationPopper({
   anchorEl,
   open,
   onClose,
   onNotificationClick,
 }: NotificationPopperProps) {
-  const [notifications, setNotifications] =
-    useState<NotificationData[]>(dummyNotifications)
+  const router = useRouter()
+  const [notifications, setNotifications] = useState<NotificationData[]>([])
+  const [_loading, setLoading] = useState(true)
   const [tabValue, setTabValue] = useState('0')
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
@@ -149,22 +126,87 @@ export function NotificationPopper({
     setTabValue(newValue)
   }
 
-  const handleNotificationClick = (notification: NotificationData) => {
-    // Mark as read
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, variant: 'read' as const } : n))
-    )
+  // Fetch notifications when component opens
+  useEffect(() => {
+    if (open) {
+      const fetchNotifications = async () => {
+        try {
+          setLoading(true)
+          const apiClient = await buildApiClient()
+          const { data, error } = await apiClient.GET('/notifications')
 
-    if (onNotificationClick) {
-      onNotificationClick(notification)
+          if (error || !data) {
+            console.error('Failed to fetch notifications:', error)
+            setNotifications([])
+            return
+          }
+
+          const notificationData = (data as DbNotification[]).map(
+            convertDbNotificationToNotificationData
+          )
+          setNotifications(notificationData)
+        } catch (err) {
+          console.error('Error fetching notifications:', err)
+          setNotifications([])
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      void fetchNotifications()
+    }
+  }, [open])
+
+  const handleNotificationClick = async (notification: NotificationData) => {
+    // Mark as read in the backend
+    try {
+      const apiClient = await buildApiClient()
+      await apiClient.PATCH('/notifications/{notificationId}/mark-read', {
+        params: { path: { notificationId: notification.id } },
+      })
+
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notification.id ? { ...n, variant: 'read' as const } : n
+        )
+      )
+
+      // Navigate to the notification's link if it exists
+      if (notification.link) {
+        router.push(notification.link)
+        onClose?.() // Close the popover after navigation
+      }
+
+      if (onNotificationClick) {
+        onNotificationClick(notification)
+      }
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err)
     }
   }
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, variant: 'read' as const })))
+  const handleMarkAllRead = async () => {
+    // Mark all unread notifications as read in the backend
+    try {
+      const apiClient = await buildApiClient()
+      const markReadPromises = unreadNotifications.map((notification) =>
+        apiClient.PATCH('/notifications/{notificationId}/mark-read', {
+          params: { path: { notificationId: notification.id } },
+        })
+      )
+
+      await Promise.all(markReadPromises)
+
+      // Update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, variant: 'read' as const })))
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err)
+    }
   }
 
   const handleClearAll = () => {
+    // Just clear local state - notifications remain in backend
     setNotifications([])
   }
 
@@ -216,6 +258,7 @@ export function NotificationPopper({
         sx={{
           maxWidth: 500,
           maxHeight: 700,
+          minWidth: { xs: '100%', sm: 400, md: 500 },
           overflow: 'hidden',
           borderRadius: 2,
           border: '1px solid',
@@ -253,9 +296,11 @@ export function NotificationPopper({
                       label="Unread"
                       iconPosition="start"
                       icon={
-                        <Box sx={{ paddingX: unreadCount.toString().length / 2 + 0.5 }}>
-                          <Badge badgeContent={unreadCount} color="primary" />
-                        </Box>
+                        unreadCount > 0 ? (
+                          <Box sx={{ px: unreadCount.toString().length / 2 + 0.5 }}>
+                            <Badge badgeContent={unreadCount} color="primary" />
+                          </Box>
+                        ) : undefined
                       }
                       id="notification-tab-0"
                       aria-controls="notification-tabpanel-0"
@@ -283,7 +328,7 @@ export function NotificationPopper({
                 <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
                   {unreadNotifications.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body3" color="text.secondary">
                         No unread notifications
                       </Typography>
                     </Box>

@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 
 export const config = {
+  trustHost: true,
   secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production',
   providers: [
     Credentials({
@@ -64,7 +65,9 @@ export const config = {
               roles: user.roles || [],
             }
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Credential authentication failed', error)
+        }
 
         return null
       },

@@ -1,14 +1,26 @@
 /**
  * Utility functions for calculating and updating meeting overall completion
  */
-import { buildApiClient } from '@/domain-models/apiClient'
+import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type DbTask = components['schemas']['Task']
-type TaskStatus = 'COMPLETE' | 'INCOMPLETE' | 'CANCELLED'
 
-// Positive/Success statuses - updated to match API schema
-const POSITIVE_STATUSES: TaskStatus[] = ['COMPLETE']
+// Statuses that count toward overall completion
+// Include: Positive (green), Warning (yellow), and Neutral EXCEPT INCOMPLETE
+const COMPLETION_STATUSES = [
+  // Positive/Success statuses (green)
+  'COMPLETE',
+  'AUTHORIZED',
+
+  // Warning/Pending statuses (yellow)
+  'PENDING_AUTHORIZATION',
+  'WAITING_FOR_FORM_RETURN',
+
+  // Neutral statuses (grey) - excluding INCOMPLETE
+  'SUBMITTED_AWAITING_RECORD_DATE',
+  'REQUEST_FORM_TO_FOLLOW',
+]
 
 /**
  * Calculate the overall completion percentage for a meeting based on task statuses
@@ -19,7 +31,7 @@ export function calculateMeetingCompletion(tasks: DbTask[]): number {
   if (tasks.length === 0) return 0
 
   const completedTasks = tasks.filter((task) =>
-    POSITIVE_STATUSES.includes(task.status as TaskStatus)
+    COMPLETION_STATUSES.includes(task.status as string)
   ).length
 
   return Math.round((completedTasks / tasks.length) * 100)
@@ -35,34 +47,48 @@ export async function updateMeetingCompletion(meetingId: string) {
     const client = await buildApiClient()
 
     // Fetch all tasks for the meeting
-    const tasksResult = await client.GET('/meetings/{meetingId}/tasks', {
-      params: {
-        path: { meetingId },
-      },
-    })
+    const { data: tasksData, error: tasksError } = await client.GET(
+      '/meetings/{meetingId}/tasks',
+      {
+        params: {
+          path: { meetingId },
+        },
+      }
+    )
 
-    if (tasksResult.error) {
-      throw new Error(tasksResult.error.message || 'Failed to fetch tasks')
+    if (!tasksData) {
+      const errorMessage =
+        tasksError && typeof tasksError === 'object' && 'message' in tasksError
+          ? String((tasksError as { message: unknown }).message)
+          : 'Failed to fetch tasks'
+      throw new Error(errorMessage)
     }
 
     // Calculate completion percentage
-    const completion = calculateMeetingCompletion(tasksResult.data || [])
+    const completion = calculateMeetingCompletion(tasksData)
 
     // Update the meeting's overall completion
-    const updateResult = await client.PUT('/meetings/{meetingId}', {
-      params: {
-        path: { meetingId },
-      },
-      body: {
-        overallCompletion: completion,
-      },
-    })
+    const { data: updateData, error: updateError } = await client.PUT(
+      '/meetings/{meetingId}',
+      {
+        params: {
+          path: { meetingId },
+        },
+        body: {
+          overallCompletion: completion,
+        },
+      }
+    )
 
-    if (updateResult.error) {
-      throw new Error(updateResult.error.message || 'Failed to update meeting')
+    if (!updateData) {
+      const errorMessage =
+        updateError && typeof updateError === 'object' && 'message' in updateError
+          ? String((updateError as { message: unknown }).message)
+          : 'Failed to update meeting'
+      throw new Error(errorMessage)
     }
 
-    return { meeting: updateResult.data, error: null }
+    return { meeting: updateData, error: null }
   } catch (error) {
     console.error('Error updating meeting completion:', error)
     return { meeting: null, error }
@@ -78,19 +104,25 @@ export async function onTaskStatusChange(taskId: string) {
     const client = await buildApiClient()
 
     // Get the task to find its meeting ID
-    const taskResult = await client.GET('/tasks/{id}', {
+    const { data: taskData, error: taskError } = await client.GET('/tasks/{id}', {
       params: {
         path: { id: taskId },
       },
     })
 
-    if (taskResult.error || !taskResult.data?.meetingId) {
-      console.error('Error fetching task:', taskResult.error)
+    if (!taskData) {
+      console.error('Error fetching task:', taskError)
+      return
+    }
+
+    const task = taskData as DbTask
+    if (!task.meetingId) {
+      console.error('Task has no meetingId')
       return
     }
 
     // Update the meeting completion
-    await updateMeetingCompletion(taskResult.data.meetingId)
+    await updateMeetingCompletion(task.meetingId)
   } catch (error) {
     console.error('Error in onTaskStatusChange:', error)
   }

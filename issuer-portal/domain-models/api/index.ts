@@ -1,10 +1,3 @@
-// Re-export all API functions for convenience
-export * from './auth'
-export * from './accounts'
-export * from './users'
-export * from './meetings'
-export * from './phases'
-export * from './tasks'
-export * from './documents'
-export * from './positions'
-export * from './proposals'
+// Re-export essential frontend API utilities
+export * from './generated'
+export * from './responseGuard'

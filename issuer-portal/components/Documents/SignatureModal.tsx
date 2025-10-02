@@ -60,6 +60,7 @@ const signatureFonts = [
 ]
 
 interface SignatureModalProps {
+  title?: string
   open: boolean
   onClose: () => void
   onSignatureInsert: (signatureData: string) => void
@@ -133,7 +134,6 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
         }
       } catch {
         // Suppress the IntersectionObserver unobserve error
-        console.debug('IntersectionObserver cleanup handled safely')
       }
     }
 
@@ -165,7 +165,6 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
             }
           } catch {
             // Suppress any cleanup errors
-            console.debug('SignatureMaker cleanup handled')
           }
         }
       }, 0)
@@ -199,7 +198,6 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
             // Check if canvas has actual content (not just blank)
             // Blank canvas is typically around 800-900 chars
             if (dataURL.length > 1000) {
-              console.log('Canvas has content, saving...', dataURL.length)
               onSave(dataURL)
             }
           }
@@ -282,6 +280,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
   return (
     <Box
       ref={containerRef}
+      data-testid="signature-pad"
       sx={{
         width: '100%',
         height: '100%',
@@ -300,6 +299,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
 }
 
 const SignatureModal: React.FC<SignatureModalProps> = ({
+  title,
   open,
   onClose,
   onSignatureInsert,
@@ -349,7 +349,6 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   const handleSignatureSave = (data: string) => {
     setSignatureData(data)
     setHasSignature(true)
-    console.log('Signature saved:', data)
   }
 
   const handleInsert = () => {
@@ -386,21 +385,13 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
     (activeTab === 0 && hasSignature) ||
     (activeTab === 1 && typedSignature.trim().length > 0)
 
-  // Debug logging
-  console.log('SignatureModal state:', {
-    activeTab,
-    hasSignature,
-    signatureData: signatureData?.substring(0, 50),
-    typedSignature,
-    canInsert,
-  })
-
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      data-testid="signature-modal"
       slotProps={{
         paper: {
           className: 'signature-dialog-paper',
@@ -415,7 +406,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
           borderBottom: 'none',
         }}
       >
-        Add your signature
+        {title || 'Add your signature'}
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -533,7 +524,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                         fontSize: { xs: 40, sm: 50, md: 60 },
                         lineHeight: 1.75,
                         letterSpacing: '0.25%',
-                        color: 'text.primary',
+                        color: 'common.black',
                         textAlign: 'center',
                         cursor: 'pointer',
                         userSelect: 'none',
@@ -597,7 +588,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body3"
           sx={{
             flex: 1,
             fontSize: 14,

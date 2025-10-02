@@ -4,18 +4,25 @@ import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BN
 import { motion } from 'motion/react'
 import React, { useEffect, useState } from 'react'
 
-import { CalendarTodayOutlined as CalendarIcon } from '@mui/icons-material'
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material'
+import {
+  ArrowDownward,
+  ArrowUpwardSharp,
+  CalendarTodayOutlined as CalendarIcon,
+} from '@mui/icons-material'
+import { LinearProgress, LinearProgressProps, useMediaQuery, useTheme } from '@mui/material'
+import { Box, Stack, Typography, Fade } from '@mui/material'
 
-import { listPhasesByMeetingId } from '@/domain-models/api/phases'
+import buildApiClient from '@/domain-models/apiClient'
 import { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { calculateDaysUntil } from '@/utils/dateUtils'
-
-import { NumberCounter } from './NumberCounter'
+import { theme } from '../mui-styling/theme'
 
 type Phase = components['schemas']['Phase']
+type Meeting = components['schemas']['Meeting']
+type Position = components['schemas']['Position']
+type TabulationReport = components['schemas']['TabulationReport']
 
 interface TabulationData {
   meeting_id: string
@@ -40,13 +47,46 @@ interface TabulationTrackerProps {
 const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   meetingId: _meetingId,
 }) => {
-  // Get data from shared MeetingContext instead of making separate API calls
-  const { currentMeeting, positions, positionsLoading } = useMeeting()
+  // Get data from shared MeetingContext
+  const { currentMeeting } = useMeeting()
   const [data, setData] = useState<TabulationData | null>(null)
+  const [previousYearData, setPreviousYearData] = useState<TabulationData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const [nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
   const [phases, setPhases] = useState<Phase[]>([])
+
+  // Animate loading progress
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+
+    if (loading) {
+      setLoadingProgress(0)
+      let currentProgress = 0
+
+      interval = setInterval(() => {
+        currentProgress += 2 // Increment by 2% each time for smooth progression
+        if (currentProgress >= 95) {
+          setLoadingProgress(95) // Stop at 95% until data loads
+          if (interval) clearInterval(interval)
+        } else {
+          setLoadingProgress(currentProgress)
+        }
+      }, 50) // Update every 50ms for smoother animation
+    } else if (!loading && loadingProgress > 0) {
+      // Complete the progress when loading finishes
+      setLoadingProgress(100)
+      setTimeout(() => setLoadingProgress(0), 300) // Reset after completion
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [loading])
 
   // Helpers for timezone-safe local day math
   const toLocalMidnight = (dateString?: string | null): Date | null => {
@@ -71,9 +111,14 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       if (!currentMeeting?.id) return
 
       try {
-        const result = await listPhasesByMeetingId(currentMeeting.id)
-        if (result.data) {
-          const phasesData = result.data || []
+        const apiClient = await buildApiClient()
+        const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
+          params: {
+            path: { meetingId: currentMeeting.id },
+          },
+        })
+        if (!error && data) {
+          const phasesData = data || []
           setPhases(phasesData)
 
           // Support both camelCase and snake_case fields from API
@@ -96,8 +141,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           const candidateDates: Date[] = []
 
           for (const ph of sortedPhases) {
-            const raw = (ph.keyDates ??
-              (ph as unknown as PhaseSnake).key_dates) as unknown
+            const raw = (ph as Phase).keyDates
             if (!raw) continue
             try {
               const kdObj = typeof raw === 'string' ? JSON.parse(raw) : raw
@@ -141,12 +185,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             selectedDate = candidateDates[0]
           }
 
-
           // Final fallback: if no reasonable phase date found, use meeting date
           if (!selectedDate && currentMeeting.meetingDate) {
             selectedDate = toLocalMidnight(currentMeeting.meetingDate)
           }
-
 
           setNextPhaseDate(selectedDate)
 
@@ -168,44 +210,265 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     fetchPhases()
   }, [currentMeeting?.id, currentMeeting?.meetingDate])
 
-  // Calculate tabulation data from context instead of making API calls
+  // Fetch previous year's meeting data
   useEffect(() => {
-    if (!currentMeeting || positionsLoading) return
+    const fetchPreviousYearData = async () => {
+      if (!currentMeeting?.id) return
 
-    try {
-      // Calculate tabulation statistics using context data
-      const totalPositions = positions.length
-      const votedPositions = positions.filter((p) => p.voteStatus === 'Voted').length
-      const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
-      const votedShares = positions
-        .filter((p) => p.voteStatus === 'Voted')
-        .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
-      const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+      try {
+        // Extract meeting type and year from current meeting ID
+        // Format: ticker-meetingType-year (e.g., "wen-special-meeting-2026")
+        const idParts = currentMeeting.id.split('-')
+        if (idParts.length < 4) return // ticker-meeting-type-year
 
-      // Count by vote source
-      const webVotes = positions.filter((p) => p.source === 'WEB').length
-      const paperVotes = positions.filter((p) => p.source === 'PRINT').length
-      const phoneVotes = positions.filter((p) => p.source === 'IVR').length
+        const currentYear = parseInt(idParts[idParts.length - 1])
+        const baseId = idParts.slice(0, -1).join('-') // e.g., "wen-special-meeting"
 
-      setData({
-        meeting_id: currentMeeting.id || '',
-        meeting_title: currentMeeting.title || '',
-        meeting_date: currentMeeting.meetingDate || '',
-        total_positions: totalPositions,
-        positions_voted: votedPositions,
-        total_shares: totalShares.toString(),
-        shares_voted: votedShares.toString(),
-        shares_unvoted: (totalShares - votedShares).toString(),
-        vote_percentage: votePercentage.toFixed(2),
-        web_votes: webVotes,
-        paper_votes: paperVotes,
-        phone_votes: phoneVotes,
-        status: currentMeeting.status || '',
-      })
-    } catch (error) {
-      console.error('Error calculating tabulation data:', error)
+        const apiClient = await buildApiClient()
+
+        // Try to find the most recent previous year meeting (search up to 3 years back)
+        let prevMeeting: Meeting | null = null
+
+        for (let yearOffset = 1; yearOffset <= 3; yearOffset++) {
+          const previousMeetingId = `${baseId}-${currentYear - yearOffset}`
+          const result = (await apiClient.GET('/meetings/{meetingId}', {
+            params: { path: { meetingId: previousMeetingId } },
+          })) as { data?: Meeting; error?: unknown }
+
+          if (!result.error && result.data) {
+            prevMeeting = result.data
+            break
+          }
+        }
+
+        // Only fetch tabulation data if meeting exists
+        if (prevMeeting && prevMeeting.id) {
+          // Try to get tabulation report first
+          const tabulationResult = await apiClient.GET(
+            '/meetings/{meetingId}/tabulation-report',
+            {
+              params: {
+                path: { meetingId: prevMeeting.id },
+              },
+            }
+          ) as { data?: TabulationReport; error?: unknown }
+
+          if (!tabulationResult.error && tabulationResult.data) {
+            // Use tabulation report data
+            const report = tabulationResult.data
+            const positionsVoted = report.positionsVoted
+            const totalPositions =
+              (positionsVoted?.voted || 0) + (positionsVoted?.unvoted || 0)
+            const votedPositions = positionsVoted?.voted || 0
+            const totalShares = positionsVoted?.totalShares || 0
+            const votedShares = positionsVoted?.votedShares || 0
+            const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+            const nonDtc = report.nonDtcVoteStatus
+            const webVotes = nonDtc?.webShareholders || 0
+            const paperVotes = nonDtc?.printShareholders || 0
+            const phoneVotes = nonDtc?.ivrShareholders || 0
+
+            setPreviousYearData({
+              meeting_id: prevMeeting.id || '',
+              meeting_title: prevMeeting.title || '',
+              meeting_date: prevMeeting.meetingDate || '',
+              total_positions: totalPositions,
+              positions_voted: votedPositions,
+              total_shares: totalShares.toString(),
+              shares_voted: votedShares.toString(),
+              shares_unvoted: (totalShares - votedShares).toString(),
+              vote_percentage: votePercentage.toFixed(2),
+              web_votes: webVotes,
+              paper_votes: paperVotes,
+              phone_votes: phoneVotes,
+              status: prevMeeting.status || '',
+            })
+          } else {
+            // Fallback to positions data if tabulation report not available
+            const positionsResult = await apiClient.GET('/positions', {
+              params: { query: { meetingId: prevMeeting.id! } },
+            }) as { data?: { positions?: Position[] }; error?: unknown }
+
+            const positions = positionsResult.data?.positions
+            if (
+              !positionsResult.error &&
+              positions &&
+              Array.isArray(positions) &&
+              positions.length > 0
+            ) {
+              // Calculate tabulation data for previous year as fallback
+              const totalPositions = positions.length
+              const votedPositions = positions.filter(
+                (p) => p.voteStatus === 'Voted'
+              ).length
+              const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+              const votedShares = positions
+                .filter((p) => p.voteStatus === 'Voted')
+                .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+              const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+              setPreviousYearData({
+                meeting_id: prevMeeting.id || '',
+                meeting_title: prevMeeting.title || '',
+                meeting_date: prevMeeting.meetingDate || '',
+                total_positions: totalPositions,
+                positions_voted: votedPositions,
+                total_shares: totalShares.toString(),
+                shares_voted: votedShares.toString(),
+                shares_unvoted: (totalShares - votedShares).toString(),
+                vote_percentage: votePercentage.toFixed(2),
+                web_votes: 0,
+                paper_votes: 0,
+                phone_votes: 0,
+                status: prevMeeting.status || '',
+              })
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching previous year data:', error)
+      }
     }
-  }, [currentMeeting, positions, positionsLoading])
+
+    fetchPreviousYearData()
+  }, [currentMeeting?.id])
+
+  // Fetch tabulation data from API instead of calculating locally
+  useEffect(() => {
+    const fetchTabulationData = async () => {
+      if (!currentMeeting?.id) return
+
+      setLoading(true)
+      try {
+        const apiClient = await buildApiClient()
+        const { data: tabulationReport, error } = await apiClient.GET(
+          '/meetings/{meetingId}/tabulation-report',
+          {
+            params: {
+              path: { meetingId: currentMeeting.id },
+            },
+          }
+        ) as { data?: TabulationReport; error?: unknown }
+
+        if (!error && tabulationReport) {
+          // Transform API response to match component's expected format
+          const positionsVoted = tabulationReport.positionsVoted
+          const totalPositions =
+            (positionsVoted?.voted || 0) + (positionsVoted?.unvoted || 0)
+          const votedPositions = positionsVoted?.voted || 0
+          const totalShares = positionsVoted?.totalShares || 0
+          const votedShares = positionsVoted?.votedShares || 0
+          const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+          // Extract vote counts from non-DTC data
+          const nonDtc = tabulationReport.nonDtcVoteStatus
+          const webVotes = nonDtc?.webShareholders || 0
+          const paperVotes = nonDtc?.printShareholders || 0
+          const phoneVotes = nonDtc?.ivrShareholders || 0
+
+          setData({
+            meeting_id: currentMeeting.id || '',
+            meeting_title: currentMeeting.title || '',
+            meeting_date: currentMeeting.meetingDate || '',
+            total_positions: totalPositions,
+            positions_voted: votedPositions,
+            total_shares: totalShares.toString(),
+            shares_voted: votedShares.toString(),
+            shares_unvoted: (totalShares - votedShares).toString(),
+            vote_percentage: votePercentage.toFixed(2),
+            web_votes: webVotes,
+            paper_votes: paperVotes,
+            phone_votes: phoneVotes,
+            status: currentMeeting.status || '',
+          })
+        } else {
+          // Fallback to positions-based calculation when tabulation report doesn't exist
+          try {
+            const positionsResult = await apiClient.GET('/positions', {
+              params: { query: { meetingId: currentMeeting.id } },
+            }) as { data?: { positions?: Position[] }; error?: unknown }
+
+            const positions = positionsResult.data?.positions
+            if (!positionsResult.error && positions && Array.isArray(positions)) {
+              // Calculate tabulation data from positions as fallback
+              const totalPositions = positions.length
+              const votedPositions = positions.filter((p) => p.voteStatus === 'Voted').length
+              const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+              const votedShares = positions
+                .filter((p) => p.voteStatus === 'Voted')
+                .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+              const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+              // Count by vote source
+              const webVotes = positions.filter((p) => p.source === 'WEB').length
+              const paperVotes = positions.filter((p) => p.source === 'PRINT').length
+              const phoneVotes = positions.filter((p) => p.source === 'IVR').length
+
+              // Using fallback calculation based on positions data
+
+              setData({
+                meeting_id: currentMeeting.id || '',
+                meeting_title: currentMeeting.title || '',
+                meeting_date: currentMeeting.meetingDate || '',
+                total_positions: totalPositions,
+                positions_voted: votedPositions,
+                total_shares: totalShares.toString(),
+                shares_voted: votedShares.toString(),
+                shares_unvoted: (totalShares - votedShares).toString(),
+                vote_percentage: votePercentage.toFixed(2),
+                web_votes: webVotes,
+                paper_votes: paperVotes,
+                phone_votes: phoneVotes,
+                status: currentMeeting.status || '',
+              })
+            } else {
+              // Empty data if no positions available either
+              setData({
+                meeting_id: currentMeeting.id || '',
+                meeting_title: currentMeeting.title || '',
+                meeting_date: currentMeeting.meetingDate || '',
+                total_positions: 0,
+                positions_voted: 0,
+                total_shares: '0',
+                shares_voted: '0',
+                shares_unvoted: '0',
+                vote_percentage: '0.00',
+                web_votes: 0,
+                paper_votes: 0,
+                phone_votes: 0,
+                status: currentMeeting.status || '',
+              })
+            }
+          } catch (fallbackError) {
+            console.error('Fallback positions calculation failed:', fallbackError)
+            // Final fallback to empty data
+            setData({
+              meeting_id: currentMeeting.id || '',
+              meeting_title: currentMeeting.title || '',
+              meeting_date: currentMeeting.meetingDate || '',
+              total_positions: 0,
+              positions_voted: 0,
+              total_shares: '0',
+              shares_voted: '0',
+              shares_unvoted: '0',
+              vote_percentage: '0.00',
+              web_votes: 0,
+              paper_votes: 0,
+              phone_votes: 0,
+              status: currentMeeting.status || '',
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching tabulation data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTabulationData()
+  }, [currentMeeting?.id, currentMeeting?.status, currentMeeting?.title, currentMeeting?.meetingDate])
 
   // Calculate progress data - only show actual voting data in phase 6+
   // Check both phase data and meeting.currentPhase (which should be "Phase 6" for the WEN special meeting)
@@ -223,7 +486,6 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
 
   // Get quorum requirement from meeting (percentage)
-  const quorumRequirement = currentMeeting?.quorumRequirement || 50
   const currentVotePercentage = data ? parseFloat(data.vote_percentage) : 0
 
   const progress =
@@ -231,210 +493,365 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       ? {
         voted: Math.round(currentVotePercentage),
         unvoted: 100 - Math.round(currentVotePercentage),
-        toQuorum: Math.max(0, quorumRequirement - currentVotePercentage),
+        toQuorum: Math.round(currentVotePercentage),
       }
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
-  const isCompleted = data?.status === 'completed'
+  const isCompleted =
+    data?.status === 'COMPLETE' ||
+    data?.status === 'completed' ||
+    currentMeeting?.status === 'COMPLETE'
   const meetingDate = data?.meeting_date ? new Date(data.meeting_date) : null
 
-  const MainComponent = (
-    <Paper
-      elevation={5}
-      sx={{
+  const isPhase7 = (currentPhaseNumber ?? 0) < 7
+
+
+
+  return (
+    <Box
+      sx={(theme) => ({
         background: (theme) => theme.vars?.palette.keydate.main,
         color: (theme) => theme.vars?.palette.keydate.contrastText,
+        boxShadow: theme.shadows[5],
         contain: 'paint',
+        borderRadius: 2,
         p: 1,
         pb: 0,
         position: 'relative',
         px: 2,
-      }}
+        minHeight: (!isPhase7 && !isMobile) ? '105.6px' : '86px',
+      })}
     >
-      <Stack
-        direction={'row'}
-        flexWrap={'wrap'}
-        sx={{
-          gap: 2,
-          pb: 4,
-        }}
-      >
-        <CalendarIcon
-          sx={{
-            mr: 2,
-            fontSize: 40,
-            color: 'inherit',
-            display: { xs: 'none', md: 'block' },
-          }}
-        />
+      <Fade in={!loading} timeout={1000}>
         <Stack
-          spacing={2}
           direction={'row'}
-          sx={{ flexGrow: 1, justifyContent: { xs: 'space-between', md: 'flex-start' } }}
+          flexWrap={'wrap'}
+          display={'grid'}
+          gridTemplateAreas={{
+            xs: `
+              "1 2"
+            `,
+            sm: `
+              "1 2 3",
+              "1 2 3"
+            `,
+          }}
+          gridTemplateColumns={{
+            xs: '1fr 1fr',
+            sm: '1fr 1fr 1fr',
+            md:
+              isPhase7 && previousYearData
+                ? 'min-content repeat(6, auto)'
+                : 'min-content repeat(7, auto)',
+          }}
+          sx={{
+            gap: 1,
+            paddingBottom: { xs: 4, sm: 4, md: 3 },
+            transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
+          }}
         >
-          <BNTypographyPair
-            primary={{
-              variant: 'body2',
-              fontWeight: 500,
-              text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
-              sx: { whiteSpace: 'nowrap' },
+          <CalendarIcon
+            sx={{
+              mr: 2,
+              fontSize: 40,
+              color: 'inherit',
+              display: { xs: 'none', md: 'block' },
             }}
-            secondary={{
-              variant: 'h2',
-              fontWeight: 600,
-              text:
-                isCompleted && meetingDate
-                  ? meetingDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })
-                  : meetingDate
-                    ? calculateDaysUntil(meetingDate.toISOString())
-                    : 'N/A',
-            }}
-            sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
           />
+          <Box>
+            <BNTypographyPair
+              primary={{
+                variant: 'body2',
+                fontWeight: 500,
+                text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
+                sx: { whiteSpace: 'nowrap' },
+              }}
+              secondary={{
+                variant: 'h2',
+                fontWeight: 600,
+                text:
+                  isCompleted && meetingDate
+                    ? meetingDate.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                    : meetingDate
+                      ? calculateDaysUntil(meetingDate.toISOString())
+                      : '--',
+              }}
+              sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+            />
+          </Box>
 
-          <BNTypographyPair
-            primary={{
-              variant: 'body2',
-              fontWeight: 500,
-              text: isCompleted ? 'Total Positions' : 'Days to Next Phase',
-              sx: { whiteSpace: 'nowrap' },
-            }}
-            secondary={{
-              variant: 'h2',
-              fontWeight: 600,
-              text:
-                isCompleted && data
-                  ? data.total_positions.toLocaleString()
-                  : nextPhaseDate
-                    ? daysUntilDate(nextPhaseDate)
-                    : 'N/A',
-            }}
-            sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-          />
-          <BNTypographyPair
-            primary={{
-              variant: 'body2',
-              fontWeight: 500,
-              text: isCompleted ? 'Positions Voted' : 'Vote Cutoff',
-              sx: { whiteSpace: 'nowrap' },
-            }}
-            secondary={{
-              variant: 'h2',
-              fontWeight: 600,
-              text:
-                isCompleted && data
-                  ? data.positions_voted.toLocaleString()
-                  : voteCutoffDate
+          {!isCompleted && (
+            <Box>
+              <BNTypographyPair
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Days to Next Phase',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text: nextPhaseDate ? daysUntilDate(nextPhaseDate) : '--',
+                }}
+                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+              />
+            </Box>
+          )}
+          {isCompleted && (
+            <Box>
+              <BNTypographyPair
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Total Positions',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text: data ? data.total_positions.toLocaleString() : '--',
+                }}
+                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+              />
+            </Box>
+          )}
+          {isCompleted ? (
+            <Box>
+              <BNTypographyPair
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Positions Voted',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text: data ? data.positions_voted.toLocaleString() : '--',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                sx={{ flex: 1 }}
+              />
+            </Box>
+          ) : (
+            <Box>
+              <BNTypographyPair
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Vote Cutoff',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text: voteCutoffDate
                     ? voteCutoffDate.toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                     })
-                    : 'N/A',
-              sx: { whiteSpace: 'nowrap' },
-            }}
-            sx={{ flex: 1 }}
-          />
-        </Stack>
-        <Stack
-          spacing={2}
-          direction={'row'}
-          sx={{ flexGrow: 1, justifyContent: { xs: 'space-between', md: 'flex-start' } }}
-        >
-          <Box flex={1} display={'flex'} justifyContent={'flex-end'}>
-            <NumberCounter
-              label="Shares Voted"
-              startValue={0}
-              endValue={data && isVotingPhase ? Number(data.shares_voted) : 0}
+                    : '0',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                sx={{ flex: 1 }}
+              />
+            </Box>
+          )}
+          {!isPhase7 && previousYearData && !isMobile && (
+            <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
+              <Typography noWrap variant="body2">
+                Last Year
+              </Typography>
+            </Box>
+          )}
+          <Box>
+            <BNTypographyPair
+              alignItems={{ sx: 'start', md: 'end' }}
+              fullWidth
+              primary={{
+                variant: 'body2',
+                fontWeight: 500,
+                text: 'Shares Voted',
+                sx: { whiteSpace: 'nowrap' },
+              }}
+              secondary={{
+                variant: 'h2',
+                fontWeight: 600,
+                text:
+                  data && isVotingPhase ? Number(data.shares_voted).toLocaleString() : '0',
+              }}
+              sx={{ flex: 1 }}
             />
+            {!isPhase7 && previousYearData && !isMobile && (
+              <Typography
+                sx={{
+                  justifyContent: { xs: 'start', md: 'end' },
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                fontWeight={500}
+                variant="body2"
+              >
+                {Number(data?.shares_voted || 0) > Number(previousYearData.shares_voted) ? (
+                  <ArrowUpwardSharp fontSize="inherit" />
+                ) : (
+                  <ArrowDownward fontSize="inherit" />
+                )}
+                {Number(previousYearData.shares_voted).toLocaleString()}
+              </Typography>
+            )}
           </Box>
-
-          <NumberCounter
-            label="Shares Un-voted"
-            startValue={0}
-            endValue={data && isVotingPhase ? Number(data.shares_unvoted) : 0}
-          />
-          <NumberCounter
-            label="To Quorum"
-            startValue={0}
-            endValue={Math.round(progress.toQuorum)}
-            isPercent
-          />
+          <Box>
+            <BNTypographyPair
+              alignItems={{ sx: 'start', md: 'end' }}
+              fullWidth
+              primary={{
+                variant: 'body2',
+                fontWeight: 500,
+                text: 'Shares Unvoted',
+                sx: { whiteSpace: 'nowrap' },
+              }}
+              secondary={{
+                variant: 'h2',
+                fontWeight: 600,
+                text:
+                  data && isVotingPhase
+                    ? Number(data.shares_unvoted).toLocaleString()
+                    : '0',
+              }}
+              sx={{ flex: 1 }}
+            />
+            {!isPhase7 && previousYearData && !isMobile && (
+              <Typography
+                sx={{
+                  justifyContent: { xs: 'start', md: 'end' },
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                fontWeight={500}
+                variant="body2"
+              >
+                {Number(data?.shares_unvoted || 0) <
+                  Number(previousYearData.shares_unvoted) ? (
+                  <ArrowDownward fontSize="inherit" />
+                ) : (
+                  <ArrowUpwardSharp fontSize="inherit" />
+                )}
+                {Number(previousYearData.shares_unvoted).toLocaleString()}
+              </Typography>
+            )}
+          </Box>
+          <Box>
+            <BNTypographyPair
+              fullWidth
+              alignItems={{ sx: 'start', md: 'end' }}
+              primary={{
+                variant: 'body2',
+                fontWeight: 500,
+                text: 'To Quorum',
+                sx: { whiteSpace: 'nowrap' },
+              }}
+              secondary={{
+                variant: 'h2',
+                fontWeight: 600,
+                text: `${Math.round(progress.toQuorum)} %`,
+              }}
+              sx={{
+                flex: 1,
+              }}
+            />
+            {!isPhase7 && previousYearData && !isMobile && (
+              <Typography
+                sx={{
+                  justifyContent: { xs: 'start', md: 'end' },
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                fontWeight={500}
+                variant="body2"
+              >
+                {Math.round(progress.toQuorum) >
+                  parseFloat(previousYearData.vote_percentage) ? (
+                  <ArrowUpwardSharp fontSize="inherit" />
+                ) : (
+                  <ArrowDownward fontSize="inherit" />
+                )}
+                {Math.round(parseFloat(previousYearData.vote_percentage))}%
+              </Typography>
+            )}
+          </Box>
         </Stack>
-      </Stack>
+      </Fade>
+
       {/* Progress Bar at Bottom */}
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          // borderRadius: '0 0 4px 4px',
-          overflow: 'hidden',
-        }}
-      >
+      <Fade in={!loading} timeout={500}>
         <Box
-          component={motion.div}
-          initial={{ width: 0 }}
-          animate={{ width: `${progress.voted}%` }}
-          transition={{ duration: 0.6, type: 'tween', ease: 'easeInOut' }}
           sx={{
-            background: (theme) => theme.vars?.palette.keydate.dark,
-            px: 1,
-            py: 0,
-            minWidth: '70px',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'end',
+            width: '100%',
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            // borderRadius: '0 0 4px 4px',
+            overflow: 'hidden',
           }}
         >
-          <Typography
-            noWrap
-            variant="caption"
-            fontWeight={600}
+          <Box
+            component={motion.div}
+            initial={{ width: 0 }}
+            animate={{ width: `${progress.voted}%` }}
+            transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
             sx={{
-              color: (theme) => theme.palette.common.white,
+              background: (theme) => theme.vars?.palette.keydate.dark,
+              px: 1,
+              py: 0,
+              minWidth: '70px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'end',
             }}
           >
-            {progress.voted}% Voted
-          </Typography>
-        </Box>
-        <Box
-          sx={(theme) => ({
-            background: `rgba(${theme.vars?.palette.keydate.darkChannel} / 0.1)`,
-            px: 1,
-            py: 0.25,
-            flexGrow: 1,
-            display: 'flex',
-            alignItems: 'center',
-          })}
-        >
-          <Typography
-            noWrap
-            variant="caption"
-            fontWeight={600}
+            <Typography
+              noWrap
+              variant="caption"
+              fontWeight={600}
+              sx={{
+                color: (theme) => theme.palette.common.white,
+              }}
+            >
+              {progress.voted}% Voted
+            </Typography>
+          </Box>
+          <Box
             sx={(theme) => ({
-              color: theme.vars?.palette.keydate.contrastText,
+              background: `rgba(${theme.vars?.palette.keydate.darkChannel} / 0.1)`,
+              px: 1,
+              py: 0.25,
+              flexGrow: 1,
+              display: 'flex',
+              alignItems: 'center',
             })}
           >
-            {progress.unvoted}% Unvoted
-          </Typography>
+            <Typography
+              noWrap
+              variant="caption"
+              fontWeight={600}
+              sx={(theme) => ({
+                color: theme.vars?.palette.keydate.contrastText,
+              })}
+            >
+              {progress.unvoted}% Unvoted
+            </Typography>
+          </Box>
         </Box>
-      </Box>
-    </Paper>
-  )
-
-  return (
-    <>
-      <Fade in={!positionsLoading} timeout={500}>
-        {MainComponent}
       </Fade>
-    </>
+    </Box>
   )
 }
 

@@ -36,16 +36,15 @@ export type Database = {
         }
         Relationships: []
       }
-      client: {
+      clients: {
         Row: {
-          accounts: Json | null
+          branding_id: number | null
           company_name: string | null
           created_at: string | null
           description: string | null
           id: string | null
           industry: string | null
           is_active: boolean | null
-          meetings: Json | null
           primary_contact: string | null
           primary_contact_email: string | null
           short_name: string | null
@@ -54,14 +53,13 @@ export type Database = {
           website: string | null
         }
         Insert: {
-          accounts?: Json | null
+          branding_id?: number | null
           company_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string | null
           industry?: string | null
           is_active?: boolean | null
-          meetings?: Json | null
           primary_contact?: string | null
           primary_contact_email?: string | null
           short_name?: string | null
@@ -70,14 +68,13 @@ export type Database = {
           website?: string | null
         }
         Update: {
-          accounts?: Json | null
+          branding_id?: number | null
           company_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string | null
           industry?: string | null
           is_active?: boolean | null
-          meetings?: Json | null
           primary_contact?: string | null
           primary_contact_email?: string | null
           short_name?: string | null
@@ -123,13 +120,67 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_shareholder_meeting: {
+        Row: {
+          created_at: string | null
+          email_address: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          meeting_id: string | null
+          minutes_attended_meeting: number | null
+          registrant_type:
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | null
+          registration_questions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_address?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          meeting_id?: string | null
+          minutes_attended_meeting?: number | null
+          registrant_type?:
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | null
+          registration_questions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_address?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          meeting_id?: string | null
+          minutes_attended_meeting?: number | null
+          registrant_type?:
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | null
+          registration_questions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       document: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           authorized_date: string | null
           comments: Json | null
           completed_date: string | null
           created_at: string | null
+          created_by: string | null
+          created_by_first_name: string | null
+          created_by_last_name: string | null
+          deadline: string | null
           description: string | null
+          display_category:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path: string | null
           file_size: number | null
           file_type: string | null
@@ -145,15 +196,27 @@ export type Database = {
           title: string | null
           type: string | null
           updated_at: string | null
+          updated_by: string | null
+          updated_by_first_name: string | null
+          updated_by_last_name: string | null
           upload_date: string | null
           uploaded_date: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           authorized_date?: string | null
           comments?: Json | null
           completed_date?: string | null
           created_at?: string | null
+          created_by?: string | null
+          created_by_first_name?: string | null
+          created_by_last_name?: string | null
+          deadline?: string | null
           description?: string | null
+          display_category?:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
@@ -169,15 +232,27 @@ export type Database = {
           title?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
+          updated_by_first_name?: string | null
+          updated_by_last_name?: string | null
           upload_date?: string | null
           uploaded_date?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           authorized_date?: string | null
           comments?: Json | null
           completed_date?: string | null
           created_at?: string | null
+          created_by?: string | null
+          created_by_first_name?: string | null
+          created_by_last_name?: string | null
+          deadline?: string | null
           description?: string | null
+          display_category?:
+            | Database['public']['Enums']['document_display_category']
+            | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
@@ -193,8 +268,188 @@ export type Database = {
           title?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
+          updated_by_first_name?: string | null
+          updated_by_last_name?: string | null
           upload_date?: string | null
           uploaded_date?: string | null
+        }
+        Relationships: []
+      }
+      document_history: {
+        Row: {
+          created_at: string | null
+          document: string | null
+          document_id: string | null
+          event_type: Database['public']['Enums']['document_history_event_type'] | null
+          id: string | null
+          metadata: Json | null
+          user: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document?: string | null
+          document_id?: string | null
+          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          id?: string | null
+          metadata?: Json | null
+          user?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document?: string | null
+          document_id?: string | null
+          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          id?: string | null
+          metadata?: Json | null
+          user?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
+      dsm_config: {
+        Row: {
+          audio_only: boolean | null
+          created_at: string | null
+          display_docs_doc_id: string | null
+          dry_run_date: string | null
+          dry_run_notes: string | null
+          dry_run_scheduled: boolean | null
+          dsm_enabled: boolean | null
+          dsm_producer_email: string | null
+          dsm_producer_name: string | null
+          guest_link_registration_doc_id: string | null
+          id: string | null
+          inspector_email: string | null
+          inspector_name: string | null
+          ioe_enabled: boolean | null
+          is_confirmed: boolean | null
+          live_qa: boolean | null
+          logistics_call_date: string | null
+          logistics_call_notes: string | null
+          logistics_call_scheduled: boolean | null
+          meeting_id: string | null
+          meeting_recording: boolean | null
+          speaker_list_doc_id: string | null
+          static_slide_doc_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audio_only?: boolean | null
+          created_at?: string | null
+          display_docs_doc_id?: string | null
+          dry_run_date?: string | null
+          dry_run_notes?: string | null
+          dry_run_scheduled?: boolean | null
+          dsm_enabled?: boolean | null
+          dsm_producer_email?: string | null
+          dsm_producer_name?: string | null
+          guest_link_registration_doc_id?: string | null
+          id?: string | null
+          inspector_email?: string | null
+          inspector_name?: string | null
+          ioe_enabled?: boolean | null
+          is_confirmed?: boolean | null
+          live_qa?: boolean | null
+          logistics_call_date?: string | null
+          logistics_call_notes?: string | null
+          logistics_call_scheduled?: boolean | null
+          meeting_id?: string | null
+          meeting_recording?: boolean | null
+          speaker_list_doc_id?: string | null
+          static_slide_doc_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audio_only?: boolean | null
+          created_at?: string | null
+          display_docs_doc_id?: string | null
+          dry_run_date?: string | null
+          dry_run_notes?: string | null
+          dry_run_scheduled?: boolean | null
+          dsm_enabled?: boolean | null
+          dsm_producer_email?: string | null
+          dsm_producer_name?: string | null
+          guest_link_registration_doc_id?: string | null
+          id?: string | null
+          inspector_email?: string | null
+          inspector_name?: string | null
+          ioe_enabled?: boolean | null
+          is_confirmed?: boolean | null
+          live_qa?: boolean | null
+          logistics_call_date?: string | null
+          logistics_call_notes?: string | null
+          logistics_call_scheduled?: boolean | null
+          meeting_id?: string | null
+          meeting_recording?: boolean | null
+          speaker_list_doc_id?: string | null
+          static_slide_doc_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mailing: {
+        Row: {
+          canceled_suppressed_positions: number | null
+          consolidated_suppressed_positions: number | null
+          courtesy_other_mail_positions: number | null
+          created_at: string | null
+          electronic_suppressed_positions: number | null
+          fullset_mail_positions: number | null
+          household_suppressed_positions: number | null
+          id: string | null
+          managed_suppressed_positions: number | null
+          meeting_id: string | null
+          naa_mail_positions: number | null
+          ticker: string | null
+          total_accounts: number | null
+          total_positions: number | null
+          total_retransmissions: number | null
+          total_rollups: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          canceled_suppressed_positions?: number | null
+          consolidated_suppressed_positions?: number | null
+          courtesy_other_mail_positions?: number | null
+          created_at?: string | null
+          electronic_suppressed_positions?: number | null
+          fullset_mail_positions?: number | null
+          household_suppressed_positions?: number | null
+          id?: string | null
+          managed_suppressed_positions?: number | null
+          meeting_id?: string | null
+          naa_mail_positions?: number | null
+          ticker?: string | null
+          total_accounts?: number | null
+          total_positions?: number | null
+          total_retransmissions?: number | null
+          total_rollups?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          canceled_suppressed_positions?: number | null
+          consolidated_suppressed_positions?: number | null
+          courtesy_other_mail_positions?: number | null
+          created_at?: string | null
+          electronic_suppressed_positions?: number | null
+          fullset_mail_positions?: number | null
+          household_suppressed_positions?: number | null
+          id?: string | null
+          managed_suppressed_positions?: number | null
+          meeting_id?: string | null
+          naa_mail_positions?: number | null
+          ticker?: string | null
+          total_accounts?: number | null
+          total_positions?: number | null
+          total_retransmissions?: number | null
+          total_rollups?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -207,10 +462,6 @@ export type Database = {
           current_phase: string | null
           cusip: string | null
           distribution_type: string | null
-          document_hosting_site_label: string | null
-          document_hosting_site_url: string | null
-          e_vote_site_label: string | null
-          e_vote_site_url: string | null
           employee_stock_plans: string | null
           filing_date: string | null
           id: string | null
@@ -244,10 +495,6 @@ export type Database = {
           current_phase?: string | null
           cusip?: string | null
           distribution_type?: string | null
-          document_hosting_site_label?: string | null
-          document_hosting_site_url?: string | null
-          e_vote_site_label?: string | null
-          e_vote_site_url?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
           id?: string | null
@@ -281,10 +528,6 @@ export type Database = {
           current_phase?: string | null
           cusip?: string | null
           distribution_type?: string | null
-          document_hosting_site_label?: string | null
-          document_hosting_site_url?: string | null
-          e_vote_site_label?: string | null
-          e_vote_site_url?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
           id?: string | null
@@ -320,12 +563,12 @@ export type Database = {
           id: string | null
           meeting_id: string | null
           message: string | null
-          priority: Database["public"]["Enums"]["notification_priority"] | null
+          priority: Database['public']['Enums']['notification_priority'] | null
           read: boolean | null
           read_at: string | null
           task_id: string | null
           title: string | null
-          type: Database["public"]["Enums"]["notification_type"] | null
+          type: Database['public']['Enums']['notification_type'] | null
           user_id: string | null
         }
         Insert: {
@@ -335,12 +578,12 @@ export type Database = {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
         Update: {
@@ -350,12 +593,12 @@ export type Database = {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
         Relationships: []
@@ -407,11 +650,9 @@ export type Database = {
           set_key: string | null
           shares: number | null
           shares_voted: number | null
-          source: Database["public"]["Enums"]["position_source"] | null
+          source: Database['public']['Enums']['position_source'] | null
           updated_at: string | null
-          vote_status:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status: Database['public']['Enums']['position_vote_status'] | null
         }
         Insert: {
           account_number?: string | null
@@ -426,11 +667,9 @@ export type Database = {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
         Update: {
           account_number?: string | null
@@ -445,11 +684,9 @@ export type Database = {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
         Relationships: []
       }
@@ -488,9 +725,7 @@ export type Database = {
           director_class: string | null
           director_name: string | null
           director_term_years: number | null
-          final_result:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage: number | null
           frequency_options: Json | null
           id: string | null
@@ -517,9 +752,7 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -546,9 +779,7 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -615,6 +846,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tabulation_report: {
+        Row: {
+          broker_voting: Json | null
+          created_at: string | null
+          dtc_vote_status: Json | null
+          id: string
+          last_calculated_at: string | null
+          meeting_id: string
+          non_dtc_vote_status: string | null
+          positions_voted: Json | null
+          set_keys: Json | null
+          share_range_performance: Json | null
+          updated_at: string | null
+          vote_distribution: Json | null
+        }
+        Insert: {
+          broker_voting?: Json | null
+          created_at?: string | null
+          dtc_vote_status?: Json | null
+          id: string
+          last_calculated_at?: string | null
+          meeting_id: string
+          non_dtc_vote_status?: string | null
+          positions_voted?: Json | null
+          set_keys?: Json | null
+          share_range_performance?: Json | null
+          updated_at?: string | null
+          vote_distribution?: Json | null
+        }
+        Update: {
+          broker_voting?: Json | null
+          created_at?: string | null
+          dtc_vote_status?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          meeting_id?: string
+          non_dtc_vote_status?: string | null
+          positions_voted?: Json | null
+          set_keys?: Json | null
+          share_range_performance?: Json | null
+          updated_at?: string | null
+          vote_distribution?: Json | null
+        }
+        Relationships: []
+      }
       task: {
         Row: {
           created_at: string | null
@@ -673,6 +949,7 @@ export type Database = {
         Row: {
           account: string | null
           account_id: string | null
+          avatar_url: string | null
           email: string | null
           first_name: string | null
           id: string | null
@@ -684,6 +961,7 @@ export type Database = {
         Insert: {
           account?: string | null
           account_id?: string | null
+          avatar_url?: string | null
           email?: string | null
           first_name?: string | null
           id?: string | null
@@ -695,6 +973,7 @@ export type Database = {
         Update: {
           account?: string | null
           account_id?: string | null
+          avatar_url?: string | null
           email?: string | null
           first_name?: string | null
           id?: string | null
@@ -710,19 +989,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reset_demo_data: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
-      cast_vote_request_vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD"
-      create_position_request_source: "WEB" | "PRINT" | "IVR"
-      create_position_request_vote_status: "Voted" | "Unvoted"
-      notification_priority: "low" | "medium" | "high" | "critical"
-      notification_type: "info" | "warning" | "error" | "success"
-      position_source: "WEB" | "PRINT" | "IVR"
-      position_vote_status: "Voted" | "Unvoted"
-      proposal_final_result: "PASSED" | "FAILED" | "PENDING"
-      update_position_request_source: "WEB" | "PRINT" | "IVR"
-      update_position_request_vote_status: "Voted" | "Unvoted"
+      add_document_event_request_event_type:
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'NOT_UPLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
+      create_digital_shareholder_meeting_request_registrant_type:
+        | 'Shareholder'
+        | 'Guest'
+        | 'Proxy'
+        | 'Other'
+      create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      create_position_request_vote_status: 'Voted' | 'Unvoted'
+      digital_shareholder_meeting_registrant_type:
+        | 'Shareholder'
+        | 'Guest'
+        | 'Proxy'
+        | 'Other'
+      document_display_category:
+        | 'general'
+        | 'dsm'
+        | 'proxy-materials'
+        | 'meeting-materials'
+        | 'post-meeting'
+        | 'internal'
+      document_history_event_type:
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      notification_priority: 'low' | 'medium' | 'high' | 'critical'
+      notification_type: 'info' | 'warning' | 'error' | 'success'
+      position_source: 'WEB' | 'PRINT' | 'IVR'
+      position_vote_status: 'Voted' | 'Unvoted'
+      proposal_final_result: 'PASSED' | 'FAILED' | 'PENDING'
+      update_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      update_position_request_vote_status: 'Voted' | 'Unvoted'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -730,33 +1052,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -765,23 +1087,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -790,23 +1112,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -815,52 +1137,96 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      cast_vote_request_vote: ["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"],
-      create_position_request_source: ["WEB", "PRINT", "IVR"],
-      create_position_request_vote_status: ["Voted", "Unvoted"],
-      notification_priority: ["low", "medium", "high", "critical"],
-      notification_type: ["info", "warning", "error", "success"],
-      position_source: ["WEB", "PRINT", "IVR"],
-      position_vote_status: ["Voted", "Unvoted"],
-      proposal_final_result: ["PASSED", "FAILED", "PENDING"],
-      update_position_request_source: ["WEB", "PRINT", "IVR"],
-      update_position_request_vote_status: ["Voted", "Unvoted"],
+      add_document_event_request_event_type: [
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'NOT_UPLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
+      ],
+      cast_vote_request_vote: ['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'],
+      create_digital_shareholder_meeting_request_registrant_type: [
+        'Shareholder',
+        'Guest',
+        'Proxy',
+        'Other',
+      ],
+      create_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      create_position_request_vote_status: ['Voted', 'Unvoted'],
+      digital_shareholder_meeting_registrant_type: [
+        'Shareholder',
+        'Guest',
+        'Proxy',
+        'Other',
+      ],
+      document_display_category: [
+        'general',
+        'dsm',
+        'proxy-materials',
+        'meeting-materials',
+        'post-meeting',
+        'internal',
+      ],
+      document_history_event_type: [
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
+      ],
+      notification_priority: ['low', 'medium', 'high', 'critical'],
+      notification_type: ['info', 'warning', 'error', 'success'],
+      position_source: ['WEB', 'PRINT', 'IVR'],
+      position_vote_status: ['Voted', 'Unvoted'],
+      proposal_final_result: ['PASSED', 'FAILED', 'PENDING'],
+      update_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      update_position_request_vote_status: ['Voted', 'Unvoted'],
     },
   },
 } as const
-

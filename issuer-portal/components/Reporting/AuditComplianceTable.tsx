@@ -1,13 +1,14 @@
 'use client'
 
+import router from 'next/router'
 import React from 'react'
 
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
-  Chip,
   CircularProgress,
   Table,
   TableBody,
@@ -15,28 +16,30 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from '@mui/material'
 
 interface AuditComplianceData {
-  meetingId: string
-  meetingTitle: string
-  complianceScore: number
-  issues: string[]
-  materialsCompliant: boolean
+  event: string
+  meetingId?: string
+  materialsSent: string
+  inspectorCertified: string
+  universalProxy: string
+  finalCertified: string
 }
 
 interface AuditComplianceTableProps {
   data: AuditComplianceData[]
   loading?: boolean
   title?: string
+  clientTicker?: string
 }
 
 const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
   data,
   loading = false,
   title = 'Audit & Compliance',
+  clientTicker = '',
 }) => {
   if (loading) {
     return (
@@ -64,61 +67,47 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
     )
   }
 
-  const getComplianceColor = (score: number) => {
-    if (score >= 90) return 'success'
-    if (score >= 70) return 'warning'
-    return 'error'
-  }
-
   return (
     <Card>
       <CardHeader title={title} />
       <CardContent>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Meeting</TableCell>
-                <TableCell align="center">Compliance Score</TableCell>
-                <TableCell align="center">Materials</TableCell>
-                <TableCell>Issues</TableCell>
+                <TableCell>Event</TableCell>
+                <TableCell>Materials Sent</TableCell>
+                <TableCell>Inspector Certified</TableCell>
+                <TableCell>Universal Proxy</TableCell>
+                <TableCell>Final Certified</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row) => (
-                <TableRow key={row.meetingId}>
-                  <TableCell component="th" scope="row">
-                    <Typography variant="body2" noWrap>
-                      {row.meetingTitle}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={`${row.complianceScore}%`}
-                      color={getComplianceColor(row.complianceScore)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={row.materialsCompliant ? 'Compliant' : 'Issues'}
-                      color={row.materialsCompliant ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {row.issues.length > 0 ? (
-                      <Tooltip title={row.issues.join(', ')}>
-                        <Typography variant="body2" noWrap>
-                          {row.issues.length} issue{row.issues.length !== 1 ? 's' : ''}
-                        </Typography>
-                      </Tooltip>
+              {data.map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell size="small" component="th" scope="row">
+                    {row.meetingId && clientTicker ? (
+                      <Button
+                        variant="text"
+                        color="info"
+                        onClick={() => {
+                          router.push(
+                            `/${clientTicker}/meeting/${row.meetingId}/dashboard`
+                          )
+                        }}
+                      >
+                        {row.event}
+                      </Button>
                     ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        None
+                      <Typography variant="body3" noWrap>
+                        {row.event}
                       </Typography>
                     )}
                   </TableCell>
+                  <TableCell size="small">{row.materialsSent}</TableCell>
+                  <TableCell size="small">{row.inspectorCertified}</TableCell>
+                  <TableCell size="small">{row.universalProxy}</TableCell>
+                  <TableCell size="small">{row.finalCertified}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

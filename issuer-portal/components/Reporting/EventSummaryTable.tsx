@@ -1,22 +1,34 @@
 'use client'
 
-import React from 'react'
+import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
-  Chip,
   CircularProgress,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
-  Typography,
 } from '@mui/material'
+
+interface EventSummaryRow {
+  event: string
+  meetingId?: string
+  recordDate: string
+  meetingType: string
+  quorum: string
+  participation: string
+  numProposals: number
+  outcome: string
+}
 
 interface EventSummaryData {
   totalProposals: number
@@ -32,16 +44,21 @@ interface EventSummaryData {
 }
 
 interface EventSummaryTableProps {
-  data: EventSummaryData
+  data: EventSummaryData | EventSummaryRow[]
   loading?: boolean
   title?: string
+  clientTicker?: string
 }
-
 const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   data,
   loading = false,
   title = 'Event Summary',
+  clientTicker = '',
 }) => {
+  const router = useRouter()
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+
   if (loading) {
     return (
       <Card>
@@ -55,96 +72,97 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
     )
   }
 
-  if (!data) {
-    return (
-      <Card>
-        <CardHeader title={title} />
-        <CardContent>
-          <Typography variant="body1" color="text.secondary">
-            No event summary data available
-          </Typography>
-        </CardContent>
-      </Card>
-    )
+  // Handle both old and new data formats
+  const isRowFormat = Array.isArray(data)
+  const rows: EventSummaryRow[] = isRowFormat
+    ? (data as EventSummaryRow[])
+    : [
+        {
+          event: 'Meeting Summary',
+          recordDate: (data as EventSummaryData).materials?.sentDate || '',
+          meetingType: 'Annual',
+          quorum: (data as EventSummaryData).quorumAchieved ? 'Yes' : 'No',
+          participation: `${((data as EventSummaryData).participationRate || 0).toFixed(1)}%`,
+          numProposals: (data as EventSummaryData).totalProposals,
+          outcome: `${(data as EventSummaryData).passedProposals}/${(data as EventSummaryData).totalProposals} Passed`,
+        },
+      ]
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage)
   }
 
-  const summaryRows = [
-    {
-      label: 'Total Proposals',
-      value: data.totalProposals,
-      format: (val: number) => val.toString(),
-    },
-    {
-      label: 'Passed Proposals',
-      value: data.passedProposals,
-      format: (val: number) => `${val}/${data.totalProposals}`,
-    },
-    {
-      label: 'Failed Proposals',
-      value: data.failedProposals,
-      format: (val: number) => `${val}/${data.totalProposals}`,
-    },
-    {
-      label: 'Participation Rate',
-      value: data.participationRate,
-      format: (val: number) => `${val.toFixed(1)}%`,
-    },
-    {
-      label: 'Quorum Status',
-      value: data.quorumAchieved ? 1 : 0,
-      format: (val: number) => (val ? 'Achieved' : 'Not Achieved'),
-    },
-    {
-      label: 'Materials Sent',
-      value: data.materials.sent,
-      format: (val: number) => `${val}/${data.materials.total}`,
-    },
-    {
-      label: 'Materials Sent Date',
-      value: data.materials.sentDate,
-      format: (val: string | number) => {
-        if (typeof val === 'string' && val) {
-          return new Date(val).toLocaleDateString()
-        }
-        return 'Not Available'
-      },
-    },
-  ]
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+
+  // Calculate pagination
+  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 
   return (
     <Card>
       <CardHeader title={title} />
       <CardContent>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Metric</TableCell>
-                <TableCell align="right">Value</TableCell>
+                <TableCell>Event</TableCell>
+                <TableCell>Record Date</TableCell>
+                <TableCell>Meeting Type</TableCell>
+                <TableCell>Quorum</TableCell>
+                <TableCell>Participation</TableCell>
+                <TableCell># Proposals</TableCell>
+                <TableCell>Outcome</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {summaryRows.map((row, index) => (
-                <TableRow key={index}>
+              {paginatedRows.map((row, index) => (
+                <TableRow key={`${row.meetingId || 'row'}-${index}`}>
                   <TableCell component="th" scope="row">
-                    {row.label}
-                  </TableCell>
-                  <TableCell align="right">
-                    {row.label === 'Quorum Status' ? (
-                      <Chip
-                        label={row.format(row.value)}
-                        color={data.quorumAchieved ? 'success' : 'error'}
-                        size="small"
-                      />
+                    {row.meetingId ? (
+                      <Button
+                        variant="text"
+                        color="info"
+                        onClick={() => {
+                          router.push(`/${clientTicker}/meeting/${row.meetingId}`)
+                        }}
+                      >
+                        {row.event}
+                      </Button>
                     ) : (
-                      row.format(row.value)
+                      row.event
                     )}
                   </TableCell>
+                  <TableCell size="small">
+                    {row.recordDate
+                      ? new Date(row.recordDate).toLocaleDateString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : '--'}
+                  </TableCell>
+                  <TableCell size="small">{row.meetingType}</TableCell>
+                  <TableCell size="small">{row.quorum}</TableCell>
+                  <TableCell size="small">{row.participation}</TableCell>
+                  <TableCell size="small">{row.numProposals}</TableCell>
+                  <TableCell size="small">{row.outcome}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </CardContent>
     </Card>
   )

@@ -19,6 +19,7 @@ const StyledScrollContainer = styled(Box, {
 })<{
   scrollDirection: 'horizontal' | 'vertical' | 'both'
   showStartShadow: boolean
+  onClick?: () => void
   showEndShadow: boolean
 }>(({ theme, scrollDirection, showStartShadow, showEndShadow }) => {
   const isVertical = scrollDirection === 'vertical' || scrollDirection === 'both'
@@ -168,6 +169,89 @@ const ScrollContainer: React.FC<ScrollContainerProps> = ({
     }
   }, [isVertical, isHorizontal, updateShadows])
 
+  // Drag-to-scroll (mouse + touch) for horizontal scrolling
+  const isDraggingRef = useRef(false)
+  const dragStartXRef = useRef(0)
+  const dragStartScrollLeftRef = useRef(0)
+  const suppressClickRef = useRef(false)
+
+  const beginDrag = (clientX: number) => {
+    const el = scrollRef.current
+    if (!el) return
+    isDraggingRef.current = true
+    el.classList.add('dragging')
+    dragStartXRef.current = clientX - el.getBoundingClientRect().left
+    dragStartScrollLeftRef.current = el.scrollLeft
+  }
+
+  const moveDrag = (clientX: number) => {
+    const el = scrollRef.current
+    if (!el || !isDraggingRef.current) return
+    const x = clientX - el.getBoundingClientRect().left
+    const walk = (x - dragStartXRef.current) * 2 // Adjust multiplier for speed
+    el.scrollLeft = dragStartScrollLeftRef.current - walk
+    // If user moved more than a few pixels, suppress the subsequent click
+    if (Math.abs(x - dragStartXRef.current) > 3) {
+      suppressClickRef.current = true
+    }
+  }
+
+  const endDrag = () => {
+    const el = scrollRef.current
+    isDraggingRef.current = false
+    if (el) el.classList.remove('dragging')
+  }
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isHorizontal) return
+    e.preventDefault()
+    beginDrag(e.pageX)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isHorizontal || !isDraggingRef.current) return
+    e.preventDefault()
+    moveDrag(e.pageX)
+  }
+
+  const handleMouseUp = () => {
+    if (!isHorizontal) return
+    endDrag()
+  }
+
+  const handleMouseLeave = () => {
+    if (!isHorizontal) return
+    endDrag()
+  }
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isHorizontal) return
+    const touch = e.touches[0]
+    if (!touch) return
+    beginDrag(touch.pageX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isHorizontal || !isDraggingRef.current) return
+    const touch = e.touches[0]
+    if (!touch) return
+    moveDrag(touch.pageX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!isHorizontal) return
+    endDrag()
+  }
+
+  const handleClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent child click handlers after a drag gesture
+    if (suppressClickRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      suppressClickRef.current = false
+    }
+  }
+
   return (
     <StyledScrollContainer
       scrollDirection={direction}
@@ -187,6 +271,15 @@ const ScrollContainer: React.FC<ScrollContainerProps> = ({
             overflowY: 'hidden',
             width: '100%',
             height: 'auto',
+            cursor: 'grab',
+            transition: 'all 0.2s',
+            transform: 'scale(0.99)',
+            '&.dragging': {
+              cursor: 'grabbing',
+              userSelect: 'none',
+              transform: 'scale(1)',
+              willChange: 'transform',
+            },
           }),
           ...(isVertical && {
             overflowY: 'auto',
@@ -195,6 +288,14 @@ const ScrollContainer: React.FC<ScrollContainerProps> = ({
             width: '100%',
           }),
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClickCapture={handleClickCapture}
       >
         {children}
       </Box>

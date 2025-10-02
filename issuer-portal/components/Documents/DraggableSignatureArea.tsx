@@ -14,7 +14,9 @@ interface SignatureArea {
   height: number // percentage height
   page?: number // page number (default 1)
   label?: string // label for the signature area
+  type?: 'signature' | 'text' | 'date' // field type
   signed?: boolean
+  value?: string // for text/date fields
 }
 
 interface DraggableSignatureAreaProps {
@@ -93,15 +95,13 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         }
 
         // Create signature area using hook
-        const newSignatureArea = await createSignatureArea({
-          document_id: documentId,
-          page_number: area.page || 1,
+        const newSignatureArea = await createSignatureArea(documentId, {
           x_position: position.x,
           y_position: position.y,
           width: area.width,
           height: area.height,
-          signature_type: area.label || 'signature',
-          required: true,
+          page_number: area.page || 1,
+          label: area.label || 'signature',
         })
 
         if (newSignatureArea) {
@@ -109,7 +109,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           onPositionUpdate?.(newSignatureArea.id, position.x, position.y)
         }
       } catch (err) {
-        console.warn('Error creating signature area:', err)
+        console.error('Failed to create signature area', err)
       }
       return
     }
@@ -124,13 +124,10 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
       if (updatedArea) {
         onPositionUpdate?.(area.id, position.x, position.y)
       } else {
-        console.error('DraggableSignatureArea: Failed to update signature area position')
+        // Failed to update position
       }
     } catch (err) {
-      console.error(
-        'DraggableSignatureArea: Error updating signature area position:',
-        err
-      )
+      console.error('Failed to update signature area position', err)
     }
   }, [
     isDragging,
@@ -172,7 +169,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           variant="body1"
           sx={[
             (theme) => ({
-              color: theme.vars.palette.info.main,
+              color: theme.vars.palette.text.primary,
               textAlign: 'center',
               userSelect: 'none',
             }),
@@ -219,7 +216,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           width: '100%',
           height: '100%',
           backgroundImage: `url(${signatureData})`,
-          backgroundSize: '100%',
+          backgroundSize: '80%',
           backgroundPosition: 'left center',
           backgroundRepeat: 'no-repeat',
         }}
@@ -235,6 +232,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         onClick={handleClick}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        data-testid={`signature-area-${area.id}`}
         sx={{
           position: 'absolute',
           left: `${position.x}%`,
@@ -242,15 +240,15 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           width: `${area.width}%`,
           height: `${area.height}%`,
           backgroundColor: signatureData
-            ? 'rgba(76, 175, 80, 0.0)'
+            ? 'transparent'
             : isDragging
-              ? 'hsla(185, 100%, 28%, 0.1)'
-              : 'hsla(185, 100%, 28%, 0.1)',
+              ? 'rgba(255, 209, 102, 0.2)'
+              : 'rgba(255, 209, 102, 0.5)',
           border: signatureData
-            ? '2px solid hsla(185, 100%, 28%, 1)'
+            ? ''
             : isDragging
-              ? '2px solid rgba(0, 131, 143, 0.8)'
-              : '2px dashed rgba(0, 131, 143, 0.3)',
+              ? '2px solid rgba(255, 209, 102, 1)'
+              : '2px dashed rgba(255, 209, 102, 1)',
           borderRadius: 1,
           cursor: isDragging ? 'move' : 'pointer',
           display: 'flex',
@@ -263,8 +261,8 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           boxShadow: isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : 'none',
           '&:hover': {
             backgroundColor: signatureData
-              ? 'rgba(76, 175, 80, 0.2)'
-              : 'rgba(0, 131, 143, 0.2)',
+              ? 'rgba(255, 209, 102, 0.2)'
+              : 'rgba(255, 209, 102, 0.0)',
             transform: isDragging ? 'none' : 'scale(1.02)',
             boxShadow: isDragging
               ? '0 4px 8px rgba(0,0,0,0.2)'

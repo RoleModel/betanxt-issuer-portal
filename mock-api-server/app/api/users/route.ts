@@ -1,19 +1,25 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-19T00:30:45.096Z
+// Generated on 2025-09-30T00:31:43.166Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextRequest, NextResponse } from 'next/server'
-import { listUsers, createUser } from '@/domain-models/api/users'
+
+import { createUser, listUsers } from '@/domain-models/api/users'
+
+import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') || undefined
+    const typeParam = searchParams.get('type') || undefined
+    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined =
+      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam)
+        ? (typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER')
+        : undefined
     const accountId = searchParams.get('accountId') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listUsers({ type, accountId })
+    const { data, error } = await listUsers(accountId, type)
 
     if (error) {
       return NextResponse.json(
@@ -24,12 +30,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error in GET /users:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listUsers'
+        operationId: 'listUsers',
       },
       { status: 500 }
     )
@@ -39,7 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as components['schemas']['CreateUserRequest']
 
     // Use existing domain model function
     const { data, error } = await createUser(body)
@@ -53,15 +58,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /users:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createUser'
+        operationId: 'createUser',
       },
       { status: 500 }
     )
   }
 }
-

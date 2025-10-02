@@ -1,0 +1,528 @@
+```mermaid
+graph TB
+    subgraph Browser["User Browser"]
+        User[User]
+    end
+
+    subgraph Frontend["Next.js App :3000 (issuer-portal/)"]
+
+        subgraph Pages["Pages (All 'use client')"]
+            RootPage["/page.tsx"]
+            LoginPage["/(auth)/login/page.tsx"]
+
+            subgraph ClientRoutes["Client-Specific Routes /[clientTicker]"]
+                PastMeetings["/past-meetings"]
+                ReportingPage["/reporting"]
+
+                subgraph MeetingRoutes["Meeting Routes /meeting/[meetingId]"]
+                    MeetingRoot["/page.tsx<br/>(redirects to dashboard)"]
+                    Dashboard["/dashboard/page.tsx"]
+                    DashboardPhase["/dashboard/[phase]/page.tsx"]
+                    CalendarPage["/calendar/page.tsx"]
+                    DocumentsPage["/documents/page.tsx"]
+                    AgendaPage["/agenda/page.tsx"]
+                    TabulationPage["/tabulation/page.tsx"]
+                    ReportsPage["/reports/page.tsx"]
+                    MailingPage["/mailing/page.tsx"]
+                    GuestsPage["/guests/page.tsx"]
+                end
+            end
+
+            subgraph StaticPages["Static Marketing Pages"]
+                EducationPages["/education/*"]
+                ProductPages["/products/*"]
+            end
+        end
+
+        subgraph Contexts["React Contexts"]
+            ClientContext["ClientContext<br/>────────────<br/>• currentClient<br/>• availableClients<br/>• switchClient()<br/>• localStorage sync"]
+
+            MeetingContext["MeetingContext<br/>────────────<br/>• currentMeeting<br/>• meetings[]<br/>• tasks[]<br/>• positions[]<br/>• keyDates[]<br/>• refreshMeetingData()"]
+
+            DocumentContext["DocumentContext<br/>────────────<br/>• documents[]<br/>• loading states"]
+
+            PhaseDrawerContext["PhaseDrawerContext<br/>────────────<br/>• phase drawer state"]
+        end
+
+        subgraph Hooks["Custom Hooks"]
+            subgraph DataHooks["Data Fetching Hooks"]
+                useClients["useClients<br/>────────────<br/>GET /clients<br/>5s cache"]
+
+                useTasks["useTasks<br/>────────────<br/>GET /meetings/{id}/tasks<br/>PUT /tasks/{id}<br/>POST /meetings/{id}/tasks"]
+
+                useDocuments["useDocuments<br/>────────────<br/>GET /meetings/{id}/documents<br/>POST /documents/types/{type}/upload<br/>GET /documents/{id}<br/>POST /documents/{id}/comments<br/>GET /documents/{id}/history"]
+
+                useMailing["useMailing<br/>────────────<br/>GET /meetings/{id}/mailing"]
+
+                usePhases["usePhases (SWR)<br/>────────────<br/>GET /meetings/{id}/phases"]
+
+                useVotingTab["useVotingTabulation (SWR)<br/>────────────<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
+
+                useReporting["useReporting (SWR)<br/>────────────<br/>GET /positions?meetingId={id}<br/>GET /meetings/{id}/proposals"]
+
+                useDSM["useDigitalShareholderMeeting (SWR)<br/>────────────<br/>GET /meetings/{id}/digital-shareholder-meeting<br/>POST /meetings/{id}/digital-shareholder-meeting"]
+            end
+
+            subgraph UtilHooks["Utility Hooks"]
+                useRoutePreload["useRoutePreload"]
+                useSignatureAreas["useSignatureAreas"]
+                useHostingSite["useHostingSiteStatus"]
+            end
+        end
+
+        subgraph Components["Major UI Components"]
+            subgraph Navigation["Navigation"]
+                AppBar["AppBar<br/>• ClientAppSwitcher<br/>• EventTabs"]
+            end
+
+            subgraph Drawers["Drawers & Modals"]
+                TaskDrawer["TaskDrawer<br/>────────────<br/>• Task details<br/>• File upload<br/>• Status updates<br/>• Document signing"]
+
+                PhaseDrawer["PhaseDrawer<br/>────────────<br/>• Phase task list<br/>• Batch operations"]
+
+                ApprovalDrawer["ApprovalDrawer<br/>────────────<br/>• Document approval"]
+
+                DocumentViewer["DocumentViewer<br/>────────────<br/>• PDF viewing<br/>• Signature placement"]
+            end
+
+            subgraph DashboardComps["Dashboard Components"]
+                TaskCard["TaskCard"]
+                MeetingDocs["MeetingDocuments"]
+                KeyDatesCard["KeyDatesCard"]
+                TabulationTracker["TabulationTracker"]
+                DSMCard["DigitalShareholderMeetingCard"]
+            end
+
+            subgraph DataTables["Data Tables"]
+                PositionsTable["PositionsTable"]
+                DocumentsTable["DocumentsTable"]
+                AgendaTable["AgendaTable"]
+            end
+
+            subgraph Charts["Charts & Reports"]
+                VotingPerfChart["VotingPerformanceChart"]
+                BrokerVotingChart["BrokerVotingChart"]
+                VoteDistChart["VoteDistributionChart"]
+                PositionsVotedChart["PositionsVotedChart"]
+            end
+        end
+
+        Auth["NextAuth v5<br/>────────────<br/>JWT Strategy<br/>Session Management"]
+    end
+
+    subgraph APIServer["Next.js API Server :3001 (mock-api-server/)"]
+
+        subgraph APIRoutes["API Routes"]
+            subgraph AuthAPI["Authentication"]
+                AuthLogin["POST /auth/login"]
+                AuthLogout["POST /auth/logout"]
+                AuthMe["GET /auth/me"]
+            end
+
+            subgraph ClientAPI["Clients"]
+                GetClients["GET /clients"]
+                GetClient["GET /clients/{ticker}"]
+                GetClientAccounts["GET /clients/{ticker}/accounts"]
+            end
+
+            subgraph MeetingAPI["Meetings"]
+                GetMeetings["GET /meetings?ticker={ticker}"]
+                GetMeeting["GET /meetings/{meetingId}"]
+                UpdateMeeting["PUT /meetings/{meetingId}"]
+                GetMeetingTasks["GET /meetings/{meetingId}/tasks"]
+                GetMeetingDocs["GET /meetings/{meetingId}/documents"]
+                GetMeetingPhases["GET /meetings/{meetingId}/phases"]
+                GetMeetingProposals["GET /meetings/{meetingId}/proposals"]
+                GetMeetingMailing["GET /meetings/{meetingId}/mailing"]
+                GetMeetingDSM["GET /meetings/{meetingId}/digital-shareholder-meeting"]
+                PostMeetingDSM["POST /meetings/{meetingId}/digital-shareholder-meeting"]
+                GetTabulationReport["GET /meetings/{meetingId}/tabulation-report"]
+                GetDSMConfig["GET /meetings/{meetingId}/dsm-config"]
+            end
+
+            subgraph TaskAPI["Tasks"]
+                GetTask["GET /tasks/{id}"]
+                UpdateTask["PUT /tasks/{id}"]
+                CreateTask["POST /meetings/{meetingId}/tasks"]
+            end
+
+            subgraph DocumentAPI["Documents"]
+                UploadDoc["POST /documents/types/{type}/upload"]
+                GetDoc["GET /documents/{id}"]
+                GetDocHistory["GET /documents/{id}/history"]
+                PostDocComment["POST /documents/{id}/comments"]
+                ApproveDoc["POST /documents/types/{type}/{versionId}/approve"]
+                GetDocTypes["GET /documents/types/{type}/history"]
+                DownloadDoc["GET /documents/{id}/download"]
+            end
+
+            subgraph PositionAPI["Positions & Voting"]
+                GetPositions["GET /positions?meetingId={id}&limit=50000"]
+                GetPosition["GET /positions/{id}"]
+                UpdatePosition["PUT /positions/{id}"]
+                GetPositionVotes["GET /position_votes"]
+            end
+
+            subgraph UserAPI["Users & Accounts"]
+                GetUsers["GET /users"]
+                GetUser["GET /users/{id}"]
+                GetUserAccounts["GET /users/{id}/accounts"]
+                GetAccounts["GET /accounts"]
+                GetAccount["GET /accounts/{accountId}"]
+                GetAccountUsers["GET /accounts/{accountId}/users"]
+            end
+        end
+
+        subgraph DomainLayer["Domain Models Layer"]
+            DomainModels["Domain Transformers<br/>────────────<br/>• Snake_case → camelCase<br/>• Type validation<br/>• Business logic"]
+        end
+    end
+
+    subgraph Database["Supabase (PostgreSQL + Storage)"]
+
+        subgraph Tables["Database Tables"]
+            ClientTable[("client<br/>────────────<br/>ticker, company_name<br/>meeting_id, phase")]
+
+            MeetingTable[("meeting<br/>────────────<br/>id, ticker, title<br/>current_phase, status<br/>meeting_date, record_date")]
+
+            TaskTable[("task<br/>────────────<br/>id, meeting_id, phase_id<br/>title, owner, status<br/>due_date, links")]
+
+            PhaseTable[("phase<br/>────────────<br/>id, meeting_id<br/>name, order_index<br/>status, key_dates")]
+
+            ProposalTable[("proposal<br/>────────────<br/>id, meeting_id<br/>proposal_number, title<br/>proposal_type<br/>total_votes_*")]
+
+            PositionTable[("position<br/>────────────<br/>id, meeting_id<br/>shares, shares_voted<br/>vote_status, voting_source")]
+
+            PositionVoteTable[("position_vote<br/>────────────<br/>position_id, proposal_id<br/>vote_choice, shares")]
+
+            DocumentTable[("document<br/>────────────<br/>id, meeting_id, task_id<br/>title, type, status<br/>file_path")]
+
+            DocumentVersionTable[("document_version<br/>────────────<br/>id, document_id<br/>version_number<br/>file_path, notes")]
+
+            DocumentHistoryTable[("document_history<br/>────────────<br/>id, document_id<br/>event_type, user_id<br/>timestamp, metadata")]
+
+            UserTable[("user<br/>────────────<br/>id, username, email<br/>type, account_id")]
+
+            AccountTable[("account<br/>────────────<br/>id, name<br/>primary_contact")]
+
+            NotificationTable[("notification<br/>────────────<br/>id, user_id<br/>type, read_status")]
+
+            MailingTable[("mailing<br/>────────────<br/>id, meeting_id<br/>status, tracking_data")]
+
+            DSMAttendeeTable[("digital_shareholder_meeting_attendee<br/>────────────<br/>id, meeting_id<br/>registrant_type<br/>first_name, last_name")]
+
+            DSMConfigTable[("dsm_config<br/>────────────<br/>id, meeting_id<br/>config_json")]
+        end
+
+        subgraph Storage["Supabase Storage"]
+            DocumentsBucket["documents/<br/>────────────<br/>{meetingId}/<br/>{documentType}/<br/>{timestamp}_{file}"]
+        end
+
+        SupabaseAPI["Supabase REST API<br/>(Auto-generated from schema)"]
+    end
+
+    subgraph DevTools["Development Tools"]
+        OpenAPISpec["openapi.yaml<br/>────────────<br/>Single Source of Truth"]
+        TypeGen["openapi-typescript<br/>Type Generation"]
+        SchemaGen["Schema Generation<br/>SQL Migrations"]
+    end
+
+    %% User interactions
+    User -->|Navigates| Pages
+
+    %% Page dependencies
+    Pages --> Contexts
+    Pages --> Components
+    Pages --> Hooks
+
+    %% Context relationships
+    ClientContext --> useClients
+    MeetingContext --> useTasks
+    MeetingContext --> GetMeetings
+
+    %% Component dependencies
+    AppBar --> ClientContext
+    AppBar --> MeetingContext
+    TaskDrawer --> useTasks
+    TaskDrawer --> useDocuments
+    PhaseDrawer --> useTasks
+    DocumentViewer --> useDocuments
+    DashboardComps --> MeetingContext
+    DataTables --> MeetingContext
+    Charts --> useVotingTab
+    Charts --> useReporting
+
+    %% Hook to API connections
+    useClients -->|openapi-fetch| GetClients
+    useTasks -->|openapi-fetch| GetMeetingTasks
+    useTasks -->|openapi-fetch| UpdateTask
+    useTasks -->|openapi-fetch| CreateTask
+    useDocuments -->|openapi-fetch| GetMeetingDocs
+    useDocuments -->|openapi-fetch| UploadDoc
+    useDocuments -->|openapi-fetch| GetDoc
+    useDocuments -->|openapi-fetch| PostDocComment
+    useMailing -->|openapi-fetch| GetMeetingMailing
+    usePhases -->|SWR + fetch| GetMeetingPhases
+    useVotingTab -->|SWR + fetch| GetPositions
+    useVotingTab -->|SWR + fetch| GetMeetingProposals
+    useReporting -->|SWR + fetch| GetPositions
+    useReporting -->|SWR + fetch| GetMeetingProposals
+    useDSM -->|SWR + fetch| GetMeetingDSM
+    useDSM -->|SWR + fetch| PostMeetingDSM
+
+    %% Authentication flow
+    Auth -->|Validates| APIRoutes
+    LoginPage --> AuthLogin
+
+    %% API to Domain Layer
+    APIRoutes --> DomainModels
+
+    %% Domain to Database
+    DomainModels --> SupabaseAPI
+    DomainModels --> DocumentsBucket
+    SupabaseAPI --> Tables
+
+    %% Database relationships
+    MeetingTable -.->|meeting_id| TaskTable
+    MeetingTable -.->|meeting_id| PhaseTable
+    MeetingTable -.->|meeting_id| ProposalTable
+    MeetingTable -.->|meeting_id| PositionTable
+    MeetingTable -.->|meeting_id| DocumentTable
+    TaskTable -.->|task_id| DocumentTable
+    PositionTable -.->|position_id| PositionVoteTable
+    ProposalTable -.->|proposal_id| PositionVoteTable
+    DocumentTable -.->|document_id| DocumentVersionTable
+    DocumentTable -.->|document_id| DocumentHistoryTable
+
+    %% OpenAPI schema generation
+    OpenAPISpec -->|Generates| TypeGen
+    OpenAPISpec -->|Generates| SchemaGen
+    TypeGen -->|Creates types for| DomainModels
+    TypeGen -->|Creates types for| Hooks
+    SchemaGen -->|Creates| Tables
+
+    %% Styling
+    classDef page fill:#e1f5ff,stroke:#0277bd
+    classDef context fill:#fff4e1,stroke:#f57c00
+    classDef hook fill:#f3e5f5,stroke:#7b1fa2
+    classDef component fill:#e8f5e9,stroke:#388e3c
+    classDef api fill:#fff3e0,stroke:#f57f17
+    classDef db fill:#fce4ec,stroke:#c2185b
+    classDef tool fill:#f1f8e9,stroke:#689f38
+
+    class Pages,RootPage,LoginPage,MeetingRoutes,StaticPages page
+    class Contexts,ClientContext,MeetingContext,DocumentContext,PhaseDrawerContext context
+    class Hooks,useClients,useTasks,useDocuments,useMailing,usePhases,useVotingTab,useReporting,useDSM hook
+    class Components,Navigation,Drawers,DashboardComps,DataTables,Charts component
+    class APIRoutes,AuthAPI,ClientAPI,MeetingAPI,TaskAPI,DocumentAPI,PositionAPI,UserAPI api
+    class Tables,ClientTable,MeetingTable,TaskTable,DocumentTable,Storage db
+    class OpenAPISpec,TypeGen,SchemaGen tool
+```
+
+## Data Flow Examples
+
+### 1. Page Load Flow (Dashboard)
+
+```
+User navigates to /ELVN/meeting/elvn-annual-2026/dashboard
+    ↓
+Dashboard page.tsx mounts
+    ↓
+Accesses MeetingContext
+    ↓
+MeetingContext.refreshMeetingData() called
+    ↓
+Parallel API calls:
+    • GET /meetings/elvn-annual-2026
+    • GET /meetings/elvn-annual-2026/tasks
+    • GET /positions?meetingId=elvn-annual-2026
+    ↓
+Domain Models transform snake_case → camelCase
+    ↓
+Supabase REST API queries database
+    ↓
+Data returned to context
+    ↓
+Context updates state
+    ↓
+Components re-render with data
+```
+
+### 2. Task Status Update Flow
+
+```
+User clicks checkbox in TaskDrawer
+    ↓
+handleDtccAuthorizationChange() called
+    ↓
+useTasks.updateTaskById(taskId, { status: 'AUTHORIZED' })
+    ↓
+PUT /tasks/{id} with openapi-fetch
+    ↓
+API route receives request
+    ↓
+Domain model transforms camelCase → snake_case
+    ↓
+Supabase REST API updates task table
+    ↓
+Response returned
+    ↓
+Domain model transforms snake_case → camelCase
+    ↓
+Local state updated
+    ↓
+MeetingContext.refreshMeetingData() called
+    ↓
+UI reflects new status
+    ↓
+Phase completion check runs
+    ↓
+If phase complete: PUT /meetings/{id} to update phase
+```
+
+### 3. Document Upload Flow
+
+```
+User drags file into FileUploadDialog
+    ↓
+useDocuments.uploadDocumentVersion(meetingId, docType, file)
+    ↓
+POST /documents/types/{docType}/upload (multipart/form-data)
+    ↓
+API route receives file
+    ↓
+File uploaded to Supabase Storage:
+    documents/{meetingId}/{docType}/{timestamp}_{filename}
+    ↓
+Document record created in document table
+    ↓
+Document version record created
+    ↓
+Document history event logged (UPLOADED)
+    ↓
+Response returned with document metadata
+    ↓
+useDocuments refreshes document list
+    ↓
+UI shows new document
+```
+
+### 4. Voting Tabulation Flow
+
+```
+User navigates to /ELVN/meeting/elvn-annual-2026/tabulation
+    ↓
+TabulationPage mounts
+    ↓
+useVotingTabulation(meetingId) called
+    ↓
+SWR fetches (with caching):
+    • GET /positions?meetingId={id}&limit=50000
+    • GET /meetings/{meetingId}/proposals
+    ↓
+Data normalized and aggregated
+    ↓
+PositionsTable receives data
+    ↓
+Charts receive aggregated data
+    ↓
+User sees live voting totals
+    ↓
+SWR revalidates on focus/interval
+```
+
+## Key Architecture Decisions
+
+### 1. Client-Side Rendering (CSR)
+
+- **Decision**: Use `'use client'` on all pages
+- **Rationale**: Highly interactive application with frequent updates
+- **Trade-off**: Slower initial page load vs. instant interactions
+
+### 2. OpenAPI-First Development
+
+- **Decision**: Single source of truth in openapi.yaml
+- **Benefits**:
+  - Type safety across frontend/backend
+  - Auto-generated database schema
+  - Auto-generated TypeScript types
+- **Workflow**: Schema → Types → Migrations → API → UI
+
+### 3. Dual State Management
+
+- **React Context**: Global app state (client, meeting, auth)
+- **SWR**: Server state with caching (some hooks)
+- **Custom Hooks**: Data fetching with minimal caching (most hooks)
+
+### 4. Minimal Caching Strategy
+
+- **5-second in-memory cache**: Prevents duplicate requests in same render
+- **SWR caching**: Used selectively for reporting/analytics
+- **No persistent cache**: Fresh data on every page load
+- **Rationale**: Data changes frequently, freshness prioritized
+
+### 5. Domain Model Layer
+
+- **Purpose**: Transform between API conventions
+- **Frontend**: camelCase (JavaScript convention)
+- **Backend**: snake_case (PostgreSQL convention)
+- **Location**: mock-api-server/domain-models/
+
+## Performance Characteristics
+
+### Current Performance
+
+- **Initial Page Load**: 2-4 seconds (CSR + data fetching)
+- **Navigation**: Instant (client-side routing)
+- **Data Refresh**: 500-1500ms (API roundtrip)
+- **Cache Hit**: <10ms (in-memory)
+
+### Bottlenecks
+
+1. **No SSR**: Initial HTML contains no data
+2. **Sequential Fetches**: Some components wait for context data
+3. **Large Datasets**: 50,000 positions fetched in one request
+4. **No Request Deduplication**: Multiple components may fetch same data
+
+### Optimization Opportunities
+
+1. **React Query/SWR**: Standardize on one library for all data fetching
+2. **Pagination**: Implement for large datasets (positions, documents)
+3. **Optimistic Updates**: Update UI before server confirms
+4. **Request Batching**: Combine related API calls
+5. **Code Splitting**: Lazy load heavy components (PDF viewer, charts)
+
+## Technology Stack Details
+
+### Frontend
+
+- **Next.js**: 15.5.4 (App Router)
+- **React**: 19.1.1
+- **TypeScript**: 5.x
+- **MUI**: 7.3.2
+- **NextAuth**: 5.0.0-beta.29
+- **openapi-fetch**: Type-safe API client
+- **SWR**: 2.x (partial usage)
+- **React Hook Form**: Form handling
+- **react-pdf**: PDF viewing
+- **@react-pdf/renderer**: PDF generation
+- **framer-motion**: Animations
+
+### Backend
+
+- **Next.js**: 15.5.4 (API Routes)
+- **PostgreSQL**: via Supabase
+- **Supabase**: 2.58.0
+- **openapi-typescript**: Type generation
+
+### Development
+
+- **Turborepo**: Monorepo management
+- **Playwright**: E2E testing
+- **ESLint**: Linting
+- **Prettier**: Formatting
+
+---
+
+**Last Updated**: January 2025
+**Version**: 1.0.0

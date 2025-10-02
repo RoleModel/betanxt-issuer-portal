@@ -1,0 +1,444 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "generate-api-routes",
+      "type": "shell",
+      "command": "npm run generate:api-routes",
+      "group": "build"
+    },
+    {
+      "label": "generate-routes-direct",
+      "type": "shell",
+      "command": "npx tsx cli/generate-routes.ts",
+      "group": "build"
+    },
+    {
+      "label": "supabase-status",
+      "type": "shell",
+      "command": "supabase status",
+      "group": "build"
+    },
+    {
+      "label": "test-tabulation-endpoint",
+      "type": "shell",
+      "command": "curl -X GET http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report",
+      "group": "test"
+    },
+    {
+      "label": "test-tabulation-404",
+      "type": "shell",
+      "command": "curl -X GET http://localhost:3001/api/meetings/non-existent-meeting/tabulation-report",
+      "group": "test"
+    },
+    {
+      "label": "Run Tabulation Report Tests",
+      "type": "shell",
+      "command": "npx playwright test tabulation-report.spec.ts tabulation-report-fixes.spec.ts --reporter=list",
+      "group": "test"
+    },
+    {
+      "label": "Move Tests to Integration",
+      "type": "shell",
+      "command": "mv tests/tabulation-report*.spec.ts tests/integration/",
+      "group": "test"
+    },
+    {
+      "label": "Run Integration Tests",
+      "type": "shell",
+      "command": "npx playwright test --project=integration --reporter=list",
+      "group": "test"
+    },
+    {
+      "label": "Start API Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "group": "serve"
+    },
+    {
+      "label": "Test Tabulation API",
+      "type": "shell",
+      "command": "curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq '.' | head -50",
+      "group": "test"
+    },
+    {
+      "label": "Test 2026 API",
+      "type": "shell",
+      "command": "curl -s -w '%{http_code}' http://localhost:3001/api/meetings/wen-annual-meeting-2026/tabulation-report",
+      "group": "test"
+    },
+    {
+      "label": "Run Fix Validation",
+      "type": "shell",
+      "command": "npx playwright test tabulation-report-validation.spec.ts --project=integration --reporter=list",
+      "group": "test"
+    },
+    {
+      "label": "Check Full Tabulation Data",
+      "type": "shell",
+      "command": "curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq .",
+      "group": "test"
+    },
+    {
+      "label": "Check Account Types",
+      "type": "shell",
+      "command": "echo \"SELECT DISTINCT account_type FROM position LIMIT 10;\" | supabase db pull --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      "group": "test"
+    },
+    {
+      "label": "Query Account Types",
+      "type": "shell",
+      "command": "psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"SELECT DISTINCT account_type FROM position LIMIT 10;\"",
+      "group": "test"
+    },
+    {
+      "label": "Check Account Types",
+      "type": "shell",
+      "command": "node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Reset DB with Fixed Account Types",
+      "type": "shell",
+      "command": "npm run supabase:reset",
+      "group": "build"
+    },
+    {
+      "label": "Check Fixed Tabulation Data",
+      "type": "shell",
+      "command": "sleep 30 && curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq '.nonDtcVoteStatus, .dtcVoteStatus'",
+      "group": "test"
+    },
+    {
+      "label": "Test Fixed Account Types",
+      "type": "shell",
+      "command": "sleep 60 && curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq '.nonDtcVoteStatus.grandTotalShares, .dtcVoteStatus.grandTotalShares'",
+      "group": "test"
+    },
+    {
+      "label": "Test Account Type Fix",
+      "type": "shell",
+      "command": "curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq '.nonDtcVoteStatus, .dtcVoteStatus'",
+      "group": "test"
+    },
+    {
+      "label": "Check Account Types Debug",
+      "type": "shell",
+      "command": "node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Force Full Reset",
+      "type": "shell",
+      "command": "rm -f supabase/seed.sql && npm run generate:db-types && npm run supabase:reset",
+      "group": "build"
+    },
+    {
+      "label": "Check Fixed Account Types",
+      "type": "shell",
+      "command": "sleep 30 && node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Quick Account Type Check",
+      "type": "shell",
+      "command": "node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Reset Database with Normalized Seeds",
+      "type": "shell",
+      "command": "npm run supabase:reset",
+      "group": "build"
+    },
+    {
+      "label": "Test Normalized Account Types",
+      "type": "shell",
+      "command": "node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Test Account Types After Fix",
+      "type": "shell",
+      "command": "node check-account-types.mjs",
+      "group": "test"
+    },
+    {
+      "label": "Test Tabulation Report API",
+      "type": "shell",
+      "command": "curl -s http://localhost:3001/api/meetings/wen-annual-meeting-2025/tabulation-report | jq '.nonDtcVoteStatus, .dtcVoteStatus'",
+      "group": "test"
+    },
+    {
+      "label": "debug-data-source",
+      "type": "shell",
+      "command": "node debug-data-source.mjs"
+    },
+    {
+      "label": "analyze-positions-csv",
+      "type": "shell",
+      "command": "node analyze-positions-csv.mjs"
+    },
+    {
+      "label": "fix-wendys-tabulation",
+      "type": "shell",
+      "command": "node fix-wendys-tabulation.mjs"
+    },
+    {
+      "label": "fix-wendys-tabulation",
+      "type": "shell",
+      "command": "node fix-wendys-tabulation.mjs"
+    },
+    {
+      "label": "fix-wendys-tabulation-simple",
+      "type": "shell",
+      "command": "node fix-wendys-tabulation-simple.mjs"
+    },
+    {
+      "label": "find-meetings",
+      "type": "shell",
+      "command": "node find-meetings.mjs"
+    },
+    {
+      "label": "fix-wendys-tabulation-simple",
+      "type": "shell",
+      "command": "node fix-wendys-tabulation-simple.mjs"
+    },
+    {
+      "label": "Verify tabulation fix",
+      "type": "shell",
+      "command": "node verify-tabulation-fix.mjs"
+    },
+    {
+      "label": "Reset database",
+      "type": "shell",
+      "command": "supabase db reset"
+    },
+    {
+      "label": "Verify tabulation fix after reset",
+      "type": "shell",
+      "command": "node verify-tabulation-fix.mjs"
+    },
+    {
+      "label": "Check database contents",
+      "type": "shell",
+      "command": "node check-database.mjs"
+    },
+    {
+      "label": "Wait and reset database",
+      "type": "shell",
+      "command": "sleep 5 && supabase db reset"
+    },
+    {
+      "label": "Wait and verify tabulation",
+      "type": "shell",
+      "command": "sleep 15 && node verify-tabulation-fix.mjs"
+    },
+    {
+      "label": "Verify tabulation after full reset",
+      "type": "shell",
+      "command": "node verify-tabulation-fix.mjs"
+    },
+    {
+      "label": "Check current database state",
+      "type": "shell",
+      "command": "node check-database.mjs"
+    },
+    {
+      "label": "Check Supabase status",
+      "type": "shell",
+      "command": "supabase status"
+    },
+    {
+      "label": "Manual database reset with debug",
+      "type": "shell",
+      "command": "supabase db reset --debug"
+    },
+    {
+      "label": "generate postgres schema",
+      "type": "shell",
+      "command": "npm run generate:postgres-schema"
+    },
+    {
+      "label": "Generate API routes from OpenAPI",
+      "type": "shell",
+      "command": "npm run generate:api-routes"
+    },
+    {
+      "label": "Validate OpenAPI Schema",
+      "type": "shell",
+      "command": "npx @redocly/cli lint openapi-schema/openapi.yaml"
+    },
+    {
+      "label": "Generate API types to validate OpenAPI",
+      "type": "shell",
+      "command": "npm run generate:api-types"
+    },
+    {
+      "label": "Reset Supabase database",
+      "type": "shell",
+      "command": "npm run supabase:reset"
+    },
+    {
+      "label": "Extract core schema",
+      "type": "shell",
+      "command": "npx tsx cli/extract-core-schema.ts"
+    },
+    {
+      "label": "Run full database reset with schema generation",
+      "type": "shell",
+      "command": "npm run full-reset"
+    },
+    {
+      "label": "Regenerate database types manually",
+      "type": "shell",
+      "command": "npm run generate:db-types"
+    },
+    {
+      "label": "Find table names in database types",
+      "type": "shell",
+      "command": "grep -E '^\\s+[a-z_]+:\\s*\\{$' utils/supabase/database.types.ts"
+    },
+    {
+      "label": "Check for tabulation_report in database types",
+      "type": "shell",
+      "command": "grep -n tabulation_report utils/supabase/database.types.ts"
+    },
+    {
+      "label": "Extract latest core schema to migration",
+      "type": "shell",
+      "command": "npx tsx cli/extract-core-schema.ts"
+    },
+    {
+      "label": "Extract core schema with fixed regex",
+      "type": "shell",
+      "command": "npx tsx cli/extract-core-schema.ts"
+    },
+    {
+      "label": "Check document table structure",
+      "type": "shell",
+      "command": "grep -A 30 \"-- Table 'document'\" supabase/migrations/postgresql_schema.sql"
+    },
+    {
+      "label": "Remove conflicting migration files",
+      "type": "shell",
+      "command": "rm -f supabase/migrations/20250928140*_initial_schema.sql"
+    },
+    {
+      "label": "Reset Supabase completely",
+      "type": "shell",
+      "command": "supabase stop --no-backup && supabase start"
+    },
+    {
+      "label": "Test database reset after Supabase restart",
+      "type": "shell",
+      "command": "supabase db reset"
+    },
+    {
+      "label": "Verify tables in database types",
+      "type": "shell",
+      "command": "grep -n 'tabulation_report\\|document.*:' utils/supabase/database.types.ts"
+    },
+    {
+      "label": "Clear branch cache and restart",
+      "type": "shell",
+      "command": "rm -rf supabase/.branches/ && supabase start"
+    },
+    {
+      "label": "Generate seed data",
+      "type": "shell",
+      "command": "npm run generate:seeds"
+    },
+    {
+      "label": "Reset Supabase with new seed data",
+      "type": "shell",
+      "command": "npm run supabase:reset"
+    },
+    {
+      "label": "Generate seeds with broker voting",
+      "type": "shell",
+      "command": "npm run generate:seeds"
+    },
+    {
+      "label": "Reset DB with broker voting data",
+      "type": "shell",
+      "command": "npm run supabase:reset"
+    },
+    {
+      "label": "Generate API routes from OpenAPI spec",
+      "type": "shell",
+      "command": "npx tsx cli/generate-routes.ts"
+    },
+    {
+      "label": "Regenerate API routes with tabulation report mapping",
+      "type": "shell",
+      "command": "npx tsx cli/generate-routes.ts"
+    },
+    {
+      "label": "Generate realistic participation rate seed data",
+      "type": "shell",
+      "command": "npm run generate:seeds"
+    },
+    {
+      "label": "Reset database with realistic participation rates",
+      "type": "shell",
+      "command": "npm run supabase:reset"
+    },
+    {
+      "label": "Regenerate PostgreSQL schema",
+      "type": "shell",
+      "command": "npm run generate:postgres-schema"
+    },
+    {
+      "label": "Generate database types",
+      "type": "shell",
+      "command": "npm run generate:db-types"
+    },
+    {
+      "label": "Generate API types",
+      "type": "shell",
+      "command": "npx openapi-typescript openapi-schema/openapi.yaml -o types/api.ts"
+    },
+    {
+      "label": "Check openapi-typescript options",
+      "type": "shell",
+      "command": "npx openapi-typescript openapi-schema/openapi.yaml --help"
+    },
+    {
+      "label": "Validate OpenAPI schema",
+      "type": "shell",
+      "command": "npx @apidevtools/swagger-parser validate openapi-schema/openapi.yaml"
+    },
+    {
+      "label": "Install swagger parser",
+      "type": "shell",
+      "command": "npm install --save-dev @apidevtools/swagger-parser"
+    },
+    {
+      "label": "Validate OpenAPI schema",
+      "type": "shell",
+      "command": "npx swagger-parser validate openapi-schema/openapi.yaml"
+    },
+    {
+      "label": "Validate OpenAPI schema",
+      "type": "shell",
+      "command": "npx swagger-parser validate openapi-schema/openapi.yaml"
+    },
+    {
+      "label": "Validate YAML syntax",
+      "type": "shell",
+      "command": "python3 -c \"import yaml; yaml.safe_load(open('openapi-schema/openapi.yaml')); print('YAML is valid')\""
+    },
+    {
+      "label": "Regenerate API types and check for tabulation-report",
+      "type": "shell",
+      "command": "rm -f types/api.ts && npx openapi-typescript openapi-schema/openapi.yaml -o types/api.ts && echo 'Generation complete, checking for tabulation-report...' && grep -n 'tabulation-report' types/api.ts || echo 'tabulation-report not found in generated file'"
+    },
+    {
+      "label": "Copy API types to frontend",
+      "type": "shell",
+      "command": "cp types/api.ts ../issuer-portal/types/api.ts"
+    }
+  ]
+}
