@@ -19,7 +19,7 @@ interface Phase3LayoutProps {
 
 function Phase3Layout({ meetingId, meeting, phase = 3 }: Phase3LayoutProps) {
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={{ xs: 2, md: 3 }}>
       <Grid size={{ xs: 12, md: 12 }}>
         <Suspense>
           <KeyDatesCard meeting={meeting} />

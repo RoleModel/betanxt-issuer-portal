@@ -28,7 +28,7 @@ function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
       <Suspense>
         <KeyDatesCard meeting={meeting} />
       </Suspense>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
           <Stack direction={{ sm: 'row', lg: 'column' }} spacing={2} useFlexGap={true}>
             <MeetingDocuments meetingId={meetingId} meeting={meeting} />

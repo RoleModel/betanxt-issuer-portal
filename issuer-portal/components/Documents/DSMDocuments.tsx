@@ -70,19 +70,35 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
   // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
   const mergedRows: Document[] = []
 
-  // Add all real DSM documents
-  mergedRows.push(...dsmDocuments)
+  // Create a map of uploaded documents by title for easy lookup
+  const uploadedDocsByTitle = new Map(
+    dsmDocuments.map((doc) => [doc.title?.toLowerCase(), doc])
+  )
 
-  // Add placeholders only if there are no real documents
-  if (dsmDocuments.length === 0) {
-    const placeholderDocs: Document[] = placeholders.map((placeholder) => ({
-      id: placeholder.id,
-      title: placeholder.title,
-      status: 'NOT_UPLOADED',
-      // Minimal required optional API fields left undefined intentionally
-    }))
-    mergedRows.push(...placeholderDocs)
-  }
+  // For each placeholder, either show the real document or the placeholder
+  placeholders.forEach((placeholder) => {
+    const realDoc = uploadedDocsByTitle.get(placeholder.title.toLowerCase())
+    if (realDoc) {
+      mergedRows.push(realDoc)
+    } else {
+      mergedRows.push({
+        id: placeholder.id,
+        title: placeholder.title,
+        status: 'NOT_UPLOADED',
+        // Minimal required optional API fields left undefined intentionally
+      })
+    }
+  })
+
+  // Add any DSM documents that don't match placeholders
+  dsmDocuments.forEach((doc) => {
+    const matchesPlaceholder = placeholders.some(
+      (p) => p.title.toLowerCase() === doc.title?.toLowerCase()
+    )
+    if (!matchesPlaceholder) {
+      mergedRows.push(doc)
+    }
+  })
 
   return (
     <Card>
@@ -120,7 +136,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
               ).map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell size="small">
-                    <Typography>{doc.title}</Typography>
+                    <Typography>{doc.title || 'Untitled Document'}</Typography>
                   </TableCell>
                   <TableCell size="small">
                     <Typography variant="caption" color="text.secondary">

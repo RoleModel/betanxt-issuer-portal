@@ -75,7 +75,7 @@ export default React.memo(function Phase8Layout({
   }
   return (
     <Container component="main">
-      <Stack spacing={3}>
+      <Stack spacing={{ xs: 2, md: 3 }}>
         <FeatureTile
           title={`Congratulations on the Completion of your ${meeting?.meetingYear} ${meeting?.meetingType}!`}
           icon={<PersonArmsUpIcon fontSize="4xl" />}
@@ -92,7 +92,12 @@ export default React.memo(function Phase8Layout({
             />
           </CardContent>
         </Card>
-        <Grid container spacing={3} direction="row" justifyContent="stretch">
+        <Grid
+          container
+          spacing={{ xs: 2, md: 3 }}
+          direction="row"
+          justifyContent="stretch"
+        >
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <FeatureTile
               title="Final Tabulation Report"

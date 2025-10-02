@@ -287,7 +287,7 @@ export default function DocumentSiteCard() {
             <Typography variant="h4" component="p">
               Document Hosting Site
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body3" color="text.secondary">
               Verify all shareholder facing sites, you will use the test control number
               (123456782) to enter the voting site. Once approved, sites will be made
               active in conjunction with the filing mailing date.

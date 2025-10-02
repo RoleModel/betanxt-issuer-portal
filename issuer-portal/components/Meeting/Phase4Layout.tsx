@@ -26,7 +26,7 @@ function Phase4Layout({ meetingId, meeting, phase = 4 }: Phase4LayoutProps) {
     ? new Date(new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000)
     : null
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={{ xs: 2, md: 3 }}>
       <Grid size={{ xs: 12, md: 12 }}>
         <Suspense>
           <KeyDatesCard meeting={meeting} />

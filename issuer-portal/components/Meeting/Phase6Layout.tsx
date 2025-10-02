@@ -62,7 +62,7 @@ export default React.memo(function Phase6Layout({
       <Suspense>
         <KeyDatesCard meeting={meeting} />
       </Suspense>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid
           size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
           display="flex"
@@ -80,7 +80,7 @@ export default React.memo(function Phase6Layout({
           <MeetingRolesCard meetingId={meetingId} />
         </Grid>
       </Grid>
-      <Grid container spacing={3} direction={{ sm: 'column', md: 'row' }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} direction={{ sm: 'column', md: 'row' }}>
         <Grid size={{ sm: 12, md: 6, lg: 6 }}>
           <FeatureTile
             title="Official Master Tabulation Total"
@@ -97,7 +97,7 @@ export default React.memo(function Phase6Layout({
           />
         </Grid>
       </Grid>
-      <Grid container size={12} spacing={3}>
+      <Grid container size={12} spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 12, lg: 9 }}>
           <Card>
             <CardHeader
@@ -120,7 +120,7 @@ export default React.memo(function Phase6Layout({
         <Grid
           container
           size={{ xs: 12, lg: 3 }}
-          spacing={3}
+          spacing={{ xs: 2, md: 3 }}
           display="flex"
           flexDirection="row"
           alignSelf="flex-start"

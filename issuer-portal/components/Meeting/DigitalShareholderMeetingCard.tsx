@@ -352,14 +352,15 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
     if (!meetingId) return
     try {
       // Create associations based on upload type to link to DSM placeholders
+      // Use the actual placeholder title (not ID) so documents match for replacement
       const typeAssociations: { [fileId: string]: string } = {}
 
       files.forEach((file, index) => {
         const fileId = `file_${index}`
         if (uploadType === 'Static Slide or Presentation') {
-          typeAssociations[fileId] = 'placeholder-static-slide'
+          typeAssociations[fileId] = 'Static Slide or Presentation'
         } else if (uploadType === 'Documents to Display') {
-          typeAssociations[fileId] = 'placeholder-documents-display'
+          typeAssociations[fileId] = 'Documents to Display'
         }
       })
 
@@ -502,7 +503,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                           }
                           disabled={!isEditMode}
                         />
-                        <Typography variant="body2">
+                        <Typography variant="body3">
                           {option.value ? 'Yes' : 'No'}
                         </Typography>
                       </Box>

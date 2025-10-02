@@ -23,7 +23,7 @@ export default function PhasePage() {
   const params = useParams()
   const phaseNumber = parseInt(params.phase as string)
   const meetingId = params.meetingId as string
-  const { getMeetingById } = useMeeting()
+  const { getMeetingById, refreshMeetingData } = useMeeting()
   const meeting = getMeetingById(meetingId)
   const { phases } = usePhases(meetingId)
   const { currentMeeting } = useMeeting()
@@ -61,7 +61,12 @@ export default function PhasePage() {
     switch (phaseNumber) {
       case 1:
         return (
-          <Phase1Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase1Layout
+            meetingId={meetingId}
+            meeting={meeting}
+            phase={phaseNumber}
+            onUpdate={refreshMeetingData}
+          />
         )
 
       case 2:
@@ -111,8 +116,8 @@ export default function PhasePage() {
         display="flex"
         flexGrow={1}
         flexDirection="column"
-        paddingY={{ xs: 1, sm: 3 }}
-        gap={3}
+        paddingY={{ xs: 2, sm: 3 }}
+        gap={{ xs: 2, md: 3 }}
       >
         {isPhase8 ? (
           <>

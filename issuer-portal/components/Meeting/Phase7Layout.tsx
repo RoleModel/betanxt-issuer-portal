@@ -3,7 +3,7 @@
 import PresentationBoardIcon from '@rolemodel/betanxt-design-system/components/icons/brand/PresentationBoardIcon'
 import TeamPresentationIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamPresentationIcon'
 import dynamic from 'next/dynamic'
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import {
   Box,
@@ -73,14 +73,12 @@ export default React.memo(function Phase7Layout({
   const [scheduledDryRun, setScheduledDryRun] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogType, setDialogType] = useState<'logistics' | 'dryrun'>('logistics')
-  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const fetchDSMConfig = async () => {
       if (!meetingId) return
 
       try {
-        setIsLoading(true)
         const apiClient = await buildApiClient()
         const { data, error } = await apiClient.GET('/meetings/{meetingId}/dsm-config', {
           params: { path: { meetingId } },
@@ -92,8 +90,6 @@ export default React.memo(function Phase7Layout({
         }
       } catch (error) {
         console.error('Failed to fetch DSM config:', error)
-      } finally {
-        setIsLoading(false)
       }
     }
 
@@ -144,54 +140,50 @@ export default React.memo(function Phase7Layout({
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={3}>
-      <Suspense>
-        <KeyDatesCard meeting={meeting} />
-      </Suspense>
-      <Grid container spacing={3}>
+    <Box display="flex" flexDirection="column" gap={{ xs: 2, md: 3 }}>
+      <KeyDatesCard meeting={meeting} />
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid
           size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
           display="flex"
           flexDirection="column"
-          gap={3}
+          gap={{ xs: 2, md: 3 }}
         >
           <DigitalShareholderMeetingCard meetingId={meetingId} />
-          <Grid container spacing={3} direction={{ sm: 'column', md: 'row' }}>
-            <Grid size={{ sm: 12, md: 6, lg: 6 }}>
-              <FeatureTile
-                title={
-                  scheduledLogistics
-                    ? 'Logistics Call Requested'
-                    : 'Schedule Logistics Call'
-                }
-                description={
-                  scheduledLogistics
-                    ? 'Meeting producer will be in touch'
-                    : 'Select a date and time for the call'
-                }
-                actionText={scheduledLogistics ? undefined : 'Schedule Call'}
-                icon={<TeamPresentationIcon fontSize="3xl" />}
-                variant="default"
-                onClick={
-                  scheduledLogistics ? undefined : () => handleOpenDialog('logistics')
-                }
-              />
-            </Grid>
-            <Grid size={{ sm: 12, md: 6, lg: 6 }}>
-              <FeatureTile
-                title={scheduledDryRun ? 'Dry Run Requested' : 'Schedule Dry Run'}
-                description={
-                  scheduledDryRun
-                    ? 'Meeting producer will be in touch'
-                    : 'Select a date and time for the dry run'
-                }
-                actionText={scheduledDryRun ? undefined : 'Schedule Dry Run'}
-                icon={<PresentationBoardIcon fontSize="3xl" />}
-                variant="default"
-                onClick={scheduledDryRun ? undefined : () => handleOpenDialog('dryrun')}
-              />
-            </Grid>
-          </Grid>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2, md: 3 }}>
+            <FeatureTile
+              flex
+              title={
+                scheduledLogistics
+                  ? 'Logistics Call Requested'
+                  : 'Schedule Logistics Call'
+              }
+              description={
+                scheduledLogistics
+                  ? 'Meeting producer will be in touch'
+                  : 'Select a date and time for the call'
+              }
+              actionText={scheduledLogistics ? undefined : 'Schedule Call'}
+              icon={<TeamPresentationIcon fontSize="3xl" />}
+              variant="default"
+              onClick={
+                scheduledLogistics ? undefined : () => handleOpenDialog('logistics')
+              }
+            />
+            <FeatureTile
+              flex
+              title={scheduledDryRun ? 'Dry Run Requested' : 'Schedule Dry Run'}
+              description={
+                scheduledDryRun
+                  ? 'Meeting producer will be in touch'
+                  : 'Select a date and time for the dry run'
+              }
+              actionText={scheduledDryRun ? undefined : 'Schedule Dry Run'}
+              icon={<PresentationBoardIcon fontSize="3xl" />}
+              variant="default"
+              onClick={scheduledDryRun ? undefined : () => handleOpenDialog('dryrun')}
+            />
+          </Stack>
         </Grid>
         <Grid
           size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
@@ -203,7 +195,7 @@ export default React.memo(function Phase7Layout({
           <PreviewLinksCard />
         </Grid>
       </Grid>
-      <Grid container size={12} spacing={3}>
+      <Grid container size={12} spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 12, lg: 9 }}>
           <Card>
             <CardHeader
@@ -226,14 +218,14 @@ export default React.memo(function Phase7Layout({
         <Grid
           container
           size={{ xs: 12, sm: 6, md: 12, lg: 3 }}
-          spacing={3}
+          spacing={{ xs: 2, md: 3 }}
           display="flex"
           flexDirection="row"
           alignSelf="flex-start"
         >
           <Stack
             direction={{ xs: 'column', sm: 'row', md: 'column' }}
-            spacing={3}
+            spacing={{ xs: 2, md: 3 }}
             sx={{ width: '100%' }}
           >
             <FeatureTile

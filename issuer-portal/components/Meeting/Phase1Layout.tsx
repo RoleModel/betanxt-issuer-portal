@@ -16,12 +16,13 @@ interface Phase1LayoutProps {
   meetingId?: string
   meeting?: Meeting
   phase?: number
+  onUpdate?: () => void
 }
 
-function Phase1Layout({ meetingId, meeting, phase = 1 }: Phase1LayoutProps) {
+function Phase1Layout({ meetingId, meeting, phase = 1, onUpdate }: Phase1LayoutProps) {
   return (
     <Suspense>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, md: 12 }}>
           <KeyDatesCard meeting={meeting} />
         </Grid>
@@ -34,6 +35,7 @@ function Phase1Layout({ meetingId, meeting, phase = 1 }: Phase1LayoutProps) {
         <Grid size={{ xs: 12, md: 6 }}>
           <EventContactsCard
             meeting={{
+              id: meeting?.id || undefined,
               transferAgent: meeting?.transferAgent || undefined,
               planAdministrator: meeting?.planAdministrator || undefined,
               planAdministratorContactEmail:
@@ -41,6 +43,7 @@ function Phase1Layout({ meetingId, meeting, phase = 1 }: Phase1LayoutProps) {
               solicitor: meeting?.solicitor || undefined,
               solicitorEmail: meeting?.solicitorEmail || undefined,
             }}
+            onUpdate={onUpdate}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
