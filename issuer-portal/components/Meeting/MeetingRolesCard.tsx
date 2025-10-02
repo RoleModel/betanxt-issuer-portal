@@ -24,6 +24,7 @@ import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDocuments } from '@/hooks/useDocuments'
 
@@ -124,9 +125,12 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
 
         // Fetch DSM config
         const apiClient = await buildApiClient()
-        const { data: dsmData, error: dsmError } = await apiClient.GET('/meetings/{meetingId}/dsm-config', {
-          params: { path: { meetingId: activeMeetingId } },
-        })
+        const { data: dsmData, error: dsmError } = await apiClient.GET(
+          '/meetings/{meetingId}/dsm-config',
+          {
+            params: { path: { meetingId: activeMeetingId } },
+          }
+        )
 
         if (!dsmError && dsmData) {
           setDsm(dsmData.dsmEnabled ?? true)
@@ -282,7 +286,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
               >
                 <TableCell>
                   <Box>
-                    <Typography variant="body2">{item.label}</Typography>
+                    <Typography variant="body3">{item.label}</Typography>
                     {item.fileDescription && (
                       <Typography variant="caption" color="text.secondary">
                         {item.fileFormat} {item.fileDescription}
@@ -306,17 +310,17 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                         size="small"
                         disabled={!isEditMode}
                       />
-                      <Typography variant="body2">Yes</Typography>
+                      <Typography variant="body3">Yes</Typography>
                     </Box>
                   )}
 
                   {item.type === 'contact' && item.contact && (
                     <Box sx={{ textAlign: 'right' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                      <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
                         {item.contact.name}
                       </Typography>
                       <Typography
-                        variant="body2"
+                        variant="body3"
                         color="primary"
                         sx={{ textDecoration: 'underline', cursor: 'pointer' }}
                       >
@@ -361,7 +365,11 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         {isEditMode ? (
           <>
             {_isConfirmed && (
-              <Button variant="text" sx={{ textTransform: 'none' }} onClick={handleCancel}>
+              <Button
+                variant="text"
+                sx={{ textTransform: 'none' }}
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             )}

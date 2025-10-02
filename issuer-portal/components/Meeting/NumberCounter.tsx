@@ -37,7 +37,7 @@ export const NumberCounter = ({
     <BNTypographyPair
       primary={{
         text: label || '',
-        variant: 'body2',
+        variant: 'body3',
         fontWeight: 500,
       }}
       secondary={{

@@ -9,6 +9,7 @@ import {
   ArrowUpwardSharp,
   CalendarTodayOutlined as CalendarIcon,
 } from '@mui/icons-material'
+import { useMediaQuery, useTheme } from '@mui/material'
 import { Box, Stack, Typography } from '@mui/material'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -48,6 +49,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const { currentMeeting, positions, positionsLoading } = useMeeting()
   const [data, setData] = useState<TabulationData | null>(null)
   const [previousYearData, setPreviousYearData] = useState<TabulationData | null>(null)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const [nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
@@ -196,24 +199,24 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
 
         for (let yearOffset = 1; yearOffset <= 3; yearOffset++) {
           const previousMeetingId = `${baseId}-${currentYear - yearOffset}`
-          const result = await apiClient.GET('/meetings/{meetingId}', {
+          const result = (await apiClient.GET('/meetings/{meetingId}', {
             params: { path: { meetingId: previousMeetingId } },
-          })
+          })) as { data?: Meeting; error?: unknown }
 
           if (!result.error && result.data) {
-            prevMeeting = result.data as Meeting
+            prevMeeting = result.data
             break
           }
         }
 
         // Only fetch positions if meeting exists
         if (prevMeeting) {
-          const positionsResult = await apiClient.GET('/positions', {
+          const positionsResult = (await apiClient.GET('/positions', {
             params: { query: { meetingId: prevMeeting.id } },
-          })
+          })) as { data?: { positions?: Position[] }; error?: unknown }
 
           // Check if we got valid data - positions come wrapped in {positions: [...]}
-          const positions = positionsResult.data?.positions as Position[] | undefined
+          const positions = positionsResult.data?.positions
           if (
             !positionsResult.error &&
             positions &&
@@ -366,8 +369,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               : 'min-content repeat(7, auto)',
         }}
         sx={{
-          gap: { xs: 0, sm: 0, md: 2 },
-          pb: 3,
+          gap: 1,
+          paddingBottom: { xs: 4, sm: 4, md: 3 },
           transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
         }}
       >
@@ -483,7 +486,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             />
           </Box>
         )}
-        {!isPhase7 && previousYearData && (
+        {!isPhase7 && previousYearData && !isMobile && (
           <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
             <Typography noWrap variant="body2">
               Last Year
@@ -508,7 +511,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             }}
             sx={{ flex: 1 }}
           />
-          {!isPhase7 && previousYearData && (
+          {!isPhase7 && previousYearData && !isMobile && (
             <Typography
               sx={{
                 justifyContent: { xs: 'start', sm: 'end' },
@@ -546,7 +549,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             }}
             sx={{ flex: 1 }}
           />
-          {!isPhase7 && previousYearData && (
+          {!isPhase7 && previousYearData && !isMobile && (
             <Typography
               sx={{
                 justifyContent: { xs: 'start', sm: 'end' },
@@ -584,7 +587,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               flex: 1,
             }}
           />
-          {!isPhase7 && previousYearData && (
+          {!isPhase7 && previousYearData && !isMobile && (
             <Typography
               sx={{
                 justifyContent: { xs: 'start', sm: 'end' },

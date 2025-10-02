@@ -88,7 +88,7 @@ export default function MailingPage() {
     >
       {phaseIsSevenOrGreater ? (
         <>
-          <Card className="dark">
+          <Card>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 3 }}>

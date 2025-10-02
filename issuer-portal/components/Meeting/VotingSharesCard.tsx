@@ -104,7 +104,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
               >
                 <TableCell>
                   <Box>
-                    <Typography variant="body2">{item.label}</Typography>
+                    <Typography variant="body3">{item.label}</Typography>
                     {item.fileDescription && (
                       <Typography variant="caption" color="text.secondary">
                         {item.fileFormat} {item.fileDescription}
@@ -124,7 +124,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
                   )}
 
                   {item.type === 'string' && item.string && (
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
                       {item.string}
                     </Typography>
                   )}

@@ -163,7 +163,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
                         {item.label}
                       </Typography>
                       <Typography
-                        variant="body2"
+                        variant="body3"
                         sx={{ fontWeight: 500, ['fontVariantNumeric']: 'tabularNums' }}
                       >
                         {displayValue}

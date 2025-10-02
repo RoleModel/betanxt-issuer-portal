@@ -1,5 +1,6 @@
 'use client'
 
+import ChecklistDocumentIcon from '@rolemodel/betanxt-design-system/components/icons/brand/ChecklistDocumentIcon'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { Container, Stack } from '@mui/material'
@@ -183,21 +184,27 @@ export default function TabulationPage() {
   if (phaseIsSevenOrGreater) {
     return (
       <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           <Grid size={{ xs: 12, lg: 9 }}>
-            <Stack spacing={3}>
+            <Stack spacing={{ xs: 2, md: 3 }}>
               <PositionsTable meetingId={meetingId} />
               <ProposalDetailsCard meetingId={meetingId} />
             </Stack>
           </Grid>
 
           <Grid size={{ xs: 12, lg: 3 }}>
-            <Stack spacing={3}>
-              <Stack spacing={3} direction={{ xs: 'column', sm: 'row', lg: 'column' }}>
+            <Stack spacing={{ xs: 2, md: 3 }}>
+              <Stack
+                spacing={{ xs: 2, md: 3 }}
+                direction={{ xs: 'column', sm: 'row', lg: 'column' }}
+              >
                 <TabulationReportCard />
                 <VotingActivityCard meetingId={meetingId} />
               </Stack>
-              <Stack spacing={3} direction={{ xs: 'column', sm: 'row', lg: 'column' }}>
+              <Stack
+                spacing={{ xs: 2, md: 3 }}
+                direction={{ xs: 'column', sm: 'row', lg: 'column' }}
+              >
                 <BeneficialVsRegisteredCard meetingId={meetingId} />
                 <SharesVotedCard meetingId={meetingId} />
               </Stack>
@@ -212,7 +219,8 @@ export default function TabulationPage() {
       <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
         <EmptyState
           title="Tabulation"
-          description={`Tabulation data will be available starting on ${friendlyMeetingDate}. Check back after the meeting date to review voting results and participation metrics.`}
+          icon={<ChecklistDocumentIcon />}
+          description={`Tabulation data will be available starting on ${friendlyMeetingDate}. Check back then to review voting results and participation metrics.`}
         />
       </Container>
     )

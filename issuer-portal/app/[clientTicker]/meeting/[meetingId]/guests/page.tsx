@@ -3,7 +3,7 @@
 import React, { useCallback, useState } from 'react'
 import * as XLSX from 'xlsx'
 
-import { Upload as UploadIcon } from '@mui/icons-material'
+import { FileUploadOutlined } from '@mui/icons-material'
 import {
   Alert,
   Box,
@@ -189,7 +189,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
       reject(new Error('Failed to read file'))
     }
 
-    reader.readAsBinaryString(file)
+    reader.readAsArrayBuffer(file)
   })
 }
 
@@ -292,7 +292,7 @@ export default function GuestsPage() {
           action={
             <Button
               variant="contained"
-              startIcon={<UploadIcon />}
+              startIcon={<FileUploadOutlined />}
               onClick={() => setUploadDialogOpen(true)}
             >
               Upload Attendees
@@ -307,7 +307,7 @@ export default function GuestsPage() {
             action={
               <Button
                 variant="contained"
-                startIcon={<UploadIcon />}
+                startIcon={<FileUploadOutlined />}
                 onClick={() => setUploadDialogOpen(true)}
               >
                 Upload More
@@ -339,18 +339,18 @@ export default function GuestsPage() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
+                      <Typography variant="body3">
                         {attendee.firstName} {attendee.lastName}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body3" color="text.secondary">
                         {attendee.emailAddress}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography
-                        variant="body2"
+                        variant="body3"
                         sx={{
                           maxWidth: 300,
                           overflow: 'hidden',
@@ -363,7 +363,7 @@ export default function GuestsPage() {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2">
+                      <Typography variant="body3">
                         {attendee.minutesAttendedMeeting || 'Did Not Attend'}
                       </Typography>
                     </TableCell>

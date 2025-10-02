@@ -5,7 +5,6 @@ import React from 'react'
 import { Box } from '@mui/material'
 
 import Layout from '@/components/Layout/Layout'
-import { EventTabs } from '@/components/Navigation/EventTabs'
 
 import { DocumentProvider } from '@/contexts/DocumentContext'
 import { MeetingProvider } from '@/contexts/MeetingContext'
@@ -17,8 +16,7 @@ export default function MeetingLayout(props: LayoutProps<'/[clientTicker]/meetin
   return (
     <MeetingProvider>
       <DocumentProvider>
-        <Layout navBar={true}>
-          <EventTabs />
+        <Layout eventTabs={true} navBar={true}>
           <Box sx={{ flexGrow: 1, flex: 1 }}>{props.children}</Box>
         </Layout>
       </DocumentProvider>

@@ -83,6 +83,7 @@ export interface UseVotingTabulationResult {
   loading: boolean
   error: string | null
   refetch: () => void
+  uploadProposals: (proposals: unknown[]) => Promise<void>
 }
 
 const fetchVotingData = async (meetingId: string) => {
@@ -252,11 +253,41 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
     }
   )
 
+  const uploadProposals = async (proposals: unknown[]) => {
+    if (!meetingId) {
+      throw new Error('Meeting ID is required')
+    }
+
+    const apiClient = await buildApiClient()
+
+    // Upload each proposal
+    for (const proposal of proposals) {
+      const proposalRecord = asRecord(proposal)
+      if (!proposalRecord) continue
+
+      await apiClient.POST('/meetings/{meetingId}/proposals', {
+        params: { path: { meetingId } },
+        body: {
+          proposalNumber: Number(proposalRecord.proposalNumber) || 0,
+          proposalTitle: asString(proposalRecord.proposalTitle) || '',
+          proposalType: asString(proposalRecord.proposalType) || '',
+          proposalSubtype: asString(proposalRecord.proposalSubtype) || undefined,
+          directorName: asString(proposalRecord.directorName) || undefined,
+          recommendation: asString(proposalRecord.recommendation) || '',
+        },
+      })
+    }
+
+    // Refresh the data
+    await mutate()
+  }
+
   return {
     proposals: data?.proposals || [],
     votingSummary: data?.votingSummary || null,
     loading: isLoading,
     error: error ? error.message : null,
     refetch: () => mutate(),
+    uploadProposals,
   }
 }

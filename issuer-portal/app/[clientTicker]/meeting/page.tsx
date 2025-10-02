@@ -198,12 +198,12 @@ export default function MeetingsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body3" color="text.secondary">
                         {meeting.cusip || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
+                      <Typography variant="body3">
                         {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
                       </Typography>
                       {meeting.daysUntilMeeting > 0 && (

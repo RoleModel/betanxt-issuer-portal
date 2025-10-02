@@ -170,7 +170,7 @@ export default function ReportsPage() {
 
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid
           size={{ xs: 12, lg: 6 }}
           sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
@@ -210,7 +210,10 @@ export default function ReportsPage() {
           size={{ xs: 12, lg: 6 }}
           sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
         >
-          <Stack direction={{ xs: 'column', md: 'row', lg: 'column' }} spacing={3}>
+          <Stack
+            direction={{ xs: 'column', md: 'row', lg: 'column' }}
+            spacing={{ xs: 2, md: 3 }}
+          >
             <VoteDistributionChart data={voteDistribution} loading={reportsLoading} />
             <PositionsVotedChart
               meetingId={meetingId}

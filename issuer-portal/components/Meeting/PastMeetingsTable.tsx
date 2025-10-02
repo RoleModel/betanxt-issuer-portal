@@ -11,7 +11,6 @@ import {
   CardContent,
   CardHeader,
   LinearProgress,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -141,7 +140,9 @@ export default function PastMeetingsTable({
                 {renderHeaderCell('CUSIP', 'cusip')}
                 {renderHeaderCell('Date', 'meetingDate')}
                 {renderHeaderCell('Participation', 'participationPercent')}
-                {renderHeaderCell('Reports', 'id', false)}
+                <TableCell align="right" sx={{ fontWeight: 600, py: 2 }}>
+                  Reports
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -156,25 +157,23 @@ export default function PastMeetingsTable({
               ) : (
                 meetings.map((meeting) => (
                   <TableRow key={meeting.id} hover>
-                    <TableCell>
-                      <Link
+                    <TableCell size="small">
+                      <Button
+                        variant="text"
+                        color="info"
                         component={NextLink}
                         href={`/${clientTicker}/meeting/${meeting.id}`}
-                        underline="hover"
-                        color="primary"
-                        noWrap
-                        sx={{ fontWeight: 500 }}
                       >
                         {meeting.title}
-                      </Link>
+                      </Button>
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
+                    <TableCell size="small">
+                      <Typography variant="body3" color="text.secondary">
                         {meeting.cusip || 'N/A'}
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
+                    <TableCell size="small">
+                      <Typography variant="body3">
                         {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
                       </Typography>
                     </TableCell>
@@ -188,10 +187,10 @@ export default function PastMeetingsTable({
                               mb: 0.5,
                             }}
                           >
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
                               {meeting.participationPercent}%
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body3" color="text.secondary">
                               {truncateNumber(meeting.votingShares)}
                             </Typography>
                           </Box>
@@ -208,8 +207,8 @@ export default function PastMeetingsTable({
                                   if (meeting.participationPercent >= 50)
                                     return theme.vars.palette.success.main
                                   if (meeting.participationPercent < 10)
-                                    return theme.vars.palette.error.main
-                                  return theme.vars.palette.warning.main
+                                    return theme.vars.palette.warning.main
+                                  return theme.vars.palette.primary.main
                                 },
                               },
                             }}
@@ -217,10 +216,10 @@ export default function PastMeetingsTable({
                         </Box>
                       </Box>
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="right" size="small">
                       <Button
                         variant="text"
-                        color="primary"
+                        color="info"
                         component={NextLink}
                         href={`/${clientTicker}/meeting/${meeting.id}/reports`}
                       >

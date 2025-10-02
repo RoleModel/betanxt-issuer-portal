@@ -18,6 +18,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import DocumentViewer from '@/components/Documents/DocumentViewer'
 import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
 import { EmptyState } from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
@@ -49,10 +50,15 @@ export default function MeetingDocuments({
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [fileUrl, setfileUrl] = useState('')
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>('')
+  const [selectedDocumentStatus, setSelectedDocumentStatus] = useState<
+    Document['status'] | undefined
+  >(undefined)
   const [selectedPlaceholderId, setSelectedPlaceholderId] = useState<string | undefined>(
     undefined
   )
   const [loading, setLoading] = useState(!!meetingId)
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
+  const [documentViewerUrl, setDocumentViewerUrl] = useState('')
 
   const fetchDocuments = useCallback(async () => {
     if (!meetingId) return
@@ -196,17 +202,17 @@ export default function MeetingDocuments({
         } as Document)
       }
 
-      // Check if Notice and Access Form exists
+      // Check if Notice exists
       if (
         !filteredDocuments.find(
           (doc) =>
             doc.type === 'notice-access-form' ||
-            doc.title?.toLowerCase().includes('notice and access form')
+            doc.title?.toLowerCase().includes('Notice')
         )
       ) {
         placeholderDocs.push({
           id: 'placeholder-notice-access-form',
-          title: 'Notice and Access Form',
+          title: 'Notice',
           type: 'notice-access-form',
           status: 'AWAITING_DRAFT',
           deadline: computePlaceholderDeadline('notice-access-form'),
@@ -260,6 +266,8 @@ export default function MeetingDocuments({
           await uploadDocument(file, file.name, meetingId)
         }
       }
+      // Small delay to ensure database has been updated
+      await new Promise((resolve) => setTimeout(resolve, 500))
       // Refresh documents after upload
       await fetchDocuments()
     } catch (error) {
@@ -291,8 +299,19 @@ export default function MeetingDocuments({
     const docUrl = getStoragePublicUrl(storagePath)
 
     setSelectedDocumentId(documentId)
+    setSelectedDocumentStatus(document.status)
     setOpen(true)
     setfileUrl(docUrl)
+  }
+
+  const handleOpenFullscreen = () => {
+    // Set the document URL from the approval drawer
+    if (fileUrl) {
+      setDocumentViewerUrl(fileUrl)
+      setDocumentViewerOpen(true)
+    }
+    // Close the approval drawer
+    setOpen(false)
   }
 
   const onApprove = () => {
@@ -314,8 +333,13 @@ export default function MeetingDocuments({
       UPLOADED: { color: 'success' as const, label: 'Uploaded' },
       IN_PROGRESS: { color: 'info' as const, label: 'In Progress' },
       SIGNED: { color: 'success' as const, label: 'Signed' },
+      PENDING_AUTHORIZATION: {
+        color: 'warning' as const,
+        label: 'Pending Authorization',
+      },
       AUTHORIZED: { color: 'success' as const, label: 'Authorized' },
       COMPLETED: { color: 'success' as const, label: 'Completed' },
+      NOT_UPLOADED: { color: 'default' as const, label: 'Not Uploaded' },
     }
 
     const config =
@@ -331,9 +355,11 @@ export default function MeetingDocuments({
       | 'UPLOADED'
       | 'IN_PROGRESS'
       | 'SIGNED'
+      | 'PENDING_AUTHORIZATION'
       | 'AUTHORIZED'
       | 'COMPLETED'
       | 'APPROVED'
+      | 'NOT_UPLOADED'
 
     // Check if this is a placeholder document
     const isPlaceholder = document.id?.startsWith('placeholder-')
@@ -350,12 +376,13 @@ export default function MeetingDocuments({
       case 'AWAITING_REVIEW':
       case 'UPLOADED':
       case 'IN_PROGRESS':
+      case 'SIGNED':
+      case 'PENDING_AUTHORIZATION':
         return (
           <Button variant="text" onClick={() => handleApprove(document.id || '')}>
             View
           </Button>
         )
-      case 'SIGNED':
       case 'AUTHORIZED':
       case 'COMPLETED':
       case 'APPROVED':
@@ -428,7 +455,21 @@ export default function MeetingDocuments({
                       <Typography color="text.secondary">
                         {(() => {
                           const docType = document.fileType || 'PDF'
-                          // Map document types to display names
+                          // Map MIME types to friendly names
+                          if (docType === 'application/pdf') return 'PDF'
+                          if (
+                            docType ===
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                          )
+                            return 'DOCX'
+                          if (
+                            docType ===
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                          )
+                            return 'XLSX'
+                          if (docType === 'application/msword') return 'DOC'
+                          if (docType === 'application/vnd.ms-excel') return 'XLS'
+                          // Return as-is if already friendly or unknown
                           return docType
                         })()}
                       </Typography>
@@ -460,10 +501,19 @@ export default function MeetingDocuments({
         title="Approve Document"
         fileUrl={fileUrl}
         documentId={selectedDocumentId}
+        taskStatus={selectedDocumentStatus}
         onApprove={onApprove}
+        onOpenFullscreen={handleOpenFullscreen}
         onAddComment={onAddComment}
         open={open}
         onClose={() => setOpen(false)}
+      />
+      <DocumentViewer
+        open={documentViewerOpen}
+        onClose={() => setDocumentViewerOpen(false)}
+        fileUrl={documentViewerUrl}
+        title="Document Viewer"
+        documentId={selectedDocumentId}
       />
       <FileUploadDialog
         open={uploadDialogOpen}

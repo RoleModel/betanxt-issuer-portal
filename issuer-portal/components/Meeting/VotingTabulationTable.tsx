@@ -79,7 +79,7 @@ export default function VotingTabulationTable({
             >
               <TableCell>
                 <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                  <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
                     {proposal.proposalNumber}. {proposal.description}
                   </Typography>
                 </Box>
