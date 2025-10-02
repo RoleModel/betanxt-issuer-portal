@@ -17,7 +17,7 @@ interface CustomLegendProps {
   direction?: 'horizontal' | 'vertical'
   markerSize?: number
   gap?: number
-  textVariant?: 'body1' | 'body2' | 'caption'
+  textVariant?: 'body1' | 'body3' | 'caption'
 }
 
 /**

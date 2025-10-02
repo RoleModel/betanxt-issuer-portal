@@ -12,6 +12,11 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
   MenuItem,
   Select,
   Skeleton,
@@ -106,6 +111,18 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
   const [meetingTitle, setMeetingTitle] = useState('')
   const [clientTicker, setClientTicker] = useState('')
   const [isExporting, setIsExporting] = useState(false)
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
+
+  // Advanced filter states
+  const [filterPositionType, setFilterPositionType] = useState('')
+  const [filterAccountTypes, setFilterAccountTypes] = useState<string[]>([])
+  const [filterVoteStatus, setFilterVoteStatus] = useState('All')
+  const [filterControlNumber, setFilterControlNumber] = useState('')
+  const [filterAccountNumber, setFilterAccountNumber] = useState('')
+  const [filterName, setFilterName] = useState('')
+  const [filterShareLow, setFilterShareLow] = useState('')
+  const [filterShareHigh, setFilterShareHigh] = useState('')
+
   const { sortColumn, sortDirection, handleSort, sortData } = useSortableTable<Position>()
 
   React.useEffect(() => {
@@ -193,6 +210,29 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
     }
   }
 
+  const handleOpenFilterDialog = () => {
+    setFilterDialogOpen(true)
+  }
+
+  const handleCloseFilterDialog = () => {
+    setFilterDialogOpen(false)
+  }
+
+  const handleClearFilters = () => {
+    setFilterPositionType('')
+    setFilterAccountTypes([])
+    setFilterVoteStatus('All')
+    setFilterControlNumber('')
+    setFilterAccountNumber('')
+    setFilterName('')
+    setFilterShareLow('')
+    setFilterShareHigh('')
+  }
+
+  const handleApplyFilters = () => {
+    setFilterDialogOpen(false)
+  }
+
   const sortedPositions = sortData(positions)
 
   const filteredPositions = sortedPositions.filter((position) => {
@@ -204,7 +244,39 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
 
     const matchesStatus = statusFilter === 'All' || position.voteStatus === statusFilter
 
-    return matchesSearch && matchesStatus
+    // Advanced filters
+    const matchesPositionType =
+      !filterPositionType || position.setKey === filterPositionType
+    const matchesAccountTypes =
+      filterAccountTypes.length === 0 || filterAccountTypes.includes(position.accountType)
+    const matchesVoteStatus =
+      filterVoteStatus === 'All' || position.voteStatus === filterVoteStatus
+    const matchesControlNumber =
+      !filterControlNumber ||
+      position.controlNumber.toLowerCase().includes(filterControlNumber.toLowerCase())
+    const matchesAccountNumber =
+      !filterAccountNumber ||
+      position.accountNumber.toLowerCase().includes(filterAccountNumber.toLowerCase())
+    const matchesName =
+      !filterName || position.name.toLowerCase().includes(filterName.toLowerCase())
+
+    const shareLow = filterShareLow ? parseFloat(filterShareLow) : null
+    const shareHigh = filterShareHigh ? parseFloat(filterShareHigh) : null
+    const matchesShareRange =
+      (shareLow === null || position.shares >= shareLow) &&
+      (shareHigh === null || position.shares <= shareHigh)
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesPositionType &&
+      matchesAccountTypes &&
+      matchesVoteStatus &&
+      matchesControlNumber &&
+      matchesAccountNumber &&
+      matchesName &&
+      matchesShareRange
+    )
   })
 
   const paginatedPositions = filteredPositions.slice(
@@ -214,6 +286,17 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
 
   const formatNumber = (num: number): string => {
     return num.toLocaleString('en-US')
+  }
+
+  const formatAccountType = (accountType: string): string => {
+    // Map database values to display values from CSV
+    if (accountType === 'DTC/CDS') {
+      return 'CEDE & CO / CDS & CO'
+    }
+    if (accountType === 'Non-DTC') {
+      return 'Registered Account'
+    }
+    return accountType
   }
 
   const formatDate = (date: string | null): string => {
@@ -304,7 +387,11 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
             <MenuItem value="Voted">Voted</MenuItem>
             <MenuItem value="Unvoted">Unvoted</MenuItem>
           </Select>
-          <Button variant="text" startIcon={<FilterListIcon />}>
+          <Button
+            variant="text"
+            startIcon={<FilterListIcon />}
+            onClick={handleOpenFilterDialog}
+          >
             Filters
           </Button>
         </Box>
@@ -421,7 +508,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
               ) : paginatedPositions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={12} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                    <Typography variant="body3" color="text.secondary" sx={{ py: 4 }}>
                       No positions found
                     </Typography>
                   </TableCell>
@@ -430,7 +517,9 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                 paginatedPositions.map((position, index) => (
                   <TableRow key={index}>
                     <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
-                    <NoWrapTableCell>{position.accountType}</NoWrapTableCell>
+                    <NoWrapTableCell>
+                      {formatAccountType(position.accountType)}
+                    </NoWrapTableCell>
                     <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
                     <NoWrapTableCell>{position.name}</NoWrapTableCell>
                     <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
@@ -471,6 +560,143 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
           rowsPerPageOptions={[10, 25, 50]}
         />
       </CardContent>
+
+      {/* Filter Dialog */}
+      <Dialog
+        open={filterDialogOpen}
+        onClose={handleCloseFilterDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Filter Positions</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ pt: 1 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Position Type"
+                value={filterPositionType}
+                onChange={(e) => setFilterPositionType(e.target.value)}
+                size="small"
+              >
+                <MenuItem value="">All</MenuItem>
+                {Array.from(new Set(positions.map((p) => p.setKey)))
+                  .sort()
+                  .map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Account Types"
+                value={filterAccountTypes}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFilterAccountTypes(
+                    typeof value === 'string' ? value.split(',') : value
+                  )
+                }}
+                size="small"
+                slotProps={{
+                  select: {
+                    multiple: true,
+                  },
+                }}
+              >
+                {Array.from(new Set(positions.map((p) => p.accountType)))
+                  .sort()
+                  .map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {formatAccountType(type)}
+                    </MenuItem>
+                  ))}
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Control #"
+                value={filterControlNumber}
+                onChange={(e) => setFilterControlNumber(e.target.value)}
+                size="small"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Vote Status"
+                value={filterVoteStatus}
+                onChange={(e) => setFilterVoteStatus(e.target.value)}
+                size="small"
+              >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Voted">Voted</MenuItem>
+                <MenuItem value="Unvoted">Unvoted</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Account #"
+                value={filterAccountNumber}
+                onChange={(e) => setFilterAccountNumber(e.target.value)}
+                size="small"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Name"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                size="small"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Share Low"
+                type="number"
+                value={filterShareLow}
+                onChange={(e) => setFilterShareLow(e.target.value)}
+                size="small"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Share High"
+                type="number"
+                value={filterShareHigh}
+                onChange={(e) => setFilterShareHigh(e.target.value)}
+                size="small"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={handleClearFilters}>
+            Clear Filters
+          </Button>
+          <Button variant="contained" onClick={handleApplyFilters}>
+            Filter
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }

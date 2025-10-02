@@ -37,7 +37,7 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
         gap={2}
       >
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body3" color="text.secondary">
           Loading director performance data...
         </Typography>
       </Box>
@@ -137,7 +137,7 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
             tickNumber: 11,
           },
         ]}
-        margin={{ left: 150, right: 30, top: 10, bottom: 10 }}
+        margin={{ left: 130, right: 30, top: 10, bottom: 10 }}
         grid={{ vertical: true, horizontal: true }}
         slotProps={{
           legend: {

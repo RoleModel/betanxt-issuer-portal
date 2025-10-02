@@ -1,15 +1,15 @@
 'use client'
 
-import NextLink from 'next/link'
+import router from 'next/router'
 import React from 'react'
 
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CircularProgress,
-  Link as MuiLink,
   Table,
   TableBody,
   TableCell,
@@ -85,26 +85,29 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
             <TableBody>
               {data.map((row, index) => (
                 <TableRow key={index}>
-                  <TableCell component="th" scope="row">
+                  <TableCell size="small" component="th" scope="row">
                     {row.meetingId && clientTicker ? (
-                      <MuiLink
-                        component={NextLink}
-                        href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
+                      <Button
+                        variant="text"
+                        color="info"
+                        onClick={() => {
+                          router.push(
+                            `/${clientTicker}/meeting/${row.meetingId}/dashboard`
+                          )
+                        }}
                       >
-                        <Typography variant="body2" fontWeight={500} noWrap>
-                          {row.event}
-                        </Typography>
-                      </MuiLink>
+                        {row.event}
+                      </Button>
                     ) : (
-                      <Typography variant="body2" noWrap>
+                      <Typography variant="body3" noWrap>
                         {row.event}
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell>{row.materialsSent}</TableCell>
-                  <TableCell>{row.inspectorCertified}</TableCell>
-                  <TableCell>{row.universalProxy}</TableCell>
-                  <TableCell>{row.finalCertified}</TableCell>
+                  <TableCell size="small">{row.materialsSent}</TableCell>
+                  <TableCell size="small">{row.inspectorCertified}</TableCell>
+                  <TableCell size="small">{row.universalProxy}</TableCell>
+                  <TableCell size="small">{row.finalCertified}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

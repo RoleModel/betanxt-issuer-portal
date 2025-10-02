@@ -85,43 +85,42 @@ export default function VotingPerformanceChart({
           const positionRecords = Array.isArray(positionsData)
             ? (positionsData as Position[])
             : (positionsData as PositionsResponse)?.positions || []
-          const performanceData = ranges
-            .map((rangeInfo) => {
-              // Filter positions within this share range
-              const rangePositions = positionRecords.filter((pos: Position) => {
-                const shares = Number(pos.shares) || 0
-                return shares >= rangeInfo.min && shares <= rangeInfo.max
-              })
-
-              // Calculate statistics for this range
-              const totalPositions = rangePositions.length
-              const totalShares = rangePositions.reduce(
-                (sum: number, pos: Record<string, unknown>) =>
-                  sum + (Number(pos.shares) || 0),
-                0
-              )
-              const votedPositions = rangePositions.filter(
-                (pos: Record<string, unknown>) => {
-                  return pos.voteStatus === 'Voted'
-                }
-              )
-              const votedShares = votedPositions.reduce(
-                (sum: number, pos: Record<string, unknown>) => {
-                  return sum + (Number(pos.sharesVoted) || 0)
-                },
-                0
-              )
-              const percentVoted =
-                totalShares > 0 ? Math.round((votedShares / totalShares) * 100) : 0
-
-              return {
-                range: rangeInfo.label,
-                positions: totalPositions,
-                shares: totalShares,
-                percentVoted: percentVoted,
-              }
+          const performanceData = ranges.map((rangeInfo) => {
+            // Filter positions within this share range
+            const rangePositions = positionRecords.filter((pos: Position) => {
+              const shares = Number(pos.shares) || 0
+              return shares >= rangeInfo.min && shares <= rangeInfo.max
             })
-            .filter((d) => d.positions > 0) // Only include ranges with positions
+
+            // Calculate statistics for this range
+            const totalPositions = rangePositions.length
+            const totalShares = rangePositions.reduce(
+              (sum: number, pos: Record<string, unknown>) =>
+                sum + (Number(pos.shares) || 0),
+              0
+            )
+            const votedPositions = rangePositions.filter(
+              (pos: Record<string, unknown>) => {
+                return pos.voteStatus === 'Voted'
+              }
+            )
+            const votedShares = votedPositions.reduce(
+              (sum: number, pos: Record<string, unknown>) => {
+                return sum + (Number(pos.sharesVoted) || 0)
+              },
+              0
+            )
+            const percentVoted =
+              totalShares > 0 ? Math.round((votedShares / totalShares) * 100) : 0
+
+            return {
+              range: rangeInfo.label,
+              positions: totalPositions,
+              shares: totalShares,
+              percentVoted: percentVoted,
+            }
+          })
+          // Show all ranges, even if they have 0 positions
 
           setData(performanceData)
         }
@@ -197,7 +196,7 @@ export default function VotingPerformanceChart({
               label: 'Positions',
               color: 'var(--mui-palette-chartSeries-1-main)',
               yAxisId: 'leftAxis',
-              minBarSize: 4,
+              minBarSize: 8,
             },
             {
               type: 'bar',
@@ -205,7 +204,7 @@ export default function VotingPerformanceChart({
               label: 'Shares',
               color: 'var(--mui-palette-chartSeries-2-main)',
               yAxisId: 'leftAxis',
-              minBarSize: 4,
+              minBarSize: 8,
             },
             {
               type: 'line',
@@ -234,7 +233,6 @@ export default function VotingPerformanceChart({
             {
               id: 'leftAxis',
               scaleType: 'linear',
-              label: 'Shares',
               min: 0,
               max: Math.max(...shares) * 1.2,
               valueFormatter: (value) => abbreviateNumber(value),
@@ -242,15 +240,14 @@ export default function VotingPerformanceChart({
             {
               id: 'rightAxis',
               scaleType: 'linear',
-              label: 'Percent %',
               min: 0,
               max: 100,
-              width: 200,
+              width: 60,
               valueFormatter: (value) => `${value}%`,
             },
           ]}
           height={345}
-          margin={{ left: 10, right: 40, top: 10, bottom: 0 }}
+          margin={{ left: 10, right: 80, top: 10, bottom: 0 }}
         >
           <ChartsSurface>
             <ChartsGrid vertical horizontal />
@@ -258,8 +255,8 @@ export default function VotingPerformanceChart({
             <LinePlot />
             <MarkPlot />
             <ChartsXAxis axisId="x-axis-id" />
-            <ChartsYAxis axisId="leftAxis" position="left" />
-            <ChartsYAxis axisId="rightAxis" position="right" />
+            <ChartsYAxis axisId="leftAxis" position="left" label="Positions" />
+            <ChartsYAxis axisId="rightAxis" position="right" label="Percent %" />
             <ChartsTooltip />
           </ChartsSurface>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>

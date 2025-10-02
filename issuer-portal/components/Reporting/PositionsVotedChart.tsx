@@ -118,13 +118,13 @@ export default function PositionsVotedChart({
       id: 'voted',
       label: `Voted (${registeredVotedPercentage.toFixed(2)}%)`,
       value: selectedData.registered.voted,
-      color: 'var(--mui-palette-chartSeries-0-main)',
+      color: 'var(--mui-palette-chartSeries-1-main)',
     },
     {
       id: 'not-voted',
       label: `Unvoted (${(100 - registeredVotedPercentage).toFixed(2)}%)`,
       value: selectedData.registered.notVoted,
-      color: 'var(--mui-palette-chartSeries-6-main)',
+      color: 'var(--mui-palette-chartSeries-4-main)',
     },
   ]
 
@@ -139,7 +139,7 @@ export default function PositionsVotedChart({
       id: 'not-voted',
       label: `Unvoted (${(100 - beneficialVotedPercentage).toFixed(2)}%)`,
       value: selectedData.beneficial.notVoted,
-      color: 'var(--mui-palette-chartSeries-2-main)',
+      color: 'var(--mui-palette-chartSeries-4-main)',
     },
   ]
 
@@ -173,7 +173,7 @@ export default function PositionsVotedChart({
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'column', lg: 'row' }}
           justifyContent={'center'}
-          spacing={3}
+          spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart
             centerLabel="Registered"

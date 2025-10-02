@@ -48,7 +48,7 @@ const normalizePosition = (value: unknown): Position | null => {
 }
 
 const StyledText = styled('text')(({ theme }) => ({
-  ...theme.typography.body2,
+  ...theme.typography.body3,
   stroke: 'none',
   fill: (theme.vars || theme)?.palette?.text?.primary,
   textAnchor: 'middle',

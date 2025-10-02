@@ -1,15 +1,15 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CircularProgress,
-  Link as MuiLink,
   Table,
   TableBody,
   TableCell,
@@ -49,13 +49,13 @@ interface EventSummaryTableProps {
   title?: string
   clientTicker?: string
 }
-
 const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   data,
   loading = false,
   title = 'Event Summary',
   clientTicker = '',
 }) => {
+  const router = useRouter()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(5)
 
@@ -122,17 +122,20 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                 <TableRow key={`${row.meetingId || 'row'}-${index}`}>
                   <TableCell component="th" scope="row">
                     {row.meetingId ? (
-                      <MuiLink
-                        component={Link}
-                        href={`/${clientTicker}/meeting/${row.meetingId}`}
+                      <Button
+                        variant="text"
+                        color="info"
+                        onClick={() => {
+                          router.push(`/${clientTicker}/meeting/${row.meetingId}`)
+                        }}
                       >
                         {row.event}
-                      </MuiLink>
+                      </Button>
                     ) : (
                       row.event
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell size="small">
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
                           month: '2-digit',
@@ -141,20 +144,13 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                         })
                       : '--'}
                   </TableCell>
-                  <TableCell>{row.meetingType}</TableCell>
-                  <TableCell>{row.quorum}</TableCell>
-                  <TableCell>{row.participation}</TableCell>
-                  <TableCell>{row.numProposals}</TableCell>
-                  <TableCell>{row.outcome}</TableCell>
+                  <TableCell size="small">{row.meetingType}</TableCell>
+                  <TableCell size="small">{row.quorum}</TableCell>
+                  <TableCell size="small">{row.participation}</TableCell>
+                  <TableCell size="small">{row.numProposals}</TableCell>
+                  <TableCell size="small">{row.outcome}</TableCell>
                 </TableRow>
               ))}
-              {/* Add empty rows to maintain table height */}
-              {/* {paginatedRows.length < rowsPerPage &&
-                Array.from({ length: rowsPerPage - paginatedRows.length }, (_, index) => (
-                  <TableRow key={`empty-${index}`} style={{ height: 53 }}>
-                    <TableCell colSpan={7} />
-                  </TableRow>
-                ))} */}
             </TableBody>
           </Table>
         </TableContainer>

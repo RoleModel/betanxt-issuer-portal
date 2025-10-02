@@ -35,7 +35,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
         gap={2}
       >
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body3" color="text.secondary">
           Loading participation data...
         </Typography>
       </Box>

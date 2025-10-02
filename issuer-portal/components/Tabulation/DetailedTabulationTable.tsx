@@ -29,13 +29,12 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   },
   '& .MuiTableCell-head': {
     fontWeight: 600,
-    backgroundColor: theme.vars.palette.dataGridPagination.backgroundFill,
-    borderBottom: `2px solid ${theme.palette.divider}`,
+    backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
   },
 }))
 
 const ProposalHeaderCell = styled(TableCell)(({ theme }) => ({
-  backgroundColor: theme.vars.palette.dataGridPagination.backgroundFill,
+  backgroundColor: theme.vars.palette.action.hover,
   fontWeight: 600,
   borderBottom: `1px solid ${theme.palette.divider}`,
 }))

@@ -71,7 +71,7 @@ return (
 | `direction`   | `'horizontal' \| 'vertical'`      | `'horizontal'` | Layout direction for legend items                |
 | `markerSize`  | `number`                          | `16`           | Size of LineMarker symbols in pixels             |
 | `gap`         | `number`                          | `3`            | Spacing between legend items (MUI spacing units) |
-| `textVariant` | `'body1' \| 'body2' \| 'caption'` | `'body2'`      | Typography variant for labels                    |
+| `textVariant` | `'body1' \| 'body3' \| 'caption'` | `'body3'`      | Typography variant for labels                    |
 
 ### Types
 

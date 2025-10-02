@@ -1,15 +1,15 @@
 'use client'
 
-import NextLink from 'next/link'
+import router from 'next/router'
 import React from 'react'
 
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CircularProgress,
-  Link as MuiLink,
   Table,
   TableBody,
   TableCell,
@@ -99,25 +99,34 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
 
                 return (
                   <TableRow key={`${row.meetingId}-${index}`}>
-                    <TableCell component="th" scope="row">
+                    <TableCell size="small" component="th" scope="row">
                       {clientTicker ? (
-                        <MuiLink
-                          component={NextLink}
-                          href={`/${clientTicker}/meeting/${row.meetingId}/dashboard`}
+                        <Button
+                          variant="text"
+                          color="info"
+                          onClick={() => {
+                            router.push(
+                              `/${clientTicker}/meeting/${row.meetingId}/dashboard`
+                            )
+                          }}
                         >
-                          <Typography variant="body2" fontWeight={500} noWrap>
-                            {displayTitle}
-                          </Typography>
-                        </MuiLink>
+                          {displayTitle}
+                        </Button>
                       ) : (
-                        <Typography variant="body2" fontWeight={500} noWrap>
+                        <Typography variant="body3" fontWeight={500} noWrap>
                           {displayTitle}
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell align="right">{row.daysToQuorum ?? '--'}</TableCell>
-                    <TableCell align="right">{row.earlyVotesPct.toFixed(1)}%</TableCell>
-                    <TableCell align="right">{row.lateVotesPct.toFixed(1)}%</TableCell>
+                    <TableCell size="small" align="right">
+                      {row.daysToQuorum ?? '--'}
+                    </TableCell>
+                    <TableCell size="small" align="right">
+                      {row.earlyVotesPct.toFixed(1)}%
+                    </TableCell>
+                    <TableCell size="small" align="right">
+                      {row.lateVotesPct.toFixed(1)}%
+                    </TableCell>
                   </TableRow>
                 )
               })}

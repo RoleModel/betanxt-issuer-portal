@@ -46,7 +46,7 @@ export default function VoteDistributionChart({
             gap={2}
           >
             <CircularProgress />
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body3" color="text.secondary">
               Loading vote distribution data...
             </Typography>
           </Box>

@@ -7,7 +7,6 @@ import {
   BarPlot,
   ChartDataProvider,
   ChartsGrid,
-  ChartsLegend,
   ChartsSurface,
   ChartsTooltip,
   ChartsXAxis,
@@ -15,6 +14,8 @@ import {
   LinePlot,
   MarkPlot,
 } from '@mui/x-charts'
+
+import { CustomLegend } from './index'
 
 interface YearOverYearData {
   year: number
@@ -46,7 +47,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         gap={2}
       >
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body3" color="text.secondary">
           Loading year over year data...
         </Typography>
       </Box>
@@ -62,6 +63,24 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
       </Box>
     )
   }
+
+  const legendItems = [
+    {
+      label: 'Past',
+      color: 'var(--mui-palette-chartSeries-1-main)',
+      type: 'bar' as const,
+    },
+    {
+      label: 'Failed',
+      color: 'var(--mui-palette-chartSeries-4-main)',
+      type: 'bar' as const,
+    },
+    {
+      label: 'Particicpation %',
+      color: 'var(--mui-palette-chartSeries-8-main)',
+      type: 'line' as const,
+    },
+  ]
 
   const years = data.map((item) => String(item.year))
   const participationRates = data.map((item) => item.participationRate)
@@ -83,7 +102,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: 'bar',
           data: failedCounts,
           label: 'Failed',
-          color: 'var(--mui-palette-chartSeries-5-main)',
+          color: 'var(--mui-palette-chartSeries-4-main)',
           yAxisId: 'leftAxis',
         },
         {
@@ -134,7 +153,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <ChartsTooltip />
       </ChartsSurface>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-        <ChartsLegend direction="horizontal" />
+        <CustomLegend items={legendItems} />
       </Box>
     </ChartDataProvider>
   )
