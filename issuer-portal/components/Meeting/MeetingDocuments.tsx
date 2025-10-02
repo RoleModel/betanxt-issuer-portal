@@ -426,7 +426,7 @@ export default function MeetingDocuments({
                   <TableRow key={document.id}>
                     <TableCell>
                       <Box>
-                        <Typography fontWeight={500}>
+                        <Typography noWrap fontWeight={500}>
                           {document.title || 'Untitled'}
                         </Typography>
                         {document.uploadedDate ? (
@@ -484,8 +484,8 @@ export default function MeetingDocuments({
         )}
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={() => handleUpload()} disabled={!meetingId}>
-          Upload Document
+        <Button variant="outlined" onClick={() => handleUpload()} disabled={!meetingId}>
+          Upload
         </Button>
         {documents.length > 0 && (
           <Button
@@ -493,7 +493,7 @@ export default function MeetingDocuments({
             onClick={handleViewAllDocuments}
             disabled={!meetingId}
           >
-            View All Documents
+            View All
           </Button>
         )}
       </CardActions>

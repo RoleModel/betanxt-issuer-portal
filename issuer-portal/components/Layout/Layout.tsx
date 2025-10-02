@@ -1,7 +1,7 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import React, { PropsWithChildren, Suspense, useMemo } from 'react'
@@ -133,7 +133,9 @@ function Layout({
           </Box>
         )}
         {navBar && (
-          <Box sx={{ flexShrink: 0 }}>
+          <Box sx={{
+            flexShrink: 0,
+          }}>
             <BNAppBarClient user={bnUser} />
           </Box>
         )}

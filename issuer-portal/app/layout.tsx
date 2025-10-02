@@ -6,12 +6,13 @@ import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
 import React from 'react'
 
-import { GlobalStyles } from '@mui/material'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type {} from '@mui/material/themeCssVarsAugmentation'
+import type { } from '@mui/material/themeCssVarsAugmentation'
+import { GlobalStyles } from '@mui/material'
 
 import '@/components/Documents/react-pdf.css'
+
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
 import { ClientProvider } from '@/contexts/ClientContext'
@@ -63,7 +64,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppRouterCacheProvider>
           <SessionProvider>
             <ClientProvider>
-              <ThemeRegistry>{children}</ThemeRegistry>
+              <ThemeRegistry>
+                {children}
+              </ThemeRegistry>
             </ClientProvider>
           </SessionProvider>
         </AppRouterCacheProvider>

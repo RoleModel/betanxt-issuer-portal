@@ -3,6 +3,9 @@ import GlobalStyles from '@mui/material/GlobalStyles'
 const globalStyles = {
   ':root': {
     '--font-tungsten': '"Tungsten", sans-serif',
+    '& .MuiPaper-root.MuiDrawer-paperAnchorRight': {
+      top: '104px !important'
+    }
   },
   '@font-face': [
     {

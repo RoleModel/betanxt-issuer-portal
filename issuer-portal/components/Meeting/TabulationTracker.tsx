@@ -327,7 +327,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           }
         }
       } catch (error) {
-        // Silently fail - previous year data is optional
+        console.error('Error fetching previous year data:', error)
       }
     }
 
@@ -383,8 +383,6 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             status: currentMeeting.status || '',
           })
         } else {
-          // Fallback to positions-based calculation when tabulation report doesn't exist
-
           // Fallback to positions-based calculation when tabulation report doesn't exist
           try {
             const positionsResult = await apiClient.GET('/positions', {
@@ -674,7 +672,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           )}
           <Box>
             <BNTypographyPair
-              alignItems={{ sx: 'start', sm: 'end' }}
+              alignItems={{ sx: 'start', md: 'end' }}
               fullWidth
               primary={{
                 variant: 'body2',
@@ -693,10 +691,11 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             {!isPhase7 && previousYearData && !isMobile && (
               <Typography
                 sx={{
-                  justifyContent: { xs: 'start', sm: 'end' },
+                  justifyContent: { xs: 'start', md: 'end' },
                   display: 'flex',
                   alignItems: 'center',
                 }}
+                fontWeight={500}
                 variant="body2"
               >
                 {Number(data?.shares_voted || 0) > Number(previousYearData.shares_voted) ? (
@@ -710,7 +709,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           </Box>
           <Box>
             <BNTypographyPair
-              alignItems={{ sx: 'start', sm: 'end' }}
+              alignItems={{ sx: 'start', md: 'end' }}
               fullWidth
               primary={{
                 variant: 'body2',
@@ -731,10 +730,11 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             {!isPhase7 && previousYearData && !isMobile && (
               <Typography
                 sx={{
-                  justifyContent: { xs: 'start', sm: 'end' },
+                  justifyContent: { xs: 'start', md: 'end' },
                   display: 'flex',
                   alignItems: 'center',
                 }}
+                fontWeight={500}
                 variant="body2"
               >
                 {Number(data?.shares_unvoted || 0) <
@@ -750,7 +750,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           <Box>
             <BNTypographyPair
               fullWidth
-              alignItems={{ sx: 'start', sm: 'end' }}
+              alignItems={{ sx: 'start', md: 'end' }}
               primary={{
                 variant: 'body2',
                 fontWeight: 500,
@@ -769,10 +769,11 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             {!isPhase7 && previousYearData && !isMobile && (
               <Typography
                 sx={{
-                  justifyContent: { xs: 'start', sm: 'end' },
+                  justifyContent: { xs: 'start', md: 'end' },
                   display: 'flex',
                   alignItems: 'center',
                 }}
+                fontWeight={500}
                 variant="body2"
               >
                 {Math.round(progress.toQuorum) >

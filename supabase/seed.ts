@@ -880,12 +880,20 @@ const main = async () => {
     ELVN: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
   }
 
+  // 2026 Annual Meeting dates (shifted from 2025 CSV data by 1 year)
+  const real2026Meetings = {
+    WEN: { meetingDate: '2026-05-20', recordDate: '2026-03-23' },
+    PAYC: { meetingDate: '2026-05-04', recordDate: '2026-03-11' },
+    WWD: { meetingDate: '2026-01-28', recordDate: '2025-12-01' },
+    ELVN: { meetingDate: '2026-06-23', recordDate: '2026-04-24' },
+  }
+
   // 2 meetings per year: Annual + Special for 2022-2026
   const meetingsByYear = [
     {
       year: 2026,
       meetings: [
-        { type: 'Annual Meeting', monthOffset: 8, phase: 1 },
+        { type: 'Annual Meeting', useRealDates: true, phase: 1 },
         { type: 'Special Meeting', monthOffset: 11, phase: 7 },
       ],
     },
@@ -927,13 +935,20 @@ const main = async () => {
 
         if (
           'useRealDates' in meeting &&
-          meeting.useRealDates &&
-          real2025Meetings[client.ticker as keyof typeof real2025Meetings]
+          meeting.useRealDates
         ) {
-          const realData =
-            real2025Meetings[client.ticker as keyof typeof real2025Meetings]
-          meetingDateTime = DateTime.fromISO(realData.meetingDate)
-          recordDateTime = DateTime.fromISO(realData.recordDate)
+          // Use real CSV-based dates for 2025 and 2026
+          const realDataSource = yearConfig.year === 2026 ? real2026Meetings : real2025Meetings
+          const realData = realDataSource[client.ticker as keyof typeof realDataSource]
+
+          if (realData) {
+            meetingDateTime = DateTime.fromISO(realData.meetingDate)
+            recordDateTime = DateTime.fromISO(realData.recordDate)
+          } else {
+            // Fallback if no real data exists for this ticker
+            meetingDateTime = DateTime.now().plus({ months: 8 })
+            recordDateTime = meetingDateTime.minus({ days: 60 })
+          }
         } else if ('monthOffset' in meeting) {
           meetingDateTime = DateTime.now().plus({ months: meeting.monthOffset })
           recordDateTime = meetingDateTime.minus({ days: 60 })
