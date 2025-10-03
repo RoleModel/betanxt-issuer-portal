@@ -321,10 +321,6 @@ export default function GuestsPage() {
                   <TableCell sx={{ fontWeight: 600 }}>Registrant Type</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Pre-Meeting Questions</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="right">
-                    Minutes Attended
-                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -346,25 +342,6 @@ export default function GuestsPage() {
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
                         {attendee.emailAddress}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body3"
-                        sx={{
-                          maxWidth: 300,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                        title={attendee.registrationQuestions}
-                      >
-                        {attendee.registrationQuestions || ''}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body3">
-                        {attendee.minutesAttendedMeeting || 'Did Not Attend'}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -415,8 +392,6 @@ export default function GuestsPage() {
                   <TableCell>First Name</TableCell>
                   <TableCell>Last Name</TableCell>
                   <TableCell>Email Address</TableCell>
-                  <TableCell>Questions</TableCell>
-                  <TableCell>Minutes Attended</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -426,8 +401,6 @@ export default function GuestsPage() {
                     <TableCell>{row.firstName}</TableCell>
                     <TableCell>{row.lastName}</TableCell>
                     <TableCell>{row.emailAddress}</TableCell>
-                    <TableCell>{row.registrationQuestions || '-'}</TableCell>
-                    <TableCell>{row.minutesAttendedMeeting || '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

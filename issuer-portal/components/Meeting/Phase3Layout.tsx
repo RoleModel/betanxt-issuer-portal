@@ -26,10 +26,10 @@ function Phase3Layout({ meetingId, meeting, phase = 3 }: Phase3LayoutProps) {
         </Suspense>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
+        <TaskCard meetingId={meetingId} currentPhase={phase} />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <TaskCard meetingId={meetingId} currentPhase={phase} />
+        <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
       </Grid>
     </Grid>
   )

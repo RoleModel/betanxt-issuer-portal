@@ -821,7 +821,7 @@ export interface components {
         /** @enum {string} */
         PhaseStatus: "IN_PROGRESS" | "COMPLETE";
         /** @enum {string} */
-        TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW";
+        TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW" | "AWAITING_REVIEW";
         /** @enum {string} */
         DocumentStatus: "DRAFT" | "AWAITING_DRAFT" | "AWAITING_REVIEW" | "APPROVED" | "UPLOADED" | "IN_PROGRESS" | "SIGNED" | "AUTHORIZED" | "COMPLETED";
         Account: {
@@ -840,30 +840,56 @@ export interface components {
             client?: components["schemas"]["Clients"];
         };
         Clients: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example 291cdbe5-192b-50ec-b3ae-3197c9c5103c
+             */
             id?: string;
-            /** @description Unique ticker symbol for the client */
+            /**
+             * @description Unique ticker symbol for the client
+             * @example WEN
+             */
             ticker?: string;
-            /** @description Full legal name of the company */
+            /**
+             * @description Full legal name of the company
+             * @example The Wendy's Company
+             */
             companyName?: string;
-            /** @description Short display name for the company */
+            /**
+             * @description Short display name for the company
+             * @example Wendy's
+             */
             shortName?: string;
-            /** @description Industry sector */
+            /**
+             * @description Industry sector
+             * @example Restaurants
+             */
             industry?: string | null;
-            /** @description Company description */
+            /**
+             * @description Company description
+             * @example Leading fast food hamburger chain
+             */
             description?: string | null;
-            /** @description Company website URL */
+            /**
+             * @description Company website URL
+             * @example https://www.wendys.com
+             */
             website?: string | null;
-            /** @description Primary contact person */
+            /**
+             * @description Primary contact person
+             * @example Mike Chen
+             */
             primaryContact?: string | null;
             /**
              * Format: email
              * @description Primary contact email
+             * @example mike.chen@wendys.com
              */
             primaryContactEmail?: string | null;
             /**
              * @description Whether the client is active
              * @default true
+             * @example true
              */
             isActive: boolean;
             /**
@@ -877,34 +903,47 @@ export interface components {
             updatedAt?: string;
         };
         User: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
+             */
             id?: string;
+            /** @example lisa.rodriguez */
             username?: string;
+            /** @example Lisa */
             firstName?: string;
+            /** @example Rodriguez */
             lastName?: string;
-            /** Format: email */
+            /**
+             * Format: email
+             * @example lisa.rodriguez@paycom.com
+             */
             email?: string;
             /** @description Legacy password field for seed data - not used with NextAuth */
             password?: string | null;
+            /** @example ISSUER */
             type?: components["schemas"]["UserType"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example fe3ad07a-80a7-59a0-a253-9083d6d4c02c
+             */
             accountId?: string | null;
             account?: components["schemas"]["Account"];
             /**
              * Format: uri
              * @description URL of the user's profile photo stored in Supabase Storage
-             * @example https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
+             * @example https://example.supabase.co/storage/v1/object/public/user-avatars/b1f5062a-09b6-5dc1-b18c-3800c5930eab.jpg
              */
             avatar_url?: string | null;
         };
         Meeting: {
-            /** @example 01234567-89ab-cdef-0123-456789abcdef */
+            /** @example wen-annual-meeting-2026 */
             id?: string;
-            /** @example 2025 Annual Shareholder Meeting */
+            /** @example Annual Meeting */
             title?: string;
-            /** @example 12345A678 */
+            /** @example 95058W100 */
             cusip?: string;
-            /** @example ACME */
+            /** @example WEN */
             ticker?: string;
             /**
              * Format: date
@@ -1021,40 +1060,43 @@ export interface components {
         Task: {
             /**
              * Format: uuid
-             * @example 22222222-3333-4444-5555-666666666666
+             * @example 81c351e9-36cd-5528-b5a4-f48b2fe05bd6
              */
             id?: string;
-            /** @example T001 */
+            /** @example wen-annual-meeting-2026-P1-1 */
             taskId?: string;
             /**
              * Format: uuid
              * @example 11111111-2222-3333-4444-555555555555
              */
             phaseId?: string;
-            /** @example 01234567-89ab-cdef-0123-456789abcdef */
+            /** @example wen-annual-meeting-2026 */
             meetingId?: string;
             /** @example 1 */
             phaseNumber?: number;
-            /** @example Prepare proxy statement */
+            /** @example DTCC (SPR) Authorization Status */
             title?: string;
-            /** @example Draft and review the preliminary proxy statement for the annual meeting */
+            /** @example Check and confirm authorization status with DTCC for shareholder proxy record access. */
             description?: string | null;
-            /** @example DOCUMENT_PREPARATION */
+            /** @example Authorization */
             type?: string;
+            /** @example NEEDS_AUTHORIZATION */
             status?: components["schemas"]["TaskStatus"];
             /**
              * Format: date
-             * @example 2025-03-15
+             * @example 2025-12-22
              */
             dueDate?: string | null;
-            /** @example Legal Team */
+            /** @example The Wendy's Company */
             owner?: string;
             /**
              * Format: uuid
              * @example 33333333-4444-5555-6666-777777777777
              */
             documentId?: string | null;
-            links?: Record<string, never> | null;
+            links?: {
+                [key: string]: unknown;
+            } | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1129,29 +1171,40 @@ export interface components {
         Position: {
             /**
              * Format: uuid
-             * @example 44444444-5555-6666-7777-888888888888
+             * @example 90953927-6e41-5c55-be8b-a690299746ad
              */
             id?: string;
             /**
              * Format: uuid
-             * @example 01234567-89ab-cdef-0123-456789abcdef
+             * @example wen-annual-meeting-2026
              */
             meetingId?: string;
-            /** @example 12345A678 */
+            /** @example 95058W100 */
             cusip?: string;
-            /** @example BENEFICIAL */
+            /** @example DTC/CDS */
             accountType?: string;
-            /** @example BEN001 */
+            /** @example WEN12026 */
             setKey?: string;
-            /** @example VANGUARD GROUP INC */
+            /** @example CEDE & CO M C/O DTCC */
             name?: string;
+            /** @example null */
             accountNumber?: string | null;
+            /** @example null */
             controlNumber?: string | null;
-            /** @enum {string} */
+            /**
+             * @example Unvoted
+             * @enum {string}
+             */
             voteStatus?: "Voted" | "Unvoted";
-            /** Format: double */
+            /**
+             * Format: double
+             * @example 132463881
+             */
             shares?: number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @example 0
+             */
             sharesVoted?: number;
             /** @enum {string|null} */
             source?: "WEB" | "PRINT" | "IVR" | null;
@@ -1164,12 +1217,12 @@ export interface components {
         Proposal: {
             /**
              * Format: uuid
-             * @example 66666666-7777-8888-9999-aaaaaaaaaaaa
+             * @example be601464-c593-5d74-b6f6-c14152132103
              */
             id?: string;
             /**
              * Format: uuid
-             * @example 01234567-89ab-cdef-0123-456789abcdef
+             * @example wen-annual-meeting-2026
              */
             meetingId?: string;
             /**
@@ -1177,13 +1230,13 @@ export interface components {
              * @example 1.01
              */
             proposalNumber?: number;
-            /** @example Election of Directors */
+            /** @example Arthur B. Winkleblack */
             proposalTitle?: string;
-            /** @example DIRECTOR_ELECTION */
+            /** @example Director Election */
             proposalType?: string;
-            /** @example BOARD_MEMBER */
+            /** @example null */
             proposalSubtype?: string | null;
-            /** @example John A. Smith */
+            /** @example Arthur B. Winkleblack */
             directorName?: string | null;
             /** @example 3 */
             directorTermYears?: number | null;
@@ -1557,7 +1610,7 @@ export interface components {
             owner: string;
             /** Format: uuid */
             documentId?: string;
-            links?: Record<string, never>;
+            links?: Record<string, unknown>;
         };
         UpdateTaskRequest: {
             title?: string;
@@ -1570,7 +1623,9 @@ export interface components {
             owner?: string;
             /** Format: uuid */
             documentId?: string;
-            links?: Record<string, never>;
+            links?: {
+                [key: string]: unknown;
+            };
         };
         CreateDocumentRequest: {
             title: string;
@@ -1665,28 +1720,61 @@ export interface components {
             comment: string;
         };
         Notification: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example 389e5e4b-10e5-5eed-8047-3da0e36f051b
+             */
             id?: string;
+            /** @example Your Event Has Been Created */
             title?: string;
+            /** @example Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started. */
             message?: string;
-            /** @enum {string} */
+            /**
+             * @example success
+             * @enum {string}
+             */
             type?: "info" | "warning" | "error" | "success";
-            /** @enum {string} */
+            /**
+             * @example high
+             * @enum {string}
+             */
             priority?: "low" | "medium" | "high" | "critical";
-            /** @default false */
+            /**
+             * @default false
+             * @example false
+             */
             read: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
+             */
             userId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example wen-annual-meeting-2026
+             */
             meetingId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @example null
+             */
             taskId?: string | null;
+            /** @example /WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201 */
             actionUrl?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @example 2025-10-01T21:48:48.724Z
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @example null
+             */
             readAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @example null
+             */
             expiresAt?: string | null;
         };
         Mailing: {

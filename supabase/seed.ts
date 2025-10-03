@@ -962,7 +962,7 @@ const main = async () => {
       year: 2026,
       meetings: [
         { type: 'Annual Meeting', useRealDates: true, phase: 1 },
-        { type: 'Special Meeting', monthOffset: 11, phase: 7 },
+        { type: 'Special Meeting', monthOffset: 10, phase: 7 },
       ],
     },
     {
@@ -1522,9 +1522,9 @@ const main = async () => {
       // We'll remove them from here and handle carry-over in the application logic
     ],
     3: [
-      { title: 'TA Registered File', type: 'File Upload', owner: 'issuer' },
-      { title: 'DTCC SPR', type: 'File Upload', owner: 'issuer' },
-      { title: 'Plan File(s)', type: 'File Upload', owner: 'issuer' },
+      { title: 'Draft Proxy Statement', type: 'File Upload', owner: 'issuer' },
+      { title: 'Proxy Card', type: 'File Upload', owner: 'issuer' },
+      { title: 'Notice and Access (NAA) Form', type: 'File Upload', owner: 'issuer' },
       {
         title: 'Beneficial Count Settlement',
         type: 'Settlement',
@@ -1548,51 +1548,18 @@ const main = async () => {
       },
     ],
     4: [
-      { title: 'Plan File(s)', type: 'File Upload', owner: 'issuer' },
+      { title: 'TA Registered File', type: 'Release', owner: 'BetaNXT' },
       {
-        title: 'Beneficial Count Settlement',
-        type: 'Settlement',
-        owner: 'issuer',
-      },
-      {
-        title: 'Proxy Stmt → electronic PDF proof',
-        type: 'Document',
-        owner: 'BetaNXT',
-      },
-      { title: 'Release to print 10-K', type: 'Release', owner: 'BetaNXT' },
-      {
-        title: 'Release to print Proxy Statement',
+        title: 'DTCC SPR',
         type: 'Release',
         owner: 'BetaNXT',
       },
       {
-        title: 'Final hi-res bookmarked PDFs shared with BetaNXT',
-        type: 'Document',
+        title: 'Beneficial Count Settlement (5 Business Days Post-Record Date)',
+        type: 'Release',
         owner: 'BetaNXT',
       },
-      {
-        title: 'Approve Enhanced Annual Report/10-K & Proxy',
-        type: 'Approval',
-        owner: 'BetaNXT',
-      },
-      {
-        title: 'Approve IVR, Document-hosting & eVote sites',
-        type: 'Approval',
-        owner: 'BetaNXT',
-      },
-      { title: 'File DEF 14A & DEFA 14A', type: 'Filing', owner: 'BetaNXT' },
-      { title: 'File ARS', type: 'Filing', owner: 'BetaNXT' },
-      {
-        title: 'Deliver SH material (10-K & Proxy Stmt)',
-        type: 'Delivery',
-        owner: 'BetaNXT',
-      },
-      { title: 'Provide access to MIC', type: 'Access', owner: 'BetaNXT' },
-      {
-        title: '2024 FY filing deadline',
-        type: 'Deadline',
-        owner: 'BetaNXT',
-      },
+      { title: 'Plan File(s)', type: 'Release', owner: 'BetaNXT' },
     ],
     5: [
       {

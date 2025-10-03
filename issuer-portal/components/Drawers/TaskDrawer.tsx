@@ -50,7 +50,7 @@ import {
   handleFormSign as handlePlanFormSign,
 } from '@/utils/planFileRequestForm'
 import { findSignedDocumentForTask } from '@/utils/taskDrawer/documentMatching'
-import { determineTaskStatus } from '@/utils/taskDrawer/taskStatus'
+import { determineTaskStatus } from '@/utils/taskControl'
 import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
 import {
   getDTCCAuthorizationStatus,
@@ -143,12 +143,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     currentMeeting,
     session,
     refreshContext,
-    snackbar: {
-      showSuccess: (message: string) => {
-        setSnackbarMessage(message)
-        setSnackbarOpen(true)
-      },
-    },
   })
   const { updateMeetingCompletion } = useMeetingCompletion({
     currentMeeting,
@@ -158,8 +152,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
 
   const [taskLinks, setTaskLinks] = useState<TaskLink[]>([])
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
 
   // Get current client data based on URL params
   const currentClient = clients.find((client) => client.ticker === params.clientTicker)
@@ -417,12 +409,16 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         }
 
         // Check if all tasks in the current phase are complete
-        await checkAndCompletePhase(taskToSubmit as Task)
+        const phaseAdvanced = await checkAndCompletePhase(taskToSubmit as Task)
 
-        // Clear files and close drawer
+        // Clear files
         clearUploadFiles()
         setIsSubmittingTask(false)
-        onClose()
+
+        // Only close drawer if phase was NOT advanced (if advanced, navigation will handle it)
+        if (!phaseAdvanced) {
+          onClose()
+        }
         return
       }
 
@@ -1195,27 +1191,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             {phaseCompleteAlert.title}
           </Typography>
           <Typography variant="body3">{phaseCompleteAlert.message}</Typography>
-        </Alert>
-      </Snackbar>
-
-      {/* Phase Advancement Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          sx={{
-            width: '100%',
-            minWidth: '400px',
-            maxWidth: '600px',
-            boxShadow: 3,
-          }}
-        >
-          {snackbarMessage}
         </Alert>
       </Snackbar>
     </Drawer>

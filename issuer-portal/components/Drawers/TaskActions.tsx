@@ -1,12 +1,12 @@
 'use client'
 
-import { Box, Button, Checkbox, FormControlLabel, Stack } from '@mui/material'
+import { Box, Link, Checkbox, FormControlLabel, Stack } from '@mui/material'
 
 import type { components } from '@/domain-models/generated-schema'
 
 import { getStoragePublicUrl } from '@/utils/documentUtils'
 import { findSignedDocumentForTask } from '@/utils/taskDrawer/documentMatching'
-import { getTaskActionButtonLabel } from '@/utils/taskDrawer/taskStatus'
+import { getTaskActionButtonLabel } from '@/utils/taskControl'
 import type { TaskLink } from '@/utils/taskLinks'
 import { isDTCCAuthorizationTask } from '@/utils/taskTransformers'
 
@@ -93,9 +93,9 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           const viewLabel = getTaskActionButtonLabel(task.title || '', true)
 
           return (
-            <Button key={linkIndex} variant="outlined" onClick={handleViewSignedDocument}>
+            <Link key={linkIndex} onClick={handleViewSignedDocument}>
               {viewLabel}
-            </Button>
+            </Link>
           )
         }
 
@@ -109,14 +109,12 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           link.url || link.action === 'signature' || link.action === 'download'
 
         return isClickable ? (
-          <Button
+          <Link
             key={linkIndex}
-            variant="outlined"
-            component="button"
             onClick={() => onLinkClick(link)}
           >
             {link.label}
-          </Button>
+          </Link>
         ) : null
       })}
 

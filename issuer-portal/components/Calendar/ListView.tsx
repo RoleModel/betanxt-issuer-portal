@@ -30,7 +30,11 @@ import type { ContextMenuPosition } from '@/types/common'
  */
 
 // Using KeyDate from consolidated types
-interface DisplayKeyDate extends KeyDate {
+interface DisplayKeyDate {
+  id?: string
+  title?: string
+  date?: string
+  phaseNumber?: number
   type?: string
   phaseId?: string
 }
@@ -717,7 +721,7 @@ export const ListView: React.FC<ListViewProps> = ({
                 description: taskToEdit.description ?? '',
                 dueDate: taskToEdit.dueDate || '',
                 phaseNumber: taskToEdit.phaseNumber || 1,
-                links: {},
+                links: taskToEdit.links || null,
                 type: [
                   'upload',
                   'signature',

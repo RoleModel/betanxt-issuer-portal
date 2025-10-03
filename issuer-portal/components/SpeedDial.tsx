@@ -99,7 +99,7 @@ export default function IssuerSpeedDial({
         position: 'fixed',
         bottom: theme.spacing(7.5),
         right: 0,
-        zIndex: 2500,
+        zIndex: 500,
         transform: 'translateZ(0px)',
         display: 'flex',
         flexDirection: 'column',

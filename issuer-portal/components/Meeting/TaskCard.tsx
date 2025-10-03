@@ -28,6 +28,7 @@ import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { formatDate } from '@/lib/formats'
 import type { Task } from '@/types/api-exports'
+import { getDateLabel, shouldShowStatusChip } from '@/utils/taskControl'
 import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
 
 interface TaskItemProps {
@@ -139,9 +140,11 @@ export function TaskItem({
                   textDecorationThickness: '2px',
                 }}
               >
-                {formatDate(task.dueDate || '')}
+                {getDateLabel(task, formatDate(task.dueDate || ''))}
               </Typography>
-              <StatusChip status={task.status ?? null} size="small" />
+              {shouldShowStatusChip(task) && (
+                <StatusChip status={task.status ?? null} size="small" />
+              )}
             </Box>
           </Box>
         </CardContent>
@@ -182,7 +185,14 @@ export default function TaskCard({
     currentPhaseTitle || currentPhaseFromData?.name || `Phase ${resolvedCurrentPhase}`
 
   const displayTasks = tasks.filter((task) => {
-    // Exclude BetaNXT and DFIN tasks
+    // For Phase 4, include BetaNXT delivery tasks
+    if (resolvedCurrentPhase === 4) {
+      if (task.owner === 'BetaNXT' && task.phaseNumber === 4) {
+        return true
+      }
+    }
+
+    // Exclude BetaNXT and DFIN tasks for other phases
     if (['BetaNXT', 'DFIN'].includes(task.owner || '')) {
       return false
     }

@@ -60,9 +60,9 @@ export default function MeetingDocuments({
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [documentViewerUrl, setDocumentViewerUrl] = useState('')
 
-  // Debug: log when selectedDocumentId changes
+  // Track selectedDocumentId changes
   useEffect(() => {
-    console.log('[MeetingDocuments] selectedDocumentId changed:', selectedDocumentId)
+    // Placeholder for future side effects
   }, [selectedDocumentId])
 
   const fetchDocuments = useCallback(async () => {
@@ -294,19 +294,12 @@ export default function MeetingDocuments({
 
     const document = documents.find((d) => d.id === documentId)
     if (!document) {
-      console.error('Document not found:', documentId)
       return
     }
-
-    console.log('[MeetingDocuments] Opening document:', {
-      documentId,
-      document,
-    })
 
     const storagePath = document.filePath || ''
 
     if (!storagePath) {
-      console.error('Document has no file path:', document)
       return
     }
 
@@ -522,7 +515,6 @@ export default function MeetingDocuments({
         onAddComment={onAddComment}
         open={open}
         onClose={() => {
-          console.log('[MeetingDocuments] Closing ApprovalDrawer, selectedDocumentId:', selectedDocumentId)
           setOpen(false)
         }}
       />

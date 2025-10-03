@@ -2431,6 +2431,7 @@ components:
           AUTHORIZATION_NEEDED,
           SUBMITTED_AWAITING_RECORD_DATE,
           REQUEST_FORM_TO_FOLLOW,
+          AWAITING_REVIEW,
         ]
 
     DocumentStatus:
@@ -2782,6 +2783,7 @@ components:
           example: '33333333-4444-5555-6666-777777777777'
         links:
           type: object
+          additionalProperties: {}
           nullable: true
         createdAt:
           type: string
@@ -3653,6 +3655,7 @@ components:
           format: uuid
         links:
           type: object
+          additionalProperties: {}
 
     CreateDocumentRequest:
       type: object

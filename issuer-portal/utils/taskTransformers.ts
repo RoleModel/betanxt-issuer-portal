@@ -24,7 +24,7 @@ export function transformApiTaskToTask(apiTask: ApiTask | null | undefined): Tas
     phaseNumber: apiTask.phaseNumber || 0,
     type: (apiTask.type || 'external') as Task['type'],
     documentId: apiTask.documentId || undefined,
-    links: apiTask.links || undefined,
+    links: apiTask.links || null,
     createdAt: apiTask.createdAt || undefined,
     updatedAt: apiTask.updatedAt || undefined,
   }

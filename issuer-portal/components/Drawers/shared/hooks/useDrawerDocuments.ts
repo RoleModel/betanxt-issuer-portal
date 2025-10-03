@@ -118,7 +118,8 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
     const uploadFileObjects = newFiles.map((file) => ({
       id: crypto.randomUUID(),
       file,
-      status: 'pending' as const,
+      status: 'complete' as const,
+      progress: 100,
     }))
     setUploadFiles((prev) => [...prev, ...uploadFileObjects])
     setHasUnsupportedFiles(false)

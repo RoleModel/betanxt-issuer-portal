@@ -7,11 +7,7 @@ import type { components } from '@/types/api'
 import {
   COMPLETED_STATUSES,
   calculateOverallCompletion,
-} from '@/utils/taskDrawer/taskStatus'
-
-interface SnackbarHandler {
-  showSuccess: (message: string) => void
-}
+} from '@/utils/taskControl'
 
 type Task = components['schemas']['Task']
 
@@ -32,14 +28,12 @@ interface UsePhaseCompletionProps {
   refreshContext:
     | (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>)
     | undefined
-  snackbar: SnackbarHandler
 }
 
 export const usePhaseCompletion = ({
   currentMeeting,
   session,
   refreshContext,
-  snackbar,
 }: UsePhaseCompletionProps) => {
   const router = useRouter()
 
@@ -112,9 +106,12 @@ export const usePhaseCompletion = ({
         const meetingTitle = currentMeeting?.title || 'Shareholder Meeting'
         const nextPhaseNumber = currentPhaseNumber + 1
 
-        // Show personalized snackbar
-        snackbar.showSuccess(
-          `Congratulations, ${userName}! 🎉 All tasks for Phase ${currentPhaseNumber} of "${meetingTitle}" are complete! You're now advancing to Phase ${nextPhaseNumber}.`
+        // Dispatch global phase complete event for Layout to show snackbar
+        const message = `Congratulations, ${userName}! 🎉 All tasks for Phase ${currentPhaseNumber} of "${meetingTitle}" are complete! You're now advancing to Phase ${nextPhaseNumber}.`
+        window.dispatchEvent(
+          new CustomEvent('phaseComplete', {
+            detail: { message },
+          })
         )
 
         // Navigate to next phase dashboard after 3 seconds
@@ -132,7 +129,7 @@ export const usePhaseCompletion = ({
 
       return false
     },
-    [currentMeeting, session, refreshContext, snackbar, router]
+    [currentMeeting, session, refreshContext, router]
   )
 
   return { checkAndCompletePhase }

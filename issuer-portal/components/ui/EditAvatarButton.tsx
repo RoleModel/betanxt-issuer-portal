@@ -11,6 +11,7 @@ interface EditAvatarButtonProps {
   // User info for generating initials
   userName?: string
   userEmail?: string
+  color?: 'primary' | 'secondary' | 'default' | string
 }
 
 const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
@@ -21,6 +22,7 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
   sx,
   userName,
   userEmail,
+  color
 }) => {
   // Generate initials from user name or email
   const getInitials = () => {
@@ -60,7 +62,12 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
       <Avatar
         src={avatarUrl || undefined}
         alt={altText}
-        sx={{ width: size, height: size, fontSize: size / 3 }}
+        sx={{
+          width: size,
+          height: size,
+          ontSize: size / 3,
+          backgroundColor: color || 'var(--mui-palette-primary-main)',
+        }}
       >
         {!avatarUrl && getInitials()}
       </Avatar>

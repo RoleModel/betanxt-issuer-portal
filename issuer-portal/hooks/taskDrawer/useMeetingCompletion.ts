@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import buildApiClient from '@/domain-models/apiClient'
 
 import type { components } from '@/types/api'
-import { calculateOverallCompletion } from '@/utils/taskDrawer/taskStatus'
+import { calculateOverallCompletion } from '@/utils/taskControl'
 
 type Task = components['schemas']['Task']
 

@@ -56,7 +56,8 @@ import {
   handleFormDownload as handlePlanFormDownload,
   handleFormSign as handlePlanFormSign,
 } from '@/utils/planFileRequestForm'
-import { determineTaskStatus } from '@/utils/taskDrawer/taskStatus'
+import { getDocumentTypeFromTask } from '@/utils/taskControl'
+import { determineTaskStatus } from '@/utils/taskControl'
 import { TaskLink } from '@/utils/taskLinks'
 import {
   handleFormDownload as handleTransferAgentDownload,
@@ -185,6 +186,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     handleFileRemove,
     clearUploadFiles,
     handlePdfStateChange,
+    setUploadFiles,
   } = useDrawerDocuments()
 
   const [uploadTaskTitle, setUploadTaskTitle] = useState('')
@@ -206,12 +208,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     currentMeeting,
     session,
     refreshContext: refreshMeetingData,
-    snackbar: {
-      showSuccess: (message: string) => {
-        setSnackbarMessage(message)
-        setSnackbarOpen(true)
-      },
-    },
   })
 
   // Get theme and phase color using theme palette
@@ -331,7 +327,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
       // Upload each file to document repository
       for (const uploadFile of uploadFiles) {
-        const documentType = currentTaskForUpload.type || 'upload'
+        // Update file status to uploading
+        setUploadFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id ? { ...f, status: 'uploading' as const, progress: 0 } : f
+          )
+        )
+
+        const documentType = getDocumentTypeFromTask(currentTaskForUpload)
         const uploadPath = await uploadDocument(
           uploadFile.file,
           documentType,
@@ -339,9 +342,25 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           uploadFile.file.name,
           currentTaskForUpload.id
         )
+
         if (uploadPath === null) {
+          // Mark file as error
+          setUploadFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: 'error' as const, error: 'Upload failed' }
+                : f
+            )
+          )
           throw new Error(`Failed to upload file: ${uploadFile.file.name}`)
         }
+
+        // Mark file as complete
+        setUploadFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id ? { ...f, status: 'complete' as const, progress: 100 } : f
+          )
+        )
       }
 
       // Determine appropriate status based on task type
@@ -399,7 +418,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       if (isMobile) {
         handleMobileUploadClose()
       } else {
-        handleBackToOverview()
+        // Return to overview of current phase, not switching phases
+        setCurrentView('overview')
       }
     } catch (error) {
       console.error('Failed to submit upload', error)

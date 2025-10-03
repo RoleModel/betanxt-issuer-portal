@@ -4,10 +4,10 @@ import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFo
 import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import React, { PropsWithChildren, Suspense, useMemo } from 'react'
+import React, { PropsWithChildren, Suspense, useMemo, useState } from 'react'
 
 import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
-import { Box, Stack } from '@mui/material'
+import { Alert, Box, Snackbar, Stack } from '@mui/material'
 
 import { ResetDemoDataDialog } from '@/components/Dialogs/ResetDemoDataDialog'
 import { InfoDialog } from '@/components/InfoDialog'
@@ -41,6 +41,32 @@ function Layout({
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false)
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
+  const [phaseCompleteSnackbar, setPhaseCompleteSnackbar] = useState({
+    open: false,
+    message: '',
+  })
+
+  // Expose snackbar handler globally for phase completion
+  React.useEffect(() => {
+    const handlePhaseComplete = (event: CustomEvent<{ message: string }>) => {
+      setPhaseCompleteSnackbar({
+        open: true,
+        message: event.detail.message,
+      })
+    }
+
+    window.addEventListener(
+      'phaseComplete' as keyof WindowEventMap,
+      handlePhaseComplete as EventListener
+    )
+
+    return () => {
+      window.removeEventListener(
+        'phaseComplete' as keyof WindowEventMap,
+        handlePhaseComplete as EventListener
+      )
+    }
+  }, [])
 
   const handleGlossaryClick = () => {
     setInfoDialogOpen(true)
@@ -174,6 +200,28 @@ function Layout({
           definition=""
         />
         <ResetDemoDataDialog open={resetDialogOpen} onClose={handleResetDialogClose} />
+
+        {/* Global Phase Completion Snackbar */}
+        <Snackbar
+          open={phaseCompleteSnackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setPhaseCompleteSnackbar({ open: false, message: '' })}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => setPhaseCompleteSnackbar({ open: false, message: '' })}
+            severity="success"
+            sx={{
+              width: '100%',
+              minWidth: '400px',
+              maxWidth: '600px',
+              boxShadow: 3,
+            }}
+          >
+            {phaseCompleteSnackbar.message}
+          </Alert>
+        </Snackbar>
+
         <Box
           sx={{ flexShrink: 0 }}
           onClick={(e) => {

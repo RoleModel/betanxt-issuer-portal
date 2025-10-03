@@ -2,8 +2,10 @@ import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useState } from 'react'
 
 import type { components } from '@/types/api'
-import { determineTaskStatus } from '@/utils/taskDrawer/taskStatus'
+import { determineTaskStatus } from '@/utils/taskControl'
+import { getDocumentTypeFromTask } from '@/utils/taskControl'
 
+type Task = components['schemas']['Task']
 type TaskStatus = components['schemas']['TaskStatus']
 
 interface UploadFile {
@@ -77,7 +79,7 @@ export const useTaskSubmission = ({
         }
 
         try {
-          const documentType = taskToSubmit.type || 'upload'
+          const documentType = getDocumentTypeFromTask(taskToSubmit as Task)
           const uploadPath = await uploadDocument(
             uploadFile.file,
             documentType,

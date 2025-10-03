@@ -72,6 +72,20 @@ const ProfilePage = () => {
     setIsEditing(!isEditing)
   }
 
+  const handleCancelEdit = () => {
+    // Reset form data to session values
+    if (session?.user) {
+      const nameParts = session.user.name?.split(' ') || []
+      setFormData({
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: session.user.email || '',
+        password: '',
+      })
+    }
+    setIsEditing(false)
+  }
+
   const handlePhotoEdit = () => {
     setPhotoModalOpen(true)
   }
@@ -82,10 +96,10 @@ const ProfilePage = () => {
     // The session will be updated by the modal as well
   }
   return (
-    <Container className="profile-container" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+    <Container maxWidth="md" className="profile-container" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
       <Card>
         <CardHeader
-          title="User Information"
+          title={`${formData.firstName} ${formData.lastName}`}
           avatar={
             <>
               <EditAvatarButton
@@ -204,7 +218,14 @@ const ProfilePage = () => {
             </Grid>
           </Grid>
         </CardContent>
-        <CardActions>
+        <CardActions sx={{ gap: 1, p: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={handleCancelEdit}
+            sx={{ display: isEditing ? 'inline-flex' : 'none' }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
             color={isEditing ? 'success' : 'primary'}

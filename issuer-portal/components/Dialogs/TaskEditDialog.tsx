@@ -222,8 +222,16 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
   // Memoize initial links calculation
   const initialLinks = useMemo(() => {
-    if (!task || !enableLinkEditing || !Array.isArray(task.links)) return []
-    return task.links.map((link, index) => ({
+    if (!task || !enableLinkEditing || !task.links) return []
+
+    // Convert links object to array if needed
+    const linksArray = Array.isArray(task.links)
+      ? task.links
+      : Object.values(task.links)
+
+    if (!Array.isArray(linksArray) || linksArray.length === 0) return []
+
+    return (linksArray as BaseTaskLink[]).map((link, index) => ({
       id: `link-${index}`, // Generate a temporary ID for editing
       label: link.label,
       url: link.url || '',
