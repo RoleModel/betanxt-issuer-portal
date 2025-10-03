@@ -57,13 +57,22 @@ export default function PhasePage() {
 
   const isPhase8 = (currentPhaseNumber ?? 0) < 8
 
+  // Ensure meeting has proper client.isActive value for Phase layouts
+  const meetingForPhase = meeting ? {
+    ...meeting,
+    client: meeting.client ? {
+      ...meeting.client,
+      isActive: meeting.client.isActive ?? true
+    } : meeting.client
+  } : meeting
+
   const renderPhaseLayout = () => {
     switch (phaseNumber) {
       case 1:
         return (
           <Phase1Layout
             meetingId={meetingId}
-            meeting={meeting}
+            meeting={meetingForPhase}
             phase={phaseNumber}
             onUpdate={refreshMeetingData}
           />
@@ -71,34 +80,34 @@ export default function PhasePage() {
 
       case 2:
         return (
-          <Phase2Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase2Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
         )
 
       case 3:
         return (
-          <Phase3Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase3Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
         )
 
       case 4:
         return (
-          <Phase4Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase4Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
         )
 
       case 5:
         return (
-          <Phase5Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase5Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
         )
 
       case 6:
         return (
-          <Phase6Layout meetingId={meetingId} meeting={meeting} phase={phaseNumber} />
+          <Phase6Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
         )
 
       case 7:
-        return <Phase7Layout meetingId={meetingId} meeting={meeting} />
+        return <Phase7Layout meetingId={meetingId} meeting={meetingForPhase} />
 
       case 8:
-        return <Phase8Layout meetingId={meetingId} meeting={meeting} />
+        return <Phase8Layout meetingId={meetingId} meeting={meetingForPhase} />
 
       default:
         return (

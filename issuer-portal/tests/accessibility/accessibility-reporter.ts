@@ -6,7 +6,7 @@ import type {
 } from '@playwright/test/reporter';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { extractWcagCriteria } from '../src/utils/wcagMapping';
+import { extractWcagCriteria } from '@/utils/wcagMapping';
 
 interface AccessibilityViolation {
   impact: string;

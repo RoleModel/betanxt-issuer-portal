@@ -85,8 +85,8 @@ export default React.memo(function Phase7Layout({
         })
 
         if (!error && data) {
-          setScheduledLogistics(data.logisticsCallScheduled || false)
-          setScheduledDryRun(data.dryRunScheduled || false)
+          setScheduledLogistics((data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false)
+          setScheduledDryRun((data as { dryRunScheduled?: boolean }).dryRunScheduled || false)
         }
       } catch (error) {
         console.error('Failed to fetch DSM config:', error)
@@ -106,23 +106,28 @@ export default React.memo(function Phase7Layout({
 
     try {
       const apiClient = await buildApiClient()
-      const config: Partial<DSMConfig> = {
+      const config = {
         meetingId,
-      }
-
-      if (dialogType === 'logistics') {
-        config.logisticsCallDate = date.toISOString()
-        config.logisticsCallNotes = notes
-        config.logisticsCallScheduled = true
-      } else {
-        config.dryRunDate = date.toISOString()
-        config.dryRunNotes = notes
-        config.dryRunScheduled = true
+        liveQa: true,
+        audioOnly: false,
+        meetingRecording: true,
+        isConfirmed: false,
+        logisticsCallScheduled: dialogType === 'logistics' ? true : false,
+        dryRunScheduled: dialogType !== 'logistics' ? true : false,
+        dsmEnabled: true,
+        ioeEnabled: true,
+        ...(dialogType === 'logistics' ? {
+          logisticsCallDate: date.toISOString(),
+          logisticsCallNotes: notes,
+        } : {
+          dryRunDate: date.toISOString(),
+          dryRunNotes: notes,
+        })
       }
 
       const { data, error } = await apiClient.POST('/meetings/{meetingId}/dsm-config', {
         params: { path: { meetingId } },
-        body: config as DSMConfig,
+        body: config,
       })
 
       if (!error && data) {

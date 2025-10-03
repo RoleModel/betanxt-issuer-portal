@@ -23,12 +23,10 @@ import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDocuments } from '@/hooks/useDocuments'
 
-type DSMConfig = components['schemas']['DSMConfig']
 
 interface MeetingAccessItem {
   label: string
@@ -133,11 +131,11 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         )
 
         if (!dsmError && dsmData) {
-          setDsm(dsmData.dsmEnabled ?? true)
-          setIoe(dsmData.ioeEnabled ?? true)
-          setIsConfirmed(dsmData.isConfirmed || false)
+          setDsm((dsmData as { dsmEnabled?: boolean }).dsmEnabled ?? true)
+          setIoe((dsmData as { ioeEnabled?: boolean }).ioeEnabled ?? true)
+          setIsConfirmed((dsmData as { isConfirmed?: boolean }).isConfirmed || false)
 
-          if (dsmData.isConfirmed) {
+          if ((dsmData as { isConfirmed?: boolean }).isConfirmed) {
             setIsEditMode(false)
           } else {
             setIsEditMode(true)
@@ -206,7 +204,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
       setIsLoading(true)
       const apiClient = await buildApiClient()
 
-      const config: Partial<DSMConfig> = {
+      const config = {
         meetingId: activeMeetingId,
         dsmEnabled: dsm,
         ioeEnabled: ioe,
@@ -217,11 +215,16 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         speakerListDocId: uploadedDocs['Speaker List'] || undefined,
         guestLinkRegistrationDocId: uploadedDocs['Guest Link Registration'] || undefined,
         isConfirmed: true,
+        liveQa: true,
+        audioOnly: false,
+        meetingRecording: true,
+        logisticsCallScheduled: false,
+        dryRunScheduled: false,
       }
 
       const { data, error } = await apiClient.POST('/meetings/{meetingId}/dsm-config', {
         params: { path: { meetingId: activeMeetingId } },
-        body: config as DSMConfig,
+        body: config,
       })
 
       if (!error && data) {
@@ -250,8 +253,8 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
       })
 
       if (data) {
-        setDsm(data.dsmEnabled ?? true)
-        setIoe(data.ioeEnabled ?? true)
+        setDsm((data as { dsmEnabled?: boolean }).dsmEnabled ?? true)
+        setIoe((data as { ioeEnabled?: boolean }).ioeEnabled ?? true)
       }
     } catch (error) {
       console.error('Error reloading config:', error)

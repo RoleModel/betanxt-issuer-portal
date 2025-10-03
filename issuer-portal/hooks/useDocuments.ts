@@ -307,7 +307,8 @@ export const useDocuments = (): UseDocumentsResult => {
       try {
         setLoading(true)
         setError(null)
-        return await documentRepository.listByMeeting(meetingId)
+        const docs = await documentRepository.listByMeeting(meetingId)
+        return docs as Document[]
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to get documents by meeting'
@@ -600,12 +601,13 @@ export const useDocuments = (): UseDocumentsResult => {
       try {
         setLoading(true)
         setError(null)
-        return await documentRepository.uploadVersion({
+        const doc = await documentRepository.uploadVersion({
           meetingId,
           documentType,
           file,
           versionNotes,
         })
+        return doc as Document | null
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to upload document version'

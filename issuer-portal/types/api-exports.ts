@@ -9,7 +9,14 @@ export type Account = components['schemas']['Account']
 export type Client = components['schemas']['Clients']
 export type Document = components['schemas']['Document']
 export type DocumentHistory = components['schemas']['DocumentHistory']
-export type KeyDate = components['schemas']['KeyDate']
+// export type KeyDate = components['schemas']['KeyDate'] // Not in schema
+// Define KeyDate locally since it doesn't exist in OpenAPI schema
+export interface KeyDate {
+  id?: string
+  title?: string
+  date?: string
+  phaseNumber?: number
+}
 export type Meeting = components['schemas']['Meeting']
 export type Notification = components['schemas']['Notification']
 export type Phase = components['schemas']['Phase']

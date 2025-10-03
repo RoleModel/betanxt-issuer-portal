@@ -142,9 +142,9 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // Calculate DSM progress
   const dsmProgress = React.useMemo(() => {
-    // Count documents that have been uploaded (have filePath and status is not NOT_UPLOADED)
+    // Count documents that have been uploaded (have filePath)
     const uploadedDsm = dsmDocuments.filter(
-      (doc) => doc.filePath && doc.status !== 'NOT_UPLOADED'
+      (doc) => doc.filePath
     ).length
     const totalRequired = 6 // Number of placeholders defined below
     return {
