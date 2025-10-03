@@ -880,12 +880,12 @@ const main = async () => {
     ELVN: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
   }
 
-  // 2026 Annual Meeting dates (shifted from 2025 CSV data by 1 year)
+  // 2026 Annual Meeting dates (mid-April to mid-June 2026 for realistic planning timeline)
   const real2026Meetings = {
     WEN: { meetingDate: '2026-05-20', recordDate: '2026-03-23' },
     PAYC: { meetingDate: '2026-05-04', recordDate: '2026-03-11' },
-    WWD: { meetingDate: '2026-01-28', recordDate: '2025-12-01' },
-    ELVN: { meetingDate: '2026-06-23', recordDate: '2026-04-24' },
+    WWD: { meetingDate: '2026-04-15', recordDate: '2026-02-16' },
+    ELVN: { meetingDate: '2026-06-10', recordDate: '2026-04-13' },
   }
 
   // 2 meetings per year: Annual + Special for 2022-2026
@@ -987,15 +987,9 @@ const main = async () => {
         const isPastMeeting = yearConfig.year <= 2024
         const status = currentPhase === 8 || isPastMeeting ? 'COMPLETE' : 'ACTIVE'
         const phaseName = `Phase ${currentPhase}`
-        // Special meetings in phase 7+ should show 100% completion (all tasks in completion status)
-        // Annual meetings in phase 1 should show 0% completion (all tasks incomplete)
-        const isSpecialMeeting = meeting.type === 'Special Meeting'
-        const overallCompletion =
-          currentPhase === 8 || isPastMeeting
-            ? 100
-            : isSpecialMeeting && currentPhase >= 7
-              ? 100
-              : 0
+        // Only COMPLETE meetings (phase 8 or past years) should show 100% completion
+        // ACTIVE meetings should show 0% completion
+        const overallCompletion = currentPhase === 8 || isPastMeeting ? 100 : 0
 
         meetingPhaseMap[meetingId] = currentPhase
 

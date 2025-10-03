@@ -1700,7 +1700,7 @@ paths:
         List positions with Supabase PostgREST filters.
 
         Common usage:
-        - Filter by meeting: `?meetingId=eq.WEN-2024-AGM`
+        - Filter by meeting: `?meetingId=eq.wen-annual-meeting-2025`
         - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
         - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
         - Include meeting data: `?select=*,meetings(*)`
