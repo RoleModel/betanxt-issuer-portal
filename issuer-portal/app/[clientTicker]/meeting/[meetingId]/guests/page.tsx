@@ -173,7 +173,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-                `Found columns: ${availableColumns}`
+              `Found columns: ${availableColumns}`
             )
           )
           return
@@ -310,7 +310,7 @@ export default function GuestsPage() {
                 startIcon={<FileUploadOutlined />}
                 onClick={() => setUploadDialogOpen(true)}
               >
-                Upload More
+                Upload
               </Button>
             }
           />

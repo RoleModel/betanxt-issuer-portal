@@ -25,7 +25,7 @@ interface AgendaTableProps {
   onUploadClick?: () => void
 }
 
-export default function AgendaTable({ onUploadClick }: AgendaTableProps) {
+export default function AgendaTable({ }: AgendaTableProps) {
   const { currentMeeting } = useMeeting()
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
@@ -47,17 +47,6 @@ export default function AgendaTable({ onUploadClick }: AgendaTableProps) {
     <Card>
       <CardHeader
         title="Meeting Agenda"
-        action={
-          onUploadClick && (
-            <Button
-              variant="contained"
-              startIcon={<UploadIcon />}
-              onClick={onUploadClick}
-            >
-              Upload More
-            </Button>
-          )
-        }
         sx={{
           backgroundColor: 'background.default',
           borderBottom: '1px solid',
