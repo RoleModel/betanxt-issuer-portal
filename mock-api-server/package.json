@@ -18,7 +18,7 @@
     "test:e2e": "playwright test --project=e2e",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
-    "supabase:reset": "supabase db reset && npm run seed:documents:clean",
+    "supabase:reset": "supabase db reset",
     "supabase:dump-local": "supabase db dump --local",
     "supabase:migrate": "supabase db push --include-all --linked",
     "generate:seeds": "npx tsx ../supabase/seed.ts && npx tsx ../supabase/seed.ts > ../supabase/seed.sql",

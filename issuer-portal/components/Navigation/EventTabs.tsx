@@ -18,7 +18,6 @@ import {
   IconButton,
   LinearProgress,
   Paper,
-  Skeleton,
   Stack,
   Tab,
   Tabs,
@@ -82,7 +81,7 @@ const ScrollButton = styled(IconButton, {
   border: '1px solid',
   borderColor: theme.vars.palette.divider,
   borderWidth: direction === 'left' ? '0 1px 0 0' : '0 0 0 1px',
-  zIndex: 3,
+  zIndex: 1,
   '&:hover': {
     backgroundColor: theme.vars.palette.primary.dark,
   },
@@ -144,8 +143,6 @@ export function EventTabs() {
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  // Use a stable skeleton count that doesn't change after hydration to prevent flash
-  const skeletonCount = 2 // Always show 2 skeletons to avoid hydration flash
 
   // (Optimization) Memoize current phase parsing
   const currentPhase = useMemo(
@@ -443,49 +440,6 @@ export function EventTabs() {
     }
   }, [checkScrollButtons])
 
-  const renderSkeletonTab = (index: number) => (
-    <Box
-      key={`skeleton-${index}`}
-      sx={(theme) => ({
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: theme.vars.palette.background.default,
-        position: 'relative',
-        flex: '0 1 auto',
-        borderRight: `1px solid ${theme.vars.palette.divider}`,
-        borderLeft: `1px solid ${theme.vars.palette.divider}`,
-        minWidth: theme.spacing(30),
-        overflowX: 'hidden',
-        '&:last-child': {
-          borderLeft: 'none',
-        },
-      })}
-    >
-      <Box
-        sx={(theme) => ({
-          height: 110,
-          px: theme.spacing(2),
-          py: theme.spacing(1),
-          pt: theme.spacing(2),
-          flex: 1,
-        })}
-      >
-        <Skeleton variant="text" width="60%" height={30} />
-        {!isMobile && (
-          <Stack spacing={1}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Skeleton variant="text" width={60} height={20} />
-              <Skeleton variant="text" width={80} height={20} />
-              <Skeleton variant="text" width={70} height={20} />
-              <Skeleton variant="text" width={80} height={20} />
-              <Skeleton variant="text" width={60} height={20} />
-            </Stack>
-          </Stack>
-        )}
-      </Box>
-    </Box>
-  )
 
   // Subcomponents for active/inactive meeting detail sections
   const ActiveMeetingDetails = ({
@@ -647,9 +601,7 @@ export function EventTabs() {
             variant="caption"
             sx={{
               fontWeight: 500,
-              fontSize: '0.75rem',
               lineHeight: 1.5,
-              letterSpacing: '3.33%',
               color: 'inherit',
             }}
           >
@@ -659,9 +611,7 @@ export function EventTabs() {
             variant="h6"
             sx={{
               fontWeight: 500,
-              fontSize: '0.875rem',
               lineHeight: 1.286,
-              letterSpacing: '0.71%',
               color: 'inherit',
             }}
           >
@@ -792,33 +742,6 @@ export function EventTabs() {
     )
   }
 
-  // Show loading state if clients are still loading
-  const meetingsArray = meetings || []
-
-  if (clientLoading || (loading && meetingsArray.length === 0)) {
-    return (
-      <Box>
-        <Paper
-          sx={{
-            borderBottom: '1px solid',
-            borderColor: (theme) => theme.vars.palette.divider,
-            boxShadow: 'none',
-            borderRadius: 0,
-            background: (theme) => theme.vars.palette.tableCellRow.fill,
-          }}
-        >
-          <Box sx={{ px: 3 }}>
-            <Stack direction="row">
-              {Array.from({ length: skeletonCount }, (_, index) =>
-                renderSkeletonTab(index + 1)
-              )}
-            </Stack>
-          </Box>
-        </Paper>
-      </Box>
-    )
-  }
-
   return (
     <Box component="nav">
       {/* Meeting Tabs Section */}
@@ -882,27 +805,15 @@ export function EventTabs() {
                 borderColor: (theme) => theme.vars.palette.divider,
               }}
             >
-              {loading && (!meetings || meetings.length === 0) ? (
-                // Show skeleton tabs while loading - single skeleton on mobile, multiple on desktop
-                Array.from({ length: skeletonCount }, (_, index) =>
-                  renderSkeletonTab(index + 1)
-                )
-              ) : transformedMeetings.length > 0 ? (
-                // Show actual meeting tabs
-                transformedMeetings.map(({ tab, src }, index) => (
-                  <MeetingTab
-                    key={tab.id || index}
-                    meeting={tab}
-                    src={src}
-                    index={index}
-                  />
-                ))
-              ) : (
-                // Only show "No meetings" after loading is complete
-                <Typography variant="body3" color="text.secondary" sx={{ p: 2 }}>
-                  No meetings available.
-                </Typography>
-              )}
+              {transformedMeetings.map(({ tab, src }, index) => (
+                <MeetingTab
+                  key={tab.id || index}
+                  meeting={tab}
+                  src={src}
+                  index={index}
+                />
+              ))
+              }
             </Stack>
           </Box>
         </Box>
@@ -916,7 +827,6 @@ export function EventTabs() {
           borderBottom: '1px solid',
           borderColor: (theme) => theme.vars.palette.divider,
           borderRadius: 0,
-          zIndex: 2,
           position: 'relative',
         }}
       >
@@ -928,7 +838,7 @@ export function EventTabs() {
               top: 0,
               left: 0,
               right: 0,
-              zIndex: 3,
+              zIndex: 1,
               height: 2,
             }}
           />

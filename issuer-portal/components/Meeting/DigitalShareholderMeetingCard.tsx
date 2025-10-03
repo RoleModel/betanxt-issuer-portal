@@ -416,17 +416,6 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
     },
   ]
 
-  if (isLoading) {
-    return (
-      <Card className={className}>
-        <CardHeader title="Digital Shareholder Meeting Information" />
-        <CardContent>
-          <LinearProgress />
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card className={className}>
       <CardHeader title="Digital Shareholder Meeting Information" />
@@ -499,12 +488,16 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                         {isEditMode ? (
                           <>
                             <Switch
+                              size='small'
                               checked={option.value}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 option.onChange!(e.target.checked)
                               }
+                              slotProps={{
+                                input: { 'aria-label': 'Yes or No' }
+                              }}
                             />
-                            <Typography variant="body3">Yes</Typography>
+                            <Typography variant="body3">No</Typography>
                           </>
                         ) : (
                           <Typography variant="body3">

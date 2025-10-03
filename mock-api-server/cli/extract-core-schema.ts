@@ -145,7 +145,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       const _sanitizeComment = (_comment: string): string => {
         return _comment
           .replace(/&#x60;/g, '') // Remove HTML encoded backticks entirely
-          .replace(/&#x27;/g, "'") // Replace HTML encoded single quotes
+          .replace(/&#x27;/g, "'") // Replace HTML encoded single quotes (hex format)
+          .replace(/&#39;/g, "'") // Replace HTML encoded single quotes (decimal format)
           .replace(/&quot;/g, '"') // Replace HTML entities for double quotes
           .replace(/&amp;/g, '&') // Replace HTML entities for ampersands
           .replace(/&lt;/g, '<') // Replace HTML entities for less than
@@ -156,7 +157,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
           .replace(/\r/g, ' ') // Replace Mac line endings
           .replace(/\s+/g, ' ') // Collapse multiple spaces
           .replace(/\.\s*\.\s*/, '. ') // Fix double periods
+          .replace(/\s+;$/, ';') // Ensure proper semicolon at end
           .trim()
+          .replace(/([^;])$/, '$1;') // Add semicolon if missing
       }
 
       // Extract and sanitize COMMENT statements to fix HTML entities

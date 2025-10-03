@@ -602,13 +602,13 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       // Create client data inside the handler to ensure latest meeting data (following TaskDrawer pattern)
       const clientData = currentClient
         ? {
-            issuerName: currentClient.company_name || currentClient.short_name || '',
-            cusipNumber: currentMeeting?.cusip || undefined,
-            contactName: currentClient.primary_contact || '',
-            email: currentClient.primary_contact_email || '',
-            meetingDate: currentMeeting?.meetingDate || undefined,
-            ticker: currentClient.ticker || undefined,
-          }
+          issuerName: currentClient.company_name || currentClient.short_name || '',
+          cusipNumber: currentMeeting?.cusip || undefined,
+          contactName: currentClient.primary_contact || '',
+          email: currentClient.primary_contact_email || '',
+          meetingDate: currentMeeting?.meetingDate || undefined,
+          ticker: currentClient.ticker || undefined,
+        }
         : undefined
 
       // eslint-disable-next-line no-console
@@ -1046,13 +1046,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 {keyDates.map((keyDate: KeyDate) => (
                   <Card
                     key={keyDate.id}
-                    elevation={0}
+                    elevation={5}
                     sx={(theme) => ({
-                      background: theme.vars.palette.appBarPrimary.defaultFill,
+                      background: theme.vars.palette.keydate.dark,
                       color: theme.vars.palette.appBarPrimary.defaultContrast,
+                      borderLeft: `6px solid ${theme.vars.palette.keydate.main}`,
                     })}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 2 }}>
                       <Typography
                         variant="caption"
                         sx={{ color: '#CCE5FF', fontWeight: 500 }}
@@ -1076,11 +1077,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
                   >
-                    The Broker Search distribution signals the start of Phase 2 in your
-                    proxy meeting project. The search ensures all necessary parties are
-                    aware of the upcoming record date. Additionally, BetaNXT is now fully
-                    authorized to receive all pertinent files related to shareholder
-                    mailings and tabulations.
+                    The Broker Search distribution signals the start of Phase 2 in your proxy meeting project. The search ensures all necessary parties are aware of the upcoming record date. Additionally, BetaNXT is now fully authorized to receive all pertinent files related to shareholder mailings and tabulations.
                   </Typography>
                 )}
                 {currentPhaseNumber === 4 && (
@@ -1150,14 +1147,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 const modifiedTask: Task =
                   hasSignedDoc && task.links && Array.isArray(task.links)
                     ? {
-                        ...task,
-                        links: (task.links as TaskLink[]).map((link: TaskLink) => {
-                          if (link.action === 'signature' && link.label === 'Sign Form') {
-                            return { ...link, label: 'View Form' }
-                          }
-                          return link
-                        }) as unknown as Record<string, unknown>,
-                      }
+                      ...task,
+                      links: (task.links as TaskLink[]).map((link: TaskLink) => {
+                        if (link.action === 'signature' && link.label === 'Sign Form') {
+                          return { ...link, label: 'View Form' }
+                        }
+                        return link
+                      }) as unknown as Record<string, unknown>,
+                    }
                     : task
 
                 return (
@@ -1331,12 +1328,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         task={
           currentTaskForDocument
             ? {
-                id: currentTaskForDocument.id || '',
-                task_id: currentTaskForDocument.taskId || currentTaskForDocument.id,
-                title: currentTaskForDocument.title || 'Document',
-                type: currentTaskForDocument.type,
-                meeting_id: currentTaskForDocument.meetingId,
-              }
+              id: currentTaskForDocument.id || '',
+              task_id: currentTaskForDocument.taskId || currentTaskForDocument.id,
+              title: currentTaskForDocument.title || 'Document',
+              type: currentTaskForDocument.type,
+              meeting_id: currentTaskForDocument.meetingId,
+            }
             : undefined
         }
         documentType="signature"
@@ -1359,7 +1356,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         title={approvalTitle}
         fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
-        onAddComment={() => {}}
+        onAddComment={() => { }}
       />
 
       {/* Context Menu */}

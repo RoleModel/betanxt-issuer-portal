@@ -242,26 +242,26 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     }
   }, [])
 
-  // Initialize form data when task changes
+  // Initialize form data when task changes or dialog opens
   useEffect(() => {
+    if (!open) return
+
     if (initialFormData) {
       setFormData(initialFormData)
     }
     setLinks(initialLinks)
     setError(null)
-
-    // Load available documents when modal opens
-    if (open) {
-      loadAvailableDocuments()
-    }
-  }, [initialFormData, initialLinks, open, loadAvailableDocuments])
+    loadAvailableDocuments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, task?.id]) // Only re-run when dialog opens or task changes
 
   // Set current document when task loads
   useEffect(() => {
+    if (!open) return
     if (task && 'document' in task) {
       setSelectedDocumentId(String(task.document) || '')
     }
-  }, [task])
+  }, [open, task])
 
   const handleChange =
     (field: keyof typeof formData) =>
@@ -443,7 +443,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth keepMounted={false}>
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Edit Task

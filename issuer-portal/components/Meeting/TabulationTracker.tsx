@@ -50,7 +50,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const { currentMeeting } = useMeeting()
   const [data, setData] = useState<TabulationData | null>(null)
   const [previousYearData, setPreviousYearData] = useState<TabulationData | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start as loading to prevent flash
   const [loadingProgress, setLoadingProgress] = useState(0)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -336,7 +336,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   // Fetch tabulation data from API instead of calculating locally
   useEffect(() => {
     const fetchTabulationData = async () => {
-      if (!currentMeeting?.id) return
+      if (!currentMeeting?.id) {
+        setLoading(false) // No meeting data, stop loading
+        return
+      }
 
       setLoading(true)
       try {
@@ -522,334 +525,338 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
         minHeight: (!isPhase7 && !isMobile) ? '105.6px' : '86px',
       })}
     >
-      <Fade in={!loading} timeout={1000}>
-        <Stack
-          direction={'row'}
-          flexWrap={'wrap'}
-          display={'grid'}
-          gridTemplateAreas={{
-            xs: `
+      {!loading && (
+        <Fade in={true} timeout={1000} appear>
+          <Stack
+            direction={'row'}
+            flexWrap={'wrap'}
+            display={'grid'}
+            gridTemplateAreas={{
+              xs: `
               "1 2"
             `,
-            sm: `
+              sm: `
               "1 2 3",
               "1 2 3"
             `,
-          }}
-          gridTemplateColumns={{
-            xs: '1fr 1fr',
-            sm: '1fr 1fr 1fr',
-            md:
-              isPhase7 && previousYearData
-                ? 'min-content repeat(6, auto)'
-                : 'min-content repeat(7, auto)',
-          }}
-          sx={{
-            gap: 1,
-            paddingBottom: { xs: 4, sm: 4, md: 3 },
-            transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
-          }}
-        >
-          <CalendarIcon
-            sx={{
-              mr: 2,
-              fontSize: 40,
-              color: 'inherit',
-              display: { xs: 'none', md: 'block' },
             }}
-          />
-          <Box>
-            <BNTypographyPair
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  isCompleted && meetingDate
-                    ? meetingDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                    : meetingDate
-                      ? calculateDaysUntil(meetingDate.toISOString())
-                      : '--',
-              }}
-              sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-            />
-          </Box>
-
-          {!isCompleted && (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Days to Next Phase',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: nextPhaseDate ? daysUntilDate(nextPhaseDate) : '--',
-                }}
-                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-              />
-            </Box>
-          )}
-          {isCompleted && (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Total Positions',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: data ? data.total_positions.toLocaleString() : '--',
-                }}
-                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-              />
-            </Box>
-          )}
-          {isCompleted ? (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Positions Voted',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: data ? data.positions_voted.toLocaleString() : '--',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                sx={{ flex: 1 }}
-              />
-            </Box>
-          ) : (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Vote Cutoff',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: voteCutoffDate
-                    ? voteCutoffDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })
-                    : '0',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                sx={{ flex: 1 }}
-              />
-            </Box>
-          )}
-          {!isPhase7 && previousYearData && !isMobile && (
-            <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
-              <Typography noWrap variant="body2">
-                Last Year
-              </Typography>
-            </Box>
-          )}
-          <Box>
-            <BNTypographyPair
-              alignItems={{ sx: 'start', md: 'end' }}
-              fullWidth
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'Shares Voted',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  data && isVotingPhase ? Number(data.shares_voted).toLocaleString() : '0',
-              }}
-              sx={{ flex: 1 }}
-            />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Number(data?.shares_voted || 0) > Number(previousYearData.shares_voted) ? (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                ) : (
-                  <ArrowDownward fontSize="inherit" />
-                )}
-                {Number(previousYearData.shares_voted).toLocaleString()}
-              </Typography>
-            )}
-          </Box>
-          <Box>
-            <BNTypographyPair
-              alignItems={{ sx: 'start', md: 'end' }}
-              fullWidth
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'Shares Unvoted',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  data && isVotingPhase
-                    ? Number(data.shares_unvoted).toLocaleString()
-                    : '0',
-              }}
-              sx={{ flex: 1 }}
-            />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Number(data?.shares_unvoted || 0) <
-                  Number(previousYearData.shares_unvoted) ? (
-                  <ArrowDownward fontSize="inherit" />
-                ) : (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                )}
-                {Number(previousYearData.shares_unvoted).toLocaleString()}
-              </Typography>
-            )}
-          </Box>
-          <Box>
-            <BNTypographyPair
-              fullWidth
-              alignItems={{ sx: 'start', md: 'end' }}
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'To Quorum',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text: `${Math.round(progress.toQuorum)} %`,
-              }}
+            gridTemplateColumns={{
+              xs: '1fr 1fr',
+              sm: '1fr 1fr 1fr',
+              md:
+                isPhase7 && previousYearData
+                  ? 'min-content repeat(6, auto)'
+                  : 'min-content repeat(7, auto)',
+            }}
+            sx={{
+              gap: 1,
+              paddingBottom: { xs: 4, sm: 4, md: 3 },
+              transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
+            }}
+          >
+            <CalendarIcon
               sx={{
-                flex: 1,
+                mr: 2,
+                fontSize: 40,
+                color: 'inherit',
+                display: { xs: 'none', md: 'block' },
               }}
             />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
+            <Box>
+              <BNTypographyPair
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
+                  sx: { whiteSpace: 'nowrap' },
                 }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Math.round(progress.toQuorum) >
-                  parseFloat(previousYearData.vote_percentage) ? (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                ) : (
-                  <ArrowDownward fontSize="inherit" />
-                )}
-                {Math.round(parseFloat(previousYearData.vote_percentage))}%
-              </Typography>
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text:
+                    isCompleted && meetingDate
+                      ? meetingDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                      : meetingDate
+                        ? calculateDaysUntil(meetingDate.toISOString())
+                        : '--',
+                }}
+                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+              />
+            </Box>
+
+            {!isCompleted && (
+              <Box>
+                <BNTypographyPair
+                  primary={{
+                    variant: 'body2',
+                    fontWeight: 500,
+                    text: 'Days to Next Phase',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  secondary={{
+                    variant: 'h2',
+                    fontWeight: 600,
+                    text: nextPhaseDate ? daysUntilDate(nextPhaseDate) : '--',
+                  }}
+                  sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+                />
+              </Box>
             )}
-          </Box>
-        </Stack>
-      </Fade>
+            {isCompleted && (
+              <Box>
+                <BNTypographyPair
+                  primary={{
+                    variant: 'body2',
+                    fontWeight: 500,
+                    text: 'Total Positions',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  secondary={{
+                    variant: 'h2',
+                    fontWeight: 600,
+                    text: data ? data.total_positions.toLocaleString() : '--',
+                  }}
+                  sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
+                />
+              </Box>
+            )}
+            {isCompleted ? (
+              <Box>
+                <BNTypographyPair
+                  primary={{
+                    variant: 'body2',
+                    fontWeight: 500,
+                    text: 'Positions Voted',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  secondary={{
+                    variant: 'h2',
+                    fontWeight: 600,
+                    text: data ? data.positions_voted.toLocaleString() : '--',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  sx={{ flex: 1 }}
+                />
+              </Box>
+            ) : (
+              <Box>
+                <BNTypographyPair
+                  primary={{
+                    variant: 'body2',
+                    fontWeight: 500,
+                    text: 'Vote Cutoff',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  secondary={{
+                    variant: 'h2',
+                    fontWeight: 600,
+                    text: voteCutoffDate
+                      ? voteCutoffDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                      : '0',
+                    sx: { whiteSpace: 'nowrap' },
+                  }}
+                  sx={{ flex: 1 }}
+                />
+              </Box>
+            )}
+            {!isPhase7 && previousYearData && !isMobile && (
+              <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
+                <Typography noWrap variant="body2">
+                  Last Year
+                </Typography>
+              </Box>
+            )}
+            <Box>
+              <BNTypographyPair
+                alignItems={{ sx: 'start', md: 'end' }}
+                fullWidth
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Shares Voted',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text:
+                    data && isVotingPhase ? Number(data.shares_voted).toLocaleString() : '0',
+                }}
+                sx={{ flex: 1 }}
+              />
+              {!isPhase7 && previousYearData && !isMobile && (
+                <Typography
+                  sx={{
+                    justifyContent: { xs: 'start', md: 'end' },
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  fontWeight={500}
+                  variant="body2"
+                >
+                  {Number(data?.shares_voted || 0) > Number(previousYearData.shares_voted) ? (
+                    <ArrowUpwardSharp fontSize="inherit" />
+                  ) : (
+                    <ArrowDownward fontSize="inherit" />
+                  )}
+                  {Number(previousYearData.shares_voted).toLocaleString()}
+                </Typography>
+              )}
+            </Box>
+            <Box>
+              <BNTypographyPair
+                alignItems={{ sx: 'start', md: 'end' }}
+                fullWidth
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Shares Unvoted',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text:
+                    data && isVotingPhase
+                      ? Number(data.shares_unvoted).toLocaleString()
+                      : '0',
+                }}
+                sx={{ flex: 1 }}
+              />
+              {!isPhase7 && previousYearData && !isMobile && (
+                <Typography
+                  sx={{
+                    justifyContent: { xs: 'start', md: 'end' },
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  fontWeight={500}
+                  variant="body2"
+                >
+                  {Number(data?.shares_unvoted || 0) <
+                    Number(previousYearData.shares_unvoted) ? (
+                    <ArrowDownward fontSize="inherit" />
+                  ) : (
+                    <ArrowUpwardSharp fontSize="inherit" />
+                  )}
+                  {Number(previousYearData.shares_unvoted).toLocaleString()}
+                </Typography>
+              )}
+            </Box>
+            <Box>
+              <BNTypographyPair
+                fullWidth
+                alignItems={{ sx: 'start', md: 'end' }}
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'To Quorum',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text: `${Math.round(progress.toQuorum)} %`,
+                }}
+                sx={{
+                  flex: 1,
+                }}
+              />
+              {!isPhase7 && previousYearData && !isMobile && (
+                <Typography
+                  sx={{
+                    justifyContent: { xs: 'start', md: 'end' },
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  fontWeight={500}
+                  variant="body2"
+                >
+                  {Math.round(progress.toQuorum) >
+                    parseFloat(previousYearData.vote_percentage) ? (
+                    <ArrowUpwardSharp fontSize="inherit" />
+                  ) : (
+                    <ArrowDownward fontSize="inherit" />
+                  )}
+                  {Math.round(parseFloat(previousYearData.vote_percentage))}%
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </Fade>
+      )}
 
       {/* Progress Bar at Bottom */}
-      <Fade in={!loading} timeout={500}>
-        <Box
-          sx={{
-            display: 'flex',
-            width: '100%',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            // borderRadius: '0 0 4px 4px',
-            overflow: 'hidden',
-          }}
-        >
+      {!loading && (
+        <Fade in={true} timeout={500}>
           <Box
-            component={motion.div}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress.voted}%` }}
-            transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
             sx={{
-              background: (theme) => theme.vars?.palette.keydate.dark,
-              px: 1,
-              py: 0,
-              minWidth: '70px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'end',
+              width: '100%',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              // borderRadius: '0 0 4px 4px',
+              overflow: 'hidden',
             }}
           >
-            <Typography
-              noWrap
-              variant="caption"
-              fontWeight={600}
+            <Box
+              component={motion.div}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress.voted}%` }}
+              transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
               sx={{
-                color: (theme) => theme.palette.common.white,
+                background: (theme) => theme.vars?.palette.keydate.dark,
+                px: 1,
+                py: 0,
+                minWidth: '70px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'end',
               }}
             >
-              {progress.voted}% Voted
-            </Typography>
-          </Box>
-          <Box
-            sx={(theme) => ({
-              background: `rgba(${theme.vars?.palette.keydate.darkChannel} / 0.1)`,
-              px: 1,
-              py: 0.25,
-              flexGrow: 1,
-              display: 'flex',
-              alignItems: 'center',
-            })}
-          >
-            <Typography
-              noWrap
-              variant="caption"
-              fontWeight={600}
+              <Typography
+                noWrap
+                variant="caption"
+                fontWeight={600}
+                sx={{
+                  color: (theme) => theme.palette.common.white,
+                }}
+              >
+                {progress.voted}% Voted
+              </Typography>
+            </Box>
+            <Box
               sx={(theme) => ({
-                color: theme.vars?.palette.keydate.contrastText,
+                background: `rgba(${theme.vars?.palette.keydate.darkChannel} / 0.1)`,
+                px: 1,
+                py: 0.25,
+                flexGrow: 1,
+                display: 'flex',
+                alignItems: 'center',
               })}
             >
-              {progress.unvoted}% Unvoted
-            </Typography>
+              <Typography
+                noWrap
+                variant="caption"
+                fontWeight={600}
+                sx={(theme) => ({
+                  color: theme.vars?.palette.keydate.contrastText,
+                })}
+              >
+                {progress.unvoted}% Unvoted
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      </Fade>
+        </Fade>
+      )}
     </Box>
   )
 }

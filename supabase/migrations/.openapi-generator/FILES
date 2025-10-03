@@ -49,8 +49,11 @@ Model/SignFormDigitalRequest.sql
 Model/Signature.sql
 Model/TabulationReport.sql
 Model/TabulationReportBrokerVotingInner.sql
+Model/TabulationReportDtcVoteStatus.sql
 Model/TabulationReportNonDtcVoteStatus.sql
+Model/TabulationReportPositionsVoted.sql
 Model/TabulationReportShareRangePerformanceInner.sql
+Model/TabulationReportVoteDistribution.sql
 Model/Task.sql
 Model/TaskStatus.sql
 Model/UpdateAccountRequest.sql

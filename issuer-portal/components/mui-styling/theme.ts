@@ -3,7 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -19,7 +19,7 @@ import {
 import { Theme, createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
 // Import MUI X Date Pickers theme augmentation
-import type { } from '@mui/x-date-pickers/themeAugmentation'
+import type {} from '@mui/x-date-pickers/themeAugmentation'
 
 export interface LayoutVars {
   navbarHeight: number

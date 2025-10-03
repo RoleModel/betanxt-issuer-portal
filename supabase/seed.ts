@@ -560,17 +560,85 @@ const main = async () => {
   // Legacy CSV loading removed - now using CSVProcessor for all companies
 
   // Load company positions data for mailing records
-  let companyPositions: Record<string, { Active?: any }> | null = null
-  try {
-    const positionsPath = path.join(process.cwd(), '../data/company_positions.json')
-    if (fs.existsSync(positionsPath)) {
-      const positionsContent = fs.readFileSync(positionsPath, 'utf8')
-      companyPositions = JSON.parse(positionsContent)
-      console.error('Loaded company positions data for mailing records')
-    }
-  } catch (error) {
-    console.error('Error loading company positions data:', error)
-    // Continue without mailing data
+  const companyPositions: Record<string, { Active?: any }> = {
+    paycom: {
+      Active: {
+        Totals: {
+          Accounts: 3523,
+          Positions: 3523,
+          Rollups: 0,
+        },
+        'Mail Positions': {
+          Fullset: 3523,
+          NAA: 0,
+        },
+        'Suppressed Positions': {
+          Electronic: 0,
+          Household: 0,
+          Consolidated: 0,
+          Canceled: 0,
+        },
+      },
+    },
+    woodward: {
+      Active: {
+        Totals: {
+          Accounts: 906,
+          Positions: 906,
+          Retransmissions: 0,
+        },
+        'Mail Positions': {
+          Fullset: 2,
+          NAA: 23,
+          'Courtesy/Other': 0,
+        },
+        'Suppressed Positions': {
+          Electronic: 790,
+          Household: 1,
+          Managed: 76,
+          Canceled: 0,
+        },
+      },
+    },
+    enliven: {
+      Active: {
+        Totals: {
+          Accounts: 498,
+          Positions: 498,
+          Retransmissions: 0,
+        },
+        'Mail Positions': {
+          Fullset: 0,
+          NAA: 1,
+          'Courtesy/Other': 0,
+        },
+        'Suppressed Positions': {
+          Electronic: 482,
+          Household: 0,
+          Managed: 7,
+          Canceled: 0,
+        },
+      },
+    },
+    wendys: {
+      Active: {
+        Totals: {
+          Accounts: 17954,
+          Positions: 17954,
+          Rollups: 0,
+        },
+        'Mail Positions': {
+          Fullset: 590,
+          NAA: 17364,
+        },
+        'Suppressed Positions': {
+          Electronic: 0,
+          Household: 0,
+          Consolidated: 0,
+          Canceled: 0,
+        },
+      },
+    },
   }
 
   // Load new company CSV data
@@ -933,12 +1001,10 @@ const main = async () => {
         let meetingDateTime: DateTime
         let recordDateTime: DateTime
 
-        if (
-          'useRealDates' in meeting &&
-          meeting.useRealDates
-        ) {
+        if ('useRealDates' in meeting && meeting.useRealDates) {
           // Use real CSV-based dates for 2025 and 2026
-          const realDataSource = yearConfig.year === 2026 ? real2026Meetings : real2025Meetings
+          const realDataSource =
+            yearConfig.year === 2026 ? real2026Meetings : real2025Meetings
           const realData = realDataSource[client.ticker as keyof typeof realDataSource]
 
           if (realData) {
@@ -1482,7 +1548,6 @@ const main = async () => {
       },
     ],
     4: [
-      { title: 'TA Registered File', type: 'File Upload', owner: 'issuer' },
       { title: 'Plan File(s)', type: 'File Upload', owner: 'issuer' },
       {
         title: 'Beneficial Count Settlement',

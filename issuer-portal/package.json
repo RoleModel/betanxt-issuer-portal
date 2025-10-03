@@ -54,6 +54,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.36.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",

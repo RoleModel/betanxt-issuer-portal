@@ -234,7 +234,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         flexDirection: 'column',
         height: isFullscreen ? 'calc(100vh - 8px)' : 'auto',
         transition: 'height 0.2s ease-in-out',
-        zIndex: isFullscreen ? 5000 : 1,
+        zIndex: isFullscreen ? 5000 : 100,
         position: isFullscreen ? 'fixed' : 'relative',
         top: isFullscreen ? 0 : undefined,
         isolation: 'isolate',

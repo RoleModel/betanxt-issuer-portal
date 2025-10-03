@@ -18,9 +18,11 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Link,
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
 
@@ -60,25 +62,22 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
 
   const contacts: ContactInfo[] = meeting
     ? [
-        {
-          role: 'Transfer Agent',
-          contact: isConfirmed
-            ? meeting.transferAgent || ''
-            : showTransferAgentAsUnconfirmed
-              ? 'Not yet confirmed'
-              : meeting.transferAgent || 'Not yet confirmed',
-        },
-        {
-          role: 'Plan Administrator',
-          contact: meeting.planAdministrator || '',
-          email: meeting.planAdministratorContactEmail,
-        },
-        {
-          role: 'Solicitor Contact Info',
-          contact: meeting.solicitor || '',
-          email: meeting.solicitorEmail,
-        },
-      ]
+      {
+        role: 'Transfer Agent',
+        contact: meeting.transferAgent || '',
+        isPlaceholder: Boolean(showTransferAgentAsUnconfirmed), // Only show chip if we have data but it's unconfirmed
+      },
+      {
+        role: 'Plan Administrator',
+        contact: meeting.planAdministrator || '',
+        email: meeting.planAdministratorContactEmail,
+      },
+      {
+        role: 'Solicitor Contact Info',
+        contact: meeting.solicitor || '',
+        email: meeting.solicitorEmail,
+      },
+    ]
     : []
 
   const handleConfirmClick = () => {
@@ -160,13 +159,27 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
                     }}
                   >
                     <Box sx={{ textAlign: 'right' }}>
-                      <Box component="div" mb={contact.email ? 0.5 : 0}>
-                        {contact.contact || '—'}
+                      <Box component="div">
+                        {contact.isPlaceholder ? (
+                          <StatusChip
+                            status="Not yet confirmed"
+                            size="small"
+                            sx={{
+                              fontSize: '0.75rem',
+                              backgroundColor: (theme) => theme.palette.error.dark,
+                              color: (theme) => theme.palette.error.contrastText,
+                            }}
+                          />
+                        ) : (
+                          contact.contact || '—'
+                        )}
                       </Box>
-                      {contact.email && <Box component="div">{contact.email}</Box>}
+                      {contact.email && (
+                        <Link href={`mailto:${contact.email}`}>{contact.email}</Link>
+                      )}
                     </Box>
                     {contact.role === 'Transfer Agent' &&
-                      showTransferAgentAsUnconfirmed && (
+                      contact.isPlaceholder && (
                         <Button
                           variant="text"
                           onClick={handleConfirmClick}

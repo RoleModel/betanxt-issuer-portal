@@ -3,19 +3,41 @@
 // Source: openapi-schema/openapi.yaml
 import { NextResponse } from 'next/server'
 
-export async function GET(): Promise<NextResponse> {
+import { getMailingByMeetingId } from '@/domain-models/api/mailing'
+
+export async function GET(
+  request: Request,
+  { params }: { params: { meetingId: string } }
+): Promise<NextResponse> {
   try {
-    // TODO: Implement getMailingStatistics
-    // Operation: getMailingStatistics
-    // This route was auto-generated from OpenAPI spec
+    const { meetingId } = params
 
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .eq('meetingId', meetingId)
+    if (!meetingId) {
+      return NextResponse.json(
+        {
+          error: 'Bad Request',
+          message: 'meetingId parameter is required',
+          operationId: 'getMailingStatistics',
+        },
+        { status: 400 }
+      )
+    }
 
-    return NextResponse.json([])
+    const result = await getMailingByMeetingId(meetingId)
+
+    if (result.error) {
+      const statusCode = result.error.statusCode || 500
+      return NextResponse.json(
+        {
+          error: statusCode === 404 ? 'Not Found' : 'Internal server error',
+          message: result.error.message,
+          operationId: 'getMailingStatistics',
+        },
+        { status: statusCode }
+      )
+    }
+
+    return NextResponse.json(result.data)
   } catch (error) {
     return NextResponse.json(
       {

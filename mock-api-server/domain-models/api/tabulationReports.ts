@@ -83,16 +83,30 @@ export interface TabulationReport {
   updatedAt: string
 }
 
-// Helper function to safely cast JSONB data
-function safeJsonCast<T>(data: unknown, fallback: T): T {
-  if (data && typeof data === 'object') {
-    return data as T
+// Helper to parse JSONB string fields (Supabase returns some JSONB as strings)
+function parseJsonField<T>(field: unknown, fallback: T): T {
+  if (typeof field === 'string') {
+    try {
+      return JSON.parse(field) as T
+    } catch {
+      return fallback
+    }
+  }
+  if (field && typeof field === 'object') {
+    return field as T
   }
   return fallback
 }
 
 // Transform snake_case database fields to camelCase API fields
 function transformTabulationReport(dbReport: TabulationReportRow): TabulationReport {
+  const positionsVoted = parseJsonField(dbReport.positions_voted, {
+    voted: 0,
+    unvoted: 0,
+    totalShares: 0,
+    votedShares: 0,
+  })
+
   return {
     id: dbReport.id,
     meetingId: dbReport.meeting_id,
@@ -109,7 +123,7 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
     shareRangePerformance: Array.isArray(dbReport.share_range_performance)
       ? dbReport.share_range_performance
       : [],
-    nonDtcVoteStatus: safeJsonCast(dbReport.non_dtc_vote_status, {
+    nonDtcVoteStatus: parseJsonField(dbReport.non_dtc_vote_status, {
       unvotedShareholders: 0,
       unvotedShares: 0,
       printShareholders: 0,
@@ -123,7 +137,7 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
       grandTotalShareholders: 0,
       grandTotalShares: 0,
     }),
-    dtcVoteStatus: safeJsonCast(dbReport.dtc_vote_status, {
+    dtcVoteStatus: parseJsonField(dbReport.dtc_vote_status, {
       unvotedShareholders: 0,
       unvotedShares: 0,
       votedShareholders: 0,
@@ -131,18 +145,18 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
       grandTotalShareholders: 0,
       grandTotalShares: 0,
     }),
-    voteDistribution: safeJsonCast(dbReport.vote_distribution, {
+    voteDistribution: parseJsonField(dbReport.vote_distribution, {
       dtcVotedShares: 0,
       dtcUnvotedShares: 0,
       nonDtcVotedShares: 0,
       nonDtcUnvotedShares: 0,
     }),
-    positionsVoted: safeJsonCast(dbReport.positions_voted, {
-      voted: 0,
-      unvoted: 0,
-      totalShares: 0,
-      votedShares: 0,
-    }),
+    positionsVoted: {
+      voted: positionsVoted.voted || 0,
+      unvoted: positionsVoted.unvoted || 0,
+      totalShares: parseFloat(String(positionsVoted.totalShares)) || 0,
+      votedShares: parseFloat(String(positionsVoted.votedShares)) || 0,
+    },
     lastCalculatedAt: dbReport.last_calculated_at,
     createdAt: dbReport.created_at,
     updatedAt: dbReport.updated_at,

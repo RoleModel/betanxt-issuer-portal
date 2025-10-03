@@ -4,9 +4,19 @@ import { supabase } from '@/utils/supabase/client'
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    // For mock API, we'll bypass auth and use a hardcoded user ID
+    // For mock API, we'll bypass auth and get the first issuer user
     // In production, you would use proper auth here
-    const userId = 'user-1' // Default mock user ID
+    const { data: users } = await supabase
+      .from('user')
+      .select('id')
+      .eq('type', 'ISSUER_USER')
+      .limit(1)
+
+    const userId = users?.[0]?.id
+
+    if (!userId) {
+      return NextResponse.json([], { status: 200 })
+    }
 
     // Get query parameters
     const { searchParams } = new URL(request.url)

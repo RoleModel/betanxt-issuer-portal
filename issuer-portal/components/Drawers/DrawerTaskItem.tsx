@@ -50,7 +50,6 @@ export default function DrawerTaskItem({
   const [isAuthorized, setIsAuthorized] = useState(
     task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
   )
-  onContextMenu
 
   useEffect(() => {
     setIsAuthorized(task.status === 'COMPLETE' || task.status === 'AUTHORIZED')
@@ -82,6 +81,7 @@ export default function DrawerTaskItem({
 
   return (
     <Card
+      onContextMenu={onContextMenu}
       sx={(theme) => {
         const borderColor = isCompleted
           ? 'complete'
