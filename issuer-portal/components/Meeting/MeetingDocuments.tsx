@@ -60,6 +60,11 @@ export default function MeetingDocuments({
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [documentViewerUrl, setDocumentViewerUrl] = useState('')
 
+  // Debug: log when selectedDocumentId changes
+  useEffect(() => {
+    console.log('[MeetingDocuments] selectedDocumentId changed:', selectedDocumentId)
+  }, [selectedDocumentId])
+
   const fetchDocuments = useCallback(async () => {
     if (!meetingId) return
     setLoading(true)
@@ -255,15 +260,20 @@ export default function MeetingDocuments({
         const fileId = `${file.name}-${file.size}`
         const placeholderId = associations?.[fileId]
 
+        let result: string | null = null
         if (
           placeholderId &&
           typeof placeholderId === 'string' &&
           placeholderId.startsWith('placeholder-')
         ) {
           const documentType = placeholderId.replace('placeholder-', '')
-          await uploadDocument(file, documentType, meetingId, file.name)
+          result = await uploadDocument(file, documentType, meetingId, file.name)
         } else {
-          await uploadDocument(file, file.name, meetingId)
+          result = await uploadDocument(file, file.name, meetingId)
+        }
+
+        if (!result) {
+          throw new Error(`Failed to upload ${file.name}`)
         }
       }
       // Small delay to ensure database has been updated
@@ -287,6 +297,11 @@ export default function MeetingDocuments({
       console.error('Document not found:', documentId)
       return
     }
+
+    console.log('[MeetingDocuments] Opening document:', {
+      documentId,
+      document,
+    })
 
     const storagePath = document.filePath || ''
 
@@ -506,7 +521,10 @@ export default function MeetingDocuments({
         onOpenFullscreen={handleOpenFullscreen}
         onAddComment={onAddComment}
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          console.log('[MeetingDocuments] Closing ApprovalDrawer, selectedDocumentId:', selectedDocumentId)
+          setOpen(false)
+        }}
       />
       <DocumentViewer
         open={documentViewerOpen}

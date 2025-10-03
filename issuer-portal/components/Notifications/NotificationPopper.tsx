@@ -91,9 +91,26 @@ const formatNotificationDate = (dateString: string): string => {
 const convertDbNotificationToNotificationData = (
   dbNotification: DbNotification
 ): NotificationData => {
+  // Check if this is a comment notification (from a user, not system)
+  const isCommentNotification = dbNotification.title?.includes('Comment')
+
+  // Extract user name from message for comment notifications
+  // Example: "Michael Chen left a comment..." -> "Michael Chen"
+  let userName = 'System'
+  let userAvatar: string | undefined = undefined
+
+  if (isCommentNotification && dbNotification.message) {
+    const match = dbNotification.message.match(/^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/)
+    if (match) {
+      userName = match[1].trim()
+      // Generate avatar from user name using UI Avatars API
+      userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random&size=32`
+    }
+  }
+
   return {
     id: dbNotification.id || '',
-    user: 'System',
+    user: userName,
     title: dbNotification.title || '',
     date: dbNotification.createdAt
       ? formatNotificationDate(dbNotification.createdAt)
@@ -101,9 +118,9 @@ const convertDbNotificationToNotificationData = (
     message: dbNotification.message || '',
     link: dbNotification.actionUrl || '',
     variant: dbNotification.read ? 'read' : 'unread',
-    avatar: undefined,
+    avatar: userAvatar,
     isSystemNotification:
-      dbNotification.type === 'info' || dbNotification.type === 'success',
+      !isCommentNotification && (dbNotification.type === 'info' || dbNotification.type === 'success'),
   }
 }
 

@@ -8,7 +8,7 @@ import { Tooltip } from '@mui/material'
 // or <NoWrapTableCell sx={{ color: 'red' }}>Some long text</NoWrapTableCell>
 const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({ children, ...props }) => {
   return (
-    <Tooltip placement="top" title={children} arrow>
+    <Tooltip placement="bottom" title={children} arrow>
       <TableCell
         {...props}
         sx={{

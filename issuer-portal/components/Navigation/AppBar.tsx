@@ -75,7 +75,6 @@ const NextImageComponent = React.memo(
         style={style}
         loading="eager"
         priority
-        placeholder="blur"
         blurDataURL={src}
         sizes="(max-width: 600px) 40px, 40px"
       />
@@ -146,7 +145,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
-    (clientName?: string, ticker?: string) => computeClientLogoSrc(clientName, ticker),
+    (clientName?: string, ticker?: string) => computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
     []
   )
 
@@ -277,9 +276,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
-          currentClient?.company_name || currentClient?.short_name,
-          logoTicker
-        )
+        currentClient?.company_name || currentClient?.short_name,
+        logoTicker
+      )
       : '/images/logo.svg'
   }, [
     props.logoSrc,
@@ -293,14 +292,14 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const slotProps = useMemo(() => {
     const isDefaultLogo = logoSrc === '/images/logo.svg'
     const defaultLogoStyles: React.CSSProperties = isDefaultLogo
-      ? { height: 30, width: 120 }
-      : { height: 40, width: 44 }
+      ? { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
+      : { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
 
     return {
       logoImg: {
         src: logoSrc,
         alt: `${logoTicker || 'BetaNXT'} logo`,
-        width: isDefaultLogo ? 120 : 44,
+        width: isDefaultLogo ? 'auto' : 'auto',
         height: isDefaultLogo ? 30 : 40,
         style: defaultLogoStyles,
       },
@@ -314,11 +313,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
     const initials = props.user.name
       ? props.user.name
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
-          .slice(0, 2) // Take only first 2 initials like EditAvatarButton
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
 
     // Use uploaded image if available, otherwise show initials

@@ -468,6 +468,12 @@ const issuerOverrides = {
             lineHeight: 1.2,
             borderColor: theme.vars?.palette?.dataGridCellRow?.border,
           },
+          '& .MuiTableRow-root:last-child': {
+            borderBottom: 'none',
+            '& .MuiTableCell-root': {
+              borderBottom: 'none',
+            },
+          },
           '& .MuiTypography-caption': {
             lineHeight: theme.typography.caption.lineHeight,
           },

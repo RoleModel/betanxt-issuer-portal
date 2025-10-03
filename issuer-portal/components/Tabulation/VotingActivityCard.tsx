@@ -32,21 +32,21 @@ export default function VotingActivityCard({ meetingId }: VotingActivityCardProp
       })
     }
 
-    // Add paper votes if present
+    // Add print votes if present (labeled as "Print" to match CSV data)
     if (votingSummary.votingMethods.paper > 0) {
       methods.push({
-        id: 'paper',
-        label: 'Paper',
+        id: 'print',
+        label: 'Print',
         value: votingSummary.votingMethods.paper,
         color: 'var(--mui-palette-chartSeries-1-main)',
       })
     }
 
-    // Add phone (IVR) votes if present
+    // Add IVR votes if present (labeled as "IVR" to match CSV data)
     if (votingSummary.votingMethods.phone > 0) {
       methods.push({
-        id: 'phone',
-        label: 'Phone',
+        id: 'ivr',
+        label: 'IVR',
         value: votingSummary.votingMethods.phone,
         color: 'var(--mui-palette-chartSeries-2-main)',
       })

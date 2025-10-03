@@ -1,6 +1,6 @@
 'use client'
 
-import router from 'next/router'
+import Link from 'next/link'
 import React from 'react'
 
 import {
@@ -90,11 +90,8 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
                       <Button
                         variant="text"
                         color="info"
-                        onClick={() => {
-                          router.push(
-                            `/${clientTicker}/meeting/${row.meetingId}/dashboard`
-                          )
-                        }}
+                        component={Link}
+                        href={`/clients/${clientTicker}/meetings/${row.meetingId}`}
                       >
                         {row.event}
                       </Button>

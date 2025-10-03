@@ -2329,7 +2329,7 @@ paths:
           description: Filter by notification type
           schema:
             type: string
-            enum: [info, warning, error, success]
+            enum: [info, warning, error, success, unread, read]
         - name: priority
           in: query
           description: Filter by priority level
@@ -2476,40 +2476,50 @@ components:
         id:
           type: string
           format: uuid
+          example: '291cdbe5-192b-50ec-b3ae-3197c9c5103c'
         ticker:
           type: string
           description: Unique ticker symbol for the client
+          example: 'WEN'
         companyName:
           type: string
           description: Full legal name of the company
+          example: "The Wendy's Company"
         shortName:
           type: string
           description: Short display name for the company
+          example: "Wendy's"
         industry:
           type: string
           nullable: true
           description: Industry sector
+          example: 'Restaurants'
         description:
           type: string
           nullable: true
           description: Company description
+          example: 'Leading fast food hamburger chain'
         website:
           type: string
           nullable: true
           description: Company website URL
+          example: 'https://www.wendys.com'
         primaryContact:
           type: string
           nullable: true
           description: Primary contact person
+          example: 'Mike Chen'
         primaryContactEmail:
           type: string
           format: email
           nullable: true
           description: Primary contact email
+          example: 'mike.chen@wendys.com'
         isActive:
           type: boolean
           default: true
           description: Whether the client is active
+          example: true
         brandingId:
           type: integer
           nullable: true
@@ -2528,25 +2538,32 @@ components:
         id:
           type: string
           format: uuid
+          example: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab'
         username:
           type: string
+          example: 'lisa.rodriguez'
         firstName:
           type: string
+          example: 'Lisa'
         lastName:
           type: string
+          example: 'Rodriguez'
         email:
           type: string
           format: email
+          example: 'lisa.rodriguez@paycom.com'
         password:
           type: string
           nullable: true
           description: 'Legacy password field for seed data - not used with NextAuth'
         type:
           $ref: '#/components/schemas/UserType'
+          example: 'ISSUER'
         accountId:
           type: string
           format: uuid
           nullable: true
+          example: 'fe3ad07a-80a7-59a0-a253-9083d6d4c02c'
         account:
           $ref: '#/components/schemas/Account'
         avatar_url:
@@ -2554,23 +2571,23 @@ components:
           format: uri
           nullable: true
           description: URL of the user's profile photo stored in Supabase Storage
-          example: https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
+          example: https://example.supabase.co/storage/v1/object/public/user-avatars/b1f5062a-09b6-5dc1-b18c-3800c5930eab.jpg
 
     Meeting:
       type: object
       properties:
         id:
           type: string
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: 'wen-annual-meeting-2026'
         title:
           type: string
-          example: '2025 Annual Shareholder Meeting'
+          example: 'Annual Meeting'
         cusip:
           type: string
-          example: '12345A678'
+          example: '95058W100'
         ticker:
           type: string
-          example: 'ACME'
+          example: 'WEN'
         preFilingDate:
           type: string
           format: date
@@ -2723,40 +2740,41 @@ components:
         id:
           type: string
           format: uuid
-          example: '22222222-3333-4444-5555-666666666666'
+          example: '81c351e9-36cd-5528-b5a4-f48b2fe05bd6'
         taskId:
           type: string
-          example: 'T001'
+          example: 'wen-annual-meeting-2026-P1-1'
         phaseId:
           type: string
           format: uuid
           example: '11111111-2222-3333-4444-555555555555'
         meetingId:
           type: string
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: 'wen-annual-meeting-2026'
         phaseNumber:
           type: integer
           example: 1
         title:
           type: string
-          example: 'Prepare proxy statement'
+          example: 'DTCC (SPR) Authorization Status'
         description:
           type: string
           nullable: true
-          example: 'Draft and review the preliminary proxy statement for the annual meeting'
+          example: 'Check and confirm authorization status with DTCC for shareholder proxy record access.'
         type:
           type: string
-          example: 'DOCUMENT_PREPARATION'
+          example: 'Authorization'
         status:
           $ref: '#/components/schemas/TaskStatus'
+          example: 'NEEDS_AUTHORIZATION'
         dueDate:
           type: string
           format: date
           nullable: true
-          example: '2025-03-15'
+          example: '2025-12-22'
         owner:
           type: string
-          example: 'Legal Team'
+          example: "The Wendy's Company"
         documentId:
           type: string
           format: uuid
@@ -2899,39 +2917,44 @@ components:
         id:
           type: string
           format: uuid
-          example: '44444444-5555-6666-7777-888888888888'
+          example: '90953927-6e41-5c55-be8b-a690299746ad'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: 'wen-annual-meeting-2026'
         cusip:
           type: string
-          example: '12345A678'
+          example: '95058W100'
         accountType:
           type: string
-          example: 'BENEFICIAL'
+          example: 'DTC/CDS'
         setKey:
           type: string
-          example: 'BEN001'
+          example: 'WEN12026'
         name:
           type: string
-          example: 'VANGUARD GROUP INC'
+          example: 'CEDE & CO M C/O DTCC'
         accountNumber:
           type: string
           nullable: true
+          example: null
         controlNumber:
           type: string
           nullable: true
+          example: null
         voteStatus:
           type: string
           enum: [Voted, Unvoted]
+          example: 'Unvoted'
         shares:
           type: number
           format: double
+          example: 132463881.0
         sharesVoted:
           type: number
           format: double
+          example: 0
         source:
           type: string
           nullable: true
@@ -2952,30 +2975,30 @@ components:
         id:
           type: string
           format: uuid
-          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
+          example: 'be601464-c593-5d74-b6f6-c14152132103'
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: 'wen-annual-meeting-2026'
         proposalNumber:
           type: number
           format: double
           example: 1.01
         proposalTitle:
           type: string
-          example: 'Election of Directors'
+          example: 'Arthur B. Winkleblack'
         proposalType:
           type: string
-          example: 'DIRECTOR_ELECTION'
+          example: 'Director Election'
         proposalSubtype:
           type: string
           nullable: true
-          example: 'BOARD_MEMBER'
+          example: null
         directorName:
           type: string
           nullable: true
-          example: 'John A. Smith'
+          example: 'Arthur B. Winkleblack'
         directorTermYears:
           type: integer
           nullable: true
@@ -3820,44 +3843,57 @@ components:
         id:
           type: string
           format: uuid
+          example: '389e5e4b-10e5-5eed-8047-3da0e36f051b'
         title:
           type: string
+          example: 'Your Event Has Been Created'
         message:
           type: string
+          example: 'Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.'
         type:
           type: string
           enum: [info, warning, error, success]
+          example: 'success'
         priority:
           type: string
           enum: [low, medium, high, critical]
+          example: 'high'
         read:
           type: boolean
           default: false
+          example: false
         userId:
           type: string
           format: uuid
+          example: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab'
         meetingId:
           type: string
           format: uuid
           nullable: true
+          example: 'wen-annual-meeting-2026'
         taskId:
           type: string
           format: uuid
           nullable: true
+          example: null
         actionUrl:
           type: string
           nullable: true
+          example: '/WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201'
         createdAt:
           type: string
           format: date-time
+          example: '2025-10-01T21:48:48.724Z'
         readAt:
           type: string
           format: date-time
           nullable: true
+          example: null
         expiresAt:
           type: string
           format: date-time
           nullable: true
+          example: null
 
     Mailing:
       type: object

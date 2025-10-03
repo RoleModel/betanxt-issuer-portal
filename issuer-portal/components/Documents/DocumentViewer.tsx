@@ -734,10 +734,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               file,
               documentIdForUpload,
               meetingId,
-              documentTitle
+              documentTitle,
+              task?.id
             )
-            if (uploadPath === null) {
-              throw new Error('Document upload failed - no path returned')
+            if (!uploadPath) {
+              throw new Error(
+                'Unable to save signed document. Please try again or contact support if the issue persists.'
+              )
             }
           } catch (uploadError) {
             throw uploadError

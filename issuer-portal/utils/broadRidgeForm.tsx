@@ -379,7 +379,7 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
           </View>
           <View style={styles.signatureColumn}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Click to sign</Text>
+            <Text style={styles.signatureLabel}>Signature</Text>
           </View>
           <View style={styles.signatureColumn}>
             <View style={styles.signatureLine} />

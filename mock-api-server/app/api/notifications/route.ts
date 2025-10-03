@@ -9,7 +9,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const { data: users } = await supabase
       .from('user')
       .select('id')
-      .eq('type', 'ISSUER_USER')
+      .eq('type', 'ISSUER')
       .limit(1)
 
     const userId = users?.[0]?.id

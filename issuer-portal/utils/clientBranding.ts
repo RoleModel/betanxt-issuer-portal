@@ -20,11 +20,15 @@ export const computeClientLogoBase = (clientName?: string, ticker?: string): str
 export const computeClientLogoSrc = (
   clientName?: string,
   ticker?: string,
-  defaultSrc = '/images/logo.svg'
+  defaultSrc = '/images/logo.svg',
+  suffix?: string
 ): string => {
   const base = computeClientLogoBase(clientName, ticker)
   // Prefer SVG for UI usage
-  if (base.startsWith('/logos/')) return `${base}.svg`
+  if (base.startsWith('/logos/')) {
+    const basePath = suffix ? `${base}${suffix}` : base
+    return `${basePath}.svg`
+  }
   return defaultSrc
 }
 

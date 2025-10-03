@@ -139,7 +139,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           valueFormatter: (value) => `${value}%`,
         },
       ]}
-      height={300}
+      height={320}
       margin={{ left: 10, right: 60, top: 10, bottom: 0 }}
     >
       <ChartsSurface>

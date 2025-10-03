@@ -1,6 +1,6 @@
 'use client'
 
-import router from 'next/router'
+import Link from 'next/link'
 import React from 'react'
 
 import {
@@ -104,11 +104,8 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                         <Button
                           variant="text"
                           color="info"
-                          onClick={() => {
-                            router.push(
-                              `/${clientTicker}/meeting/${row.meetingId}/dashboard`
-                            )
-                          }}
+                          component={Link}
+                          href={`/clients/${clientTicker}/events/${row.meetingId}`}
                         >
                           {displayTitle}
                         </Button>

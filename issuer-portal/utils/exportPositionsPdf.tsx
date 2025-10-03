@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   // Column widths (percentages)
-  col1: { width: '10%' }, // CUSIP
+  col1: { width: '8%' }, // CUSIP
   col2: { width: '8%' }, // Account Type
   col3: { width: '5%' }, // Set Key
   col4: { width: '20%' }, // Name
-  col5: { width: '8%' }, // Account #
-  col6: { width: '5%' }, // Vote Status
+  col5: { width: '12%' }, // Account #
+  col6: { width: '8%' }, // Vote Status
   col7: { width: '8%' }, // Control #
   col8: { width: '5%' }, // Shares
   col9: { width: '10%' }, // Shares Voted
@@ -255,12 +255,12 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
             <Text style={[styles.headerCell, styles.col3]}>Set Key</Text>
             <Text style={[styles.headerCell, styles.col4]}>Name</Text>
             <Text style={[styles.headerCell, styles.col5]}>Account #</Text>
-            <Text style={[styles.headerCell, styles.col6]}>Vote Status</Text>
             <Text style={[styles.headerCell, styles.col7]}>Control #</Text>
             <Text style={[styles.headerCell, styles.cellRight, styles.col8]}>Shares</Text>
             <Text style={[styles.headerCell, styles.cellRight, styles.col9]}>
               Shares Voted
             </Text>
+            <Text style={[styles.headerCell, styles.col6]}>Vote Status</Text>
             <Text style={[styles.headerCell, styles.col10]}>Source</Text>
             <Text style={[styles.headerCell, styles.col11]}>Date Voted</Text>
             <Text style={[styles.headerCell, styles.cellRight, styles.col12]}>
@@ -279,7 +279,6 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
               <Text style={[styles.cell, styles.col3]}>{position.setKey}</Text>
               <Text style={[styles.cell, styles.col4]}>{position.name}</Text>
               <Text style={[styles.cell, styles.col5]}>{position.accountNumber}</Text>
-              <Text style={[styles.cell, styles.col6]}>{position.voteStatus}</Text>
               <Text style={[styles.cell, styles.col7]}>{position.controlNumber}</Text>
               <Text style={[styles.cell, styles.col8, styles.cellRight]}>
                 {formatNumber(position.shares)}
@@ -287,6 +286,7 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
               <Text style={[styles.cell, styles.col9, styles.cellRight]}>
                 {formatNumber(position.sharesVoted)}
               </Text>
+              <Text style={[styles.cell, styles.col6]}>{position.voteStatus}</Text>
               <Text style={[styles.cell, styles.col10]}>{position.source}</Text>
               <Text style={[styles.cell, styles.col11]}>
                 {formatDate(position.dateVoted)}
@@ -327,9 +327,8 @@ export async function exportPositionsToPdf(options: ExportOptions) {
     // Create download link and trigger download
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
-    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Positions_${
-      new Date().toISOString().split('T')[0]
-    }.pdf`
+    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Positions_${new Date().toISOString().split('T')[0]
+      }.pdf`
     link.href = url
     link.download = fileName
     document.body.appendChild(link)

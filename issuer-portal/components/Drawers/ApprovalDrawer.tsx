@@ -109,7 +109,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       setComment('')
       // Don't clear comments here - they will be loaded in the next useEffect
       // Use passed documentId or generate one for the session
-      setCurrentDocumentId(documentId || `temp-doc-${Date.now()}`)
+      const docId = documentId || `temp-doc-${Date.now()}`
+      setCurrentDocumentId(docId)
     }
   }, [open, documentId])
 
@@ -270,9 +271,12 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
         }) + ', Today'
       )
     } else {
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
       })
     }
   }
@@ -624,13 +628,19 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             })()}
           </Box>
         </Box>
-        {/* Approve Button - only show if not already approved/complete */}
+        {/* Approve Button - only show for documents that need approval */}
         {!showComments &&
           !showHistory &&
           taskStatus !== 'Complete' &&
           taskStatus !== 'COMPLETE' &&
           taskStatus !== 'Approved' &&
-          taskStatus !== 'APPROVED' && (
+          taskStatus !== 'APPROVED' &&
+          taskStatus !== 'Awaiting Review' &&
+          taskStatus !== 'AWAITING_REVIEW' &&
+          taskStatus !== 'Signed' &&
+          taskStatus !== 'SIGNED' &&
+          taskStatus !== 'Uploaded' &&
+          taskStatus !== 'UPLOADED' && (
             <Box
               sx={(theme) => ({
                 p: 1,
@@ -638,7 +648,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 display: 'flex',
                 justifyContent: 'end',
                 borderTop: `1px solid ${theme.vars.palette.divider}`,
-                background: theme.vars.palette.background.paper,
               })}
             >
               <Button

@@ -61,6 +61,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       }
 
       const allDocuments = data as Document[]
+      console.log('All documents from API:', allDocuments)
 
       // Separate DSM documents from regular documents
       const dsm = allDocuments.filter((doc) => {
@@ -109,6 +110,8 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         return true
       })
 
+      console.log('Regular documents:', regular)
+      console.log('DSM documents:', dsm)
       setDocuments(regular)
       setDsmDocuments(dsm)
     } catch (err) {

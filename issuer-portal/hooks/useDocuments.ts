@@ -427,7 +427,8 @@ export const useDocuments = (): UseDocumentsResult => {
           }
 
           const result = await response.json()
-          return result.id || result.storagePath || 'success'
+          // Response is the Document object with id, not ApiResponse wrapper
+          return result?.id || result?.storagePath || null
         }
 
         // Convert file to base64 for legacy document updates

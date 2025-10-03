@@ -81,7 +81,7 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   return (
     <Box>
       <LineChart
-        height={300}
+        height={320}
         series={[
           {
             data: forVotes,

@@ -53,12 +53,29 @@ export async function POST(
     // Broadridge forms need authorization, not just signature
     const needsAuthorization = documentType === 'broadridge-form'
 
+    // Check if proxy materials should require review (controlled by env var)
+    const requireProxyReview = process.env.NEXT_PUBLIC_REQUIRE_PROXY_REVIEW === 'true'
+
+    // Proxy materials need review before approval (if enabled)
+    const needsReview =
+      requireProxyReview &&
+      (documentType === 'proxy-card' ||
+        documentType === 'draft-proxy-statement' ||
+        documentType === 'proxy-statement' ||
+        documentType === 'notice-access-form' ||
+        documentType === 'notice-and-access' ||
+        title?.toLowerCase().includes('proxy card') ||
+        title?.toLowerCase().includes('proxy statement') ||
+        title?.toLowerCase().includes('notice'))
+
     // Set status based on document type
     const documentStatus = needsAuthorization
       ? 'PENDING_AUTHORIZATION'
       : isSignedDocument
         ? 'SIGNED'
-        : 'UPLOADED'
+        : needsReview
+          ? 'AWAITING_REVIEW'
+          : 'UPLOADED'
 
     // Generate deterministic-ish unique path
     const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'

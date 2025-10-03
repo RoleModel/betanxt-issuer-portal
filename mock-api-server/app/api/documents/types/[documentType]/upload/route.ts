@@ -88,12 +88,20 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Document created but no data returned' },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
+    console.error('[Upload Route Error]:', error)
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Internal server error',
+        details: error instanceof Error ? error.stack : 'Unknown error',
         operationId: 'uploadDocumentVersion',
       },
       { status: 500 }

@@ -161,6 +161,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   // FileUploadDialog state
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedDsmDocument, setSelectedDsmDocument] = useState<Document | null>(null)
+  const [uploadSource, setUploadSource] = useState<'regular' | 'dsm'>('regular')
 
   // DocumentViewer state for fullscreen view
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
@@ -284,12 +285,19 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   }
 
   const handleUpload = () => {
+    setUploadSource('regular')
+    setUploadDialogOpen(true)
+  }
+
+  const handleDsmUpload = () => {
+    setUploadSource('dsm')
     setUploadDialogOpen(true)
   }
 
   const handleUploadDialogClose = () => {
     setUploadDialogOpen(false)
     setSelectedDsmDocument(null) // Clear selected document when closing
+    setUploadSource('regular') // Reset to default
   }
 
   // Parse Excel/CSV file for agenda proposals
@@ -369,7 +377,10 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     files: File[],
     associations?: { [fileId: string]: string }
   ) => {
-    if (!currentMeeting?.id) return
+    if (!currentMeeting?.id) {
+      console.error('No current meeting ID')
+      return
+    }
     try {
       // Check if this is an Agenda upload with Excel/CSV file
       const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
@@ -391,10 +402,15 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         setUploadDialogOpen(false)
         setSelectedDsmDocument(null)
       } else {
+        // Determine document type based on upload source
+        const documentType = uploadSource === 'dsm' ? 'dsm-document' : 'general-document'
         // Upload as document
-        await uploadDocument(currentMeeting.id, files, 'dsm-document', associations)
+        await uploadDocument(currentMeeting.id, files, documentType, associations)
       }
-    } catch {
+      setUploadDialogOpen(false)
+      setSelectedDsmDocument(null)
+    } catch (error) {
+      console.error('Upload error:', error)
       // Error is already handled by the context
     }
   }
@@ -538,8 +554,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                                 status === 'UNKNOWN'
                                   ? 'Unknown'
                                   : getDocumentStatusLabel(
-                                      (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                                    )
+                                    (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                  )
                               return (
                                 <MenuItem key={status} value={status}>
                                   {label}
@@ -575,12 +591,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     dsmRowsPerPage={dsmRowsPerPage}
                     dsmEmptyRows={dsmEmptyRows}
                     dsmProgress={dsmProgress}
-                    onUpload={handleUpload}
+                    onUpload={handleDsmUpload}
                     onPageChange={handleDsmChangePage}
                     onRowsPerPageChange={handleDsmChangeRowsPerPage}
                     onOpenDocument={handleDocumentAction}
                     onOpenUploadFor={(doc) => {
                       setSelectedDsmDocument(doc)
+                      setUploadSource('dsm')
                       setUploadDialogOpen(true)
                     }}
                     placeholders={[
@@ -626,10 +643,11 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onClose={handleApprovalDrawerClose}
           title={selectedDocument.title || 'Document'}
           fileUrl={getStoragePublicUrl(selectedDocument.filePath || '')}
+          documentId={selectedDocument.id}
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => {}}
+          onAddComment={() => { }}
         />
       )}
 
