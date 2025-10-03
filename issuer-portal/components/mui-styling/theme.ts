@@ -3,7 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -18,6 +18,8 @@ import {
 } from '@mui/material/colors'
 import { Theme, createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
+// Import MUI X Date Pickers theme augmentation
+import type { } from '@mui/x-date-pickers/themeAugmentation'
 
 export interface LayoutVars {
   navbarHeight: number
@@ -476,6 +478,63 @@ const issuerOverrides = {
               ...theme.typography.caption,
               borderBottom: 'none',
             },
+          },
+        }),
+      },
+    },
+    // MUI X Date Pickers styling
+    MuiPickersLayout: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          backgroundColor: theme.vars.palette.background.paper,
+        }),
+        contentWrapper: ({ theme }: { theme: Theme }) => ({
+          backgroundColor: theme.vars.palette.background.paper,
+        }),
+      },
+    },
+    MuiMultiSectionDigitalClock: {
+      styleOverrides: {
+        root: {
+          width: 'auto !important',
+          maxHeight: 'none !important',
+          flexDirection: 'row !important', // Override the column layout
+          margin: '0 !important',
+        },
+      },
+    },
+    MuiDateTimePicker: {
+      defaultProps: {
+        // Ensure desktop mode is properly set
+        desktopModeMediaQuery: '@media (min-width:900px)',
+      },
+    },
+    MuiDesktopDateTimePicker: {
+      defaultProps: {
+        // Force proper desktop behavior
+        OpenPickerButtonProps: {
+          edge: 'end',
+        },
+      },
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          '& .MuiInputBase-root': {
+            backgroundColor: theme.vars.palette.inputOutlinedEnabledFill,
+          },
+        }),
+      },
+    },
+    MuiPickersTextField: {
+      defaultProps: {
+        variant: 'outlined' as const,
+      },
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          '& .MuiInputLabel-outlined.Mui-focused': {
+            color: theme.vars.palette.primary.main,
+          },
+          '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.vars.palette.primary.main,
           },
         }),
       },
