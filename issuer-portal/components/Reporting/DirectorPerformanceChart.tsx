@@ -100,7 +100,7 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
       }}
     >
       <BarChart
-        height={300}
+        height={320}
         layout="horizontal"
         series={[
           {

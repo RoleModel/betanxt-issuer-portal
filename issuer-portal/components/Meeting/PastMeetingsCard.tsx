@@ -216,9 +216,10 @@ export default function PastMeetingsCard({
               }
             }
 
-            const positions = Array.isArray(positionsResult.data)
-              ? (positionsResult.data as components['schemas']['Position'][])
-              : []
+            const positionsData = positionsResult.data as
+              | { positions?: components['schemas']['Position'][] }
+              | undefined
+            const positions = positionsData?.positions || []
             const metrics = computeParticipationMetrics(meeting, positions)
 
             return {

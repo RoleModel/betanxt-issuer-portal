@@ -496,16 +496,21 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                     )}
                     {option.value !== undefined && option.onChange && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Switch
-                          checked={option.value}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            option.onChange!(e.target.checked)
-                          }
-                          disabled={!isEditMode}
-                        />
-                        <Typography variant="body3">
-                          {option.value ? 'Yes' : 'No'}
-                        </Typography>
+                        {isEditMode ? (
+                          <>
+                            <Switch
+                              checked={option.value}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                option.onChange!(e.target.checked)
+                              }
+                            />
+                            <Typography variant="body3">Yes</Typography>
+                          </>
+                        ) : (
+                          <Typography variant="body3">
+                            {option.value ? 'Yes' : 'No'}
+                          </Typography>
+                        )}
                       </Box>
                     )}
                   </Box>

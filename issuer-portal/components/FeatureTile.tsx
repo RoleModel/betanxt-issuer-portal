@@ -156,7 +156,7 @@ export function FeatureTile({
             fontFamily: brandFont
               ? 'var(--font-tungsten)'
               : 'var(--font-roboto-condensed)',
-            fontWeight: 600,
+            fontWeight: 500,
             color: variantStyles.color,
           }}
         >

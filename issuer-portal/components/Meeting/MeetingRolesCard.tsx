@@ -304,13 +304,20 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                         gap: 1,
                       }}
                     >
-                      <Switch
-                        checked={item.value || false}
-                        onChange={(e) => handleToggle(item.label, e.target.checked)}
-                        size="small"
-                        disabled={!isEditMode}
-                      />
-                      <Typography variant="body3">Yes</Typography>
+                      {isEditMode ? (
+                        <>
+                          <Switch
+                            checked={item.value || false}
+                            onChange={(e) => handleToggle(item.label, e.target.checked)}
+                            size="small"
+                          />
+                          <Typography variant="body3">Yes</Typography>
+                        </>
+                      ) : (
+                        <Typography variant="body3">
+                          {item.value ? 'Yes' : 'No'}
+                        </Typography>
+                      )}
                     </Box>
                   )}
 

@@ -71,7 +71,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   const indices = years.map((_, i) => i)
 
   return (
-    <Box height={300} width="100%">
+    <Box height={400} width="100%">
       <BarChart
         dataset={undefined}
         grid={{ horizontal: true, vertical: true }}
@@ -96,7 +96,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
             color: 'var(--mui-palette-chartSeries-4-main)',
           },
         ]}
-        height={300}
+        height={400}
       />
     </Box>
   )
