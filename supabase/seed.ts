@@ -2744,6 +2744,90 @@ const main = async () => {
             `${sqlValue(createdAt)});`
         )
       })
+
+      // Generate Non-DTC positions from vote status summary if available
+      const voteStatusSummary = isWendys
+        ? wendysData?.voteStatusSummary
+        : isEnliven
+          ? enlivenData?.voteStatusSummary
+          : isPaycom
+            ? paycomData?.voteStatusSummary
+            : isWoodward
+              ? woodwardData?.voteStatusSummary
+              : null
+
+      if (voteStatusSummary?.nonDtcSummary && meetingPhase >= 6) {
+        const summary = voteStatusSummary.nonDtcSummary
+        const totalVotedShares = summary.votedSubtotalShares || 0
+
+        if (totalVotedShares > 0) {
+          // Create positions for each voting method
+          const votingMethods = [
+            { source: 'PRINT', shares: summary.printShares, shareholders: summary.printShareholders },
+            { source: 'IVR', shares: summary.ivrShares, shareholders: summary.ivrShareholders },
+            { source: 'WEB', shares: summary.webShares, shareholders: summary.webShareholders },
+          ]
+
+          votingMethods.forEach((method, methodIndex) => {
+            if (method.shares > 0 && method.shareholders > 0) {
+              const sharesPerShareholder = method.shares / method.shareholders
+              const shareholdersToCreate = Math.min(method.shareholders, 100) // Limit to avoid too many positions
+
+              for (let i = 0; i < shareholdersToCreate; i++) {
+                const positionId = copycat.uuid(`position-nondtc-${meetingId}-${method.source}-${i}`)
+                positionIds.push(positionId)
+                positionToMeetingMap[positionId] = meetingId
+
+                const shares = i === shareholdersToCreate - 1
+                  ? method.shares - (sharesPerShareholder * (shareholdersToCreate - 1)) // Last position gets remainder
+                  : sharesPerShareholder
+
+                const holderName = copycat.fullName(`nondtc-${meetingId}-${method.source}-${i}`).toUpperCase()
+                const controlNumber = `N${method.source}${String(i + 1).padStart(5, '0')}`
+
+                const meetingDateString = meetingToDate[meetingId]
+                const meetingDate = meetingDateString
+                  ? DateTime.fromISO(meetingDateString)
+                  : DateTime.now()
+
+                const daysBefore = method.source === 'WEB' ? 5 + (i % 20) : method.source === 'PRINT' ? 15 + (i % 10) : 10 + (i % 12)
+                const dateVoted = meetingDate
+                  .minus({ days: daysBefore })
+                  .toFormat('MM/dd/yyyy hh:mma')
+                  .toUpperCase()
+
+                sqlStatements.push(
+                  `INSERT INTO "position"(` +
+                    `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+                    `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
+                    `created_at, updated_at) VALUES (` +
+                    `${sqlValue(positionId)}, ` +
+                    `${sqlValue(meetingId)}, ` +
+                    `${sqlValue(account.cusip)}, ` +
+                    `${sqlValue('Non-DTC')}, ` +
+                    `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
+                    `${sqlValue(holderName)}, ` +
+                    `NULL, ` +
+                    `${sqlValue('Voted')}, ` +
+                    `${sqlValue(controlNumber)}, ` +
+                    `${shares.toFixed(6)}, ` +
+                    `${shares.toFixed(6)}, ` +
+                    `${sqlValue(method.source)}, ` +
+                    `${sqlValue(dateVoted)}, ` +
+                    `${sqlValue(createdAt)}, ` +
+                    `${sqlValue(createdAt)});`
+                )
+
+                positionVoteMeta[positionId] = {
+                  meetingId,
+                  shares,
+                  sharesVoted: shares,
+                }
+              }
+            }
+          })
+        }
+      }
     } else {
       const totalSharesValue = Number(account.totalSharesOutstanding ?? 0)
       const totalSharesOutstanding =

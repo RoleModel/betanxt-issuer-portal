@@ -40,9 +40,10 @@ const normalizePosition = (value: unknown): Position | null => {
   const record = asRecord(value)
   if (!record) return null
 
+  // API returns snake_case from PostgREST
   return {
-    accountType: toStringValue(record.accountType),
-    voteStatus: toStringValue(record.voteStatus),
+    accountType: toStringValue(record.account_type ?? record.accountType),
+    voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
     shares: toFiniteNumber(record.shares),
   }
 }
@@ -114,17 +115,21 @@ export default function BeneficialVsRegisteredCard({
   }, [meetingId])
 
   const chartData = useMemo(() => {
-    const nonDtcVoted = positions
+    // Beneficial = Non-DTC (beneficial shareholders voting through brokers)
+    // Based on wendys_non_dtc_vote_status.csv
+    const beneficialVoted = positions
       .filter((p) => p.accountType === 'Non-DTC' && p.voteStatus === 'Voted')
       .reduce((sum, p) => sum + p.shares, 0)
 
-    const dtcVoted = positions
+    // Registered = DTC/CDS (registered holders/participants)
+    // Based on wendys_dtc_vote_status.csv
+    const registeredVoted = positions
       .filter((p) => p.accountType === 'DTC/CDS' && p.voteStatus === 'Voted')
       .reduce((sum, p) => sum + p.shares, 0)
 
     return {
-      beneficial: nonDtcVoted,
-      registered: dtcVoted,
+      beneficial: beneficialVoted,
+      registered: registeredVoted,
     }
   }, [positions])
 
