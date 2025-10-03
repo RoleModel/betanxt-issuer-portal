@@ -3,6 +3,7 @@
 import PresentationBoardIcon from '@rolemodel/betanxt-design-system/components/icons/brand/PresentationBoardIcon'
 import TeamPresentationIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamPresentationIcon'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
 import {
@@ -20,7 +21,6 @@ import DigitalShareholderMeetingCard from '@/components/Meeting/DigitalSharehold
 import ScheduleDialog from '@/components/Meeting/ScheduleDialog'
 
 import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
@@ -28,7 +28,6 @@ import type { Meeting } from '@/types/api-exports'
 import TabulationReportCard from '../Tabulation/TabulationReportCard'
 import KeyDatesCard from './KeyDatesCard'
 
-type DSMConfig = components['schemas']['DSMConfig']
 
 // Dynamic imports for heavy components
 const VotingTabulationTable = dynamic(
@@ -68,6 +67,7 @@ export default React.memo(function Phase7Layout({
   meetingId,
   meeting,
 }: Phase7LayoutProps) {
+  const router = useRouter()
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId)
   const [scheduledLogistics, setScheduledLogistics] = useState(false)
   const [scheduledDryRun, setScheduledDryRun] = useState(false)
@@ -208,8 +208,7 @@ export default React.memo(function Phase7Layout({
               action={
                 <Button
                   variant="outlined"
-                  onClick={() => {}}
-                  sx={{ textTransform: 'none' }}
+                  onClick={() => { router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`) }}
                 >
                   View Tabulation
                 </Button>
@@ -239,7 +238,7 @@ export default React.memo(function Phase7Layout({
               titleVariant="h1"
               actionText="Download"
               variant="default"
-              onClick={() => {}}
+              onClick={() => { }}
             />
             <TabulationReportCard />
           </Stack>

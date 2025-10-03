@@ -3,6 +3,9 @@
 import { useParams } from 'next/navigation'
 import React, { useMemo } from 'react'
 
+// This page uses dynamic params and should not be statically generated
+export const dynamic = 'force-dynamic'
+
 import { Box, Container, Typography } from '@mui/material'
 
 // Dynamically load heavy phase layouts & tracker to reduce initial JS

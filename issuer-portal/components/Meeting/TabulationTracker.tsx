@@ -343,12 +343,17 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
 
       setLoading(true)
       try {
+        const meetingId = currentMeeting.id
+        const meetingTitle = currentMeeting.title || ''
+        const meetingDate = currentMeeting.meetingDate || ''
+        const meetingStatus = currentMeeting.status || ''
+
         const apiClient = await buildApiClient()
         const { data: tabulationReport, error } = await apiClient.GET(
           '/meetings/{meetingId}/tabulation-report',
           {
             params: {
-              path: { meetingId: currentMeeting.id },
+              path: { meetingId },
             },
           }
         ) as { data?: TabulationReport; error?: unknown }
@@ -370,9 +375,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           const phoneVotes = nonDtc?.ivrShareholders || 0
 
           setData({
-            meeting_id: currentMeeting.id || '',
-            meeting_title: currentMeeting.title || '',
-            meeting_date: currentMeeting.meetingDate || '',
+            meeting_id: meetingId,
+            meeting_title: meetingTitle,
+            meeting_date: meetingDate,
             total_positions: totalPositions,
             positions_voted: votedPositions,
             total_shares: totalShares.toString(),
@@ -382,13 +387,13 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             web_votes: webVotes,
             paper_votes: paperVotes,
             phone_votes: phoneVotes,
-            status: currentMeeting.status || '',
+            status: meetingStatus,
           })
         } else {
           // Fallback to positions-based calculation when tabulation report doesn't exist
           try {
             const positionsResult = await apiClient.GET('/positions', {
-              params: { query: { meetingId: currentMeeting.id } },
+              params: { query: { meetingId } },
             }) as { data?: { positions?: Position[] }; error?: unknown }
 
             const positions = positionsResult.data?.positions
@@ -410,9 +415,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               // Using fallback calculation based on positions data
 
               setData({
-                meeting_id: currentMeeting.id || '',
-                meeting_title: currentMeeting.title || '',
-                meeting_date: currentMeeting.meetingDate || '',
+                meeting_id: meetingId,
+                meeting_title: meetingTitle,
+                meeting_date: meetingDate,
                 total_positions: totalPositions,
                 positions_voted: votedPositions,
                 total_shares: totalShares.toString(),
@@ -422,14 +427,14 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 web_votes: webVotes,
                 paper_votes: paperVotes,
                 phone_votes: phoneVotes,
-                status: currentMeeting.status || '',
+                status: meetingStatus,
               })
             } else {
               // Empty data if no positions available either
               setData({
-                meeting_id: currentMeeting.id || '',
-                meeting_title: currentMeeting.title || '',
-                meeting_date: currentMeeting.meetingDate || '',
+                meeting_id: meetingId,
+                meeting_title: meetingTitle,
+                meeting_date: meetingDate,
                 total_positions: 0,
                 positions_voted: 0,
                 total_shares: '0',
@@ -439,16 +444,16 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 web_votes: 0,
                 paper_votes: 0,
                 phone_votes: 0,
-                status: currentMeeting.status || '',
+                status: meetingStatus,
               })
             }
           } catch (fallbackError) {
             console.error('Fallback positions calculation failed:', fallbackError)
             // Final fallback to empty data
             setData({
-              meeting_id: currentMeeting.id || '',
-              meeting_title: currentMeeting.title || '',
-              meeting_date: currentMeeting.meetingDate || '',
+              meeting_id: meetingId,
+              meeting_title: meetingTitle,
+              meeting_date: meetingDate,
               total_positions: 0,
               positions_voted: 0,
               total_shares: '0',
@@ -458,7 +463,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               web_votes: 0,
               paper_votes: 0,
               phone_votes: 0,
-              status: currentMeeting.status || '',
+              status: meetingStatus,
             })
           }
         }
@@ -470,7 +475,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     }
 
     fetchTabulationData()
-  }, [currentMeeting?.id, currentMeeting?.status, currentMeeting?.title, currentMeeting?.meetingDate])
+    // Only depend on meeting ID - extract other values inside effect to avoid re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMeeting?.id])
 
   // Calculate progress data - only show actual voting data in phase 6+
   // Check both phase data and meeting.currentPhase (which should be "Phase 6" for the WEN special meeting)
