@@ -240,6 +240,27 @@ export default function MeetingDocuments({
     }
   }, [meetingId, fetchDocuments])
 
+  // Listen for document uploads from other components (like TaskDrawer)
+  useEffect(() => {
+    const handleDocumentsUploaded = (event: CustomEvent<{ meetingId: string }>) => {
+      if (event.detail.meetingId === meetingId) {
+        fetchDocuments()
+      }
+    }
+
+    window.addEventListener(
+      'documentsUploaded' as keyof WindowEventMap,
+      handleDocumentsUploaded as EventListener
+    )
+
+    return () => {
+      window.removeEventListener(
+        'documentsUploaded' as keyof WindowEventMap,
+        handleDocumentsUploaded as EventListener
+      )
+    }
+  }, [meetingId, fetchDocuments])
+
   const handleViewAllDocuments = () => {
     router.push(`/${clientTicker}/meeting/${meetingId}/documents`)
   }

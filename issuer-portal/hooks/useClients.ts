@@ -241,7 +241,7 @@ export const useClients = (): UseClientsResult => {
 
       // Add helpful context for common issues
       if (errorMessage.includes('fetch')) {
-        errorMessage += ' (Is the mock API server running on http://localhost:3001?)'
+        errorMessage += ' (The server is restarting)'
       }
 
       setError(errorMessage)

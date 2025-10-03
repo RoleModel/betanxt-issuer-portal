@@ -127,6 +127,9 @@ export const useTaskSubmission = ({
         }
       }
 
+      // Dispatch event to notify other components (like MeetingDocuments) to refetch
+      window.dispatchEvent(new CustomEvent('documentsUploaded', { detail: { meetingId } }))
+
       // Determine appropriate status based on task type
       const newStatus = determineTaskStatus(taskToSubmit.title || '')
 

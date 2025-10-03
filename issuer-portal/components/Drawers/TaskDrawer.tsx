@@ -802,7 +802,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                     background: theme.vars.palette.tableCellRow.fill,
                     borderLeft: `5px solid ${borderColor}`,
                     boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-                    cursor: 'context-menu',
                   }
                 }}
               >

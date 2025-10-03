@@ -141,7 +141,58 @@ export const PHASE_2_CARRYOVER_TASKS = [
   'Broadridge/ICS Access',
   'Draft Proxy Statement',
   'Proxy Card',
+  'Notice and Access (NAA) Form',
+  '10-K print-ready PDF',
 ] as const
+
+/**
+ * Check if a task should be synced across phases
+ */
+export const isCarryoverTask = (taskTitle: string): boolean => {
+  const normalizedTitle = taskTitle.toLowerCase().trim()
+  return PHASE_2_CARRYOVER_TASKS.some(
+    (carryoverTask) => normalizedTitle.includes(carryoverTask.toLowerCase())
+  )
+}
+
+/**
+ * Sync task status across phases for carryover tasks
+ * Returns array of task IDs that were updated
+ */
+export const syncCarryoverTaskStatus = async (
+  updatedTask: Task,
+  allTasks: Task[],
+  updateTaskFn: (taskId: string, updates: { status: TaskStatus }) => Promise<void>
+): Promise<string[]> => {
+  // Only sync if this is a carryover task
+  if (!updatedTask.title || !isCarryoverTask(updatedTask.title)) {
+    return []
+  }
+
+  // Find all tasks with the same title in the same meeting (but different phase)
+  const tasksToSync = allTasks.filter(
+    (task) =>
+      task.id !== updatedTask.id && // Don't update the task that was just updated
+      task.title === updatedTask.title &&
+      task.meetingId === updatedTask.meetingId &&
+      task.phaseNumber !== updatedTask.phaseNumber // Only sync across different phases
+  )
+
+  // Update all matching tasks with the new status
+  const updatedIds: string[] = []
+  for (const task of tasksToSync) {
+    if (task.id && updatedTask.status) {
+      try {
+        await updateTaskFn(task.id, { status: updatedTask.status as TaskStatus })
+        updatedIds.push(task.id)
+      } catch (error) {
+        console.error(`Failed to sync task ${task.id}:`, error)
+      }
+    }
+  }
+
+  return updatedIds
+}
 
 /**
  * Determines the appropriate task status after submission based on task type

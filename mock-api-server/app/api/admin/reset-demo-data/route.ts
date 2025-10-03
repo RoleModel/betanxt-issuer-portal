@@ -1,10 +1,10 @@
-import { exec } from 'child_process'
+import { readdir, readFile } from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import path from 'path'
+import { Client } from 'pg'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60 // 60 seconds for reset operations
 
 interface ResetStats {
   meetings: number
@@ -16,9 +16,18 @@ interface ResetStats {
 }
 
 export async function POST(_req: NextRequest) {
+  let client: Client | null = null
+
   try {
-    // Use path module to safely construct the path
-    const path = await import('path')
+    // Get database connection string
+    // In development: use local connection
+    // In production: use DATABASE_URL from Vercel
+    const databaseUrl =
+      process.env.DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+
+    console.log('Connecting to database...')
+    client = new Client({ connectionString: databaseUrl })
+    await client.connect()
 
     // Get the monorepo root (mock-api-server is a child of the root)
     const currentDir = process.cwd()
@@ -28,27 +37,32 @@ export async function POST(_req: NextRequest) {
 
     const supabaseDir = path.join(monorepoRoot, 'supabase')
 
-    // Drop and recreate schema, then apply migrations and seed
-    const resetCommands = [
-      // Drop all tables in public schema
-      `PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`,
-      // Apply migrations
-      `cd ${supabaseDir} && for f in migrations/*.sql; do PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -f "$f"; done`,
-      // Apply seed data
-      `PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -f ${supabaseDir}/seed.sql`,
-    ]
+    console.log('Starting database reset...')
 
-    for (const cmd of resetCommands) {
-      const { stderr } = await execAsync(cmd, {
-        cwd: monorepoRoot,
-        timeout: 60000,
-        env: { ...process.env, PGPASSWORD: 'postgres' },
-      })
+    // Step 1: Drop all tables in public schema
+    console.log('Dropping public schema...')
+    await client.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;')
 
-      if (stderr && !stderr.includes('NOTICE') && !stderr.includes('DROP')) {
-        console.error('Reset stderr:', stderr)
-      }
+    // Step 2: Apply migrations in order
+    console.log('Applying migrations...')
+    const migrationsDir = path.join(supabaseDir, 'migrations')
+    const migrationFiles = await readdir(migrationsDir)
+    const sqlMigrations = migrationFiles.filter((f) => f.endsWith('.sql')).sort()
+
+    for (const migrationFile of sqlMigrations) {
+      console.log(`Applying migration: ${migrationFile}`)
+      const migrationPath = path.join(migrationsDir, migrationFile)
+      const migrationSql = await readFile(migrationPath, 'utf-8')
+
+      await client.query(migrationSql)
     }
+
+    // Step 3: Apply seed data
+    console.log('Applying seed data...')
+    const seedPath = path.join(supabaseDir, 'seed.sql')
+    const seedSql = await readFile(seedPath, 'utf-8')
+
+    await client.query(seedSql)
 
     // Get stats from database after reset
     const stats: ResetStats = {
@@ -60,11 +74,40 @@ export async function POST(_req: NextRequest) {
       dsmConfigs: 0,
     }
 
+    console.log('Database reset completed successfully')
+
+    // Trigger Vercel redeploy if deploy hook is configured
+    if (process.env.VERCEL_DEPLOY_HOOK_URL) {
+      console.log('Triggering Vercel redeploy...')
+      try {
+        const deployResponse = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
+          method: 'POST',
+        })
+
+        if (deployResponse.ok) {
+          console.log('Vercel redeploy triggered successfully')
+          return NextResponse.json({
+            success: true,
+            message: 'Demo data reset successfully. Redeploying application...',
+            stats,
+            timestamp: new Date().toISOString(),
+            redeployTriggered: true,
+          })
+        } else {
+          console.warn('Failed to trigger redeploy:', await deployResponse.text())
+        }
+      } catch (deployError) {
+        console.error('Deploy hook error:', deployError)
+        // Don't fail the reset if deploy hook fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Demo data reset successfully',
       stats,
       timestamp: new Date().toISOString(),
+      redeployTriggered: false,
     })
   } catch (error) {
     console.error('Reset error:', error)
@@ -75,5 +118,9 @@ export async function POST(_req: NextRequest) {
       },
       { status: 500 }
     )
+  } finally {
+    if (client) {
+      await client.end()
+    }
   }
 }

@@ -6,6 +6,7 @@
   border-radius: 8px;
   contain: paint;
   max-height: 90vh;
+  
 }
 .MuiTableRow-root .react-pdf__Document {
   border-radius: 2px;
@@ -60,7 +61,10 @@
   max-width: 100ch !important;
   max-height: 90vh;
   background: var(--mui-palette-background-paper);
-  border-radius: calc(var(--mui-shape-borderRadius) * 2.5);
+}
+
+.resource-card .react-pdf__Page__canvas {
+  border-radius: 2px;
 }
 
 /* Text layer styling */

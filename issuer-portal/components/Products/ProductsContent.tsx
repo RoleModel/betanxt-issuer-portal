@@ -61,7 +61,7 @@ export default function ProductsContent() {
   )
 
   return (
-    <Container component="main" maxWidth="lg" sx={{ p: { xs: 1, md: 3 } }}>
+    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
       <GlobalStyle />
       <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12 }}>

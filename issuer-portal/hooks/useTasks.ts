@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+import { syncCarryoverTaskStatus } from '@/utils/taskControl'
 
 type Task = components['schemas']['Task']
 type CreateTaskRequest = components['schemas']['CreateTaskRequest']
@@ -37,7 +38,7 @@ export interface UseTasksResult {
   loading: boolean
   error: string | null
   refetch: () => void
-  updateTaskById: (id: string, updates: Partial<Task>) => Promise<void>
+  updateTaskById: (id: string, updates: Partial<Task>, skipSync?: boolean) => Promise<void>
   createNewTask: (meetingId: string, task: Partial<Task>) => Promise<void>
 }
 
@@ -67,7 +68,7 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
   }, [fetchData]) // Only refetch when meetingId changes, not on every fetchData change
 
   const updateTaskById = useCallback(
-    async (id: string, updates: Partial<Task>) => {
+    async (id: string, updates: Partial<Task>, skipSync = false) => {
       try {
         setError(null)
         // Convert to the correct API format
@@ -96,13 +97,34 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         }
 
         await fetchData()
+
+        // Sync status across phases for carryover tasks (only if not already syncing)
+        if (updates.status && !skipSync) {
+          const updatedTask = tasks.find(t => t.id === id)
+          if (updatedTask) {
+            // Create a wrapper that sets skipSync=true to prevent infinite recursion
+            const updateWithoutSync = (taskId: string, taskUpdates: { status: components['schemas']['TaskStatus'] }) =>
+              updateTaskById(taskId, taskUpdates, true)
+
+            const syncedIds = await syncCarryoverTaskStatus(
+              { ...updatedTask, status: updates.status } as Task,
+              tasks,
+              updateWithoutSync
+            )
+
+            // Refresh data if any tasks were synced
+            if (syncedIds.length > 0) {
+              await fetchData()
+            }
+          }
+        }
       } catch (err) {
         console.error('Error in updateTaskById:', err)
         setError(err instanceof Error ? err.message : 'Failed to update task')
         throw err
       }
     },
-    [fetchData]
+    [fetchData, tasks]
   )
 
   const createNewTask = useCallback(

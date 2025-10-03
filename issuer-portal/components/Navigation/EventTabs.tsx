@@ -65,6 +65,7 @@ const getNavigationTabs = (currentPhase: number) => [
   { label: 'Reports', route: '/reports' },
   { label: 'Agenda', route: '/agenda' },
   { label: 'Guests/Registrants', route: '/guests' },
+  { label: 'Digital Shareholder Meeting', route: '/digital-shareholder-meeting' },
 ]
 
 const ScrollButton = styled(IconButton, {

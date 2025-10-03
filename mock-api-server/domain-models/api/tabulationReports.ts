@@ -111,18 +111,20 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
     id: dbReport.id,
     meetingId: dbReport.meeting_id,
     setKeys: dbReport.set_keys || [],
-    brokerVoting:
-      (dbReport.broker_voting as {
-        [proposalId: string]: {
-          broker: string
-          for: number
-          against: number
-          abstain: number
-        }[]
-      }) || {},
-    shareRangePerformance: Array.isArray(dbReport.share_range_performance)
-      ? dbReport.share_range_performance
-      : [],
+    brokerVoting: parseJsonField<{
+      [proposalId: string]: {
+        broker: string
+        for: number
+        against: number
+        abstain: number
+      }[]
+    }>(dbReport.broker_voting, {}),
+    shareRangePerformance: parseJsonField<{
+      rangeLabel: string
+      positionCount: number
+      totalShares: number
+      percentVoted: number
+    }[]>(dbReport.share_range_performance, []),
     nonDtcVoteStatus: parseJsonField(dbReport.non_dtc_vote_status, {
       unvotedShareholders: 0,
       unvotedShares: 0,

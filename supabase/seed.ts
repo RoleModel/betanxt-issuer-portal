@@ -2960,7 +2960,31 @@ const main = async () => {
         0
       )
 
-      const institutionalNames = [
+      // Use actual account names from CSV data for consistency across all events
+      // Get unique account names from CSV data for this client
+      const csvPositions = isWendys
+        ? wendysData?.positions
+        : isEnliven
+          ? enlivenData?.positions
+          : isPaycom
+            ? paycomData?.positions
+            : isWoodward
+              ? woodwardData?.positions
+              : []
+
+      // Extract unique account names from CSV (excluding CEDE)
+      const csvAccountNames = csvPositions
+        ? Array.from(
+            new Set(
+              csvPositions
+                .filter((p: any) => p.name && !p.name.includes('CEDE'))
+                .map((p: any) => p.name.trim())
+            )
+          ).slice(0, 100) // Use first 100 unique names
+        : []
+
+      // Fallback names if CSV data not available
+      const fallbackInstitutionalNames = [
         'BLACKROCK INC',
         'VANGUARD GROUP INC',
         'STATE STREET CORP',
@@ -2973,7 +2997,7 @@ const main = async () => {
         'T. ROWE PRICE',
       ]
 
-      const individualNames = [
+      const fallbackIndividualNames = [
         'JOHN SMITH TR',
         'MARY JOHNSON',
         'ROBERT WILLIAMS',
@@ -2985,6 +3009,9 @@ const main = async () => {
         'RICHARD WILSON',
         'ELIZABETH ANDERSON',
       ]
+
+      const institutionalNames = csvAccountNames.length > 0 ? csvAccountNames : fallbackInstitutionalNames
+      const individualNames = csvAccountNames.length > 0 ? csvAccountNames : fallbackIndividualNames
 
       for (let p = 0; p < numPositions; p++) {
         const positionId = copycat.uuid(`position-${meetingId}-${p}`)
@@ -3046,7 +3073,12 @@ const main = async () => {
           max: 999,
         })
         let holderName: string
-        if (p < institutionalNames.length) {
+
+        // If we have CSV account names, cycle through them
+        if (csvAccountNames.length > 0) {
+          const nameIndex = p % csvAccountNames.length
+          holderName = csvAccountNames[nameIndex]
+        } else if (p < institutionalNames.length) {
           holderName = institutionalNames[p]
         } else if (p < institutionalNames.length + individualNames.length) {
           holderName = individualNames[p - institutionalNames.length]
@@ -3445,16 +3477,18 @@ const main = async () => {
     })
   })
 
-  // Insert tabulation reports for COMPLETE meetings (2025 and earlier)
+  // Insert tabulation reports for COMPLETE meetings (2025 and earlier) and Phase 7+ meetings
   meetingIds.forEach((meetingId, index) => {
     const ticker = meetingTickerMap[meetingId]
     const companyData = getCompanyDataByTicker(ticker)
 
-    // Determine if this meeting is COMPLETE (2025 and earlier) based on phase
+    // Determine if this meeting should have a tabulation report
+    // Phase 8 (complete) or Phase 7+ (ongoing special meetings need reports)
     const meetingPhase = meetingPhaseMap[meetingId] ?? 8
-    const isComplete = meetingPhase === 8
+    const isSpecialMeeting = meetingId.includes('special')
+    const shouldHaveReport = meetingPhase === 8 || (meetingPhase >= 7 && isSpecialMeeting)
 
-    if (isComplete) {
+    if (shouldHaveReport) {
       const tabulationId = copycat.uuid(`tabulation-${meetingId}`)
 
       if (companyData?.voteStatusSummary) {

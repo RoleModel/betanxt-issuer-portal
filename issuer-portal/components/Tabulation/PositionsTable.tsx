@@ -85,19 +85,20 @@ const normalizePosition = (value: unknown): Position | null => {
   const record = asRecord(value)
   if (!record) return null
 
+  // API returns snake_case from PostgREST
   return {
     cusip: toStringValue(record.cusip),
-    accountType: toStringValue(record.accountType),
-    setKey: toStringValue(record.setKey),
+    accountType: toStringValue(record.account_type ?? record.accountType),
+    setKey: toStringValue(record.set_key ?? record.setKey),
     name: toStringValue(record.name),
-    accountNumber: toStringValue(record.accountNumber),
-    voteStatus: toStringValue(record.voteStatus),
-    controlNumber: toStringValue(record.controlNumber),
+    accountNumber: toStringValue(record.account_number ?? record.accountNumber),
+    voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
+    controlNumber: toStringValue(record.control_number ?? record.controlNumber),
     shares: toFiniteNumber(record.shares),
-    sharesVoted: toFiniteNumber(record.sharesVoted),
-    source: toStringValue(record.votingSource),
-    dateVoted: toNullableString(record.dateVoted),
-    sentBy: toNullableString(record.sentBy),
+    sharesVoted: toFiniteNumber(record.shares_voted ?? record.sharesVoted),
+    source: toStringValue(record.source ?? record.votingSource),
+    dateVoted: toNullableString(record.date_voted ?? record.dateVoted),
+    sentBy: toNullableString(record.sent_by ?? record.sentBy),
   }
 }
 

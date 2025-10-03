@@ -63,12 +63,21 @@ export const usePhaseCompletion = ({
           !['BetaNXT', 'DFIN'].includes(t.owner || '')
       )
 
+      console.log('Phase advancement check:', {
+        currentPhaseNumber,
+        totalTasks: freshTasks.length,
+        currentPhaseTasks: currentPhaseTasks.length,
+        taskStatuses: currentPhaseTasks.map(t => ({ title: t.title, status: t.status, owner: t.owner })),
+      })
+
       // Check if all phase tasks have been initiated
       const allPhaseTasksInitiated =
         currentPhaseTasks.length > 0 &&
         currentPhaseTasks.every((t: Task) =>
           COMPLETED_STATUSES.includes(t.status as never)
         )
+
+      console.log('All phase tasks initiated?', allPhaseTasksInitiated)
 
       if (allPhaseTasksInitiated) {
         // Update meeting to next phase and calculate completion percentage
@@ -96,8 +105,9 @@ export const usePhaseCompletion = ({
 
             // Refresh meeting data to update the context with new phase
             await refreshContext()
-          } catch (_error) {
-            // Error handled silently during phase advancement
+          } catch (error) {
+            console.error('Error advancing phase:', error)
+            return false
           }
         }
 

@@ -93,7 +93,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           const viewLabel = getTaskActionButtonLabel(task.title || '', true)
 
           return (
-            <Link key={linkIndex} onClick={handleViewSignedDocument}>
+            <Link sx={{ cursor: 'pointer' }} key={linkIndex} onClick={handleViewSignedDocument}>
               {viewLabel}
             </Link>
           )
@@ -112,6 +112,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           <Link
             key={linkIndex}
             onClick={() => onLinkClick(link)}
+            sx={{ cursor: 'pointer' }}
           >
             {link.label}
           </Link>

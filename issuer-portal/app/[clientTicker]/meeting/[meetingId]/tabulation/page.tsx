@@ -187,8 +187,8 @@ export default function TabulationPage() {
         <Grid container spacing={{ xs: 2, md: 3 }}>
           <Grid size={{ xs: 12, lg: 9 }}>
             <Stack spacing={{ xs: 2, md: 3 }}>
-              <PositionsTable meetingId={meetingId} />
               <ProposalDetailsCard meetingId={meetingId} />
+              <PositionsTable meetingId={meetingId} />
             </Stack>
           </Grid>
 

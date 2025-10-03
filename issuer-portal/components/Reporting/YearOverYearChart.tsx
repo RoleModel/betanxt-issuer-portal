@@ -66,7 +66,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
 
   const legendItems = [
     {
-      label: 'Past',
+      label: 'Passed',
       color: 'var(--mui-palette-chartSeries-1-main)',
       type: 'bar' as const,
     },
@@ -76,7 +76,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
       type: 'bar' as const,
     },
     {
-      label: 'Particicpation %',
+      label: 'Participation %',
       color: 'var(--mui-palette-chartSeries-8-main)',
       type: 'line' as const,
     },

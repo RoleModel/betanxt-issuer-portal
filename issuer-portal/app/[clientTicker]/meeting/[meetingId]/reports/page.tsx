@@ -156,8 +156,9 @@ export default function ReportsPage() {
   const meetingDateStr = currentMeeting?.meetingDate
   const friendlyMeetingDate = meetingDateStr ? friendlyDate(meetingDateStr) : 'TBD'
 
-  // Only show the empty state if we have phase data and it's less than 7
-  if (phases.length > 0 && !phaseIsSevenOrGreater) {
+  // Show empty state only if phase is determined to be less than 7
+  // Don't show it while loading (phases.length === 0 could mean loading or no phases)
+  if (currentPhaseNumber !== null && !phaseIsSevenOrGreater) {
     return (
       <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
         <EmptyState

@@ -389,7 +389,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
   try {
     // Use direct image URLs (no base64 conversion needed)
     const clientLogoUrl = clientTicker
-      ? `/logos/${clientTicker.toLowerCase()}_logo.png`
+      ? `/logos/${clientTicker.toUpperCase()}_logo.png`
       : undefined
     const betanxtLogoUrl = '/images/betanxt-logo.png'
 
