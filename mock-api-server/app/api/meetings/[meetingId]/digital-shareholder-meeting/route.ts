@@ -23,10 +23,10 @@ const attendeeStorage = new Map<string, StoredAttendee[]>()
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { meetingId: string } }
+  { params }: { params: Promise<{ meetingId: string }> }
 ): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    const { meetingId } = await params
 
     // Try to get from database first (for seeded data)
     try {
@@ -59,10 +59,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { meetingId: string } }
+  { params }: { params: Promise<{ meetingId: string }> }
 ): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    const { meetingId } = await params
     const body = await request.json()
 
     // Validate the request body

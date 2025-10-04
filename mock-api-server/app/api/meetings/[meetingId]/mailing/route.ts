@@ -7,10 +7,10 @@ import { getMailingByMeetingId } from '@/domain-models/api/mailing'
 
 export async function GET(
   request: Request,
-  { params }: { params: { meetingId: string } }
+  { params }: { params: Promise<{ meetingId: string }> }
 ): Promise<NextResponse> {
   try {
-    const { meetingId } = params
+    const { meetingId } = await params
 
     if (!meetingId) {
       return NextResponse.json(

@@ -5,10 +5,10 @@ import noOnlyTests from 'eslint-plugin-no-only-tests'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   eslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
-  tseslint.configs.stylisticTypeChecked,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   eslintConfigPrettier,
   {
     ignores: [
@@ -68,4 +68,4 @@ export default tseslint.config(
       ],
     },
   }
-)
+]
