@@ -1,6 +1,4 @@
 {
-  "buildCommand": "cd .. && npm install && turbo run build --filter=issuer-portal",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "rootDirectory": "issuer-portal"
+  "buildCommand": "npm install && turbo run build --filter=issuer-portal",
+  "outputDirectory": "issuer-portal/.next"
 }
