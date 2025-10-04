@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "buildCommand": "turbo run build --filter=mock-api-server",
   "outputDirectory": ".next",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install"
+  "framework": "nextjs",
+  "ignoreCommand": "npx turbo-ignore"
 }

@@ -197,7 +197,7 @@ export const useClients = (): UseClientsResult => {
         }
 
         const apiClients = extractClientPayload(data)
-        const transformedClients = transformApiClients(apiClients)
+        const transformedClients: Client[] = transformApiClients(apiClients)
 
         // Cache the transformed clients
         setCachedResponse(cacheKey, transformedClients)
@@ -225,7 +225,7 @@ export const useClients = (): UseClientsResult => {
       // Transform the API response to match our Client interface
       // The API returns an array directly, not wrapped in a 'clients' property
       const apiClients = extractClientPayload(data)
-      const transformedClients = transformApiClients(apiClients)
+      const transformedClients: Client[] = transformApiClients(apiClients)
 
       // Cache the transformed clients
       setCachedResponse(cacheKey, transformedClients)

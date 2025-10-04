@@ -14,6 +14,8 @@ import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
+import { exportCalendarToIcs } from '@/utils/exportCalendarIcs'
+import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
 import { transformApiTaskToTask } from '@/utils/taskTransformers'
 
 import { CalendarHeader, type CalendarViewType } from './CalendarHeader'
@@ -210,6 +212,40 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     refreshMeetingData()
   }
 
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleExportIcs = async () => {
+    try {
+      await exportCalendarToIcs({
+        tasks,
+        keyDates,
+        meetingTitle: meeting?.title || 'Meeting Calendar',
+        meetingId: meeting?.id,
+      })
+    } catch (error) {
+      console.error('Error exporting ICS:', error)
+    }
+  }
+
+  const handleExportPdf = async () => {
+    try {
+      // Get client ticker from meeting ID (e.g., "wen-annual-meeting-2026" -> "WEN")
+      const clientTicker = meeting?.id?.split('-')[0]?.toUpperCase()
+
+      await exportTimelineToPdf({
+        tasks,
+        keyDates,
+        meetingTitle: meeting?.title || 'Meeting Timeline',
+        selectedPhase: 'all',
+        clientTicker,
+      })
+    } catch (error) {
+      console.error('Error exporting PDF:', error)
+    }
+  }
+
   return (
     <Container
       layout="position"
@@ -276,6 +312,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           isFullscreen={isFullscreen}
           onFullscreenToggle={handleFullscreenToggle}
           onAddClick={handleAddClick}
+          onPrint={handlePrint}
+          onExportIcs={handleExportIcs}
+          onExportPdf={handleExportPdf}
         />
 
         {/* Main content area */}

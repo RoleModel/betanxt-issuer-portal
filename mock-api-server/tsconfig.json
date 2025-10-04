@@ -3,7 +3,9 @@
   "display": "Mock API Server",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
@@ -25,9 +27,13 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "noErrorTruncation": true
   },
   "include": [

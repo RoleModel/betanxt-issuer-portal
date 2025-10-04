@@ -11,6 +11,8 @@ import {
   AddOutlined as AddIcon,
   CalendarViewDay as CalendarViewDayIcon,
   CalendarMonthOutlined as MonthIcon,
+  DownloadOutlined as DownloadIcon,
+  PrintOutlined as PrintIcon,
   SearchOutlined as SearchIcon,
   ShareOutlined as ShareIcon,
   ZoomInMapOutlined as ZoomInMapOutlinedIcon,
@@ -21,47 +23,16 @@ import {
   Collapse,
   IconButton,
   InputAdornment,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
-
-/**
- * CalendarHeader component with view toggle, filters, and search functionality
- * Provides controls for switching between month and list views
- */
 
 export type CalendarViewType = 'month' | 'list'
 
@@ -80,6 +51,9 @@ interface CalendarHeaderPropsInternal extends CalendarHeaderProps {
   isFullscreen?: boolean
   onFullscreenToggle?: () => void
   onAddClick?: () => void
+  onPrint?: () => void
+  onExportIcs?: () => void
+  onExportPdf?: () => void
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
@@ -90,14 +64,42 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
   isFullscreen = false,
   onFullscreenToggle,
   onAddClick,
+  onPrint,
+  onExportIcs,
+  onExportPdf,
 }) => {
   const [searchExpanded, setSearchExpanded] = useState(false)
+  const [shareMenuAnchor, setShareMenuAnchor] = useState<null | HTMLElement>(null)
+  const shareMenuOpen = Boolean(shareMenuAnchor)
 
   const handleSearchToggle = () => {
     setSearchExpanded(!searchExpanded)
     if (searchExpanded && searchQuery) {
       onSearchChange('')
     }
+  }
+
+  const handleShareMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setShareMenuAnchor(event.currentTarget)
+  }
+
+  const handleShareMenuClose = () => {
+    setShareMenuAnchor(null)
+  }
+
+  const handlePrint = () => {
+    handleShareMenuClose()
+    onPrint?.()
+  }
+
+  const handleExportIcs = () => {
+    handleShareMenuClose()
+    onExportIcs?.()
+  }
+
+  const handleExportPdf = () => {
+    handleShareMenuClose()
+    onExportPdf?.()
   }
 
   return (
@@ -283,7 +285,11 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
             </Box>
             <Box
               component="button"
+              onClick={handleShareMenuOpen}
               aria-label="Share calendar"
+              aria-controls={shareMenuOpen ? 'share-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={shareMenuOpen ? 'true' : undefined}
               sx={{
                 p: 1,
                 borderRadius: '50%',
@@ -329,6 +335,44 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           </Box>
         </Box>
       </Box>
+
+      {/* Share menu */}
+      <Menu
+        id="share-menu"
+        anchorEl={shareMenuAnchor}
+        open={shareMenuOpen}
+        onClose={handleShareMenuClose}
+        MenuListProps={{
+          'aria-labelledby': 'share-button',
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handlePrint}>
+          <ListItemIcon>
+            <PrintIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Print</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportIcs}>
+          <ListItemIcon>
+            <DownloadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Export .ics</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportPdf}>
+          <ListItemIcon>
+            <DownloadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Export Timeline PDF</ListItemText>
+        </MenuItem>
+      </Menu>
     </Paper>
   )
 }
