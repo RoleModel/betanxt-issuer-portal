@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  // Temporarily disable auth to verify deployment works
-  // TODO: Re-enable authentication after confirming Edge Runtime compatibility
+export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 

@@ -82,7 +82,7 @@ The `scripts/vercel-install.sh` handles:
 ### Build Fails with TypeScript Errors
 
 - All TypeScript errors have been fixed
-- Ensure you're using Node.js 22.15.0 or higher (specified in package.json)
+- Ensure you're using Node.js 22.20.0 or higher (specified in package.json)
 
 ### GitHub Packages Authentication Fails
 

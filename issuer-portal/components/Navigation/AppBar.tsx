@@ -70,8 +70,8 @@ const NextImageComponent = React.memo(
       <Image
         src={src}
         alt={alt || 'Logo'}
-        width={typeof width === 'number' ? width : 30}
-        height={typeof height === 'number' ? height : 30}
+        width={120}
+        height={40}
         style={style}
         loading="eager"
         priority
@@ -290,18 +290,14 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
-    const isDefaultLogo = logoSrc === '/images/logo.svg'
-    const defaultLogoStyles: React.CSSProperties = isDefaultLogo
-      ? { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
-      : { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
 
     return {
       logoImg: {
         src: logoSrc,
         alt: `${logoTicker || 'BetaNXT'} logo`,
-        width: isDefaultLogo ? 'auto' : 'auto',
-        height: isDefaultLogo ? 30 : 40,
-        style: defaultLogoStyles,
+        width: 'auto',
+        height: 44,
+        style: { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
       },
     }
   }, [logoSrc, logoTicker])

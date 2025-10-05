@@ -12,6 +12,7 @@ import PositionsTable from '@/components/Tabulation/PositionsTable'
 import ProposalDetailsCard from '@/components/Tabulation/ProposalDetailsCard'
 import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
 import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
+import TabulationTracker from '@/components/Meeting/TabulationTracker'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -185,6 +186,9 @@ export default function TabulationPage() {
     return (
       <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
         <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid size={12}>
+            <TabulationTracker meetingId={meetingId} />
+          </Grid>
           <Grid size={{ xs: 12, lg: 9 }}>
             <Stack spacing={{ xs: 2, md: 3 }}>
               <ProposalDetailsCard meetingId={meetingId} />

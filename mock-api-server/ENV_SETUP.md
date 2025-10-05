@@ -4,7 +4,7 @@ This document standardizes local developer onboarding for the consolidated `docu
 
 ## 1. Prerequisites
 
-- Node.js (see `package.json` engines, >=22.15.0)
+- Node.js (see `package.json` engines, >=22.20.0)
 - Supabase CLI installed: https://supabase.com/docs/guides/cli
 - Docker running (for `supabase start` local stack) OR access to shared remote dev project.
 

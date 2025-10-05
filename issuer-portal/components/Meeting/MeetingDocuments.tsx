@@ -26,6 +26,7 @@ import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useDocuments } from '@/hooks/useDocuments'
+import { useDocumentSync } from '@/hooks/useDocumentSync'
 import type { Document, Meeting } from '@/types/api-exports'
 import { formatDateForDisplay } from '@/utils/dateUtils'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
@@ -59,6 +60,70 @@ export default function MeetingDocuments({
   const [loading, setLoading] = useState(!!meetingId)
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [documentViewerUrl, setDocumentViewerUrl] = useState('')
+
+  // Real-time document synchronization
+  const {
+    documents: syncedDocuments,
+    isLoading: syncLoading,
+    addOptimisticDocument,
+    removeOptimisticDocument,
+  } = useDocumentSync({
+    meetingId: meetingId || '',
+    onDocumentAdded: (document) => {
+      console.log('Document added via real-time sync:', document.title)
+    },
+    onDocumentUpdated: (document) => {
+      console.log('Document updated via real-time sync:', document.title)
+    },
+    onDocumentDeleted: (documentId) => {
+      console.log('Document deleted via real-time sync:', documentId)
+    },
+  })
+
+  // Use synced documents and apply filtering
+  useEffect(() => {
+    if (!syncedDocuments) return
+
+    // Apply the same filtering logic as before
+    const filteredDocuments = syncedDocuments.filter((doc) => {
+      const docType = (doc.type || doc.fileType || '').toLowerCase()
+      const docTitle = (doc.title || '').toLowerCase()
+
+      // Exclude DSM documents (they belong in the DSMDocuments component)
+      if (
+        doc.displayCategory === 'dsm' ||
+        docType === 'dsm-document' ||
+        docType.includes('presentation') ||
+        docType.includes('slide') ||
+        docTitle.includes('presentation') ||
+        docTitle.includes('slide')
+      ) {
+        return false
+      }
+
+      // Exclude hosting site documents
+      if (docType === 'hosting_site' || docType === 'hosting site') {
+        return false
+      }
+
+      // Exclude signed forms (they belong in the full Documents page)
+      if (
+        docType === 'signed-form' ||
+        docType === 'transfer-agent-request' ||
+        docType === 'plan-file-request' ||
+        docTitle.includes('transfer agent request') ||
+        docTitle.includes('plan file request')
+      ) {
+        return false
+      }
+
+      // Include all other documents
+      return true
+    })
+
+    setDocuments(filteredDocuments as Document[])
+    setLoading(syncLoading)
+  }, [syncedDocuments, syncLoading])
 
   // Track selectedDocumentId changes
   useEffect(() => {
@@ -226,7 +291,7 @@ export default function MeetingDocuments({
       }
 
       // Combine real documents with placeholders, placeholders first
-      setDocuments([...placeholderDocs, ...filteredDocuments])
+      setDocuments([...placeholderDocs, ...filteredDocuments] as Document[])
       setLoading(false)
     } catch (error) {
       console.error('Failed to fetch documents:', error)
@@ -276,7 +341,31 @@ export default function MeetingDocuments({
   ) => {
     if (files.length === 0) return
 
+    const optimisticIds: string[] = []
+
     try {
+      // Add optimistic documents for immediate UI feedback
+      for (const file of files) {
+        const fileId = `${file.name}-${file.size}`
+        const placeholderId = associations?.[fileId]
+
+        const optimisticDoc = {
+          title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+          type: placeholderId?.startsWith('placeholder-')
+            ? placeholderId.replace('placeholder-', '')
+            : 'document',
+          fileType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          status: 'DRAFT' as const,
+        }
+
+        const tempId = addOptimisticDocument(optimisticDoc)
+        if (tempId) {
+          optimisticIds.push(tempId)
+        }
+      }
+
+      // Perform actual uploads
       for (const file of files) {
         const fileId = `${file.name}-${file.size}`
         const placeholderId = associations?.[fileId]
@@ -288,20 +377,23 @@ export default function MeetingDocuments({
           placeholderId.startsWith('placeholder-')
         ) {
           const documentType = placeholderId.replace('placeholder-', '')
-          result = await uploadDocument(file, documentType, meetingId, file.name)
+          result = await uploadDocument(file, documentType, meetingId || '', file.name)
         } else {
-          result = await uploadDocument(file, file.name, meetingId)
+          result = await uploadDocument(file, file.name, meetingId || '')
         }
 
         if (!result) {
           throw new Error(`Failed to upload ${file.name}`)
         }
       }
-      // Small delay to ensure database has been updated
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      // Refresh documents after upload
-      await fetchDocuments()
+
+      // Remove optimistic documents - real ones will come via sync
+      optimisticIds.forEach(removeOptimisticDocument)
+
+      // Note: No need to call fetchDocuments() - real-time sync will handle updates
     } catch (error) {
+      // Remove optimistic documents on error
+      optimisticIds.forEach(removeOptimisticDocument)
       console.error('Failed to upload document:', error)
       throw error
     }

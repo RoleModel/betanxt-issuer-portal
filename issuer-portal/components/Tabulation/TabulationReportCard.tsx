@@ -136,7 +136,7 @@ export default function TabulationReportCard() {
     <FeatureTile
       title="Tabulation Report"
       variant="info"
-      flex={true}
+      flex={false}
       description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
       actionText={isDataReady ? 'Download' : 'Loading...'}
       onClick={isDataReady ? handleDownload : undefined}

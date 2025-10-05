@@ -22,7 +22,7 @@ interface UploadAttendeeData {
   minutesAttendedMeeting?: number
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
 
 export function useDigitalShareholderMeeting(meetingId: string | undefined) {
   const fetcher = async (url: string) => {
@@ -34,7 +34,7 @@ export function useDigitalShareholderMeeting(meetingId: string | undefined) {
   }
 
   const { data, error, isLoading, mutate } = useSWR<DigitalShareholderMeetingAttendee[]>(
-    meetingId ? `/api/meetings/${meetingId}/digital-shareholder-meeting` : null,
+    meetingId ? `/meetings/${meetingId}/digital-shareholder-meeting` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -48,7 +48,7 @@ export function useDigitalShareholderMeeting(meetingId: string | undefined) {
     }
 
     const response = await fetch(
-      `${API_URL}/api/meetings/${meetingId}/digital-shareholder-meeting`,
+      `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`,
       {
         method: 'POST',
         headers: {

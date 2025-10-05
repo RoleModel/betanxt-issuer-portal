@@ -1,4 +1,4 @@
-import nextJsConfig from '@mediant/eslint-config/nextJsConfig'
+import nextJsConfig from '../nextJsConfig'
 
 export default [
   ...nextJsConfig,

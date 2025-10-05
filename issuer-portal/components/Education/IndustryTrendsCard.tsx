@@ -15,6 +15,7 @@ type IndustryTrendsCardProps = {
   date?: string
   duration?: string
   content?: string
+  actionText?: string
   actions?: React.ReactNode
   url?: string
   img?: string
@@ -27,6 +28,7 @@ export function IndustryTrendsCard({
   date,
   duration,
   url,
+  actionText = 'View',
   img,
   externalLink,
 }: IndustryTrendsCardProps) {
@@ -56,7 +58,7 @@ export function IndustryTrendsCard({
             target="_blank"
             startIcon={externalLink ? <OpenInNewOutlined /> : undefined}
           >
-            View
+            {actionText}
           </Button>
         </CardActions>
       )}

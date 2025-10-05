@@ -28,6 +28,7 @@ import {
 
 import EmptyState from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
+import PreviewDialog, { createChipRenderer, createTextRenderer } from '@/components/FileUpload/PreviewDialog'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDigitalShareholderMeeting } from '@/hooks/useDigitalShareholderMeeting'
@@ -376,44 +377,35 @@ export default function GuestsPage() {
         </Alert>
       )}
 
-      <Dialog
+      <PreviewDialog
         open={previewDialogOpen}
         onClose={handleCancelPreview}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>Confirm Upload - {previewData?.length || 0} Attendees</DialogTitle>
-        <DialogContent>
-          <Box sx={{ overflowX: 'auto' }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Registrant Type</TableCell>
-                  <TableCell>First Name</TableCell>
-                  <TableCell>Last Name</TableCell>
-                  <TableCell>Email Address</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {previewData?.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.registrantType}</TableCell>
-                    <TableCell>{row.firstName}</TableCell>
-                    <TableCell>{row.lastName}</TableCell>
-                    <TableCell>{row.emailAddress}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelPreview}>Cancel</Button>
-          <Button onClick={handleConfirmUpload} variant="contained">
-            Confirm Upload
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmUpload}
+        data={previewData}
+        title="Confirm Upload"
+        columns={[
+          {
+            key: 'registrantType',
+            label: 'Registrant Type',
+            render: createChipRenderer(getRegistrantTypeColor),
+          },
+          {
+            key: 'firstName',
+            label: 'First Name',
+            render: createTextRenderer(),
+          },
+          {
+            key: 'lastName',
+            label: 'Last Name',
+            render: createTextRenderer(),
+          },
+          {
+            key: 'emailAddress',
+            label: 'Email Address',
+            render: createTextRenderer('text.secondary'),
+          },
+        ]}
+      />
     </Container>
   )
 }

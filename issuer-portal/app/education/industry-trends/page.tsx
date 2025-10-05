@@ -1,17 +1,18 @@
-import { Container, Grid } from '@mui/material'
+import { Container, Box } from '@mui/material'
 
 import { IndustryTrendsCard } from '@/components/Education/IndustryTrendsCard'
 
 const industryTrends = [
   {
-    title: '2025 Proxy Season Preview: ESG Backlash and Governance Focus',
+    title: 'Briefing – Lessons from the 2025 Proxy Season | Governance Intelligence ',
     content:
-      'The 2025 proxy season is witnessing a significant shift toward governance-focused proposals with 42% average support, while environmental and social proposals face declining volumes. Anti-ESG proposals quadrupled from 23 in 2021 to 112 in 2024, though they garner minimal shareholder support at just 2.4%.',
-    url: 'https://corpgov.law.harvard.edu/2025/03/10/2025-proxy-season-preview/',
+      'The 2025 proxy season was influenced by several key issues, including changes announced in Staff Legal Bulletin 14M regarding the interpretation of Rule 14a-8, and evolving narratives around diversity, equity, and inclusion (DE&I).',
+    url: 'https://www.governance-intelligence.com/events/briefing-lessons-2025-proxy-season',
     img: '/images/getty-images-6DMo9-gGYNI-unsplash.jpg',
-    date: 'March 10, 2025',
+    date: 'Tuesday, July 22, 2025',
     duration: '6 min read',
     externalLink: true,
+    actionText: 'View On Demand',
   },
   {
     title: 'Shareholder Activism Reaches Record Highs Despite Lower Success Rates',
@@ -67,14 +68,16 @@ const industryTrends = [
 
 export default function IndustryTrendsPage() {
   return (
-    <Container maxWidth="lg" sx={{ p: { xs: 1, sm: 3 } }}>
-      <Grid container spacing={{ xs: 2, md: 3 }}>
+    <Container maxWidth="xl" sx={{ p: { xs: 1, sm: 3 } }}>
+      <Box
+        display="grid"
+        gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }}
+        gap={{ xs: 2, sm: 3, }}
+      >
         {industryTrends.map((industryTrend) => (
-          <Grid size={{ sm: 12, md: 4, lg: 3 }} key={industryTrend.title}>
-            <IndustryTrendsCard {...industryTrend} />
-          </Grid>
+          <IndustryTrendsCard key={industryTrend.title} {...industryTrend} />
         ))}
-      </Grid>
+      </Box >
     </Container>
   )
 }
