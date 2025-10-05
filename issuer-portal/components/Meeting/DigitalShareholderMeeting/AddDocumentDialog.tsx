@@ -30,7 +30,7 @@ interface DSMDocument {
 interface FileWithMetadata {
   id: string
   file: File
-  status: 'pending' | 'uploading' | 'complete' | 'error'
+  status: 'uploading' | 'complete' | 'error'
   progress?: number
   error?: string
   associatedDocumentId?: string
