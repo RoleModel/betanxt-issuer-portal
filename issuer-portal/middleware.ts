@@ -1,20 +1,31 @@
+import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import type { NextAuthConfig } from 'next-auth'
 
-export async function middleware(request: NextRequest) {
-  const { nextUrl } = request
+// Minimal NextAuth config for Edge Runtime middleware
+const authConfig = {
+  trustHost: true,
+  secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production',
+  providers: [],
+  session: {
+    strategy: 'jwt',
+  },
+  pages: {
+    signIn: '/login',
+  },
+} satisfies NextAuthConfig
+
+const { auth } = NextAuth(authConfig)
+
+export default auth((req) => {
+  const { nextUrl } = req
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
 
   if (bypassAuth) {
     return NextResponse.next()
   }
 
-  // Get session token using JWT
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production'
-  })
+  const token = req.auth
 
   // If no session and not on login page, redirect to login
   if (!token && !nextUrl.pathname.includes('/login')) {
@@ -36,7 +47,7 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next()
-}
+})
 
 // Configure which routes require authentication
 export const config = {
