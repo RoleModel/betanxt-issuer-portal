@@ -156,6 +156,8 @@ const computeParticipationMetrics = (
 export default function PastMeetingsPage() {
   const pathname = usePathname()
   const clientTicker = pathname.split('/')[1]
+  const pathname = usePathname()
+  const clientTicker = pathname.split('/')[1]
   const [meetings, setMeetings] = useState<PastMeetingData[]>([])
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState<Order>('desc')
@@ -280,6 +282,7 @@ export default function PastMeetingsPage() {
         })
       )
 
+      setMeetings(meetingsWithParticipation)
       setMeetings(meetingsWithParticipation)
     } catch (error) {
       console.error('Error fetching past meetings:', error)

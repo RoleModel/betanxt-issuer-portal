@@ -278,6 +278,7 @@ export default function TaskCard({
         }}
       >
         <CardHeader title={`Tasks - ${dynamicPhaseTitle}`} />
+        <CardHeader title={`Tasks - ${dynamicPhaseTitle}`} />
         <CardContent sx={{ p: 2, pt: 0 }}>
           {tasksLoading ? (
             <Stack spacing={1}>
