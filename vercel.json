@@ -1,4 +1,5 @@
 {
-  "buildCommand": "npm install && npm run build --workspace=issuer-portal",
+  "installCommand": "npm install --workspaces --include=dev",
+  "buildCommand": "npm run build --workspace=issuer-portal",
   "outputDirectory": "issuer-portal/.next"
 }
