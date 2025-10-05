@@ -4,6 +4,10 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default [
   eslint.configs.recommended,
@@ -29,7 +33,7 @@ export default [
       },
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
       },
     },
     plugins: {
