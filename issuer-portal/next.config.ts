@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    globalNotFound: true,
-  },
   productionBrowserSourceMaps: true,
   reactStrictMode: false,
   transpilePackages: [
