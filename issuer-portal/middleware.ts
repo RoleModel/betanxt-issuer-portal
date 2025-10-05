@@ -40,7 +40,7 @@ export default auth((req) => {
 
   // Check admin routes
   if (token && nextUrl.pathname.startsWith('/user')) {
-    const roles = Array.isArray(token.roles) ? token.roles : []
+    const roles = Array.isArray((token as any).user?.roles) ? (token as any).user.roles : []
     if (!roles.includes('ADMIN')) {
       return NextResponse.redirect(new URL('/', nextUrl))
     }
