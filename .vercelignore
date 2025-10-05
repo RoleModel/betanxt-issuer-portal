@@ -1,41 +1,7 @@
-# Vercel ignore file
-
-# Next.js build output
-.next
-issuer-portal/.next
-mock-api-server/.next
-
-# Node modules
-node_modules
-issuer-portal/node_modules
-mock-api-server/node_modules
-
-# Test files and coverage
-*.test.ts
-*.test.tsx
+base.js
+eslint.config.js
+eslint.strict.config.mjs
 *.spec.ts
-*.spec.tsx
-coverage
-.nyc_output
-
-# Development files
-.env.local
-.env.development
-*.log
-
-# IDE files
-.vscode
-.idea
-
-# Playwright
-playwright-report
-test-results
-
-# Temporary files
-tmp
-temp
-.DS_Store
-
-# Documentation
-*.md
-!README.md
+*.test.ts
+test-results/
+playwright-report/
