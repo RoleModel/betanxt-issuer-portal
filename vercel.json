@@ -1,5 +1,7 @@
 {
-  "framework": null,
-  "buildCommand": "npm install && npm run build --workspace=issuer-portal",
-  "outputDirectory": "issuer-portal/.next"
+  "installCommand": "npm install",
+  "buildCommand": "turbo run build --filter=issuer-portal",
+  "outputDirectory": "issuer-portal/.next",
+  "framework": "nextjs",
+  "ignoreCommand": "npx turbo-ignore"
 }
