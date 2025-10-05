@@ -1,9 +1,4 @@
 import type { NextConfig } from 'next'
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -26,21 +21,6 @@ const nextConfig: NextConfig = {
     '@mui/x-data-grid-pro',
     '@mui/x-date-pickers',
   ],
-  webpack: (config) => {
-    if (!config.resolve.alias) {
-      config.resolve.alias = {}
-    }
-    Object.assign(config.resolve.alias, {
-      '@': path.resolve(__dirname),
-      '@/components': path.resolve(__dirname, 'components'),
-      '@/contexts': path.resolve(__dirname, 'contexts'),
-      '@/hooks': path.resolve(__dirname, 'hooks'),
-      '@/utils': path.resolve(__dirname, 'utils'),
-      '@/types': path.resolve(__dirname, 'types'),
-      '@/domain-models': path.resolve(__dirname, 'domain-models'),
-    })
-    return config
-  },
   async rewrites() {
     return [
       {
