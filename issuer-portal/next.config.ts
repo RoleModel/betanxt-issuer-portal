@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
   },
-  output: 'standalone',
   productionBrowserSourceMaps: true,
   reactStrictMode: false,
   logging: {

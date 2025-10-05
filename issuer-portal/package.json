@@ -8,7 +8,7 @@
     "build": "next build",
     "dev": "next dev",
     "dev:inspect": "NODE_OPTIONS='--inspect' next dev",
-    "start": "node .next/standalone/server.js",
+    "start": "next start",
     "lint": "eslint --fix . --ignore-pattern='*.config.mjs' --ignore-pattern='next-env.d.ts'",
     "test": "npx playwright test",
     "type-check": "tsc --noEmit",
