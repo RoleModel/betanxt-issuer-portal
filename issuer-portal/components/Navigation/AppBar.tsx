@@ -136,7 +136,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         })
 
         if (error || !data) {
-          console.error('Failed to fetch notifications:', error)
+          // Silently fail - notifications are not critical
+          setUnreadCount(0)
           return
         }
 
@@ -144,7 +145,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         const notifications = data as DbNotification[]
         setUnreadCount(notifications.length)
       } catch (err) {
-        console.error('Error fetching unread notifications:', err)
+        // Silently fail - notifications are not critical
+        setUnreadCount(0)
       }
     }
 
