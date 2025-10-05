@@ -4,11 +4,10 @@ import { type Permission, allowedTo } from '@/authorization/permissions'
 
 const defaultLandingPages = [
   { path: '/meeting', permissions: ['viewDashboard'] },
-  { path: '/global-not-found', permissions: [] }, // Fallback - no permissions needed
 ]
 
 export class UserRoutes {
-  constructor(private session: Session | null) {}
+  constructor(private session: Session | null) { }
 
   get defaultLandingPage(): string {
     if (!this.session) {
@@ -24,7 +23,7 @@ export class UserRoutes {
       return true
     })
 
-    return accessiblePage?.path || '/global-not-found'
+    return accessiblePage?.path || '/not-found'
   }
 
   async canAccess(pathname: string): Promise<boolean> {
