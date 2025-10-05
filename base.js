@@ -36,41 +36,40 @@ export default [
         tsconfigRootDir: __dirname,
       },
     },
-  },
-  plugins: {
-    'no-only-tests': noOnlyTests,
-  },
-  rules: {
-    'linebreak-style': ['error', 'unix'],
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': [
-      'error',
-      {
-        varsIgnorePattern: '^_',
-        argsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_',
-      },
-    ],
-    '@typescript-eslint/no-base-to-string': 'warn',
-    '@typescript-eslint/no-empty-function': 'off',
-    '@typescript-eslint/no-misused-promises': 'off',
-    '@typescript-eslint/no-redundant-type-constituents': 'warn',
-    '@typescript-eslint/no-unsafe-argument': 'off',
-    '@typescript-eslint/no-unsafe-assignment': 'off',
-    '@typescript-eslint/no-unsafe-call': 'off',
-    '@typescript-eslint/no-unsafe-member-access': 'off',
-    '@typescript-eslint/no-unsafe-return': 'off',
-    '@typescript-eslint/require-await': 'off',
-    '@typescript-eslint/restrict-template-expressions': 'warn',
-    '@typescript-eslint/unbound-method': 'warn',
-    '@typescript-eslint/consistent-type-definitions': 'off', // TODO: Re-enable this rule and consistently use 'interface' instead of 'type' everywhere
-    'no-only-tests/no-only-tests': 'error',
-    '@typescript-eslint/prefer-nullish-coalescing': [
-      'warn',
-      {
-        ignoreMixedLogicalExpressions: true,
-      },
-    ],
-  },
+    plugins: {
+      'no-only-tests': noOnlyTests,
+    },
+    rules: {
+      'linebreak-style': ['error', 'unix'],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-base-to-string': 'warn',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/unbound-method': 'warn',
+      '@typescript-eslint/consistent-type-definitions': 'off', // TODO: Re-enable this rule and consistently use 'interface' instead of 'type' everywhere
+      'no-only-tests/no-only-tests': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': [
+        'warn',
+        {
+          ignoreMixedLogicalExpressions: true,
+        },
+      ],
+    },
   }
 ]
