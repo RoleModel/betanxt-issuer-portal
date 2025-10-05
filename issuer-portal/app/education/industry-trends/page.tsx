@@ -1,4 +1,4 @@
-import { Container, Box } from '@mui/material'
+import { Box, Container } from '@mui/material'
 
 import { IndustryTrendsCard } from '@/components/Education/IndustryTrendsCard'
 
@@ -72,12 +72,12 @@ export default function IndustryTrendsPage() {
       <Box
         display="grid"
         gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }}
-        gap={{ xs: 2, sm: 3, }}
+        gap={{ xs: 2, sm: 3 }}
       >
         {industryTrends.map((industryTrend) => (
           <IndustryTrendsCard key={industryTrend.title} {...industryTrend} />
         ))}
-      </Box >
+      </Box>
     </Container>
   )
 }

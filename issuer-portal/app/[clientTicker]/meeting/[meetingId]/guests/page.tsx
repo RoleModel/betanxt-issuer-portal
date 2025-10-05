@@ -28,7 +28,10 @@ import {
 
 import EmptyState from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
-import PreviewDialog, { createChipRenderer, createTextRenderer } from '@/components/FileUpload/PreviewDialog'
+import PreviewDialog, {
+  createChipRenderer,
+  createTextRenderer,
+} from '@/components/FileUpload/PreviewDialog'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDigitalShareholderMeeting } from '@/hooks/useDigitalShareholderMeeting'
@@ -174,7 +177,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-              `Found columns: ${availableColumns}`
+                `Found columns: ${availableColumns}`
             )
           )
           return

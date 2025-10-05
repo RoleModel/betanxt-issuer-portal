@@ -391,7 +391,6 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
         )
       }
     } catch (error) {
-       
       console.error('[PlanFileRequestForm] Logo loading failed:', error)
     }
   } else {

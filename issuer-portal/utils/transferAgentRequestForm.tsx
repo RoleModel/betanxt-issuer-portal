@@ -391,7 +391,6 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
         )
       }
     } catch (error) {
-       
       console.error('[TransferAgentForm] Logo loading failed:', error)
     }
   } else {

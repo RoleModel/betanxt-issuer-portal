@@ -28,8 +28,8 @@ import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { formatDate } from '@/lib/formats'
 import type { Task } from '@/types/api-exports'
-import { getDateLabel, shouldShowStatusChip } from '@/utils/taskControl'
 import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
+import { getDateLabel, shouldShowStatusChip } from '@/utils/taskControl'
 
 interface TaskItemProps {
   meetingId?: string

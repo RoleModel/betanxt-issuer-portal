@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
 import { syncCarryoverTaskStatus } from '@/utils/taskControl'
 
 type Task = components['schemas']['Task']
@@ -38,7 +39,11 @@ export interface UseTasksResult {
   loading: boolean
   error: string | null
   refetch: () => void
-  updateTaskById: (id: string, updates: Partial<Task>, skipSync?: boolean) => Promise<void>
+  updateTaskById: (
+    id: string,
+    updates: Partial<Task>,
+    skipSync?: boolean
+  ) => Promise<void>
   createNewTask: (meetingId: string, task: Partial<Task>) => Promise<void>
 }
 
@@ -100,11 +105,13 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
 
         // Sync status across phases for carryover tasks (only if not already syncing)
         if (updates.status && !skipSync) {
-          const updatedTask = tasks.find(t => t.id === id)
+          const updatedTask = tasks.find((t) => t.id === id)
           if (updatedTask) {
             // Create a wrapper that sets skipSync=true to prevent infinite recursion
-            const updateWithoutSync = (taskId: string, taskUpdates: { status: components['schemas']['TaskStatus'] }) =>
-              updateTaskById(taskId, taskUpdates, true)
+            const updateWithoutSync = (
+              taskId: string,
+              taskUpdates: { status: components['schemas']['TaskStatus'] }
+            ) => updateTaskById(taskId, taskUpdates, true)
 
             const syncedIds = await syncCarryoverTaskStatus(
               { ...updatedTask, status: updates.status } as Task,

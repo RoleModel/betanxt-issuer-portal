@@ -144,7 +144,6 @@ export function EventTabs() {
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-
   // (Optimization) Memoize current phase parsing
   const currentPhase = useMemo(
     () => parsePhaseNumber(currentMeeting?.currentPhase),
@@ -440,7 +439,6 @@ export function EventTabs() {
       }, 300)
     }
   }, [checkScrollButtons])
-
 
   // Subcomponents for active/inactive meeting detail sections
   const ActiveMeetingDetails = ({
@@ -807,14 +805,8 @@ export function EventTabs() {
               }}
             >
               {transformedMeetings.map(({ tab, src }, index) => (
-                <MeetingTab
-                  key={tab.id || index}
-                  meeting={tab}
-                  src={src}
-                  index={index}
-                />
-              ))
-              }
+                <MeetingTab key={tab.id || index} meeting={tab} src={src} index={index} />
+              ))}
             </Stack>
           </Box>
         </Box>

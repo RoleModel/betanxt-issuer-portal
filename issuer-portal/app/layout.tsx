@@ -7,13 +7,12 @@ import { Roboto, Roboto_Condensed } from 'next/font/google'
 import localFont from 'next/font/local'
 import React from 'react'
 
+import { GlobalStyles } from '@mui/material'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type { } from '@mui/material/themeCssVarsAugmentation'
-import { GlobalStyles } from '@mui/material'
+import type {} from '@mui/material/themeCssVarsAugmentation'
 
 import '@/components/Documents/react-pdf.css'
-
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
 import { ClientProvider } from '@/contexts/ClientContext'
@@ -38,7 +37,6 @@ const Tungsten = localFont({
   src: [
     { path: '../public/fonts/Tungsten.woff2', weight: '400' },
     { path: '../public/fonts/Tungsten-Medium.woff2', weight: '500' },
-
   ],
   variable: '--font-tungsten',
   display: 'swap',
@@ -76,9 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppRouterCacheProvider>
           <SessionProvider>
             <ClientProvider>
-              <ThemeRegistry>
-                {children}
-              </ThemeRegistry>
+              <ThemeRegistry>{children}</ThemeRegistry>
             </ClientProvider>
           </SessionProvider>
         </AppRouterCacheProvider>

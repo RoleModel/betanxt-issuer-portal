@@ -119,12 +119,14 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
         abstain: number
       }[]
     }>(dbReport.broker_voting, {}),
-    shareRangePerformance: parseJsonField<{
-      rangeLabel: string
-      positionCount: number
-      totalShares: number
-      percentVoted: number
-    }[]>(dbReport.share_range_performance, []),
+    shareRangePerformance: parseJsonField<
+      {
+        rangeLabel: string
+        positionCount: number
+        totalShares: number
+        percentVoted: number
+      }[]
+    >(dbReport.share_range_performance, []),
     nonDtcVoteStatus: parseJsonField(dbReport.non_dtc_vote_status, {
       unvotedShareholders: 0,
       unvotedShares: 0,

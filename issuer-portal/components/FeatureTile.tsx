@@ -108,10 +108,10 @@ export function FeatureTile({
         '&:hover':
           href || onClick
             ? {
-              transform: 'translateY(-2px)',
-              backgroundColor: variantStyles.hoverBackgroundColor,
-              color: variantStyles.hoverColor,
-            }
+                transform: 'translateY(-2px)',
+                backgroundColor: variantStyles.hoverBackgroundColor,
+                color: variantStyles.hoverColor,
+              }
             : {},
       }}
       onClick={onClick && !href ? onClick : undefined}

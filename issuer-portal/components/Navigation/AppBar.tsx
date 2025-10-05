@@ -6,7 +6,14 @@ import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
@@ -16,10 +23,11 @@ import type { NotificationData } from '@/components/Notifications/NotificationPo
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
-import { useClient } from '@/contexts/ClientContext'
-import MeetingContext from '@/contexts/MeetingContext'
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
+import { useClient } from '@/contexts/ClientContext'
+import MeetingContext from '@/contexts/MeetingContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
 // Custom hook to safely use meeting context when it might not be available
@@ -145,7 +153,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
-    (clientName?: string, ticker?: string) => computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
+    (clientName?: string, ticker?: string) =>
+      computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
     []
   )
 
@@ -276,9 +285,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
+          currentClient?.company_name || currentClient?.short_name,
+          logoTicker
+        )
       : '/images/logo.svg'
   }, [
     props.logoSrc,
@@ -290,14 +299,19 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
-
     return {
       logoImg: {
         src: logoSrc,
         alt: `${logoTicker || 'BetaNXT'} logo`,
         width: 'auto',
         height: 44,
-        style: { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
+        style: {
+          height: 44,
+          width: 'auto',
+          backgroundColor: 'var(--mui-palette-common-white)',
+          padding: '2px 4px',
+          borderRadius: '4px',
+        },
       },
     }
   }, [logoSrc, logoTicker])
@@ -309,11 +323,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
     const initials = props.user.name
       ? props.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
 
     // Use uploaded image if available, otherwise show initials

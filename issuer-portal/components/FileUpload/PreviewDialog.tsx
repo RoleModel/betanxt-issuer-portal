@@ -83,31 +83,37 @@ export default function PreviewDialog<T>({
 }
 
 // Helper function for creating chip renderers
-export const createChipRenderer = (
-  getColor: (value: string) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
-) => (value: any) => (
-  <Chip
-    label={String(value)}
-    color={getColor(String(value))}
-    variant="outlined"
-    size="small"
-  />
-)
+export const createChipRenderer =
+  (
+    getColor: (
+      value: string
+    ) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
+  ) =>
+  (value: any) => (
+    <Chip
+      label={String(value)}
+      color={getColor(String(value))}
+      variant="outlined"
+      size="small"
+    />
+  )
 
 // Helper function for creating formatted number renderer
-export const createNumberRenderer = (formatter?: (num: number) => string) => (value: any) => {
-  const num = Number(value)
-  if (isNaN(num) || num === 0) return '-'
-  return (
-    <Typography variant="body2">
-      {formatter ? formatter(num) : num.toLocaleString()}
-    </Typography>
-  )
-}
+export const createNumberRenderer =
+  (formatter?: (num: number) => string) => (value: any) => {
+    const num = Number(value)
+    if (isNaN(num) || num === 0) return '-'
+    return (
+      <Typography variant="body2">
+        {formatter ? formatter(num) : num.toLocaleString()}
+      </Typography>
+    )
+  }
 
 // Helper function for creating text renderer
-export const createTextRenderer = (color?: 'text.secondary' | 'text.primary') => (value: any) => (
-  <Typography variant="body2" color={color}>
-    {String(value || '-')}
-  </Typography>
-)
+export const createTextRenderer =
+  (color?: 'text.secondary' | 'text.primary') => (value: any) => (
+    <Typography variant="body2" color={color}>
+      {String(value || '-')}
+    </Typography>
+  )

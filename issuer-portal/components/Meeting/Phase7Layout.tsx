@@ -28,7 +28,6 @@ import type { Meeting } from '@/types/api-exports'
 import TabulationReportCard from '../Tabulation/TabulationReportCard'
 import KeyDatesCard from './KeyDatesCard'
 
-
 // Dynamic imports for heavy components
 const VotingTabulationTable = dynamic(
   () => import('@/components/Meeting/VotingTabulationTable'),
@@ -85,8 +84,12 @@ export default React.memo(function Phase7Layout({
         })
 
         if (!error && data) {
-          setScheduledLogistics((data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false)
-          setScheduledDryRun((data as { dryRunScheduled?: boolean }).dryRunScheduled || false)
+          setScheduledLogistics(
+            (data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false
+          )
+          setScheduledDryRun(
+            (data as { dryRunScheduled?: boolean }).dryRunScheduled || false
+          )
         }
       } catch (error) {
         console.error('Failed to fetch DSM config:', error)
@@ -116,13 +119,15 @@ export default React.memo(function Phase7Layout({
         dryRunScheduled: dialogType !== 'logistics' ? true : false,
         dsmEnabled: true,
         ioeEnabled: true,
-        ...(dialogType === 'logistics' ? {
-          logisticsCallDate: date.toISOString(),
-          logisticsCallNotes: notes,
-        } : {
-          dryRunDate: date.toISOString(),
-          dryRunNotes: notes,
-        })
+        ...(dialogType === 'logistics'
+          ? {
+              logisticsCallDate: date.toISOString(),
+              logisticsCallNotes: notes,
+            }
+          : {
+              dryRunDate: date.toISOString(),
+              dryRunNotes: notes,
+            }),
       }
 
       const { data, error } = await apiClient.POST('/meetings/{meetingId}/dsm-config', {
@@ -257,7 +262,9 @@ export default React.memo(function Phase7Layout({
             action={
               <Button
                 variant="outlined"
-                onClick={() => { router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`) }}
+                onClick={() => {
+                  router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`)
+                }}
               >
                 View Tabulation
               </Button>
@@ -276,7 +283,7 @@ export default React.memo(function Phase7Layout({
             titleVariant="h1"
             actionText="Download"
             variant="default"
-            onClick={() => { }}
+            onClick={() => {}}
           />
           <TabulationReportCard />
           <SharesVotedChart meetingId={meetingId} loading={votingLoading} />

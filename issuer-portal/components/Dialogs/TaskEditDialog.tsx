@@ -225,9 +225,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     if (!task || !enableLinkEditing || !task.links) return []
 
     // Convert links object to array if needed
-    const linksArray = Array.isArray(task.links)
-      ? task.links
-      : Object.values(task.links)
+    const linksArray = Array.isArray(task.links) ? task.links : Object.values(task.links)
 
     if (!Array.isArray(linksArray) || linksArray.length === 0) return []
 
@@ -451,7 +449,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth keepMounted={false}>
+    <Dialog
+      open={open}
+      onClose={handleCancel}
+      maxWidth="sm"
+      fullWidth
+      keepMounted={false}
+    >
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Edit Task

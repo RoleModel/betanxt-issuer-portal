@@ -100,9 +100,9 @@ export default function PositionsVotedChart({
     selectedSetKey && data[selectedSetKey]
       ? data[selectedSetKey]
       : {
-        registered: { voted: 0, notVoted: 0 },
-        beneficial: { voted: 0, notVoted: 0 },
-      }
+          registered: { voted: 0, notVoted: 0 },
+          beneficial: { voted: 0, notVoted: 0 },
+        }
 
   // Calculate totals and percentages
   const totalRegistered = selectedData.registered.voted + selectedData.registered.notVoted

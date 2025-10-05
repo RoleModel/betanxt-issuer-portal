@@ -78,6 +78,16 @@ import {
  * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
  */
 
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
+
 type Document = Omit<components['schemas']['Document'], 'status'> & {
   status?: ExtendedDocumentStatus
 }
@@ -143,9 +153,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   // Calculate DSM progress
   const dsmProgress = React.useMemo(() => {
     // Count documents that have been uploaded (have filePath)
-    const uploadedDsm = dsmDocuments.filter(
-      (doc) => doc.filePath
-    ).length
+    const uploadedDsm = dsmDocuments.filter((doc) => doc.filePath).length
     const totalRequired = 6 // Number of placeholders defined below
     return {
       uploaded: uploadedDsm,
@@ -554,8 +562,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                                 status === 'UNKNOWN'
                                   ? 'Unknown'
                                   : getDocumentStatusLabel(
-                                    (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                                  )
+                                      (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                    )
                               return (
                                 <MenuItem key={status} value={status}>
                                   {label}
@@ -647,7 +655,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => { }}
+          onAddComment={() => {}}
         />
       )}
 

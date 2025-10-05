@@ -27,7 +27,6 @@ import buildApiClient from '@/domain-models/apiClient'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDocuments } from '@/hooks/useDocuments'
 
-
 interface MeetingAccessItem {
   label: string
   type: 'toggle' | 'contact' | 'upload'

@@ -3,9 +3,9 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat'
 // @ts-expect-error The eslint-plugin-no-only-tests package doesn't have types
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import globals from 'globals'
+import { dirname } from 'path'
 import tseslint from 'typescript-eslint'
 import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -71,5 +71,5 @@ export default [
         },
       ],
     },
-  }
+  },
 ]

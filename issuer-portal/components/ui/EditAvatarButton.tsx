@@ -22,7 +22,7 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
   sx,
   userName,
   userEmail,
-  color
+  color,
 }) => {
   // Generate initials from user name or email
   const getInitials = () => {

@@ -488,13 +488,13 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                         {isEditMode ? (
                           <>
                             <Switch
-                              size='small'
+                              size="small"
                               checked={option.value}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 option.onChange!(e.target.checked)
                               }
                               slotProps={{
-                                input: { 'aria-label': 'Yes or No' }
+                                input: { 'aria-label': 'Yes or No' },
                               }}
                             />
                             <Typography variant="body3">No</Typography>

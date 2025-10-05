@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
 import { TabContext, TabPanel } from '@mui/lab'
@@ -17,7 +18,6 @@ import {
   Typography,
   styled,
 } from '@mui/material'
-import { useRouter } from 'next/navigation'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
@@ -100,7 +100,9 @@ const convertDbNotificationToNotificationData = (
   let userAvatar: string | undefined = undefined
 
   if (isCommentNotification && dbNotification.message) {
-    const match = dbNotification.message.match(/^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/)
+    const match = dbNotification.message.match(
+      /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/
+    )
     if (match) {
       userName = match[1].trim()
       // Generate avatar from user name using UI Avatars API
@@ -120,7 +122,8 @@ const convertDbNotificationToNotificationData = (
     variant: dbNotification.read ? 'read' : 'unread',
     avatar: userAvatar,
     isSystemNotification:
-      !isCommentNotification && (dbNotification.type === 'info' || dbNotification.type === 'success'),
+      !isCommentNotification &&
+      (dbNotification.type === 'info' || dbNotification.type === 'success'),
   }
 }
 

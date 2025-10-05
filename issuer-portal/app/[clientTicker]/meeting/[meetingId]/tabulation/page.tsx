@@ -7,12 +7,12 @@ import { Container, Stack } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import EmptyState from '@/components/EmptyState'
+import TabulationTracker from '@/components/Meeting/TabulationTracker'
 import BeneficialVsRegisteredCard from '@/components/Tabulation/BeneficialVsRegisteredCard'
 import PositionsTable from '@/components/Tabulation/PositionsTable'
 import ProposalDetailsCard from '@/components/Tabulation/ProposalDetailsCard'
 import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
 import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
-import TabulationTracker from '@/components/Meeting/TabulationTracker'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
 
 import buildApiClient from '@/domain-models/apiClient'

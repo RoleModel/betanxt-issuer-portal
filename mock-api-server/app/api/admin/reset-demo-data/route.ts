@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'fs/promises'
+import { readFile, readdir } from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
 import path from 'path'
 import { Client } from 'pg'
@@ -23,7 +23,8 @@ export async function POST(_req: NextRequest) {
     // In development: use local connection
     // In production: use DATABASE_URL from Vercel
     const databaseUrl =
-      process.env.DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
     console.log('Connecting to database...')
     client = new Client({ connectionString: databaseUrl })
