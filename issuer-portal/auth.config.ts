@@ -88,6 +88,34 @@ export default {
     signIn: '/login',
   },
   callbacks: {
+    authorized({ request, auth }) {
+      const { nextUrl } = request
+      const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+
+      if (bypassAuth) {
+        return true
+      }
+
+      const isAuthenticated = !!auth?.user
+
+      // Allow access to login page
+      if (nextUrl.pathname.includes('/login')) {
+        return true
+      }
+
+      // Require authentication for all other pages
+      if (!isAuthenticated) {
+        return false
+      }
+
+      // Check admin routes
+      if (nextUrl.pathname.startsWith('/user')) {
+        const roles = Array.isArray(auth?.user?.roles) ? auth.user.roles : []
+        return roles.includes('ADMIN')
+      }
+
+      return true
+    },
     async jwt({ token, user, trigger, session: updateData }) {
       if (user) {
         token.id = user.id
