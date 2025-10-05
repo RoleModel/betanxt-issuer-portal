@@ -10,7 +10,7 @@ import React from 'react'
 import { GlobalStyles } from '@mui/material'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type {} from '@mui/material/themeCssVarsAugmentation'
+import type { } from '@mui/material/themeCssVarsAugmentation'
 
 import '@/components/Documents/react-pdf.css'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
@@ -81,7 +81,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SpeedInsights />
         <Analytics />
       </body>
-      <SpeedInsights />
     </html>
   )
 }
