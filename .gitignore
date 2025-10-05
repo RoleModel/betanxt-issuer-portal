@@ -24,3 +24,4 @@ issuer-portal/test-results/*
 issuer-portal/playwright-report/index.html
 .env*.local
 data/
+.env.production
