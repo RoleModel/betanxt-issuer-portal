@@ -26,6 +26,7 @@ import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useDocuments } from '@/hooks/useDocuments'
+import { useDocumentSync } from '@/hooks/useDocumentSync'
 import type { Document, Meeting } from '@/types/api-exports'
 import { formatDateForDisplay } from '@/utils/dateUtils'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
