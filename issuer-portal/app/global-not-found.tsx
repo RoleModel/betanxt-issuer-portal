@@ -27,7 +27,9 @@ export const metadata: Metadata = {
   description: 'The page you are looking for does not exist.',
 }
 
-export default function RootLayout() {
+export const dynamic = 'force-static'
+
+export default function GlobalNotFound() {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${roboto.variable} ${robotoCondensed.variable}`}>
