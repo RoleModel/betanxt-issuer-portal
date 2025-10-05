@@ -150,9 +150,9 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                   <TableCell size="small">
                     <StatusChip
                       status={
-                        (doc.filePath ? (doc.status ?? null) : 'NOT_UPLOADED') as
-                          | string
-                          | null
+                        (doc.status === 'NOT_UPLOADED' || (!doc.filePath && !doc.status)) 
+                          ? 'NOT_UPLOADED' 
+                          : (doc.status ?? null)
                       }
                     />
                   </TableCell>
@@ -161,8 +161,12 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                       variant="text"
                       data-testid={`dsm-document-action-${doc.id}`}
                       onClick={() => {
-                        if (!doc.filePath) onOpenUploadFor(doc)
-                        else onOpenDocument(doc)
+                        const hasFile = !!(doc.filePath)
+                        if (!hasFile || doc.status === 'NOT_UPLOADED') {
+                          onOpenUploadFor(doc)
+                        } else {
+                          onOpenDocument(doc)
+                        }
                       }}
                     >
                       {getDocumentActionLabel({

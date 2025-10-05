@@ -62,19 +62,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
-      <GlobalStyles
-        styles={{
-          'html, body': {
-            height: '100%',
-          },
-        }}
-      />
-      <body>
+      <head>
         <InitColorSchemeScript attribute="class" />
+      </head>
+      <body>
         <AppRouterCacheProvider>
           <SessionProvider>
             <ClientProvider>
-              <ThemeRegistry>{children}</ThemeRegistry>
+              <ThemeRegistry>
+                <GlobalStyles
+                  styles={{
+                    'html, body': {
+                      height: '100%',
+                    },
+                  }}
+                />
+                {children}
+              </ThemeRegistry>
             </ClientProvider>
           </SessionProvider>
         </AppRouterCacheProvider>
