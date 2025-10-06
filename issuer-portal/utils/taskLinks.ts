@@ -16,26 +16,38 @@ function isTaskLink(obj: unknown): obj is TaskLink {
 }
 
 export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
+  console.log('parseTaskLinks called with:', { json, taskTitle, jsonType: typeof json })
+
   // Handle null/undefined
-  if (!json) return []
+  if (!json) {
+    console.log('parseTaskLinks: json is null/undefined, returning empty array')
+    return []
+  }
 
   let links: TaskLink[] = []
 
   // If it's already an array, use it directly
   if (Array.isArray(json)) {
+    console.log('parseTaskLinks: json is array, filtering for valid links')
     links = json.filter(isTaskLink)
+    console.log('parseTaskLinks: filtered array links:', links)
   }
   // If it's a string, try to parse it as JSON
   else if (typeof json === 'string') {
+    console.log('parseTaskLinks: json is string, attempting to parse JSON')
     try {
-      const parsed = JSON.parse(json)
+      const parsed: unknown = JSON.parse(json)
+      console.log('parseTaskLinks: parsed JSON:', parsed)
       if (Array.isArray(parsed)) {
         links = parsed.filter(isTaskLink)
+        console.log('parseTaskLinks: filtered parsed links:', links)
       }
     } catch (e) {
       console.warn('Failed to parse task links JSON:', e)
       return []
     }
+  } else {
+    console.log('parseTaskLinks: json is not array or string, type:', typeof json)
   }
 
   // Auto-add Sign Form and Upload links for form tasks
@@ -80,5 +92,6 @@ export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
     })
   }
 
+  console.log('parseTaskLinks: final links result:', links)
   return links
 }

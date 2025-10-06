@@ -4,7 +4,7 @@ import reactPlugin from 'eslint-plugin-react'
 import hooksPlugin from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   // Base JavaScript recommended rules
   js.configs.recommended,
 
@@ -98,5 +98,5 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
     },
-  }
-)
+  },
+]

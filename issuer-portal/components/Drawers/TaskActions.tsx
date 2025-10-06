@@ -42,6 +42,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
   setSignatureAreas,
   setDocumentViewerOpen,
 }) => {
+
   // Only show actions for issuer-owned tasks, but allow authorize links for BetaNXT/DFIN tasks
   if (!taskLinks.length) {
     return null
@@ -134,11 +135,13 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           }
 
           // Make sign, download, and authorize actions clickable
-          const isClickable = link.url && (
+          // Signature and download actions can work without URLs (handled by form handlers)
+          const isClickable = (
             link.action === 'signature' ||
             link.action === 'download' ||
-            link.action === 'authorize'
+            (link.url && link.action === 'authorize')
           )
+
 
           return isClickable ? (
             <Link
