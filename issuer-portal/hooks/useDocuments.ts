@@ -416,8 +416,9 @@ export const useDocuments = (): UseDocumentsResult => {
             }
           }
 
-          // Upload via the new API route
-          const response = await fetch(`/api/documents/types/${documentType}/upload`, {
+          // Upload via the mock-server API
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+          const response = await fetch(`${API_BASE_URL}/documents/types/${documentType}/upload`, {
             method: 'POST',
             body: formData,
           })

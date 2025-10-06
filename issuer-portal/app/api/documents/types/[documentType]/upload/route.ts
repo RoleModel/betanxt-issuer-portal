@@ -29,7 +29,9 @@ export async function POST(
 
     // Get authenticated user
     const session = await auth()
+    console.log('Upload - Session:', session ? 'exists' : 'null')
     const userName = session?.user?.name ?? session?.user?.username ?? 'Unknown User'
+    console.log('Upload - User name:', userName)
 
     // Expect multipart/form-data
     const formData = await req.formData()
@@ -84,10 +86,12 @@ export async function POST(
     const storagePath = `${meetingId}/${documentType}/${timestamp}_${rand}.${ext}`
 
     const supabase = getServerSupabase()
+    console.log('Upload - Storage path:', storagePath)
 
     // Read file into Node Buffer for server-side upload (ensures we can later enforce private bucket policies)
     const arrayBuf = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuf)
+    console.log('Upload - Buffer size:', buffer.length)
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(DOCUMENTS_BUCKET)
@@ -98,8 +102,10 @@ export async function POST(
       })
 
     if (uploadError || !uploadData) {
+      console.error('Upload - Storage error:', uploadError)
       return jsonError(`Upload failed: ${uploadError?.message || 'unknown error'}`, 500)
     }
+    console.log('Upload - Storage success:', uploadData.path)
 
     // Get public URL (bucket currently public in dev). Later we may switch to signed URLs.
     const { data: publicUrlData } = supabase.storage
@@ -238,7 +244,10 @@ export async function POST(
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
-    console.error('Upload route error', err)
-    return jsonError('Unhandled server error', 500)
+    console.error('Upload route error:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unhandled server error'
+    const errorStack = err instanceof Error ? err.stack : undefined
+    console.error('Error stack:', errorStack)
+    return jsonError(errorMessage, 500)
   }
 }
