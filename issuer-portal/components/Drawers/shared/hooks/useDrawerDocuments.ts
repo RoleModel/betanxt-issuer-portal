@@ -116,7 +116,7 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
   // File upload handlers
   const handleFilesSelected = useCallback((newFiles: File[]) => {
     const uploadFileObjects = newFiles.map((file) => ({
-      id: crypto.randomUUID(),
+      id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
       file,
       status: 'complete' as const,
       progress: 100,

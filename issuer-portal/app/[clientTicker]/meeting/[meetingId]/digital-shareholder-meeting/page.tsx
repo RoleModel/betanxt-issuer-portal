@@ -367,14 +367,6 @@ export default function DigitalShareholderMeetingPage() {
         <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
           <EmptyState
             title="No digital meeting attendees yet — add attendees to get started"
-            description={<>
-              <Typography component="span" variant="body3">
-                Upload attendee data to get started. Your file must include these columns:
-                <span> <strong>First Name</strong> (required), <strong>Last Name</strong> (required), <strong>Email Address</strong> (required), Title (optional)</span  >
-              </Typography>
-              <Typography component="span" variant="body3" >Accepted formats: CSV, Excel (.csv, .xls, .xlsx)</Typography>
-            </>
-            }
             action={
               <Button
                 variant="contained"
@@ -383,7 +375,13 @@ export default function DigitalShareholderMeetingPage() {
                 Add Attendees
               </Button>
             }
-          />
+          >
+            <Typography component="span" variant="body3">
+              Upload attendee data to get started. Your file must include these columns:
+              <span> <strong>First Name</strong> (required), <strong>Last Name</strong> (required), <strong>Email Address</strong> (required), Title (optional). </span>
+            </Typography>
+            <Typography component="span" variant="body3">Accepted formats: CSV, Excel (.csv, .xls, .xlsx)</Typography>
+          </EmptyState>
         </Container>
 
         {/* File Upload Dialog - Available even when no data */}
