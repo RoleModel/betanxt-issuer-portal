@@ -37,6 +37,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 }) => {
   const [isWorkerReady, setIsWorkerReady] = useState(false)
   const [isPdfLoaded, setIsPdfLoaded] = useState(false)
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const [actualWidth, setActualWidth] = useState<number | null>(null)
   const hasInitialized = useRef(false)
 
@@ -81,6 +82,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Reset loaded state when file changes
   useEffect(() => {
     setIsPdfLoaded(false)
+    setLoadError(null)
   }, [file])
 
   if (!isPdfFile) {
@@ -99,7 +101,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   }
 
   const handleLoadError = (error: Error) => {
+    console.error('PDFViewer: Failed to load PDF', { file, error })
     setIsPdfLoaded(false)
+    setLoadError(error)
     if (onLoadError) {
       onLoadError(error)
     }
@@ -147,6 +151,33 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         }}
       >
         <CircularProgress />
+      </Box>
+    )
+  }
+
+  // Show error if load failed
+  if (loadError) {
+    return (
+      <Box
+        sx={{
+          width: actualWidth || width,
+          minHeight: (actualWidth || width) * 1.294,
+          backgroundColor: 'var(--mui-palette-background-paper)',
+          borderRadius: '4px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 3,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ marginBottom: '8px', fontWeight: 600 }}>Failed to Load PDF</div>
+        <div style={{ fontSize: '0.875rem', color: 'var(--mui-palette-text-secondary)' }}>
+          {loadError.message.includes('400') || loadError.message.includes('404')
+            ? 'The PDF file could not be found in storage. Please upload the document.'
+            : 'Unable to load the PDF document. Please try again.'}
+        </div>
       </Box>
     )
   }

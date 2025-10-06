@@ -245,6 +245,8 @@ export function getDocumentStatusLabel(status: ExtendedDocumentStatus): string {
       return 'Authorized'
     case 'COMPLETED':
       return 'Completed'
+    case 'SUBMITTED_AWAITING_RECORD_DATE':
+      return 'Submitted Awaiting Record Date'
     default:
       return 'Unknown'
   }

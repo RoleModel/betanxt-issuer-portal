@@ -123,7 +123,9 @@ export function TaskItem({
                   textDecorationThickness: '2px',
                 }}
               >
-                {task.owner || 'Unassigned'}
+                {task.owner && task.owner.trim() !== '' && task.owner.toLowerCase() !== 'unknown'
+                  ? task.owner
+                  : 'Unassigned'}
               </Typography>
             </Box>
             <Box

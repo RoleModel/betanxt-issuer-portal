@@ -75,28 +75,33 @@ const getStatusDisplayText = (
     case 'AUTHORIZATION_NEEDED':
       return 'Authorization Needed'
     case 'SUBMITTED_AWAITING_RECORD_DATE':
+    case 'Submitted Awaiting Record Date':
       return 'Submitted Awaiting Record Date'
     case 'REQUEST_FORM_TO_FOLLOW':
+    case 'Request Form to Follow':
+    case 'Request form to follow':
       return 'Request Form to Follow'
     case 'COMPLETE':
+    case 'Complete':
       return 'Complete'
     case 'Unvoted':
       return 'Unvoted'
     case 'Voted':
       return 'Voted'
-    case 'Complete':
     case 'Pending Approval':
     case 'Pending':
     case 'Approved':
     case 'Not Started':
       return status
     default:
-      return typeof status === 'string'
-        ? status
-            .split('_')
-            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-            .join(' ')
-        : 'Unknown'
+      // Handle any status string by converting to title case
+      if (typeof status === 'string' && status.trim() !== '') {
+        return status
+          .split('_')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .join(' ')
+      }
+      return 'Unknown'
   }
 }
 
