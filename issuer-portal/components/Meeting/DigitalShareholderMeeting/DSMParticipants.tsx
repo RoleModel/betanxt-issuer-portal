@@ -75,10 +75,6 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         doc.documentType === 'digital-shareholder-meeting'
       )
 
-      // Debug: Log documents and participants for troubleshooting
-      console.log('DSM Documents found:', dsmDocuments)
-      console.log('Participants:', data.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })))
-
       // Transform data to include role information
       // Documents are meeting-level, not participant-specific
       const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {

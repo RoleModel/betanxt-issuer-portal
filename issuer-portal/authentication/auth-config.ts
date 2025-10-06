@@ -31,8 +31,6 @@ export const config = {
           return null
         }
 
-        console.log('Login attempt:', { username: credentials.username, password: credentials.password })
-
         // For development, allow these test users directly without calling API
         const testUsers = [
           {
@@ -62,8 +60,6 @@ export const config = {
         const user = testUsers.find(
           (u) => u.username === credentials.username && u.password === credentials.password
         )
-
-        console.log('User found:', user ? user.username : 'No user found')
 
         if (user) {
           return {
