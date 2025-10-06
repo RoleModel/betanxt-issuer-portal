@@ -47,8 +47,8 @@ export default {
             username: 'dev.user',
             password: 'ju$Ky8Ad1#%g',
             type: 'admin',
-            accountId: 'd607d704-0222-5a41-abd8-552ffa17c36c',
-            client: null,
+            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client_ticker: null,
             roles: ['ADMIN', 'USER'],
           },
           {
@@ -58,8 +58,8 @@ export default {
             username: 'test.user',
             password: '9yUDDftg@Lh!',
             type: 'admin',
-            accountId: null,
-            client: null,
+            account_id: undefined,
+            client_ticker: null,
             roles: ['ADMIN', 'USER'],
           },
           {
@@ -109,8 +109,8 @@ export default {
             email: user.email,
             username: user.username,
             type: user.type,
-            account_id: user.account_id,
-            client_ticker: user.client_ticker,
+            account_id: user.account_id || undefined,
+            client_ticker: user.client_ticker || undefined,
           }
         }
 

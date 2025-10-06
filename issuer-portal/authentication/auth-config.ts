@@ -51,7 +51,7 @@ export const config = {
             username: 'test.user',
             password: '9yUDDftg@Lh!',
             type: 'admin',
-            accountId: null,
+            accountId: undefined,
             client: null,
             roles: ['ADMIN', 'USER'],
           },
@@ -79,7 +79,7 @@ export const config = {
             email: user.email,
             username: user.username,
             type: user.type,
-            accountId: user.accountId,
+            accountId: user.accountId || undefined,
             client: user.client,
             roles: user.roles,
           }
