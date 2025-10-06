@@ -214,14 +214,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     if (open && taskToUse) {
       try {
         // Links are now stored as JSON in the task itself
-        console.log('TaskDrawer - Task links debug:', {
-          taskId: taskToUse.id,
-          taskTitle: taskToUse.title,
-          rawLinks: taskToUse.links,
-          linksType: typeof taskToUse.links,
-        })
         const fetchedLinks = parseTaskLinks(taskToUse.links, taskToUse.title)
-        console.log('TaskDrawer - Parsed links:', fetchedLinks)
         setTaskLinks(fetchedLinks)
 
         // Check if there are any signature links
