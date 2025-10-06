@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
+  // Remove 'standalone' output for Vercel deployment
+  // output: 'standalone',
   logging: {
     fetches: {
       fullUrl: true,
