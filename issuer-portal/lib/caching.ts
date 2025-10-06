@@ -33,7 +33,7 @@ export function cacheFn<TArgs extends unknown[], TReturn>(
       tags: builtTags,
       revalidate: options.revalidate ?? 60,
     })
-    return cached() as Promise<TReturn>
+    return cached()
   }
 }
 

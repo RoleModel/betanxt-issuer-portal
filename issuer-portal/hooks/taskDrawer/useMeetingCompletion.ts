@@ -22,30 +22,39 @@ export const useMeetingCompletion = ({
   tasks,
   refetch,
 }: UseMeetingCompletionProps) => {
-  const updateMeetingCompletion = useCallback(async () => {
+  const updateMeetingCompletion = useCallback(() => {
     if (!currentMeeting?.id) return
 
-    try {
-      const client = await buildApiClient()
+    // Run meeting completion update asynchronously to avoid blocking the UI
+    setTimeout(() => {
+      const updateCompletion = async () => {
+        try {
+          const client = await buildApiClient()
 
-      // Refetch tasks to get latest statuses
-      refetch()
+          // Calculate overall completion with current tasks (no need to refetch)
+          const overallCompletion = calculateOverallCompletion(tasks)
 
-      // Calculate overall completion
-      const overallCompletion = calculateOverallCompletion(tasks)
+          // Update meeting completion percentage if meetingId exists
+          if (currentMeeting.id) {
+            await client.PUT('/meetings/{meetingId}', {
+              params: {
+                path: { meetingId: currentMeeting.id },
+              },
+              body: {
+                overallCompletion: overallCompletion,
+              },
+            })
+          }
 
-      // Update meeting completion percentage
-      await client.PUT('/meetings/{meetingId}', {
-        params: {
-          path: { meetingId: currentMeeting.id },
-        },
-        body: {
-          overallCompletion: overallCompletion,
-        },
-      })
-    } catch (_error) {
-      // Non-fatal error
-    }
+          // Refetch tasks after update to sync UI
+          refetch()
+        } catch (_error) {
+          // Non-fatal error
+        }
+      }
+
+      updateCompletion()
+    }, 0)
   }, [currentMeeting, tasks, refetch])
 
   return { updateMeetingCompletion }

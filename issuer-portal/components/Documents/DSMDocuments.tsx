@@ -22,7 +22,7 @@ import {
 import SrOnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { formatDate } from '@/lib/formats'
 import { getDocumentActionLabel } from '@/utils/documentUtils'
@@ -33,7 +33,7 @@ type Document = Omit<ApiDocument, 'status'> & {
   status?: ApiDocument['status'] | 'NOT_UPLOADED'
 }
 
-type DSMDocumentsProps = {
+interface DSMDocumentsProps {
   dsmDocuments: Document[]
   dsmPage: number
   dsmRowsPerPage: number

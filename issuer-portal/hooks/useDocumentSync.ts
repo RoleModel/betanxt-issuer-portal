@@ -130,7 +130,29 @@ export function useDocumentSync({
 
   // Set up real-time subscription
   useEffect(() => {
-    fetchDocuments()
+    // Fetch initial documents
+    const loadDocuments = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+        const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents')
+        }
+
+        const data = await response.json()
+        setDocuments(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load documents')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDocuments()
 
     // Subscribe to document changes - cast to RealtimeChannel for proper typing
     const channel = supabase.channel(`documents:${meetingId}`) as unknown as RealtimeChannel
@@ -179,7 +201,7 @@ export function useDocumentSync({
     return () => {
       supabase.removeChannel(channel as unknown as ReturnType<typeof supabase.channel>)
     }
-  }, [meetingId, supabase, onDocumentAdded, onDocumentUpdated, onDocumentDeleted, fetchDocuments])
+  }, [meetingId, supabase, onDocumentAdded, onDocumentUpdated, onDocumentDeleted])
 
   // Manual refresh function
   const refresh = useCallback(() => {

@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import React from 'react'
 
-import { Box, Card, SxProps, Typography } from '@mui/material'
+import type { SxProps} from '@mui/material';
+import { Box, Card, Typography } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 
 interface FeatureTileProps {

@@ -285,18 +285,18 @@ export const useDocuments = (): UseDocumentsResult => {
     []
   )
 
-  const getTaskDocument = useCallback(async (_taskId: string): Promise<unknown> => {
+  const getTaskDocument = useCallback((_taskId: string): Promise<unknown> => {
     try {
       setLoading(true)
       setError(null)
 
       // For now, return placeholder data - these operations will need proper API endpoints
-      return null
+      return Promise.resolve(null)
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to get task document'
       setError(errorMessage)
-      return null
+      return Promise.resolve(null)
     } finally {
       setLoading(false)
     }
@@ -427,7 +427,7 @@ export const useDocuments = (): UseDocumentsResult => {
             throw new Error(`Upload failed: ${errorText}`)
           }
 
-          const result = await response.json()
+          const result = await response.json() as Document & { storagePath?: string }
           // Response is the Document object with id, not ApiResponse wrapper
           return result?.id || result?.storagePath || null
         }
@@ -451,14 +451,17 @@ export const useDocuments = (): UseDocumentsResult => {
           _documentId.startsWith('doc-') ||
           _documentId.startsWith('temp-')
 
-        // Decide target status: certain special forms remain SIGNED; otherwise default to AWAITING_REVIEW
+        // Decide target status: use task status if available, otherwise default based on form type
         const isExplicitSignedForm =
           _documentId.includes('broadridge') ||
           _documentId.includes('plan-file-request') ||
           _documentId.includes('transfer-agent-request') ||
           (_documentTitle ? _documentTitle.includes('(Signed)') : false)
+
+        // For signed forms, we should use the task status, not force SIGNED
+        // The task status will be set correctly by the task submission logic
         const desiredStatus = (
-          isExplicitSignedForm ? 'SIGNED' : 'AWAITING_REVIEW'
+          isExplicitSignedForm ? 'AWAITING_REVIEW' : 'AWAITING_REVIEW'
         ) as components['schemas']['Document']['status']
 
         // Use the meeting ID passed in, or extract from URL
@@ -466,9 +469,7 @@ export const useDocuments = (): UseDocumentsResult => {
 
         if (!meetingId) {
           // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
-          const tickerPathMatch = window.location.pathname.match(
-            /\/[^/]+\/meeting\/([^/]+)/
-          )
+          const tickerPathMatch = /\/[^/]+\/meeting\/([^/]+)/.exec(window.location.pathname)
           if (tickerPathMatch) {
             meetingId = tickerPathMatch[1]
           }

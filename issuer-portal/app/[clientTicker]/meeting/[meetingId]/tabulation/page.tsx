@@ -16,7 +16,7 @@ import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
@@ -26,7 +26,7 @@ import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   if (!phaseLabel) return null
-  const match = phaseLabel.match(/(\d+)/)
+  const match = /(\d+)/.exec(phaseLabel)
   if (!match) return null
   const num = Number(match[1])
   return Number.isFinite(num) ? num : null
@@ -40,7 +40,7 @@ export default function TabulationPage() {
   const currentPhaseLabel = useMemo(() => {
     if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
     if ('currentPhase' in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      const val = (currentMeeting as Record<string, unknown>).currentPhase
       return typeof val === 'string' ? val : undefined
     }
     return undefined
@@ -84,7 +84,7 @@ export default function TabulationPage() {
       }
     }
 
-    fetchProposals()
+    void fetchProposals()
   }, [currentMeeting?.id])
 
   // Show loading state while data is being fetched
@@ -103,14 +103,14 @@ export default function TabulationPage() {
         (rp) =>
           ('proposalNumber' in rp && rp.proposalNumber === vp.proposalNumber) ||
           ('proposal_number' in rp && rp.proposal_number === vp.proposalNumber)
-      ) as components['schemas']['Proposal'] | undefined
+      )
 
       return {
         proposalNumber: vp.proposalNumber,
-        proposalTitle: vp.description || rawProposal?.proposalTitle || '',
-        proposalType: rawProposal?.proposalType || '',
-        directorName: vp.directorName || rawProposal?.directorName || '',
-        recommendation: rawProposal?.recommendation || 'FOR',
+        proposalTitle: vp.description ?? rawProposal?.proposalTitle ?? '',
+        proposalType: rawProposal?.proposalType ?? '',
+        directorName: vp.directorName ?? rawProposal?.directorName ?? '',
+        recommendation: rawProposal?.recommendation ?? 'FOR',
         totalVotesFor: vp.votingResults.for.shares,
         totalVotesAgainst: vp.votingResults.against.shares,
         totalVotesAbstain: vp.votingResults.abstain.shares,
@@ -121,8 +121,8 @@ export default function TabulationPage() {
     })
 
     // Calculate quorum data
-    const totalOutstanding = votingSummary?.totalSharesOutstanding || 0
-    const votesRepresented = votingSummary?.totalSharesVoted || 0
+    const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
+    const votesRepresented = votingSummary?.totalSharesVoted ?? 0
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = '50%' // Default, should come from meeting config
@@ -134,21 +134,21 @@ export default function TabulationPage() {
         currentMeeting.title
           ?.replace(/\d{4}\s*/, '')
           .replace(/Annual.*Meeting.*/, '')
-          .trim() ||
-        currentMeeting.ticker ||
+          .trim() ??
+        currentMeeting.ticker ??
         'Company',
-      meetingType: currentMeeting.meetingType || 'Annual Meeting',
-      meetingDate: currentMeeting.meetingDate || '',
-      recordDate: currentMeeting.recordDate || '',
+      meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
+      meetingDate: currentMeeting.meetingDate ?? '',
+      recordDate: currentMeeting.recordDate ?? '',
       totalOutstanding,
       votesRepresentedForQuorum: votesRepresented,
       quorumPercentage,
       quorumRequirement,
       votesOverUnderQuorum,
-      cusipList: currentMeeting.cusip || '', // Use cusip from meeting
+      cusipList: currentMeeting.cusip ?? '', // Use cusip from meeting
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
-        const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero
+        const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 1 // Prevent division by zero
 
         return {
           proposalNumber: p.proposalNumber.toString(),
@@ -178,7 +178,7 @@ export default function TabulationPage() {
 
     await exportTabulationPdf({
       tabulationData,
-      clientTicker: currentMeeting.ticker || undefined,
+      clientTicker: currentMeeting.ticker ?? undefined,
     })
   }
 

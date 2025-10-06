@@ -42,9 +42,20 @@ const TaskActions: React.FC<TaskActionsProps> = ({
   setSignatureAreas,
   setDocumentViewerOpen,
 }) => {
-  // Only show actions for issuer-owned tasks
-  if (!taskLinks.length || ['BetaNXT', 'DFIN'].includes(task.owner || '')) {
+  // Only show actions for issuer-owned tasks, but allow authorize links for BetaNXT/DFIN tasks
+  if (!taskLinks.length) {
     return null
+  }
+
+  // For BetaNXT/DFIN tasks, only show authorize links and DTCC authorization
+  const isBetaNXTOrDFIN = ['BetaNXT', 'DFIN'].includes(task.owner ?? '')
+  if (isBetaNXTOrDFIN) {
+    const hasAuthorizeLinks = taskLinks.some(link => link.action === 'authorize')
+    const isDTCCTask = isDTCCAuthorizationTask(task)
+
+    if (!hasAuthorizeLinks && !isDTCCTask) {
+      return null
+    }
   }
 
   const handleViewSignedDocument = async () => {
@@ -56,7 +67,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
     if (signedDoc?.filePath) {
       const documentUrl = getStoragePublicUrl(signedDoc.filePath)
       setDocumentUrl(documentUrl)
-      setCurrentDocumentId(signedDoc.id || '')
+      setCurrentDocumentId(signedDoc.id ?? '')
       setSignatureAreas([])
       setDocumentViewerOpen(true)
     } else {
@@ -82,50 +93,67 @@ const TaskActions: React.FC<TaskActionsProps> = ({
 
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-      {taskLinks.map((link, linkIndex) => {
-        // Don't render signature buttons while checking for signed documents
-        if (checkingSignedDocument && link.action === 'signature') {
-          return null
-        }
+      {taskLinks
+        .filter(link => {
+          // For BetaNXT/DFIN tasks, only show authorize links
+          if (isBetaNXTOrDFIN) {
+            return link.action === 'authorize'
+          }
+          return true
+        })
+        .map((link, linkIndex) => {
+          // Don't render signature buttons while checking for signed documents
+          if (checkingSignedDocument && link.action === 'signature') {
+            return null
+          }
 
-        // For signature tasks that have a signed document, show "View" button instead
-        if (hasSignedDocument && link.action === 'signature') {
-          const viewLabel = getTaskActionButtonLabel(task.title || '', true)
+          // For signature tasks that have a signed document, show "View" button instead
+          // But don't show for tasks that are pending authorization
+          if (hasSignedDocument && link.action === 'signature') {
+            // Don't show view button for tasks pending authorization
+            if (task.status === 'PENDING_AUTHORIZATION') {
+              return null
+            }
 
-          return (
-            <Link
-              sx={{ cursor: 'pointer' }}
-              key={linkIndex}
-              onClick={handleViewSignedDocument}
-            >
-              {viewLabel}
-            </Link>
+            const viewLabel = getTaskActionButtonLabel(task.title ?? '', true)
+
+            return (
+              <Link
+                sx={{ cursor: 'pointer' }}
+                key={linkIndex}
+                onClick={handleViewSignedDocument}
+              >
+                {viewLabel}
+              </Link>
+            )
+          }
+
+          // Skip upload action buttons - handled by dropzone in TaskDrawer
+          if (link.action === 'upload') {
+            return null
+          }
+
+          // Make sign, download, and authorize actions clickable
+          const isClickable = link.url && (
+            link.action === 'signature' ||
+            link.action === 'download' ||
+            link.action === 'authorize'
           )
-        }
 
-        // Skip upload action buttons - handled by dropzone in TaskDrawer
-        if (link.action === 'upload') {
-          return null
-        }
-
-        // Make sign and download actions clickable even without direct URL
-        const isClickable =
-          link.url || link.action === 'signature' || link.action === 'download'
-
-        return isClickable ? (
-          <Link
-            key={linkIndex}
-            onClick={() => onLinkClick(link)}
-            sx={{ cursor: 'pointer' }}
-          >
-            {link.label}
-          </Link>
-        ) : null
-      })}
+          return isClickable ? (
+            <Link
+              key={linkIndex}
+              onClick={() => onLinkClick(link)}
+              sx={{ cursor: 'pointer' }}
+            >
+              {link.label}
+            </Link>
+          ) : null
+        })}
 
       {/* DTCC Authorization Checkbox */}
       {isDTCCAuthorizationTask(task) && (
-        <Box sx={{ mt: 1 }}>
+        <Box>
           <FormControlLabel
             control={
               <Checkbox

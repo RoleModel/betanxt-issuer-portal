@@ -16,7 +16,8 @@ import {
   purple,
   teal,
 } from '@mui/material/colors'
-import { Theme, createTheme } from '@mui/material/styles'
+import type { Theme} from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
 // Import MUI X Date Pickers theme augmentation
 import type {} from '@mui/x-date-pickers/themeAugmentation'
@@ -407,7 +408,7 @@ const issuerOverrides = {
 
           if (ownerState.color && phaseColors.includes(ownerState.color)) {
             // Extract phase index from 'phase[X].main' format
-            const phaseMatch = ownerState.color.match(/phase\[(\d+)\]\.main/)
+            const phaseMatch = /phase\[(\d+)\]\.main/.exec(ownerState.color)
             if (phaseMatch) {
               const phaseIndex = phaseMatch[1]
               const phaseColor = `var(--mui-palette-phase-${phaseIndex}-main)`
@@ -422,7 +423,7 @@ const issuerOverrides = {
           }
 
           if (ownerState.color && chartColors.includes(ownerState.color)) {
-            const match = ownerState.color.match(/chartSeries\[(\d+)\]\.main/)
+            const match = /chartSeries\[(\d+)\]\.main/.exec(ownerState.color)
             if (match) {
               const idx = match[1]
               const chartColor = `var(--mui-palette-chartSeries-${idx}-main)`

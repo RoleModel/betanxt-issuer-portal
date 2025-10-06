@@ -1,16 +1,8 @@
 // Document utility functions
+import type { DocumentStatus as APIDocumentStatus } from '@/types/api-exports'
 
-// API document statuses (see generated-schema.ts)
-export type DocumentStatus =
-  | 'DRAFT'
-  | 'AWAITING_DRAFT'
-  | 'AWAITING_REVIEW'
-  | 'APPROVED'
-  | 'UPLOADED'
-  | 'IN_PROGRESS'
-  | 'SIGNED'
-  | 'AUTHORIZED'
-  | 'COMPLETED'
+// API document statuses (re-exported from generated schema)
+export type DocumentStatus = APIDocumentStatus
 
 // Extended status used only client-side for placeholder DSM documents that have no file yet.
 export type ExtendedDocumentStatus = DocumentStatus | 'NOT_UPLOADED'
@@ -26,6 +18,7 @@ export const DOCUMENT_STATUS_VALUES: DocumentStatus[] = [
   'SIGNED',
   'AUTHORIZED',
   'COMPLETED',
+  'SUBMITTED_AWAITING_RECORD_DATE',
 ]
 
 // Include extended placeholder statuses separately so we don't leak them into persistence logic.
@@ -306,7 +299,7 @@ export async function fetchDSMDocuments(
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>
       const rowId = String(row.id ?? `doc_${Math.random().toString(36).slice(2)}`)
-      const historyRaw = row.history as unknown
+      const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
             .filter(
@@ -316,22 +309,22 @@ export async function fetchDSMDocuments(
               id: String(h.id ?? `${rowId}_hist_${Math.random().toString(36).slice(2)}`),
               documentId: String(h.documentId ?? rowId ?? ''),
               action: String(h.action ?? 'UNKNOWN'),
-              userId: String(h.userId ?? (h as Record<string, unknown>).user_id ?? ''),
+              userId: String(h.userId ?? (h).user_id ?? ''),
               userName: String(
                 h.userName ??
-                  (h as Record<string, unknown>).user_name ??
-                  (h as Record<string, unknown>).user ??
+                  (h).user_name ??
+                  (h).user ??
                   'Unknown User'
               ),
               timestamp: String(
                 h.timestamp ??
-                  (h as Record<string, unknown>).created_at ??
+                  (h).created_at ??
                   new Date().toISOString()
               ),
               details:
-                typeof (h as Record<string, unknown>).details === 'object' &&
-                (h as Record<string, unknown>).details !== null
-                  ? ((h as Record<string, unknown>).details as Record<string, unknown>)
+                typeof (h).details === 'object' &&
+                (h).details !== null
+                  ? ((h).details as Record<string, unknown>)
                   : undefined,
             }))
         : []
@@ -420,7 +413,7 @@ export async function fetchRegularDocuments(
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>
       const rowId = String(row.id ?? `doc_${Math.random().toString(36).slice(2)}`)
-      const historyRaw = row.history as unknown
+      const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
             .filter(
@@ -430,22 +423,22 @@ export async function fetchRegularDocuments(
               id: String(h.id ?? `${rowId}_hist_${Math.random().toString(36).slice(2)}`),
               documentId: String(h.documentId ?? rowId ?? ''),
               action: String(h.action ?? 'UNKNOWN'),
-              userId: String(h.userId ?? (h as Record<string, unknown>).user_id ?? ''),
+              userId: String(h.userId ?? (h).user_id ?? ''),
               userName: String(
                 h.userName ??
-                  (h as Record<string, unknown>).user_name ??
-                  (h as Record<string, unknown>).user ??
+                  (h).user_name ??
+                  (h).user ??
                   'Unknown User'
               ),
               timestamp: String(
                 h.timestamp ??
-                  (h as Record<string, unknown>).created_at ??
+                  (h).created_at ??
                   new Date().toISOString()
               ),
               details:
-                typeof (h as Record<string, unknown>).details === 'object' &&
-                (h as Record<string, unknown>).details !== null
-                  ? ((h as Record<string, unknown>).details as Record<string, unknown>)
+                typeof (h).details === 'object' &&
+                (h).details !== null
+                  ? ((h).details as Record<string, unknown>)
                   : undefined,
             }))
         : []
@@ -535,7 +528,7 @@ export async function updateDocumentStatus(
       // PUT /documents/{id}
       const resp = await apiClient.PUT('/documents/{id}', {
         params: { path: { id: documentId } },
-        body: { status: persistStatus as DocumentStatus },
+        body: { status: persistStatus },
       })
       if (!resp.error && resp.data) {
         const d = resp.data as Record<string, unknown>

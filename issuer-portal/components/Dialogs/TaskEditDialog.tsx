@@ -34,7 +34,7 @@ import { useDocuments } from '@/hooks/useDocuments'
 import { useTasks } from '@/hooks/useTasks'
 import type { Document, Task } from '@/types/api-exports'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
-import { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
+import type { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
 
 // Task status type - matches the status options used in the component
 type TaskStatus =
@@ -238,7 +238,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   }, [task, enableLinkEditing])
 
   // Load available document masters (templates) - now using API
-  const loadAvailableDocuments = useCallback(async () => {
+  const loadAvailableDocuments = useCallback(() => {
     try {
       // TODO: Implement document masters API endpoint
       // For now, just return empty array to avoid Supabase dependency
@@ -323,7 +323,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
         }
 
         // Refresh available documents and select the new one
-        await loadAvailableDocuments()
+        loadAvailableDocuments()
         if (newDocument.id) {
           setSelectedDocumentId(newDocument.id)
         }

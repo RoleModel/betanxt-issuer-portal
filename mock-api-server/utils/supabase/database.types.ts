@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
       account: {
@@ -985,12 +985,8 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
+    Views: Record<never, never>
+    Functions: Record<never, never>
     Enums: {
       add_document_event_request_event_type:
         | 'CREATED'
@@ -1043,9 +1039,7 @@ export type Database = {
       update_position_request_source: 'WEB' | 'PRINT' | 'IVR'
       update_position_request_vote_status: 'Voted' | 'Unvoted'
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<never, never>
   }
 }
 

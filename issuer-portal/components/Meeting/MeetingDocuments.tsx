@@ -106,24 +106,91 @@ export default function MeetingDocuments({
         return false
       }
 
-      // Exclude signed forms (they belong in the full Documents page)
-      if (
-        docType === 'signed-form' ||
-        docType === 'transfer-agent-request' ||
-        docType === 'plan-file-request' ||
-        docTitle.includes('transfer agent request') ||
-        docTitle.includes('plan file request')
-      ) {
-        return false
-      }
-
-      // Include all other documents
+      // Include all other documents (including signed forms)
       return true
     })
 
-    setDocuments(filteredDocuments as Document[])
+    // Helper to compute placeholder deadlines relative to meeting date
+    const computePlaceholderDeadline = (docType: string): string | null => {
+      if (!meeting?.meetingDate) return null
+      const meetingDate = new Date(meeting.meetingDate)
+      const deadline = new Date(meetingDate)
+      switch (docType) {
+        case 'draft-proxy-statement':
+          deadline.setDate(deadline.getDate() - 60)
+          break
+        case 'proxy-card':
+          deadline.setDate(deadline.getDate() - 30)
+          break
+        case 'notice-access-form':
+          deadline.setDate(deadline.getDate() - 40)
+          break
+        default:
+          return null
+      }
+      return deadline.toISOString()
+    }
+
+    // Create placeholder documents for Phase 2 if they don't exist
+    const placeholderDocs: Document[] = []
+
+    // Check if Draft Proxy Statement exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'draft-proxy-statement' ||
+          doc.title?.toLowerCase().includes('draft proxy statement')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-draft-proxy-statement',
+        title: 'Draft Proxy Statement',
+        type: 'draft-proxy-statement',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('draft-proxy-statement'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Check if Proxy Card exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'proxy-card' || doc.title?.toLowerCase().includes('proxy card')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-proxy-card',
+        title: 'Proxy Card',
+        type: 'proxy-card',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('proxy-card'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Check if Notice exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'notice-access-form' ||
+          doc.title?.toLowerCase().includes('Notice')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-notice-access-form',
+        title: 'Notice',
+        type: 'notice-access-form',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('notice-access-form'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Combine real documents with placeholders, placeholders first
+    setDocuments([...placeholderDocs, ...filteredDocuments] as Document[])
     setLoading(syncLoading)
-  }, [syncedDocuments, syncLoading])
+  }, [syncedDocuments, syncLoading, meeting?.meetingDate])
 
   // Track selectedDocumentId changes
   useEffect(() => {
@@ -155,17 +222,6 @@ export default function MeetingDocuments({
 
         // Exclude hosting site documents
         if (docType === 'hosting_site' || docType === 'hosting site') {
-          return false
-        }
-
-        // Exclude signed forms (they belong in the full Documents page)
-        if (
-          docType === 'signed-form' ||
-          docType === 'transfer-agent-request' ||
-          docType === 'plan-file-request' ||
-          docTitle.includes('transfer agent request') ||
-          docTitle.includes('plan file request')
-        ) {
           return false
         }
 
@@ -301,7 +357,7 @@ export default function MeetingDocuments({
   // Fetch actual uploaded documents when meetingId changes
   useEffect(() => {
     if (meetingId) {
-      fetchDocuments()
+      void fetchDocuments()
     }
   }, [meetingId, fetchDocuments])
 
@@ -309,7 +365,7 @@ export default function MeetingDocuments({
   useEffect(() => {
     const handleDocumentsUploaded = (event: CustomEvent<{ meetingId: string }>) => {
       if (event.detail.meetingId === meetingId) {
-        fetchDocuments()
+        void fetchDocuments()
       }
     }
 
@@ -337,7 +393,7 @@ export default function MeetingDocuments({
 
   const handleFileUpload = async (
     files: File[],
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => {
     if (files.length === 0) return
 
@@ -460,12 +516,17 @@ export default function MeetingDocuments({
       },
       AUTHORIZED: { color: 'success' as const, label: 'Authorized' },
       COMPLETED: { color: 'success' as const, label: 'Completed' },
+      SUBMITTED_AWAITING_RECORD_DATE: {
+        color: 'info' as const,
+        label: 'Submitted Awaiting Record Date',
+      },
       NOT_UPLOADED: { color: 'default' as const, label: 'Not Uploaded' },
     }
 
-    const config =
-      statusConfig[status || 'AWAITING_DRAFT'] || statusConfig['AWAITING_DRAFT']
-    return <StatusChip status={config.label} />
+    // Status config not currently used, but kept for future enhancement
+    const _config =
+      statusConfig[status || 'AWAITING_DRAFT'] || statusConfig.AWAITING_DRAFT
+    return <StatusChip status={status || null} />
   }
 
   const getActionButton = (document: Document) => {
@@ -480,6 +541,7 @@ export default function MeetingDocuments({
       | 'AUTHORIZED'
       | 'COMPLETED'
       | 'APPROVED'
+      | 'SUBMITTED_AWAITING_RECORD_DATE'
       | 'NOT_UPLOADED'
 
     // Check if this is a placeholder document
@@ -499,6 +561,7 @@ export default function MeetingDocuments({
       case 'IN_PROGRESS':
       case 'SIGNED':
       case 'PENDING_AUTHORIZATION':
+      case 'SUBMITTED_AWAITING_RECORD_DATE':
         return (
           <Button variant="text" onClick={() => handleApprove(document.id || '')}>
             View

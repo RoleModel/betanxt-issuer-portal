@@ -17,7 +17,7 @@ type PositionRow = Database['public']['Tables']['position']['Row']
 type PositionUpdate = Database['public']['Tables']['position']['Update']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
@@ -36,10 +36,7 @@ function transformPosition(dbPosition: PositionRow): Position {
     name: nullToUndefined(dbPosition.name),
     accountNumber: nullToUndefined(dbPosition.account_number),
     controlNumber: nullToUndefined(dbPosition.control_number),
-    voteStatus: nullToUndefined(dbPosition.vote_status) as
-      | 'Voted'
-      | 'Unvoted'
-      | undefined,
+    voteStatus: nullToUndefined(dbPosition.vote_status),
     shares: nullToUndefined(dbPosition.shares),
     sharesVoted: nullToUndefined(dbPosition.shares_voted),
     source: nullToUndefined(dbPosition.source),

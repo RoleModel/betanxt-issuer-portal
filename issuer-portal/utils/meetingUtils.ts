@@ -23,7 +23,7 @@ export interface Meeting {
 export function getCurrentPhase(meeting: Meeting): MeetingPhase | null {
   if (!meeting.phases) return null
 
-  return meeting.phases.find((phase) => phase.status === 'active') || null
+  return meeting.phases.find((phase) => phase.status === 'active') ?? null
 }
 
 /**
@@ -33,7 +33,7 @@ export function getNextPhase(meeting: Meeting): MeetingPhase | null {
   if (!meeting.phases) return null
 
   const upcomingPhases = meeting.phases.filter((phase) => phase.status === 'upcoming')
-  return upcomingPhases[0] || null
+  return upcomingPhases[0] ?? null
 }
 
 /**

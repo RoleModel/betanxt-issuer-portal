@@ -39,7 +39,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         setHtmlContent(result.value)
 
         if (result.messages.length > 0 && process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
+           
           console.log('Mammoth conversion messages:', result.messages)
         }
 
@@ -54,7 +54,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
     }
 
     if (fileType?.toLowerCase() === 'docx' || fileType?.toLowerCase() === 'doc') {
-      loadDocument()
+      void loadDocument()
     } else {
       setError('Unsupported file type. Only DOCX files are supported.')
       setLoading(false)

@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 
 import { Box, Button, Typography, styled, useTheme } from '@mui/material'
@@ -6,8 +8,6 @@ import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/th
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { Task } from '@/types/api-exports'
-
-;('use client')
 
 interface TaskItemProps {
   task: Task
@@ -60,7 +60,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
   }
 
   // Use phase color based on phaseNumber (convert to 0-based index)
-  const phaseColor = getPhaseColor((task.phaseNumber || 1) - 1)
+  const phaseColor = getPhaseColor((task.phaseNumber ?? 1) - 1)
 
   // Get border color based on task status
   const borderColor = getStatusBorderColor(task.status, phaseColor, theme)

@@ -49,7 +49,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
           throw new Error('Failed to fetch guest registrants')
         }
 
-        const data: DigitalShareholderMeeting[] = await response.json()
+        const data = (await response.json()) as DigitalShareholderMeeting[]
 
         // Filter for guests only
         const guestRegistrants = data.filter(
@@ -65,7 +65,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       }
     }
 
-    fetchGuests()
+    void fetchGuests()
   }, [meetingId])
 
   // Filter guests based on search term

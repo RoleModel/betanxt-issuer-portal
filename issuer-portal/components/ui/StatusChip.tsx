@@ -2,13 +2,15 @@
 
 import React from 'react'
 
-import { Chip, SxProps, Theme } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material';
+import { Chip } from '@mui/material'
 
 import {
   DOCUMENT_STATUS_VALUES,
   type DocumentStatus,
   getDocumentStatusLabel,
 } from '@/utils/documentUtils'
+import type { TaskStatus } from '@/types/api-exports'
 
 // Unified status types - combining document and task statuses
 export type UnifiedStatus =
@@ -16,17 +18,25 @@ export type UnifiedStatus =
   | 'active' // Database status -> "Approved"
   | 'pending' // Database status ->
   | 'inactive' // Database status -> "Not Uploaded"
-  // Task statuses (from global TaskStatus)
+  | 'NOT_UPLOADED' // Extended document status
+  // API document statuses
+  | DocumentStatus
+  // Task statuses
+  | TaskStatus
+  // Legacy display statuses for backwards compatibility (title case)
   | 'Complete'
   | 'Pending Approval'
   | 'Pending'
   | 'Approved'
   | 'Not Started'
   | 'Incomplete'
+  | 'Awaiting Review'
+  | 'Signed'
+  | 'Uploaded'
 
 // Display text mapping with dynamic review count support and friendly casing for document statuses
 const getStatusDisplayText = (
-  status: UnifiedStatus | string | null,
+  status: string | null,
   reviewCount?: number,
   totalReviews?: number
 ): string => {
@@ -50,6 +60,7 @@ const getStatusDisplayText = (
       if (reviewCount !== undefined && totalReviews !== undefined) {
         return `${reviewCount}/${totalReviews} Reviews Complete`
       }
+      return 'Pending'
     case 'Incomplete':
     case 'INCOMPLETE':
       return 'Incomplete'
@@ -90,7 +101,7 @@ const getStatusDisplayText = (
 }
 
 // Status color mapping (using theme logic from theme/index.ts)
-const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> => {
+const getStatusStyles = (status: string | null): SxProps<Theme> => {
   const displayText = getStatusDisplayText(status)
 
   // Green - Positive/Success statuses
@@ -208,7 +219,7 @@ const getStatusStyles = (status: UnifiedStatus | string | null): SxProps<Theme> 
 }
 
 export interface StatusChipProps {
-  status: UnifiedStatus | string | null
+  status: string | null
   size?: 'small' | 'medium'
   sx?: SxProps<Theme>
   reviewCount?: number
@@ -231,8 +242,8 @@ const StatusChip: React.FC<StatusChipProps> = ({
 
   return (
     <Chip
-      data-status={status || undefined}
-      className={`status-chip-${status || 'unknown'}`}
+      data-status={status ?? undefined}
+      className={`status-chip-${status ?? 'unknown'}`}
       variant={variant}
       label={displayText}
       size={size}
@@ -244,6 +255,7 @@ const StatusChip: React.FC<StatusChipProps> = ({
           fontSize: size === 'small' ? '0.75rem' : '0.875rem',
           height: size === 'small' ? 20 : 24,
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     />

@@ -36,7 +36,7 @@ export function ExportButton({
     setAnchorEl(null)
   }
 
-  const handleExport = async (format: ExportOptions['format']) => {
+  const handleExport = (format: ExportOptions['format']) => {
     setIsExporting(true)
     handleClose()
 

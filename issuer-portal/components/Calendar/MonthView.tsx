@@ -36,7 +36,7 @@ interface MonthViewProps {
 }
 
 const getTaskPhase = (task: Task): number => {
-  return task.phaseNumber || 1
+  return task.phaseNumber ?? 1
 }
 
 // Simple date parsing without timezone issues
@@ -87,7 +87,7 @@ const isSameDayUTC = (date1: Date, date2: Date): boolean => {
 // Helper function to get tasks for a specific date
 const getTasksForDate = (date: Date, tasks: Task[]): Task[] => {
   return tasks.filter((task) => {
-    const taskDate = parseDateWithWeekendShift(task.dueDate || null)
+    const taskDate = parseDateWithWeekendShift(task.dueDate ?? null)
     if (!taskDate) return false
     // Convert input date to UTC for comparison
     const utcDate = new Date(
@@ -100,7 +100,7 @@ const getTasksForDate = (date: Date, tasks: Task[]): Task[] => {
 // Helper function to get key dates for a specific date
 const getKeyDatesForDate = (date: Date, keyDates: KeyDate[]): KeyDate[] => {
   return keyDates.filter((keyDate) => {
-    const keyDateParsed = parseDateWithWeekendShift(keyDate.date || null)
+    const keyDateParsed = parseDateWithWeekendShift(keyDate.date ?? null)
     if (!keyDateParsed) return false
     // Convert input date to UTC for comparison
     const utcDate = new Date(
@@ -116,12 +116,12 @@ const generateCalendar = (tasks: Task[], keyDates: KeyDate[]) => {
   const allDates: Date[] = []
 
   tasks.forEach((task) => {
-    const date = parseDateWithWeekendShift(task.dueDate || null)
+    const date = parseDateWithWeekendShift(task.dueDate ?? null)
     if (date) allDates.push(date)
   })
 
   keyDates.forEach((keyDate) => {
-    const date = parseDateWithWeekendShift(keyDate.date || null)
+    const date = parseDateWithWeekendShift(keyDate.date ?? null)
     if (date) allDates.push(date)
   })
 
@@ -217,7 +217,7 @@ const generateCalendar = (tasks: Task[], keyDates: KeyDate[]) => {
 }
 
 const filterTasks = (
-  tasks: Task[],
+  tasks: readonly Task[],
   searchQuery: string,
   statusFilter: string,
   phaseFilter: number | null
@@ -225,8 +225,8 @@ const filterTasks = (
   return tasks.filter((task) => {
     const matchesSearch =
       !searchQuery ||
-      task.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      (task.title?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
 
     const matchesStatus = !statusFilter || task.status === statusFilter
 
@@ -266,8 +266,8 @@ const DayCell: React.FC<{
   const filteredTasks = filterTasks(tasks, searchQuery, statusFilter, phaseFilter)
 
   // Check if this date has special key dates
-  const hasMeetingDate = keyDates.some((kd) =>
-    kd.title.toLowerCase().includes('meeting date')
+  const hasMeetingDate = keyDates.some((kd: KeyDate) =>
+    (kd.title ?? '').toLowerCase().includes('meeting date')
   )
   const hasKeyDate = keyDates.length > 0
 
@@ -326,8 +326,8 @@ const DayCell: React.FC<{
       </Typography>
 
       <Box sx={{ mt: 2, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {keyDates.map((keyDate) => {
-          const isMeetingDate = keyDate.title.toLowerCase().includes('meeting date')
+        {keyDates.map((keyDate: KeyDate) => {
+          const isMeetingDate = (keyDate.title ?? '').toLowerCase().includes('meeting date')
 
           const keyDateTask: Task = {
             id: keyDate.id,
@@ -338,7 +338,7 @@ const DayCell: React.FC<{
             dueDate: keyDate.date,
             meetingId: '',
             phaseId: '',
-            phaseNumber: keyDate.phaseNumber || 1,
+            phaseNumber: keyDate.phaseNumber ?? 1,
             type: 'external',
             taskId: keyDate.id,
             documentId: null,
@@ -533,7 +533,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
 
   const _handleViewTask = () => {
     if (selectedTaskForContext) {
-      const taskId = selectedTaskForContext.taskId || selectedTaskForContext.id
+      const taskId = selectedTaskForContext.taskId ?? selectedTaskForContext.id
       if (taskId) {
         onTaskClick(taskId)
       }

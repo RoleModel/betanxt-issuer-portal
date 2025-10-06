@@ -38,7 +38,7 @@ export default function VideoPlayer({
     if (isPlaying) {
       videoRef.current.pause()
     } else {
-      videoRef.current.play()
+      void videoRef.current.play()
     }
     setIsPlaying(!isPlaying)
   }

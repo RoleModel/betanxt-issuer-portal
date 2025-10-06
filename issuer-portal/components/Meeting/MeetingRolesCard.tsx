@@ -162,7 +162,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
       }
     }
 
-    loadData()
+    void loadData()
   }, [meetingId, currentMeeting?.id, getDocumentsByMeeting])
 
   const handleUploadComplete = async (files: File[]) => {
@@ -186,7 +186,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
     }
   }
 
-  const handleDelete = async (label: string) => {
+  const handleDelete = (label: string) => {
     // TODO: Implement delete functionality when needed
     setUploadedDocs((prev) => {
       const updated = { ...prev }

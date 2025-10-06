@@ -15,7 +15,7 @@ type DSMConfigRow = Database['public']['Tables']['dsm_config']['Row']
 type DSMConfigInsert = Database['public']['Tables']['dsm_config']['Insert']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

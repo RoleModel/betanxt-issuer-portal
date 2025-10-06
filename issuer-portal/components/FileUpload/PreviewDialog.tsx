@@ -27,7 +27,7 @@ interface PreviewDialogProps<T> {
   columns: {
     key: keyof T
     label: string
-    render?: (value: any, row: T) => React.ReactNode
+    render?: (value: unknown, row: T) => React.ReactNode
   }[]
 }
 
@@ -85,29 +85,51 @@ export default function PreviewDialog<T>({
 // Helper function for creating chip renderers
 export const createChipRenderer = (
   getColor: (value: string) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
-) => (value: any) => (
-  <Chip
-    label={String(value)}
-    color={getColor(String(value))}
-    variant="outlined"
-    size="small"
-  />
-)
+) => {
+  const ChipRenderer = (value: unknown) => (
+    <Chip
+      label={String(value)}
+      color={getColor(String(value))}
+      variant="outlined"
+      size="small"
+    />
+  )
+  ChipRenderer.displayName = 'ChipRenderer'
+  return ChipRenderer
+}
 
 // Helper function for creating formatted number renderer
-export const createNumberRenderer = (formatter?: (num: number) => string) => (value: any) => {
-  const num = Number(value)
-  if (isNaN(num) || num === 0) return '-'
-  return (
-    <Typography variant="body2">
-      {formatter ? formatter(num) : num.toLocaleString()}
-    </Typography>
-  )
+export const createNumberRenderer = (formatter?: (num: number) => string) => {
+  const NumberRenderer = (value: unknown) => {
+    const num = Number(value)
+    if (isNaN(num) || num === 0) return '-'
+    return (
+      <Typography variant="body2">
+        {formatter ? formatter(num) : num.toLocaleString()}
+      </Typography>
+    )
+  }
+  NumberRenderer.displayName = 'NumberRenderer'
+  return NumberRenderer
 }
 
 // Helper function for creating text renderer
-export const createTextRenderer = (color?: 'text.secondary' | 'text.primary') => (value: any) => (
-  <Typography variant="body2" color={color}>
-    {String(value || '-')}
-  </Typography>
-)
+export const createTextRenderer = (color?: 'text.secondary' | 'text.primary') => {
+  const TextRenderer = (value: unknown) => {
+    let displayValue: string
+    if (value == null) {
+      displayValue = '-'
+    } else if (typeof value === 'object') {
+      displayValue = JSON.stringify(value)
+    } else {
+      displayValue = String(value as string | number | boolean)
+    }
+    return (
+      <Typography variant="body2" color={color}>
+        {displayValue}
+      </Typography>
+    )
+  }
+  TextRenderer.displayName = 'TextRenderer'
+  return TextRenderer
+}

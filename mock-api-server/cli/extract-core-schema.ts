@@ -49,7 +49,7 @@ function extractCoreSchema() {
   const existingFiles = readdirSync(migrationsDir)
   existingFiles.forEach((file) => {
     // Remove old initial schema migrations
-    if (file.match(/^\d{14}_initial_schema\.sql$/)) {
+    if (/^\d{14}_initial_schema\.sql$/.exec(file)) {
       unlinkSync(join(migrationsDir, file))
     }
   })
@@ -85,7 +85,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
   const enumMatches = fullSchema.match(/CREATE TYPE[^;]+;/g) || []
   enumMatches.forEach((enumDef) => {
     // Extract type name
-    const typeNameMatch = enumDef.match(/CREATE TYPE (\w+)/)
+    const typeNameMatch = /CREATE TYPE (\w+)/.exec(enumDef)
     if (typeNameMatch) {
       const typeName = typeNameMatch[1]
 

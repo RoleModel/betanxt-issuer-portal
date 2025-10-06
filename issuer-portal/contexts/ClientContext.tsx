@@ -33,7 +33,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const extractClientFromURL = useCallback(
     (pathname: string): string | null => {
       // New format: /[TICKER]/meeting/meeting-id
-      const tickerMatch = pathname.match(/^\/([A-Z]{2,5})\//)
+      const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
       if (tickerMatch) {
         const ticker = tickerMatch[1]
         // Find client by ticker from available clients data
@@ -218,7 +218,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return
         } else if (pathname.includes('/meeting/')) {
           // For meeting pages, extract the current route part after meetingId
-          const meetingMatch = pathname.match(/^\/[A-Z]{2,5}\/meeting\/[^/]+(.*)$/)
+          const meetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(.*)$/.exec(pathname)
           const routeAfterMeeting = meetingMatch ? meetingMatch[1] : ''
 
           // Use the client's default meeting ID

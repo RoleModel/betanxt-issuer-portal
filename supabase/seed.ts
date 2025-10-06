@@ -2132,6 +2132,12 @@ const main = async () => {
               ? 'Annual General Meeting'
               : 'Other'
 
+    // Skip proposal generation for 2026 annual meetings - they haven't been created yet
+    const meetingYear = parseInt(meetingId.split('-').slice(-1)[0]) || 2025
+    if (meetingYear === 2026 && meetingType === 'Annual Meeting') {
+      return
+    }
+
     // Use CSV data for 2025 annual meetings, synthetic for others
     const is2025Annual =
       meetingId.includes('2025') && meetingId.includes('annual-meeting')
@@ -2245,7 +2251,7 @@ const main = async () => {
     // Use consistent directors for each company based on ticker (not meetingId)
     const meetingClient = meetingToClient[meetingId]
     const baseSeed = meetingClient?.ticker || meetingId
-    const meetingYear = parseInt(meetingId.split('-').slice(-1)[0]) || 2025
+    // meetingYear already declared above, reuse it
 
     const directors = [
       {

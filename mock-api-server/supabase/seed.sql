@@ -1,0 +1,11 @@
+Error: Cannot find module '/Users/dallas/Development/betanxt-issuer-portal/mock-api-server/supabase/seed.ts' imported from /Users/dallas/Development/betanxt-issuer-portal/mock-api-server/
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:860:10)
+    at defaultResolve (node:internal/modules/esm/resolve:984:11)
+    at nextResolve (node:internal/modules/esm/hooks:748:28)
+    at E (file:///Users/dallas/Development/betanxt-issuer-portal/node_modules/tsx/dist/esm/index.mjs:13:36)
+    at L (file:///Users/dallas/Development/betanxt-issuer-portal/node_modules/tsx/dist/esm/index.mjs:13:1231)
+    at nextResolve (node:internal/modules/esm/hooks:748:28)
+    at Hooks.resolve (node:internal/modules/esm/hooks:240:30)
+    at handleMessage (node:internal/modules/esm/worker:199:24)
+    at Immediate.checkForMessages (node:internal/modules/esm/worker:141:28)

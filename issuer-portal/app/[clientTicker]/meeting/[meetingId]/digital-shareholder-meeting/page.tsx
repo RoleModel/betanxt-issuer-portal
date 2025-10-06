@@ -3,17 +3,17 @@
 import React, { useCallback, useState } from 'react'
 import * as XLSX from 'xlsx'
 
-import { FileUploadOutlined, Refresh } from '@mui/icons-material'
+import { Refresh } from '@mui/icons-material'
 import {
   Alert,
   Box,
   Button,
   Container,
   LinearProgress,
-  Stack,
   Tabs,
   Tab,
-  Typography,
+  Snackbar,
+  Typography
 } from '@mui/material'
 
 
@@ -27,9 +27,7 @@ import { DSMActualAttendees } from '@/components/Meeting/DigitalShareholderMeeti
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDigitalShareholderMeeting } from '@/hooks/useDigitalShareholderMeeting'
 
-interface ExcelRow {
-  [key: string]: string | number | boolean | Date | undefined
-}
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
 interface ParsedParticipant {
   firstName: string
@@ -106,7 +104,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
 
         // If first row contains "first name", "last name", etc., it's a header row
         if (firstRowValues.some((v) => v.includes('first name') || v.includes('email'))) {
-          const range = XLSX.utils.decode_range(firstSheet['!ref'] || 'A1')
+          const range = XLSX.utils.decode_range(firstSheet['!ref'] ?? 'A1')
 
           // Find the row that contains the actual headers by checking each row
           let headerRowIndex = -1
@@ -114,8 +112,8 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
             const rowValues = []
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
-              const cell = firstSheet[cellAddress]
-              if (cell) rowValues.push(String(cell.v).toLowerCase())
+              const cell = firstSheet[cellAddress] as { v?: string | number } | undefined
+              if (cell?.v) rowValues.push(String(cell.v).toLowerCase())
             }
             // Check if this row has "first name", "last name", and "email"
             if (
@@ -132,8 +130,8 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
             const headers: string[] = []
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: C })
-              const cell = firstSheet[cellAddress]
-              headers.push(cell ? String(cell.v) : '')
+              const cell = firstSheet[cellAddress] as { v?: string | number } | undefined
+              headers.push(cell?.v ? String(cell.v) : '')
             }
 
             // Parse data rows (starting after header row)
@@ -143,9 +141,9 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
               let hasData = false
               for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
-                const cell = firstSheet[cellAddress]
-                row[headers[C]] = cell ? cell.v : ''
-                if (cell && cell.v) hasData = true
+                const cell = firstSheet[cellAddress] as { v?: string | number | boolean | Date } | undefined
+                row[headers[C]] = cell?.v ?? ''
+                if (cell?.v) hasData = true
               }
               // Only add rows that have some data
               if (hasData) jsonData.push(row)
@@ -156,12 +154,12 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
         // Map the data to our format
         const mappedData = jsonData
           .map((row: ExcelRow) => {
-            const firstName = row['First Name'] || ''
-            const lastName = row['Last Name'] || ''
-            const emailAddress = row['Email Address'] || ''
-            const title = row['Title'] || ''
-            const department = row['Department'] || ''
-            const documentName = row['Document Name'] || ''
+            const firstName = row['First Name'] ?? ''
+            const lastName = row['Last Name'] ?? ''
+            const emailAddress = row['Email Address'] ?? ''
+            const title = row.Title ?? ''
+            const department = row.Department ?? ''
+            const documentName = row['Document Name'] ?? ''
 
             // Skip rows without required fields
             if (!firstName || !lastName || !emailAddress) {
@@ -203,13 +201,13 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
 
         resolve(mappedData)
       } catch (error) {
-        reject(error)
+        reject(error instanceof Error ? error : new Error(String(error)))
       }
     }
 
-    reader.onerror = (event) => {
-      const error = reader.error || new Error('Failed to read file')
-      reject(new Error(`File reading failed: ${error.message || 'Unknown error'}`))
+    reader.onerror = () => {
+      const error = reader.error ?? new Error('Failed to read file')
+      reject(new Error(`File reading failed: ${error.message ?? 'Unknown error'}`))
     }
 
     reader.readAsArrayBuffer(file)
@@ -244,8 +242,18 @@ function a11yProps(index: number) {
 }
 
 export default function DigitalShareholderMeetingPage() {
-  const { currentMeeting } = useMeeting()
-  const { attendees, error, isLoading, uploadAttendees } = useDigitalShareholderMeeting(currentMeeting?.id)
+  const meetingContext = useMeeting()
+  const currentMeeting = meetingContext.currentMeeting
+  const digitalMeetingData = useDigitalShareholderMeeting(currentMeeting?.id) as {
+    attendees: unknown[]
+    error: unknown
+    isLoading: boolean
+    uploadAttendees: (attendees: unknown[]) => Promise<unknown>
+  }
+  const attendees = digitalMeetingData.attendees
+  const error = digitalMeetingData.error
+  const isLoading = digitalMeetingData.isLoading
+  const uploadAttendees = digitalMeetingData.uploadAttendees
   const [activeTab, setActiveTab] = useState(0)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -262,7 +270,7 @@ export default function DigitalShareholderMeetingPage() {
   }
 
   const handleFileUpload = useCallback(
-    async (files: File[], associations?: { [fileId: string]: string }) => {
+    async (files: File[], _associations?: Record<string, string>) => {
       if (!currentMeeting?.id || files.length === 0) return
 
       setUploadError(null)
@@ -298,7 +306,7 @@ export default function DigitalShareholderMeetingPage() {
         firstName: presenter.firstName,
         lastName: presenter.lastName,
         emailAddress: presenter.emailAddress,
-        registrationQuestions: `${presenter.title || ''} - ${presenter.department || ''}`.trim(),
+        registrationQuestions: `${presenter.title ?? ''} - ${presenter.department ?? ''}`.trim(),
         minutesAttendedMeeting: 0,
       }))
 
@@ -358,8 +366,15 @@ export default function DigitalShareholderMeetingPage() {
       <>
         <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
           <EmptyState
-            title="No Digital Meeting Data"
-            description="No digital shareholder meeting data has been uploaded yet. Upload attendee data to get started with participant management and analytics."
+            title="No digital meeting attendees yet — add attendees to get started"
+            description={<>
+              <Typography component="span" variant="body3">
+                Upload attendee data to get started. Your file must include these columns:
+                <span> <strong>First Name</strong> (required), <strong>Last Name</strong> (required), <strong>Email Address</strong> (required), Title (optional)</span  >
+              </Typography>
+              <Typography component="span" variant="body3" >Accepted formats: CSV, Excel (.csv, .xls, .xlsx)</Typography>
+            </>
+            }
             action={
               <Button
                 variant="contained"
@@ -380,7 +395,7 @@ export default function DigitalShareholderMeetingPage() {
             setUploadSuccess(false)
           }}
           onUpload={handleFileUpload}
-          meetingId={currentMeeting?.id}
+          meetingId={currentMeeting?.id ?? ''}
           documentType="digital-shareholder-meeting"
         />
 
@@ -437,14 +452,14 @@ export default function DigitalShareholderMeetingPage() {
 
       {/* Tab Panels */}
       <TabPanel value={activeTab} index={0}>
-        <DSMParticipants meetingId={currentMeeting?.id || ''} />
-        {!hasAttendees && (
-          <DSMActualAttendees meetingId={currentMeeting?.id || ''} />
+        <DSMParticipants meetingId={currentMeeting?.id ?? ''} />
+        {hasAttendees && (
+          <DSMActualAttendees meetingId={currentMeeting?.id ?? ''} />
         )}
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>
-        <DSMGuestRegistrants meetingId={currentMeeting?.id || ''} />
+        <DSMGuestRegistrants meetingId={currentMeeting?.id ?? ''} />
       </TabPanel>
 
       {/* Upload Dialog */}
@@ -456,7 +471,7 @@ export default function DigitalShareholderMeetingPage() {
           setUploadSuccess(false)
         }}
         onUpload={handleFileUpload}
-        meetingId={currentMeeting?.id || ''}
+        meetingId={currentMeeting?.id ?? ''}
         documentType="digital-shareholder-meeting"
       />
 
@@ -468,9 +483,16 @@ export default function DigitalShareholderMeetingPage() {
       )}
 
       {uploadSuccess && (
-        <Alert severity="success" sx={{ mt: 2 }}>
-          Participants uploaded successfully!
-        </Alert>
+        <Snackbar
+          open={uploadSuccess}
+          autoHideDuration={6000}
+          onClose={() => setUploadSuccess(false)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert severity="success" sx={{ mt: 2 }} onClose={() => setUploadSuccess(false)}>
+            Participants uploaded successfully!
+          </Alert>
+        </Snackbar>
       )}
 
       {/* Preview Dialog */}

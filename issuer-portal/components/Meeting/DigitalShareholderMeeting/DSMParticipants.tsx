@@ -7,15 +7,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  InputLabel,
   LinearProgress,
-  MenuItem,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -25,7 +17,6 @@ import {
   Typography,
   Chip,
 } from '@mui/material'
-import { Add as AddIcon } from '@mui/icons-material'
 
 import { ExportButton } from './ExportButton'
 import { AddDocumentDialog } from './AddDocumentDialog'
@@ -65,7 +56,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
           throw new Error('Failed to fetch participants')
         }
 
-        const data: DigitalShareholderMeeting[] = await response.json()
+        const data = (await response.json()) as DigitalShareholderMeeting[]
 
         // Transform data to include role information (no documents initially)
         const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
@@ -89,7 +80,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       }
     }
 
-    fetchParticipants()
+    void fetchParticipants()
   }, [meetingId])
 
   const handleAddDocument = (participant: ParticipantWithRole) => {
@@ -199,20 +190,16 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {participant.emailAddress}
-                      </Typography>
+                      {participant.emailAddress}
                     </TableCell>
                     <TableCell>
                       {participant.documentName ? (
-                        <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <Typography variant="dataCell" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {participant.documentName}
                         </Typography>
                       ) : (
                         <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<AddIcon />}
+                          variant="text"
                           onClick={() => handleAddDocument(participant)}
                           sx={{ textTransform: 'none' }}
                         >

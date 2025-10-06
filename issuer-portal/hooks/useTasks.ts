@@ -6,7 +6,6 @@ import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 import { syncCarryoverTaskStatus } from '@/utils/taskControl'
-
 type Task = components['schemas']['Task']
 type CreateTaskRequest = components['schemas']['CreateTaskRequest']
 
@@ -69,7 +68,7 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
   }, [meetingId])
 
   useEffect(() => {
-    fetchData()
+    void fetchData()
   }, [fetchData]) // Only refetch when meetingId changes, not on every fetchData change
 
   const updateTaskById = useCallback(
@@ -102,6 +101,68 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         }
 
         await fetchData()
+
+        // Sync document statuses when task status changes (async to avoid blocking)
+        if (updates.status && !skipSync) {
+          const updatedTask = tasks.find((t) => t.id === id)
+          if (updatedTask?.meetingId) {
+            // Run document sync asynchronously to avoid blocking the UI
+            setTimeout(() => {
+              void (async () => {
+                try {
+                  const apiClient = await buildApiClient()
+
+                  // Ensure meetingId is defined before making the request
+                  if (!updatedTask.meetingId) {
+                    return
+                  }
+
+                  // Get documents for the meeting
+                  const documentsResult = await apiClient.GET('/meetings/{meetingId}/documents', {
+                    params: { path: { meetingId: updatedTask.meetingId } }
+                  })
+
+                  // Type assertion to help TypeScript understand the response structure
+                  interface DocumentsResponse { data?: components['schemas']['Document'][]; error?: unknown }
+                  const typedResult = documentsResult as DocumentsResponse
+
+                  if (!typedResult.error && typedResult.data) {
+                    // Find documents associated with this task
+                    const taskDocuments = typedResult.data.filter((doc: components['schemas']['Document']) => doc.taskId === updatedTask.id)
+
+                    // Map task status to document status
+                    let documentStatus: components['schemas']['DocumentStatus'] | null = null
+                    if (updates.status === 'SUBMITTED_AWAITING_RECORD_DATE') {
+                      documentStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+                    } else if (updates.status === 'COMPLETE') {
+                      documentStatus = 'COMPLETED'
+                    } else if (updates.status === 'AUTHORIZED') {
+                      documentStatus = 'AUTHORIZED'
+                    }
+
+                    // Update document statuses if mapping exists (batch update for better performance)
+                    if (documentStatus) {
+                      const updatePromises = taskDocuments
+                        .filter((doc: components['schemas']['Document']) => doc.id && doc.status !== documentStatus)
+                        .map((doc: components['schemas']['Document']) =>
+                          apiClient.PUT('/documents/{id}', {
+                            params: { path: { id: doc.id! } },
+                            body: { status: documentStatus }
+                          })
+                        )
+
+                      if (updatePromises.length > 0) {
+                        await Promise.all(updatePromises)
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('Failed to sync document status with task:', error)
+                }
+              })()
+            }, 0)
+          }
+        }
 
         // Sync status across phases for carryover tasks (only if not already syncing)
         if (updates.status && !skipSync) {

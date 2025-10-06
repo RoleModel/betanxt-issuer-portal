@@ -23,8 +23,8 @@ interface UsePhaseCompletionProps {
   currentMeeting: Meeting | null
   session: Session | null
   refreshContext:
-    | (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>)
-    | undefined
+  | (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>)
+  | undefined
 }
 
 export const usePhaseCompletion = ({
@@ -46,8 +46,8 @@ export const usePhaseCompletion = ({
 
       const currentPhaseNumber = taskWithPhase.phaseNumber
 
-      // Delay to ensure database is fully updated
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Short delay to ensure database is fully updated
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Refresh tasks from context to get latest status
       const refreshedData = await refreshContext()

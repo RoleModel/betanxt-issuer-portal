@@ -2,9 +2,10 @@
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
 import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
-import { User } from 'next-auth'
+import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import React, { PropsWithChildren, Suspense, useMemo, useState } from 'react'
+import type { PropsWithChildren} from 'react';
+import React, { Suspense, useMemo, useState } from 'react'
 
 import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
 import { Alert, Box, Snackbar, Stack } from '@mui/material'
@@ -21,7 +22,7 @@ import { useClient } from '@/contexts/ClientContext'
 
 import Loading from '../../app/loading'
 
-type LayoutProps = {
+interface LayoutProps {
   activeNavLinkTitle?: string
   appSwitcher?: boolean
   apps?: string
@@ -80,8 +81,8 @@ function Layout({
     // Find the SpeedDial element to use as anchor
     const speedDialElement = document.querySelector(
       '[aria-label="Support Contacts"]'
-    ) as HTMLElement
-    if (speedDialElement) {
+    )
+    if (speedDialElement instanceof HTMLElement) {
       setAnchorEl(speedDialElement)
     }
     setOpen(true)
@@ -113,7 +114,7 @@ function Layout({
   }, [session?.user, currentClient])
 
   // Map NextAuth User to BNAppBarClient's expected user shape
-  type BNUser = {
+  interface BNUser {
     id: string
     name?: string | null
     email?: string | null

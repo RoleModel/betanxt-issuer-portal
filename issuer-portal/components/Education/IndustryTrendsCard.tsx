@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material'
 
-type IndustryTrendsCardProps = {
+interface IndustryTrendsCardProps {
   title?: string
   date?: string
   duration?: string

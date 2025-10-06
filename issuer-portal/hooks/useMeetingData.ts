@@ -143,8 +143,8 @@ const normalizePhase = (raw: unknown): Phase | null => {
         : 'NOT_STARTED'
 
   const kdRec =
-    asRecord(rec['keyDates']) ||
-    asRecord(rec['key_dates']) ||
+    asRecord(rec.keyDates) ||
+    asRecord(rec.key_dates) ||
     ({} as Record<string, unknown>)
   const keyDates: Phase['keyDates'] = {
     startDate: pickString(kdRec, ['startDate', 'start_date']) ?? null,

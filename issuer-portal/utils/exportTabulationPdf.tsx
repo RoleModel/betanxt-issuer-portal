@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
 })
 
 // Format number with thousand separators and decimals
-const formatNumber = (num: number, decimals: number = 2): string => {
+const formatNumber = (num: number, decimals = 2): string => {
   return num.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,

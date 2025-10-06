@@ -171,7 +171,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     const meetingsArray = Array.isArray(meetingsData)
       ? meetingsData
       : (meetingsData as { meetings?: Meeting[] })?.meetings || []
-    const allMeetings = (meetingsArray as Meeting[]).filter((meeting) => {
+    const allMeetings = (meetingsArray).filter((meeting) => {
       const meetingYear =
         meeting.meetingYear ||
         (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
@@ -240,7 +240,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
         | undefined
       if (Array.isArray(data)) return data
       if (data && Array.isArray((data as { positions?: Position[] }).positions)) {
-        return (data as { positions?: Position[] }).positions as Position[]
+        return (data as { positions?: Position[] }).positions!
       }
       return []
     })
@@ -344,7 +344,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
 export function useReporting(clientTicker: string) {
   const { data, error, isLoading } = useSWR(
     clientTicker ? ['reporting', clientTicker] : null,
-    ([, ticker]) => fetcher(ticker as string),
+    ([, ticker]) => fetcher(ticker),
     {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
@@ -352,7 +352,7 @@ export function useReporting(clientTicker: string) {
     }
   )
 
-  return { data, loading: isLoading, error }
+  return { data, loading: isLoading, error: error as Error | undefined }
 }
 
 // Helper calculation functions
@@ -610,12 +610,12 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
       .filter((p) => !!p.dateVoted && (p.sharesVoted || 0) > 0)
       .map((p) => {
         // Parse the date format "MM/DD/YYYY HH:MMAM/PM"
-        const dateStr = p.dateVoted as string
+        const dateStr = p.dateVoted!
         let parsedDate: Date
 
         // Parse MM/DD/YYYY HH:MMAM format manually
         // Format is like "11/25/2024 12:00AM"
-        const match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+        const match = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(dateStr)
         if (match) {
           const [_, month, day, year] = match
           // Create date with just the date components (ignore time)
@@ -852,7 +852,7 @@ function transformAuditComplianceData(
 ): MappedAuditComplianceData[] {
   return auditComplianceData.map((item) => {
     // Extract year from meetingId (format: ticker-type-year)
-    const yearMatch = item.meetingId.match(/(\d{4})$/)
+    const yearMatch = /(\d{4})$/.exec(item.meetingId)
     const year = yearMatch ? yearMatch[1] : ''
     const eventTitle = year ? `${item.meetingTitle} ${year}` : item.meetingTitle
 

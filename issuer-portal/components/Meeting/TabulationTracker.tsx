@@ -13,7 +13,7 @@ import { useMediaQuery, useTheme } from '@mui/material'
 import { Box, Fade, Stack, Typography } from '@mui/material'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { calculateDaysUntil } from '@/utils/dateUtils'
@@ -121,7 +121,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           setPhases(phasesData)
 
           // Support both camelCase and snake_case fields from API
-          type PhaseSnake = {
+          interface PhaseSnake {
             order_index?: number
             key_dates?: string | Record<string, unknown>
           }
@@ -140,10 +140,13 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           const candidateDates: Date[] = []
 
           for (const ph of sortedPhases) {
-            const raw = (ph as Phase).keyDates
+            const raw = (ph as { keyDates?: string | Record<string, unknown> }).keyDates
             if (!raw) continue
             try {
-              const kdObj = typeof raw === 'string' ? JSON.parse(raw) : raw
+              const kdObj =
+                typeof raw === 'string'
+                  ? (JSON.parse(raw) as Record<string, unknown>)
+                  : (raw)
               const kd2 = kdObj as {
                 preFilingDate?: string
                 pre_filing_date?: string
@@ -176,7 +179,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 const d = toLocalMidnight(v)
                 if (d && d.getTime() > nowStart.getTime()) candidateDates.push(d)
               }
-            } catch {}
+            } catch {
+              // Ignore date parsing errors
+            }
           }
 
           if (candidateDates.length > 0) {
@@ -206,7 +211,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       }
     }
 
-    fetchPhases()
+    void fetchPhases()
   }, [currentMeeting?.id, currentMeeting?.meetingDate])
 
   // Fetch previous year's meeting data
@@ -241,7 +246,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
         }
 
         // Only fetch tabulation data if meeting exists
-        if (prevMeeting && prevMeeting.id) {
+        if (prevMeeting?.id) {
           // Try to get tabulation report first
           const tabulationResult = (await apiClient.GET(
             '/meetings/{meetingId}/tabulation-report',
@@ -286,7 +291,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           } else {
             // Fallback to positions data if tabulation report not available
             const positionsResult = (await apiClient.GET('/positions', {
-              params: { query: { meetingId: prevMeeting.id! } },
+              params: { query: { meetingId: prevMeeting.id } },
             })) as { data?: { positions?: Position[] }; error?: unknown }
 
             const positions = positionsResult.data?.positions
@@ -331,7 +336,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       }
     }
 
-    fetchPreviousYearData()
+    void fetchPreviousYearData()
   }, [currentMeeting?.id])
 
   // Fetch tabulation data from API instead of calculating locally
@@ -478,7 +483,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       }
     }
 
-    fetchTabulationData()
+    void fetchTabulationData()
     // Only depend on meeting ID - extract other values inside effect to avoid re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMeeting?.id])

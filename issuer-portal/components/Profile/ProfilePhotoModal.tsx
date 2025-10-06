@@ -169,7 +169,8 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
         throw new Error(`Failed to upload image: ${uploadResponse.status} - ${errorData}`)
       }
 
-      const { url: uploadedUrl } = await uploadResponse.json()
+      const uploadData = (await uploadResponse.json()) as { url: string }
+      const uploadedUrl = uploadData.url
 
       // Update user profile via API
       const updateResponse = await fetch(`/api/users/${session.user.id}`, {
@@ -189,17 +190,19 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
         )
       }
 
-      const updatedUserResponse = await updateResponse.json()
+      const updatedUserResponse = (await updateResponse.json()) as {
+        data: { avatarUrl?: string }
+      }
       const updatedUser = updatedUserResponse.data
 
       // First update session to ensure all components get the updated data
       if (updateSession) {
         // Force session refresh by calling update with new image data
-        await updateSession({ image: updatedUser.avatarUrl })
+        await updateSession({ image: (updatedUser.avatarUrl ?? null) })
       }
 
       // Then update the parent component immediately for faster UI feedback
-      onPhotoUpdate?.(updatedUser.avatarUrl)
+      onPhotoUpdate?.((updatedUser.avatarUrl ?? null))
 
       onClose()
     } catch (_err) {
@@ -295,7 +298,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
                 </Typography>
                 <Slider
                   value={cropScale}
-                  onChange={(_, value) => setCropScale(value as number)}
+                  onChange={(_, value) => setCropScale(value)}
                   min={0.5}
                   max={2}
                   step={0.1}

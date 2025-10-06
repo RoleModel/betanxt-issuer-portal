@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'http://127.0.0.1:54321'
@@ -36,7 +36,7 @@ async function updateDocumentLinks() {
     }
 
     // Process the list data - need to recursively get all files in subdirectories
-    const allFiles: Array<{ name: string; metadata: unknown }> = []
+    const allFiles: { name: string; metadata: unknown }[] = []
 
     // Get all meeting directories
     const meetingDirs = listData?.filter((item) => !item.name.includes('.')) || []

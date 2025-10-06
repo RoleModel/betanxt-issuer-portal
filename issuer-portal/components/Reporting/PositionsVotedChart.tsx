@@ -35,7 +35,7 @@ interface PositionsVotedChartProps {
 }
 
 interface DonutChartProps {
-  data: Array<{ id: string; label: string; value: number; color: string }>
+  data: { id: string; label: string; value: number; color: string }[]
   centerValue: number
   centerLabel: string
 }

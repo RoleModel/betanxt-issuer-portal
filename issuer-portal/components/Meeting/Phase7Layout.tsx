@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Grid,
   Skeleton,
   Stack,
 } from '@mui/material'
@@ -96,7 +95,7 @@ export default React.memo(function Phase7Layout({
       }
     }
 
-    fetchDSMConfig()
+    void fetchDSMConfig()
   }, [meetingId])
 
   const handleOpenDialog = (type: 'logistics' | 'dryrun') => {
@@ -283,7 +282,9 @@ export default React.memo(function Phase7Layout({
             titleVariant="h1"
             actionText="Download"
             variant="default"
-            onClick={() => {}}
+            onClick={() => {
+              // Event handler intentionally empty - button is disabled
+            }}
           />
           <TabulationReportCard />
           <SharesVotedChart meetingId={meetingId} loading={votingLoading} />

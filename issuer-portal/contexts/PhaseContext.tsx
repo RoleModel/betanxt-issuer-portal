@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
+import type { ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect } from 'react'
 
 import type { components } from '@/domain-models/generated-schema'
 

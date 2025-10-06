@@ -26,24 +26,24 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: session?.user?.email || '',
+    email: session?.user?.email ?? '',
     password: '',
   })
 
   // Update form data and avatar when session loads
   useEffect(() => {
     if (session?.user) {
-      const nameParts = session.user.name?.split(' ') || []
+      const nameParts = session.user.name?.split(' ') ?? []
       setFormData({
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email || '',
+        firstName: nameParts[0] ?? '',
+        lastName: nameParts.slice(1).join(' ') ?? '',
+        email: session.user.email ?? '',
         password: '',
       })
       // Only update avatar URL from session if we don't have one locally,
       // or if the session image is different from our current avatar URL
       // Don't overwrite a valid avatar URL with null from session
-      const sessionImage = session.user.image || null
+      const sessionImage = session.user.image ?? null
       setAvatarUrl((prevAvatarUrl) => {
         // If we have no avatar URL, use whatever the session has
         if (prevAvatarUrl === null) {
@@ -75,11 +75,11 @@ const ProfilePage = () => {
   const handleCancelEdit = () => {
     // Reset form data to session values
     if (session?.user) {
-      const nameParts = session.user.name?.split(' ') || []
+      const nameParts = session.user.name?.split(' ') ?? []
       setFormData({
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email || '',
+        firstName: nameParts[0] ?? '',
+        lastName: nameParts.slice(1).join(' ') ?? '',
+        email: session.user.email ?? '',
         password: '',
       })
     }
@@ -111,8 +111,8 @@ const ProfilePage = () => {
                 altText="User Avatar"
                 avatarUrl={avatarUrl}
                 onEdit={handlePhotoEdit}
-                userName={session?.user?.name || undefined}
-                userEmail={session?.user?.email || undefined}
+                userName={session?.user?.name ?? undefined}
+                userEmail={session?.user?.email ?? undefined}
               />
             </>
           }
@@ -245,8 +245,8 @@ const ProfilePage = () => {
         open={photoModalOpen}
         onClose={() => setPhotoModalOpen(false)}
         currentAvatarUrl={session?.user?.image}
-        userName={session?.user?.name || undefined}
-        userEmail={session?.user?.email || undefined}
+        userName={session?.user?.name ?? undefined}
+        userEmail={session?.user?.email ?? undefined}
         onPhotoUpdate={handlePhotoUpdate}
       />
     </Container>

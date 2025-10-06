@@ -46,7 +46,7 @@ export const loadClientLogoAsPngBase64 = async (opts: {
     ? overrideSrc.replace(/\.(svg|png)$/i, '')
     : computeClientLogoBase(clientName, ticker)
 
-  const candidates: Array<{ url: string; type: 'png' | 'svg' | 'default' }> = []
+  const candidates: { url: string; type: 'png' | 'svg' | 'default' }[] = []
 
   // If override or base under /logos, try PNG then SVG
   if (base) {

@@ -47,7 +47,7 @@ function transformProposalRow(row: ProposalRow): Proposal {
 }
 
 // Helper type for consistent response format
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

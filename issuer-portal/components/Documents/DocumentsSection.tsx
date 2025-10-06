@@ -36,14 +36,15 @@ import DocumentsTable from '@/components/Documents/DocumentsTable'
 import EmptyState from '@/components/EmptyState'
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import type {
+  ExtendedDocumentStatus} from '@/utils/documentUtils';
 import {
   DOCUMENT_STATUS_VALUES,
-  ExtendedDocumentStatus,
   getDocumentStatusLabel,
   getStoragePublicUrl,
 } from '@/utils/documentUtils'
@@ -127,9 +128,7 @@ interface ParsedProposal {
   recommendation: string
 }
 
-interface ExcelRow {
-  [key: string]: string | number | boolean | Date | undefined
-}
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
 export default function DocumentsPage({ params }: DocumentsPageProps) {
   React.use(params) // Consume params but don't store
@@ -184,7 +183,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   useEffect(() => {
     if (currentMeeting?.id && previousMeetingIdRef.current !== currentMeeting.id) {
       previousMeetingIdRef.current = currentMeeting.id
-      refreshDocuments(currentMeeting.id)
+      void refreshDocuments(currentMeeting.id)
     }
   }, [currentMeeting?.id, refreshDocuments])
 
@@ -198,7 +197,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         return
       }
       if (currentMeeting?.id) {
-        refreshDocuments(currentMeeting.id)
+        void refreshDocuments(currentMeeting.id)
       }
     }
 
@@ -208,7 +207,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         return
       }
       if (!document.hidden && currentMeeting?.id) {
-        refreshDocuments(currentMeeting.id)
+        void refreshDocuments(currentMeeting.id)
       }
     }
 
@@ -328,12 +327,12 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           // Map the data to our format
           const mappedData = jsonData
             .map((row: ExcelRow) => {
-              const proposalNumber = row['Proposal Number'] || row['Number'] || ''
-              const proposalTitle = row['Proposal Title'] || row['Title'] || ''
-              const proposalType = row['Proposal Type'] || row['Type'] || ''
-              const proposalSubtype = row['Proposal Subtype'] || row['Subtype'] || ''
-              const directorName = row['Director Name'] || row['Director'] || ''
-              const recommendation = row['Recommendation'] || ''
+              const proposalNumber = row['Proposal Number'] || row.Number || ''
+              const proposalTitle = row['Proposal Title'] || row.Title || ''
+              const proposalType = row['Proposal Type'] || row.Type || ''
+              const proposalSubtype = row['Proposal Subtype'] || row.Subtype || ''
+              const directorName = row['Director Name'] || row.Director || ''
+              const recommendation = row.Recommendation || ''
 
               // Skip rows without required fields
               if (!proposalNumber || !proposalTitle) {
@@ -369,7 +368,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
           resolve(mappedData)
         } catch (error) {
-          reject(error)
+          reject(error instanceof Error ? error : new Error(String(error)))
         }
       }
 
@@ -383,7 +382,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   const handleFilesUpload = async (
     files: File[],
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => {
     if (!currentMeeting?.id) {
       console.error('No current meeting ID')
@@ -655,7 +654,9 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => {}}
+          onAddComment={() => {
+            // Comment functionality is currently managed internally by ApprovalDrawer
+          }}
         />
       )}
 

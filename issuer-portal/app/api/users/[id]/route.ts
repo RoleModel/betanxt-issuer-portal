@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 
-import { auth } from '@/auth'
+import { auth } from '@/authentication/auth-config'
 
 interface User {
   id: string
@@ -14,7 +15,7 @@ interface User {
 }
 
 // In-memory user storage for development (replace with database in production)
-const users: Map<string, User> = new Map()
+const users = new Map<string, User>()
 
 export async function GET(
   request: NextRequest,
@@ -72,7 +73,7 @@ export async function PUT(
     }
 
     // Parse request body
-    const body = await request.json()
+    const body = (await request.json()) as { avatarUrl?: string; avatar_url?: string }
 
     // Get or create user
     let user = users.get(id)

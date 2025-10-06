@@ -4,7 +4,7 @@ import React from 'react'
 
 import { Card, CardActionArea, CardContent, Link, Stack, Typography } from '@mui/material'
 
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import type { Client } from '@/hooks/useClients'

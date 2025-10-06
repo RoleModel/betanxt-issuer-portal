@@ -146,12 +146,13 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
 
   useEffect(() => {
     if (isDragging) {
+      const mouseUpHandler = () => { void handleMouseUp() }
       document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mouseup', mouseUpHandler)
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('mouseup', mouseUpHandler)
       }
     }
   }, [isDragging, handleMouseMove, handleMouseUp])
@@ -188,11 +189,11 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
     if (signatureData.startsWith('data:application/json;base64,')) {
       try {
         const jsonData = atob(signatureData.split(',')[1])
-        const signatureInfo = JSON.parse(jsonData)
+        const signatureInfo = JSON.parse(jsonData) as { font?: string; text: string }
         return (
           <Typography
             sx={{
-              fontFamily: signatureInfo.font || 'cursive',
+              fontFamily: (signatureInfo.font ?? 'cursive'),
               fontSize: 20,
               fontWeight: 500,
               textAlign: 'center',

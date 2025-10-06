@@ -280,7 +280,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {!isActualKeyDate && (
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <StatusChip
-                status={task.status || null}
+                status={task.status ?? null}
                 size="small"
                 sx={{
                   fontSize: '0.7rem',
@@ -378,7 +378,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </Box>
 
           <StatusChip
-            status={task.status || null}
+            status={task.status ?? null}
             sx={{
               ml: 2,
             }}
@@ -431,8 +431,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Action links */}
         {Array.isArray(task.links) && task.links.length > 0 && (
           <Box display="flex" flexWrap="wrap" gap={1}>
-            {task.links.map((link, index) => (
-              <Tooltip key={index} title={link.label}>
+            {task.links.map((link, index) => {
+              const typedLink = link as { label?: string; url?: string; action?: string }
+              return (
+              <Tooltip key={index} title={typedLink.label ?? ''}>
                 <IconButton
                   size="small"
                   sx={{
@@ -446,15 +448,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (link.url) {
-                      window.open(link.url, '_blank')
+                    if (typedLink.url) {
+                      window.open(typedLink.url, '_blank')
                     }
                   }}
                 >
-                  {getActionIcon(link.action || 'external')}
+                  {getActionIcon(typedLink.action ?? 'external')}
                 </IconButton>
               </Tooltip>
-            ))}
+            )})}
           </Box>
         )}
 

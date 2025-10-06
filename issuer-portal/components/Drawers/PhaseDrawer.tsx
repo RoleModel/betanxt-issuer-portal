@@ -47,7 +47,6 @@ import { useClients } from '@/hooks/useClients'
 import { useDocuments } from '@/hooks/useDocuments'
 import { usePhases } from '@/hooks/usePhases'
 import { useTasks } from '@/hooks/useTasks'
-import { getBrowserSupabase } from '@/lib/browserSupabase'
 import type { KeyDate, Task } from '@/types/api-exports'
 import type { ContextMenuPosition } from '@/types/common'
 import { handleFormDownload, handleFormSign } from '@/utils/broadridgeFormHandler'
@@ -58,7 +57,7 @@ import {
 } from '@/utils/planFileRequestForm'
 import { getDocumentTypeFromTask } from '@/utils/taskControl'
 import { determineTaskStatus } from '@/utils/taskControl'
-import { TaskLink } from '@/utils/taskLinks'
+import type { TaskLink } from '@/utils/taskLinks'
 import {
   handleFormDownload as handleTransferAgentDownload,
   handleFormSign as handleTransferAgentSign,
@@ -67,7 +66,7 @@ import {
 import { getPhaseColor } from '../mui-styling/theme'
 
 // Phase URL type for UI
-type PhaseUrl = { title: string; description?: string; url?: string }
+interface PhaseUrl { title: string; description?: string; url?: string }
 
 // Swipeable drawer constants
 const drawerBleeding = 60
@@ -127,7 +126,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   const _router = useRouter()
 
   // Tasks and documents hooks
-  const { updateTaskById, refetch } = useTasks(currentMeeting?.id)
+  const { updateTaskById, refetch: _refetch } = useTasks(currentMeeting?.id)
   const { createNewDocument, addDocumentHistory, getDocumentsByMeeting, uploadDocument } =
     useDocuments()
 
@@ -247,6 +246,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           task.status === 'SUBMITTED_AWAITING_RECORD_DATE' ||
           task.status === 'PENDING_AUTHORIZATION'
         ) {
+          // Task is in a pending state - no action needed
         }
       })
 
@@ -254,12 +254,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     } catch (error) {
       console.error('Failed to check for signed documents:', error)
     }
-  }, [currentMeeting?.id, phaseTasks, getDocumentsByMeeting])
+  }, [currentMeeting?.id, getDocumentsByMeeting, phaseTasks]) // Remove phaseTasks to prevent infinite loop
 
   // Run check when drawer opens or dependencies change
   React.useEffect(() => {
     if (open) {
-      checkSignedDocuments()
+      void checkSignedDocuments()
     }
   }, [open, checkSignedDocuments])
 
@@ -274,7 +274,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           id: key,
           title: key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase()),
           phaseNumber: currentPhaseNumber,
-          date: value as string,
+          date: value!,
         }))
       if (result.length > 0) {
         return result
@@ -375,39 +375,43 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         await updateTaskById(currentTaskForUpload.id, { status: newStatus })
       }
 
-      // Update meeting completion percentage
+      // Update meeting completion percentage (asynchronously to avoid blocking)
       if (currentMeeting.id) {
-        try {
-          const client = await buildApiClient()
+        setTimeout(() => {
+          void (async () => {
+            try {
+              const client = await buildApiClient()
 
-          refetch()
+              const completedStatuses = [
+                'COMPLETE',
+                'AUTHORIZED',
+                'SUBMITTED_AWAITING_RECORD_DATE',
+                'WAITING_FOR_FORM_RETURN',
+                'REQUEST_FORM_TO_FOLLOW',
+                'PENDING_AUTHORIZATION',
+              ]
 
-          const completedStatuses = [
-            'COMPLETE',
-            'AUTHORIZED',
-            'SUBMITTED_AWAITING_RECORD_DATE',
-            'WAITING_FOR_FORM_RETURN',
-            'REQUEST_FORM_TO_FOLLOW',
-            'PENDING_AUTHORIZATION',
-          ]
+              const allTasks = tasks
+              const completedTasks = allTasks.filter((t) =>
+                completedStatuses.includes(t.status || '')
+              ).length
+              const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
 
-          const allTasks = tasks
-          const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status || '')
-          ).length
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
-
-          await client.PUT('/meetings/{meetingId}', {
-            params: {
-              path: { meetingId: currentMeeting.id },
-            },
-            body: {
-              overallCompletion: overallCompletion,
-            },
-          })
-        } catch (error) {
-          console.error('Failed to update meeting completion', error)
-        }
+              if (currentMeeting.id) {
+                await client.PUT('/meetings/{meetingId}', {
+                  params: {
+                    path: { meetingId: currentMeeting.id },
+                  },
+                  body: {
+                    overallCompletion: overallCompletion,
+                  },
+                })
+              }
+            } catch (error) {
+              console.error('Failed to update meeting completion', error)
+            }
+          })()
+        }, 100) // Small delay to avoid racing
       }
 
       // Check if all tasks in the current phase are complete
@@ -417,7 +421,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       clearUploadFiles()
       setCurrentTaskForUpload(null)
       setUploadTaskTitle('')
-      refreshMeetingData?.()
+      // Don't call refreshMeetingData immediately to avoid API racing
 
       if (isMobile) {
         handleMobileUploadClose()
@@ -435,7 +439,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   }
 
   // Generate filled PDF with form data and signatures
-  const generateFilledPDF = async (taskTitle: string): Promise<Blob> => {
+  const generateFilledPDF = (taskTitle: string): Blob => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -489,23 +493,27 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
     try {
       // Generate filled PDF
-      const pdfBlob = await generateFilledPDF(task.title || 'Task')
+      const pdfBlob = generateFilledPDF(task.title || 'Task')
 
-      // Upload PDF to Supabase storage
+      // Upload PDF via API route to handle RLS policies properly
       const fileName = `${task.id}-completed-${Date.now()}.pdf`
-      const filePath = `task-completions/${fileName}`
+      const formData = new FormData()
+      formData.append('file', pdfBlob, fileName)
+      formData.append('meetingId', task.meetingId || '')
+      formData.append('taskId', task.id || '')
 
-      const supabase = getBrowserSupabase()
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, pdfBlob, {
-          contentType: 'application/pdf',
-          upsert: false,
-        })
+      const response = await fetch('/api/documents/types/signed-form/upload', {
+        method: 'POST',
+        body: formData,
+      })
 
-      if (uploadError) {
-        throw new Error(`Failed to upload PDF: ${uploadError.message}`)
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Failed to upload PDF: ${errorText}`)
       }
+
+      const uploadResult = await response.json() as { storagePath?: string; id?: string }
+      const uploadData = { path: uploadResult.storagePath || uploadResult.id || '' }
 
       // Determine appropriate status based on task type
       let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
@@ -536,12 +544,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           type: 'signed-form',
           file: uploadData.path,
           taskId: task.taskId || task.id,
-          status: newStatus,
+          status: newStatus as components['schemas']['DocumentStatus'],
         }
 
         if (task.meetingId) {
           const newDocument = await createNewDocument(task.meetingId, documentData)
-          if (newDocument && newDocument.id) {
+          if (newDocument?.id) {
             await addDocumentHistory(newDocument.id, 'UPDATED')
           }
 
@@ -560,39 +568,43 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         }
       }
 
-      // Update meeting completion percentage
+      // Update meeting completion percentage (asynchronously to avoid blocking)
       if (currentMeeting?.id) {
-        try {
-          const client = await buildApiClient()
+        setTimeout(() => {
+          void (async () => {
+            try {
+              const client = await buildApiClient()
 
-          refetch()
+              const completedStatuses = [
+                'COMPLETE',
+                'AUTHORIZED',
+                'SUBMITTED_AWAITING_RECORD_DATE',
+                'WAITING_FOR_FORM_RETURN',
+                'REQUEST_FORM_TO_FOLLOW',
+                'PENDING_AUTHORIZATION',
+              ]
 
-          const completedStatuses = [
-            'COMPLETE',
-            'AUTHORIZED',
-            'SUBMITTED_AWAITING_RECORD_DATE',
-            'WAITING_FOR_FORM_RETURN',
-            'REQUEST_FORM_TO_FOLLOW',
-            'PENDING_AUTHORIZATION',
-          ]
+              const allTasks = tasks
+              const completedTasks = allTasks.filter((t) =>
+                completedStatuses.includes(t.status || '')
+              ).length
+              const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
 
-          const allTasks = tasks
-          const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status || '')
-          ).length
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
-
-          await client.PUT('/meetings/{meetingId}', {
-            params: {
-              path: { meetingId: currentMeeting.id },
-            },
-            body: {
-              overallCompletion: overallCompletion,
-            },
-          })
-        } catch (error) {
-          console.error('Failed to update meeting completion', error)
-        }
+              if (currentMeeting.id) {
+                await client.PUT('/meetings/{meetingId}', {
+                  params: {
+                    path: { meetingId: currentMeeting.id },
+                  },
+                  body: {
+                    overallCompletion: overallCompletion,
+                  },
+                })
+              }
+            } catch (error) {
+              console.error('Failed to update meeting completion', error)
+            }
+          })()
+        }, 100) // Small delay to avoid racing
       }
 
       // Check if all tasks in the current phase are complete
@@ -600,7 +612,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
       // Clear state and close
       clearUploadFiles()
-      refreshMeetingData?.()
+      // Don't call refreshMeetingData immediately to avoid API racing
     } catch (error) {
       console.error('Failed to submit task', error)
     }
@@ -626,16 +638,16 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       // Create client data inside the handler to ensure latest meeting data (following TaskDrawer pattern)
       const clientData = currentClient
         ? {
-            issuerName: currentClient.company_name || currentClient.short_name || '',
-            cusipNumber: currentMeeting?.cusip || undefined,
-            contactName: currentClient.primary_contact || '',
-            email: currentClient.primary_contact_email || '',
-            meetingDate: currentMeeting?.meetingDate || undefined,
-            ticker: currentClient.ticker || undefined,
-          }
+          issuerName: currentClient.company_name || currentClient.short_name || '',
+          cusipNumber: currentMeeting?.cusip || undefined,
+          contactName: currentClient.primary_contact || '',
+          email: currentClient.primary_contact_email || '',
+          meetingDate: currentMeeting?.meetingDate || undefined,
+          ticker: currentClient.ticker || undefined,
+        }
         : undefined
 
-      // eslint-disable-next-line no-console
+
       console.log(
         '[PhaseDrawer] handleTaskLinkClick clientData:',
         clientData,
@@ -700,6 +712,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
               clientData,
             })
           } else {
+            // No document found for this task
           }
           break
 
@@ -726,6 +739,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
               await handleFormDownload(clientData)
             }
           } else {
+            // Download not available for this task type
           }
           break
 
@@ -753,8 +767,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   const handleTaskApprovalClick = useCallback(
     (task: Task) => {
-      if (task.type === 'approve' && Array.isArray(task.links) && task.links[0]?.url) {
-        setApprovalDocumentUrl(task.links[0].url)
+      if (task.type === 'approve' && Array.isArray(task.links) && task.links[0]) {
+        const firstLink = task.links[0] as TaskLink
+        if (firstLink.url) {
+          setApprovalDocumentUrl(firstLink.url)
+        }
         setApprovalTitle(task.title || 'Approval Task')
         setApprovalDrawerOpen(true)
       }
@@ -821,8 +838,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   }, [])
 
   const handleTaskUpdated = useCallback(() => {
-    // Refresh meeting data (including tasks) after task update
-    refreshMeetingData?.()
+    // Refresh meeting data (including tasks) after task update - with delay to avoid racing
+    setTimeout(() => {
+      void refreshMeetingData?.()
+    }, 200)
   }, [refreshMeetingData])
 
   const handlePhaseNavigation = useCallback(
@@ -1175,14 +1194,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 const modifiedTask: Task =
                   hasSignedDoc && task.links && Array.isArray(task.links)
                     ? {
-                        ...task,
-                        links: (task.links as TaskLink[]).map((link: TaskLink) => {
-                          if (link.action === 'signature' && link.label === 'Sign Form') {
-                            return { ...link, label: 'View Form' }
-                          }
-                          return link
-                        }) as unknown as Record<string, unknown>,
-                      }
+                      ...task,
+                      links: (task.links as TaskLink[]).map((link: TaskLink) => {
+                        if (link.action === 'signature' && link.label === 'Sign Form') {
+                          return { ...link, label: 'View Form' }
+                        }
+                        return link
+                      }) as unknown as Record<string, unknown>,
+                    }
                     : task
 
                 return (
@@ -1356,12 +1375,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         task={
           currentTaskForDocument
             ? {
-                id: currentTaskForDocument.id || '',
-                task_id: currentTaskForDocument.taskId || currentTaskForDocument.id,
-                title: currentTaskForDocument.title || 'Document',
-                type: currentTaskForDocument.type,
-                meeting_id: currentTaskForDocument.meetingId,
-              }
+              id: currentTaskForDocument.id || '',
+              task_id: currentTaskForDocument.taskId || currentTaskForDocument.id,
+              title: currentTaskForDocument.title || 'Document',
+              type: currentTaskForDocument.type,
+              meeting_id: currentTaskForDocument.meetingId,
+            }
             : undefined
         }
         documentType="signature"
@@ -1384,7 +1403,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         title={approvalTitle}
         fileUrl={approvalDocumentUrl}
         onApprove={handleApprove}
-        onAddComment={() => {}}
+        onAddComment={() => {
+          // Comment functionality is currently managed internally by ApprovalDrawer
+        }}
       />
 
       {/* Context Menu */}

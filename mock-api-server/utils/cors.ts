@@ -26,7 +26,7 @@ export function handleCors() {
 /**
  * Add CORS headers to a NextResponse
  */
-export function withCors(response: NextResponse, origin: string = '*') {
+export function withCors(response: NextResponse, origin = '*') {
   response.headers.set('Access-Control-Allow-Origin', origin)
   response.headers.set('Access-Control-Allow-Credentials', 'true')
   return response

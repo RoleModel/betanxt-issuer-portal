@@ -31,7 +31,7 @@ export default function PhasePage() {
   // Helper to parse phase label like "Phase 4" safely to number
   const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
     if (!phaseLabel) return null
-    const match = phaseLabel.match(/(\d+)/)
+    const match = /(\d+)/.exec(phaseLabel)
     if (!match) return null
     const num = Number(match[1])
     return Number.isFinite(num) ? num : null
@@ -40,7 +40,7 @@ export default function PhasePage() {
   const currentPhaseLabel = useMemo(() => {
     if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
     if ('currentPhase' in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      const val = (currentMeeting as Record<string, unknown>).currentPhase
       return typeof val === 'string' ? val : undefined
     }
     return undefined

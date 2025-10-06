@@ -4,7 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { BarChart, BarLabelProps } from '@mui/x-charts/BarChart'
+import type { BarLabelProps } from '@mui/x-charts/BarChart';
+import { BarChart } from '@mui/x-charts/BarChart'
 
 import buildApiClient from '@/domain-models/apiClient'
 
@@ -33,7 +34,11 @@ const toFiniteNumber = (value: unknown): number => {
 const toStringValue = (value: unknown): string => {
   if (value === null || value === undefined) return ''
   const str = asString(value)
-  return str ?? String(value)
+  if (str) return str
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return ''
 }
 
 const normalizePosition = (value: unknown): Position | null => {
@@ -111,7 +116,7 @@ export default function BeneficialVsRegisteredCard({
       }
     }
 
-    fetchPositions()
+    void fetchPositions()
   }, [meetingId])
 
   const chartData = useMemo(() => {

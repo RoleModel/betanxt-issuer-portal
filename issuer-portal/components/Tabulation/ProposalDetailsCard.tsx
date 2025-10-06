@@ -27,7 +27,7 @@ export default function ProposalDetailsCard({ meetingId }: ProposalDetailsCardPr
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
         <Tabs
           value={selectedTab}
-          onChange={(_, val) => setSelectedTab(val)}
+          onChange={(_, val) => setSelectedTab(val as number)}
           sx={{ px: 3, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />

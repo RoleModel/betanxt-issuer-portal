@@ -362,7 +362,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
   if (clientData?.ticker) {
     try {
       const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`
-      // eslint-disable-next-line no-console
+       
       console.log(
         '[PlanFileRequestForm] Loading logo from:',
         logoPath,
@@ -370,7 +370,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
         clientData
       )
       const response = await fetch(logoPath)
-      // eslint-disable-next-line no-console
+       
       console.log(
         '[PlanFileRequestForm] Logo fetch response:',
         response.ok,
@@ -384,7 +384,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
           reader.onerror = reject
           reader.readAsDataURL(blob)
         })
-        // eslint-disable-next-line no-console
+         
         console.log(
           '[PlanFileRequestForm] Logo loaded successfully, base64 length:',
           logoBase64?.length
@@ -394,7 +394,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
       console.error('[PlanFileRequestForm] Logo loading failed:', error)
     }
   } else {
-    // eslint-disable-next-line no-console
+     
     console.log('[PlanFileRequestForm] No ticker in clientData:', clientData)
   }
 

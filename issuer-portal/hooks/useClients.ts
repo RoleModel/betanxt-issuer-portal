@@ -29,11 +29,11 @@ export interface Client {
   phase?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 // Event phase for routing logic
   meeting_id?: string // Default meeting ID for the client
   // Added: accounts returned by /clients API (used for filtering meetings by accountId)
-  accounts?: Array<{
+  accounts?: {
     id: string
     name?: string
     primary_contact?: string
-  }>
+  }[]
 }
 
 export interface UseClientsResult {

@@ -132,7 +132,7 @@ const computeParticipationMetrics = (
     if (!isPositionVoted(position)) return sum
     const sharesValue =
       position.sharesVoted ??
-      (asRecord(position as unknown)?.shares_voted as unknown) ??
+      (asRecord(position as unknown)?.shares_voted) ??
       position.shares ??
       0
     return sum + parseNumericValue(sharesValue)
@@ -187,13 +187,13 @@ export default function PastMeetingsPage() {
       }
 
       // Get meetings array from the paginated response - already filtered by API
-      type MeetingsApiResponse = {
+      interface MeetingsApiResponse {
         meetings?: Meeting[]
         pagination?: components['schemas']['Pagination']
       }
       const typedData = meetingsResponse.data as MeetingsApiResponse | undefined
       const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
-        ? typedData!.meetings!
+        ? typedData.meetings
         : []
 
       // Calculate participation data from tabulation reports
@@ -291,7 +291,7 @@ export default function PastMeetingsPage() {
   }, [clientTicker])
 
   useEffect(() => {
-    fetchPastMeetings()
+    void fetchPastMeetings()
   }, [fetchPastMeetings])
 
   const formatDate = (dateString: string) => {
@@ -321,8 +321,8 @@ export default function PastMeetingsPage() {
 
   const sortedMeetings = React.useMemo(() => {
     return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy as keyof typeof a] as string
-      let compareB: string | number = b[orderBy as keyof typeof b] as string
+      let compareA: string | number = a[orderBy] as string
+      let compareB: string | number = b[orderBy] as string
 
       // Handle date sorting
       if (orderBy === 'meetingDate') {

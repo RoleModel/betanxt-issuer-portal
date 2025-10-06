@@ -10,7 +10,7 @@ import RevisionRequestDialog from '@/components/Documents/RevisionRequestDialog'
 import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -120,7 +120,7 @@ export default function DocumentSiteCard() {
       }
     }
 
-    fetchHostingSiteStatus()
+    void fetchHostingSiteStatus()
   }, [currentMeeting?.id, currentClient?.id])
 
   const updateHostingSiteStatus = async (
@@ -145,7 +145,7 @@ export default function DocumentSiteCard() {
         })
 
         if (response.ok) {
-          const data = await response.json()
+          const data = (await response.json()) as Record<string, unknown>
           setHostingSiteStatus({
             ...hostingSiteStatus,
             status,
@@ -174,16 +174,35 @@ export default function DocumentSiteCard() {
         })
 
         if (response.ok) {
-          const data = await response.json()
+          const data = (await response.json()) as {
+            id: string
+            meeting_id?: string
+            meetingId?: string
+            status: string
+            file_path?: string
+            filePath?: string
+            approved_by?: string
+            approvedBy?: string
+            approved_at?: string
+            approvedAt?: string
+            created_at?: string
+            createdAt?: string
+            updated_at?: string
+            updatedAt?: string
+          }
           setHostingSiteStatus({
             id: data.id,
-            meeting_id: data.meeting_id || data.meetingId,
-            status: data.status,
-            site_url: data.file_path || data.filePath,
-            approved_by: data.approved_by || data.approvedBy,
-            approved_at: data.approved_at || data.approvedAt,
-            created_at: data.created_at || data.createdAt,
-            updated_at: data.updated_at || data.updatedAt,
+            meeting_id: (data.meeting_id ?? data.meetingId)!,
+            status: data.status as
+              | 'Incomplete'
+              | 'Pending Review'
+              | 'Revision Requested'
+              | 'Approved',
+            site_url: (data.file_path ?? data.filePath)!,
+            approved_by: (data.approved_by ?? data.approvedBy),
+            approved_at: (data.approved_at ?? data.approvedAt),
+            created_at: (data.created_at ?? data.createdAt)!,
+            updated_at: (data.updated_at ?? data.updatedAt)!,
             test_control_number: '123456782',
           })
           return data

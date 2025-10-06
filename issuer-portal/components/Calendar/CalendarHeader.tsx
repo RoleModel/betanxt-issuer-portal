@@ -239,7 +239,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
             value={view}
             exclusive
             onChange={(_, newView) => {
-              if (newView) onViewChange(newView)
+              if (newView) onViewChange(newView as CalendarViewType)
             }}
             aria-label="calendar view"
             size="small"

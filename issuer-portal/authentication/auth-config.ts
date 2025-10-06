@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 
 export const config = {
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production',
+  secret: process.env.NEXTAUTH_SECRET ?? 'development-secret-please-change-in-production',
   providers: [
     Credentials({
       name: 'credentials',
@@ -16,11 +16,11 @@ export const config = {
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
           // Return a mock user for development
           return {
-            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID || 'dev-user-123',
+            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID ?? 'dev-user-123',
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() ?? 'admin',
             accountId: 'd607d704-0222-5a41-abd8-552ffa17c36c', // Wendy's account ID
             client: null,
             roles: ['ADMIN', 'USER'], // Default roles for dev bypass
@@ -51,7 +51,17 @@ export const config = {
             return null
           }
 
-          const user = await response.json()
+          const user = (await response.json()) as {
+            id: string
+            firstName: string
+            lastName: string
+            email: string
+            username: string
+            type: string
+            accountId: string
+            client?: { id: number; name: string } | null
+            roles?: string[]
+          }
 
           if (user) {
             return {
@@ -61,8 +71,8 @@ export const config = {
               username: user.username,
               type: user.type,
               accountId: user.accountId,
-              client: user.client || { id: 1, name: 'Default Client' },
-              roles: user.roles || [],
+              client: user.client ?? { id: 1, name: 'Default Client' },
+              roles: user.roles ?? [],
             }
           }
         } catch (error) {
@@ -77,7 +87,7 @@ export const config = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    jwt({ token, user }) {
       if (user) {
         token.username = user.username
         token.type = user.type
@@ -87,9 +97,9 @@ export const config = {
       }
       return token
     },
-    async session({ session, token }) {
+    session({ session, token }) {
       if (token) {
-        session.user.id = token.sub || ''
+        session.user.id = token.sub ?? ''
         session.user.username =
           typeof token.username === 'string' ? token.username : undefined
         session.user.type = typeof token.type === 'string' ? token.type : undefined

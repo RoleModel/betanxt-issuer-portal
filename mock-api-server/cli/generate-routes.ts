@@ -46,9 +46,7 @@ interface DomainModel {
   functions: string[]
 }
 
-interface DomainModelMap {
-  [key: string]: DomainModel
-}
+type DomainModelMap = Record<string, DomainModel>;
 
 /**
  * Scan for existing domain model functions
@@ -72,7 +70,7 @@ function scanDomainModels(): DomainModelMap {
     if (functionMatches) {
       const functions = functionMatches
         .map((match) => {
-          const nameMatch = match.match(/function\s+(\w+)/)
+          const nameMatch = /function\s+(\w+)/.exec(match)
           return nameMatch ? nameMatch[1] : ''
         })
         .filter(Boolean)
@@ -681,7 +679,7 @@ import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/ser
 
       // Infer request schema type from function name (create*/update*)
       const fn = domainMapping.functionName
-      const match = fn.match(/^(create|update)([A-Z].*)$/)
+      const match = /^(create|update)([A-Z].*)$/.exec(fn)
       if (match) {
         let reqType = `${match[1] === 'create' ? 'Create' : 'Update'}${match[2]}Request`
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/* eslint-disable no-console */
+ 
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 

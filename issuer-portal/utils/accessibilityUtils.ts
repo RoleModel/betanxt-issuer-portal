@@ -24,10 +24,10 @@ interface GroupedViolation {
   help: string
   helpUrl: string
   type: 'violation' | 'incomplete'
-  occurrences: Array<{
+  occurrences: {
     target: string
     failureSummary: string
-  }>
+  }[]
 }
 
 interface ViolationSummary {

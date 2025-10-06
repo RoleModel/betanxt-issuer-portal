@@ -43,7 +43,7 @@ export default function MeetingsPage() {
   const [orderBy, setOrderBy] = useState<OrderBy>('meetingDate')
 
   useEffect(() => {
-    fetchMeetings()
+    void fetchMeetings()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -73,7 +73,7 @@ export default function MeetingsPage() {
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
-        const meetingDate = new Date(meeting.meetingDate || '')
+        const meetingDate = new Date(meeting.meetingDate ?? '')
         const today = new Date()
         const daysUntilMeeting = Math.ceil(
           (meetingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
@@ -118,8 +118,8 @@ export default function MeetingsPage() {
 
   const sortedMeetings = React.useMemo(() => {
     return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy as keyof typeof a] as string
-      let compareB: string | number = b[orderBy as keyof typeof b] as string
+      let compareA: string | number = a[orderBy] as string
+      let compareB: string | number = b[orderBy] as string
 
       // Handle date sorting
       if (orderBy === 'meetingDate') {
@@ -199,7 +199,7 @@ export default function MeetingsPage() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
-                        {meeting.cusip || 'N/A'}
+                        {meeting.cusip ?? 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -213,7 +213,7 @@ export default function MeetingsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <StatusChip status={meeting.status || 'ACTIVE'} size="small" />
+                      <StatusChip status={meeting.status ?? 'ACTIVE'} size="small" />
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 1 }}>

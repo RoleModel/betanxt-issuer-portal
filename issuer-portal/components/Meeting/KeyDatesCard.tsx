@@ -16,7 +16,7 @@ import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
 import { getPhaseColor } from '@/components/mui-styling/theme'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { calculateDaysUntil, formatDaysUntil } from '@/utils/dateUtils'
 
@@ -128,7 +128,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
       }
     }
 
-    fetchPhases()
+    void fetchPhases()
   }, [meeting?.id])
 
   // Use meeting dates directly (phases only provide color mapping)

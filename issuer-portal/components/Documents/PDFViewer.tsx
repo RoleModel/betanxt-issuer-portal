@@ -62,7 +62,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     // Initialize PDF.js worker only once
     if (typeof window !== 'undefined' && !hasInitialized.current) {
       hasInitialized.current = true
-      import('react-pdf')
+      void import('react-pdf')
         .then(({ pdfjs }) => {
           // Prefer official build path (non-legacy). Fallback set below if needed.
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -70,7 +70,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         })
         .catch(() => {
           // Try fallback worker URL silently
-          import('react-pdf').then(({ pdfjs }) => {
+          void import('react-pdf').then(({ pdfjs }) => {
             pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
             setIsWorkerReady(true)
           })

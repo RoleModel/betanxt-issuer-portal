@@ -61,13 +61,13 @@ export function MeetingProvider({
 
   // Extract ticker from URL
   const getTickerFromURL = useCallback((): string | undefined => {
-    const tickerMatch = pathname.match(/^\/([A-Za-z]{2,5})\//)
+    const tickerMatch = /^\/([A-Za-z]{2,5})\//.exec(pathname)
     return tickerMatch?.[1]
   }, [pathname])
 
   // Extract meeting ID from URL
   const getMeetingIdFromURL = useCallback((): string | undefined => {
-    const meetingMatch = pathname.match(/\/meeting\/([^/]+)/)
+    const meetingMatch = /\/meeting\/([^/]+)/.exec(pathname)
     return meetingMatch?.[1]
   }, [pathname])
 

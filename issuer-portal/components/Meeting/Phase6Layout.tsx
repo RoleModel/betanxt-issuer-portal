@@ -105,7 +105,9 @@ export default React.memo(function Phase6Layout({
               action={
                 <Button
                   variant="outlined"
-                  onClick={() => {}}
+                  onClick={() => {
+                    // Event handler intentionally empty - button is disabled
+                  }}
                   sx={{ textTransform: 'none' }}
                 >
                   View Tabulation
@@ -133,6 +135,8 @@ export default React.memo(function Phase6Layout({
                 flex={true}
                 actionText="Download"
                 variant="default"
+                // Placeholder for future download functionality
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
                 onClick={() => {}}
               />
               <FeatureTile
@@ -142,6 +146,8 @@ export default React.memo(function Phase6Layout({
                 flex={true}
                 actionText="Download"
                 variant="primary"
+                // Placeholder for future download functionality
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
                 onClick={() => {}}
               />
             </Stack>

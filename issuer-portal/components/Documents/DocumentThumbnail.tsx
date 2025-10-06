@@ -16,7 +16,7 @@ import {
 
 import DocumentThumbnailGenerator from './DocumentThumbnailGenerator'
 
-type Props = {
+interface Props {
   filePath?: string | null
   onClick?: () => void
   width?: number
@@ -44,6 +44,7 @@ interface PageProps {
 export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Props) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [isValidating, setIsValidating] = useState(false)
   const [Document, setDocument] = useState<React.ComponentType<DocumentProps> | null>(
     null
   )
@@ -115,8 +116,47 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     }
   }, [filePath])
 
+  // Preflight check for PDF accessibility
   useEffect(() => {
-    if (!isPDF || !fileUrl) return
+    let mounted = true
+
+    if (!isPDF || !fileUrl || hasError) {
+      return
+    }
+
+    const validatePDFUrl = async () => {
+      if (!fileUrl.startsWith('http')) {
+        return // Skip validation for data URIs and relative paths
+      }
+
+      setIsValidating(true)
+      try {
+        const response = await fetch(fileUrl, { method: 'HEAD' })
+        if (!response.ok && mounted) {
+          setHasError(true)
+        }
+      } catch (_error) {
+        if (mounted) {
+          setHasError(true)
+        }
+      } finally {
+        if (mounted) {
+          setIsValidating(false)
+        }
+      }
+    }
+
+    void validatePDFUrl()
+
+    return () => {
+      mounted = false
+    }
+    // hasError is intentionally excluded from deps to prevent infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPDF, fileUrl])
+
+  useEffect(() => {
+    if (!isPDF || !fileUrl || hasError) return
 
     let mounted = true
 
@@ -144,11 +184,13 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
       }
     }
 
-    loadPDFComponents()
+    void loadPDFComponents()
 
     return () => {
       mounted = false
     }
+    // hasError is intentionally excluded from deps to prevent infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPDF, fileUrl])
 
   const onDocumentLoadSuccess = (pdf: PDFDocumentProxy) => {
@@ -156,7 +198,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   }
 
   const onDocumentLoadError = (error: Error) => {
-    console.error('PDF thumbnail load error:', error)
+    // Only log non-404/400 errors to avoid spam for missing files
+    if (!error.message.includes('400') && !error.message.includes('404')) {
+      console.error('PDF thumbnail load error:', error)
+    }
     setHasError(true)
   }
 
@@ -273,8 +318,8 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     )
   }
 
-  // PDF loading
-  if (!isLoaded || !Document || !Page) {
+  // PDF loading or validating
+  if (isValidating || !isLoaded || !Document || !Page) {
     return (
       <Box
         sx={{
@@ -312,10 +357,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         transition: 'all 0.2s ease',
         '&:hover': onClick
           ? {
-              borderColor: 'primary.main',
-              boxShadow: 2,
-              transform: 'scale(1.02)',
-            }
+            borderColor: 'primary.main',
+            boxShadow: 2,
+            transform: 'scale(1.02)',
+          }
           : {},
       }}
       onClick={onClick}

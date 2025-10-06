@@ -1,7 +1,8 @@
 'use client'
 
+import type {
+  ReactNode} from 'react';
 import React, {
-  ReactNode,
   createContext,
   useCallback,
   useContext,
@@ -10,7 +11,7 @@ import React, {
 } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 type Document = components['schemas']['Document']
 
@@ -24,7 +25,7 @@ interface DocumentContextType {
     meetingId: string,
     files: File[],
     documentType: string,
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => Promise<void>
 }
 
@@ -123,7 +124,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       meetingId: string,
       files: File[],
       documentType: string,
-      associations?: { [fileId: string]: string }
+      associations?: Record<string, string>
     ) => {
       try {
         setLoading(true)

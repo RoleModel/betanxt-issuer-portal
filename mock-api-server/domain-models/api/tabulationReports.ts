@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabase/client'
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
@@ -30,14 +30,12 @@ export interface TabulationReport {
   id: string
   meetingId: string
   setKeys: string[]
-  brokerVoting: {
-    [proposalId: string]: {
+  brokerVoting: Record<string, {
       broker: string
       for: number
       against: number
       abstain: number
-    }[]
-  }
+    }[]>
   shareRangePerformance: {
     rangeLabel: string
     positionCount: number
@@ -111,14 +109,12 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
     id: dbReport.id,
     meetingId: dbReport.meeting_id,
     setKeys: dbReport.set_keys || [],
-    brokerVoting: parseJsonField<{
-      [proposalId: string]: {
+    brokerVoting: parseJsonField<Record<string, {
         broker: string
         for: number
         against: number
         abstain: number
-      }[]
-    }>(dbReport.broker_voting, {}),
+      }[]>>(dbReport.broker_voting, {}),
     shareRangePerformance: parseJsonField<
       {
         rangeLabel: string

@@ -23,7 +23,7 @@ interface AgendaTableProps {
   onUploadClick?: () => void
 }
 
-export default function AgendaTable({}: AgendaTableProps) {
+export default function AgendaTable(_props: AgendaTableProps) {
   const { currentMeeting } = useMeeting()
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
@@ -31,8 +31,8 @@ export default function AgendaTable({}: AgendaTableProps) {
   const getVoteOptions = (proposalType?: string, proposalNumber?: string) => {
     // Check if it's a director election (typically proposals 1-3 or contains "Election" in type)
     const isDirectorElection =
-      proposalType?.toLowerCase().includes('election') ||
-      proposalType?.toLowerCase().includes('director') ||
+      (proposalType?.toLowerCase().includes('election') ?? false) ||
+      (proposalType?.toLowerCase().includes('director') ?? false) ||
       (proposalNumber && ['1', '2', '3'].includes(proposalNumber))
 
     if (isDirectorElection) {
@@ -45,11 +45,6 @@ export default function AgendaTable({}: AgendaTableProps) {
     <Card>
       <CardHeader
         title="Meeting Agenda"
-        sx={{
-          backgroundColor: 'background.default',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-        }}
       />
       <CardContent sx={{ p: 0 }}>
         <Table>
@@ -131,7 +126,7 @@ export default function AgendaTable({}: AgendaTableProps) {
                                     {proposal.proposalNumber}
                                   </Typography>
                                   <Typography color="text.primary">
-                                    {proposal.directorName || proposal.proposalTitle}
+                                    {proposal.directorName ?? proposal.proposalTitle}
                                   </Typography>
                                 </Box>
                               </Box>

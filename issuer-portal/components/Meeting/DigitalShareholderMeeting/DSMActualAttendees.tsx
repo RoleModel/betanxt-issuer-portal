@@ -57,7 +57,7 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
           throw new Error('Failed to fetch actual attendees')
         }
 
-        const data: DigitalShareholderMeeting[] = await response.json()
+        const data = (await response.json()) as DigitalShareholderMeeting[]
 
         // Filter for actual attendees (those who attended for some time)
         const actualAttendees = data.filter(
@@ -78,7 +78,7 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
       }
     }
 
-    fetchAttendees()
+    void fetchAttendees()
   }, [meetingId])
 
   // Filter attendees based on search term and attendance filter

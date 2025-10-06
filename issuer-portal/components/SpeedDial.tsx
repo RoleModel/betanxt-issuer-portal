@@ -8,11 +8,11 @@ import {
 import { Typography, styled } from '@mui/material'
 import Box from '@mui/material/Box'
 import SpeedDial from '@mui/material/SpeedDial'
-import { SpeedDialProps } from '@mui/material/SpeedDial'
+import type { SpeedDialProps } from '@mui/material/SpeedDial'
 import SpeedDialAction from '@mui/material/SpeedDialAction'
 import SpeedDialIcon from '@mui/material/SpeedDialIcon'
 
-type IssuerSpeedDialProps = {
+interface IssuerSpeedDialProps {
   ariaLabel?: string
   icon?: React.ReactElement
   closeIcon?: React.ReactElement

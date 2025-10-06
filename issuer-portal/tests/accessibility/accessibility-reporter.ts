@@ -69,7 +69,7 @@ class AccessibilityReporter implements Reporter {
       (attachment) => attachment.name === 'accessibility-data'
     )
 
-    if (accessibilityAttachment && accessibilityAttachment.body) {
+    if (accessibilityAttachment?.body) {
       try {
         const accessibilityData = JSON.parse(accessibilityAttachment.body.toString())
 

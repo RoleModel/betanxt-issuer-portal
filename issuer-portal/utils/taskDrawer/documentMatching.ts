@@ -24,12 +24,12 @@ export const findSignedDocumentForTask = (
       'plan-file-request',
       'broadridge-form',
     ]
-    if (!signedDocTypes.includes(doc.type || '')) {
+    if (!signedDocTypes.includes(doc.type ?? '')) {
       return false
     }
 
     // Also check for 'Signed' in title
-    const hasSignedInTitle = (doc.title || '').toLowerCase().includes('signed')
+    const hasSignedInTitle = (doc.title ?? '').toLowerCase().includes('signed')
     if (!hasSignedInTitle) {
       return false
     }
@@ -45,7 +45,7 @@ export const findSignedDocumentForTask = (
     }
 
     // Strategy 3: Match on document type aligning with task title
-    const taskTitle = (task.title || '').toLowerCase()
+    const taskTitle = (task.title ?? '').toLowerCase()
 
     // Require specific type-to-title alignment
     if (

@@ -20,14 +20,14 @@ import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
 import EmptyState from '@/components/EmptyState'
 import StatusChip from '@/components/ui/StatusChip'
 
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { getDocumentActionLabel } from '@/utils/documentUtils'
 import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
 
 type Document = components['schemas']['Document']
 
-type DocumentsTableProps = {
+interface DocumentsTableProps {
   documents: Document[]
   page: number
   rowsPerPage: number

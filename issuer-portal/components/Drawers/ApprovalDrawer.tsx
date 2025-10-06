@@ -51,7 +51,7 @@ interface ApprovalDrawerProps {
   title: string
   fileUrl: string
   onApprove: () => void
-  taskStatus?: UnifiedStatus | string | null
+  taskStatus?: UnifiedStatus | null
   onOpenFullscreen?: () => void
   reviewCount?: number
   totalReviews?: number
@@ -77,7 +77,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   title,
   fileUrl,
   onApprove,
-  taskStatus = 'Pending Approval',
+  taskStatus = 'PENDING_APPROVAL' as UnifiedStatus,
   onOpenFullscreen,
   reviewCount,
   totalReviews,
@@ -151,7 +151,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       }
     }
 
-    loadDocumentData()
+    void loadDocumentData()
   }, [open, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const handlePageChange = (newPage: number) => {
@@ -632,7 +632,6 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
         {!showComments &&
           !showHistory &&
           taskStatus !== 'Complete' &&
-          taskStatus !== 'COMPLETE' &&
           taskStatus !== 'Approved' &&
           taskStatus !== 'APPROVED' &&
           taskStatus !== 'Awaiting Review' &&
@@ -640,7 +639,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           taskStatus !== 'Signed' &&
           taskStatus !== 'SIGNED' &&
           taskStatus !== 'Uploaded' &&
-          taskStatus !== 'UPLOADED' && (
+          taskStatus !== 'UPLOADED' &&
+          taskStatus !== 'PENDING_AUTHORIZATION' && (
             <Box
               sx={(theme) => ({
                 p: 1,
@@ -834,7 +834,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               color="primary"
               onClick={() => {
                 if (showCommentField) {
-                  handleSubmitComment()
+                  void handleSubmitComment()
                 } else {
                   handleAddComment()
                 }

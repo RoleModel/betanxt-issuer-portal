@@ -1,8 +1,8 @@
 import crypto from 'crypto'
 import { revalidateTag } from 'next/cache'
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-import { auth } from '@/auth'
+import { auth } from '@/authentication/auth-config'
 import { CACHE_TAGS } from '@/lib/caching'
 import { DOCUMENTS_BUCKET, getServerSupabase } from '@/lib/serverSupabase'
 
@@ -11,7 +11,7 @@ export const runtime = 'nodejs'
 // Max file size (adjust as needed). OpenAPI lists 413 for too large.
 const MAX_FILE_BYTES = 25 * 1024 * 1024 // 25MB
 
-function jsonError(message: string, status: number = 400) {
+function jsonError(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), {
     status,
     headers: { 'Content-Type': 'application/json' },
@@ -29,14 +29,14 @@ export async function POST(
 
     // Get authenticated user
     const session = await auth()
-    const userName = session?.user?.name || session?.user?.username || 'Unknown User'
+    const userName = session?.user?.name ?? session?.user?.username ?? 'Unknown User'
 
     // Expect multipart/form-data
     const formData = await req.formData()
-    const meetingId = formData.get('meetingId')?.toString()
-    const title = formData.get('title')?.toString()
-    const taskId = formData.get('taskId')?.toString()
-    const versionNotes = formData.get('versionNotes')?.toString() || undefined
+    const meetingId = (formData.get('meetingId') as string | null)?.toString()
+    const title = (formData.get('title') as string | null)?.toString()
+    const taskId = (formData.get('taskId') as string | null)?.toString()
+    const versionNotes = (formData.get('versionNotes') as string | null)?.toString() ?? undefined
     const file = formData.get('file') as File | null
 
     if (!meetingId) return jsonError('meetingId is required', 400)
@@ -46,8 +46,8 @@ export async function POST(
 
     // Determine if this is a signed document
     const isSignedDocument =
-      title?.includes('(Signed)') ||
-      title?.includes('- Signed') ||
+      (title?.includes('(Signed)') ?? false) ||
+      (title?.includes('- Signed') ?? false) ||
       file.name.includes('signed_')
 
     // Broadridge forms need authorization, not just signature
@@ -108,7 +108,7 @@ export async function POST(
 
     // LEGACY SINGLE TABLE PERSISTENCE (no new tables):
     // If client supplies documentId treat as update; else create new row in existing 'document' table.
-    const existingDocumentId = formData.get('documentId')?.toString() || null
+    const existingDocumentId = (formData.get('documentId') as string | null)?.toString() ?? null
     const nowIso = new Date().toISOString()
 
     // Build history entry (append into JSON array in 'history' column)
@@ -170,9 +170,9 @@ export async function POST(
         .single()
       if (fetchErr) return jsonError(`Load document failed: ${fetchErr.message}`, 500)
       const existingHistory = Array.isArray(existingData?.history)
-        ? existingData.history
+        ? (existingData.history as unknown[])
         : []
-      const newHistory = [...existingHistory, historyEntry]
+      const newHistory = [...existingHistory, historyEntry] as unknown[]
       const { error: updateError } = await supabase
         .from('document')
         .update({

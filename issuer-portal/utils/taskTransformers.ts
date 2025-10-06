@@ -12,21 +12,21 @@ export function transformApiTaskToTask(apiTask: ApiTask | null | undefined): Tas
   if (!apiTask) return null
 
   return {
-    id: apiTask.id || '',
-    taskId: apiTask.taskId || apiTask.id || '',
-    title: apiTask.title || '',
-    description: apiTask.description || null,
-    owner: apiTask.owner || 'BetaNXT',
-    dueDate: apiTask.dueDate || null,
-    status: apiTask.status || 'INCOMPLETE',
-    meetingId: apiTask.meetingId || '',
-    phaseId: apiTask.phaseId || '',
-    phaseNumber: apiTask.phaseNumber || 0,
-    type: (apiTask.type || 'external') as Task['type'],
-    documentId: apiTask.documentId || undefined,
-    links: apiTask.links || null,
-    createdAt: apiTask.createdAt || undefined,
-    updatedAt: apiTask.updatedAt || undefined,
+    id: apiTask.id ?? '',
+    taskId: apiTask.taskId ?? apiTask.id ?? '',
+    title: apiTask.title ?? '',
+    description: apiTask.description ?? null,
+    owner: apiTask.owner ?? 'BetaNXT',
+    dueDate: apiTask.dueDate ?? null,
+    status: apiTask.status ?? 'INCOMPLETE',
+    meetingId: apiTask.meetingId ?? '',
+    phaseId: apiTask.phaseId ?? '',
+    phaseNumber: apiTask.phaseNumber ?? 0,
+    type: (apiTask.type ?? 'external') as Task['type'],
+    documentId: apiTask.documentId ?? undefined,
+    links: apiTask.links ?? null,
+    createdAt: apiTask.createdAt ?? undefined,
+    updatedAt: apiTask.updatedAt ?? undefined,
   }
 }
 
@@ -47,7 +47,7 @@ export function transformTaskToApiTask(task: Task | null | undefined): ApiTask |
 
   return {
     id: task.id,
-    taskId: task.taskId || task.id,
+    taskId: task.taskId ?? task.id,
     title: task.title,
     description: task.description,
     owner: task.owner,
@@ -58,7 +58,7 @@ export function transformTaskToApiTask(task: Task | null | undefined): ApiTask |
     phaseNumber: task.phaseNumber,
     type: task.type,
     documentId: task.documentId,
-    links: task.links as ApiTask['links'],
+    links: task.links,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
   }

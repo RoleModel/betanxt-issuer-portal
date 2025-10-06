@@ -49,7 +49,7 @@ export const getTaskType = (title: string): string => {
  * Determine if a task should show a status chip
  */
 export const shouldShowStatusChip = (task: Task): boolean => {
-  const title = (task.title || '').toLowerCase()
+  const title = (task.title ?? '').toLowerCase()
 
   // Hide status chip for Phase 4 delivery tasks
   const hideForTasks = [
@@ -66,7 +66,7 @@ export const shouldShowStatusChip = (task: Task): boolean => {
  * Get the appropriate date label for a task
  */
 export const getDateLabel = (task: Task, formattedDate: string): string => {
-  const title = (task.title || '').toLowerCase()
+  const title = (task.title ?? '').toLowerCase()
 
   if (title.includes(TASK_TYPES.PROXY_MATERIALS)) {
     return `Expected Delivery ${formattedDate}`
@@ -92,7 +92,7 @@ export const getDateLabel = (task: Task, formattedDate: string): string => {
  * Map task title to proper document type for uploads
  */
 export const getDocumentTypeFromTask = (task: Task): string => {
-  const title = (task.title || '').toLowerCase()
+  const title = (task.title ?? '').toLowerCase()
 
   if (title.includes(TASK_TYPES.DRAFT_PROXY_STATEMENT)) return 'draft-proxy-statement'
   if (title.includes(TASK_TYPES.PROXY_CARD)) return 'proxy-card'
@@ -104,7 +104,7 @@ export const getDocumentTypeFromTask = (task: Task): string => {
   if (title.includes(TASK_TYPES.BROADRIDGE)) return 'broadridge-form'
 
   // Fallback to task type or 'upload'
-  return task.type || 'upload'
+  return task.type ?? 'upload'
 }
 
 /**
@@ -123,7 +123,7 @@ export const shouldShowTaskInPhase = (
   }
 
   // Exclude specified owners for other phases
-  if (excludeOwners.includes(task.owner || '')) {
+  if (excludeOwners.includes(task.owner ?? '')) {
     return false
   }
 
@@ -182,7 +182,7 @@ export const syncCarryoverTaskStatus = async (
   for (const task of tasksToSync) {
     if (task.id && updatedTask.status) {
       try {
-        await updateTaskFn(task.id, { status: updatedTask.status as TaskStatus })
+        await updateTaskFn(task.id, { status: updatedTask.status })
         updatedIds.push(task.id)
       } catch (error) {
         console.error(`Failed to sync task ${task.id}:`, error)
@@ -285,7 +285,7 @@ export const getTaskActionButtonLabel = (
  * Calculate overall completion percentage based on tasks
  */
 export const calculateOverallCompletion = (
-  tasks: Array<{ status?: string | null }>,
+  tasks: { status?: string | null }[],
   completedStatuses: TaskStatus[] = COMPLETED_STATUSES
 ): number => {
   if (tasks.length === 0) return 0

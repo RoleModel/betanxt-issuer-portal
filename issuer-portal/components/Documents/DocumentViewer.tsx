@@ -36,7 +36,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { TransitionProps } from '@mui/material/transitions'
+import type { TransitionProps } from '@mui/material/transitions'
 
 import DraggableSignatureArea from '@/components/Documents/DraggableSignatureArea'
 import { FormFieldArea } from '@/components/Documents/FormFieldArea'
@@ -374,7 +374,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
     }
 
-    fetchTaskDocument()
+    void fetchTaskDocument()
   }, [task, getTaskDocument, signatureAreas.length, signatureAreas, documentId])
 
   // Determine which props to use (legacy props take absolute priority when provided)
@@ -623,7 +623,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
     }
 
-    loadDocumentHistory()
+    void loadDocumentHistory()
   }, [actualOpen, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const goToPrevPage = useCallback(() => {
@@ -701,51 +701,46 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         // Upload the signed document
         if (currentDocumentId && uploadDocument) {
-          try {
-            const baseTitle = actualTitle || task?.title || 'Document'
-            const documentTitle = baseTitle.includes(' - Signed')
-              ? baseTitle
-              : `${baseTitle} - Signed`
-            const meetingId =
-              typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
+          const baseTitle = actualTitle || task?.title || 'Document'
+          const documentTitle = baseTitle.includes(' - Signed')
+            ? baseTitle
+            : `${baseTitle} - Signed`
+          const meetingId =
+            typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
 
-            // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
-            // Insert -signed- after the form type prefix to maintain document type detection
-            let documentIdForUpload = currentDocumentId
+          // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
+          // Insert -signed- after the form type prefix to maintain document type detection
+          let documentIdForUpload = currentDocumentId
 
-            if (!documentIdForUpload.includes('-signed-')) {
-              // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
-              if (
-                documentIdForUpload.match(
-                  /^(plan-file-request|broadridge-form|transfer-agent-request)-/
-                )
-              ) {
-                documentIdForUpload = documentIdForUpload.replace(
-                  /^([^-]+-[^-]+-[^-]+)/,
-                  '$1-signed'
-                )
-              } else {
-                // Otherwise append -signed- to the end
-                documentIdForUpload = `${documentIdForUpload}-signed-${Date.now()}`
-              }
-            }
-
-            const uploadPath = await uploadDocument(
-              file,
-              documentIdForUpload,
-              meetingId,
-              documentTitle,
-              task?.id
-            )
-            if (!uploadPath) {
-              throw new Error(
-                'Unable to save signed document. Please try again or contact support if the issue persists.'
+          if (!documentIdForUpload.includes('-signed-')) {
+            // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
+            if (
+              /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(documentIdForUpload)
+            ) {
+              documentIdForUpload = documentIdForUpload.replace(
+                /^([^-]+-[^-]+-[^-]+)/,
+                '$1-signed'
               )
+            } else {
+              // Otherwise append -signed- to the end
+              documentIdForUpload = `${documentIdForUpload}-signed-${Date.now()}`
             }
-          } catch (uploadError) {
-            throw uploadError
+          }
+
+          const uploadPath = await uploadDocument(
+            file,
+            documentIdForUpload,
+            meetingId,
+            documentTitle,
+            task?.id
+          )
+          if (!uploadPath) {
+            throw new Error(
+              'Unable to save signed document. Please try again or contact support if the issue persists.'
+            )
           }
         } else {
+          // Document already saved - no additional action needed
         }
       }
 
@@ -768,7 +763,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
       // Call the submit success handler which will update task and close the dialog
       // handleTaskSubmitSuccess will handle the task status update
-      handleTaskSubmitSuccess()
+      void handleTaskSubmitSuccess()
 
       // Also ensure we close the dialog directly
       if (actualOnClose) {
@@ -908,35 +903,32 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   const handleUploadFiles = useCallback(
     async (files: File[]) => {
-      try {
-        if (!currentDocumentId) {
-          throw new Error('No document selected to attach uploads to')
-        }
-        for (const file of files) {
-          // Use hook to upload document
-          const meetingId =
-            typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
-          const result = await uploadDocument(file, currentDocumentId, meetingId)
-
-          if (!result) {
-            throw new Error('Failed to upload document')
-          }
-        }
-
-        setUploadDialogOpen(false)
-
-        // Refresh document history by fetching latest data
-        const history = await getDocumentHistory(currentDocumentId)
-        setDocumentHistory(
-          history.map((event) => ({
-            event_type: event.event_type,
-            user: event.user,
-            timestamp: event.timestamp,
-          }))
-        )
-      } catch (error) {
-        throw error
+      if (!currentDocumentId) {
+        throw new Error('No document selected to attach uploads to')
       }
+
+      // Process uploads
+      for (const file of files) {
+        const meetingId =
+          typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
+        const result = await uploadDocument(file, currentDocumentId, meetingId)
+
+        if (!result) {
+          throw new Error('Failed to upload document')
+        }
+      }
+
+      setUploadDialogOpen(false)
+
+      // Refresh document history
+      const history = await getDocumentHistory(currentDocumentId)
+      setDocumentHistory(
+        history.map((event) => ({
+          event_type: event.event_type,
+          user: event.user,
+          timestamp: event.timestamp,
+        }))
+      )
     },
     [currentDocumentId, uploadDocument, getDocumentHistory, task]
   )
@@ -1338,7 +1330,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             key={area.id}
                             area={{
                               ...area,
-                              type: fieldType as 'text' | 'date',
+                              type: fieldType,
                               value: formFieldValues[area.id] || area.value || '',
                             }}
                             onValueChange={handleFormFieldChange}

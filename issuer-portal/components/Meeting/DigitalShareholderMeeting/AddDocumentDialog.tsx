@@ -15,7 +15,6 @@ import {
   Box,
   Divider,
 } from '@mui/material'
-import { Close as CloseIcon } from '@mui/icons-material'
 
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
 import BNFilePreview from '@/components/FileUpload/BNFilePreview'
@@ -60,8 +59,10 @@ export function AddDocumentDialog({
   // Fetch DSM documents when dialog opens
   useEffect(() => {
     if (open && meetingId) {
-      fetchDSMDocuments()
+      void fetchDSMDocuments()
     }
+    // fetchDSMDocuments is a stable function defined in this component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, meetingId])
 
   const fetchDSMDocuments = async () => {
@@ -71,14 +72,18 @@ export function AddDocumentDialog({
       const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
 
       if (response.ok) {
-        const documents = await response.json()
+        const documents = await response.json() as {
+          documentType?: string
+          title?: string
+          [key: string]: unknown
+        }[]
         // Filter for DSM-related documents
-        const dsmDocs = documents.filter((doc: any) =>
+        const dsmDocs = documents.filter((doc) =>
           doc.documentType === 'digital-shareholder-meeting' ||
           doc.title?.includes('DSM') ||
           doc.title?.includes('Digital Shareholder Meeting')
         )
-        setDsmDocuments(dsmDocs)
+        setDsmDocuments(dsmDocs as unknown as DSMDocument[])
         setIsUploadMode(dsmDocs.length === 0)
       } else {
         setDsmDocuments([])

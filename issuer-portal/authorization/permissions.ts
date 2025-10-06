@@ -25,18 +25,18 @@ async function allowedTo(permission: Permission): Promise<boolean> {
   // Map permissions to roles
   switch (permission) {
     case 'viewMeeting':
-      return roles?.includes('ISSUER') || false
+      return roles?.includes('ISSUER') ?? false
     case 'manageMeetings':
-      return roles?.includes('ISSUER') || roles?.includes('USER') || false
+      return roles?.includes('ISSUER') ?? roles?.includes('USER') ?? false
 
     case 'viewReports':
-      return roles?.includes('ISSUER') || false
+      return roles?.includes('ISSUER') ?? false
 
     case 'viewTabulation':
-      return roles?.includes('ISSUER') || roles?.includes('VIEWER') || false
+      return roles?.includes('ISSUER') ?? roles?.includes('VIEWER') ?? false
 
     case 'manageTabulation':
-      return roles?.includes('ISSUER') || roles?.includes('ISSUER') || false
+      return roles?.includes('ISSUER') ?? roles?.includes('ISSUER') ?? false
 
     default:
       return false
@@ -50,13 +50,13 @@ async function notAllowedTo(permission: Permission): Promise<boolean> {
 // Get current user's client information
 async function getCurrentClient() {
   const session = await auth()
-  return session?.user?.client || null
+  return session?.user?.client ?? null
 }
 
 // Get current user's roles
 async function getCurrentRoles() {
   const session = await auth()
-  return session?.user?.roles || []
+  return session?.user?.roles ?? []
 }
 
 export { allowedTo, notAllowedTo, getCurrentClient, getCurrentRoles }

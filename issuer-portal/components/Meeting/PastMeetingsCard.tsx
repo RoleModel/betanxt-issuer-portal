@@ -74,7 +74,7 @@ const computeParticipationMetrics = (
     if (!isPositionVoted(position)) return sum
     const sharesValue =
       position.sharesVoted ??
-      (asRecord(position as unknown)?.shares_voted as unknown) ??
+      (asRecord(position as unknown)?.shares_voted) ??
       position.shares ??
       0
     return sum + parseNumericValue(sharesValue)
@@ -145,13 +145,13 @@ export default function PastMeetingsCard({
         throw new Error(meetingsResponse.error.message || 'Failed to load meetings')
       }
 
-      type MeetingsApiResponse = {
+      interface MeetingsApiResponse {
         meetings?: Meeting[]
         pagination?: components['schemas']['Pagination']
       }
       const typedData = meetingsResponse.data as MeetingsApiResponse | undefined
       const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
-        ? typedData!.meetings!.slice(0, limit)
+        ? typedData.meetings.slice(0, limit)
         : []
 
       const meetingsWithParticipation: PastMeetingData[] = await Promise.all(
@@ -174,7 +174,7 @@ export default function PastMeetingsCard({
             )) as ApiClientReturnType<unknown>
 
             if (!tabulationResult.error) {
-              type TabulationReport = {
+              interface TabulationReport {
                 positionsVoted?: {
                   totalShares?: number
                   votedShares?: number
@@ -245,7 +245,7 @@ export default function PastMeetingsCard({
   }, [clientTicker, limit])
 
   useEffect(() => {
-    fetchData()
+    void fetchData()
   }, [fetchData])
 
   return (
