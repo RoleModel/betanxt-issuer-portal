@@ -4,6 +4,7 @@
   "description": "Frontend application for proxy voting and shareholder meeting management",
   "private": true,
   "scripts": {
+    "preinstall": "echo '//npm.pkg.github.com/:_authToken='${GITHUB_TOKEN} >> .npmrc",
     "vercel-install": "echo 'Installing dependencies...' && npm install",
     "build": "next build",
     "dev": "next dev",
