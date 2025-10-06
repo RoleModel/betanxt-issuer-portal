@@ -235,12 +235,16 @@ function Layout({
           }}
         >
           <BNAppFooter
-            links={[
-              {
-                label: 'Reset',
-                href: '#reset-demo',
-              },
-            ]}
+            links={
+              bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
+                ? [
+                    {
+                      label: 'Reset',
+                      href: '#reset-demo',
+                    },
+                  ]
+                : []
+            }
           />
         </Box>
       </Stack>

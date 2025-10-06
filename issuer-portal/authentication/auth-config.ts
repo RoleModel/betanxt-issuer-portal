@@ -31,8 +31,55 @@ export const config = {
           return null
         }
 
+        console.log('Login attempt:', { username: credentials.username, password: credentials.password })
+
+        // For development, allow these test users directly without calling API
+        const testUsers = [
+          {
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            name: 'Dev User',
+            email: 'dev@example.com',
+            username: 'dev.user',
+            password: 'ju$Ky8Ad1#%g',
+            type: 'admin',
+            accountId: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client: null,
+            roles: ['ADMIN', 'USER'],
+          },
+          {
+            id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
+            username: 'mike.chen',
+            name: 'Mike Chen',
+            email: 'mike.chen@wendys.com',
+            password: 'password',
+            type: 'ADMIN',
+            accountId: '02ddeb48-9faf-5caf-91ad-60e9d0ba928c',
+            client: 'WEN',
+            roles: ['ADMIN', 'USER'],
+          },
+        ]
+
+        const user = testUsers.find(
+          (u) => u.username === credentials.username && u.password === credentials.password
+        )
+
+        console.log('User found:', user ? user.username : 'No user found')
+
+        if (user) {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            type: user.type,
+            accountId: user.accountId,
+            client: user.client,
+            roles: user.roles,
+          }
+        }
+
+        // If no direct match, try calling the API as fallback
         try {
-          // Call mock-api-server for authentication
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`,
             {
@@ -107,11 +154,11 @@ export const config = {
           typeof token.accountId === 'string' ? token.accountId : undefined
         session.user.client =
           token.client &&
-          typeof token.client === 'object' &&
-          'id' in token.client &&
-          'name' in token.client &&
-          typeof token.client.id === 'number' &&
-          typeof token.client.name === 'string'
+            typeof token.client === 'object' &&
+            'id' in token.client &&
+            'name' in token.client &&
+            typeof token.client.id === 'number' &&
+            typeof token.client.name === 'string'
             ? { id: token.client.id, name: token.client.name }
             : null
         session.user.roles = Array.isArray(token.roles) ? token.roles : []
