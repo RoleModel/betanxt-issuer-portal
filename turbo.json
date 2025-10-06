@@ -26,7 +26,9 @@
         "POSTGRES_USER",
         "POSTGRES_HOST",
         "POSTGRES_PASSWORD",
-        "POSTGRES_DATABASE"
+        "POSTGRES_DATABASE",
+        "SEED_SQL_URL",
+        "VERCEL_DEPLOY_HOOK_URL"
       ]
     },
     "build:test": {

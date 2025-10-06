@@ -54,7 +54,7 @@ export const config = {
             password: 'password',
             type: 'ADMIN',
             accountId: '02ddeb48-9faf-5caf-91ad-60e9d0ba928c',
-            client: 'WEN',
+            client: null,
             roles: ['ADMIN', 'USER'],
           },
         ]

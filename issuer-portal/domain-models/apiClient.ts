@@ -1,3 +1,4 @@
+import type { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import createClient from 'openapi-fetch'
 
@@ -31,14 +32,14 @@ const CACHE_TTL = 5000 // 5 seconds cache TTL for performance
 
 // Session cache to prevent excessive getSession() calls
 interface SessionCacheEntry {
-  session: unknown
+  session: Session | null
   timestamp: number
 }
 
 let sessionCache: SessionCacheEntry | null = null
 const SESSION_CACHE_TTL = 60 * 1000 // 60 seconds - longer cache to reduce API calls
 
-const getCachedSession = async () => {
+const getCachedSession = async (): Promise<Session | null> => {
   // Check if we have a valid cached session
   if (sessionCache && Date.now() - sessionCache.timestamp < SESSION_CACHE_TTL) {
     return sessionCache.session
@@ -79,7 +80,7 @@ export const setCachedResponse = <T>(key: string, data: T): void => {
 export const buildApiClient = async () => {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
 
-  let session = null
+  let session: Session | null = null
 
   // Only try to get session if auth bypass is not enabled
   if (process.env.NEXT_PUBLIC_BYPASS_AUTH !== 'true') {
