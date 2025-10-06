@@ -8,6 +8,8 @@ import { LinearProgress } from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
 
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const { data: session, status } = useSession()
   const { currentClient, loading: clientLoading } = useClient()
