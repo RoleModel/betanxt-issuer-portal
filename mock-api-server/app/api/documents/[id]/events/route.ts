@@ -44,14 +44,19 @@ export async function POST(
     const { id } = await params
     const body = await request.json()
 
-    const { event_type, user_id, user_name, metadata } = body
+    const { eventType, metadata } = body
 
-    if (!event_type || !user_id) {
+    if (!eventType) {
       return NextResponse.json(
-        { error: 'Missing required fields: event_type and user_id' },
+        { error: 'Missing required field: eventType' },
         { status: 400 }
       )
     }
+
+    // Get user from request headers or use a default
+    // In production, this would come from authenticated session
+    const userId = request.headers.get('x-user-id') || 'system'
+    const userName = request.headers.get('x-user-name') || 'System User'
 
     // Insert event into database
     const { data, error } = await supabase
@@ -59,10 +64,10 @@ export async function POST(
       .insert({
         id: crypto.randomUUID(),
         document_id: id,
-        event_type,
-        user_id,
-        user_name,
-        metadata,
+        event_type: eventType,
+        user_id: userId,
+        user_name: userName,
+        metadata: metadata || {},
         created_at: new Date().toISOString(),
       })
       .select()
