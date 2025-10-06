@@ -25,3 +25,4 @@ issuer-portal/playwright-report/index.html
 .env*.local
 data/
 .env.production
+mock-api-server/.env.vercel.production
