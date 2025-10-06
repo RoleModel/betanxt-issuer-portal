@@ -45,6 +45,17 @@ export const config = {
             roles: ['ADMIN', 'USER'],
           },
           {
+            id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+            name: 'Test User',
+            email: 'test@betanxt.com',
+            username: 'test.user',
+            password: '9yUDDftg@Lh!',
+            type: 'admin',
+            accountId: null,
+            client: null,
+            roles: ['ADMIN', 'USER'],
+          },
+          {
             id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
             username: 'mike.chen',
             name: 'Mike Chen',
