@@ -192,7 +192,14 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
         </Typography>
 
         <Link
-          href={href}
+          href={href || '#'}
+          target={href ? '_blank' : undefined}
+          rel={href ? 'noopener noreferrer' : undefined}
+          onClick={(e) => {
+            if (!href) {
+              e.preventDefault()
+            }
+          }}
           sx={(theme) => ({
             ...theme.typography.body3,
             alignSelf: 'flex-start',

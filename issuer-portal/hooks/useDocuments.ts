@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import { useCallback, useState } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -107,6 +108,7 @@ export interface UseDocumentsResult {
 }
 
 export const useDocuments = (): UseDocumentsResult => {
+  const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -676,11 +678,19 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(true)
         setError(null)
 
+        // Get user ID from session
+        const userId = session?.user?.id
+        if (!userId) {
+          throw new Error('User not authenticated')
+        }
+
         const apiClient = await buildApiClient()
         const result = await apiClient.POST('/documents/{id}/events', {
           params: { path: { id: documentId } },
           body: {
-            eventType,
+            event_type: eventType,
+            user_id: userId,
+            user_name: session?.user?.name || 'Unknown User',
             metadata: {},
           },
         })
@@ -700,7 +710,7 @@ export const useDocuments = (): UseDocumentsResult => {
         setLoading(false)
       }
     },
-    []
+    [session]
   )
 
   const getDocumentHistory = useCallback(

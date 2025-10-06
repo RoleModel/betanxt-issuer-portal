@@ -101,6 +101,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             ) : (
               <MuiLink
                 key={href}
+                component={Link}
                 variant="body3"
                 underline="hover"
                 color="inherit"
