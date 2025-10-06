@@ -123,7 +123,7 @@ export function TaskItem({
                   textDecorationThickness: '2px',
                 }}
               >
-                {task.owner}
+                {task.owner || 'Unassigned'}
               </Typography>
             </Box>
             <Box
