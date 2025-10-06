@@ -4,6 +4,11 @@ import Credentials from 'next-auth/providers/credentials'
 export default {
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production',
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
+    updateAge: 60 * 60, // Update session every hour instead of every request
+  },
   providers: [
     Credentials({
       name: 'credentials',

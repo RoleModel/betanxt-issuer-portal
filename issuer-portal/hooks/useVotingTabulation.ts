@@ -242,14 +242,14 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
     meetingId ? `/voting/${meetingId}` : null,
     () => fetchVotingData(meetingId!),
     {
-      // Cache for 30 seconds
-      refreshInterval: 30000,
+      // Cache for 2 minutes - voting data changes less frequently
+      refreshInterval: 120000,
       // Don't revalidate on focus
       revalidateOnFocus: false,
       // Keep previous data while revalidating
       keepPreviousData: true,
-      // Dedupe multiple requests in 2 second window
-      dedupingInterval: 2000,
+      // Dedupe multiple requests in 10 second window
+      dedupingInterval: 10000,
     }
   )
 

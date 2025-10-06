@@ -1,7 +1,5 @@
-import { readFile, readdir } from 'fs/promises'
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import path from 'path'
 import { Client } from 'pg'
 
 export const runtime = 'nodejs'
@@ -16,67 +14,112 @@ interface ResetStats {
   dsmConfigs: number
 }
 
+// Fetch seed SQL from remote source to avoid filesystem dependencies on Vercel
+async function fetchSeedSQL(): Promise<string> {
+  // Try multiple sources in order of preference
+  const sources = [
+    // 1. Environment variable pointing to hosted seed.sql (Supabase Storage, S3, etc.)
+    process.env.SEED_SQL_URL,
+    // 2. GitHub raw content URL (if this is a public repo)
+    process.env.GITHUB_SEED_SQL_URL,
+    // 3. Fallback to a minimal seed for testing
+  ].filter(Boolean)
+
+  for (const url of sources) {
+    try {
+      console.log(`Attempting to fetch seed SQL from: ${url}`)
+      const response = await fetch(url as string)
+      if (response.ok) {
+        const sql = await response.text()
+        console.log(`Successfully fetched seed SQL (${sql.length} bytes)`)
+        return sql
+      }
+      console.warn(`Failed to fetch from ${url}: ${response.status}`)
+    } catch (error) {
+      console.warn(`Error fetching from ${url}:`, error)
+    }
+  }
+
+  // Minimal fallback seed data for testing
+  console.warn('Using minimal fallback seed data')
+  return `
+-- Clear existing data
+DELETE FROM signature;
+DELETE FROM "comment";
+DELETE FROM notification;
+DELETE FROM position_vote;
+DELETE FROM "position";
+DELETE FROM proposal;
+DELETE FROM "document";
+DELETE FROM task;
+DELETE FROM phase;
+DELETE FROM mailing;
+DELETE FROM meeting;
+DELETE FROM "user";
+DELETE FROM account;
+DELETE FROM clients;
+
+-- Insert minimal test data
+INSERT INTO clients(id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, created_at) VALUES
+('5b9b7551-a9a6-51df-b593-b05fe06e1d81', 'WEN', 'The Wendy''s Company', 'Wendy''s', 'Restaurants', 'Quick-service restaurant chain', 'https://www.wendys.com', 'Mike Chen', 'mike.chen@wendys.com', true, 966152, NOW());
+  `
+}
+
 export async function POST(_req: NextRequest) {
   let client: Client | null = null
 
   try {
     // Get database connection string
-    // In development: use local connection
-    // In production: use DATABASE_URL from Vercel
+    // In development: use local Supabase
+    // In production: use DATABASE_URL from Vercel environment
     const databaseUrl =
       process.env.DATABASE_URL ||
+      process.env.POSTGRES_URL || // Vercel Postgres
       'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-    console.log('Connecting to database...')
+    console.log('Connecting to database for reset...')
     client = new Client({ connectionString: databaseUrl })
     await client.connect()
 
-    // Get the monorepo root (mock-api-server is a child of the root)
-    const currentDir = process.cwd()
-    const monorepoRoot = currentDir.includes('/mock-api-server')
-      ? currentDir.substring(0, currentDir.lastIndexOf('/mock-api-server'))
-      : currentDir
-
-    const supabaseDir = path.join(monorepoRoot, 'supabase')
-
     console.log('Starting database reset...')
 
-    // Step 1: Drop all tables in public schema
-    console.log('Dropping public schema...')
-    await client.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;')
+    // Fetch seed SQL from remote source
+    console.log('Fetching seed SQL...')
+    const seedSQL = await fetchSeedSQL()
 
-    // Step 2: Apply migrations in order
-    console.log('Applying migrations...')
-    const migrationsDir = path.join(supabaseDir, 'migrations')
-    const migrationFiles = await readdir(migrationsDir)
-    const sqlMigrations = migrationFiles.filter((f) => f.endsWith('.sql')).sort()
-
-    for (const migrationFile of sqlMigrations) {
-      console.log(`Applying migration: ${migrationFile}`)
-      const migrationPath = path.join(migrationsDir, migrationFile)
-      const migrationSql = await readFile(migrationPath, 'utf-8')
-
-      await client.query(migrationSql)
-    }
-
-    // Step 3: Apply seed data
-    console.log('Applying seed data...')
-    const seedPath = path.join(supabaseDir, 'seed.sql')
-    const seedSql = await readFile(seedPath, 'utf-8')
-
-    await client.query(seedSql)
+    // Execute seed data (which includes DELETE statements)
+    // Note: We're NOT dropping the schema since migrations are already applied
+    // in the Vercel/Supabase environment
+    console.log('Clearing and re-seeding data...')
+    await client.query(seedSQL)
 
     // Get stats from database after reset
+    const [
+      meetingsResult,
+      phasesResult,
+      tasksResult,
+      signaturesResult,
+      documentsResult,
+      dsmConfigsResult,
+    ] = await Promise.all([
+      client.query('SELECT COUNT(*) FROM meeting'),
+      client.query('SELECT COUNT(*) FROM phase'),
+      client.query('SELECT COUNT(*) FROM task'),
+      client.query('SELECT COUNT(*) FROM signature'),
+      client.query('SELECT COUNT(*) FROM document'),
+      client.query('SELECT COUNT(*) FROM dsm_config'),
+    ])
+
     const stats: ResetStats = {
-      meetings: 0,
-      phases: 0,
-      tasks: 0,
-      signatures: 0,
-      documents: 0,
-      dsmConfigs: 0,
+      meetings: parseInt(meetingsResult.rows[0]?.count ?? '0'),
+      phases: parseInt(phasesResult.rows[0]?.count ?? '0'),
+      tasks: parseInt(tasksResult.rows[0]?.count ?? '0'),
+      signatures: parseInt(signaturesResult.rows[0]?.count ?? '0'),
+      documents: parseInt(documentsResult.rows[0]?.count ?? '0'),
+      dsmConfigs: parseInt(dsmConfigsResult.rows[0]?.count ?? '0'),
     }
 
-    console.log('Database reset completed successfully')
+    console.log('Database reset completed successfully', stats)
 
     // Trigger Vercel redeploy if deploy hook is configured
     if (process.env.VERCEL_DEPLOY_HOOK_URL) {
@@ -90,7 +133,8 @@ export async function POST(_req: NextRequest) {
           console.log('Vercel redeploy triggered successfully')
           return NextResponse.json({
             success: true,
-            message: 'Demo data reset successfully. Redeploying application...',
+            message:
+              'Demo data reset successfully. Redeploying application to clear caches...',
             stats,
             timestamp: new Date().toISOString(),
             redeployTriggered: true,

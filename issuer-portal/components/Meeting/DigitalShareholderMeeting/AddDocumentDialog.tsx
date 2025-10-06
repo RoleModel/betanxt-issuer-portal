@@ -40,6 +40,7 @@ interface AddDocumentDialogProps {
   onClose: () => void
   participantName: string
   meetingId: string
+  participantId: string
   onDocumentAdded: (documentName: string, documentStatus: string) => void
 }
 
@@ -48,6 +49,7 @@ export function AddDocumentDialog({
   onClose,
   participantName,
   meetingId,
+  participantId,
   onDocumentAdded,
 }: AddDocumentDialogProps) {
   const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([])
@@ -100,11 +102,16 @@ export function AddDocumentDialog({
 
   const handleFilesSelected = (files: File[]) => {
     const newFiles: FileWithMetadata[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random()}`,
+      id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
       file,
-      status: 'uploading' as const,
+      status: 'complete' as const, // Set to complete initially, will change to uploading when upload starts
     }))
     setUploadFiles(prev => [...prev, ...newFiles])
+  }
+
+  const handleFileRejections = (rejections: unknown[]) => {
+    console.warn('File rejections:', rejections)
+    // Handle file rejections if needed
   }
 
   const handleFileRemove = (fileId: string) => {
@@ -125,22 +132,42 @@ export function AddDocumentDialog({
     if (uploadFiles.length === 0) return
 
     try {
-      // Simulate upload process
       const file = uploadFiles[0]
       setUploadFiles(prev => prev.map(f =>
         f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
       ))
 
-      // Simulate progress
-      for (let progress = 0; progress <= 100; progress += 20) {
-        await new Promise(resolve => setTimeout(resolve, 200))
-        setUploadFiles(prev => prev.map(f =>
-          f.id === file.id ? { ...f, progress } : f
-        ))
+      // Create unique filename to avoid duplicates
+      const timestamp = Date.now()
+      const randomId = Math.random().toString(36).substring(2, 8)
+      const fileExtension = file.file.name.split('.').pop()
+      const uniqueFileName = `${file.file.name.split('.')[0]}_${timestamp}_${randomId}.${fileExtension}`
+
+      const renamedFile = new File([file.file], uniqueFileName, { type: file.file.type })
+
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('file', renamedFile)
+      formData.append('meetingId', meetingId)
+      formData.append('documentType', 'digital-shareholder-meeting')
+      formData.append('participantName', participantName)
+      formData.append('participantId', participantId)
+
+      // Upload via API route
+      const response = await fetch('/api/documents/types/digital-shareholder-meeting/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Upload failed: ${errorText}`)
       }
 
+      await response.json() as { id?: string; storagePath?: string }
+
       setUploadFiles(prev => prev.map(f =>
-        f.id === file.id ? { ...f, status: 'complete' } : f
+        f.id === file.id ? { ...f, status: 'complete', progress: 100 } : f
       ))
 
       // Add document to participant
@@ -152,7 +179,7 @@ export function AddDocumentDialog({
     } catch (error) {
       console.error('Upload failed:', error)
       setUploadFiles(prev => prev.map(f =>
-        f.id === uploadFiles[0].id ? { ...f, status: 'error', error: 'Upload failed' } : f
+        f.id === uploadFiles[0].id ? { ...f, status: 'error', error: error instanceof Error ? error.message : 'Upload failed' } : f
       ))
     }
   }
@@ -182,6 +209,7 @@ export function AddDocumentDialog({
             <Box sx={{ mb: 2 }}>
               <BNFileDropzone
                 onFilesSelected={handleFilesSelected}
+                onFileRejections={handleFileRejections}
                 maxFiles={1}
                 multiple={false}
                 acceptedFileTypes={['.pdf', '.doc', '.docx', '.ppt', '.pptx']}
@@ -242,7 +270,7 @@ export function AddDocumentDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose}>
+        <Button variant="outlined" onClick={handleClose}>
           Cancel
         </Button>
 

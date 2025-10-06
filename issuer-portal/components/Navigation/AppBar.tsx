@@ -126,9 +126,16 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
 
   // Fetch unread notification count on mount and when user is available
+  // Use a ref to track if we've already fetched for this user to prevent duplicate calls
+  const lastFetchedUserRef = useRef<string | null>(null)
+  
   useEffect(() => {
     const fetchUnreadCount = async () => {
-      if (!props.user) return
+      if (!props.user?.id) return
+      
+      // Prevent duplicate fetches for the same user
+      if (lastFetchedUserRef.current === props.user.id) return
+      lastFetchedUserRef.current = props.user.id
 
       try {
         const apiClient = await buildApiClient()
@@ -152,7 +159,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     }
 
     void fetchUnreadCount()
-  }, [props.user])
+  }, [props.user?.id])
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(

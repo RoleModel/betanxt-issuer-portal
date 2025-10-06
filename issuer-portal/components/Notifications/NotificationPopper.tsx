@@ -103,8 +103,8 @@ const convertDbNotificationToNotificationData = (
     const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(dbNotification.message)
     if (match) {
       userName = match[1].trim()
-      // Generate avatar from user name using UI Avatars API
-      userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random&size=32`
+      // Don't set userAvatar - let MUI Avatar use the username for initials
+      userAvatar = undefined
     }
   }
 
@@ -336,9 +336,11 @@ export function NotificationPopper({
                         Mark all read
                       </Button>
                     )}
-                    <Button variant="text" onClick={handleClearAll} color="error">
-                      Clear all
-                    </Button>
+                    {notifications.length > 0 && (
+                      <Button variant="text" onClick={handleClearAll} color="error">
+                        Clear all
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </Box>

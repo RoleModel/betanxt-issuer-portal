@@ -1,10 +1,10 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import type { PropsWithChildren} from 'react';
+import type { PropsWithChildren } from 'react';
 import React, { Suspense, useMemo, useState } from 'react'
 
 import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'

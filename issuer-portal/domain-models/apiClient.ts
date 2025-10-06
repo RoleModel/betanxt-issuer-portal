@@ -9,16 +9,16 @@ type CombinedPaths = LegacyPaths & ExpandedPaths
 
 export type ApiClientReturnType<T> =
   | {
-      data: T
-      error: undefined
-    }
+    data: T
+    error: undefined
+  }
   | {
-      data: undefined
-      error: {
-        message: string
-        statusCode?: number
-      }
+    data: undefined
+    error: {
+      message: string
+      statusCode?: number
     }
+  }
 
 // Simple cache to prevent duplicate API calls within a short time window
 interface CacheEntry {
@@ -28,6 +28,37 @@ interface CacheEntry {
 
 const apiCache = new Map<string, CacheEntry>()
 const CACHE_TTL = 5000 // 5 seconds cache TTL for performance
+
+// Session cache to prevent excessive getSession() calls
+interface SessionCacheEntry {
+  session: unknown
+  timestamp: number
+}
+
+let sessionCache: SessionCacheEntry | null = null
+const SESSION_CACHE_TTL = 60 * 1000 // 60 seconds - longer cache to reduce API calls
+
+const getCachedSession = async () => {
+  // Check if we have a valid cached session
+  if (sessionCache && Date.now() - sessionCache.timestamp < SESSION_CACHE_TTL) {
+    return sessionCache.session
+  }
+
+  // Fetch fresh session
+  try {
+    const session = await getSession()
+    sessionCache = { session, timestamp: Date.now() }
+    return session
+  } catch (error) {
+    console.error('Failed to retrieve session in buildApiClient', error)
+    return null
+  }
+}
+
+// Function to clear session cache (useful for logout or session changes)
+export const clearSessionCache = () => {
+  sessionCache = null
+}
 
 export const getCacheKey = (url: string, params?: Record<string, unknown>): string => {
   return `${url}:${JSON.stringify(params || {})}`
@@ -52,11 +83,7 @@ export const buildApiClient = async () => {
 
   // Only try to get session if auth bypass is not enabled
   if (process.env.NEXT_PUBLIC_BYPASS_AUTH !== 'true') {
-    try {
-      session = await getSession()
-    } catch (error) {
-      console.error('Failed to retrieve session in buildApiClient', error)
-    }
+    session = await getCachedSession()
   }
 
   const client = createClient<CombinedPaths>({

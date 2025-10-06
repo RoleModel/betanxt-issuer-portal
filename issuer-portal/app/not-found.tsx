@@ -23,7 +23,7 @@ export default function NotFound() {
         sx={{
           fontSize: '76px',
           '&:before': {
-            color: (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / 0.2)`,
+            color: 'rgba(var(--mui-palette-primary-mainChannel) / 0.2)', // Using default primary color with opacity
             content: 'attr(data-error)',
             fontSize: '40vw',
             fontWeight: 700,

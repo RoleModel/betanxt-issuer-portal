@@ -126,16 +126,16 @@ export const usePhases = (meetingId?: string): UsePhasesResult => {
     meetingId ? `/meetings/${meetingId}/phases` : null,
     () => fetchPhases(meetingId!),
     {
-      // Cache for 30 seconds
-      refreshInterval: 30000,
+      // Cache for 5 minutes - phases don't change frequently
+      refreshInterval: 300000,
       // Revalidate on focus
       revalidateOnFocus: false,
       // Don't revalidate on mount if data exists
-      revalidateOnMount: true,
+      revalidateOnMount: false,
       // Keep previous data while revalidating
       keepPreviousData: true,
-      // Dedupe multiple requests in 2 second window
-      dedupingInterval: 2000,
+      // Dedupe multiple requests in 10 second window
+      dedupingInterval: 10000,
     }
   )
 

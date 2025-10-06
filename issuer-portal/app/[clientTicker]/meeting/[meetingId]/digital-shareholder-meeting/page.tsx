@@ -1,19 +1,16 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, Suspense } from 'react'
 import * as XLSX from 'xlsx'
 
 import { Refresh } from '@mui/icons-material'
 import {
   Alert,
-  Box,
   Button,
   Container,
-  LinearProgress,
-  Tabs,
-  Tab,
   Snackbar,
-  Typography
+  Typography,
+  Stack
 } from '@mui/material'
 
 
@@ -22,7 +19,6 @@ import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import PreviewDialog, { createTextRenderer } from '@/components/FileUpload/PreviewDialog'
 import { DSMParticipants } from '@/components/Meeting/DigitalShareholderMeeting/DSMParticipants'
 import { DSMGuestRegistrants } from '@/components/Meeting/DigitalShareholderMeeting/DSMGuestRegistrants'
-import { DSMActualAttendees } from '@/components/Meeting/DigitalShareholderMeeting/DSMActualAttendees'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDigitalShareholderMeeting } from '@/hooks/useDigitalShareholderMeeting'
@@ -214,32 +210,6 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
   })
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number
-}
-
-function TabPanel({ children, value, index, ...other }: TabPanelProps) {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`dsm-tabpanel-${index}`}
-      aria-labelledby={`dsm-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  )
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `dsm-tab-${index}`,
-    'aria-controls': `dsm-tabpanel-${index}`,
-  }
-}
 
 export default function DigitalShareholderMeetingPage() {
   const meetingContext = useMeeting()
@@ -254,16 +224,12 @@ export default function DigitalShareholderMeetingPage() {
   const error = digitalMeetingData.error
   const isLoading = digitalMeetingData.isLoading
   const uploadAttendees = digitalMeetingData.uploadAttendees
-  const [activeTab, setActiveTab] = useState(0)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [previewData, setPreviewData] = useState<ParsedParticipant[] | null>(null)
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue)
-  }
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true)
@@ -335,11 +301,6 @@ export default function DigitalShareholderMeetingPage() {
 
   const hasAttendees = attendees && attendees.length > 0
 
-  if (isLoading) {
-    return (
-      <LinearProgress />
-    )
-  }
 
   if (error) {
     return (
@@ -361,7 +322,7 @@ export default function DigitalShareholderMeetingPage() {
     )
   }
 
-  if (!hasAttendees) {
+  if (!isLoading && !hasAttendees) {
     return (
       <>
         <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
@@ -434,31 +395,13 @@ export default function DigitalShareholderMeetingPage() {
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
 
-      {/* Tabbed Interface */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          aria-label="DSM management sections"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="All Participants" {...a11yProps(0)} />
-          <Tab label="Guest Registrants" {...a11yProps(1)} />
-        </Tabs>
-      </Box>
-
-      {/* Tab Panels */}
-      <TabPanel value={activeTab} index={0}>
-        <DSMParticipants meetingId={currentMeeting?.id ?? ''} />
-        {hasAttendees && (
-          <DSMActualAttendees meetingId={currentMeeting?.id ?? ''} />
-        )}
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={1}>
-        <DSMGuestRegistrants meetingId={currentMeeting?.id ?? ''} />
-      </TabPanel>
+      {/* All Components */}
+      <Suspense>
+        <Stack direction="column" spacing={2}>
+          <DSMParticipants meetingId={currentMeeting?.id ?? ''} />
+          <DSMGuestRegistrants meetingId={currentMeeting?.id ?? ''} />
+        </Stack>
+      </Suspense>
 
       {/* Upload Dialog */}
       <FileUploadDialog
