@@ -262,7 +262,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   // Debug: Show current client state
-  React.useEffect(() => {}, [currentClient])
+  React.useEffect(() => {
+    console.log('ClientContext Debug:', {
+      clientsCount: clients.length,
+      clients: clients.map(c => ({ ticker: c.ticker, name: c.company_name })),
+      currentClient: currentClient?.ticker,
+      session: session?.user,
+    })
+  }, [clients, currentClient, session])
 
   return (
     <ClientContext.Provider
