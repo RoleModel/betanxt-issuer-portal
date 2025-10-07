@@ -53,13 +53,11 @@ interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
   children: React.ReactNode
 }
 
-const NextLinkComponent = React.memo(
-  React.forwardRef<HTMLAnchorElement, NextLinkProps>(
-    ({ to, children, ...props }, ref) => (
-      <Link href={to} prefetch={false} ref={ref} {...props}>
-        {children}
-      </Link>
-    )
+const NextLinkComponent = React.forwardRef<HTMLAnchorElement, NextLinkProps>(
+  ({ to, children, ...props }, ref) => (
+    <Link href={to} prefetch={false} ref={ref} {...props} passHref legacyBehavior>
+      <a>{children}</a>
+    </Link>
   )
 )
 NextLinkComponent.displayName = 'NextLinkComponent'
