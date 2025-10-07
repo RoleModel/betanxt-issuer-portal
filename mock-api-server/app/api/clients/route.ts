@@ -5,8 +5,13 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
 import { createClient, listClients } from '@/domain-models/api/clients'
+import { corsJson, handleCors } from '@/utils/cors'
 
 import type { components } from '@/types/api'
+
+export async function OPTIONS() {
+  return handleCors()
+}
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -18,15 +23,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await listClients(undefined, undefined, ticker)
 
     if (error) {
-      return NextResponse.json(
+      return corsJson(
         { error: error.message },
         { status: error.statusCode || 500 }
       )
     }
 
-    return NextResponse.json(data)
+    return corsJson(data)
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -46,15 +51,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await createClient(body)
 
     if (error) {
-      return NextResponse.json(
+      return corsJson(
         { error: error.message },
         { status: error.statusCode || 400 }
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return corsJson(data, { status: 201 })
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
