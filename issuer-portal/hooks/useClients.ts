@@ -207,6 +207,12 @@ export const useClients = (): UseClientsResult => {
 
       // Only fetch if we have a session (non-bypass mode)
       if (!session?.user?.id) {
+        console.warn('useClients: No session.user.id found', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          bypassAuth,
+        })
         setClients([])
         setLoading(false)
         return

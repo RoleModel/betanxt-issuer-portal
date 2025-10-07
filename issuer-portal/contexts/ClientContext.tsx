@@ -268,6 +268,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       clients: clients.map(c => ({ ticker: c.ticker, name: c.company_name })),
       currentClient: currentClient?.ticker,
       session: session?.user,
+      sessionStatus: session ? 'authenticated' : 'unauthenticated',
+      hasSessionId: !!session?.user?.id,
+      bypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH,
     })
   }, [clients, currentClient, session])
 
