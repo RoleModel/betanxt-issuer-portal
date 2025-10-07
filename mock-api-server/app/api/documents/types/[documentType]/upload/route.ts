@@ -5,12 +5,17 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
 import { createDocument } from '@/domain-models/api/documents'
+import { corsJson, handleCors } from '@/utils/cors'
 
 import type { components } from '@/types/api'
 import { supabase } from '@/utils/supabase/client'
 
 interface RouteParams {
   documentType: string
+}
+
+export async function OPTIONS() {
+  return handleCors()
 }
 
 export async function POST(
@@ -30,7 +35,7 @@ export async function POST(
     const documentTitle = formData.get('title') as string | null
 
     if (!meetingId || !file) {
-      return NextResponse.json(
+      return corsJson(
         { error: 'Missing required fields: meetingId and file are required' },
         { status: 400 }
       )
@@ -39,7 +44,7 @@ export async function POST(
     // Check file size (25MB limit)
     const MAX_FILE_SIZE = 25 * 1024 * 1024
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
+      return corsJson(
         { error: 'File too large. Maximum size is 25MB' },
         { status: 413 }
       )
@@ -64,7 +69,7 @@ export async function POST(
       })
 
     if (uploadError) {
-      return NextResponse.json(
+      return corsJson(
         { error: `Failed to upload file: ${uploadError.message}` },
         { status: 500 }
       )
@@ -86,20 +91,20 @@ export async function POST(
     } as components['schemas']['CreateDocumentRequest'])
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return corsJson({ error: error.message }, { status: 500 })
     }
 
     if (!data) {
-      return NextResponse.json(
+      return corsJson(
         { error: 'Document created but no data returned' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return corsJson(data, { status: 201 })
   } catch (error) {
     console.error('[Upload Route Error]:', error)
-    return NextResponse.json(
+    return corsJson(
       {
         error: error instanceof Error ? error.message : 'Internal server error',
         details: error instanceof Error ? error.stack : 'Unknown error',

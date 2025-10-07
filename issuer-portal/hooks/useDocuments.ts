@@ -433,38 +433,6 @@ export const useDocuments = (): UseDocumentsResult => {
           return result?.id || result?.storagePath || null
         }
 
-        // Convert file to base64 for legacy document updates
-        const reader = new FileReader()
-        const base64Data = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => resolve(reader.result as string)
-          reader.onerror = reject
-          reader.readAsDataURL(_file)
-        })
-
-        const apiClient = await buildApiClient()
-
-        // Check if this is a temporary document ID (for generated forms)
-        const isTemporaryId =
-          _documentId.includes('broadridge-form-') ||
-          _documentId.includes('plan-file-request-') ||
-          _documentId.includes('transfer-agent-request-') ||
-          _documentId === 'temp-doc-id' ||
-          _documentId.startsWith('doc-') ||
-          _documentId.startsWith('temp-')
-
-        // Decide target status: use task status if available, otherwise default based on form type
-        const isExplicitSignedForm =
-          _documentId.includes('broadridge') ||
-          _documentId.includes('plan-file-request') ||
-          _documentId.includes('transfer-agent-request') ||
-          (_documentTitle ? _documentTitle.includes('(Signed)') : false)
-
-        // For signed forms, we should use the task status, not force SIGNED
-        // The task status will be set correctly by the task submission logic
-        const desiredStatus = (
-          isExplicitSignedForm ? 'AWAITING_REVIEW' : 'AWAITING_REVIEW'
-        ) as components['schemas']['Document']['status']
-
         // Use the meeting ID passed in, or extract from URL
         let meetingId = _meetingId
 
@@ -516,70 +484,57 @@ export const useDocuments = (): UseDocumentsResult => {
           }
         }
 
-        if (isTemporaryId) {
-          // For temporary documents, create a new document record
-          const result = await apiClient.POST('/meetings/{meetingId}/documents', {
-            params: { path: { meetingId } },
-            body: {
-              title,
-              type: docType,
-              file: base64Data,
-              taskId: _taskId,
-            } as components['schemas']['CreateDocumentRequest'],
-          })
+        // Decide target status: use task status if available, otherwise default based on form type
+        const isExplicitSignedForm =
+          _documentId.includes('broadridge') ||
+          _documentId.includes('plan-file-request') ||
+          _documentId.includes('transfer-agent-request') ||
+          (_documentTitle ? _documentTitle.includes('(Signed)') : false)
 
-          const { data, error } = result
-          if (error || !data) {
-            console.error('Document creation error:', error || 'No data returned')
-            throw new Error('Failed to create signed document')
-          }
+        // For signed forms, we should use the task status, not force SIGNED
+        // The task status will be set correctly by the task submission logic
+        const desiredStatus = (
+          isExplicitSignedForm ? 'AWAITING_REVIEW' : 'AWAITING_REVIEW'
+        ) as components['schemas']['Document']['status']
 
-          const createdDoc = data as Document
-          // If desiredStatus differs from default, update status in a follow-up call
-          if (createdDoc.id && desiredStatus) {
-            await apiClient.PUT('/documents/{id}', {
-              params: { path: { id: createdDoc.id } },
-              body: {
-                status: desiredStatus,
-              } as components['schemas']['UpdateDocumentRequest'],
-            })
-          }
+        const apiClient = await buildApiClient()
 
-          // Return the new document ID
-          return createdDoc.id || _documentId
-        } else {
-          // For existing documents, create a new document (version history)
-          // Documents are immutable - each upload creates a new document
-          const result = await apiClient.POST('/meetings/{meetingId}/documents', {
-            params: { path: { meetingId } },
-            body: {
-              title,
-              type: docType,
-              file: base64Data,
-              taskId: _taskId,
-            } as components['schemas']['CreateDocumentRequest'],
-          })
-
-          const { data, error } = result
-          if (error || !data) {
-            console.error('Document creation error:', error || 'No data returned')
-            throw new Error('Failed to create signed document')
-          }
-
-          const createdDoc = data as Document
-          // If desiredStatus differs from default, update status in a follow-up call
-          if (createdDoc.id && desiredStatus) {
-            await apiClient.PUT('/documents/{id}', {
-              params: { path: { id: createdDoc.id } },
-              body: {
-                status: desiredStatus,
-              } as components['schemas']['UpdateDocumentRequest'],
-            })
-          }
-
-          // Return the new document ID
-          return createdDoc.id || _documentId
+        // For legacy signed documents, we should also use the upload API
+        // to ensure files are properly stored in Supabase Storage
+        const formData = new FormData()
+        formData.append('file', _file)
+        formData.append('meetingId', meetingId)
+        if (_taskId) {
+          formData.append('taskId', _taskId)
         }
+        formData.append('title', title)
+
+        // Upload via the mock-server API
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+        const response = await fetch(`${API_BASE_URL}/documents/types/${docType}/upload`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(`Upload failed: ${errorText}`)
+        }
+
+        const result = await response.json() as Document
+
+        // If desiredStatus differs from default, update status in a follow-up call
+        if (result.id && desiredStatus) {
+          await apiClient.PUT('/documents/{id}', {
+            params: { path: { id: result.id } },
+            body: {
+              status: desiredStatus,
+            } as components['schemas']['UpdateDocumentRequest'],
+          })
+        }
+
+        // Return the new document ID
+        return result.id || _documentId
       } catch (err) {
         console.error('uploadDocument error:', err)
         const errorMessage =
