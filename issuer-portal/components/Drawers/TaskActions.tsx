@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Checkbox, FormControlLabel, Link, Stack } from '@mui/material'
+import { Box, Checkbox, FormControlLabel, Stack } from '@mui/material'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -119,13 +119,19 @@ const TaskActions: React.FC<TaskActionsProps> = ({
             const viewLabel = getTaskActionButtonLabel(task.title ?? '', true)
 
             return (
-              <Link
-                sx={{ cursor: 'pointer' }}
+              <Box
+                component="span"
+                sx={{
+                  cursor: 'pointer',
+                  color: 'primary.main',
+                  textDecoration: 'underline',
+                  '&:hover': { color: 'primary.dark' }
+                }}
                 key={linkIndex}
                 onClick={handleViewSignedDocument}
               >
                 {viewLabel}
-              </Link>
+              </Box>
             )
           }
 
@@ -144,13 +150,19 @@ const TaskActions: React.FC<TaskActionsProps> = ({
 
 
           return isClickable ? (
-            <Link
+            <Box
+              component="span"
               key={linkIndex}
               onClick={() => onLinkClick(link)}
-              sx={{ cursor: 'pointer' }}
+              sx={{
+                cursor: 'pointer',
+                color: 'primary.main',
+                textDecoration: 'underline',
+                '&:hover': { color: 'primary.dark' }
+              }}
             >
               {link.label}
-            </Link>
+            </Box>
           ) : null
         })}
 
