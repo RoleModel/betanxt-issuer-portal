@@ -52,8 +52,17 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return true // Auth bypass allows access to all clients
       }
 
+      // Check if user is ADMIN or RELATIONSHIP_MANAGER - they have access to all clients
+      if (
+        session?.user?.type === 'RELATIONSHIP_MANAGER' ||
+        session?.user?.type === 'ADMIN' ||
+        Boolean(session?.user?.roles?.includes('ADMIN'))
+      ) {
+        return true
+      }
+
       // In normal auth mode, check user's relationships or account access
-      const userAccountId = session?.user?.accountId
+      const userAccountId = session?.user?.account_id
       if (!userAccountId) return false
 
       // Find client that matches the clientId
@@ -66,14 +75,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       )
       if (!targetClient) return false
 
-      // Check if user has access (simplified - could be more complex with relationships)
-      return (
-        userAccountId === targetClient.id ||
-        session?.user?.type === 'RELATIONSHIP_MANAGER' ||
-        Boolean(session?.user?.roles?.includes('ADMIN'))
-      )
+      // Check if user's account_id matches the client id
+      return userAccountId === targetClient.id
     },
-    [session?.user?.accountId, session?.user?.type, session?.user?.roles, clients]
+    [session?.user?.account_id, session?.user?.type, session?.user?.roles, clients]
   )
 
   // Determine current client based on URL and user context
