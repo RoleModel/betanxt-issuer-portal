@@ -124,7 +124,8 @@ const TaskActions: React.FC<TaskActionsProps> = ({
                 sx={{
                   cursor: 'pointer',
                   color: 'link',
-                  textDecoration: 'underline',
+                  fontWeight: 600,
+                  textDecoration: 'none',
                   '&:hover': { opacity: 0.8 }
                 }}
                 key={linkIndex}
@@ -157,7 +158,8 @@ const TaskActions: React.FC<TaskActionsProps> = ({
               sx={{
                 cursor: 'pointer',
                 color: 'link',
-                textDecoration: 'underline',
+                fontWeight: 600,
+                textDecoration: 'none',
                 '&:hover': { opacity: 0.8 }
               }}
             >
