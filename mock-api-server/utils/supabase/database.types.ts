@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       account: {
@@ -35,6 +35,69 @@ export interface Database {
           primary_contact?: string | null
         }
         Relationships: []
+      }
+      attendee_list: {
+        Row: {
+          created_at: string
+          expires_at: string
+          file_path: string | null
+          file_size: number | null
+          filters: Json | null
+          format: Database["public"]["Enums"]["attendee_list_format_enum"]
+          generated_at: string | null
+          generated_by: string
+          generation_status: Database["public"]["Enums"]["attendee_list_generation_status_enum"]
+          id: string
+          list_type: Database["public"]["Enums"]["attendee_list_type_enum"]
+          meeting_id: string
+          participant_count: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          file_path?: string | null
+          file_size?: number | null
+          filters?: Json | null
+          format: Database["public"]["Enums"]["attendee_list_format_enum"]
+          generated_at?: string | null
+          generated_by: string
+          generation_status?: Database["public"]["Enums"]["attendee_list_generation_status_enum"]
+          id?: string
+          list_type: Database["public"]["Enums"]["attendee_list_type_enum"]
+          meeting_id: string
+          participant_count?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          file_path?: string | null
+          file_size?: number | null
+          filters?: Json | null
+          format?: Database["public"]["Enums"]["attendee_list_format_enum"]
+          generated_at?: string | null
+          generated_by?: string
+          generation_status?: Database["public"]["Enums"]["attendee_list_generation_status_enum"]
+          id?: string
+          list_type?: Database["public"]["Enums"]["attendee_list_type_enum"]
+          meeting_id?: string
+          participant_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendee_list_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendee_list_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -130,7 +193,7 @@ export interface Database {
           meeting_id: string | null
           minutes_attended_meeting: number | null
           registrant_type:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
             | null
           registration_questions: string | null
           updated_at: string | null
@@ -144,7 +207,7 @@ export interface Database {
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
             | null
           registration_questions?: string | null
           updated_at?: string | null
@@ -158,7 +221,7 @@ export interface Database {
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
             | null
           registration_questions?: string | null
           updated_at?: string | null
@@ -179,7 +242,7 @@ export interface Database {
           deadline: string | null
           description: string | null
           display_category:
-            | Database['public']['Enums']['document_display_category']
+            | Database["public"]["Enums"]["document_display_category"]
             | null
           file_path: string | null
           file_size: number | null
@@ -189,9 +252,15 @@ export interface Database {
           in_progress_date: string | null
           meeting: string | null
           meeting_id: string | null
+          metadata: Json | null
+          original_filename: string | null
           signatures: Json | null
           signed_date: string | null
           status: string | null
+          storage_path: string | null
+          sync_status:
+            | Database["public"]["Enums"]["document_sync_status_enum"]
+            | null
           task_id: string | null
           title: string | null
           type: string | null
@@ -200,6 +269,13 @@ export interface Database {
           updated_by_first_name: string | null
           updated_by_last_name: string | null
           upload_date: string | null
+          upload_source:
+            | Database["public"]["Enums"]["document_upload_source_enum"]
+            | null
+          upload_status:
+            | Database["public"]["Enums"]["document_upload_status_enum"]
+            | null
+          uploaded_by: string | null
           uploaded_date: string | null
         }
         Insert: {
@@ -215,7 +291,7 @@ export interface Database {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database['public']['Enums']['document_display_category']
+            | Database["public"]["Enums"]["document_display_category"]
             | null
           file_path?: string | null
           file_size?: number | null
@@ -225,9 +301,15 @@ export interface Database {
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
+          metadata?: Json | null
+          original_filename?: string | null
           signatures?: Json | null
           signed_date?: string | null
           status?: string | null
+          storage_path?: string | null
+          sync_status?:
+            | Database["public"]["Enums"]["document_sync_status_enum"]
+            | null
           task_id?: string | null
           title?: string | null
           type?: string | null
@@ -236,6 +318,13 @@ export interface Database {
           updated_by_first_name?: string | null
           updated_by_last_name?: string | null
           upload_date?: string | null
+          upload_source?:
+            | Database["public"]["Enums"]["document_upload_source_enum"]
+            | null
+          upload_status?:
+            | Database["public"]["Enums"]["document_upload_status_enum"]
+            | null
+          uploaded_by?: string | null
           uploaded_date?: string | null
         }
         Update: {
@@ -251,7 +340,7 @@ export interface Database {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database['public']['Enums']['document_display_category']
+            | Database["public"]["Enums"]["document_display_category"]
             | null
           file_path?: string | null
           file_size?: number | null
@@ -261,9 +350,15 @@ export interface Database {
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
+          metadata?: Json | null
+          original_filename?: string | null
           signatures?: Json | null
           signed_date?: string | null
           status?: string | null
+          storage_path?: string | null
+          sync_status?:
+            | Database["public"]["Enums"]["document_sync_status_enum"]
+            | null
           task_id?: string | null
           title?: string | null
           type?: string | null
@@ -272,16 +367,33 @@ export interface Database {
           updated_by_first_name?: string | null
           updated_by_last_name?: string | null
           upload_date?: string | null
+          upload_source?:
+            | Database["public"]["Enums"]["document_upload_source_enum"]
+            | null
+          upload_status?:
+            | Database["public"]["Enums"]["document_upload_status_enum"]
+            | null
+          uploaded_by?: string | null
           uploaded_date?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "document_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_history: {
         Row: {
           created_at: string | null
           document: string | null
           document_id: string | null
-          event_type: Database['public']['Enums']['document_history_event_type'] | null
+          event_type:
+            | Database["public"]["Enums"]["document_history_event_type"]
+            | null
           id: string | null
           metadata: Json | null
           user: string | null
@@ -292,7 +404,9 @@ export interface Database {
           created_at?: string | null
           document?: string | null
           document_id?: string | null
-          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          event_type?:
+            | Database["public"]["Enums"]["document_history_event_type"]
+            | null
           id?: string | null
           metadata?: Json | null
           user?: string | null
@@ -303,7 +417,9 @@ export interface Database {
           created_at?: string | null
           document?: string | null
           document_id?: string | null
-          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          event_type?:
+            | Database["public"]["Enums"]["document_history_event_type"]
+            | null
           id?: string | null
           metadata?: Json | null
           user?: string | null
@@ -393,6 +509,68 @@ export interface Database {
         }
         Relationships: []
       }
+      dsm_participant: {
+        Row: {
+          attendance_data: Json | null
+          attended_at: string | null
+          company: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          invited_at: string | null
+          last_name: string
+          meeting_id: string
+          registered_at: string | null
+          registration_data: Json | null
+          role: Database["public"]["Enums"]["dsm_participant_role_enum"]
+          status: Database["public"]["Enums"]["dsm_participant_status_enum"]
+          updated_at: string
+        }
+        Insert: {
+          attendance_data?: Json | null
+          attended_at?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          invited_at?: string | null
+          last_name: string
+          meeting_id: string
+          registered_at?: string | null
+          registration_data?: Json | null
+          role: Database["public"]["Enums"]["dsm_participant_role_enum"]
+          status?: Database["public"]["Enums"]["dsm_participant_status_enum"]
+          updated_at?: string
+        }
+        Update: {
+          attendance_data?: Json | null
+          attended_at?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          invited_at?: string | null
+          last_name?: string
+          meeting_id?: string
+          registered_at?: string | null
+          registration_data?: Json | null
+          role?: Database["public"]["Enums"]["dsm_participant_role_enum"]
+          status?: Database["public"]["Enums"]["dsm_participant_status_enum"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsm_participant_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mailing: {
         Row: {
           canceled_suppressed_positions: number | null
@@ -464,7 +642,7 @@ export interface Database {
           distribution_type: string | null
           employee_stock_plans: string | null
           filing_date: string | null
-          id: string | null
+          id: string
           inspector: string | null
           ivr_dial_in_number: string | null
           mailing_date: string | null
@@ -497,7 +675,7 @@ export interface Database {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -530,7 +708,7 @@ export interface Database {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id?: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -563,12 +741,12 @@ export interface Database {
           id: string | null
           meeting_id: string | null
           message: string | null
-          priority: Database['public']['Enums']['notification_priority'] | null
+          priority: Database["public"]["Enums"]["notification_priority"] | null
           read: boolean | null
           read_at: string | null
           task_id: string | null
           title: string | null
-          type: Database['public']['Enums']['notification_type'] | null
+          type: Database["public"]["Enums"]["notification_type"] | null
           user_id: string | null
         }
         Insert: {
@@ -578,12 +756,12 @@ export interface Database {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database['public']['Enums']['notification_priority'] | null
+          priority?: Database["public"]["Enums"]["notification_priority"] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database['public']['Enums']['notification_type'] | null
+          type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
         }
         Update: {
@@ -593,44 +771,59 @@ export interface Database {
           id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database['public']['Enums']['notification_priority'] | null
+          priority?: Database["public"]["Enums"]["notification_priority"] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database['public']['Enums']['notification_type'] | null
+          type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
         }
         Relationships: []
       }
       phase: {
         Row: {
+          auto_advance_enabled: boolean | null
+          completed_at: string | null
+          completion_criteria: Json | null
           created_at: string | null
           id: string | null
           key_dates: string | null
           meeting_id: string | null
           name: string | null
           order_index: number | null
+          phase_number: number | null
+          started_at: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
+          auto_advance_enabled?: boolean | null
+          completed_at?: string | null
+          completion_criteria?: Json | null
           created_at?: string | null
           id?: string | null
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
           order_index?: number | null
+          phase_number?: number | null
+          started_at?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
+          auto_advance_enabled?: boolean | null
+          completed_at?: string | null
+          completion_criteria?: Json | null
           created_at?: string | null
           id?: string | null
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
           order_index?: number | null
+          phase_number?: number | null
+          started_at?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -650,9 +843,11 @@ export interface Database {
           set_key: string | null
           shares: number | null
           shares_voted: number | null
-          source: Database['public']['Enums']['position_source'] | null
+          source: Database["public"]["Enums"]["position_source"] | null
           updated_at: string | null
-          vote_status: Database['public']['Enums']['position_vote_status'] | null
+          vote_status:
+            | Database["public"]["Enums"]["position_vote_status"]
+            | null
         }
         Insert: {
           account_number?: string | null
@@ -667,9 +862,11 @@ export interface Database {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database['public']['Enums']['position_source'] | null
+          source?: Database["public"]["Enums"]["position_source"] | null
           updated_at?: string | null
-          vote_status?: Database['public']['Enums']['position_vote_status'] | null
+          vote_status?:
+            | Database["public"]["Enums"]["position_vote_status"]
+            | null
         }
         Update: {
           account_number?: string | null
@@ -684,9 +881,11 @@ export interface Database {
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database['public']['Enums']['position_source'] | null
+          source?: Database["public"]["Enums"]["position_source"] | null
           updated_at?: string | null
-          vote_status?: Database['public']['Enums']['position_vote_status'] | null
+          vote_status?:
+            | Database["public"]["Enums"]["position_vote_status"]
+            | null
         }
         Relationships: []
       }
@@ -725,7 +924,9 @@ export interface Database {
           director_class: string | null
           director_name: string | null
           director_term_years: number | null
-          final_result: Database['public']['Enums']['proposal_final_result'] | null
+          final_result:
+            | Database["public"]["Enums"]["proposal_final_result"]
+            | null
           for_percentage: number | null
           frequency_options: Json | null
           id: string | null
@@ -752,7 +953,9 @@ export interface Database {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?: Database['public']['Enums']['proposal_final_result'] | null
+          final_result?:
+            | Database["public"]["Enums"]["proposal_final_result"]
+            | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -779,7 +982,9 @@ export interface Database {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?: Database['public']['Enums']['proposal_final_result'] | null
+          final_result?:
+            | Database["public"]["Enums"]["proposal_final_result"]
+            | null
           for_percentage?: number | null
           frequency_options?: Json | null
           id?: string | null
@@ -800,6 +1005,72 @@ export interface Database {
           voting_completed_at?: string | null
         }
         Relationships: []
+      }
+      report: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          file_size: number | null
+          generation_date: string | null
+          id: string
+          meeting_id: string
+          name: string
+          output_format: Database["public"]["Enums"]["report_format_enum"]
+          parameters: Json | null
+          requested_by: string
+          status: Database["public"]["Enums"]["report_status_enum"]
+          type: Database["public"]["Enums"]["report_type_enum"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generation_date?: string | null
+          id?: string
+          meeting_id: string
+          name: string
+          output_format: Database["public"]["Enums"]["report_format_enum"]
+          parameters?: Json | null
+          requested_by: string
+          status?: Database["public"]["Enums"]["report_status_enum"]
+          type: Database["public"]["Enums"]["report_type_enum"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generation_date?: string | null
+          id?: string
+          meeting_id?: string
+          name?: string
+          output_format?: Database["public"]["Enums"]["report_format_enum"]
+          parameters?: Json | null
+          requested_by?: string
+          status?: Database["public"]["Enums"]["report_status_enum"]
+          type?: Database["public"]["Enums"]["report_type_enum"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signature: {
         Row: {
@@ -893,16 +1164,21 @@ export interface Database {
       }
       task: {
         Row: {
+          assigned_to: string | null
+          completion_date: string | null
           created_at: string | null
+          dependencies: Json | null
           description: string | null
           document_id: string | null
           due_date: string | null
           id: string | null
           links: Json | null
           meeting_id: string | null
+          metadata: Json | null
           owner: string | null
           phase_id: string | null
           phase_number: number | null
+          priority: Database["public"]["Enums"]["task_priority_enum"] | null
           status: string | null
           task_id: string | null
           title: string | null
@@ -910,16 +1186,21 @@ export interface Database {
           updated_at: string | null
         }
         Insert: {
+          assigned_to?: string | null
+          completion_date?: string | null
           created_at?: string | null
+          dependencies?: Json | null
           description?: string | null
           document_id?: string | null
           due_date?: string | null
           id?: string | null
           links?: Json | null
           meeting_id?: string | null
+          metadata?: Json | null
           owner?: string | null
           phase_id?: string | null
           phase_number?: number | null
+          priority?: Database["public"]["Enums"]["task_priority_enum"] | null
           status?: string | null
           task_id?: string | null
           title?: string | null
@@ -927,23 +1208,36 @@ export interface Database {
           updated_at?: string | null
         }
         Update: {
+          assigned_to?: string | null
+          completion_date?: string | null
           created_at?: string | null
+          dependencies?: Json | null
           description?: string | null
           document_id?: string | null
           due_date?: string | null
           id?: string | null
           links?: Json | null
           meeting_id?: string | null
+          metadata?: Json | null
           owner?: string | null
           phase_id?: string | null
           phase_number?: number | null
+          priority?: Database["public"]["Enums"]["task_priority_enum"] | null
           status?: string | null
           task_id?: string | null
           title?: string | null
           type?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "task_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user: {
         Row: {
@@ -952,7 +1246,7 @@ export interface Database {
           avatar_url: string | null
           email: string | null
           first_name: string | null
-          id: string | null
+          id: string
           last_name: string | null
           password: string | null
           type: string | null
@@ -964,7 +1258,7 @@ export interface Database {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id: string
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -976,7 +1270,7 @@ export interface Database {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -985,91 +1279,140 @@ export interface Database {
         Relationships: []
       }
     }
-    Views: Record<never, never>
-    Functions: Record<never, never>
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
       add_document_event_request_event_type:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'NOT_UPLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
-      cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
+        | "CREATED"
+        | "UPLOADED"
+        | "VIEWED"
+        | "DOWNLOADED"
+        | "NOT_UPLOADED"
+        | "SIGNED"
+        | "APPROVED"
+        | "REJECTED"
+        | "COMMENTED"
+        | "UPDATED"
+        | "DELETED"
+      attendee_list_format_enum: "csv" | "xlsx" | "pdf"
+      attendee_list_generation_status_enum:
+        | "pending"
+        | "generating"
+        | "completed"
+        | "failed"
+      attendee_list_type_enum:
+        | "participants"
+        | "presenters"
+        | "guests"
+        | "all_attendees"
+        | "actual_attendees"
+      cast_vote_request_vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD"
       create_digital_shareholder_meeting_request_registrant_type:
-        | 'Shareholder'
-        | 'Guest'
-        | 'Proxy'
-        | 'Other'
-      create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
-      create_position_request_vote_status: 'Voted' | 'Unvoted'
+        | "Shareholder"
+        | "Guest"
+        | "Proxy"
+        | "Other"
+      create_position_request_source: "WEB" | "PRINT" | "IVR"
+      create_position_request_vote_status: "Voted" | "Unvoted"
       digital_shareholder_meeting_registrant_type:
-        | 'Shareholder'
-        | 'Guest'
-        | 'Proxy'
-        | 'Other'
+        | "Shareholder"
+        | "Guest"
+        | "Proxy"
+        | "Other"
       document_display_category:
-        | 'general'
-        | 'dsm'
-        | 'proxy-materials'
-        | 'meeting-materials'
-        | 'post-meeting'
-        | 'internal'
+        | "general"
+        | "dsm"
+        | "proxy-materials"
+        | "meeting-materials"
+        | "post-meeting"
+        | "internal"
       document_history_event_type:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
-      notification_priority: 'low' | 'medium' | 'high' | 'critical'
-      notification_type: 'info' | 'warning' | 'error' | 'success'
-      position_source: 'WEB' | 'PRINT' | 'IVR'
-      position_vote_status: 'Voted' | 'Unvoted'
-      proposal_final_result: 'PASSED' | 'FAILED' | 'PENDING'
-      update_position_request_source: 'WEB' | 'PRINT' | 'IVR'
-      update_position_request_vote_status: 'Voted' | 'Unvoted'
+        | "CREATED"
+        | "UPLOADED"
+        | "VIEWED"
+        | "DOWNLOADED"
+        | "SIGNED"
+        | "APPROVED"
+        | "REJECTED"
+        | "COMMENTED"
+        | "UPDATED"
+        | "DELETED"
+      document_sync_status_enum: "pending" | "synced" | "error"
+      document_upload_source_enum:
+        | "taskbar"
+        | "meeting_documents"
+        | "bulk_upload"
+      document_upload_status_enum:
+        | "uploading"
+        | "completed"
+        | "failed"
+        | "processing"
+      dsm_participant_role_enum:
+        | "participant"
+        | "presenter"
+        | "guest"
+        | "moderator"
+      dsm_participant_status_enum:
+        | "invited"
+        | "registered"
+        | "confirmed"
+        | "attended"
+        | "no_show"
+      notification_priority: "low" | "medium" | "high" | "critical"
+      notification_type: "info" | "warning" | "error" | "success"
+      phase_status_enum: "not_started" | "in_progress" | "completed" | "blocked"
+      position_source: "WEB" | "PRINT" | "IVR"
+      position_vote_status: "Voted" | "Unvoted"
+      proposal_final_result: "PASSED" | "FAILED" | "PENDING"
+      report_format_enum: "pdf" | "csv" | "xlsx" | "json"
+      report_status_enum: "pending" | "generating" | "completed" | "failed"
+      report_type_enum:
+        | "phase_progress"
+        | "document_summary"
+        | "task_completion"
+        | "dsm_attendance"
+      task_priority_enum: "low" | "medium" | "high" | "critical"
+      task_status_enum: "pending" | "in_progress" | "completed" | "cancelled"
+      update_position_request_source: "WEB" | "PRINT" | "IVR"
+      update_position_request_vote_status: "Voted" | "Unvoted"
     }
-    CompositeTypes: Record<never, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1078,23 +1421,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1103,23 +1446,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1128,96 +1471,147 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
       add_document_event_request_event_type: [
-        'CREATED',
-        'UPLOADED',
-        'VIEWED',
-        'DOWNLOADED',
-        'NOT_UPLOADED',
-        'SIGNED',
-        'APPROVED',
-        'REJECTED',
-        'COMMENTED',
-        'UPDATED',
-        'DELETED',
+        "CREATED",
+        "UPLOADED",
+        "VIEWED",
+        "DOWNLOADED",
+        "NOT_UPLOADED",
+        "SIGNED",
+        "APPROVED",
+        "REJECTED",
+        "COMMENTED",
+        "UPDATED",
+        "DELETED",
       ],
-      cast_vote_request_vote: ['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'],
+      attendee_list_format_enum: ["csv", "xlsx", "pdf"],
+      attendee_list_generation_status_enum: [
+        "pending",
+        "generating",
+        "completed",
+        "failed",
+      ],
+      attendee_list_type_enum: [
+        "participants",
+        "presenters",
+        "guests",
+        "all_attendees",
+        "actual_attendees",
+      ],
+      cast_vote_request_vote: ["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"],
       create_digital_shareholder_meeting_request_registrant_type: [
-        'Shareholder',
-        'Guest',
-        'Proxy',
-        'Other',
+        "Shareholder",
+        "Guest",
+        "Proxy",
+        "Other",
       ],
-      create_position_request_source: ['WEB', 'PRINT', 'IVR'],
-      create_position_request_vote_status: ['Voted', 'Unvoted'],
+      create_position_request_source: ["WEB", "PRINT", "IVR"],
+      create_position_request_vote_status: ["Voted", "Unvoted"],
       digital_shareholder_meeting_registrant_type: [
-        'Shareholder',
-        'Guest',
-        'Proxy',
-        'Other',
+        "Shareholder",
+        "Guest",
+        "Proxy",
+        "Other",
       ],
       document_display_category: [
-        'general',
-        'dsm',
-        'proxy-materials',
-        'meeting-materials',
-        'post-meeting',
-        'internal',
+        "general",
+        "dsm",
+        "proxy-materials",
+        "meeting-materials",
+        "post-meeting",
+        "internal",
       ],
       document_history_event_type: [
-        'CREATED',
-        'UPLOADED',
-        'VIEWED',
-        'DOWNLOADED',
-        'SIGNED',
-        'APPROVED',
-        'REJECTED',
-        'COMMENTED',
-        'UPDATED',
-        'DELETED',
+        "CREATED",
+        "UPLOADED",
+        "VIEWED",
+        "DOWNLOADED",
+        "SIGNED",
+        "APPROVED",
+        "REJECTED",
+        "COMMENTED",
+        "UPDATED",
+        "DELETED",
       ],
-      notification_priority: ['low', 'medium', 'high', 'critical'],
-      notification_type: ['info', 'warning', 'error', 'success'],
-      position_source: ['WEB', 'PRINT', 'IVR'],
-      position_vote_status: ['Voted', 'Unvoted'],
-      proposal_final_result: ['PASSED', 'FAILED', 'PENDING'],
-      update_position_request_source: ['WEB', 'PRINT', 'IVR'],
-      update_position_request_vote_status: ['Voted', 'Unvoted'],
+      document_sync_status_enum: ["pending", "synced", "error"],
+      document_upload_source_enum: [
+        "taskbar",
+        "meeting_documents",
+        "bulk_upload",
+      ],
+      document_upload_status_enum: [
+        "uploading",
+        "completed",
+        "failed",
+        "processing",
+      ],
+      dsm_participant_role_enum: [
+        "participant",
+        "presenter",
+        "guest",
+        "moderator",
+      ],
+      dsm_participant_status_enum: [
+        "invited",
+        "registered",
+        "confirmed",
+        "attended",
+        "no_show",
+      ],
+      notification_priority: ["low", "medium", "high", "critical"],
+      notification_type: ["info", "warning", "error", "success"],
+      phase_status_enum: ["not_started", "in_progress", "completed", "blocked"],
+      position_source: ["WEB", "PRINT", "IVR"],
+      position_vote_status: ["Voted", "Unvoted"],
+      proposal_final_result: ["PASSED", "FAILED", "PENDING"],
+      report_format_enum: ["pdf", "csv", "xlsx", "json"],
+      report_status_enum: ["pending", "generating", "completed", "failed"],
+      report_type_enum: [
+        "phase_progress",
+        "document_summary",
+        "task_completion",
+        "dsm_attendance",
+      ],
+      task_priority_enum: ["low", "medium", "high", "critical"],
+      task_status_enum: ["pending", "in_progress", "completed", "cancelled"],
+      update_position_request_source: ["WEB", "PRINT", "IVR"],
+      update_position_request_vote_status: ["Voted", "Unvoted"],
     },
   },
 } as const
+

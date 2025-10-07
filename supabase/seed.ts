@@ -330,7 +330,7 @@ const generateTaskDescription = (title: string, type: string, status: string): s
     'Plan File Request form':
       'Use this form to request your plan file. First, download the Plan File Request form to your device. Complete all required fields, then return here to upload the finished form for processing.',
     'Transfer Agent Registered File Request Form':
-      'BetaNXT will be in contact with your transfer agent to request a copy of the record date shareholder file. We ask that the attached authorization letter be printed on company letterhead, signed, and scanned back to us.',
+      'BetaNXT will be in contact with your transfer agent to request a copy of the record date shareholder file. We ask that the attached authorization letter be signed and we will send it to your transfer agent for processing.',
     'Broadridge/ICS Access':
       'Broadridge is now requiring your submission of the attached Issuer Profile form. Please sign and upload the form here.',
     'DTCC authorization': 'Complete DTCC authorization process for proxy voting access.',
