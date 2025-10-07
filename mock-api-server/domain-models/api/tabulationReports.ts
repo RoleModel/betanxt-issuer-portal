@@ -175,13 +175,52 @@ export async function getTabulationReport(
 
     if (error) {
       if (error.code === 'PGRST116') {
-        // No rows returned
-        return {
-          error: {
-            message: `No tabulation report found for meeting ${meetingId}`,
-            statusCode: 404,
+        // No rows returned - return empty report with zeros
+        const emptyReport: TabulationReport = {
+          id: '',
+          meetingId: meetingId,
+          setKeys: [],
+          brokerVoting: {},
+          shareRangePerformance: [],
+          nonDtcVoteStatus: {
+            unvotedShareholders: 0,
+            unvotedShares: 0,
+            printShareholders: 0,
+            printShares: 0,
+            ivrShareholders: 0,
+            ivrShares: 0,
+            webShareholders: 0,
+            webShares: 0,
+            votedSubtotalShareholders: 0,
+            votedSubtotalShares: 0,
+            grandTotalShareholders: 0,
+            grandTotalShares: 0,
           },
+          dtcVoteStatus: {
+            unvotedShareholders: 0,
+            unvotedShares: 0,
+            votedShareholders: 0,
+            votedShares: 0,
+            grandTotalShareholders: 0,
+            grandTotalShares: 0,
+          },
+          voteDistribution: {
+            dtcVotedShares: 0,
+            dtcUnvotedShares: 0,
+            nonDtcVotedShares: 0,
+            nonDtcUnvotedShares: 0,
+          },
+          positionsVoted: {
+            voted: 0,
+            unvoted: 0,
+            totalShares: 0,
+            votedShares: 0,
+          },
+          lastCalculatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
+        return { data: emptyReport }
       }
       return {
         error: {

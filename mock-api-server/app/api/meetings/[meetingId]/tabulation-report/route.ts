@@ -5,9 +5,14 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
 import { getTabulationReport } from '@/domain-models/api/tabulationReports'
+import { corsJson, handleCors } from '@/utils/cors'
 
 interface RouteParams {
   meetingId: string
+}
+
+export async function OPTIONS() {
+  return handleCors()
 }
 
 export async function GET(
@@ -23,15 +28,15 @@ export async function GET(
     const { data, error } = await getTabulationReport(meetingId)
 
     if (error) {
-      return NextResponse.json(
+      return corsJson(
         { error: error.message },
         { status: error.statusCode || 500 }
       )
     }
 
-    return NextResponse.json(data)
+    return corsJson(data)
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
       {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
