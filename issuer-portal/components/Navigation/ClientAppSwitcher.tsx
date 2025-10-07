@@ -23,17 +23,20 @@ function SwitchButton() {
   const { data: session } = useSession()
   const open = Boolean(anchorEl)
 
-  console.log('SwitchButton Debug:', {
-    availableClientsCount: availableClients.length,
-    availableClients: availableClients.map(c => ({ ticker: c.ticker, name: c.company_name })),
-    currentClient: currentClient?.ticker,
-  })
-
   // Check if user has permission to switch clients
   const userType = session?.user?.type
   const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
   const canSwitchClients =
     isAuthBypassed || userType === 'ADMIN' || userType === 'RELATIONSHIP_MANAGER'
+
+  console.log('SwitchButton Debug:', {
+    availableClientsCount: availableClients.length,
+    availableClients: availableClients.map(c => ({ ticker: c.ticker, name: c.company_name })),
+    currentClient: currentClient?.ticker,
+    userType,
+    isAuthBypassed,
+    canSwitchClients,
+  })
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     if (canSwitchClients) {
