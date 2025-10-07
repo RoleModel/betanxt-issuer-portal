@@ -75,10 +75,22 @@ export async function POST(_req: NextRequest) {
     const databaseUrl =
       process.env.DATABASE_URL ||
       process.env.POSTGRES_URL || // Vercel Postgres
+      process.env.POSTGRES_URL_NON_POOLING || // Vercel Postgres non-pooling
       'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-    console.log('Connecting to database for reset...')
-    client = new Client({ connectionString: databaseUrl })
+    console.log('Connecting to database for reset...', {
+      hasDATABASE_URL: !!process.env.DATABASE_URL,
+      hasPOSTGRES_URL: !!process.env.POSTGRES_URL,
+      hasPOSTGRES_URL_NON_POOLING: !!process.env.POSTGRES_URL_NON_POOLING,
+      databaseUrlPreview: databaseUrl.substring(0, 30) + '...',
+    })
+    client = new Client({
+      connectionString: databaseUrl,
+      // Disable SSL verification for self-signed certificates in development
+      ssl: databaseUrl.includes('127.0.0.1') || databaseUrl.includes('localhost')
+        ? false
+        : { rejectUnauthorized: false }
+    })
     await client.connect()
 
     console.log('Starting database reset...')
