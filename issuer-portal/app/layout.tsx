@@ -84,8 +84,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ClientProvider>
           </SessionProvider>
         </AppRouterCacheProvider>
-        <SpeedInsights />
-        <Analytics />
+        {process.env.NODE_ENV === 'production' && <SpeedInsights />}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
