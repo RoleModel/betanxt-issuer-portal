@@ -141,7 +141,7 @@ const Notification = ({
 
           {link && (
             <Link
-              href="#"
+              component="button"
               variant="body3"
               sx={{
                 color: 'primary.main',
