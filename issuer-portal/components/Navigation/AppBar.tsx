@@ -391,7 +391,13 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
         onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
       },
-      { label: 'Logout', onClick: () => signOut() },
+      {
+        label: 'Logout',
+        onClick: () => {
+          const origin = typeof window !== 'undefined' ? window.location.origin : ''
+          signOut({ callbackUrl: `${origin}/login` })
+        }
+      },
     ],
     [router, mode, setMode]
   )
