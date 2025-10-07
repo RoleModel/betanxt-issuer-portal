@@ -511,6 +511,16 @@ export const useDocuments = (): UseDocumentsResult => {
 
         // Upload via the mock-server API
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+
+        console.log('[useDocuments] Uploading signed document:', {
+          docType,
+          title,
+          meetingId,
+          taskId: _taskId,
+          documentId: _documentId,
+          uploadUrl: `${API_BASE_URL}/documents/types/${docType}/upload`,
+        })
+
         const response = await fetch(`${API_BASE_URL}/documents/types/${docType}/upload`, {
           method: 'POST',
           body: formData,
@@ -522,6 +532,14 @@ export const useDocuments = (): UseDocumentsResult => {
         }
 
         const result = await response.json() as Document
+
+        console.log('[useDocuments] Upload response:', {
+          documentId: result.id,
+          type: result.type,
+          title: result.title,
+          taskId: result.taskId,
+          status: result.status,
+        })
 
         // If desiredStatus differs from default, update status in a follow-up call
         if (result.id && desiredStatus) {

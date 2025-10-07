@@ -229,6 +229,27 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             const meetingDocuments = await getDocumentsByMeeting(taskToUse.meetingId)
             const signedDoc = findSignedDocumentForTask(taskToUse, meetingDocuments)
 
+            console.log('[TaskDrawer] Checking for signed document:', {
+              taskId: taskToUse.id,
+              taskIdField: taskToUse.taskId,
+              taskTitle: taskToUse.title,
+              meetingId: taskToUse.meetingId,
+              documentsCount: meetingDocuments.length,
+              signedDocFound: !!signedDoc,
+              signedDoc: signedDoc ? {
+                id: signedDoc.id,
+                type: signedDoc.type,
+                title: signedDoc.title,
+                taskId: signedDoc.taskId,
+              } : null,
+              allDocs: meetingDocuments.map(d => ({
+                id: d.id,
+                type: d.type,
+                title: d.title,
+                taskId: d.taskId,
+              }))
+            })
+
             setHasSignedDocument(!!signedDoc)
             setCheckingSignedDocument(false)
           } else {
