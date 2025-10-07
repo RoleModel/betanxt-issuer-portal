@@ -3330,9 +3330,10 @@ const main = async () => {
         status = 'AUTHORIZED'
       }
 
-      // Generate storage URL - point to placeholder PDF files
+      // Generate storage path (relative path, not full URL)
+      // The frontend will construct the full URL using Supabase client's getPublicUrl()
       const fileName = `${docType.storagePath}.pdf`
-      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
+      const storagePath = `${meetingId}/${docType.storagePath}/${fileName}`
 
       // Use more descriptive titles
       let title = docType.type
@@ -3353,7 +3354,7 @@ const main = async () => {
         `${sqlValue(meetingId)}, ` +
         `${sqlValue(title)}, ` +
         `${sqlValue(docType.type)}, ` +
-        `${sqlValue(storageUrl)}, ` +
+        `${sqlValue(storagePath)}, ` +
         `${sqlValue('pdf')}, ` +
         `${1024 * 250}, ` + // Approximate file size
         `${sqlValue(status)}, ` +
@@ -3376,7 +3377,7 @@ const main = async () => {
 
       const status = 'APPROVED'
       const fileName = `${docType.storagePath}.pdf`
-      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
+      const storagePath = `${meetingId}/${docType.storagePath}/${fileName}`
 
       sqlStatements.push(
         `INSERT INTO document(` +
@@ -3386,7 +3387,7 @@ const main = async () => {
         `${sqlValue(meetingId)}, ` +
         `${sqlValue(docType.type)}, ` +
         `${sqlValue(docType.type)}, ` +
-        `${sqlValue(storageUrl)}, ` +
+        `${sqlValue(storagePath)}, ` +
         `'PDF', ` +
         `${copycat.int(meetingId + docType.type, { min: 500000, max: 5000000 })}, ` +
         `${sqlValue(status)}, ` +
