@@ -236,7 +236,8 @@ function Layout({
         >
           <BNAppFooter
             links={
-              bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
+              bnUser?.type?.toUpperCase() === 'ADMIN' ||
+              bnUser?.type?.toUpperCase() === 'RELATIONSHIP_MANAGER'
                 ? [
                     {
                       label: 'Reset',
