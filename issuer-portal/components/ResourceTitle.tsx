@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import React from 'react'
 
 import { DescriptionOutlined } from '@mui/icons-material'
-import { Box, CircularProgress, Link, Paper, Typography } from '@mui/material'
+import { Box, CircularProgress, Paper, Typography } from '@mui/material'
 
 interface ResourceTitleProps {
   title: string
@@ -191,7 +191,8 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
           {description}
         </Typography>
 
-        <Link
+        <Box
+          component="a"
           href={href || '#'}
           target={href ? '_blank' : undefined}
           rel={href ? 'noopener noreferrer' : undefined}
@@ -205,10 +206,15 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
             alignSelf: 'flex-start',
             minWidth: 'auto',
             minHeight: 'auto',
+            color: 'link',
+            fontWeight: 600,
+            textDecoration: 'none',
+            cursor: 'pointer',
+            '&:hover': { opacity: 0.8 }
           })}
         >
           {actionText}
-        </Link>
+        </Box>
       </Box>
     </Box>
   )
