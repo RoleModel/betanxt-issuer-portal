@@ -123,9 +123,9 @@ const TaskActions: React.FC<TaskActionsProps> = ({
                 component="span"
                 sx={{
                   cursor: 'pointer',
-                  color: 'primary.main',
+                  color: 'link',
                   textDecoration: 'underline',
-                  '&:hover': { color: 'primary.dark' }
+                  '&:hover': { opacity: 0.8 }
                 }}
                 key={linkIndex}
                 onClick={handleViewSignedDocument}
@@ -156,9 +156,9 @@ const TaskActions: React.FC<TaskActionsProps> = ({
               onClick={() => onLinkClick(link)}
               sx={{
                 cursor: 'pointer',
-                color: 'primary.main',
+                color: 'link',
                 textDecoration: 'underline',
-                '&:hover': { color: 'primary.dark' }
+                '&:hover': { opacity: 0.8 }
               }}
             >
               {link.label}
