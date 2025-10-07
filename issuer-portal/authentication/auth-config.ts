@@ -143,6 +143,7 @@ export const config = {
   callbacks: {
     jwt({ token, user }) {
       if (user) {
+        token.sub = user.id
         token.username = user.username
         token.type = user.type
         token.accountId = user.accountId
