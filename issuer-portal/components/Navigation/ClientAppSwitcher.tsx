@@ -24,7 +24,7 @@ function SwitchButton() {
   const open = Boolean(anchorEl)
 
   // Check if user has permission to switch clients
-  const userType = session?.user?.type
+  const userType = session?.user?.type?.toUpperCase()
   const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
   const canSwitchClients =
     isAuthBypassed || userType === 'ADMIN' || userType === 'RELATIONSHIP_MANAGER'
