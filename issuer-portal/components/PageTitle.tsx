@@ -73,9 +73,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                   ? '/products'
                   : `${tickerPrefix}/${segments[baseIndex]}`
             }
-            variant="body3"
             underline="hover"
-            color="link"
           >
             {getParentTitle()}
           </BNLink>
@@ -101,9 +99,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
               <BNLink
                 key={href}
                 href={href}
-                variant="body3"
                 underline="hover"
-                color="inherit"
               >
                 {label}
               </BNLink>
