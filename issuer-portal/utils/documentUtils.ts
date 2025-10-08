@@ -273,7 +273,15 @@ export function getStoragePublicUrl(filePath: string): string {
   if (filePath.startsWith('data:')) return filePath
 
   // Get the base Supabase URL from environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+  // For client-side code, Next.js injects NEXT_PUBLIC_ vars at build time
+  // Fallback to detecting localhost for development
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    (typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://127.0.0.1:54321'
+      : 'https://vfgjzlcakdrpsbzuqklz.supabase.co')
+
   // Strip leading slashes and /documents/ prefix if present
   let normalized = filePath.replace(/^\/+/, '')
   if (normalized.startsWith('documents/')) {
