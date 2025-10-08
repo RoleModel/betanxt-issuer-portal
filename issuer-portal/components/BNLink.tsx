@@ -1,5 +1,5 @@
 import * as React from 'react'
-import NextLink from 'next/link'
+import Link from 'next/link'
 import type { LinkProps as NextLinkProps } from 'next/link'
 import { styled } from '@mui/material/styles'
 
@@ -8,7 +8,7 @@ import { styled } from '@mui/material/styles'
  *
  * This component bypasses MUI Link entirely to avoid ref forwarding issues
  * in MUI v7+ with React 19. Instead, it applies MUI Link styles directly to
- * Next.js Link component.
+ * the anchor tag within Next.js Link.
  *
  * Usage:
  *   <BNLink href="/about">About</BNLink>
@@ -19,21 +19,20 @@ interface BNLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>
   prefetch?: NextLinkProps['prefetch']
   replace?: NextLinkProps['replace']
   scroll?: NextLinkProps['scroll']
-  shallow?: NextLinkProps['shallow']
-  locale?: NextLinkProps['locale']
   underline?: 'none' | 'hover' | 'always'
   color?: string
   sx?: any
 }
 
-const StyledLink = styled(NextLink, {
+const StyledAnchor = styled('a', {
   shouldForwardProp: (prop) =>
-    prop !== 'underline' && prop !== 'color' && prop !== 'sx'
-})<BNLinkProps>(({ theme, underline = 'hover', color = 'primary' }) => ({
+    prop !== 'underline' && prop !== 'color'
+})<{ underline?: 'none' | 'hover' | 'always'; color?: string }>(({ theme, underline = 'hover', color = 'primary' }) => ({
   ...theme.typography.body3,
   color: color === 'primary' ? theme.palette.primary.main : color,
   fontWeight: 500,
   textDecoration: underline === 'always' ? 'underline' : 'none',
+  cursor: 'pointer',
   '&:hover': {
     textDecoration: underline === 'hover' || underline === 'always' ? 'underline' : 'none',
     color: color === 'primary' ? theme.palette.primary.dark : color,
@@ -47,28 +46,32 @@ const BNLink = React.forwardRef<HTMLAnchorElement, BNLinkProps>(
       prefetch = false,
       replace,
       scroll,
-      shallow,
-      locale,
-      underline,
-      color,
+      underline = 'hover',
+      color = 'primary',
       sx,
+      children,
       ...other
     } = props
 
     return (
-      <StyledLink
+      <Link
         href={href}
         prefetch={prefetch}
         replace={replace}
         scroll={scroll}
-        shallow={shallow}
-        locale={locale}
-        underline={underline}
-        color={color}
-        sx={sx}
-        ref={ref}
-        {...other}
-      />
+        passHref
+        legacyBehavior
+      >
+        <StyledAnchor
+          underline={underline}
+          color={color}
+          sx={sx}
+          ref={ref}
+          {...other}
+        >
+          {children}
+        </StyledAnchor>
+      </Link>
     )
   }
 )
