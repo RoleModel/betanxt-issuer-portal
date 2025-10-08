@@ -65,11 +65,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             },
           }}
         >
-          <MuiLink
-            component={Link}
-            variant="body3"
-            underline="hover"
-            color="link"
+          <Link
             href={
               isEducation
                 ? '/education'
@@ -77,9 +73,17 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                   ? '/products'
                   : `${tickerPrefix}/${segments[baseIndex]}`
             }
+            passHref
+            legacyBehavior
           >
-            {getParentTitle()}
-          </MuiLink>
+            <MuiLink
+              variant="body3"
+              underline="hover"
+              color="link"
+            >
+              {getParentTitle()}
+            </MuiLink>
+          </Link>
           {childSegments.map((seg, idx) => {
             const basePath = isEducation
               ? '/education'
@@ -99,16 +103,15 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                 {label}
               </Typography>
             ) : (
-              <MuiLink
-                key={href}
-                component={Link}
-                variant="body3"
-                underline="hover"
-                color="inherit"
-                href={href}
-              >
-                {label}
-              </MuiLink>
+              <Link key={href} href={href} passHref legacyBehavior>
+                <MuiLink
+                  variant="body3"
+                  underline="hover"
+                  color="inherit"
+                >
+                  {label}
+                </MuiLink>
+              </Link>
             )
           })}
         </Breadcrumbs>
