@@ -90,7 +90,7 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
                       <Button
                         variant="text"
                         color="info"
-                        component={Link}
+                        LinkComponent={Link}
                         href={`/clients/${clientTicker}/meetings/${row.meetingId}`}
                       >
                         {row.event}

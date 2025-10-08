@@ -32,6 +32,7 @@
     "seed:documents": "npx tsx scripts/seed-documents.ts",
     "seed:documents:clean": "npx tsx scripts/seed-documents.ts -- --clean",
     "seed:documents:link": "npx tsx scripts/seed-documents.ts -- --link",
+    "seed:remote": "npx tsx scripts/seed-remote-api.ts",
     "storage:sync": "npm run storage:sync:extract && npm run storage:sync:upload && npm run storage:sync:cleanup",
     "storage:sync:extract": "mkdir -p /tmp/supabase-storage-sync && docker run --rm -v supabase_storage_betanxt-issuer-portal:/source -v /tmp/supabase-storage-sync:/dest alpine cp -r /source/stub/stub/documents /dest/",
     "storage:sync:upload": "npx supabase storage cp --experimental --linked -r /tmp/supabase-storage-sync/documents ss:///documents",
