@@ -30,13 +30,12 @@ const StyledLink = styled(Link, {
     prop !== 'underline' && prop !== 'color'
 })<BNLinkProps>(({ theme, underline = 'hover', color = 'primary' }) => ({
   ...theme.typography.body3,
-  color: color === 'primary' ? theme.palette.primary.main : color,
+  color: color === 'primary' ? theme.vars.palette.link : color,
   fontWeight: 500,
   textDecoration: underline === 'always' ? 'underline' : 'none',
   cursor: 'pointer',
   '&:hover': {
     textDecoration: underline === 'hover' || underline === 'always' ? 'underline' : 'none',
-    color: color === 'primary' ? theme.palette.primary.dark : color,
   },
 }))
 
