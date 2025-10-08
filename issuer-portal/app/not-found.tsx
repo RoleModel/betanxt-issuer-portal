@@ -1,10 +1,9 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 
-import { Container, Typography } from '@mui/material'
-
-import BNLink from '@/components/BNLink'
+import { Container, Typography, Link as MuiLink } from '@mui/material'
 
 export default function NotFound() {
   return (
@@ -43,9 +42,9 @@ export default function NotFound() {
         404
       </Typography>
       <Typography variant="pageTitle">Sorry, we can&apos;t find that page.</Typography>
-      <BNLink href="/" sx={{ zIndex: 1 }}>
+      <MuiLink component={Link} href="/" sx={{ zIndex: 1 }}>
         Return Home
-      </BNLink>
+      </MuiLink>
     </Container>
   )
 }

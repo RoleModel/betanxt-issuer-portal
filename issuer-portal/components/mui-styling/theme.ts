@@ -1,13 +1,9 @@
 'use client'
 
-import type * as React from 'react'
-
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
-
-import LinkBehavior from '@/components/LinkBehavior'
 
 import {
   blue,
@@ -304,29 +300,6 @@ const issuerOverrides = {
     drawerWidth: 500,
   },
   components: {
-    MuiLink: {
-      defaultProps: {
-        // Use LinkBehavior to prevent "Illegal invocation" error in MUI v7+ with React 19
-        // This ensures all MUI Link components (including those used internally by Breadcrumbs)
-        // use Next.js Link with proper ref forwarding
-        component: LinkBehavior,
-        underline: 'hover' as const,
-      },
-      styleOverrides: {
-        root: ({ theme }: { theme: Theme }) => ({
-          ...theme.typography.body3,
-          color: theme.vars.palette.link,
-          fontWeight: 500,
-        }),
-      },
-    },
-    MuiBreadcrumbs: {
-      defaultProps: {
-        // Ensure Breadcrumbs uses LinkBehavior for all link children
-        // This prevents the component from using MUI's default Link with ref issues
-        LinkComponent: LinkBehavior,
-      },
-    },
     MuiCardContent: {
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({

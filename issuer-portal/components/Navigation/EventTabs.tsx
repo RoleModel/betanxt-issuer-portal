@@ -12,8 +12,6 @@ import React, {
   useTransition,
 } from 'react'
 
-import LinkBehavior from '@/components/LinkBehavior'
-
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
@@ -867,8 +865,8 @@ export function EventTabs() {
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
+                    component={Link}
                     href={tabHref}
-                    LinkComponent={LinkBehavior}
                     sx={(theme) => ({
                       color: isActive
                         ? 'var(--mui-palette-primary-main)'

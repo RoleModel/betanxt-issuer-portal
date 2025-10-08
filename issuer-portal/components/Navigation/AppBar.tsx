@@ -4,6 +4,7 @@ import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BN
 import type { User } from 'next-auth'
 import { signOut } from 'next-auth/react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React, {
   useCallback,
@@ -13,8 +14,6 @@ import React, {
   useRef,
   useState,
 } from 'react'
-
-import LinkBehavior from '@/components/LinkBehavior'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
@@ -56,14 +55,11 @@ interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
 
 const NextLinkComponent = React.memo(
   React.forwardRef<HTMLAnchorElement, NextLinkProps>(
-    function NextLink({ to, children, ...props }, ref) {
-      // BNAppBar uses 'to' prop, but LinkBehavior expects 'href'
-      return (
-        <LinkBehavior href={to} prefetch={false} ref={ref} {...props}>
-          {children}
-        </LinkBehavior>
-      )
-    }
+    ({ to, children, ...props }, ref) => (
+      <Link href={to} prefetch={false} ref={ref} {...props}>
+        {children}
+      </Link>
+    )
   )
 )
 NextLinkComponent.displayName = 'NextLinkComponent'

@@ -1,5 +1,6 @@
 'use client'
 
+import NextLink from 'next/link'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
@@ -9,6 +10,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -19,8 +21,6 @@ import {
   Typography,
 } from '@mui/material'
 
-import BNLink from '@/components/BNLink'
-import LinkBehavior from '@/components/LinkBehavior'
 import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -187,14 +187,15 @@ export default function MeetingsPage() {
                 {sortedMeetings.map((meeting) => (
                   <TableRow key={meeting.id} hover>
                     <TableCell>
-                      <BNLink
+                      <Link
+                        component={NextLink}
                         href={`/${clientTicker}/meeting/${meeting.id}`}
                         underline="hover"
                         color="primary"
                         sx={{ fontWeight: 500 }}
                       >
                         {meeting.title}
-                      </BNLink>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
@@ -219,7 +220,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="outlined"
                           size="small"
-                          LinkComponent={LinkBehavior}
+                          component={NextLink}
                           href={`/${clientTicker}/meeting/${meeting.id}`}
                         >
                           Manage
@@ -227,7 +228,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="text"
                           size="small"
-                          LinkComponent={LinkBehavior}
+                          component={NextLink}
                           href={`/${clientTicker}/meeting/${meeting.id}/calendar`}
                         >
                           Calendar

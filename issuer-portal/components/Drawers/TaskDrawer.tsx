@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import {
   Alert,
@@ -766,6 +766,161 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
     }
   }
 
+  // Memoized callback for document submission to preserve execution context
+  const handleDocumentSubmitSuccess = useCallback(async () => {
+    try {
+      // Determine appropriate status based on task type
+      let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
+      const taskTitle = ((currentTask ?? task)?.title ?? '').toLowerCase()
+
+      if (
+        taskTitle.includes('broadridge') ||
+        taskTitle.includes('ics access')
+      ) {
+        newStatus = 'PENDING_AUTHORIZATION'
+      } else if (taskTitle.includes('transfer agent')) {
+        newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+      } else if (taskTitle.includes('plan file request')) {
+        newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+      }
+
+      // Update task status in backend
+      const taskToUpdate = currentTask ?? task
+      if (taskToUpdate?.id) {
+        try {
+          await updateTaskById(taskToUpdate.id, { status: newStatus })
+        } catch (error) {
+          console.error(
+            'Failed to update task after document submission',
+            error
+          )
+        }
+      }
+
+      // Update local task state with appropriate status
+      const updatedTask = { ...(currentTask ?? task), status: newStatus }
+      setCurrentTask(updatedTask)
+
+      // Notify parent component to refresh
+      if (onTaskUpdate) {
+        onTaskUpdate(updatedTask as DbTask)
+      }
+
+      // Close both the DocumentViewer and TaskDrawer after successful submission
+      handleDocumentViewerClose()
+      onClose()
+
+      // Check if all phase 1 tasks are complete and auto-advance to phase 2
+      const taskToCheck = currentTask ?? task
+      if (taskToCheck?.phaseNumber === 1) {
+        // Short delay to ensure database is updated
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Refresh tasks to get latest status
+        void refetch()
+
+        // Get all phase 1 tasks (excluding BetaNXT and DFIN owned tasks)
+        const phase1Tasks = tasks.filter(
+          (t) =>
+            t.phaseNumber === 1 && !['BetaNXT', 'DFIN'].includes(t.owner ?? '')
+        )
+
+        // Define statuses that indicate task completion
+        const completedStatuses = [
+          'COMPLETE',
+          'AUTHORIZED',
+          'SUBMITTED_AWAITING_RECORD_DATE',
+          'WAITING_FOR_FORM_RETURN',
+          'REQUEST_FORM_TO_FOLLOW',
+          'PENDING_AUTHORIZATION',
+        ]
+
+        // Check if all phase 1 tasks are complete
+        const allPhase1TasksComplete =
+          phase1Tasks.length > 0 &&
+          phase1Tasks.every((t) => completedStatuses.includes(t.status ?? ''))
+
+        if (allPhase1TasksComplete) {
+          // Update meeting to Phase 2 and calculate completion percentage
+          if (currentMeeting?.id) {
+            try {
+              const client = await buildApiClient()
+
+              // Calculate overall completion based on all tasks
+              const allTasks = tasks
+              const completedTasks = allTasks.filter((t) =>
+                [
+                  'COMPLETE',
+                  'AUTHORIZED',
+                  'SUBMITTED_AWAITING_RECORD_DATE',
+                  'WAITING_FOR_FORM_RETURN',
+                  'REQUEST_FORM_TO_FOLLOW',
+                  'PENDING_AUTHORIZATION',
+                ].includes(t.status ?? '')
+              ).length
+              const overallCompletion = Math.round(
+                (completedTasks / allTasks.length) * 100
+              )
+
+              // Update meeting phase and completion
+              await client.PUT('/meetings/{meetingId}', {
+                params: {
+                  path: { meetingId: currentMeeting.id },
+                },
+                body: {
+                  currentPhase: 'Phase 2',
+                  overallCompletion: overallCompletion,
+                },
+              })
+            } catch (_error) {
+              // Error handled silently - meeting update failed
+            }
+          }
+
+          // Show success message using MUI Alert
+          const userName = session?.user?.name ?? 'User'
+          const meetingTitle = currentMeeting?.title ?? 'Shareholder Meeting'
+
+          setPhaseCompleteAlert({
+            open: true,
+            title: 'Phase 1 Wrapped Up – Time for Phase 2',
+            message: `Great news! ${userName}, you completed Phase 1 of ${meetingTitle}. You can now start Phase 2 — check the updated tasks and timelines to keep things moving smoothly.`,
+          })
+
+          // Close the document viewer and task drawer
+          handleDocumentViewerClose()
+
+          // Navigate to phase 2 after a short delay to let user see the message
+          setTimeout(() => {
+            onClose() // Close the task drawer
+            const phase2Path = `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/dashboard/2`
+            router.push(phase2Path)
+          }, 3000)
+        }
+      }
+
+      // Close the document viewer
+      handleDocumentViewerClose()
+    } catch (error) {
+      console.error('Error in handleDocumentSubmitSuccess:', error)
+      // Show error to user if needed
+    }
+  }, [
+    currentTask,
+    task,
+    updateTaskById,
+    setCurrentTask,
+    onTaskUpdate,
+    handleDocumentViewerClose,
+    onClose,
+    refetch,
+    tasks,
+    currentMeeting,
+    session,
+    router,
+    setPhaseCompleteAlert,
+  ])
+
   const isMobile = useMediaQuery('(max-width: 500px)')
 
   return (
@@ -987,140 +1142,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                 : undefined,
             documentType: 'signature', // Ensure signature buttons show up
             onPdfStateChange: handlePdfStateChange,
-            onSubmitSuccess: async () => {
-              // Determine appropriate status based on task type
-              let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
-              const taskTitle = ((currentTask ?? task)?.title ?? '').toLowerCase()
-
-              if (
-                taskTitle.includes('broadridge') ||
-                taskTitle.includes('ics access')
-              ) {
-                newStatus = 'PENDING_AUTHORIZATION'
-              } else if (taskTitle.includes('transfer agent')) {
-                newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-              } else if (taskTitle.includes('plan file request')) {
-                newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-              }
-
-              // Update task status in backend
-              const taskToUpdate = currentTask ?? task
-              if (taskToUpdate?.id) {
-                try {
-                  await updateTaskById(taskToUpdate.id, { status: newStatus })
-                } catch (error) {
-                  console.error(
-                    'Failed to update task after document submission',
-                    error
-                  )
-                }
-              }
-
-              // Update local task state with appropriate status
-              const updatedTask = { ...(currentTask ?? task), status: newStatus }
-              setCurrentTask(updatedTask)
-
-              // Notify parent component to refresh
-              if (onTaskUpdate) {
-                onTaskUpdate(updatedTask as DbTask)
-              }
-
-              // Close both the DocumentViewer and TaskDrawer after successful submission
-              handleDocumentViewerClose()
-              onClose()
-
-              // Check if all phase 1 tasks are complete and auto-advance to phase 2
-              const taskToCheck = currentTask ?? task
-              if (taskToCheck?.phaseNumber === 1) {
-                // Short delay to ensure database is updated
-                await new Promise((resolve) => setTimeout(resolve, 500))
-
-                // Refresh tasks to get latest status
-                void refetch()
-
-                // Get all phase 1 tasks (excluding BetaNXT and DFIN owned tasks)
-                const phase1Tasks = tasks.filter(
-                  (t) =>
-                    t.phaseNumber === 1 && !['BetaNXT', 'DFIN'].includes(t.owner ?? '')
-                )
-
-                // Define statuses that indicate task completion
-                const completedStatuses = [
-                  'COMPLETE',
-                  'AUTHORIZED',
-                  'SUBMITTED_AWAITING_RECORD_DATE',
-                  'WAITING_FOR_FORM_RETURN',
-                  'REQUEST_FORM_TO_FOLLOW',
-                  'PENDING_AUTHORIZATION',
-                ]
-
-                // Check if all phase 1 tasks are complete
-                const allPhase1TasksComplete =
-                  phase1Tasks.length > 0 &&
-                  phase1Tasks.every((t) => completedStatuses.includes(t.status ?? ''))
-
-                if (allPhase1TasksComplete) {
-                  // Update meeting to Phase 2 and calculate completion percentage
-                  if (currentMeeting?.id) {
-                    try {
-                      const client = await buildApiClient()
-
-                      // Calculate overall completion based on all tasks
-                      const allTasks = tasks
-                      const completedTasks = allTasks.filter((t) =>
-                        [
-                          'COMPLETE',
-                          'AUTHORIZED',
-                          'SUBMITTED_AWAITING_RECORD_DATE',
-                          'WAITING_FOR_FORM_RETURN',
-                          'REQUEST_FORM_TO_FOLLOW',
-                          'PENDING_AUTHORIZATION',
-                        ].includes(t.status ?? '')
-                      ).length
-                      const overallCompletion = Math.round(
-                        (completedTasks / allTasks.length) * 100
-                      )
-
-                      // Update meeting phase and completion
-                      await client.PUT('/meetings/{meetingId}', {
-                        params: {
-                          path: { meetingId: currentMeeting.id },
-                        },
-                        body: {
-                          currentPhase: 'Phase 2',
-                          overallCompletion: overallCompletion,
-                        },
-                      })
-                    } catch (_error) {
-                      // Error handled silently - meeting update failed
-                    }
-                  }
-
-                  // Show success message using MUI Alert
-                  const userName = session?.user?.name ?? 'User'
-                  const meetingTitle = currentMeeting?.title ?? 'Shareholder Meeting'
-
-                  setPhaseCompleteAlert({
-                    open: true,
-                    title: 'Phase 1 Wrapped Up – Time for Phase 2',
-                    message: `Great news! ${userName}, you completed Phase 1 of ${meetingTitle}. You can now start Phase 2 — check the updated tasks and timelines to keep things moving smoothly.`,
-                  })
-
-                  // Close the document viewer and task drawer
-                  handleDocumentViewerClose()
-
-                  // Navigate to phase 2 after a short delay to let user see the message
-                  setTimeout(() => {
-                    onClose() // Close the task drawer
-                    const phase2Path = `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/dashboard/2`
-                    router.push(phase2Path)
-                  }, 3000)
-                }
-              }
-
-              // Close the document viewer
-              handleDocumentViewerClose()
-            },
+            onSubmitSuccess: handleDocumentSubmitSuccess,
           }
           : (currentTask ?? task) && documentViewerOpen
             ? {

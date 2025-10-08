@@ -1,10 +1,8 @@
-'use client'
-
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Box, Breadcrumbs, Typography } from '@mui/material'
-
-import BNLink from '@/components/BNLink'
+import { Link as MuiLink } from '@mui/material'
 
 export function PageTitle({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -67,7 +65,11 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             },
           }}
         >
-          <BNLink
+          <MuiLink
+            component={Link}
+            variant="body3"
+            underline="hover"
+            color="link"
             href={
               isEducation
                 ? '/education'
@@ -75,10 +77,9 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                   ? '/products'
                   : `${tickerPrefix}/${segments[baseIndex]}`
             }
-            underline="hover"
           >
             {getParentTitle()}
-          </BNLink>
+          </MuiLink>
           {childSegments.map((seg, idx) => {
             const basePath = isEducation
               ? '/education'
@@ -98,13 +99,15 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                 {label}
               </Typography>
             ) : (
-              <BNLink
+              <MuiLink
                 key={href}
-                href={href}
+                variant="body3"
                 underline="hover"
+                color="inherit"
+                href={href}
               >
                 {label}
-              </BNLink>
+              </MuiLink>
             )
           })}
         </Breadcrumbs>
