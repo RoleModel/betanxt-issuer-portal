@@ -8,7 +8,6 @@ import {
   CardContent,
   Checkbox,
   FormControlLabel,
-  Link,
   Stack,
   Typography,
 } from '@mui/material'
@@ -164,27 +163,31 @@ export default function DrawerTaskItem({
             <Box sx={{ mt: 1 }}>
               <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center">
                 {taskLinks.map((link: TaskLink, linkIndex: number) => (
-                  <Link
+                  <Box
                     key={linkIndex}
                     component="button"
-                    variant="body3"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       onLinkClick(link, task.title || 'Task')
                     }}
-                    sx={{
+                    sx={(theme) => ({
                       cursor: 'pointer',
                       border: 'none',
                       background: 'none',
+                      padding: 0,
                       fontWeight: 600,
+                      fontSize: theme.typography.body3.fontSize,
+                      fontFamily: theme.typography.body3.fontFamily,
+                      color: theme.palette.primary.main,
+                      textDecoration: 'underline',
                       '&:hover': {
                         textDecoration: 'none',
                       },
-                    }}
+                    })}
                   >
                     {link.label}
-                  </Link>
+                  </Box>
                 ))}
                 {/* DTCC Authorization Checkbox */}
                 {isDTCCAuthorization && (

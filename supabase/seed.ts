@@ -971,7 +971,7 @@ const main = async () => {
     ELVN: { meetingDate: '2026-06-10', recordDate: '2026-04-13' },
   }
 
-  // 2 meetings per year: Annual + Special for 2022-2026
+  // 2 meetings per year: Annual + Special for 2023-2026 (2022 removed to reduce seed file size)
   const meetingsByYear = [
     {
       year: 2026,
@@ -999,13 +999,6 @@ const main = async () => {
       meetings: [
         { type: 'Annual Meeting', monthOffset: -33, phase: 8 }, // Jan 2023
         { type: 'Special Meeting', monthOffset: -30, phase: 8 }, // Apr 2023
-      ],
-    },
-    {
-      year: 2022,
-      meetings: [
-        { type: 'Annual Meeting', monthOffset: -45, phase: 8 }, // Jan 2022
-        { type: 'Special Meeting', monthOffset: -42, phase: 8 }, // Apr 2022
       ],
     },
   ]
