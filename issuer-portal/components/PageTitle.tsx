@@ -1,9 +1,8 @@
 import { usePathname } from 'next/navigation'
 
 import { Box, Breadcrumbs, Typography } from '@mui/material'
-import { Link as MuiLink } from '@mui/material'
 
-import LinkBehavior from '@/components/LinkBehavior'
+import BNLink from '@/components/BNLink'
 
 export function PageTitle({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -66,8 +65,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             },
           }}
         >
-          <MuiLink
-            component={LinkBehavior}
+          <BNLink
             href={
               isEducation
                 ? '/education'
@@ -80,7 +78,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             color="link"
           >
             {getParentTitle()}
-          </MuiLink>
+          </BNLink>
           {childSegments.map((seg, idx) => {
             const basePath = isEducation
               ? '/education'
@@ -100,16 +98,15 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                 {label}
               </Typography>
             ) : (
-              <MuiLink
+              <BNLink
                 key={href}
-                component={LinkBehavior}
                 href={href}
                 variant="body3"
                 underline="hover"
                 color="inherit"
               >
                 {label}
-              </MuiLink>
+              </BNLink>
             )
           })}
         </Breadcrumbs>

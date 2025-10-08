@@ -19,7 +19,7 @@ import * as React from 'react'
  *    MuiLink: { defaultProps: { component: LinkBehavior } }
  */
 
-interface LinkBehaviorProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+export interface LinkBehaviorProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   href: NextLinkProps['href']
   prefetch?: NextLinkProps['prefetch']
   replace?: NextLinkProps['replace']

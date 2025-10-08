@@ -1,5 +1,7 @@
 'use client'
 
+import * as React from 'react'
+
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
@@ -23,6 +25,16 @@ import { deepmerge } from '@mui/utils'
 import type {} from '@mui/x-date-pickers/themeAugmentation'
 
 import LinkBehavior from '@/components/LinkBehavior'
+import type { LinkBehaviorProps } from '@/components/LinkBehavior'
+
+declare module '@mui/material/Link' {
+  interface LinkPropsVariantOverrides {
+    // Add any custom variants if needed
+  }
+  interface LinkOwnProps {
+    component?: React.ElementType<LinkBehaviorProps>
+  }
+}
 
 export interface LayoutVars {
   navbarHeight: number
@@ -303,9 +315,6 @@ const issuerOverrides = {
   },
   components: {
     MuiLink: {
-      defaultProps: {
-        component: LinkBehavior,
-      },
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
           ...theme.typography.body3,

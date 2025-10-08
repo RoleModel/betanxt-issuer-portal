@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +19,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import BNLink from '@/components/BNLink'
 import LinkBehavior from '@/components/LinkBehavior'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -187,15 +187,14 @@ export default function MeetingsPage() {
                 {sortedMeetings.map((meeting) => (
                   <TableRow key={meeting.id} hover>
                     <TableCell>
-                      <Link
-                        component={LinkBehavior}
+                      <BNLink
                         href={`/${clientTicker}/meeting/${meeting.id}`}
                         underline="hover"
                         color="primary"
                         sx={{ fontWeight: 500 }}
                       >
                         {meeting.title}
-                      </Link>
+                      </BNLink>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
