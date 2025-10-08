@@ -40,9 +40,11 @@ export default function NotFound() {
         404
       </Typography>
       <Typography variant="pageTitle">Sorry, we can&apos;t find that page.</Typography>
-      <MuiLink component={Link} href="/" sx={{ zIndex: 1 }}>
-        Return Home
-      </MuiLink>
+      <Link href="/" passHref legacyBehavior>
+        <MuiLink sx={{ zIndex: 1 }}>
+          Return Home
+        </MuiLink>
+      </Link>
     </Container>
   )
 }

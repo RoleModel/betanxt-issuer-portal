@@ -686,24 +686,25 @@ export function EventTabs() {
       >
         <Box sx={{ px: 2, pt: 1.5 }}>
           <Stack>
-            <Typography
-              href={targetPath}
-              variant="h1"
-              component={Link}
-              sx={{
-                fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
-                fontWeight: 500,
-                fontSize: '2rem',
-                lineHeight: 1.125,
-                letterSpacing: '0.47%',
-                textDecoration: 'none',
-                color: 'inherit',
-                mb: 1,
-                fontDisplay: 'swap',
-              }}
-            >
-              {meeting.title}
-            </Typography>
+            <Link href={targetPath} passHref legacyBehavior>
+              <Typography
+                component="a"
+                variant="h1"
+                sx={{
+                  fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '2rem',
+                  lineHeight: 1.125,
+                  letterSpacing: '0.47%',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  mb: 1,
+                  fontDisplay: 'swap',
+                }}
+              >
+                {meeting.title}
+              </Typography>
+            </Link>
             {isActive && !isMobile ? (
               <ActiveMeetingDetails
                 meeting={meeting}
@@ -865,8 +866,8 @@ export function EventTabs() {
                     key={tab.label}
                     value={tab.label}
                     label={tab.label}
-                    component={Link}
                     href={tabHref}
+                    LinkComponent={Link}
                     sx={(theme) => ({
                       color: isActive
                         ? 'var(--mui-palette-primary-main)'
