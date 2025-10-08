@@ -1,3 +1,5 @@
+'use client'
+
 import { usePathname } from 'next/navigation'
 
 import { Box, Breadcrumbs, Typography } from '@mui/material'
