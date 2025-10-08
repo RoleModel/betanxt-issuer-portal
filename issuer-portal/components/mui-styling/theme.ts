@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import type * as React from 'react'
 
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
@@ -23,18 +23,6 @@ import { createTheme } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
 // Import MUI X Date Pickers theme augmentation
 import type {} from '@mui/x-date-pickers/themeAugmentation'
-
-import LinkBehavior from '@/components/LinkBehavior'
-import type { LinkBehaviorProps } from '@/components/LinkBehavior'
-
-declare module '@mui/material/Link' {
-  interface LinkPropsVariantOverrides {
-    // Add any custom variants if needed
-  }
-  interface LinkOwnProps {
-    component?: React.ElementType<LinkBehaviorProps>
-  }
-}
 
 export interface LayoutVars {
   navbarHeight: number

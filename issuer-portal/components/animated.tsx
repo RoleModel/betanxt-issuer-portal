@@ -1,4 +1,5 @@
-import { motion, useMotionValue, Variants } from "framer-motion"
+import type { Variants } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion"
 
 // Animation timing configuration - adjust these values to control the entire animation sequence
 const TIMING = {

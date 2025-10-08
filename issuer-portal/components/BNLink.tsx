@@ -23,7 +23,7 @@ interface BNLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>
   scroll?: NextLinkProps['scroll']
   underline?: 'none' | 'hover' | 'always'
   color?: string
-  sx?: any
+  sx?: Record<string, unknown>
 }
 
 // Style Next.js Link directly (it renders as <a> in App Router)
