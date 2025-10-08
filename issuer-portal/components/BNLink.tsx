@@ -7,8 +7,8 @@ import { styled } from '@mui/material/styles'
  * BNLink - A custom Link component that uses Next.js Link with MUI styling
  *
  * This component bypasses MUI Link entirely to avoid ref forwarding issues
- * in MUI v7+ with React 19. Instead, it applies MUI Link styles directly to
- * the anchor tag within Next.js Link.
+ * in MUI v7+ with React 19. For Next.js 15 App Router, Link renders as an
+ * <a> tag by default, so we can style it directly.
  *
  * Usage:
  *   <BNLink href="/about">About</BNLink>
@@ -24,10 +24,11 @@ interface BNLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>
   sx?: any
 }
 
-const StyledAnchor = styled('a', {
+// Style Next.js Link directly (it renders as <a> in App Router)
+const StyledLink = styled(Link, {
   shouldForwardProp: (prop) =>
     prop !== 'underline' && prop !== 'color'
-})<{ underline?: 'none' | 'hover' | 'always'; color?: string }>(({ theme, underline = 'hover', color = 'primary' }) => ({
+})<BNLinkProps>(({ theme, underline = 'hover', color = 'primary' }) => ({
   ...theme.typography.body3,
   color: color === 'primary' ? theme.palette.primary.main : color,
   fontWeight: 500,
@@ -49,29 +50,21 @@ const BNLink = React.forwardRef<HTMLAnchorElement, BNLinkProps>(
       underline = 'hover',
       color = 'primary',
       sx,
-      children,
       ...other
     } = props
 
     return (
-      <Link
+      <StyledLink
         href={href}
         prefetch={prefetch}
         replace={replace}
         scroll={scroll}
-        passHref
-        legacyBehavior
-      >
-        <StyledAnchor
-          underline={underline}
-          color={color}
-          sx={sx}
-          ref={ref}
-          {...other}
-        >
-          {children}
-        </StyledAnchor>
-      </Link>
+        underline={underline}
+        color={color}
+        sx={sx}
+        ref={ref}
+        {...other}
+      />
     )
   }
 )
