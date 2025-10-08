@@ -7,6 +7,8 @@ import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-to
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
+import LinkBehavior from '@/components/LinkBehavior'
+
 import {
   blue,
   cyan,
@@ -304,9 +306,11 @@ const issuerOverrides = {
   components: {
     MuiLink: {
       defaultProps: {
-        // Force all MUI Links to behave as regular anchor tags without ref forwarding issues
-        // This prevents the "Illegal invocation" error in MUI v7+ with React 19
-        underlineHover: 'hover' as const,
+        // Use LinkBehavior to prevent "Illegal invocation" error in MUI v7+ with React 19
+        // This ensures all MUI Link components (including those used internally by Breadcrumbs)
+        // use Next.js Link with proper ref forwarding
+        component: LinkBehavior,
+        underline: 'hover' as const,
       },
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
@@ -314,6 +318,13 @@ const issuerOverrides = {
           color: theme.vars.palette.link,
           fontWeight: 500,
         }),
+      },
+    },
+    MuiBreadcrumbs: {
+      defaultProps: {
+        // Ensure Breadcrumbs uses LinkBehavior for all link children
+        // This prevents the component from using MUI's default Link with ref issues
+        LinkComponent: LinkBehavior,
       },
     },
     MuiCardContent: {
