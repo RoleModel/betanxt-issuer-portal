@@ -187,15 +187,19 @@ export default function MeetingsPage() {
                 {sortedMeetings.map((meeting) => (
                   <TableRow key={meeting.id} hover>
                     <TableCell>
-                      <Link
-                        component={NextLink}
+                      <NextLink
                         href={`/${clientTicker}/meeting/${meeting.id}`}
-                        underline="hover"
-                        color="primary"
-                        sx={{ fontWeight: 500 }}
+                        passHref
+                        legacyBehavior
                       >
-                        {meeting.title}
-                      </Link>
+                        <Link
+                          underline="hover"
+                          color="primary"
+                          sx={{ fontWeight: 500 }}
+                        >
+                          {meeting.title}
+                        </Link>
+                      </NextLink>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
@@ -220,7 +224,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="outlined"
                           size="small"
-                          component={NextLink}
+                          LinkComponent={NextLink}
                           href={`/${clientTicker}/meeting/${meeting.id}`}
                         >
                           Manage
@@ -228,7 +232,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="text"
                           size="small"
-                          component={NextLink}
+                          LinkComponent={NextLink}
                           href={`/${clientTicker}/meeting/${meeting.id}/calendar`}
                         >
                           Calendar
