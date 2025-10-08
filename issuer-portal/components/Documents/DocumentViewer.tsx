@@ -1068,36 +1068,24 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         }
                         placement="top"
                       >
-                        <Button
-                          variant="contained"
-                          color="success"
-                          onClick={
-                            allFieldsComplete && !isSubmitting
-                              ? () => void handleSubmitSignedForm()
-                              : undefined
-                          }
-                          startIcon={
-                            isSubmitting ? (
-                              <CircularProgress size={20} color="inherit" />
-                            ) : undefined
-                          }
-                          sx={{
-                            opacity: allFieldsComplete && !isSubmitting ? 1 : 0.65,
-                            cursor:
-                              allFieldsComplete && !isSubmitting
-                                ? 'pointer'
-                                : 'not-allowed',
-                            pointerEvents: 'auto',
-                            '&:hover': {
-                              backgroundColor: (theme) =>
-                                allFieldsComplete && !isSubmitting
-                                  ? theme.vars.palette.success.light
-                                  : theme.vars.palette.success.main,
-                            },
-                          }}
-                        >
-                          {isSubmitting ? 'Sending…' : 'Submit'}
-                        </Button>
+                        <span>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            disabled={!allFieldsComplete || isSubmitting}
+                            onClick={() => void handleSubmitSignedForm()}
+                            startIcon={
+                              isSubmitting ? (
+                                <CircularProgress size={20} color="inherit" />
+                              ) : undefined
+                            }
+                            sx={{
+                              opacity: allFieldsComplete && !isSubmitting ? 1 : 0.65,
+                            }}
+                          >
+                            {isSubmitting ? 'Sending…' : 'Submit'}
+                          </Button>
+                        </span>
                       </Tooltip>
                     )
                   })()}
