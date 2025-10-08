@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -rf .next .turbo && npm run build",
   "framework": "nextjs",
   "installCommand": "npm install",
   "cleanUrls": true
