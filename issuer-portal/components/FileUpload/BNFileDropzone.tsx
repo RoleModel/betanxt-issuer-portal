@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import type { FileRejection } from 'react-dropzone'
 
 import { UploadFile as UploadFileIcon } from '@mui/icons-material'
-import { Box, Link, Paper, Typography } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
 
 import type { FileDropzoneProps } from './types'
 import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from './types'
@@ -189,16 +189,18 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
       </Box>
 
       <Typography align="center" variant="body3">
-        <Link
-          underline="always"
+        <Typography
+          component="span"
           sx={{
             typography: 'body3',
             fontWeight: 500,
             cursor: disabled ? 'not-allowed' : 'pointer',
+            textDecoration: 'underline',
+            color: 'primary.main',
           }}
         >
           {linkText}
-        </Link>
+        </Typography>
         &nbsp;or drag and drop
       </Typography>
 

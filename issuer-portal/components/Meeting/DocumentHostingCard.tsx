@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { Card, CardActionArea, CardContent, Link, Stack, Typography } from '@mui/material'
+import { Card, CardActionArea, CardContent, Stack, Typography } from '@mui/material'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -50,19 +50,26 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
             {label}
           </Typography>
           {!isPhoneNumber && !!url && (
-            <Link
+            <Typography
+              component="a"
               sx={{
                 wordBreak: 'break-all',
                 overflowWrap: 'break-word',
                 wordWrap: 'break-word',
+                textDecoration: 'underline',
+                color: 'primary.main',
+                '&:hover': {
+                  color: 'primary.dark',
+                },
               }}
               variant="body3"
               fontWeight={500}
               href={url}
               target="_blank"
+              rel="noopener noreferrer"
             >
               {url}
-            </Link>
+            </Typography>
           )}
           {!isPhoneNumber && !url && (
             <Typography variant="body3" color="text.secondary" fontWeight={500}>
