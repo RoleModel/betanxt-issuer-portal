@@ -96,7 +96,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const handleLoadSuccess = (pdf: { numPages: number }) => {
     setIsPdfLoaded(true)
     if (onLoadSuccess) {
-      onLoadSuccess(pdf)
+      try {
+        onLoadSuccess(pdf)
+      } catch (error) {
+        console.error('PDFViewer: Error in onLoadSuccess callback', error)
+      }
     }
   }
 
@@ -105,7 +109,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     setIsPdfLoaded(false)
     setLoadError(error)
     if (onLoadError) {
-      onLoadError(error)
+      try {
+        onLoadError(error)
+      } catch (callbackError) {
+        console.error('PDFViewer: Error in onLoadError callback', callbackError)
+      }
     }
   }
 

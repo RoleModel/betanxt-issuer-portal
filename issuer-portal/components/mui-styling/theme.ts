@@ -303,6 +303,11 @@ const issuerOverrides = {
   },
   components: {
     MuiLink: {
+      defaultProps: {
+        // Force all MUI Links to behave as regular anchor tags without ref forwarding issues
+        // This prevents the "Illegal invocation" error in MUI v7+ with React 19
+        underlineHover: 'hover' as const,
+      },
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
           ...theme.typography.body3,
