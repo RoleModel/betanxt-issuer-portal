@@ -2951,10 +2951,10 @@ const main = async () => {
         min: 0,
         max: 999999,
       })
-      // Reduce positions to make seed file smaller
-      const basePositions = isWendys ? 30 : 20
-      const positionVariation = (meetingSeed % 50) + 10
-      const numPositions = Math.max(15, basePositions + positionVariation)
+      // Reduce positions to make seed file smaller - using minimal positions for demo
+      const basePositions = isWendys ? 5 : 3
+      const positionVariation = (meetingSeed % 5) + 1
+      const numPositions = Math.max(3, basePositions + positionVariation)
 
       const rawWeights: number[] = []
       for (let p = 0; p < numPositions; p++) {
