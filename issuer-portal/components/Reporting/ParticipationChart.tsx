@@ -64,34 +64,35 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   }, new Map<string, { sum: number; count: number }>())
 
   const years = Array.from(aggByYear.keys()).sort((a, b) => Number(a) - Number(b))
-  const values = years.map((y) => {
+  const chartData = years.map((y) => {
     const { sum, count } = aggByYear.get(y) as { sum: number; count: number }
-    return sum / Math.max(1, count)
+    return {
+      year: y,
+      participationRate: sum / Math.max(1, count),
+    }
   })
-  const indices = years.map((_, i) => i)
 
   return (
     <Box height={400} width="100%">
       <BarChart
-        dataset={undefined}
+        dataset={chartData}
         grid={{ horizontal: true, vertical: true }}
         xAxis={[
           {
             scaleType: 'band',
-            data: indices,
-            valueFormatter: (v) => years[typeof v === 'number' ? v : Number(v)] ?? '',
+            dataKey: 'year',
           },
         ]}
         yAxis={[
           {
-            label: 'Delta in Participation %',
+            label: 'Participation %',
             min: 0,
             max: 100,
           },
         ]}
         series={[
           {
-            data: values,
+            dataKey: 'participationRate',
             valueFormatter: (v: number | null) => (v == null ? '' : `${v.toFixed(1)}%`),
             color: 'var(--mui-palette-chartSeries-4-main)',
           },
