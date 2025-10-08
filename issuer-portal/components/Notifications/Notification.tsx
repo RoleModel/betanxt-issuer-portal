@@ -1,7 +1,7 @@
 import React from 'react'
 
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
-import { Avatar, Box, Link, Paper, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Paper, Stack, Typography } from '@mui/material'
 
 interface NotificationProps {
   user: string
@@ -140,21 +140,25 @@ const Notification = ({
           </Typography>
 
           {link && (
-            <Link
+            <Box
               component="button"
-              variant="body3"
-              sx={{
+              sx={(theme) => ({
                 color: 'primary.main',
                 textDecoration: 'none',
                 fontWeight: 500,
                 fontSize: '14px',
+                border: 'none',
+                background: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontFamily: theme.typography.body3.fontFamily,
                 '&:hover': {
                   textDecoration: 'underline',
                 },
-              }}
+              })}
             >
               {link}
-            </Link>
+            </Box>
           )}
         </Stack>
       </Box>
