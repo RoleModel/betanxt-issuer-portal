@@ -22,6 +22,8 @@ import { deepmerge } from '@mui/utils'
 // Import MUI X Date Pickers theme augmentation
 import type {} from '@mui/x-date-pickers/themeAugmentation'
 
+import LinkBehavior from '@/components/LinkBehavior'
+
 export interface LayoutVars {
   navbarHeight: number
   appSwitcherHeight: number
@@ -301,6 +303,9 @@ const issuerOverrides = {
   },
   components: {
     MuiLink: {
+      defaultProps: {
+        component: LinkBehavior,
+      },
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
           ...theme.typography.body3,
