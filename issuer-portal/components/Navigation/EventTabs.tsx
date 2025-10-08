@@ -12,6 +12,8 @@ import React, {
   useTransition,
 } from 'react'
 
+import LinkBehavior from '@/components/LinkBehavior'
+
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
@@ -686,25 +688,24 @@ export function EventTabs() {
       >
         <Box sx={{ px: 2, pt: 1.5 }}>
           <Stack>
-            <Link href={targetPath} passHref legacyBehavior>
-              <Typography
-                component="a"
-                variant="h1"
-                sx={{
-                  fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '2rem',
-                  lineHeight: 1.125,
-                  letterSpacing: '0.47%',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  mb: 1,
-                  fontDisplay: 'swap',
-                }}
-              >
-                {meeting.title}
-              </Typography>
-            </Link>
+            <Typography
+              component={Link}
+              href={targetPath}
+              variant="h1"
+              sx={{
+                fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                fontWeight: 500,
+                fontSize: '2rem',
+                lineHeight: 1.125,
+                letterSpacing: '0.47%',
+                textDecoration: 'none',
+                color: 'inherit',
+                mb: 1,
+                fontDisplay: 'swap',
+              }}
+            >
+              {meeting.title}
+            </Typography>
             {isActive && !isMobile ? (
               <ActiveMeetingDetails
                 meeting={meeting}
@@ -867,7 +868,7 @@ export function EventTabs() {
                     value={tab.label}
                     label={tab.label}
                     href={tabHref}
-                    LinkComponent={Link}
+                    LinkComponent={LinkBehavior}
                     sx={(theme) => ({
                       color: isActive
                         ? 'var(--mui-palette-primary-main)'

@@ -4,7 +4,6 @@ import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BN
 import type { User } from 'next-auth'
 import { signOut } from 'next-auth/react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React, {
   useCallback,
@@ -14,6 +13,8 @@ import React, {
   useRef,
   useState,
 } from 'react'
+
+import LinkBehavior from '@/components/LinkBehavior'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
@@ -47,7 +48,7 @@ const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
 
-// Memoized Next.js Link component wrapper for BNAppBar - defined outside to prevent recreation
+// Wrapper component to adapt LinkBehavior for BNAppBar's 'to' prop convention
 interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
   to: string
   children: React.ReactNode
@@ -55,11 +56,14 @@ interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
 
 const NextLinkComponent = React.memo(
   React.forwardRef<HTMLAnchorElement, NextLinkProps>(
-    ({ to, children, ...props }, ref) => (
-      <Link href={to} prefetch={false} ref={ref} {...props}>
-        {children}
-      </Link>
-    )
+    function NextLink({ to, children, ...props }, ref) {
+      // BNAppBar uses 'to' prop, but LinkBehavior expects 'href'
+      return (
+        <LinkBehavior href={to} prefetch={false} ref={ref} {...props}>
+          {children}
+        </LinkBehavior>
+      )
+    }
   )
 )
 NextLinkComponent.displayName = 'NextLinkComponent'

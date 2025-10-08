@@ -1,7 +1,8 @@
-import Link from 'next/link'
 import React from 'react'
 
 import { Container, Link as MuiLink, Typography } from '@mui/material'
+
+import LinkBehavior from '@/components/LinkBehavior'
 
 export default function NotFound() {
   return (
@@ -40,11 +41,9 @@ export default function NotFound() {
         404
       </Typography>
       <Typography variant="pageTitle">Sorry, we can&apos;t find that page.</Typography>
-      <Link href="/" passHref legacyBehavior>
-        <MuiLink sx={{ zIndex: 1 }}>
-          Return Home
-        </MuiLink>
-      </Link>
+      <MuiLink component={LinkBehavior} href="/" sx={{ zIndex: 1 }}>
+        Return Home
+      </MuiLink>
     </Container>
   )
 }

@@ -1,8 +1,9 @@
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Box, Breadcrumbs, Typography } from '@mui/material'
 import { Link as MuiLink } from '@mui/material'
+
+import LinkBehavior from '@/components/LinkBehavior'
 
 export function PageTitle({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -65,7 +66,8 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
             },
           }}
         >
-          <Link
+          <MuiLink
+            component={LinkBehavior}
             href={
               isEducation
                 ? '/education'
@@ -73,17 +75,12 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                   ? '/products'
                   : `${tickerPrefix}/${segments[baseIndex]}`
             }
-            passHref
-            legacyBehavior
+            variant="body3"
+            underline="hover"
+            color="link"
           >
-            <MuiLink
-              variant="body3"
-              underline="hover"
-              color="link"
-            >
-              {getParentTitle()}
-            </MuiLink>
-          </Link>
+            {getParentTitle()}
+          </MuiLink>
           {childSegments.map((seg, idx) => {
             const basePath = isEducation
               ? '/education'
@@ -103,15 +100,16 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                 {label}
               </Typography>
             ) : (
-              <Link key={href} href={href} passHref legacyBehavior>
-                <MuiLink
-                  variant="body3"
-                  underline="hover"
-                  color="inherit"
-                >
-                  {label}
-                </MuiLink>
-              </Link>
+              <MuiLink
+                key={href}
+                component={LinkBehavior}
+                href={href}
+                variant="body3"
+                underline="hover"
+                color="inherit"
+              >
+                {label}
+              </MuiLink>
             )
           })}
         </Breadcrumbs>

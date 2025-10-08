@@ -1,6 +1,5 @@
 'use client'
 
-import NextLink from 'next/link'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
@@ -21,6 +20,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import LinkBehavior from '@/components/LinkBehavior'
 import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -187,19 +187,15 @@ export default function MeetingsPage() {
                 {sortedMeetings.map((meeting) => (
                   <TableRow key={meeting.id} hover>
                     <TableCell>
-                      <NextLink
+                      <Link
+                        component={LinkBehavior}
                         href={`/${clientTicker}/meeting/${meeting.id}`}
-                        passHref
-                        legacyBehavior
+                        underline="hover"
+                        color="primary"
+                        sx={{ fontWeight: 500 }}
                       >
-                        <Link
-                          underline="hover"
-                          color="primary"
-                          sx={{ fontWeight: 500 }}
-                        >
-                          {meeting.title}
-                        </Link>
-                      </NextLink>
+                        {meeting.title}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3" color="text.secondary">
@@ -224,7 +220,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="outlined"
                           size="small"
-                          LinkComponent={NextLink}
+                          LinkComponent={LinkBehavior}
                           href={`/${clientTicker}/meeting/${meeting.id}`}
                         >
                           Manage
@@ -232,7 +228,7 @@ export default function MeetingsPage() {
                         <Button
                           variant="text"
                           size="small"
-                          LinkComponent={NextLink}
+                          LinkComponent={LinkBehavior}
                           href={`/${clientTicker}/meeting/${meeting.id}/calendar`}
                         >
                           Calendar
