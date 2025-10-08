@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { auth } from '@/auth'
 
-// Temporary: Disable middleware until Edge Runtime issues are resolved
-export function middleware(request: NextRequest) {
-  return NextResponse.next()
-}
+export default auth((req) => {
+  // req.auth contains the session
+  // Middleware will handle authentication based on auth.config.ts
+})
 
+// Match all routes except static files, API routes, and public assets
 export const config = {
-  matcher: [],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
