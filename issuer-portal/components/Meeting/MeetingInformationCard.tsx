@@ -45,10 +45,6 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
         gridArea: 'meeting-information',
         alignSelf: 'start',
         height: '100%',
-        backgroundColor: '#f7f5f0',
-        borderRadius: 1,
-        boxShadow:
-          '0px 1px 6px -1px rgba(0,0,0,0.04), 0px 5px 6px -1px rgba(0,0,0,0.05), 0px 3px 4px -1px rgba(0,0,0,0.08)',
       }}
     >
       <CardHeader title={'Meeting Information'} />

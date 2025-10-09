@@ -1,6 +1,6 @@
 'use client'
 
-import { Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import React, { useEffect } from 'react'
 
 import { useClient } from '@/contexts/ClientContext'
@@ -39,9 +39,18 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
   const theme = getThemeForClient(currentClient?.ticker)
 
   // Manually update CSS variables when theme changes
+  // Only inject client colors in light mode - dark mode uses BetaNXT colors by design
   useEffect(() => {
     if (typeof document !== 'undefined' && theme.vars) {
       const root = document.documentElement
+
+      // Check if we're in dark mode by looking at the MUI color scheme class
+      const isDarkMode = root.classList.contains('dark')
+
+      // Only inject client colors in light mode
+      if (isDarkMode) {
+        return
+      }
 
       // Update primary color variables
       root.style.setProperty('--mui-palette-primary-main', theme.palette.primary.main)
@@ -67,5 +76,5 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
     }
   }, [theme])
 
-  return <CssVarsProvider theme={theme}>{children}</CssVarsProvider>
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>
 }
