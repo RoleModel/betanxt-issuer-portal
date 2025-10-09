@@ -3,13 +3,13 @@
 export const clientBranding = [
   {
     ticker: 'WEN',
-    primaryColor: '#029CD4',
+    primaryColor: '#0389ba',
     secondaryColor: '#DAD55E',
     tertiaryColor: '#DB163A',
   },
   {
     ticker: 'PAYC',
-    primaryColor: '#00833E',
+    primaryColor: '#005C2B',
     secondaryColor: '#193E2D',
     tertiaryColor: '#00833E',
   },

@@ -86,7 +86,7 @@ export function TaskItem({
         },
       }}
     >
-      <CardActionArea onClick={() => onClick(task.id || '')} disabled={!isClickable}>
+      <CardActionArea onClick={() => onClick(task.id ?? '')} disabled={!isClickable}>
         <CardContent sx={{ p: 1.5 }}>
           <Box
             sx={{
@@ -140,7 +140,7 @@ export function TaskItem({
                   textDecorationThickness: '2px',
                 }}
               >
-                {getDateLabel(task, formatDate(task.dueDate || ''))}
+                {getDateLabel(task, formatDate(task.dueDate ?? ''))}
               </Typography>
               {shouldShowStatusChip(task) && (
                 <StatusChip status={task.status ?? null} size="small" />
@@ -168,11 +168,11 @@ export default function TaskCard({
 }: TaskCardProps) {
   const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } =
     useMeeting()
-  const { phases } = usePhases(meetingId || currentMeeting?.id || '')
+  const { phases } = usePhases(meetingId ?? currentMeeting?.id ?? '')
 
   // Determine the current phase from meeting data or prop, default to 1
   const resolvedCurrentPhase =
-    currentPhase ||
+    currentPhase ??
     (currentMeeting?.currentPhase
       ? parseInt(currentMeeting.currentPhase.replace('Phase ', '')) || 1
       : 1)
@@ -182,7 +182,7 @@ export default function TaskCard({
     (phase) => phase.orderIndex === resolvedCurrentPhase
   )
   const dynamicPhaseTitle =
-    currentPhaseTitle || currentPhaseFromData?.name || `Phase ${resolvedCurrentPhase}`
+    currentPhaseTitle ?? currentPhaseFromData?.name ?? `Phase ${resolvedCurrentPhase}`
 
   const displayTasks = tasks.filter((task) => {
     // For Phase 4, include BetaNXT delivery tasks
@@ -193,7 +193,7 @@ export default function TaskCard({
     }
 
     // Exclude BetaNXT and DFIN tasks for other phases
-    if (['BetaNXT', 'DFIN'].includes(task.owner || '')) {
+    if (['BetaNXT', 'DFIN'].includes(task.owner ?? '')) {
       return false
     }
 
@@ -212,7 +212,7 @@ export default function TaskCard({
         'Proxy Card',
       ]
 
-      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title || '')) {
+      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title ?? '')) {
         // Only show if not complete
         const incompleteStatuses = [
           'INCOMPLETE',
@@ -221,7 +221,7 @@ export default function TaskCard({
           'AUTHORIZED',
           'SUBMITTED_AWAITING_RECORD_DATE',
         ]
-        return incompleteStatuses.includes(task.status || 'INCOMPLETE')
+        return incompleteStatuses.includes(task.status ?? 'INCOMPLETE')
       }
 
       return false
@@ -248,7 +248,7 @@ export default function TaskCard({
       onClick(taskId)
       return
     }
-    const found = tasks.find((t) => t.id === taskId) || null
+    const found = tasks.find((t) => t.id === taskId) ?? null
     setSelectedTask(found)
     setOpen(true)
   }
@@ -261,9 +261,9 @@ export default function TaskCard({
       await exportTimelineToPdf({
         tasks: tasks,
         keyDates: keyDates,
-        meetingTitle: currentMeeting.title || 'Meeting Schedule',
+        meetingTitle: currentMeeting.title ?? 'Meeting Schedule',
         selectedPhase: 'all',
-        clientTicker: currentMeeting.ticker || undefined,
+        clientTicker: currentMeeting.ticker ?? undefined,
       })
     } catch (error) {
       console.error('Error exporting timeline:', error)
@@ -301,7 +301,7 @@ export default function TaskCard({
                     onClick={handleTaskClick}
                     isClickable={isClickable}
                     phaseColor={phaseColor}
-                    status={task.status || 'INCOMPLETE'}
+                    status={task.status ?? 'INCOMPLETE'}
                   />
                 )
               })}
