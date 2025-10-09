@@ -48,19 +48,19 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
   useEffect(() => {
     if (typeof document !== 'undefined' && theme.vars) {
       const root = document.documentElement
-      
+
       // Update primary color variables
       root.style.setProperty('--mui-palette-primary-main', theme.palette.primary.main)
       root.style.setProperty('--mui-palette-primary-light', theme.palette.primary.light ?? theme.palette.primary.main)
       root.style.setProperty('--mui-palette-primary-dark', theme.palette.primary.dark ?? theme.palette.primary.main)
       root.style.setProperty('--mui-palette-primary-contrastText', theme.palette.primary.contrastText ?? '#fff')
-      
+
       // Update secondary color variables
       root.style.setProperty('--mui-palette-secondary-main', theme.palette.secondary.main)
       root.style.setProperty('--mui-palette-secondary-light', theme.palette.secondary.light ?? theme.palette.secondary.main)
       root.style.setProperty('--mui-palette-secondary-dark', theme.palette.secondary.dark ?? theme.palette.secondary.main)
       root.style.setProperty('--mui-palette-secondary-contrastText', theme.palette.secondary.contrastText ?? '#fff')
-      
+
       // Update tertiary color variables if they exist (using type guard)
       const tertiary = theme.palette.tertiary
       if (isPaletteColor(tertiary)) {
@@ -70,11 +70,6 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
         root.style.setProperty('--mui-palette-tertiary-contrastText', tertiary.contrastText ?? '#fff')
       }
 
-      console.log('🎨 Updated CSS variables:', {
-        primary: theme.palette.primary.main,
-        secondary: theme.palette.secondary.main,
-        tertiary: isPaletteColor(tertiary) ? tertiary.main : undefined,
-      })
     }
   }, [theme])
 
