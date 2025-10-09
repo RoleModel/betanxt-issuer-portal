@@ -203,7 +203,7 @@ export default function ReportsPage() {
             data={dtcVoteStatus}
             loading={reportsLoading}
           />
-          <DownloadReportsTable />
+          <DownloadReportsTable meetingId={meetingId} />
         </Grid>
 
         <Grid

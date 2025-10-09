@@ -3,6 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { baseThemeOptions } from '@rolemodel/betanxt-design-system/themes/baseTheme'
+import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
@@ -16,7 +17,7 @@ import {
   purple,
   teal,
 } from '@mui/material/colors'
-import type { Theme } from '@mui/material/styles'
+import type { PaletteColor, Theme } from '@mui/material/styles'
 import { createTheme, getContrastRatio } from '@mui/material/styles'
 // Import MUI X Date Pickers theme augmentation
 import type { } from '@mui/x-date-pickers/themeAugmentation'
@@ -200,7 +201,9 @@ const getClientBranding = (ticker?: string) => {
  * @returns MUI Theme configured with client-specific branding colors
  */
 export const createClientTheme = (ticker?: string) => {
+  console.log('🔍 createClientTheme called with ticker:', ticker)
   const branding = getClientBranding(ticker)
+  console.log('🔍 Selected branding:', branding)
 
   // Create client-specific color overrides while preserving all base theme properties
   // We need to carefully merge to keep phase, keydate, and other custom palette properties
@@ -283,7 +286,7 @@ export const createClientTheme = (ticker?: string) => {
             dark: grey[900],
             contrastText: grey[50],
           },
-        ] as any,
+        ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
         complete: grey[500],
       },
     },
@@ -365,7 +368,7 @@ export const createClientTheme = (ticker?: string) => {
             dark: grey[800],
             contrastText: grey[50],
           },
-        ] as any,
+        ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
         complete: grey[600],
       },
     },
@@ -383,6 +386,7 @@ export const createClientTheme = (ticker?: string) => {
     cssVariables: {
       colorSchemeSelector: 'class',
     },
+    defaultColorScheme: 'light' as const,
     breakpoints: {
       values: {
         xs: 0,
@@ -400,6 +404,15 @@ export const createClientTheme = (ticker?: string) => {
       drawerWidth: 500,
     },
     components: {
+      // Merge base theme components with our custom overrides
+      ...baseThemeOptions.components,
+      CssBaseline: {
+        styleOverrides: {
+          body: {
+            fontSize: '14px',
+          },
+        },
+      },
       MuiLink: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
@@ -666,3 +679,6 @@ export const getThemeForClient = (ticker?: string): Theme => {
 
 // Default theme export for backward compatibility (uses WEN branding)
 export const theme = wenTheme
+
+// Export BetaNXT theme for product and education pages
+export const betanxtTheme = createTheme(betanxtThemeOptions)

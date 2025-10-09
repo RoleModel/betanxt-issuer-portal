@@ -1,7 +1,7 @@
 'use client'
 
 import { ThemeProvider } from '@mui/material/styles'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import { useClient } from '@/contexts/ClientContext'
 
@@ -26,12 +26,42 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
 
   // Create theme dynamically based on current client ticker
   // useMemo ensures theme is only recreated when ticker changes
-  const theme = useMemo(() => createClientTheme(currentClient?.ticker), [currentClient?.ticker])
+  const theme = useMemo(() => {
+    const createdTheme = createClientTheme(currentClient?.ticker)
+    return createdTheme
+  }, [currentClient?.ticker])
 
-  // Force ThemeProvider to remount when ticker changes by using key
-  // This ensures CSS variables are properly reinitialized
+  // Manually update CSS variables when theme changes
+  // This is needed because MUI's CSS variables mode doesn't auto-update when theme object changes
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      console.log('🔧 Manually updating CSS variables for:', currentClient?.ticker)
+      const root = document.documentElement
+
+      // Update primary color CSS variables
+      root.style.setProperty('--mui-palette-primary-main', theme.palette.primary.main)
+      root.style.setProperty('--mui-palette-primary-light', theme.palette.primary.light || theme.palette.primary.main)
+      root.style.setProperty('--mui-palette-primary-dark', theme.palette.primary.dark || theme.palette.primary.main)
+      root.style.setProperty('--mui-palette-primary-contrastText', theme.palette.primary.contrastText || '#fff')
+
+      // Update secondary color CSS variables
+      root.style.setProperty('--mui-palette-secondary-main', theme.palette.secondary.main)
+      root.style.setProperty('--mui-palette-secondary-light', theme.palette.secondary.light || theme.palette.secondary.main)
+      root.style.setProperty('--mui-palette-secondary-dark', theme.palette.secondary.dark || theme.palette.secondary.main)
+      root.style.setProperty('--mui-palette-secondary-contrastText', theme.palette.secondary.contrastText || '#fff')
+
+      console.log('✅ CSS variables updated')
+    }
+  }, [theme, currentClient?.ticker])
+
+  // forceThemeRerender forces full re-render when theme changes (required for CSS variables mode)
+  // disableTransitionOnChange prevents visual transition artifacts
   return (
-    <ThemeProvider key={currentClient?.ticker ?? 'default'} theme={theme}>
+    <ThemeProvider
+      theme={theme}
+      disableTransitionOnChange
+      forceThemeRerender
+    >
       {children}
     </ThemeProvider>
   )

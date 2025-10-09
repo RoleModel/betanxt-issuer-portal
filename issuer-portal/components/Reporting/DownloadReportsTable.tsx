@@ -1,7 +1,7 @@
 'use client'
 
 import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import {
   Box,
@@ -18,25 +18,77 @@ import {
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+import { getBrowserSupabase } from '@/lib/browserSupabase'
 
 interface ReportItem {
   name: string
+  path: string
 }
 
-const reports: ReportItem[] = [
-  { name: 'Broker Analysis Report' },
-  { name: 'Institutional Ownership Report' },
-  { name: 'Vote Reconciliation Report' },
-  { name: 'Top Shareholders Report' },
-  { name: 'Voting Timeline Report' },
-  { name: 'Non-Vote Analysis' },
-  { name: 'Regional Distribution Report' },
-  { name: 'Vote Method Breakdown' },
-  { name: 'Proxy Statement Metrics' },
-  { name: 'Final Tabulation Summary' },
-]
+interface StorageFile {
+  name: string
+  id: string
+  updated_at: string
+  created_at: string
+  last_accessed_at: string
+  metadata: Record<string, unknown>
+}
 
-export default function DownloadReportsTable() {
+export default function DownloadReportsTable({
+  meetingId,
+}: {
+  meetingId: string
+}) {
+  const [reports, setReports] = useState<ReportItem[]>([])
+  const supabase = getBrowserSupabase()
+
+  useEffect(() => {
+    async function fetchReports() {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .list(`${meetingId}/reports`)
+
+      if (error) {
+        console.error('Error fetching reports:', error)
+        return
+      }
+
+      if (data) {
+        const reportItems = (data as StorageFile[])
+          .filter((file: StorageFile) => file.name.endsWith('.xls'))
+          .map((file: StorageFile) => ({
+            name: file.name.replace('.xls', ''),
+            path: `${meetingId}/reports/${file.name}`,
+          }))
+        setReports(reportItems)
+      }
+    }
+
+    fetchReports()
+  }, [meetingId, supabase])
+
+  const handleDownload = async (path: string, fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .download(path)
+
+    if (error) {
+      console.error('Error downloading report:', error)
+      return
+    }
+
+    if (data) {
+      const url = URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }
+  }
+
   return (
     <Card>
       <CardHeader title="Download Meeting Reports" />
@@ -59,14 +111,11 @@ export default function DownloadReportsTable() {
                   <TableCell align="right">
                     <Box component="span" sx={{ display: 'inline-flex', gap: 1 }}>
                       <IconButton
-                        aria-label={`Download ${report.name} as PDF`}
-                        title={`Download ${report.name} as PDF`}
-                      >
-                        <IconForFileType fileType="PDF" />
-                      </IconButton>
-                      <IconButton
                         aria-label={`Download ${report.name} as XLS`}
                         title={`Download ${report.name} as XLS`}
+                        onClick={() =>
+                          handleDownload(report.path, `${report.name}.xls`)
+                        }
                       >
                         <IconForFileType fileType="XLS" />
                       </IconButton>
