@@ -632,34 +632,22 @@ const elvnTheme = createClientTheme('ELVN')
  * @returns Pre-built MUI Theme for the specified client
  */
 export const getThemeForClient = (ticker?: string): Theme => {
-  console.log('🎨 getThemeForClient called with ticker:', ticker)
-
   if (!ticker) {
-    console.log('🎨 Returning wenTheme (no ticker provided)')
     return wenTheme
   }
 
   const upperTicker = ticker.toUpperCase()
-  console.log('🎨 Looking for theme with ticker:', upperTicker)
 
   switch (upperTicker) {
     case 'WEN':
-      console.log('🎨 Returning wenTheme')
       return wenTheme
     case 'PAYC':
-      console.log(
-        '🎨 Returning paycTheme with primary color:',
-        paycTheme.palette.primary.main
-      )
       return paycTheme
     case 'WWD':
-      console.log('🎨 Returning wwdTheme')
       return wwdTheme
     case 'ELVN':
-      console.log('🎨 Returning elvnTheme')
       return elvnTheme
     default:
-      console.log('🎨 Ticker not found, returning wenTheme (default)')
       return wenTheme
   }
 }

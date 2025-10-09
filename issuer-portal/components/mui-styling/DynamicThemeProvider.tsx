@@ -38,12 +38,6 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ chil
   // Get the pre-built theme for the current client
   const theme = getThemeForClient(currentClient?.ticker)
 
-  console.log('🎨 DynamicThemeProvider:', {
-    ticker: currentClient?.ticker,
-    primaryColor: theme.palette.primary.main,
-    themeName: currentClient?.ticker ?? 'WEN (default)',
-  })
-
   // Manually update CSS variables when theme changes
   useEffect(() => {
     if (typeof document !== 'undefined' && theme.vars) {

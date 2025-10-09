@@ -184,7 +184,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
       )
       if (activeMeeting?.id) {
-        return `/${currentClient.ticker}/meeting/${activeMeeting.id}`
+        return `/${currentClient.ticker}/meeting/${activeMeeting.id}/dashboard`
       }
     }
     return '/'
