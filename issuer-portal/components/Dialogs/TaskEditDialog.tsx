@@ -34,7 +34,7 @@ import { useDocuments } from '@/hooks/useDocuments'
 import { useTasks } from '@/hooks/useTasks'
 import type { Document, Task } from '@/types/api-exports'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
-import { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
+import type { TaskLink as BaseTaskLink } from '@/utils/taskLinks'
 
 // Task status type - matches the status options used in the component
 type TaskStatus =
@@ -225,9 +225,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     if (!task || !enableLinkEditing || !task.links) return []
 
     // Convert links object to array if needed
-    const linksArray = Array.isArray(task.links)
-      ? task.links
-      : Object.values(task.links)
+    const linksArray = Array.isArray(task.links) ? task.links : Object.values(task.links)
 
     if (!Array.isArray(linksArray) || linksArray.length === 0) return []
 
@@ -259,7 +257,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     }
     setLinks(initialLinks)
     setError(null)
-    loadAvailableDocuments()
+    void loadAvailableDocuments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task?.id]) // Only re-run when dialog opens or task changes
 
@@ -451,7 +449,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth keepMounted={false}>
+    <Dialog
+      open={open}
+      onClose={handleCancel}
+      maxWidth="sm"
+      fullWidth
+      keepMounted={false}
+    >
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Edit Task

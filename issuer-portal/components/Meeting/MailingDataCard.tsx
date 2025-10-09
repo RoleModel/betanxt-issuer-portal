@@ -74,7 +74,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
 
   useEffect(() => {
     if (meetingId && !metrics) {
-      getMailingByMeetingId(meetingId).then((data) => {
+      void getMailingByMeetingId(meetingId).then((data) => {
         setMailingData(data)
       })
     }

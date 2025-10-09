@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
 import { TabContext, TabPanel } from '@mui/lab'
@@ -17,7 +18,6 @@ import {
   Typography,
   styled,
 } from '@mui/material'
-import { useRouter } from 'next/navigation'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
@@ -100,11 +100,11 @@ const convertDbNotificationToNotificationData = (
   let userAvatar: string | undefined = undefined
 
   if (isCommentNotification && dbNotification.message) {
-    const match = dbNotification.message.match(/^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/)
+    const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(dbNotification.message)
     if (match) {
       userName = match[1].trim()
-      // Generate avatar from user name using UI Avatars API
-      userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random&size=32`
+      // Don't set userAvatar - let MUI Avatar use the username for initials
+      userAvatar = undefined
     }
   }
 
@@ -120,7 +120,8 @@ const convertDbNotificationToNotificationData = (
     variant: dbNotification.read ? 'read' : 'unread',
     avatar: userAvatar,
     isSystemNotification:
-      !isCommentNotification && (dbNotification.type === 'info' || dbNotification.type === 'success'),
+      !isCommentNotification &&
+      (dbNotification.type === 'info' || dbNotification.type === 'success'),
   }
 }
 
@@ -235,7 +236,7 @@ export function NotificationPopper({
 
     const computePos = () => {
       // Try to find the MUI AppBar in the DOM
-      const appBar = document.querySelector('header.MuiAppBar-root') as HTMLElement | null
+      const appBar = document.querySelector('header.MuiAppBar-root')
       const appBarBottom = appBar?.getBoundingClientRect().bottom ?? 0
 
       // Fallback: if no app bar found, align to the anchorEl bottom
@@ -335,9 +336,11 @@ export function NotificationPopper({
                         Mark all read
                       </Button>
                     )}
-                    <Button variant="text" onClick={handleClearAll} color="error">
-                      Clear all
-                    </Button>
+                    {notifications.length > 0 && (
+                      <Button variant="text" onClick={handleClearAll} color="error">
+                        Clear all
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </Box>

@@ -42,8 +42,8 @@ const Notification = ({
         p: 1,
         '&:hover': onClick
           ? {
-              backgroundColor: 'action.hover',
-            }
+            backgroundColor: 'action.hover',
+          }
           : {},
         '&:not(:last-child)': {
           borderBottom: '1px solid',
@@ -63,7 +63,7 @@ const Notification = ({
             pt: 0.5,
           }}
         >
-          {isSystemNotification || !avatar ? (
+          {isSystemNotification ? (
             <NotificationsOutlinedIcon
               sx={{
                 width: 20,

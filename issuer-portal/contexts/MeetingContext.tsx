@@ -163,7 +163,7 @@ export function MeetingProvider({
             })
           } else if (!matchingMeeting && meetingIdFromURL) {
             // Meeting not found in current ticker's meetings, try to fetch it directly
-            fetchMeetingById(meetingIdFromURL)
+            void fetchMeetingById(meetingIdFromURL)
           }
         }
       } catch (err) {
@@ -325,7 +325,7 @@ export function MeetingProvider({
       currentTicker &&
       (meetings.length === 0 || !meetings.some((m) => m.ticker === currentTicker))
     ) {
-      refreshMeetings(currentTicker)
+      void refreshMeetings(currentTicker)
     } else if (currentMeetingId && meetings.length > 0) {
       const matchingMeeting = meetings.find((m) => m.id === currentMeetingId)
       if (matchingMeeting) {
@@ -342,7 +342,7 @@ export function MeetingProvider({
   // Fetch meeting data when current meeting changes
   useEffect(() => {
     if (currentMeeting?.id) {
-      refreshMeetingData()
+      void refreshMeetingData()
     }
   }, [currentMeeting?.id, refreshMeetingData])
 

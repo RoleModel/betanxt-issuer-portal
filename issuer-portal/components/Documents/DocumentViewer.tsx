@@ -36,7 +36,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { TransitionProps } from '@mui/material/transitions'
+import type { TransitionProps } from '@mui/material/transitions'
 
 import DraggableSignatureArea from '@/components/Documents/DraggableSignatureArea'
 import { FormFieldArea } from '@/components/Documents/FormFieldArea'
@@ -374,7 +374,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
     }
 
-    fetchTaskDocument()
+    void fetchTaskDocument()
   }, [task, getTaskDocument, signatureAreas.length, signatureAreas, documentId])
 
   // Determine which props to use (legacy props take absolute priority when provided)
@@ -623,7 +623,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
     }
 
-    loadDocumentHistory()
+    void loadDocumentHistory()
   }, [actualOpen, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const goToPrevPage = useCallback(() => {
@@ -716,9 +716,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             if (!documentIdForUpload.includes('-signed-')) {
               // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
               if (
-                documentIdForUpload.match(
-                  /^(plan-file-request|broadridge-form|transfer-agent-request)-/
-                )
+                /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(documentIdForUpload)
               ) {
                 documentIdForUpload = documentIdForUpload.replace(
                   /^([^-]+-[^-]+-[^-]+)/,
@@ -768,7 +766,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
       // Call the submit success handler which will update task and close the dialog
       // handleTaskSubmitSuccess will handle the task status update
-      handleTaskSubmitSuccess()
+      void handleTaskSubmitSuccess()
 
       // Also ensure we close the dialog directly
       if (actualOnClose) {
@@ -1338,7 +1336,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             key={area.id}
                             area={{
                               ...area,
-                              type: fieldType as 'text' | 'date',
+                              type: fieldType,
                               value: formFieldValues[area.id] || area.value || '',
                             }}
                             onValueChange={handleFormFieldChange}

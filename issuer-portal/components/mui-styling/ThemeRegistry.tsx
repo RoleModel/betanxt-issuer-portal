@@ -3,18 +3,17 @@
 import * as React from 'react'
 
 import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider } from '@mui/material/styles'
 
+import { DynamicThemeProvider } from './DynamicThemeProvider'
 import { NextAppDirEmotionCacheProvider } from './EmotionCache'
-import { theme } from './theme'
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   return (
     <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme}>
+      <DynamicThemeProvider>
         <CssBaseline enableColorScheme />
         {children}
-      </ThemeProvider>
+      </DynamicThemeProvider>
     </NextAppDirEmotionCacheProvider>
   )
 }

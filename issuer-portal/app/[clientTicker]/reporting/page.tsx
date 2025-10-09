@@ -57,7 +57,8 @@ export default function ReportingPage() {
   const clientTicker = params.clientTicker as string
 
   // Get reporting data from hook
-  const { data: reportingData, loading, error } = useReporting(clientTicker)
+  const reportingResult = useReporting(clientTicker)
+  const { data: reportingData, loading, error } = reportingResult
 
   // Client-side state for interactive features - MUST be called before any early returns
   const [selectedMeeting, setSelectedMeeting] = useState<string>('')
@@ -79,16 +80,16 @@ export default function ReportingPage() {
   }, [reportingData, selectedDirector])
 
   // Use pre-transformed data from the hook
-  const mappedEventSummary = reportingData?.mappedEventSummary || []
-  const mappedYearOverYear = reportingData?.mappedYearOverYear || []
+  const mappedEventSummary = reportingData?.mappedEventSummary ?? []
+  const mappedYearOverYear = reportingData?.mappedYearOverYear ?? []
 
   // Transform individual director data to chart format (voting trends over years)
   const mappedIndividualDirectorData = useMemo(() => {
     if (!reportingData || !selectedDirector) return []
 
     // Get proposals for the selected director
-    const directorProposals = (reportingData.proposals || []).filter(
-      (p) => (p.directorName || '') === selectedDirector
+    const directorProposals = (reportingData.proposals ?? []).filter(
+      (p) => (p.directorName ?? '') === selectedDirector
     )
 
     // Group proposals by year (extract year from meeting ID)
@@ -121,9 +122,9 @@ export default function ReportingPage() {
         let totalVotes = 0
 
         proposals.forEach((p) => {
-          const forVotes = p.totalVotesFor || 0
-          const againstVotes = p.totalVotesAgainst || 0
-          const abstainVotes = p.totalVotesAbstain || 0
+          const forVotes = p.totalVotesFor ?? 0
+          const againstVotes = p.totalVotesAgainst ?? 0
+          const abstainVotes = p.totalVotesAbstain ?? 0
           const votes = forVotes + againstVotes + abstainVotes
 
           if (votes > 0) {
@@ -153,12 +154,12 @@ export default function ReportingPage() {
     }
 
     // Get director proposals for the selected meeting only
-    const meetingProposals = (reportingData.proposals || []).filter(
+    const meetingProposals = (reportingData.proposals ?? []).filter(
       (p) =>
         p.meetingId === selectedMeeting &&
         (p.proposalType === 'Director Election' ||
-          p.directorName ||
-          /director/i.test(p.proposalTitle || ''))
+          Boolean(p.directorName) ||
+          /director/i.test(p.proposalTitle ?? ''))
     )
 
     // Group by director and calculate percentages
@@ -175,21 +176,21 @@ export default function ReportingPage() {
 
     meetingProposals.forEach((proposal) => {
       const directorName =
-        proposal.directorName || extractDirectorName(proposal.proposalTitle || '')
+        proposal.directorName ?? extractDirectorName(proposal.proposalTitle ?? '')
 
       if (!directorName) return
 
       const totalVotes =
-        (proposal.totalVotesFor || 0) +
-        (proposal.totalVotesAgainst || 0) +
-        (proposal.totalVotesAbstain || 0)
+        (proposal.totalVotesFor ?? 0) +
+        (proposal.totalVotesAgainst ?? 0) +
+        (proposal.totalVotesAbstain ?? 0)
 
       if (totalVotes > 0) {
         directorMap.set(directorName, {
           directorName,
-          forVotes: proposal.totalVotesFor || 0,
-          againstVotes: proposal.totalVotesAgainst || 0,
-          abstainVotes: proposal.totalVotesAbstain || 0,
+          forVotes: proposal.totalVotesFor ?? 0,
+          againstVotes: proposal.totalVotesAgainst ?? 0,
+          abstainVotes: proposal.totalVotesAbstain ?? 0,
           totalVotes,
         })
       }
@@ -199,9 +200,9 @@ export default function ReportingPage() {
   }, [reportingData, selectedMeeting])
 
   // Use pre-transformed data from the hook
-  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData || []
-  const mappedAuditComplianceData = reportingData?.mappedAuditComplianceData || []
-  const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData || []
+  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? []
+  const mappedAuditComplianceData = reportingData?.mappedAuditComplianceData ?? []
+  const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? []
 
   // Handle meeting selection change - SWR automatically handles caching
   const handleMeetingChange = React.useCallback((meetingId: string) => {
@@ -216,23 +217,23 @@ export default function ReportingPage() {
   // Filter available meetings to only those with director data AND vote totals
   const meetingsWithDirectors = useMemo(() => {
     if (!reportingData) return []
-    const availableMeetings = reportingData.availableMeetings || []
+    const availableMeetings = reportingData.availableMeetings ?? []
 
     return availableMeetings.filter((meeting) => {
       // Check if this meeting has any director proposals WITH vote data
-      const hasDirectorProposals = (reportingData.proposals || []).some((p) => {
+      const hasDirectorProposals = (reportingData.proposals ?? []).some((p) => {
         if (p.meetingId !== meeting.id) return false
 
         const isDirectorProposal =
           p.proposalType === 'Director Election' ||
-          p.directorName ||
-          /director/i.test(p.proposalTitle || '')
+          Boolean(p.directorName) ||
+          /director/i.test(p.proposalTitle ?? '')
 
         // Check if there are actual votes (not just null values)
         const hasVotes =
-          (p.totalVotesFor || 0) +
-            (p.totalVotesAgainst || 0) +
-            (p.totalVotesAbstain || 0) >
+          (p.totalVotesFor ?? 0) +
+          (p.totalVotesAgainst ?? 0) +
+          (p.totalVotesAbstain ?? 0) >
           0
 
         return isDirectorProposal && hasVotes
@@ -348,7 +349,7 @@ export default function ReportingPage() {
                     >
                       {meetingsWithDirectors.map((meeting) => {
                         // Extract year from meetingId (format: ticker-type-year)
-                        const yearMatch = meeting.id.match(/(\d{4})$/)
+                        const yearMatch = /(\d{4})$/.exec(meeting.id)
                         const year = yearMatch ? yearMatch[1] : ''
                         const displayTitle = year
                           ? `${meeting.title} ${year}`
@@ -383,12 +384,12 @@ export default function ReportingPage() {
             <CardContent>
               {chartView === 'aggregate' ? (
                 <DirectorPerformanceChart
-                  data={directorPerformanceData || []}
+                  data={directorPerformanceData ?? []}
                   loading={loading}
                 />
               ) : (
                 <IndividualDirectorChart
-                  directorName={selectedDirector || ''}
+                  directorName={selectedDirector ?? ''}
                   data={mappedIndividualDirectorData}
                 />
               )}

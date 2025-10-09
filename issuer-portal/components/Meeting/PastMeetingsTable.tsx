@@ -79,7 +79,7 @@ export default function PastMeetingsTable({
   const renderHeaderCell = (
     label: string,
     property: keyof PastMeetingData,
-    sortable: boolean = true
+    sortable = true
   ) => {
     if (!showSorting || !sortable) {
       return <TableCell sx={{ fontWeight: 600, py: 2 }}>{label}</TableCell>

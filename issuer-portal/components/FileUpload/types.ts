@@ -8,7 +8,7 @@ export interface DSMDocumentOption {
 export interface UploadFile {
   id: string
   file: File
-  status: 'uploading' | 'complete' | 'error'
+  status: 'pending' | 'uploading' | 'complete' | 'error'
   progress?: number
   error?: string
   associatedDocumentId?: string // ID of the DSM document this file will update

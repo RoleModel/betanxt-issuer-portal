@@ -4,10 +4,7 @@ import { useCallback } from 'react'
 import buildApiClient from '@/domain-models/apiClient'
 
 import type { components } from '@/types/api'
-import {
-  COMPLETED_STATUSES,
-  calculateOverallCompletion,
-} from '@/utils/taskControl'
+import { COMPLETED_STATUSES, calculateOverallCompletion } from '@/utils/taskControl'
 
 type Task = components['schemas']['Task']
 
@@ -67,7 +64,11 @@ export const usePhaseCompletion = ({
         currentPhaseNumber,
         totalTasks: freshTasks.length,
         currentPhaseTasks: currentPhaseTasks.length,
-        taskStatuses: currentPhaseTasks.map(t => ({ title: t.title, status: t.status, owner: t.owner })),
+        taskStatuses: currentPhaseTasks.map((t) => ({
+          title: t.title,
+          status: t.status,
+          owner: t.owner,
+        })),
       })
 
       // Check if all phase tasks have been initiated

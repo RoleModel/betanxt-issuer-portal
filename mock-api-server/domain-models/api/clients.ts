@@ -8,7 +8,7 @@ type CreateClientRequest = components['schemas']['CreateClientRequest']
 type UpdateClientRequest = components['schemas']['UpdateClientRequest']
 
 // Helper type for openapi-fetch response
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

@@ -99,6 +99,13 @@ export const seedConfig = {
       email: 'dev@betanxt.com',
       type: 'ADMIN',
     },
+    test: {
+      username: 'test.user',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@betanxt.com',
+      type: 'ADMIN',
+    },
     relationshipManager: {
       username: 'sarah.johnson',
       firstName: 'Sarah',

@@ -10,7 +10,7 @@ import RevisionRequestDialog from '@/components/Documents/RevisionRequestDialog'
 import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -120,7 +120,7 @@ export default function DocumentSiteCard() {
       }
     }
 
-    fetchHostingSiteStatus()
+    void fetchHostingSiteStatus()
   }, [currentMeeting?.id, currentClient?.id])
 
   const updateHostingSiteStatus = async (

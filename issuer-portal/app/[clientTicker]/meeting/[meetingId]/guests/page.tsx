@@ -45,9 +45,7 @@ interface DigitalShareholderMeetingAttendee {
   updatedAt: string
 }
 
-interface ExcelRow {
-  [key: string]: string | number | boolean | Date | undefined
-}
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
 interface ParsedAttendee {
   registrantType: string
@@ -120,7 +118,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
                 const cell = firstSheet[cellAddress]
                 row[headers[C]] = cell ? cell.v : ''
-                if (cell && cell.v) hasData = true
+                if (cell?.v) hasData = true
               }
               // Only add rows that have some data
               if (hasData) jsonData.push(row)

@@ -209,7 +209,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleTaskAdded = () => {
     // Refresh the data to show the new task
-    refreshMeetingData()
+    void refreshMeetingData()
   }
 
   const handlePrint = () => {

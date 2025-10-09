@@ -3,8 +3,8 @@ import GlobalStyles from '@mui/material/GlobalStyles'
 const globalStyles = {
   ':root': {
     '& .MuiPaper-root.MuiDrawer-paperAnchorRight': {
-      top: '104px !important'
-    }
+      top: '104px !important',
+    },
   },
 }
 

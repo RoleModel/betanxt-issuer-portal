@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FeatureTile from '@/components/FeatureTile'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
@@ -36,7 +36,7 @@ export default function TabulationReportCard() {
       }
     }
 
-    fetchProposals()
+    void fetchProposals()
   }, [currentMeeting?.id])
 
   const handleDownload = async () => {
@@ -51,7 +51,7 @@ export default function TabulationReportCard() {
         (rp) =>
           ('proposalNumber' in rp && rp.proposalNumber === vp.proposalNumber) ||
           ('proposal_number' in rp && rp.proposal_number === vp.proposalNumber)
-      ) as components['schemas']['Proposal'] | undefined
+      )
 
       return {
         proposalNumber: vp.proposalNumber,
@@ -135,7 +135,7 @@ export default function TabulationReportCard() {
   return (
     <FeatureTile
       title="Tabulation Report"
-      variant="info"
+      variant="tertiary"
       flex={true}
       description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
       actionText={isDataReady ? 'Download' : 'Loading...'}

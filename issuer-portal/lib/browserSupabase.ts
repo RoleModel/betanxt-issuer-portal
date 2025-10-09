@@ -22,7 +22,7 @@ export function getBrowserSupabase(): SupabaseClient {
       get() {
         throw new Error('Supabase client not configured in browser – missing env vars.')
       },
-    }) as SupabaseClient
+    })
   }
 
   browserClient = createClient(url, anon, {

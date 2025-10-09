@@ -101,7 +101,7 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
       // Auto-upload if onUpload function is provided
       if (onUpload) {
         uploadFiles.forEach((uploadFile) => {
-          simulateUpload(uploadFile.id, uploadFile.file)
+          void simulateUpload(uploadFile.id, uploadFile.file)
         })
       }
     },

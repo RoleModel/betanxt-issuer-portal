@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Grid,
   Skeleton,
   Stack,
 } from '@mui/material'
@@ -27,7 +26,6 @@ import type { Meeting } from '@/types/api-exports'
 
 import TabulationReportCard from '../Tabulation/TabulationReportCard'
 import KeyDatesCard from './KeyDatesCard'
-
 
 // Dynamic imports for heavy components
 const VotingTabulationTable = dynamic(
@@ -85,15 +83,19 @@ export default React.memo(function Phase7Layout({
         })
 
         if (!error && data) {
-          setScheduledLogistics((data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false)
-          setScheduledDryRun((data as { dryRunScheduled?: boolean }).dryRunScheduled || false)
+          setScheduledLogistics(
+            (data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false
+          )
+          setScheduledDryRun(
+            (data as { dryRunScheduled?: boolean }).dryRunScheduled || false
+          )
         }
       } catch (error) {
         console.error('Failed to fetch DSM config:', error)
       }
     }
 
-    fetchDSMConfig()
+    void fetchDSMConfig()
   }, [meetingId])
 
   const handleOpenDialog = (type: 'logistics' | 'dryrun') => {
@@ -116,13 +118,15 @@ export default React.memo(function Phase7Layout({
         dryRunScheduled: dialogType !== 'logistics' ? true : false,
         dsmEnabled: true,
         ioeEnabled: true,
-        ...(dialogType === 'logistics' ? {
-          logisticsCallDate: date.toISOString(),
-          logisticsCallNotes: notes,
-        } : {
-          dryRunDate: date.toISOString(),
-          dryRunNotes: notes,
-        })
+        ...(dialogType === 'logistics'
+          ? {
+              logisticsCallDate: date.toISOString(),
+              logisticsCallNotes: notes,
+            }
+          : {
+              dryRunDate: date.toISOString(),
+              dryRunNotes: notes,
+            }),
       }
 
       const { data, error } = await apiClient.POST('/meetings/{meetingId}/dsm-config', {
@@ -145,17 +149,48 @@ export default React.memo(function Phase7Layout({
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={{ xs: 2, md: 3 }}>
-      <KeyDatesCard meeting={meeting} />
-      <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid
-          size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
-          display="flex"
-          flexDirection="column"
-          gap={{ xs: 2, md: 3 }}
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridTemplateRows: 'auto auto 1fr',
+        gap: { xs: 2, md: 3 },
+      }}
+    >
+      {/* Header Section */}
+      <Box sx={{ gridRow: 1 }}>
+        <KeyDatesCard meeting={meeting} />
+      </Box>
+
+      {/* Main Content Grid */}
+      <Box
+        sx={{
+          gridRow: 2,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+          alignItems: 'flex-start',
+          gap: { xs: 2, md: 3 },
+        }}
+      >
+        {/* Left Column */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: { xs: 2, md: 3 },
+          }}
         >
-          <DigitalShareholderMeetingCard meetingId={meetingId} />
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2, md: 3 }}>
+          <Box sx={{ flexShrink: 0 }}>
+            <DigitalShareholderMeetingCard meetingId={meetingId} />
+          </Box>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: { xs: 2, md: 3 },
+              flexShrink: 0,
+            }}
+          >
             <FeatureTile
               flex
               title={
@@ -188,66 +223,73 @@ export default React.memo(function Phase7Layout({
               variant="default"
               onClick={scheduledDryRun ? undefined : () => handleOpenDialog('dryrun')}
             />
-          </Stack>
-        </Grid>
-        <Grid
-          size={{ xs: 12, sm: 12, md: 12, lg: 6 }}
-          display="flex"
-          flexDirection="column"
-          gap={3}
-        >
-          <MeetingRolesCard meetingId={meetingId} />
-          <PreviewLinksCard />
-        </Grid>
-      </Grid>
-      <Grid container size={12} spacing={{ xs: 2, md: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 12, lg: 9 }}>
-          <Card>
-            <CardHeader
-              title="Tabulation"
-              action={
-                <Button
-                  variant="outlined"
-                  onClick={() => { router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`) }}
-                >
-                  View Tabulation
-                </Button>
-              }
-            />
-            <CardContent sx={{ p: 0 }}>
-              <VotingTabulationTable proposals={proposals} loading={votingLoading} />
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid
-          container
-          size={{ xs: 12, sm: 6, md: 12, lg: 3 }}
-          spacing={{ xs: 2, md: 3 }}
-          display="flex"
-          flexDirection="row"
-          alignSelf="flex-start"
-        >
-          <Stack
-            direction={{ xs: 'column', sm: 'row', md: 'column' }}
-            spacing={{ xs: 2, md: 3 }}
-            sx={{ width: '100%' }}
-          >
-            <FeatureTile
-              flex={true}
-              title="Registered Holder Mailing Affidavit"
-              titleVariant="h1"
-              actionText="Download"
-              variant="default"
-              onClick={() => { }}
-            />
-            <TabulationReportCard />
-          </Stack>
+          </Box>
+        </Box>
 
-          <Grid size={{ xs: 12, sm: 6, md: 12 }}>
-            <SharesVotedChart meetingId={meetingId} loading={votingLoading} />
-          </Grid>
-        </Grid>
-      </Grid>
+        {/* Right Column */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: { xs: 2, md: 3 },
+          }}
+        >
+          <Box sx={{ flexShrink: 0 }}>
+            <MeetingRolesCard meetingId={meetingId} />
+          </Box>
+          <Box sx={{ flexShrink: 0 }}>
+            <PreviewLinksCard />
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Bottom Section - Tabulation */}
+      <Box
+        sx={{
+          gridRow: 3,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
+          alignItems: 'flex-start',
+          gap: { xs: 2, md: 3 },
+          minHeight: 0, // Allow grid item to shrink below content size
+        }}
+      >
+        {/* Tabulation Table */}
+        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardHeader
+            title="Tabulation"
+            action={
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`)
+                }}
+              >
+                View Tabulation
+              </Button>
+            }
+            sx={{ flexShrink: 0 }}
+          />
+          <CardContent sx={{ p: 0, flex: 1 }}>
+            <VotingTabulationTable proposals={proposals} loading={votingLoading} />
+          </CardContent>
+        </Card>
+
+        {/* Right Sidebar */}
+        <Stack spacing={{ xs: 2, md: 3 }}>
+          <FeatureTile
+            title="Registered Holder Mailing Affidavit"
+            titleVariant="h1"
+            actionText="Download"
+            variant="default"
+            onClick={() => {
+              // Event handler intentionally empty - button is disabled
+            }}
+          />
+          <TabulationReportCard />
+          <SharesVotedChart meetingId={meetingId} loading={votingLoading} />
+        </Stack>
+      </Box>
 
       <ScheduleDialog
         open={dialogOpen}

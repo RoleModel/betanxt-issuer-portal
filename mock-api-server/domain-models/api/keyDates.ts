@@ -3,7 +3,7 @@ import { apiClient } from '../apiClient'
 // Use generated types from OpenAPI schema
 
 // Helper type for openapi-fetch response
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
@@ -12,7 +12,7 @@ type ApiResponse<T> = {
   response: Response
 }
 
-export type KeyDate = {
+export interface KeyDate {
   id: string
   title: string
   date: string | null

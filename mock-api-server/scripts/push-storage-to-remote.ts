@@ -1,5 +1,5 @@
 #!/usr/bin/env npx tsx
-/* eslint-disable no-console */
+ 
 import { createClient } from '@supabase/supabase-js'
 
 // Local Supabase
@@ -65,7 +65,7 @@ async function pushStorageToRemote() {
     [key: string]: unknown
   }
 
-  const allFiles: Array<{ path: string; metadata?: FileMetadata }> = []
+  const allFiles: { path: string; metadata?: FileMetadata }[] = []
 
   for (const meetingId of meetingIds) {
     const { data: folders, error: folderError } = await localSupabase.storage

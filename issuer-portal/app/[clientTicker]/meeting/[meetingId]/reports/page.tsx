@@ -24,7 +24,7 @@ import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   if (!phaseLabel) return null
-  const match = phaseLabel.match(/(\d+)/)
+  const match = /(\d+)/.exec(phaseLabel)
   if (!match) return null
   const num = Number(match[1])
   return Number.isFinite(num) ? num : null
@@ -130,13 +130,13 @@ export default function ReportsPage() {
       }
     }
 
-    fetchProposals()
+    void fetchProposals()
   }, [meetingId])
 
   const currentPhaseLabel = useMemo(() => {
     if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
     if ('currentPhase' in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      const val = (currentMeeting as Record<string, unknown>).currentPhase
       return typeof val === 'string' ? val : undefined
     }
     return undefined

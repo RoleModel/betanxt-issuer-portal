@@ -151,7 +151,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       }
     }
 
-    loadDocumentData()
+    void loadDocumentData()
   }, [open, currentDocumentId, getCommentsForDocument, getDocumentHistory])
 
   const handlePageChange = (newPage: number) => {
@@ -834,7 +834,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               color="primary"
               onClick={() => {
                 if (showCommentField) {
-                  handleSubmitComment()
+                  void handleSubmitComment()
                 } else {
                   handleAddComment()
                 }

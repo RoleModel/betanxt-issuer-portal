@@ -84,11 +84,13 @@ export default React.memo(function Phase8Layout({
           <CardContent>
             <FeatureTile
               title="Post Meeting Survey"
-              variant="info"
+              variant="tertiary"
               description="We would love to hear from you! With every Meeting, we at BetaNXT are always looking for ways to improve your expereince and get your feedback on how your Meeting went this year. Please take a moment to complete this Post-Meeting survey to help us continue better assisting you in the future!"
               actionText="Take Survey"
               icon={<ChartBarsIcon fontSize="4xl" />}
-              onClick={() => {}}
+              onClick={() => {
+                // Event handler intentionally empty - button is disabled
+              }}
             />
           </CardContent>
         </Card>

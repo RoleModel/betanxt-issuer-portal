@@ -164,7 +164,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     if (!clientsLoading) {
-      determineClient()
+      void determineClient()
     }
   }, [
     pathname,

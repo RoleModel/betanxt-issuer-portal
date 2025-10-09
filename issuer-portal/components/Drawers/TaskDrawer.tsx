@@ -49,9 +49,10 @@ import {
   handleFormDownload as handlePlanFormDownload,
   handleFormSign as handlePlanFormSign,
 } from '@/utils/planFileRequestForm'
-import { findSignedDocumentForTask } from '@/utils/taskDrawer/documentMatching'
 import { determineTaskStatus } from '@/utils/taskControl'
-import { TaskLink, parseTaskLinks } from '@/utils/taskLinks'
+import { findSignedDocumentForTask } from '@/utils/taskDrawer/documentMatching'
+import type { TaskLink} from '@/utils/taskLinks';
+import { parseTaskLinks } from '@/utils/taskLinks'
 import {
   getDTCCAuthorizationStatus,
   isDTCCAuthorizationTask,
@@ -75,7 +76,7 @@ interface TaskLinkWithSignature extends TaskLink {
 interface TaskDrawerProps {
   open: boolean
   onClose: () => void
-  task: DbTask | Task | null
+  task: DbTask   | null
   onTaskUpdate?: (updatedTask: DbTask) => void
 }
 
@@ -161,7 +162,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [taskPhaseNumber, setTaskPhaseNumber] = useState<number>(1)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [currentTask, setCurrentTask] = useState<DbTask | Task | null>(null)
+  const [currentTask, setCurrentTask] = useState<DbTask   | null>(null)
   const [dtccAuthorized, setDtccAuthorized] = useState(false)
   const [phaseCompleteAlert, setPhaseCompleteAlert] = useState<{
     open: boolean
@@ -409,7 +410,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         }
 
         // Check if all tasks in the current phase are complete
-        const phaseAdvanced = await checkAndCompletePhase(taskToSubmit as Task)
+        const phaseAdvanced = await checkAndCompletePhase(taskToSubmit)
 
         // Clear files
         clearUploadFiles()
@@ -498,7 +499,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             taskToSubmit.meetingId,
             documentData
           )
-          if (newDocument && newDocument.id) {
+          if (newDocument?.id) {
             await addDocumentHistory(newDocument.id, 'UPDATED')
           }
         }
@@ -522,7 +523,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       }
 
       // Check if all tasks in the current phase are complete
-      await checkAndCompletePhase(taskToSubmit as Task)
+      await checkAndCompletePhase(taskToSubmit)
 
       // Clear files and close drawer
       clearUploadFiles()
@@ -715,7 +716,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
 
     // Update task status in backend
     const taskToUpdate = currentTask || task
-    if (taskToUpdate && taskToUpdate.id) {
+    if (taskToUpdate?.id) {
       const newStatus = getDTCCAuthorizationStatus(checked)
 
       // Update task status in backend
@@ -1163,7 +1164,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
         onClose={handleEditModalClose}
         task={
           currentTask || task
-            ? convertDbTaskToTask((currentTask || task) as DbTask)
+            ? convertDbTaskToTask((currentTask || task)!)
             : null
         }
         onTaskUpdated={handleTaskUpdated}

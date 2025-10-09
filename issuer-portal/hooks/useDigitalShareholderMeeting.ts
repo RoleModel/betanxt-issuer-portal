@@ -22,25 +22,37 @@ interface UploadAttendeeData {
   minutesAttendedMeeting?: number
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+export interface UseDigitalShareholderMeetingReturn {
+  attendees: DigitalShareholderMeetingAttendee[]
+  error: Error | undefined
+  isLoading: boolean
+  uploadAttendees: (attendees: UploadAttendeeData[]) => Promise<unknown>
+  mutate: () => Promise<DigitalShareholderMeetingAttendee[] | undefined>
+}
 
-export function useDigitalShareholderMeeting(meetingId: string | undefined) {
-  const fetcher = async (url: string) => {
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+
+export function useDigitalShareholderMeeting(meetingId: string | undefined): UseDigitalShareholderMeetingReturn {
+  const fetcher = async (url: string): Promise<DigitalShareholderMeetingAttendee[]> => {
     const response = await fetch(`${API_URL}${url}`)
     if (!response.ok) {
       throw new Error('Failed to fetch attendees')
     }
-    return response.json()
+    return response.json() as Promise<DigitalShareholderMeetingAttendee[]>
   }
 
-  const { data, error, isLoading, mutate } = useSWR<DigitalShareholderMeetingAttendee[]>(
-    meetingId ? `/api/meetings/${meetingId}/digital-shareholder-meeting` : null,
+  const swrResult = useSWR<DigitalShareholderMeetingAttendee[]>(
+    meetingId ? `/meetings/${meetingId}/digital-shareholder-meeting` : null,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
     }
   )
+  const data = swrResult.data
+  const error = swrResult.error as Error | undefined
+  const isLoading = swrResult.isLoading
+  const mutate = swrResult.mutate
 
   const uploadAttendees = async (attendees: UploadAttendeeData[]) => {
     if (!meetingId) {
@@ -48,7 +60,7 @@ export function useDigitalShareholderMeeting(meetingId: string | undefined) {
     }
 
     const response = await fetch(
-      `${API_URL}/api/meetings/${meetingId}/digital-shareholder-meeting`,
+      `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`,
       {
         method: 'POST',
         headers: {
@@ -62,7 +74,7 @@ export function useDigitalShareholderMeeting(meetingId: string | undefined) {
       throw new Error('Failed to upload attendees')
     }
 
-    const result = await response.json()
+    const result = await response.json() as unknown
     await mutate()
     return result
   }

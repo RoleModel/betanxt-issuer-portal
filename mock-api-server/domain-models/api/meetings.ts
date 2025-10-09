@@ -9,7 +9,7 @@ type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
 type Phase = components['schemas']['Phase']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

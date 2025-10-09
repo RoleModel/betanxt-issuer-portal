@@ -3,7 +3,7 @@ import { useDrawingArea } from '@mui/x-charts'
 
 import { floorAndFormatNumber, fontSizeScaledBy } from '@/utils/numberUtils'
 
-export type PieChartData = {
+export interface PieChartData {
   total: number
   label: string
   centerPercentage?: string

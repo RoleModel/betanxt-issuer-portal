@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import React from 'react'
 
-import { Box, Card, SxProps, Typography } from '@mui/material'
+import type { SxProps } from '@mui/material';
+import { Box, Card, Typography } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 
 interface FeatureTileProps {
@@ -14,7 +15,7 @@ interface FeatureTileProps {
   icon?: React.ReactNode
   iconSize?: '24px' | '32px' | '48px' | '64px' | '96px'
   titleVariant?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
-  variant?: 'default' | 'primary' | 'secondary' | 'info' | 'base'
+  variant?: 'default' | 'primary' | 'secondary' | 'tertiary' | 'base'
   onClick?: () => void
   href?: string
   flex?: boolean
@@ -59,13 +60,13 @@ export function FeatureTile({
           hoverColor: (theme: Theme) => theme.vars.palette.secondary.light,
           borderColor: (theme: Theme) => theme.vars.palette.secondary.dark,
         }
-      case 'info':
+      case 'tertiary':
         return {
-          backgroundColor: (theme: Theme) => theme.vars.palette.info.main,
-          color: (theme: Theme) => `${theme.vars.palette.info.contrastText} !important`,
-          hoverBackgroundColor: (theme: Theme) => theme.vars.palette.info.dark,
-          hoverColor: (theme: Theme) => theme.vars.palette.info.light,
-          borderColor: (theme: Theme) => theme.vars.palette.info.dark,
+          backgroundColor: 'var(--mui-palette-tertiary-main)',
+          color: 'var(--mui-palette-tertiary-contrastText)',
+          hoverBackgroundColor: 'var(--mui-palette-tertiary-main)',
+          hoverColor: 'var(--mui-palette-tertiary-main)',
+          borderColor: 'var(--mui-palette-tertiary-main)',
         }
       case 'base':
         return {
@@ -96,7 +97,7 @@ export function FeatureTile({
         display: 'flex',
         flex: flex ? '1 0 0%' : '0 0 auto',
         flexDirection: 'column',
-        height: height || undefined,
+        height: height ?? undefined,
         backgroundColor: variantStyles.backgroundColor,
         border: `1px solid`,
         borderColor: variantStyles.borderColor,
@@ -106,13 +107,13 @@ export function FeatureTile({
         transition: (theme) =>
           theme.transitions.create(['transform', 'background-color', 'box-shadow']),
         '&:hover':
-          href || onClick
+          href ?? onClick
             ? {
               transform: 'translateY(-2px)',
               backgroundColor: variantStyles.hoverBackgroundColor,
               color: variantStyles.hoverColor,
             }
-            : {},
+            : undefined,
       }}
       onClick={onClick && !href ? onClick : undefined}
     >

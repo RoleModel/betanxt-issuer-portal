@@ -1,6 +1,7 @@
 import React from 'react'
 
-import { SxProps, TableCell, TableCellProps } from '@mui/material'
+import type { SxProps, TableCellProps } from '@mui/material';
+import { TableCell } from '@mui/material'
 import { Tooltip } from '@mui/material'
 
 // A TableCell that prevents text from wrapping

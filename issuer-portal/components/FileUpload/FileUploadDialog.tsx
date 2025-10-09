@@ -18,7 +18,7 @@ import type { DSMDocumentOption, UploadFile } from './types'
 interface FileUploadDialogProps {
   open: boolean
   onClose: () => void
-  onUpload: (files: File[], associations?: { [fileId: string]: string }) => void
+  onUpload: (files: File[], associations?: Record<string, string>) => void
   onUploadSuccess?: () => void
   meetingId?: string
   documentType?: string
@@ -41,7 +41,7 @@ const FileUploadDialog = ({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [fileAssociations, setFileAssociations] = useState<{ [fileId: string]: string }>(
+  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>(
     {}
   )
 
@@ -79,12 +79,12 @@ const FileUploadDialog = ({
     return Promise.resolve()
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const completedFiles = uploadFiles.filter((f) => f.status === 'complete')
     const filesToUpload = completedFiles.map((f) => f.file)
 
     // Build associations map using file identifiers (name-size)
-    const associations: { [fileId: string]: string } = {}
+    const associations: Record<string, string> = {}
     completedFiles.forEach((uploadFile) => {
       const fileKey = `${uploadFile.file.name}-${uploadFile.file.size}`
       // If there's a preSelectedDocumentId, use it for all files
@@ -99,7 +99,7 @@ const FileUploadDialog = ({
       setIsUploading(true)
       try {
         // Call the parent's onUpload handler with associations
-        await onUpload(filesToUpload, associations)
+        onUpload(filesToUpload, associations)
 
         // Call success callback if provided
         onUploadSuccess?.()

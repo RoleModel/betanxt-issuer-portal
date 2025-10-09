@@ -24,7 +24,7 @@ import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useDocuments } from '@/contexts/DocumentContext'
 
@@ -101,7 +101,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         )
 
         if (response.ok) {
-          const data: DSMConfig = await response.json()
+          const data = (await response.json()) as DSMConfig
           setLiveQA(data.liveQa || false)
           setAudioOnly(data.audioOnly || false)
           setMeetingRecording(data.meetingRecording || false)
@@ -123,7 +123,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       }
     }
 
-    fetchConfig()
+    void fetchConfig()
   }, [meetingId])
 
   // Check availability of previous year documents
@@ -200,7 +200,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       }
     }
 
-    checkPreviousYearDocs()
+    void checkPreviousYearDocs()
   }, [meetingId, getPreviousYearMeetingId])
 
   // Save DSM config to database
@@ -258,7 +258,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       )
 
       if (response.ok) {
-        const data: DSMConfig = await response.json()
+        const data = (await response.json()) as DSMConfig
         setLiveQA(data.liveQa || false)
         setAudioOnly(data.audioOnly || false)
         setMeetingRecording(data.meetingRecording || false)
@@ -347,13 +347,13 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
 
   const handleUploadComplete = async (
     files: File[],
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => {
     if (!meetingId) return
     try {
       // Create associations based on upload type to link to DSM placeholders
       // Use the actual placeholder title (not ID) so documents match for replacement
-      const typeAssociations: { [fileId: string]: string } = {}
+      const typeAssociations: Record<string, string> = {}
 
       files.forEach((file, index) => {
         const fileId = `file_${index}`
@@ -488,13 +488,13 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                         {isEditMode ? (
                           <>
                             <Switch
-                              size='small'
+                              size="small"
                               checked={option.value}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                option.onChange!(e.target.checked)
+                                option.onChange(e.target.checked)
                               }
                               slotProps={{
-                                input: { 'aria-label': 'Yes or No' }
+                                input: { 'aria-label': 'Yes or No' },
                               }}
                             />
                             <Typography variant="body3">No</Typography>
@@ -549,7 +549,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         documentType={uploadType}
       />
 
-      {selectedDocument && selectedDocument.filePath && (
+      {selectedDocument?.filePath && (
         <Suspense fallback={<LinearProgress />}>
           <DocumentViewer
             open={documentViewerOpen}

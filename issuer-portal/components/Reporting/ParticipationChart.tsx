@@ -6,11 +6,11 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
 
 interface ParticipationData {
-  meetings: Array<{
+  meetings: {
     event: string
     participationRate: number
     meetingYear: number
-  }>
+  }[]
 }
 
 interface ParticipationChartProps {

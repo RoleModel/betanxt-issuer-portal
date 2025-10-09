@@ -1,9 +1,10 @@
+import type {
+  CardProps} from '@mui/material';
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
-  CardProps,
   Typography,
 } from '@mui/material'
 

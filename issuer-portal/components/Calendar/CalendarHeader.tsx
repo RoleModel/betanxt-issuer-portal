@@ -10,8 +10,8 @@ import React, { useState } from 'react'
 import {
   AddOutlined as AddIcon,
   CalendarViewDay as CalendarViewDayIcon,
-  CalendarMonthOutlined as MonthIcon,
   DownloadOutlined as DownloadIcon,
+  CalendarMonthOutlined as MonthIcon,
   PrintOutlined as PrintIcon,
   SearchOutlined as SearchIcon,
   ShareOutlined as ShareIcon,
@@ -33,6 +33,16 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
 
 export type CalendarViewType = 'month' | 'list'
 

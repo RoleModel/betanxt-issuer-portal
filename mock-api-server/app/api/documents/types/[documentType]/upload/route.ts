@@ -1,7 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-30T00:31:43.168Z
 // Source: openapi-schema/openapi.yaml
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 
 import { createDocument } from '@/domain-models/api/documents'
 
@@ -51,7 +52,7 @@ export async function POST(
     // Generate unique file path: documents/{meetingId}/{documentType}/{timestamp}_{rand}.{ext}
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 11)
-    const fileExt = file.name.split('.').pop() || 'pdf'
+    const fileExt = file.name.split('.').pop() ?? 'pdf'
     const storagePath = `${meetingId}/${documentType}/${timestamp}_${randomId}.${fileExt}`
 
     // Upload to Supabase Storage (using service role client to bypass RLS)
@@ -71,8 +72,8 @@ export async function POST(
 
     // Use provided title if available, otherwise create from filename or document type
     const title =
-      documentTitle ||
-      file.name.replace(/\.[^/.]+$/, '') ||
+      documentTitle ??
+      file.name.replace(/\.[^/.]+$/, '') ??
       documentType.replace(/-/g, ' ')
 
     // Create document record with storage path
