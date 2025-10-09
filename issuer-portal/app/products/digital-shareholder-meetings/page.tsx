@@ -138,7 +138,7 @@ export default function DigitalShareholderMeetingsPage() {
         button={true}
         buttonText="Open PDF Guide"
         onClick={() => {
-          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setFileUrl('/documents/DSM-Quick-Start-Guide.pdf')
           setViewerTitle('DSM Quickstart Guide')
           setOpen(true)
         }}

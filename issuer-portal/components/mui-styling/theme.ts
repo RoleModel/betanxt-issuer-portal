@@ -3,7 +3,7 @@
 // Import design system types first
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { baseThemeOptions } from '@rolemodel/betanxt-design-system/themes/baseTheme'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -17,10 +17,9 @@ import {
   teal,
 } from '@mui/material/colors'
 import type { Theme } from '@mui/material/styles'
-import { alpha, createTheme, darken, getContrastRatio } from '@mui/material/styles'
-import { deepmerge } from '@mui/utils'
+import { createTheme, getContrastRatio } from '@mui/material/styles'
 // Import MUI X Date Pickers theme augmentation
-import type {} from '@mui/x-date-pickers/themeAugmentation'
+import type { } from '@mui/x-date-pickers/themeAugmentation'
 
 import { clientBranding } from '@/utils/clientBranding'
 
@@ -203,151 +202,186 @@ const getClientBranding = (ticker?: string) => {
 export const createClientTheme = (ticker?: string) => {
   const branding = getClientBranding(ticker)
 
-  const issuerOverrides = {
+  // Create client-specific color overrides while preserving all base theme properties
+  // We need to carefully merge to keep phase, keydate, and other custom palette properties
+  const clientColorSchemes = {
+    light: {
+      ...baseThemeOptions.colorSchemes?.light,
+      palette: {
+        ...baseThemeOptions.colorSchemes?.light?.palette,
+        primary: {
+          main: branding.primaryColor,
+          contrastText: branding.primaryContrastText,
+        },
+        secondary: {
+          main: branding.secondaryColor,
+          contrastText: branding.secondaryContrastText,
+        },
+        tertiary: {
+          main: branding.tertiaryColor,
+          contrastText: branding.tertiaryContrastText,
+        },
+        aquaLight: '#CFE2E5',
+        keydate: {
+          main: '#CCE5FF',
+          light: nxtBlue[50],
+          dark: nxtBlue[700],
+          contrastText: '#004d73', // Darker blue for better contrast (4.5:1 ratio)
+        },
+        phase: [
+          {
+            main: cyan[800],
+            light: cyan[600],
+            dark: cyan[900],
+            contrastText: '#ffffff',
+          },
+          {
+            main: teal[800],
+            light: teal[700],
+            dark: teal[900],
+            contrastText: teal[50],
+          },
+          {
+            main: purple[700],
+            light: purple[500],
+            dark: purple[900],
+            contrastText: purple[50],
+          },
+          {
+            main: lightBlue[700],
+            light: lightBlue[500],
+            dark: lightBlue[900],
+            contrastText: lightBlue[50],
+          },
+          {
+            main: pink[900],
+            light: pink[500],
+            dark: pink[900],
+            contrastText: pink[50],
+          },
+          {
+            main: blue[800],
+            light: blue[400],
+            dark: blue[900],
+            contrastText: blue[50],
+          },
+          {
+            main: green[800],
+            light: green[500],
+            dark: green[900],
+            contrastText: green[50],
+          },
+          {
+            main: deepPurple[800],
+            light: deepPurple[500],
+            dark: deepPurple[900],
+            contrastText: deepPurple[50],
+          },
+          {
+            main: grey[700],
+            light: grey[500],
+            dark: grey[900],
+            contrastText: grey[50],
+          },
+        ] as any,
+        complete: grey[500],
+      },
+    },
+    dark: {
+      ...baseThemeOptions.colorSchemes?.dark,
+      palette: {
+        ...baseThemeOptions.colorSchemes?.dark?.palette,
+        primary: {
+          main: branding.primaryColor,
+          contrastText: branding.primaryContrastText,
+        },
+        secondary: {
+          main: branding.secondaryColor,
+          contrastText: branding.secondaryContrastText,
+        },
+        tertiary: {
+          main: branding.tertiaryColor,
+          contrastText: branding.tertiaryContrastText,
+        },
+        aquaLight: '#CFE2E5',
+        keydate: {
+          main: nxtBlue[900],
+          light: nxtBlue[700],
+          dark: nxtBlue[600],
+          contrastText: nxtBlue[100],
+        },
+        phase: [
+          {
+            main: cyan[800],
+            light: cyan[300],
+            dark: cyan[900],
+            contrastText: cyan[50],
+          },
+          {
+            main: teal[600],
+            light: teal[400],
+            dark: teal[900],
+            contrastText: teal[50],
+          },
+          {
+            main: purple[700],
+            light: purple[400],
+            dark: purple[900],
+            contrastText: purple[50],
+          },
+          {
+            main: lightBlue[700],
+            light: lightBlue[400],
+            dark: lightBlue[900],
+            contrastText: lightBlue[50],
+          },
+          {
+            main: pink[700],
+            light: pink[400],
+            dark: pink[900],
+            contrastText: pink[50],
+          },
+          {
+            main: blue[700],
+            light: blue[400],
+            dark: blue[900],
+            contrastText: blue[50],
+          },
+          {
+            main: green[700],
+            light: green[500],
+            dark: green[900],
+            contrastText: green[50],
+          },
+          {
+            main: deepPurple[700],
+            light: deepPurple[400],
+            dark: deepPurple[900],
+            contrastText: deepPurple[50],
+          },
+          {
+            main: grey[600],
+            light: grey[400],
+            dark: grey[800],
+            contrastText: grey[50],
+          },
+        ] as any,
+        complete: grey[600],
+      },
+    },
+  }
+
+  // Merge with base theme options
+  const mergedOptions = {
+    ...baseThemeOptions,
+    colorSchemes: clientColorSchemes,
+  }
+
+  // Build the final theme options
+  const themeOptions = {
+    ...mergedOptions,
     cssVariables: {
       colorSchemeSelector: 'class',
-      nativeColor: true,
-    },
-    colorSchemes: {
-      light: {
-        palette: {
-          primary: {
-            main: branding.primaryColor,
-            contrastText: branding.primaryContrastText,
-          },
-          secondary: {
-            main: branding.secondaryColor,
-            contrastText: branding.secondaryContrastText,
-          },
-          tertiary: {
-            main: branding.tertiaryColor,
-            light: alpha(branding.tertiaryColor, 0.7),
-            dark: darken(branding.tertiaryColor, 0.2),
-            contrastText: branding.tertiaryContrastText,
-          },
-          aquaLight: '#CFE2E5',
-          keydate: {
-            main: '#CCE5FF',
-            light: nxtBlue[50],
-            dark: nxtBlue[700],
-            contrastText: '#004d73', // Darker blue for better contrast (4.5:1 ratio)
-          },
-          phase: [
-            {
-              main: cyan[800],
-              light: cyan[600],
-              dark: cyan[900],
-              contrastText: '#ffffff',
-            },
-            {
-              main: teal[800],
-              light: teal[700],
-              dark: teal[900],
-              contrastText: teal[50],
-            },
-            {
-              main: purple[700],
-              light: purple[500],
-              dark: purple[900],
-              contrastText: purple[50],
-            },
-            {
-              main: lightBlue[700],
-              light: lightBlue[500],
-              dark: lightBlue[900],
-              contrastText: lightBlue[50],
-            },
-            {
-              main: pink[900],
-              light: pink[500],
-              dark: pink[900],
-              contrastText: pink[50],
-            },
-            {
-              main: blue[800],
-              light: blue[400],
-              dark: blue[900],
-              contrastText: blue[50],
-            },
-            {
-              main: green[800],
-              light: green[500],
-              dark: green[900],
-              contrastText: green[50],
-            },
-            {
-              main: deepPurple[800],
-              light: deepPurple[500],
-              dark: deepPurple[900],
-              contrastText: deepPurple[50],
-            },
-          ],
-          complete: grey[500],
-        },
-      },
-      dark: {
-        palette: {
-          aquaLight: '#CFE2E5',
-          keydate: {
-            main: nxtBlue[900],
-            light: nxtBlue[700],
-            dark: nxtBlue[600],
-            contrastText: nxtBlue[100],
-          },
-          phase: [
-            {
-              main: cyan[800],
-              light: cyan[300],
-              dark: cyan[900],
-              contrastText: cyan[50],
-            },
-            {
-              main: teal[600],
-              light: teal[400],
-              dark: teal[900],
-              contrastText: teal[50],
-            },
-            {
-              main: purple[700],
-              light: purple[400],
-              dark: purple[900],
-              contrastText: purple[50],
-            },
-            {
-              main: lightBlue[700],
-              light: lightBlue[400],
-              dark: lightBlue[900],
-              contrastText: lightBlue[50],
-            },
-            {
-              main: pink[700],
-              light: pink[400],
-              dark: pink[900],
-              contrastText: pink[50],
-            },
-            {
-              main: blue[700],
-              light: blue[400],
-              dark: blue[900],
-              contrastText: blue[50],
-            },
-
-            {
-              main: green[700],
-              light: green[400],
-              dark: green[900],
-              contrastText: green[50],
-            },
-            {
-              main: deepPurple[600],
-              light: deepPurple[400],
-              dark: deepPurple[900],
-              contrastText: deepPurple[50],
-            },
-          ],
-          complete: grey[600],
-        },
-      },
     },
     breakpoints: {
       values: {
@@ -569,32 +603,11 @@ export const createClientTheme = (ticker?: string) => {
       MuiMultiSectionDigitalClock: {
         styleOverrides: {
           root: {
-            width: 'auto !important',
-            maxHeight: 'none !important',
-            flexDirection: 'row !important', // Override the column layout
-            margin: '0 !important',
+            width: 'auto',
+            maxHeight: 'none',
+            flexDirection: 'row' as const,
+            margin: 0,
           },
-        },
-      },
-      MuiDateTimePicker: {
-        defaultProps: {
-          // Ensure desktop mode is properly set
-          desktopModeMediaQuery: '@media (min-width:900px)',
-        },
-      },
-      MuiDesktopDateTimePicker: {
-        defaultProps: {
-          // Force proper desktop behavior
-          OpenPickerButtonProps: {
-            edge: 'end',
-          },
-        },
-        styleOverrides: {
-          root: ({ theme }: { theme: Theme }) => ({
-            '& .MuiInputBase-root': {
-              backgroundColor: theme.vars.palette.inputOutlinedEnabledFill,
-            },
-          }),
         },
       },
       MuiPickersTextField: {
@@ -616,8 +629,7 @@ export const createClientTheme = (ticker?: string) => {
     },
   }
 
-  const mergedOptions = deepmerge(baseThemeOptions, issuerOverrides)
-  return createTheme(mergedOptions)
+  return createTheme(themeOptions)
 }
 
 // Pre-create all client themes for optimal performance

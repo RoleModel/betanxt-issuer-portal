@@ -1,23 +1,11 @@
 'use client'
 
 import { ThemeProvider } from '@mui/material/styles'
-import React, { useEffect } from 'react'
+import React, { useMemo } from 'react'
 
 import { useClient } from '@/contexts/ClientContext'
 
-import { getThemeForClient } from './theme'
-
-// Type guard to check if a value is a complete palette color
-function isPaletteColor(
-  value: unknown,
-): value is { main: string; light?: string; dark?: string; contrastText?: string } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'main' in value &&
-    typeof (value as { main: unknown }).main === 'string'
-  )
-}
+import { createClientTheme } from './theme'
 
 interface DynamicThemeProviderProps {
   children: React.ReactNode
@@ -31,50 +19,20 @@ interface DynamicThemeProviderProps {
  * - Wrap your application with this provider instead of MUI's ThemeProvider
  * - Theme will automatically update when the current client changes
  * - Falls back to default theme (WEN branding) if no client is available
+ * - MUI automatically handles CSS variables and mode switching
  */
 export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ children }) => {
   const { currentClient } = useClient()
 
-  // Get the pre-built theme for the current client
-  const theme = getThemeForClient(currentClient?.ticker)
+  // Create theme dynamically based on current client ticker
+  // useMemo ensures theme is only recreated when ticker changes
+  const theme = useMemo(() => createClientTheme(currentClient?.ticker), [currentClient?.ticker])
 
-  // Manually update CSS variables when theme changes
-  // Only inject client colors in light mode - dark mode uses BetaNXT colors by design
-  useEffect(() => {
-    if (typeof document !== 'undefined' && theme.vars) {
-      const root = document.documentElement
-
-      // Check if we're in dark mode by looking at the MUI color scheme class
-      const isDarkMode = root.classList.contains('dark')
-
-      // Only inject client colors in light mode
-      if (isDarkMode) {
-        return
-      }
-
-      // Update primary color variables
-      root.style.setProperty('--mui-palette-primary-main', theme.palette.primary.main)
-      root.style.setProperty('--mui-palette-primary-light', theme.palette.primary.light ?? theme.palette.primary.main)
-      root.style.setProperty('--mui-palette-primary-dark', theme.palette.primary.dark ?? theme.palette.primary.main)
-      root.style.setProperty('--mui-palette-primary-contrastText', theme.palette.primary.contrastText ?? '#fff')
-
-      // Update secondary color variables
-      root.style.setProperty('--mui-palette-secondary-main', theme.palette.secondary.main)
-      root.style.setProperty('--mui-palette-secondary-light', theme.palette.secondary.light ?? theme.palette.secondary.main)
-      root.style.setProperty('--mui-palette-secondary-dark', theme.palette.secondary.dark ?? theme.palette.secondary.main)
-      root.style.setProperty('--mui-palette-secondary-contrastText', theme.palette.secondary.contrastText ?? '#fff')
-
-      // Update tertiary color variables if they exist (using type guard)
-      const tertiary = theme.palette.tertiary
-      if (isPaletteColor(tertiary)) {
-        root.style.setProperty('--mui-palette-tertiary-main', tertiary.main)
-        root.style.setProperty('--mui-palette-tertiary-light', tertiary.light ?? tertiary.main)
-        root.style.setProperty('--mui-palette-tertiary-dark', tertiary.dark ?? tertiary.main)
-        root.style.setProperty('--mui-palette-tertiary-contrastText', tertiary.contrastText ?? '#fff')
-      }
-
-    }
-  }, [theme])
-
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>
+  // Force ThemeProvider to remount when ticker changes by using key
+  // This ensures CSS variables are properly reinitialized
+  return (
+    <ThemeProvider key={currentClient?.ticker ?? 'default'} theme={theme}>
+      {children}
+    </ThemeProvider>
+  )
 }

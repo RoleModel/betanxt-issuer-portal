@@ -1,21 +1,29 @@
-import { copycat } from '@snaplet/copycat'
-import * as fs from 'fs'
-import { DateTime } from 'luxon'
-import * as path from 'path'
+/* eslint-disable */
 import { fileURLToPath } from 'url'
-
-import { CSVProcessor } from '../mock-api-server/csv-processor'
-import type {
-  CompanyPositionData,
-  CompanyProposalData,
-} from '../mock-api-server/csv-processor'
+import path from 'path'
+import { DateTime } from 'luxon'
+import { copycat } from '@snaplet/copycat'
 import { seedConfig } from './seed.config'
+import { CSVProcessor } from '../mock-api-server/csv-processor'
+
+type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>
+
+// Add missing type definitions
+interface CompanyPositionData {
+  shares: number
+  sharesVoted: number
+}
+
+interface CompanyProposalData {
+  votesFor: number
+  votesAgainst: number
+  votesAbstain: number
+  votesTotal: number
+}
 
 // ES module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>
 
 /**
  * Shift weekend dates to next Monday
@@ -2533,6 +2541,15 @@ const main = async () => {
         const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + 1}`)
         proposalIds.push(proposalId)
 
+        // For director elections, extract director name from title
+        let directorName: string | null = null
+        if (proposal.type === 'Director Election' && proposal.subtype === 'Individual') {
+          // Remove the proposal number prefix (e.g., "1.01 " or "1. ")
+          const cleanTitle = proposal.title.replace(/^\d+\.\d*\s+/, '')
+          // The remaining text is the director name
+          directorName = cleanTitle.trim()
+        }
+
         const results = buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO)
 
         // Only update participation target if we don't already have one for historical meetings
@@ -2561,10 +2578,10 @@ const main = async () => {
           `${sqlValue(proposal.title)}, ` +
           `${sqlValue(proposal.type)}, ` +
           `${sqlValue(proposal.subtype)}, ` +
-          `NULL, ` +
-          `NULL, ` +
-          `NULL, ` +
-          `NULL, ` +
+          `${sqlValue(directorName)}, ` +
+          `${directorName ? 1 : 'NULL'}, ` +
+          `${directorName ? sqlValue('I') : 'NULL'}, ` +
+          `${directorName ? 2026 : 'NULL'}, ` +
           `NULL, ` +
           `${sqlValue(proposal.recommendation)}, ` +
           `${results.finalResult}, ` +

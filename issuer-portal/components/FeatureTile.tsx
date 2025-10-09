@@ -74,7 +74,7 @@ export function FeatureTile({
           color: (theme: Theme) => `${theme.vars.palette.text.primary} !important`,
           hoverBackgroundColor: (theme: Theme) => theme.vars.palette.background.paper,
           hoverColor: (theme: Theme) => theme.vars.palette.primary.main,
-          borderColor: (theme: Theme) => theme.vars.palette.primary.dark,
+          borderColor: (theme: Theme) => theme.vars.palette.divider,
         }
       default:
         return {

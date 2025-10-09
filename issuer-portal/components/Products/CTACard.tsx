@@ -56,7 +56,6 @@ export function CTACard() {
       <CardHeader
         title={
           <Typography
-            color="primary"
             variant="h1"
             component="p"
             fontFamily={'var(--font-tungsten)'}
