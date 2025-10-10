@@ -34,24 +34,39 @@ export async function POST(_req: NextRequest) {
     const isLocalhost = databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
 
     // Configure SSL for Supabase connections
-    // On Vercel/production, we need to accept self-signed certificates from Supabase pooler
+    // For remote databases (Supabase), we need to handle SSL properly
     const sslConfig = isLocalhost
-      ? false
+      ? undefined
       : {
           rejectUnauthorized: false,
-          // Additional options for compatibility
-          checkServerIdentity: () => undefined,
         }
 
-    console.log('SSL config:', isLocalhost ? 'disabled (localhost)' : 'enabled (remote)')
-    console.log('Environment:', process.env.VERCEL ? 'Vercel' : 'Local')
-
-    client = new Client({
-      connectionString: databaseUrl,
-      ssl: sslConfig,
+    console.log('Connection details:', {
+      isLocalhost,
+      hasPostgresUrl: !!process.env.POSTGRES_URL,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      isVercel: !!process.env.VERCEL,
+      sslEnabled: !isLocalhost,
     })
-    await client.connect()
-    console.log('Database connection established successfully')
+
+    try {
+      client = new Client({
+        connectionString: databaseUrl,
+        ssl: sslConfig,
+        connectionTimeoutMillis: 30000,
+      })
+      console.log('Attempting to connect to database...')
+      await client.connect()
+      console.log('Database connection established successfully')
+    } catch (connectError: any) {
+      console.error('Connection failed:', {
+        message: connectError.message,
+        code: connectError.code,
+        errno: connectError.errno,
+        syscall: connectError.syscall,
+      })
+      throw new Error(`Database connection failed: ${connectError.message}`)
+    }
 
     // Get the monorepo root (mock-api-server is a child of the root)
     const currentDir = process.cwd()
