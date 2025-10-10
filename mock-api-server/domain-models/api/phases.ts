@@ -17,7 +17,7 @@ type PhaseRow = Database['public']['Tables']['phase']['Row']
 type PhaseUpdate = Database['public']['Tables']['phase']['Update']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

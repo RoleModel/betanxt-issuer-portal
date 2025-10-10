@@ -491,6 +491,7 @@ export type Database = {
           title: string | null
           total_shares_outstanding: string | null
           transfer_agent: string | null
+          transfer_agent_confirmed: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -524,6 +525,7 @@ export type Database = {
           title?: string | null
           total_shares_outstanding?: string | null
           transfer_agent?: string | null
+          transfer_agent_confirmed?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -557,6 +559,7 @@ export type Database = {
           title?: string | null
           total_shares_outstanding?: string | null
           transfer_agent?: string | null
+          transfer_agent_confirmed?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

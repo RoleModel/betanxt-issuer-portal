@@ -17,7 +17,7 @@ import {
 
 import { shiftWeekendToMonday } from '@/components/Calendar/CalendarUtils'
 import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
-import { getPhaseColor, theme } from '@/components/mui-styling/theme'
+import { getPhaseColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
@@ -164,20 +164,20 @@ export const ListView: React.FC<ListViewProps> = ({
     title: keyDate.title || '',
     date: keyDate.date
       ? (() => {
-        try {
-          // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
-          const originalDate = new Date(keyDate.date)
-          const adjustedDate = shiftWeekendToMonday(originalDate)
-          return adjustedDate.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-          })
-        } catch {
-          return keyDate.date
-        }
-      })()
+          try {
+            // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
+            const originalDate = new Date(keyDate.date)
+            const adjustedDate = shiftWeekendToMonday(originalDate)
+            return adjustedDate.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            })
+          } catch {
+            return keyDate.date
+          }
+        })()
       : '',
     phaseNumber: keyDate.phaseNumber || 1,
   })
@@ -380,7 +380,7 @@ export const ListView: React.FC<ListViewProps> = ({
                       ? `inset 4px 0px 0px 0px ${phaseColor}`
                       : 'none',
 
-                    transition: theme.transitions.create([
+                    transition: (theme) => theme.transitions.create([
                       'box-shadow',
                       'background-color',
                     ]),
@@ -449,9 +449,9 @@ export const ListView: React.FC<ListViewProps> = ({
         {/* Main Content Area */}
         <Box flex={1} overflow="auto">
           {selectedPhase === 'all' ||
-            (typeof selectedPhase === 'number' &&
-              selectedPhase >= 1 &&
-              selectedPhase <= 8) ? (
+          (typeof selectedPhase === 'number' &&
+            selectedPhase >= 1 &&
+            selectedPhase <= 8) ? (
             <Stack p={{ xs: 1, md: 3 }} spacing={1}>
               <Box
                 component="ul"
@@ -460,11 +460,11 @@ export const ListView: React.FC<ListViewProps> = ({
                 <AnimatePresence mode="wait" initial={false}>
                   {(() => {
                     // Combine tasks and key dates into a single array with type information
-                    const combinedItems: Array<{
+                    const combinedItems: {
                       type: 'task' | 'keyDate'
                       item: Task | DisplayKeyDate
                       date: Date
-                    }> = []
+                    }[] = []
 
                     // Add tasks with parsed dates
                     filteredTasks.forEach((task) => {
@@ -576,7 +576,7 @@ export const ListView: React.FC<ListViewProps> = ({
                           taskPhase = dbTask ? dbTask.phaseNumber || 1 : 1
                         } else {
                           // For specific phase selection, use the selected phase
-                          taskPhase = selectedPhase as number
+                          taskPhase = selectedPhase
                         }
                         const taskPhaseColor: string = getPhaseColor(taskPhase)
                         const uniqueKey = `task-${task.id || task.taskId || task.title || index}`
@@ -614,14 +614,14 @@ export const ListView: React.FC<ListViewProps> = ({
                                 cursor: 'pointer',
                                 backgroundColor: (theme) =>
                                   task.status === 'COMPLETE' ||
-                                    task.status === 'AUTHORIZED'
+                                  task.status === 'AUTHORIZED'
                                     ? theme.vars?.palette.background.default
                                     : theme.vars?.palette?.tableCellRow.fill,
                                 boxShadow: (theme) =>
                                   `inset 0px 0px 0px 1px ${theme.vars?.palette?.divider}`,
                                 borderLeft: (theme) =>
                                   task.status === 'COMPLETE' ||
-                                    task.status === 'AUTHORIZED'
+                                  task.status === 'AUTHORIZED'
                                     ? `8px solid ${theme.vars?.palette.complete}`
                                     : `8px solid ${taskPhaseColor}`,
                                 '&:hover': {
@@ -644,12 +644,12 @@ export const ListView: React.FC<ListViewProps> = ({
                                     sx={{
                                       textDecoration:
                                         task.status === 'COMPLETE' ||
-                                          task.status === 'AUTHORIZED'
+                                        task.status === 'AUTHORIZED'
                                           ? 'line-through'
                                           : 'none',
                                       opacity:
                                         task.status === 'COMPLETE' ||
-                                          task.status === 'AUTHORIZED'
+                                        task.status === 'AUTHORIZED'
                                           ? 0.6
                                           : 1,
                                     }}
@@ -662,7 +662,7 @@ export const ListView: React.FC<ListViewProps> = ({
                                     sx={{
                                       textDecoration:
                                         task.status === 'COMPLETE' ||
-                                          task.status === 'AUTHORIZED'
+                                        task.status === 'AUTHORIZED'
                                           ? 'line-through'
                                           : 'none',
                                     }}
@@ -717,26 +717,26 @@ export const ListView: React.FC<ListViewProps> = ({
           task={
             taskToEdit
               ? {
-                ...taskToEdit,
-                description: taskToEdit.description ?? '',
-                dueDate: taskToEdit.dueDate || '',
-                phaseNumber: taskToEdit.phaseNumber || 1,
-                links: taskToEdit.links || null,
-                type: [
-                  'upload',
-                  'signature',
-                  'external',
-                  'authorize',
-                  'approve',
-                ].includes(taskToEdit.type || '')
-                  ? (taskToEdit.type as
-                    | 'upload'
-                    | 'signature'
-                    | 'external'
-                    | 'authorize'
-                    | 'approve')
-                  : 'external',
-              }
+                  ...taskToEdit,
+                  description: taskToEdit.description ?? '',
+                  dueDate: taskToEdit.dueDate || '',
+                  phaseNumber: taskToEdit.phaseNumber || 1,
+                  links: taskToEdit.links || null,
+                  type: [
+                    'upload',
+                    'signature',
+                    'external',
+                    'authorize',
+                    'approve',
+                  ].includes(taskToEdit.type || '')
+                    ? (taskToEdit.type as
+                        | 'upload'
+                        | 'signature'
+                        | 'external'
+                        | 'authorize'
+                        | 'approve')
+                    : 'external',
+                }
               : null
           }
           onTaskUpdated={handleTaskUpdated}

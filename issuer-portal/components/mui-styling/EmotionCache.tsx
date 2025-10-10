@@ -6,7 +6,7 @@ import { CacheProvider } from '@emotion/react'
 import { useServerInsertedHTML } from 'next/navigation'
 import * as React from 'react'
 
-export type NextAppDirEmotionCacheProviderProps = {
+export interface NextAppDirEmotionCacheProviderProps {
   options: Omit<OptionsOfCreateCache, 'insertionPoint'>
   CacheProvider?: (props: {
     value: EmotionCache

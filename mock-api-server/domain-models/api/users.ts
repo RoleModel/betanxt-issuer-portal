@@ -10,7 +10,7 @@ type CreateAccountUserRequest = components['schemas']['CreateAccountUserRequest'
 type Account = components['schemas']['Account']
 
 // Helper type for openapi-fetch response
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

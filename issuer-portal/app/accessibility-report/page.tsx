@@ -307,7 +307,7 @@ export default function AccessibilityReportPage() {
       }
     }
 
-    loadData()
+    void loadData()
   }, [])
 
   // Build WCAG mapping and rule data from axe rules
@@ -589,7 +589,7 @@ export default function AccessibilityReportPage() {
     }
   }
 
-  if (!results || !results.pages) {
+  if (!results?.pages) {
     return (
       <Container>
         <Typography>Loading accessibility report...</Typography>

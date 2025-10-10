@@ -16,7 +16,7 @@ import {
 
 import DocumentThumbnailGenerator from './DocumentThumbnailGenerator'
 
-type Props = {
+interface Props {
   filePath?: string | null
   onClick?: () => void
   width?: number
@@ -144,7 +144,7 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
       }
     }
 
-    loadPDFComponents()
+    void loadPDFComponents()
 
     return () => {
       mounted = false

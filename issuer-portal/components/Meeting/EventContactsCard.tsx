@@ -38,6 +38,7 @@ interface EventContactsCardProps {
   meeting?: {
     id?: string
     transferAgent?: string
+    transferAgentConfirmed?: boolean
     planAdministrator?: string
     planAdministratorContactEmail?: string
     solicitor?: string
@@ -54,11 +55,9 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [transferAgentConfirmation, setTransferAgentConfirmation] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isConfirmed, setIsConfirmed] = useState(false)
 
-  // For demo purposes, show "Not yet confirmed" if we have a transfer agent value
-  // but haven't confirmed it yet in this session
-  const showTransferAgentAsUnconfirmed = meeting?.transferAgent && !isConfirmed
+  // Show "Not yet confirmed" if we have a transfer agent value but it hasn't been confirmed
+  const showTransferAgentAsUnconfirmed = meeting?.transferAgent && !meeting?.transferAgentConfirmed
 
   const contacts: ContactInfo[] = meeting
     ? [
@@ -105,6 +104,7 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
         },
         body: {
           transferAgent: transferAgentConfirmation.trim(),
+          transferAgentConfirmed: true,
         },
       })
 
@@ -112,9 +112,6 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
       if (onUpdate) {
         onUpdate()
       }
-
-      // Mark as confirmed to hide the button
-      setIsConfirmed(true)
 
       handleDialogClose()
     } catch (error) {

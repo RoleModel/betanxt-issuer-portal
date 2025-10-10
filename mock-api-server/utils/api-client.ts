@@ -5,7 +5,7 @@ import type { paths } from '../types/api'
 
 // Create the base API client
 export const apiClient = createClient<paths>({
-  baseUrl: process.env.API_BASE_URL || 'http://localhost:3000/api',
+  baseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000/api',
 })
 
 // Authentication token management

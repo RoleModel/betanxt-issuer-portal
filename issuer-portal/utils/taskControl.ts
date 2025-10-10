@@ -2,7 +2,6 @@
  * Task Control Utility
  * Centralized logic for task-specific behaviors and display rules
  */
-
 import type { components } from '@/domain-models/generated-schema'
 
 type Task = components['schemas']['Task']
@@ -150,8 +149,8 @@ export const PHASE_2_CARRYOVER_TASKS = [
  */
 export const isCarryoverTask = (taskTitle: string): boolean => {
   const normalizedTitle = taskTitle.toLowerCase().trim()
-  return PHASE_2_CARRYOVER_TASKS.some(
-    (carryoverTask) => normalizedTitle.includes(carryoverTask.toLowerCase())
+  return PHASE_2_CARRYOVER_TASKS.some((carryoverTask) =>
+    normalizedTitle.includes(carryoverTask.toLowerCase())
   )
 }
 

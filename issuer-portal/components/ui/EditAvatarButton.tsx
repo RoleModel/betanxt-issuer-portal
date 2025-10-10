@@ -1,6 +1,7 @@
 'use client'
 
-import { Avatar, Box, SxProps, Theme, Typography } from '@mui/material'
+import type { SxProps, Theme} from '@mui/material';
+import { Avatar, Box, Typography } from '@mui/material'
 
 interface EditAvatarButtonProps {
   avatarUrl?: string | null
@@ -11,7 +12,7 @@ interface EditAvatarButtonProps {
   // User info for generating initials
   userName?: string
   userEmail?: string
-  color?: 'primary' | 'secondary' | 'default' | string
+  color?: string
 }
 
 const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
@@ -22,7 +23,7 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
   sx,
   userName,
   userEmail,
-  color
+  color,
 }) => {
   // Generate initials from user name or email
   const getInitials = () => {
@@ -60,13 +61,13 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
       }}
     >
       <Avatar
-        src={avatarUrl || undefined}
+        src={avatarUrl ?? undefined}
         alt={altText}
         sx={{
           width: size,
           height: size,
           ontSize: size / 3,
-          backgroundColor: color || 'var(--mui-palette-primary-main)',
+          backgroundColor: color ?? 'var(--mui-palette-primary-main)',
         }}
       >
         {!avatarUrl && getInitials()}

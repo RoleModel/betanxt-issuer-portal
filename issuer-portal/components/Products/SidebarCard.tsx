@@ -1,9 +1,11 @@
+import type {
+  CardProps
+} from '@mui/material';
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
-  CardProps,
   Typography,
 } from '@mui/material'
 
@@ -31,7 +33,7 @@ export const SidebarCard = (props: SidebarCardProps) => {
             variant="pageTitle"
             fontFamily="var(--font-tungsten)"
             component="h3"
-            sx={{ color: (theme) => theme.vars.palette.primary.main }}
+            sx={{ color: (theme) => theme.vars.palette.text.primary }}
           >
             {title}
           </Typography>

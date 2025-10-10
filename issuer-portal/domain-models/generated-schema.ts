@@ -458,6 +458,11 @@ export interface components {
       distributionType?: string;
       /** @example Computershare Trust Company */
       transferAgent?: string;
+      /**
+       * @description Whether the transfer agent has been confirmed (demo feature)
+       * @default false
+       */
+      transferAgentConfirmed?: boolean;
       employeeStockPlans?: string | null;
       planAdministrator?: string | null;
       planAdministratorContact?: string | null;
@@ -565,7 +570,9 @@ export interface components {
        * @example 33333333-4444-5555-6666-777777777777
        */
       documentId?: string | null;
-      links?: Record<string, unknown> | null;
+      links?: {
+        [key: string]: unknown;
+      } | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -1024,6 +1031,7 @@ export interface components {
       overallCompletion?: number;
       distributionType?: string;
       transferAgent?: string;
+      transferAgentConfirmed?: boolean;
       employeeStockPlans?: string;
       planAdministrator?: string;
       planAdministratorContact?: string;
@@ -1079,7 +1087,7 @@ export interface components {
       owner: string;
       /** Format: uuid */
       documentId?: string;
-      links?: Record<string, unknown>;
+      links?: Record<string, never>;
     };
     UpdateTaskRequest: {
       title?: string;
@@ -1092,7 +1100,9 @@ export interface components {
       owner?: string;
       /** Format: uuid */
       documentId?: string;
-      links?: Record<string, unknown>;
+      links?: {
+        [key: string]: unknown;
+      };
     };
     CreateDocumentRequest: {
       title: string;

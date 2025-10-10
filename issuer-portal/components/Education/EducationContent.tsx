@@ -159,7 +159,7 @@ export default function EducationContent() {
           'Enable shareholders to participate in annual meetings remotely with the same level of access as in-person attendees',
         actionText: 'Learn More',
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
-        variant: 'info' as const,
+        variant: 'tertiary' as const,
         onClick: () => {
           setFileUrl('/documents/proxy-guide-2025-250204.pdf')
           setViewerTitle('Digital Shareholder Meeting Guide')

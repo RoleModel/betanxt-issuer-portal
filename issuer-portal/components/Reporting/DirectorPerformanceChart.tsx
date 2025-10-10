@@ -44,6 +44,24 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
     )
   }
 
+  // Check if data is empty or undefined
+  if (!data || data.length === 0) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        height={300}
+        gap={2}
+      >
+        <Typography variant="body2" color="text.secondary">
+          No director performance data available
+        </Typography>
+      </Box>
+    )
+  }
+
   const chartData = data.map((item) => {
     const total = item.totalVotes || item.forVotes + item.againstVotes + item.abstainVotes
     return {

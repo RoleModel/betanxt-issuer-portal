@@ -11,7 +11,6 @@ import {
 import React from 'react'
 
 import { shiftWeekendToMonday } from '@/components/Calendar/CalendarUtils'
-import { theme } from '@/components/mui-styling/theme'
 
 import type { KeyDate, Task } from '@/types/api-exports'
 
@@ -53,8 +52,18 @@ interface ExportOptions {
   clientTicker?: string
 }
 
-// Phase colors - extracted from theme
-const phaseColors = theme.palette.phase.map((phase) => phase.main)
+// Phase colors (matching theme.palette.phase)
+const phaseColors = [
+  '#00838f', // cyan[800]
+  '#00695c', // teal[800]
+  '#7b1fa2', // purple[700]
+  '#0288d1', // lightBlue[700]
+  '#880e4f', // pink[900]
+  '#1565c0', // blue[800]
+  '#2e7d32', // green[800]
+  '#4527a0', // deepPurple[800]
+  '#616161', // grey[700]
+]
 
 // Helper to convert hex to RGB
 function hexToRgb(hex: string): string {

@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'fs/promises'
+import { readFile, readdir } from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
 import path from 'path'
 import { Client } from 'pg'
@@ -20,14 +20,62 @@ export async function POST(_req: NextRequest) {
 
   try {
     // Get database connection string
-    // In development: use local connection
-    // In production: use DATABASE_URL from Vercel
+    // On Vercel (preview or production): use POSTGRES_URL or DATABASE_URL
+    // In local development: use local connection
     const databaseUrl =
-      process.env.DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+      process.env.POSTGRES_URL ||
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-    console.log('Connecting to database...')
-    client = new Client({ connectionString: databaseUrl })
-    await client.connect()
+    console.log('Connecting to database for reset...')
+    console.log('Using database:', databaseUrl.replace(/:[^:@]+@/, ':****@')) // Log without password
+
+    // Always use SSL if not connecting to localhost
+    const isLocalhost = databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
+
+    // Configure SSL for Supabase connections
+    // For remote databases (Supabase), we need to handle SSL properly
+    // Temporarily disable SSL verification for the connection
+    const originalTlsReject = process.env.NODE_TLS_REJECT_UNAUTHORIZED
+    if (!isLocalhost) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    }
+
+    console.log('Connection details:', {
+      isLocalhost,
+      hasPostgresUrl: !!process.env.POSTGRES_URL,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      isVercel: !!process.env.VERCEL,
+      tlsRejectDisabled: !isLocalhost,
+    })
+
+    try {
+      client = new Client({
+        connectionString: databaseUrl,
+        ssl: !isLocalhost,
+        connectionTimeoutMillis: 30000,
+      })
+      console.log('Attempting to connect to database...')
+      await client.connect()
+      console.log('Database connection established successfully')
+    } catch (connectError: any) {
+      console.error('Connection failed:', {
+        message: connectError.message,
+        code: connectError.code,
+        errno: connectError.errno,
+        syscall: connectError.syscall,
+      })
+      throw new Error(`Database connection failed: ${connectError.message}`)
+    } finally {
+      // Restore original TLS setting
+      if (!isLocalhost) {
+        if (originalTlsReject !== undefined) {
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsReject
+        } else {
+          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED
+        }
+      }
+    }
 
     // Get the monorepo root (mock-api-server is a child of the root)
     const currentDir = process.cwd()

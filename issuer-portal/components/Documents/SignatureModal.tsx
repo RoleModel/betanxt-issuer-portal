@@ -159,7 +159,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
                   _intersectionObserver?: IntersectionObserver
                 }
               )._intersectionObserver
-              if (observers && observers.disconnect) {
+              if (observers?.disconnect) {
                 observers.disconnect()
               }
             }
@@ -190,7 +190,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
       const checkAndSaveCanvas = () => {
         const canvas = signatureMaker.querySelector('canvas')
         if (canvas && onSave) {
-          const canvasElement = canvas as HTMLCanvasElement
+          const canvasElement = canvas
           const ctx = canvasElement.getContext('2d', { willReadFrequently: true })
           if (ctx) {
             // Get the canvas data URL

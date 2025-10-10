@@ -62,7 +62,7 @@ export default function TabulationReportCard() {
       title="Tabulation Report"
       description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
       icon={<IconForFileType fileType="PDF" />}
-      variant="info"
+      variant="tertiary"
       actionText="Download"
       onClick={handleDownload}
     />

@@ -9,7 +9,7 @@ type UpdateAccountRequest = components['schemas']['UpdateAccountRequest']
 type Pagination = components['schemas']['Pagination']
 
 // Helper type for openapi-fetch response
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

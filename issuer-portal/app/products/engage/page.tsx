@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import CommentsIcon from '@rolemodel/betanxt-design-system/components/icons/brand/CommentsIcon'
 import DatabaseStackIcon from '@rolemodel/betanxt-design-system/components/icons/brand/DatabaseStackIcon'
 import TeamGrowthIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGrowthIcon'
@@ -8,6 +9,7 @@ import Image from 'next/image'
 
 import { Check } from '@mui/icons-material'
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -27,9 +29,12 @@ import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
+import DocumentViewer from '@/components/Documents/DocumentViewer'
 
 export default function EngagePage() {
   const theme = useTheme()
+
+  const [open, setOpen] = useState(false)
 
   const benefits = [
     {
@@ -179,12 +184,26 @@ export default function EngagePage() {
   )
 
   const rightColumnContent = (
-    <SidebarCard title="BetaNXT Engage">
-      <Typography variant="body3" component="p">
-        gives you the tools and touchpoints you need to execute a winning strategy to
-        reach and engage retail shareholders.
-      </Typography>
-    </SidebarCard>
+    <>
+      <SidebarCard title="BetaNXT Engage">
+        <Typography variant="body3" component="p" gutterBottom>
+          gives you the tools and touchpoints you need to execute a winning strategy to
+          reach and engage retail shareholders.
+        </Typography>
+        <Button variant="outlined" color="primary" onClick={() => setOpen(true)}>
+          View PDF Overview
+        </Button>
+      </SidebarCard>
+      <DocumentViewer
+        open={open}
+        onClose={() => setOpen(false)}
+        fileUrl={'/documents/Mediant_Engage_Sell_Sheet.pdf'}
+        title={'Engage Overview'}
+        showCommentButton={false}
+        showHistoryButton={false}
+        showDownloadButton={true}
+      />
+    </>
   )
 
   return (

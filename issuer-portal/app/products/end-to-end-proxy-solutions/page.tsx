@@ -30,7 +30,7 @@ export default function EndToEndProxySolutionsPage() {
       title: 'BetaNXT Engage',
       description:
         'An add-on to our end-to-end proxy solution, BetaNXT Engage provides a suite of omni-channel tools that nelps issuers achieve quorum and proposal passage by generating greater participation from retail shareholders. Our annual meeting experts will analyze your position distribution, event strategy and history to help design a program that works best for you.',
-      variant: 'info' as const,
+      variant: 'tertiary' as const,
       icon: <GroupMeetingIcon accentColor="#ebb322" fontSize="3xl" />,
     },
   ] as const

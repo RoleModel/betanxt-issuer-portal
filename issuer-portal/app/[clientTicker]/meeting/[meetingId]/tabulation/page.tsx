@@ -15,7 +15,7 @@ import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
@@ -25,7 +25,7 @@ import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   if (!phaseLabel) return null
-  const match = phaseLabel.match(/(\d+)/)
+  const match = /(\d+)/.exec(phaseLabel)
   if (!match) return null
   const num = Number(match[1])
   return Number.isFinite(num) ? num : null
@@ -39,7 +39,7 @@ export default function TabulationPage() {
   const currentPhaseLabel = useMemo(() => {
     if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
     if ('currentPhase' in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      const val = (currentMeeting as Record<string, unknown>).currentPhase
       return typeof val === 'string' ? val : undefined
     }
     return undefined
@@ -83,7 +83,7 @@ export default function TabulationPage() {
       }
     }
 
-    fetchProposals()
+    void fetchProposals()
   }, [currentMeeting?.id])
 
   // Show loading state while data is being fetched
@@ -102,7 +102,7 @@ export default function TabulationPage() {
         (rp) =>
           ('proposalNumber' in rp && rp.proposalNumber === vp.proposalNumber) ||
           ('proposal_number' in rp && rp.proposal_number === vp.proposalNumber)
-      ) as components['schemas']['Proposal'] | undefined
+      )
 
       return {
         proposalNumber: vp.proposalNumber,

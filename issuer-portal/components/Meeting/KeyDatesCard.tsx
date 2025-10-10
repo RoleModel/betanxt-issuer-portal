@@ -16,7 +16,7 @@ import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
 import { getPhaseColor } from '@/components/mui-styling/theme'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 import { calculateDaysUntil, formatDaysUntil } from '@/utils/dateUtils'
 
@@ -87,7 +87,6 @@ const KeyDateTypography = styled(Typography, {
 })<{ isPast?: boolean }>(({ isPast }) => ({
   fontWeight: 500,
   opacity: isPast ? 0.5 : 1,
-  color: isPast ? 'error.main' : 'text.primary',
   textDecoration: isPast ? 'line-through' : 'none',
   textDecorationColor: 'inherit',
   textDecorationThickness: '2px',
@@ -128,7 +127,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
       }
     }
 
-    fetchPhases()
+    void fetchPhases()
   }, [meeting?.id])
 
   // Use meeting dates directly (phases only provide color mapping)
@@ -215,104 +214,112 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
 
   const displayKeyDates =
     transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates
-  const currentPhase = phases.find((p) => p.status === undefined)?.orderIndex || 1
+  const currentPhase = phases.find((p) => p.status === undefined)?.orderIndex ?? 1
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen)
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader
-          title={<Typography variant="h3">Key Dates</Typography>}
-          action={
-            <Button variant="text" onClick={toggleDrawer(true)}>
-              Phase Overview
-            </Button>
-          }
-        />
-        <CardContent sx={{ pt: 0 }}>
-          <Box
-            component="ul"
-            ref={scrollContainerRef}
-            sx={{
-              display: 'grid',
-              width: '100%',
-              height: '100%',
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-              transition: 'grid-template-columns 0.3s ease, gap 0.3s ease',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: '1fr 1fr',
-                md: 'repeat(6, minmax(130px, 1fr))',
-              },
-              gap: 1,
-              p: 0,
-              m: 0,
-            }}
-          >
-            {loading || phasesLoading
-              ? // Skeleton loading for key dates
-                Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
-              : displayKeyDates.map((phaseItem, index) => {
-                  const daysUntil = calculateDaysUntil(phaseItem.dateString)
-                  const isPast = daysUntil < 0
-                  return (
-                    <KeyDateBox
-                      key={index}
-                      isMeeting={phaseItem.isMeeting}
+    <Card>
+      <CardHeader
+        title={<Typography variant="h3">Key Dates</Typography>}
+        action={
+          <Button variant="text" onClick={toggleDrawer(true)}>
+            Phase Overview
+          </Button>
+        }
+      />
+      <CardContent sx={{ pt: 0 }}>
+        <Box
+          component="ul"
+          ref={scrollContainerRef}
+          sx={{
+            display: 'grid',
+            width: '100%',
+            height: '100%',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            transition: 'grid-template-columns 0.3s ease, gap 0.3s ease',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: '1fr 1fr',
+              md: 'repeat(6, minmax(130px, 1fr))',
+            },
+            gap: 1,
+            p: 0,
+            m: 0,
+          }}
+        >
+          {loading || phasesLoading
+            ? // Skeleton loading for key dates
+            Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
+            : displayKeyDates.map((phaseItem, index) => {
+              const daysUntil = calculateDaysUntil(phaseItem.dateString)
+              const isPast = daysUntil < 0
+              return (
+                <KeyDateBox
+                  key={index}
+                  isMeeting={phaseItem.isMeeting}
+                  isPast={isPast}
+                  phaseColor={phaseItem.phaseColor}
+                >
+                  <KeyDateTypography
+                    variant="body3"
+                    isPast={isPast}
+                    sx={(theme) => {
+                      return {
+                        color: phaseItem.isMeeting
+                          ? theme.vars.palette.keydate.light
+                          : theme.vars.palette.text.primary,
+                      }
+                    }}
+                  >
+                    {phaseItem.title}
+                  </KeyDateTypography>
+                  <Box
+                    display="flex"
+                    alignItems="baseline"
+                    justifyContent="space-between"
+                    gap={1}
+                    width="100%"
+                  >
+                    <KeyDateTypography
                       isPast={isPast}
-                      phaseColor={phaseItem.phaseColor}
+                      variant="body3"
+                      fontWeight={500}
+                      sx={(theme) => {
+                        return {
+                          color: phaseItem.isMeeting
+                            ? theme.vars.palette.keydate.light
+                            : theme.vars.palette.text.primary,
+                        }
+                      }}
                     >
-                      <KeyDateTypography variant="body3" isPast={isPast}>
-                        {phaseItem.title}
-                      </KeyDateTypography>
-                      <Box
-                        display="flex"
-                        alignItems="baseline"
-                        justifyContent="space-between"
-                        gap={1}
-                        width="100%"
-                      >
-                        <KeyDateTypography
-                          isPast={isPast}
-                          variant="body3"
-                          fontWeight={500}
-                          sx={(theme) => {
-                            return {
-                              color: phaseItem.isMeeting
-                                ? theme.vars.palette.primary.contrastText
-                                : theme.vars.palette.text.primary,
-                            }
-                          }}
-                        >
-                          {phaseItem.date}
-                        </KeyDateTypography>
+                      {phaseItem.date}
+                    </KeyDateTypography>
 
-                        <Typography
-                          variant="body3"
-                          fontWeight={600}
-                          sx={(theme) => {
-                            return {
-                              color: phaseItem.isMeeting
-                                ? theme.vars.palette.primary.contrastText
-                                : theme.vars.palette.text.secondary,
-                            }
-                          }}
-                        >
-                          {formatDaysUntil(daysUntil)}
-                        </Typography>
-                      </Box>
-                    </KeyDateBox>
-                  )
-                })}
-          </Box>
-        </CardContent>
-      </Card>
+                    <Typography
+                      variant="body3"
+                      fontWeight={600}
+                      sx={(theme) => {
+                        return {
+                          color: phaseItem.isMeeting
+                            ? theme.vars.palette.keydate.light
+                            : theme.vars.palette.text.secondary,
+                        }
+                      }}
+                    >
+                      {formatDaysUntil(daysUntil)}
+                    </Typography>
+                  </Box>
+                </KeyDateBox>
+              )
+            })}
+        </Box>
+      </CardContent>
       <PhaseDrawer phase={currentPhase} open={open} onClose={toggleDrawer(false)} />
-    </>
+    </Card>
   )
 }
 

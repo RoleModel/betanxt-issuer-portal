@@ -4,7 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { BarChart, BarLabelProps } from '@mui/x-charts/BarChart'
+import type { BarLabelProps } from '@mui/x-charts/BarChart';
+import { BarChart } from '@mui/x-charts/BarChart'
 
 import buildApiClient from '@/domain-models/apiClient'
 
@@ -111,7 +112,7 @@ export default function BeneficialVsRegisteredCard({
       }
     }
 
-    fetchPositions()
+    void fetchPositions()
   }, [meetingId])
 
   const chartData = useMemo(() => {

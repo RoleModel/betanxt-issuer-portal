@@ -70,7 +70,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         })
         .catch(() => {
           // Try fallback worker URL silently
-          import('react-pdf').then(({ pdfjs }) => {
+          void import('react-pdf').then(({ pdfjs }) => {
             pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
             setIsWorkerReady(true)
           })

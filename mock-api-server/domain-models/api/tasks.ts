@@ -17,7 +17,7 @@ type TaskRow = Database['public']['Tables']['task']['Row']
 type TaskUpdate = Database['public']['Tables']['task']['Update']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

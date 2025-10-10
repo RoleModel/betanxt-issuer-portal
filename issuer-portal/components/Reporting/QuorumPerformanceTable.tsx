@@ -91,7 +91,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
             <TableBody>
               {data.map((row, index) => {
                 // Extract year from meetingId (format: ticker-type-year)
-                const yearMatch = row.meetingId.match(/(\d{4})$/)
+                const yearMatch = /(\d{4})$/.exec(row.meetingId)
                 const year = yearMatch ? yearMatch[1] : ''
                 const displayTitle = year
                   ? `${row.meetingTitle} ${year}`

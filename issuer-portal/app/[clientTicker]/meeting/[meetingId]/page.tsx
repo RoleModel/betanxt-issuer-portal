@@ -3,21 +3,20 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-// Base meeting page - redirects to dashboard
+import { LinearProgress } from '@mui/material'
+
+// This page handles the base meeting route and redirects to the dashboard
 export default function MeetingPage() {
   const router = useRouter()
   const params = useParams()
+  const meetingId = params.meetingId as string
+  const clientTicker = params.clientTicker as string
 
   useEffect(() => {
-    // Redirect to dashboard by default
-    const clientTicker = params.clientTicker as string
-    const meetingId = params.meetingId as string
+    // Redirect to dashboard which will then redirect to the active phase
+    const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard`
+    router.replace(targetPath)
+  }, [clientTicker, meetingId, router])
 
-    if (clientTicker && meetingId) {
-      router.replace(`/${clientTicker}/meeting/${meetingId}/dashboard`)
-    }
-  }, [router, params])
-
-  // Show nothing while redirecting
-  return null
+  return <LinearProgress />
 }

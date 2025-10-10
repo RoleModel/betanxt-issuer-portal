@@ -37,7 +37,7 @@ interface CommentWithUser {
 }
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
@@ -81,7 +81,7 @@ function transformDocument(dbDocument: DocumentRow): Document {
 
 function transformComment(dbComment: CommentRow): Comment {
   return {
-    id: nullToUndefined(dbComment.id) as number | undefined,
+    id: nullToUndefined(dbComment.id),
     documentId: nullToUndefined(dbComment.document_id),
     comment: nullToUndefined(dbComment.comment),
     userId: nullToUndefined(dbComment.user_id),

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/materia
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import { EmptyState } from '@/components/EmptyState'
+import { truncateNumber } from '@/utils/numberUtils'
 
 interface BrokerVotingData {
   broker: string
@@ -124,6 +125,7 @@ export default function BrokerVotingChart({
               {
                 scaleType: 'linear',
                 tickMinStep: 6,
+                valueFormatter: (value) => truncateNumber(value),
               },
             ]}
             yAxis={[

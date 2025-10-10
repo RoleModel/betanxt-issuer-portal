@@ -1,20 +1,66 @@
 'use client'
 
-import * as React from 'react'
-
 import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider } from '@mui/material/styles'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import React, { useMemo } from 'react'
 
+import { useClient } from '@/contexts/ClientContext'
 import { NextAppDirEmotionCacheProvider } from './EmotionCache'
-import { theme } from './theme'
+import {
+  elevenThemeOptions,
+  paycomThemeOptions,
+  wendysThemeOptions,
+  woodwardThemeOptions,
+} from './theme'
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
+  const { currentClient } = useClient()
+  const [initialLoad, setInitialLoad] = React.useState(true)
+
+  // Wait for client to load on initial render
+  React.useEffect(() => {
+    if (currentClient !== null || !initialLoad) {
+      setInitialLoad(false)
+    }
+  }, [currentClient, initialLoad])
+
+  const ticker = currentClient?.ticker ?? 'WEN'
+
+  const theme = useMemo(() => {
+    // Don't create theme until client is loaded
+    if (initialLoad && currentClient === null) {
+      return null
+    }
+
+    const themeOptionsMap = {
+      WEN: wendysThemeOptions,
+      PAYC: paycomThemeOptions,
+      WWD: woodwardThemeOptions,
+      ELVN: elevenThemeOptions,
+    }
+
+    const themeOptions = themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
+    return createTheme(themeOptions)
+  }, [ticker, initialLoad, currentClient])
+
+  // Show nothing until theme is ready
+  if (!theme) {
+    return null
+  }
+
   return (
     <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={theme} key={ticker}>
         <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>
     </NextAppDirEmotionCacheProvider>
   )
 }
+
+export const useClientTicker = () => {
+  const { currentClient } = useClient()
+  return currentClient?.ticker ?? 'WEN'
+}
+
+export { useTheme } from '@mui/material/styles'

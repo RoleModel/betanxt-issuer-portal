@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { revalidateTag } from 'next/cache'
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 import { auth } from '@/auth'
 import { CACHE_TAGS } from '@/lib/caching'
@@ -11,7 +11,7 @@ export const runtime = 'nodejs'
 // Max file size (adjust as needed). OpenAPI lists 413 for too large.
 const MAX_FILE_BYTES = 25 * 1024 * 1024 // 25MB
 
-function jsonError(message: string, status: number = 400) {
+function jsonError(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), {
     status,
     headers: { 'Content-Type': 'application/json' },

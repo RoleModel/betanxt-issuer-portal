@@ -209,7 +209,7 @@ export function useHostingSiteStatus() {
 
   // Load hosting site status on mount and when meeting changes
   useEffect(() => {
-    fetchHostingSiteStatus()
+    void fetchHostingSiteStatus()
   }, [fetchHostingSiteStatus])
 
   return {

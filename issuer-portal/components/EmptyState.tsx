@@ -9,8 +9,9 @@ interface EmptyStateProps {
   icon?: React.ReactNode
   title: string
   minHeight?: number | string
-  description: string | React.ReactNode
+  description?: string | React.ReactNode
   action?: React.ReactNode
+  children?: React.ReactNode
   dangerouslySetInnerHTML?: boolean
 }
 
@@ -20,6 +21,7 @@ export function EmptyState({
   minHeight = 400,
   description,
   action,
+  children,
 }: EmptyStateProps) {
   return (
     <Box sx={{ p: 1 }}>
@@ -41,7 +43,7 @@ export function EmptyState({
         <Stack
           spacing={1}
           alignItems="center"
-          sx={{ maxWidth: 400, textAlign: 'center' }}
+          sx={{ maxWidth: 600, textAlign: 'center' }}
         >
           <Box
             sx={{
@@ -86,7 +88,7 @@ export function EmptyState({
           >
             {description}
           </Typography>
-
+          {children}
           {action && <Box sx={{ mt: 3 }}>{action}</Box>}
         </Stack>
       </Paper>

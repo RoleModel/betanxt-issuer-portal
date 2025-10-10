@@ -7,7 +7,7 @@ type PositionVote = components['schemas']['PositionVote']
 type CastVoteRequest = components['schemas']['CastVoteRequest']
 
 // Helper type for openapi-fetch response
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string

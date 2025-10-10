@@ -1,5 +1,32 @@
 // Shared client branding utilities
 
+export const clientBranding = [
+  {
+    ticker: 'WEN',
+    primaryColor: '#0389ba',
+    secondaryColor: '#DAD55E',
+    tertiaryColor: '#DB163A',
+  },
+  {
+    ticker: 'PAYC',
+    primaryColor: '#005C2B',
+    secondaryColor: '#193E2D',
+    tertiaryColor: '#193E2D',
+  },
+  {
+    ticker: 'WWD',
+    primaryColor: '#6D6E71',
+    secondaryColor: '#24272A',
+    tertiaryColor: '#24272A',
+  },
+  {
+    ticker: 'ELVN',
+    primaryColor: '#243E89',
+    secondaryColor: '#F8EF76',
+    tertiaryColor: '#1A1C45',
+  },
+]
+
 // Compute a logo base path (without extension) from client name/ticker
 export const computeClientLogoBase = (clientName?: string, ticker?: string): string => {
   if (ticker) {
@@ -46,7 +73,7 @@ export const loadClientLogoAsPngBase64 = async (opts: {
     ? overrideSrc.replace(/\.(svg|png)$/i, '')
     : computeClientLogoBase(clientName, ticker)
 
-  const candidates: Array<{ url: string; type: 'png' | 'svg' | 'default' }> = []
+  const candidates: { url: string; type: 'png' | 'svg' | 'default' }[] = []
 
   // If override or base under /logos, try PNG then SVG
   if (base) {
@@ -90,7 +117,13 @@ export const loadClientLogoAsPngBase64 = async (opts: {
 const blobToDataUrl = (blob: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Expected string result from readAsDataURL'))
+      }
+    }
     reader.onerror = () => reject(new Error('Failed to read image blob'))
     reader.readAsDataURL(blob)
   })

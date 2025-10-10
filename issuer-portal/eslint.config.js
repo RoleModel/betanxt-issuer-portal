@@ -1,7 +1,7 @@
-import nextJsConfig from '@mediant/eslint-config/nextJsConfig'
+import rootConfig from '../eslint.config.mjs'
 
 export default [
-  ...nextJsConfig,
+  ...rootConfig,
   {
     rules: {
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',

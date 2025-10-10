@@ -1,5 +1,4 @@
 {
-  "installCommand": "npm install",
   "buildCommand": "turbo run build --filter=issuer-portal",
   "outputDirectory": "issuer-portal/.next",
   "framework": "nextjs",

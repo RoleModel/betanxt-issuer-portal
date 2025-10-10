@@ -21,7 +21,7 @@ export default function MeetingDashboardPage() {
     }
 
     if (typeof phase === 'string') {
-      const match = phase.match(/(\d+)/)
+      const match = /(\d+)/.exec(phase)
       if (match?.[1]) {
         const value = Number.parseInt(match[1], 10)
         if (Number.isFinite(value) && value > 0) {

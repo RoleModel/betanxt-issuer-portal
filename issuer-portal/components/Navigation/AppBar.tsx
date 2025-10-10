@@ -6,7 +6,14 @@ import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
@@ -16,10 +23,11 @@ import type { NotificationData } from '@/components/Notifications/NotificationPo
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
-import { useClient } from '@/contexts/ClientContext'
-import MeetingContext from '@/contexts/MeetingContext'
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
+import { useClient } from '@/contexts/ClientContext'
+import MeetingContext from '@/contexts/MeetingContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
 // Custom hook to safely use meeting context when it might not be available
@@ -27,7 +35,7 @@ const useMeetingSafe = () => {
   const context = useContext(MeetingContext)
   // Return the context if available, otherwise return a safe default
   return useMemo(
-    () => context || { meetings: [] as Array<{ id?: string; status?: string }> },
+    () => context || { meetings: [] as { id?: string; status?: string }[] },
     [context]
   )
 }
@@ -70,8 +78,8 @@ const NextImageComponent = React.memo(
       <Image
         src={src}
         alt={alt || 'Logo'}
-        width={typeof width === 'number' ? width : 30}
-        height={typeof height === 'number' ? height : 30}
+        width={120}
+        height={40}
         style={style}
         loading="eager"
         priority
@@ -128,7 +136,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         })
 
         if (error || !data) {
-          console.error('Failed to fetch notifications:', error)
+          // Silently fail - notifications are not critical
+          setUnreadCount(0)
           return
         }
 
@@ -136,7 +145,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         const notifications = data as DbNotification[]
         setUnreadCount(notifications.length)
       } catch (err) {
-        console.error('Error fetching unread notifications:', err)
+        // Silently fail - notifications are not critical
+        setUnreadCount(0)
       }
     }
 
@@ -145,7 +155,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
-    (clientName?: string, ticker?: string) => computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
+    (clientName?: string, ticker?: string) =>
+      computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
     []
   )
 
@@ -155,7 +166,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Extract current meeting ID from pathname
   const currentMeetingId = useMemo(() => {
-    const match = pathname.match(/\/meeting\/([^\/]+)/)
+    const match = /\/meeting\/([^\/]+)/.exec(pathname)
     return match ? match[1] : null
   }, [pathname])
 
@@ -173,7 +184,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
       )
       if (activeMeeting?.id) {
-        return `/${currentClient.ticker}/meeting/${activeMeeting.id}`
+        return `/${currentClient.ticker}/meeting/${activeMeeting.id}/dashboard`
       }
     }
     return '/'
@@ -181,7 +192,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Extract ticker once per render - memoize regex execution
   const urlTicker = useMemo(() => {
-    const match = pathname.match(TICKER_PREFIX_REGEX)
+    const match = TICKER_PREFIX_REGEX.exec(pathname)
     return match ? match[1] : null
   }, [pathname])
 
@@ -276,9 +287,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
+          currentClient?.company_name || currentClient?.short_name,
+          logoTicker
+        )
       : '/images/logo.svg'
   }, [
     props.logoSrc,
@@ -290,18 +301,19 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Memoize only the final slotProps object
   const slotProps = useMemo(() => {
-    const isDefaultLogo = logoSrc === '/images/logo.svg'
-    const defaultLogoStyles: React.CSSProperties = isDefaultLogo
-      ? { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
-      : { height: 44, width: 'auto', backgroundColor: 'var(--mui-palette-common-white)', padding: '2px 4px', borderRadius: '4px' }
-
     return {
       logoImg: {
         src: logoSrc,
         alt: `${logoTicker || 'BetaNXT'} logo`,
-        width: isDefaultLogo ? 'auto' : 'auto',
-        height: isDefaultLogo ? 30 : 40,
-        style: defaultLogoStyles,
+        width: 'auto',
+        height: 44,
+        style: {
+          height: 44,
+          width: 'auto',
+          backgroundColor: 'var(--mui-palette-common-white)',
+          padding: '2px 4px',
+          borderRadius: '4px',
+        },
       },
     }
   }, [logoSrc, logoTicker])
@@ -313,11 +325,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
     const initials = props.user.name
       ? props.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
 
     // Use uploaded image if available, otherwise show initials

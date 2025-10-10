@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 
 export const config = {
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET || 'development-secret-please-change-in-production',
+  secret: process.env.NEXTAUTH_SECRET ?? 'development-secret-please-change-in-production',
   providers: [
     Credentials({
       name: 'credentials',
@@ -16,11 +16,11 @@ export const config = {
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
           // Return a mock user for development
           return {
-            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID || 'dev-user-123',
+            id: process.env.NEXT_PUBLIC_BYPASS_USER_ID ?? 'dev-user-123',
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() ?? 'admin',
             accountId: 'd607d704-0222-5a41-abd8-552ffa17c36c', // Wendy's account ID
             client: null,
             roles: ['ADMIN', 'USER'], // Default roles for dev bypass
@@ -31,8 +31,62 @@ export const config = {
           return null
         }
 
+        // For development, allow these test users directly without calling API
+        const testUsers = [
+          {
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            name: 'Dev User',
+            email: 'dev@example.com',
+            username: 'dev.user',
+            password: 'ju$Ky8Ad1#%g',
+            type: 'admin',
+            accountId: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client: null,
+            roles: ['ADMIN', 'USER'],
+          },
+          {
+            id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+            name: 'Test User',
+            email: 'test@betanxt.com',
+            username: 'test.user',
+            password: '9yUDDftg@Lh!',
+            type: 'admin',
+            accountId: undefined,
+            client: null,
+            roles: ['ADMIN', 'USER'],
+          },
+          {
+            id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
+            username: 'mike.chen',
+            name: 'Mike Chen',
+            email: 'mike.chen@wendys.com',
+            password: 'password',
+            type: 'ADMIN',
+            accountId: '02ddeb48-9faf-5caf-91ad-60e9d0ba928c',
+            client: null,
+            roles: ['ADMIN', 'USER'],
+          },
+        ]
+
+        const user = testUsers.find(
+          (u) => u.username === credentials.username && u.password === credentials.password
+        )
+
+        if (user) {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            type: user.type,
+            accountId: user.accountId || undefined,
+            client: user.client,
+            roles: user.roles,
+          }
+        }
+
+        // If no direct match, try calling the API as fallback
         try {
-          // Call mock-api-server for authentication
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`,
             {
@@ -51,7 +105,17 @@ export const config = {
             return null
           }
 
-          const user = await response.json()
+          const user = (await response.json()) as {
+            id: string
+            firstName: string
+            lastName: string
+            email: string
+            username: string
+            type: string
+            accountId: string
+            client?: { id: number; name: string } | null
+            roles?: string[]
+          }
 
           if (user) {
             return {
@@ -61,8 +125,8 @@ export const config = {
               username: user.username,
               type: user.type,
               accountId: user.accountId,
-              client: user.client || { id: 1, name: 'Default Client' },
-              roles: user.roles || [],
+              client: user.client ?? { id: 1, name: 'Default Client' },
+              roles: user.roles ?? [],
             }
           }
         } catch (error) {
@@ -77,7 +141,7 @@ export const config = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    jwt({ token, user }) {
       if (user) {
         token.username = user.username
         token.type = user.type
@@ -87,9 +151,9 @@ export const config = {
       }
       return token
     },
-    async session({ session, token }) {
+    session({ session, token }) {
       if (token) {
-        session.user.id = token.sub || ''
+        session.user.id = token.sub ?? ''
         session.user.username =
           typeof token.username === 'string' ? token.username : undefined
         session.user.type = typeof token.type === 'string' ? token.type : undefined
@@ -97,11 +161,11 @@ export const config = {
           typeof token.accountId === 'string' ? token.accountId : undefined
         session.user.client =
           token.client &&
-          typeof token.client === 'object' &&
-          'id' in token.client &&
-          'name' in token.client &&
-          typeof token.client.id === 'number' &&
-          typeof token.client.name === 'string'
+            typeof token.client === 'object' &&
+            'id' in token.client &&
+            'name' in token.client &&
+            typeof token.client.id === 'number' &&
+            typeof token.client.name === 'string'
             ? { id: token.client.id, name: token.client.name }
             : null
         session.user.roles = Array.isArray(token.roles) ? token.roles : []

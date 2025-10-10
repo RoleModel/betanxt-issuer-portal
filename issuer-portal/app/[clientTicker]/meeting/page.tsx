@@ -43,7 +43,7 @@ export default function MeetingsPage() {
   const [orderBy, setOrderBy] = useState<OrderBy>('meetingDate')
 
   useEffect(() => {
-    fetchMeetings()
+    void fetchMeetings()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -118,8 +118,8 @@ export default function MeetingsPage() {
 
   const sortedMeetings = React.useMemo(() => {
     return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy as keyof typeof a] as string
-      let compareB: string | number = b[orderBy as keyof typeof b] as string
+      let compareA: string | number = a[orderBy] as string
+      let compareB: string | number = b[orderBy] as string
 
       // Handle date sorting
       if (orderBy === 'meetingDate') {

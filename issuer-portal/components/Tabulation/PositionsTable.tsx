@@ -191,7 +191,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
       }
     }
 
-    fetchData()
+    void fetchData()
   }, [meetingId])
 
   const handleExportPdf = async () => {

@@ -52,7 +52,7 @@ export default function ProductsContent() {
           'We support digital and hybrid meetings. Our Digital Shareholder Meeting (DSM) solution enables shareholders to participate in annual meetings remotely with the same level of access as in-person attendees – they can view, vote, and ask questions.',
         actionText: 'Learn More',
         icon: <FileSearchIcon accentColor="#ebb322" fontSize="3xl" />,
-        variant: 'info' as const,
+        variant: 'tertiary' as const,
         brandFont: true,
         href: '/products/digital-shareholder-meetings',
       },

@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/* eslint-disable no-console */
+ 
 /**
  * Unified document seeding script
  * Uploads PDF documents from data directories to Supabase storage and links them to database records
@@ -53,7 +53,7 @@ type DocumentCategory =
   | 'post-meeting'
   | 'internal'
 
-type DocumentTypeMapping = {
+interface DocumentTypeMapping {
   type: string
   displayCategory: DocumentCategory
   title?: string

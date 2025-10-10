@@ -31,7 +31,7 @@ export default function PhasePage() {
   // Helper to parse phase label like "Phase 4" safely to number
   const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
     if (!phaseLabel) return null
-    const match = phaseLabel.match(/(\d+)/)
+    const match = /(\d+)/.exec(phaseLabel)
     if (!match) return null
     const num = Number(match[1])
     return Number.isFinite(num) ? num : null
@@ -40,7 +40,7 @@ export default function PhasePage() {
   const currentPhaseLabel = useMemo(() => {
     if (!currentMeeting || typeof currentMeeting !== 'object') return undefined
     if ('currentPhase' in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>)['currentPhase']
+      const val = (currentMeeting as Record<string, unknown>).currentPhase
       return typeof val === 'string' ? val : undefined
     }
     return undefined
@@ -58,13 +58,17 @@ export default function PhasePage() {
   const isPhase8 = (currentPhaseNumber ?? 0) < 8
 
   // Ensure meeting has proper client.isActive value for Phase layouts
-  const meetingForPhase = meeting ? {
-    ...meeting,
-    client: meeting.client ? {
-      ...meeting.client,
-      isActive: meeting.client.isActive ?? true
-    } : meeting.client
-  } : meeting
+  const meetingForPhase = meeting
+    ? {
+        ...meeting,
+        client: meeting.client
+          ? {
+              ...meeting.client,
+              isActive: meeting.client.isActive ?? true,
+            }
+          : meeting.client,
+      }
+    : meeting
 
   const renderPhaseLayout = () => {
     switch (phaseNumber) {
@@ -80,27 +84,47 @@ export default function PhasePage() {
 
       case 2:
         return (
-          <Phase2Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
+          <Phase2Layout
+            meetingId={meetingId}
+            meeting={meetingForPhase}
+            phase={phaseNumber}
+          />
         )
 
       case 3:
         return (
-          <Phase3Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
+          <Phase3Layout
+            meetingId={meetingId}
+            meeting={meetingForPhase}
+            phase={phaseNumber}
+          />
         )
 
       case 4:
         return (
-          <Phase4Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
+          <Phase4Layout
+            meetingId={meetingId}
+            meeting={meetingForPhase}
+            phase={phaseNumber}
+          />
         )
 
       case 5:
         return (
-          <Phase5Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
+          <Phase5Layout
+            meetingId={meetingId}
+            meeting={meetingForPhase}
+            phase={phaseNumber}
+          />
         )
 
       case 6:
         return (
-          <Phase6Layout meetingId={meetingId} meeting={meetingForPhase} phase={phaseNumber} />
+          <Phase6Layout
+            meetingId={meetingId}
+            meeting={meetingForPhase}
+            phase={phaseNumber}
+          />
         )
 
       case 7:

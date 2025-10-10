@@ -24,6 +24,7 @@ import {
   Typography,
   styled,
   useMediaQuery,
+  useTheme,
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
@@ -32,7 +33,6 @@ import {
   getPhaseContrastText,
   getPhaseNumber,
 } from '@/components/mui-styling/theme'
-import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
@@ -64,7 +64,6 @@ const getNavigationTabs = (currentPhase: number) => [
   { label: 'Tabulation', route: '/tabulation' },
   { label: 'Reports', route: '/reports' },
   { label: 'Agenda', route: '/agenda' },
-  { label: 'Guests/Registrants', route: '/guests' },
   { label: 'Digital Shareholder Meeting', route: '/digital-shareholder-meeting' },
 ]
 
@@ -99,7 +98,7 @@ const parsePhaseNumber = (phase: string | number | null | undefined): number => 
   }
 
   if (typeof phase === 'string') {
-    const match = phase.match(/(\d+)/)
+    const match = /(\d+)/.exec(phase)
     if (match?.[1]) {
       const value = Number.parseInt(match[1], 10)
       if (Number.isFinite(value) && value > 0) {
@@ -137,13 +136,13 @@ export function EventTabs() {
   const activeMeeting = meetingContextValue?.currentMeeting ?? null
 
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
+  const theme = useTheme()
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
-  const meetingIdFromUrl = pathname.match(/\/meeting\/([^/]+)/)?.[1]
+  const meetingIdFromUrl = (/\/meeting\/([^/]+)/.exec(pathname))?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-
 
   // (Optimization) Memoize current phase parsing
   const currentPhase = useMemo(
@@ -153,7 +152,7 @@ export function EventTabs() {
 
   // Extract phase from URL if on a dashboard route
   const phaseFromUrl = useMemo(() => {
-    const match = pathname.match(/\/dashboard\/(\d+)/)
+    const match = /\/dashboard\/(\d+)/.exec(pathname)
     return match ? parseInt(match[1], 10) : null
   }, [pathname])
 
@@ -206,8 +205,8 @@ export function EventTabs() {
 
   // Handle URL-based meeting selection for past meetings
   useEffect(() => {
-    const handleMeetingFromURL = async () => {
-      const pathMatch = pathname.match(/^\/[^/]+\/meeting\/([^/]+)/)
+    const handleMeetingFromURL = () => {
+      const pathMatch = /^\/[^/]+\/meeting\/([^/]+)/.exec(pathname)
       if (pathMatch) {
         const meetingIdFromURL = pathMatch[1]
 
@@ -237,7 +236,7 @@ export function EventTabs() {
       recordDate: formatDate(m.recordDate ?? ''),
       mailingDate: formatDate(m.mailingDate ?? ''),
       meetingDate: formatDate(m.meetingDate ?? ''),
-      status: (m.status as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED') ?? 'ACTIVE',
+      status: (m.status!) ?? 'ACTIVE',
       currentPhase: m.currentPhase ?? 'Phase 1',
       overallCompletion: m.overallCompletion ?? 0,
       client: currentClient?.company_name ?? '',
@@ -298,8 +297,8 @@ export function EventTabs() {
       const container = scrollContainerRef.current
       const activeTabEl = container.querySelector(
         `[data-tab-index="${activeMeetingTab}"]`
-      ) as HTMLElement
-      if (activeTabEl) {
+      )
+      if (activeTabEl instanceof HTMLElement) {
         const tabLeft = activeTabEl.offsetLeft
         const targetScroll = activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12)
         container.scrollTo({ left: targetScroll, behavior: 'smooth' })
@@ -327,7 +326,7 @@ export function EventTabs() {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
         '[data-tab-index]'
-      ) as NodeListOf<HTMLElement>
+      )
 
       if (tabs.length === 0) return
 
@@ -338,7 +337,8 @@ export function EventTabs() {
       // Find the current leftmost visible tab
       let currentTabIndex = tabs.length - 1 // Default to last tab
       for (let i = 0; i < tabs.length; i++) {
-        if (tabs[i].offsetLeft >= currentScrollLeft - 5) {
+        const tab = tabs[i] as HTMLElement
+        if (tab.offsetLeft >= currentScrollLeft - 5) {
           // Small tolerance
           currentTabIndex = i
           break
@@ -347,7 +347,7 @@ export function EventTabs() {
 
       // Go to previous tab
       const targetIndex = Math.max(0, currentTabIndex - 1)
-      const targetTab = tabs[targetIndex]
+      const targetTab = tabs[targetIndex] as HTMLElement
 
       // If target is the first tab, scroll to 0
       const targetScrollLeft = targetIndex === 0 ? 0 : targetTab.offsetLeft
@@ -369,7 +369,7 @@ export function EventTabs() {
       const container = scrollContainerRef.current
       const tabs = container.querySelectorAll(
         '[data-tab-index]'
-      ) as NodeListOf<HTMLElement>
+      )
 
       if (tabs.length === 0) return
 
@@ -384,7 +384,7 @@ export function EventTabs() {
       let targetIndex = -1
 
       for (let i = 0; i < tabs.length; i++) {
-        const tab = tabs[i]
+        const tab = tabs[i] as HTMLElement
         const tabLeft = tab.offsetLeft
 
         // If this tab starts beyond the current visible area
@@ -397,7 +397,7 @@ export function EventTabs() {
       // If no completely hidden tab found, find the first partially hidden one
       if (targetIndex === -1) {
         for (let i = 0; i < tabs.length; i++) {
-          const tab = tabs[i]
+          const tab = tabs[i] as HTMLElement
           const tabRight = tab.offsetLeft + tab.offsetWidth
 
           // If this tab extends beyond the current view
@@ -413,7 +413,7 @@ export function EventTabs() {
         targetIndex = tabs.length - 1
       }
 
-      const targetTab = tabs[targetIndex]
+      const targetTab = tabs[targetIndex] as HTMLElement
 
       // Calculate scroll position to fit the target tab in the visible area
       // We want to scroll just enough to show this tab, not necessarily position it at the left
@@ -440,7 +440,6 @@ export function EventTabs() {
       }, 300)
     }
   }, [checkScrollButtons])
-
 
   // Subcomponents for active/inactive meeting detail sections
   const ActiveMeetingDetails = ({
@@ -644,7 +643,7 @@ export function EventTabs() {
 
     // If on dashboard with phase, navigate to the target meeting's phase
     const targetPath = useMemo(() => {
-      if (currentPath.match(/^\/dashboard(\/\d+)?$/)) {
+      if (/^\/dashboard(\/\d+)?$/.exec(currentPath)) {
         const targetPhase = parsePhaseNumber(meeting.currentPhase)
         return `/${ticker}/meeting/${meetingId}/dashboard/${targetPhase}`
       } else if (currentPath === '') {
@@ -686,7 +685,7 @@ export function EventTabs() {
           '&:hover': { color: theme.vars.palette.primary.main },
         })}
       >
-        <Box sx={(theme) => ({ px: theme.spacing(2), pt: theme.spacing(1.5) })}>
+        <Box sx={{ px: 2, pt: 1.5 }}>
           <Stack>
             <Typography
               href={targetPath}
@@ -729,9 +728,9 @@ export function EventTabs() {
           square
           sx={{
             borderBottom: '1px solid',
-            borderColor: (theme) => theme.vars.palette.divider,
+            borderColor: 'var(--mui-palette-divider)',
             boxShadow: 'none',
-            backgroundColor: (theme) => theme.vars.palette.appBarSecondary.defaultFill,
+            backgroundColor: 'var(--mui-palette-appBarSecondary-defaultFill)',
             p: 2,
           }}
         >
@@ -807,14 +806,8 @@ export function EventTabs() {
               }}
             >
               {transformedMeetings.map(({ tab, src }, index) => (
-                <MeetingTab
-                  key={tab.id || index}
-                  meeting={tab}
-                  src={src}
-                  index={index}
-                />
-              ))
-              }
+                <MeetingTab key={tab.id || index} meeting={tab} src={src} index={index} />
+              ))}
             </Stack>
           </Box>
         </Box>

@@ -327,8 +327,9 @@ export async function exportPositionsToPdf(options: ExportOptions) {
     // Create download link and trigger download
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
-    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Positions_${new Date().toISOString().split('T')[0]
-      }.pdf`
+    const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Positions_${
+      new Date().toISOString().split('T')[0]
+    }.pdf`
     link.href = url
     link.download = fileName
     document.body.appendChild(link)

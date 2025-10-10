@@ -10,8 +10,8 @@ import React, { useState } from 'react'
 import {
   AddOutlined as AddIcon,
   CalendarViewDay as CalendarViewDayIcon,
-  CalendarMonthOutlined as MonthIcon,
   DownloadOutlined as DownloadIcon,
+  CalendarMonthOutlined as MonthIcon,
   PrintOutlined as PrintIcon,
   SearchOutlined as SearchIcon,
   ShareOutlined as ShareIcon,
@@ -33,6 +33,16 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
 
 export type CalendarViewType = 'month' | 'list'
 
@@ -228,7 +238,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           <ToggleButtonGroup
             value={view}
             exclusive
-            onChange={(_, newView) => {
+            onChange={(_, newView: CalendarViewType | null) => {
               if (newView) onViewChange(newView)
             }}
             aria-label="calendar view"
@@ -240,8 +250,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 color: 'white',
                 borderColor: 'rgba(var(--mui-palette-secondary-mainChannel) / 0.7)',
                 '&.Mui-selected': {
-                  background: (theme) => theme.vars?.palette?.secondary?.main,
-                  color: 'white',
+                  background: (theme) => theme.vars?.palette?.secondary.main,
+                  color: (theme) => theme.vars?.palette?.secondary.contrastText,
                   '&:hover': {
                     background: (theme) => theme.vars?.palette?.secondary?.dark,
                   },

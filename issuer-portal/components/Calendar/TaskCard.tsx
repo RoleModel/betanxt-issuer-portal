@@ -23,7 +23,6 @@ import {
 } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material/styles'
 
-import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { Task } from '@/types/api-exports'
@@ -231,7 +230,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               isKeyDate,
               phase
             ),
-          transition: theme.transitions.create(['background-color']),
+          transition: (theme) => theme.transitions.create(['background-color']),
           borderRadius: 1,
           '&:hover': {
             backgroundColor: (theme) =>
@@ -298,7 +297,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         border:
                           task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
                             ? 'none'
-                            : `1px solid ${theme.vars?.palette.keydate.contrastText}`,
+                            : (theme) => `1px solid ${theme.vars?.palette.keydate.contrastText}`,
                       }
                     : isMeetingDate
                       ? {

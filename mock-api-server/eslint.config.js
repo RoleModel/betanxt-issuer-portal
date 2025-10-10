@@ -1,22 +1,21 @@
-import nextJsConfig from '../nextJsConfig'
+// Workspace-specific ESLint overrides for mock-api-server
+// Inherits from root eslint.config.mjs
+
+import rootConfig from '../eslint.config.mjs'
 
 export default [
-  ...nextJsConfig,
+  ...rootConfig,
   {
     rules: {
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/only-throw-error': 'warn',
-    },
-  },
-  {
-    rules: {
       '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
   {
-    files: ['**/*.spec.ts', '**/*.spec.tsx'],
+    files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
     rules: {
-      '@typescript-eslint/no-unused-vars': 'off', // References to test fixtures mistakenly trigger this rule
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
 ]

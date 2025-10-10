@@ -26,6 +26,7 @@ import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useDocuments } from '@/hooks/useDocuments'
+import { useDocumentSync } from '@/hooks/useDocumentSync'
 import type { Document, Meeting } from '@/types/api-exports'
 import { formatDateForDisplay } from '@/utils/dateUtils'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
@@ -60,6 +61,137 @@ export default function MeetingDocuments({
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [documentViewerUrl, setDocumentViewerUrl] = useState('')
 
+  // Real-time document synchronization
+  const {
+    documents: syncedDocuments,
+    isLoading: syncLoading,
+    addOptimisticDocument,
+    removeOptimisticDocument,
+  } = useDocumentSync({
+    meetingId: meetingId || '',
+    onDocumentAdded: (document) => {
+      console.log('Document added via real-time sync:', document.title)
+    },
+    onDocumentUpdated: (document) => {
+      console.log('Document updated via real-time sync:', document.title)
+    },
+    onDocumentDeleted: (documentId) => {
+      console.log('Document deleted via real-time sync:', documentId)
+    },
+  })
+
+  // Use synced documents and apply filtering
+  useEffect(() => {
+    if (!syncedDocuments) return
+
+    // Apply the same filtering logic as before
+    const filteredDocuments = syncedDocuments.filter((doc) => {
+      const docType = (doc.type || doc.fileType || '').toLowerCase()
+      const docTitle = (doc.title || '').toLowerCase()
+
+      // Exclude DSM documents (they belong in the DSMDocuments component)
+      if (
+        doc.displayCategory === 'dsm' ||
+        docType === 'dsm-document' ||
+        docType.includes('presentation') ||
+        docType.includes('slide') ||
+        docTitle.includes('presentation') ||
+        docTitle.includes('slide')
+      ) {
+        return false
+      }
+
+      // Exclude hosting site documents
+      if (docType === 'hosting_site' || docType === 'hosting site') {
+        return false
+      }
+
+      // Include all other documents (including signed forms)
+      return true
+    })
+
+    // Helper to compute placeholder deadlines relative to meeting date
+    const computePlaceholderDeadline = (docType: string): string | null => {
+      if (!meeting?.meetingDate) return null
+      const meetingDate = new Date(meeting.meetingDate)
+      const deadline = new Date(meetingDate)
+      switch (docType) {
+        case 'draft-proxy-statement':
+          deadline.setDate(deadline.getDate() - 60)
+          break
+        case 'proxy-card':
+          deadline.setDate(deadline.getDate() - 30)
+          break
+        case 'notice-access-form':
+          deadline.setDate(deadline.getDate() - 40)
+          break
+        default:
+          return null
+      }
+      return deadline.toISOString()
+    }
+
+    // Create placeholder documents for Phase 2 if they don't exist
+    const placeholderDocs: Document[] = []
+
+    // Check if Draft Proxy Statement exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'draft-proxy-statement' ||
+          doc.title?.toLowerCase().includes('draft proxy statement')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-draft-proxy-statement',
+        title: 'Draft Proxy Statement',
+        type: 'draft-proxy-statement',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('draft-proxy-statement'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Check if Proxy Card exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'proxy-card' || doc.title?.toLowerCase().includes('proxy card')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-proxy-card',
+        title: 'Proxy Card',
+        type: 'proxy-card',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('proxy-card'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Check if Notice exists
+    if (
+      !filteredDocuments.find(
+        (doc) =>
+          doc.type === 'notice-access-form' ||
+          doc.title?.toLowerCase().includes('Notice')
+      )
+    ) {
+      placeholderDocs.push({
+        id: 'placeholder-notice-access-form',
+        title: 'Notice',
+        type: 'notice-access-form',
+        status: 'AWAITING_DRAFT',
+        deadline: computePlaceholderDeadline('notice-access-form'),
+        uploadedDate: null,
+      } as Document)
+    }
+
+    // Combine real documents with placeholders, placeholders first
+    setDocuments([...placeholderDocs, ...filteredDocuments] as Document[])
+    setLoading(syncLoading)
+  }, [syncedDocuments, syncLoading, meeting?.meetingDate])
+
   // Track selectedDocumentId changes
   useEffect(() => {
     // Placeholder for future side effects
@@ -90,17 +222,6 @@ export default function MeetingDocuments({
 
         // Exclude hosting site documents
         if (docType === 'hosting_site' || docType === 'hosting site') {
-          return false
-        }
-
-        // Exclude signed forms (they belong in the full Documents page)
-        if (
-          docType === 'signed-form' ||
-          docType === 'transfer-agent-request' ||
-          docType === 'plan-file-request' ||
-          docTitle.includes('transfer agent request') ||
-          docTitle.includes('plan file request')
-        ) {
           return false
         }
 
@@ -226,7 +347,7 @@ export default function MeetingDocuments({
       }
 
       // Combine real documents with placeholders, placeholders first
-      setDocuments([...placeholderDocs, ...filteredDocuments])
+      setDocuments([...placeholderDocs, ...filteredDocuments] as Document[])
       setLoading(false)
     } catch (error) {
       console.error('Failed to fetch documents:', error)
@@ -236,7 +357,7 @@ export default function MeetingDocuments({
   // Fetch actual uploaded documents when meetingId changes
   useEffect(() => {
     if (meetingId) {
-      fetchDocuments()
+      void fetchDocuments()
     }
   }, [meetingId, fetchDocuments])
 
@@ -244,7 +365,7 @@ export default function MeetingDocuments({
   useEffect(() => {
     const handleDocumentsUploaded = (event: CustomEvent<{ meetingId: string }>) => {
       if (event.detail.meetingId === meetingId) {
-        fetchDocuments()
+        void fetchDocuments()
       }
     }
 
@@ -272,11 +393,35 @@ export default function MeetingDocuments({
 
   const handleFileUpload = async (
     files: File[],
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => {
     if (files.length === 0) return
 
+    const optimisticIds: string[] = []
+
     try {
+      // Add optimistic documents for immediate UI feedback
+      for (const file of files) {
+        const fileId = `${file.name}-${file.size}`
+        const placeholderId = associations?.[fileId]
+
+        const optimisticDoc = {
+          title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+          type: placeholderId?.startsWith('placeholder-')
+            ? placeholderId.replace('placeholder-', '')
+            : 'document',
+          fileType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          status: 'DRAFT' as const,
+        }
+
+        const tempId = addOptimisticDocument(optimisticDoc)
+        if (tempId) {
+          optimisticIds.push(tempId)
+        }
+      }
+
+      // Perform actual uploads
       for (const file of files) {
         const fileId = `${file.name}-${file.size}`
         const placeholderId = associations?.[fileId]
@@ -288,20 +433,23 @@ export default function MeetingDocuments({
           placeholderId.startsWith('placeholder-')
         ) {
           const documentType = placeholderId.replace('placeholder-', '')
-          result = await uploadDocument(file, documentType, meetingId, file.name)
+          result = await uploadDocument(file, documentType, meetingId || '', file.name)
         } else {
-          result = await uploadDocument(file, file.name, meetingId)
+          result = await uploadDocument(file, file.name, meetingId || '')
         }
 
         if (!result) {
           throw new Error(`Failed to upload ${file.name}`)
         }
       }
-      // Small delay to ensure database has been updated
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      // Refresh documents after upload
-      await fetchDocuments()
+
+      // Remove optimistic documents - real ones will come via sync
+      optimisticIds.forEach(removeOptimisticDocument)
+
+      // Note: No need to call fetchDocuments() - real-time sync will handle updates
     } catch (error) {
+      // Remove optimistic documents on error
+      optimisticIds.forEach(removeOptimisticDocument)
       console.error('Failed to upload document:', error)
       throw error
     }
@@ -368,12 +516,17 @@ export default function MeetingDocuments({
       },
       AUTHORIZED: { color: 'success' as const, label: 'Authorized' },
       COMPLETED: { color: 'success' as const, label: 'Completed' },
+      SUBMITTED_AWAITING_RECORD_DATE: {
+        color: 'info' as const,
+        label: 'Submitted Awaiting Record Date',
+      },
       NOT_UPLOADED: { color: 'default' as const, label: 'Not Uploaded' },
     }
 
-    const config =
-      statusConfig[status || 'AWAITING_DRAFT'] || statusConfig['AWAITING_DRAFT']
-    return <StatusChip status={config.label} />
+    // Status config not currently used, but kept for future enhancement
+    const _config =
+      statusConfig[status || 'AWAITING_DRAFT'] || statusConfig.AWAITING_DRAFT
+    return <StatusChip status={status || null} />
   }
 
   const getActionButton = (document: Document) => {
@@ -388,6 +541,7 @@ export default function MeetingDocuments({
       | 'AUTHORIZED'
       | 'COMPLETED'
       | 'APPROVED'
+      | 'SUBMITTED_AWAITING_RECORD_DATE'
       | 'NOT_UPLOADED'
 
     // Check if this is a placeholder document
@@ -407,6 +561,7 @@ export default function MeetingDocuments({
       case 'IN_PROGRESS':
       case 'SIGNED':
       case 'PENDING_AUTHORIZATION':
+      case 'SUBMITTED_AWAITING_RECORD_DATE':
         return (
           <Button variant="text" onClick={() => handleApprove(document.id || '')}>
             View

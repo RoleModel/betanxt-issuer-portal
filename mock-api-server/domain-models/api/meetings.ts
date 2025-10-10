@@ -9,7 +9,7 @@ type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
 type Phase = components['schemas']['Phase']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
@@ -51,6 +51,7 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     overallCompletion: nullToUndefined(dbMeeting.overall_completion),
     distributionType: nullToUndefined(dbMeeting.distribution_type),
     transferAgent: nullToUndefined(dbMeeting.transfer_agent),
+    transferAgentConfirmed: nullToUndefined(dbMeeting.transfer_agent_confirmed),
     employeeStockPlans: nullToUndefined(dbMeeting.employee_stock_plans),
     planAdministrator: nullToUndefined(dbMeeting.plan_administrator),
     planAdministratorContact: nullToUndefined(dbMeeting.plan_administrator_contact),
@@ -287,6 +288,8 @@ export async function updateMeeting(
       dbUpdate.distribution_type = meetingData.distributionType
     if (meetingData.transferAgent !== undefined)
       dbUpdate.transfer_agent = meetingData.transferAgent
+    if (meetingData.transferAgentConfirmed !== undefined)
+      dbUpdate.transfer_agent_confirmed = meetingData.transferAgentConfirmed
     if (meetingData.employeeStockPlans !== undefined)
       dbUpdate.employee_stock_plans = meetingData.employeeStockPlans
     if (meetingData.planAdministrator !== undefined)

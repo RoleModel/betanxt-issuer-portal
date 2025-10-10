@@ -175,7 +175,7 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
   }, [meetingId])
 
   useEffect(() => {
-    fetchData()
+    void fetchData()
   }, [fetchData])
 
   return {

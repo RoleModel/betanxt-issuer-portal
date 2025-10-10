@@ -7,7 +7,7 @@ type Mailing = components['schemas']['Mailing']
 type MailingRow = Database['public']['Tables']['mailing']['Row']
 
 // Helper type for backend responses
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data?: T
   error?: {
     message: string
