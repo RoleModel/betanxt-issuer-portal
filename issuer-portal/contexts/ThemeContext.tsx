@@ -1,60 +1,42 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { ThemeProvider } from '@mui/material/styles'
+import React, { useMemo } from 'react'
 
-type ThemeMode = 'light' | 'dark'
-
-interface ThemeContextType {
-  mode: ThemeMode
-  toggleTheme: () => void
-  setTheme: (mode: ThemeMode) => void
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+import { useClient } from './ClientContext'
+import { getThemeForClient } from '@/components/mui-styling/theme'
 
 interface ThemeProviderProps {
   children: React.ReactNode
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [mode, setMode] = useState<ThemeMode>('light')
+/**
+ * Simple theme provider that follows the current client from ClientContext.
+ * No separate theme state - theme automatically switches when client changes.
+ */
+export const ClientThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  const { currentClient } = useClient()
 
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme-mode') as ThemeMode
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      setMode(savedTheme)
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setMode(prefersDark ? 'dark' : 'light')
-    }
-  }, [])
-
-  // Save theme to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('theme-mode', mode)
-  }, [mode])
-
-  const toggleTheme = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))
-  }
-
-  const setTheme = (newMode: ThemeMode) => {
-    setMode(newMode)
-  }
+  // Select theme based on current client ticker
+  const theme = useMemo(() => {
+    const ticker = currentClient?.ticker ?? 'WEN'
+    return getThemeForClient(ticker)
+  }, [currentClient?.ticker])
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme, setTheme }}>
+    <ThemeProvider theme={theme}>
       {children}
-    </ThemeContext.Provider>
+    </ThemeProvider>
   )
 }
 
-export function useTheme() {
-  const context = useContext(ThemeContext)
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
+/**
+ * Hook to get the current client ticker (for backward compatibility)
+ */
+export const useClientTicker = () => {
+  const { currentClient } = useClient()
+  return currentClient?.ticker ?? 'WEN'
 }
+
+// Re-export MUI's useTheme for components that need theme values
+export { useTheme } from '@mui/material/styles'
