@@ -1031,6 +1031,7 @@ export interface components {
       overallCompletion?: number;
       distributionType?: string;
       transferAgent?: string;
+      transferAgentConfirmed?: boolean;
       employeeStockPlans?: string;
       planAdministrator?: string;
       planAdministratorContact?: string;

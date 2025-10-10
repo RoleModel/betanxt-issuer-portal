@@ -3524,6 +3524,8 @@ components:
           type: string
         transferAgent:
           type: string
+        transferAgentConfirmed:
+          type: boolean
         employeeStockPlans:
           type: string
         planAdministrator:
