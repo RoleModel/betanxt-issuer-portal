@@ -33,15 +33,25 @@ export async function POST(_req: NextRequest) {
     // Always use SSL if not connecting to localhost
     const isLocalhost = databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
 
+    // Configure SSL for Supabase connections
+    // On Vercel/production, we need to accept self-signed certificates from Supabase pooler
+    const sslConfig = isLocalhost
+      ? false
+      : {
+          rejectUnauthorized: false,
+          // Additional options for compatibility
+          checkServerIdentity: () => undefined,
+        }
+
+    console.log('SSL config:', isLocalhost ? 'disabled (localhost)' : 'enabled (remote)')
+    console.log('Environment:', process.env.VERCEL ? 'Vercel' : 'Local')
+
     client = new Client({
       connectionString: databaseUrl,
-      ssl: isLocalhost
-        ? undefined
-        : {
-            rejectUnauthorized: false, // Required for Supabase SSL certificates
-          },
+      ssl: sslConfig,
     })
     await client.connect()
+    console.log('Database connection established successfully')
 
     // Get the monorepo root (mock-api-server is a child of the root)
     const currentDir = process.cwd()
