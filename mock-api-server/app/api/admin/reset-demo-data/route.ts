@@ -27,7 +27,15 @@ export async function POST(_req: NextRequest) {
       'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
     console.log('Connecting to database...')
-    client = new Client({ connectionString: databaseUrl })
+    client = new Client({
+      connectionString: databaseUrl,
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? {
+              rejectUnauthorized: false, // Required for Supabase SSL certificates
+            }
+          : undefined,
+    })
     await client.connect()
 
     // Get the monorepo root (mock-api-server is a child of the root)
