@@ -102,7 +102,7 @@ function Layout({
   // Create effective user object with current client from context
   const effectiveUser = useMemo(() => {
     const user =
-      session?.user ||
+      session?.user ??
       (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
         ? ({ name: 'Development', email: 'developer@example.com' } as User)
         : null)
@@ -238,11 +238,11 @@ function Layout({
             links={
               bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
                 ? [
-                    {
-                      label: 'Reset',
-                      href: '#reset-demo',
-                    },
-                  ]
+                  {
+                    label: 'Reset',
+                    href: '#reset-demo',
+                  },
+                ]
                 : []
             }
           />

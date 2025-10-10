@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toUpperCase() || 'ADMIN',
             account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c', // Wendy's account ID
             client_ticker: null,
           }
@@ -37,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
             email: 'dev@example.com',
-            type: 'admin' as const,
+            type: 'ADMIN' as const,
             account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
             client_ticker: null,
             username: 'devuser',

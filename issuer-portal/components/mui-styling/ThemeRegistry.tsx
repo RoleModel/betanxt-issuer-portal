@@ -26,8 +26,6 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
 
   const ticker = currentClient?.ticker ?? 'WEN'
 
-  console.log('ThemeRegistry - ticker:', ticker, 'currentClient:', currentClient, 'initialLoad:', initialLoad)
-
   const theme = useMemo(() => {
     // Don't create theme until client is loaded
     if (initialLoad && currentClient === null) {
@@ -42,11 +40,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     }
 
     const themeOptions = themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
-    console.log('Creating theme for ticker:', ticker)
-    console.log('Theme options primary color:', themeOptions.colorSchemes?.light?.palette?.primary)
-    const createdTheme = createTheme(themeOptions)
-    console.log('Created theme primary color:', createdTheme.palette.primary.main)
-    return createdTheme
+    return createTheme(themeOptions)
   }, [ticker, initialLoad, currentClient])
 
   // Show nothing until theme is ready

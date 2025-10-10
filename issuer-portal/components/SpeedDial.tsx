@@ -51,7 +51,7 @@ const actions = [
 export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => ({
   position: 'absolute',
   bottom: 0,
-  right: theme.spacing(2),
+  right: '24px',
   zIndex: 2500,
   alignItems: 'end',
   '& .MuiSpeedDial-actions': {
@@ -98,7 +98,7 @@ export default function IssuerSpeedDial({
       sx={(theme) => ({
         position: 'fixed',
         bottom: theme.spacing(7.5),
-        right: 0,
+        right: theme.spacing(2),
         zIndex: 500,
         transform: 'translateZ(0px)',
         display: 'flex',
