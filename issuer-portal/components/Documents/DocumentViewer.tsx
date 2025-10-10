@@ -193,7 +193,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // NextAuth session
   const { data: session } = useSession()
   // Pass the meetingId from the task to ensure we're updating the right context
-  const { updateTaskById } = useTasks(task?.meeting_id || undefined)
+  const { updateTaskById } = useTasks(task?.meeting_id ?? undefined)
   const {
     getTaskDocument,
     getCommentsForDocument,
@@ -257,7 +257,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               label:
                 area.signature_type === 'electronic'
                   ? 'Click to sign'
-                  : area.signature_type || 'Click to sign',
+                  : area.signature_type ?? 'Click to sign',
               signed: false,
             })
           )
@@ -317,7 +317,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             'url' in document &&
             typeof document.url === 'string'
             ? document.url
-            : undefined) ||
+            : undefined) ??
           (document &&
             typeof document === 'object' &&
             'file_path' in document &&
@@ -326,9 +326,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             : undefined)
 
         // If no document URL is found, use a default PDF for demonstration
-        if (!documentUrl) {
-          documentUrl = '/documents/proxy-guide-2025-250204.pdf'
-        }
+        documentUrl ??= '/documents/proxy-guide-2025-250204.pdf'
 
         // If file_path is just a filename and not a full URL, construct Supabase storage URL
         if (
@@ -347,13 +345,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         ) {
           // Prioritize documentId prop over fetched document ID
           const docId =
-            documentId ||
+            documentId ??
             (document &&
               typeof document === 'object' &&
               'id' in document &&
               typeof document.id === 'string'
               ? document.id
-              : `doc-${task.id || Date.now()}`)
+              : `doc-${task.id ?? Date.now()}`)
           setCurrentDocumentId(docId)
           setDocumentData({
             url: documentUrl,
@@ -382,10 +380,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }, [task, getTaskDocument, signatureAreas.length, signatureAreas, documentId])
 
   // Determine which props to use (legacy props take absolute priority when provided)
-  const actualOpen = legacyOpen !== undefined ? legacyOpen : task ? open : false
+  const actualOpen = legacyOpen ?? (task ? open : false)
   const actualOnClose = useMemo(
     () =>
-      legacyOnClose ||
+      legacyOnClose ??
       (task
         ? () => {
           setOpen(false)
@@ -394,11 +392,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     [legacyOnClose, task]
   )
   const actualfileUrl = useMemo(
-    () => (fileUrl ? fileUrl : task ? documentData?.url : undefined),
+    () => (fileUrl ?? (task ? documentData?.url : undefined)),
     [fileUrl, task, documentData?.url]
   )
   const actualTitle = useMemo(
-    () => (title ? title : task ? documentData?.title : undefined),
+    () => (title ?? (task ? documentData?.title : undefined)),
     [title, task, documentData?.title]
   )
 
@@ -409,36 +407,38 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     return urlParts[urlParts.length - 1]?.toLowerCase()
   }, [actualfileUrl])
 
+  // Boolean OR logic is correct here - we want ANY condition to be true
+  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
   const isPDF =
     fileExtension === 'pdf' ||
     actualfileUrl?.includes('/test-pdf') ||
     actualfileUrl?.startsWith('data:application/pdf')
+  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
   const isOfficeDocument = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
-    fileExtension || ''
+    fileExtension ?? ''
   )
-  const actualSignatureData = signatureData
-    ? signatureData
-    : task
+  const actualSignatureData = signatureData ??
+    (task
       ? internalSignatureData
-      : undefined
+      : undefined)
 
   // Initialize with a stable ID based on available props
   const getStableDocumentId = useCallback(() => {
     if (documentId) return documentId
-    if (actualfileUrl || fileUrl) {
-      const url = actualfileUrl || fileUrl || ''
+    if (actualfileUrl ?? fileUrl) {
+      const url = actualfileUrl ?? fileUrl ?? ''
       const urlHash =
         url
           .split('/')
           .pop()
-          ?.replace(/[^a-zA-Z0-9]/g, '') ||
+          ?.replace(/[^a-zA-Z0-9]/g, '') ??
         btoa(url)
           .replace(/[^a-zA-Z0-9]/g, '')
           .substring(0, 20)
       return `doc-${urlHash}`
     }
-    if (actualTitle || title) {
-      const docTitle = actualTitle || title || ''
+    if (actualTitle ?? title) {
+      const docTitle = actualTitle ?? title ?? ''
       return `doc-${docTitle.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`
     }
     return `temp-doc-${Date.now()}`
@@ -476,7 +476,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // Sync signature areas when props change (prioritize legacy props)
   useEffect(() => {
     const areasToUse =
-      signatureAreas.length > 0 ? signatureAreas : documentData?.signatureAreas || []
+      signatureAreas.length > 0 ? signatureAreas : documentData?.signatureAreas ?? []
     // Only update if the arrays are actually different
     if (JSON.stringify(prevSignatureAreasRef.current) !== JSON.stringify(areasToUse)) {
       setLocalSignatureAreas(areasToUse)
@@ -489,7 +489,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   // Create a stable document key
   const documentKey = useMemo(
-    () => `${actualfileUrl || 'none'}-${documentId || 'none'}`,
+    () => `${actualfileUrl ?? 'none'}-${documentId ?? 'none'}`,
     [actualfileUrl, documentId]
   )
 
@@ -616,10 +616,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           id: comment.id,
           comment: comment.comment,
           user: comment.user,
-          first_name: comment.first_name || comment.user?.split('@')[0] || 'User',
-          last_name: comment.last_name || '',
+          first_name: comment.first_name ?? comment.user?.split('@')[0] ?? 'User',
+          last_name: comment.last_name ?? '',
           created_at: comment.created_at,
-          users: comment.users || null,
+          users: comment.users ?? null,
         })) as CommentWithUser[]
         setComments(transformedComments)
       } catch (error) {
@@ -635,7 +635,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }, [])
 
   const goToNextPage = useCallback(() => {
-    setPageNumber((prev) => Math.min(prev + 1, numPages || 1))
+    setPageNumber((prev) => Math.min(prev + 1, numPages ?? 1))
   }, [numPages])
 
   const handleCustomSignature = useCallback((areaId: string) => {
@@ -673,7 +673,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     try {
       // Generate a PDF blob with the signatures and form data
       // Get the current PDF URL and fetch it
-      const fileUrlToUse = actualfileUrl || fileUrl
+      const fileUrlToUse = actualfileUrl ?? fileUrl
       if (fileUrlToUse) {
         let pdfBytes: Uint8Array
 
@@ -697,7 +697,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         })
 
         // Create a file from the modified PDF (ensure ArrayBuffer for File parts typing)
-        const fileName = `signed_${currentDocumentId || 'document'}_${Date.now()}.pdf`
+        const fileName = `signed_${currentDocumentId ?? 'document'}_${Date.now()}.pdf`
         // Copy into a fresh Uint8Array to guarantee BlobPart typing (avoid SharedArrayBuffer narrowing issue)
         const copy = new Uint8Array(modifiedPdfBytes.byteLength)
         copy.set(modifiedPdfBytes)
@@ -705,49 +705,44 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         // Upload the signed document
         if (currentDocumentId && uploadDocument) {
-          try {
-            const baseTitle = actualTitle || task?.title || 'Document'
-            const documentTitle = baseTitle.includes(' - Signed')
-              ? baseTitle
-              : `${baseTitle} - Signed`
-            const meetingId =
-              typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
+          const baseTitle = actualTitle ?? task?.title ?? 'Document'
+          const documentTitle = baseTitle.includes(' - Signed')
+            ? baseTitle
+            : `${baseTitle} - Signed`
+          const meetingId =
+            typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
 
-            // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
-            // Insert -signed- after the form type prefix to maintain document type detection
-            let documentIdForUpload = currentDocumentId
+          // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
+          // Insert -signed- after the form type prefix to maintain document type detection
+          let documentIdForUpload = currentDocumentId
 
-            if (!documentIdForUpload.includes('-signed-')) {
-              // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
-              if (
-                /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(documentIdForUpload)
-              ) {
-                documentIdForUpload = documentIdForUpload.replace(
-                  /^([^-]+-[^-]+-[^-]+)/,
-                  '$1-signed'
-                )
-              } else {
-                // Otherwise append -signed- to the end
-                documentIdForUpload = `${documentIdForUpload}-signed-${Date.now()}`
-              }
-            }
-
-            const uploadPath = await uploadDocument(
-              file,
-              documentIdForUpload,
-              meetingId,
-              documentTitle,
-              task?.id
-            )
-            if (!uploadPath) {
-              throw new Error(
-                'Unable to save signed document. Please try again or contact support if the issue persists.'
+          if (!documentIdForUpload.includes('-signed-')) {
+            // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
+            if (
+              /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(documentIdForUpload)
+            ) {
+              documentIdForUpload = documentIdForUpload.replace(
+                /^([^-]+-[^-]+-[^-]+)/,
+                '$1-signed'
               )
+            } else {
+              // Otherwise append -signed- to the end
+              documentIdForUpload = `${documentIdForUpload}-signed-${Date.now()}`
             }
-          } catch (uploadError) {
-            throw uploadError
           }
-        } else {
+
+          const uploadPath = await uploadDocument(
+            file,
+            documentIdForUpload,
+            meetingId,
+            documentTitle,
+            task?.id
+          )
+          if (!uploadPath) {
+            throw new Error(
+              'Unable to save signed document. Please try again or contact support if the issue persists.'
+            )
+          }
         }
       }
 
@@ -808,8 +803,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setUploadDialogOpen(false)
   }, [])
 
-  const handleDownloadPdf = useCallback(async () => {
-    const fileUrlToUse = actualfileUrl || fileUrl
+  const handleDownloadPdf = useCallback(() => {
+    const fileUrlToUse = actualfileUrl ?? fileUrl
     if (!fileUrlToUse) {
       alert('No document available for download')
       return
@@ -822,7 +817,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
       // Extract filename from URL or use a default name
       const urlParts = fileUrlToUse.split('/')
-      const fileName = urlParts[urlParts.length - 1] || `${actualTitle || 'document'}.pdf`
+      const fileName = urlParts[urlParts.length - 1] ?? `${actualTitle ?? 'document'}.pdf`
 
       // Set download attribute with filename
       link.download = fileName.includes('.pdf') ? fileName : `${fileName}.pdf`
@@ -902,9 +897,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
     try {
       // Extract user information from session
-      const userFirstName = (session?.user?.name || '').split(' ')[0] || 'User'
-      const userLastName = (session?.user?.name || '').split(' ').slice(1).join(' ') || ''
-      const userId = session?.user?.email || 'current-user'
+      const userFirstName = (session?.user?.name ?? '').split(' ')[0] ?? 'User'
+      const userLastName = (session?.user?.name ?? '').split(' ').slice(1).join(' ') ?? ''
+      const userId = session?.user?.email ?? 'current-user'
 
       // Save comment using hook with user information
       await addCommentToDocument(currentDocumentId, comment.trim(), {
@@ -939,35 +934,31 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   const handleUploadFiles = useCallback(
     async (files: File[]) => {
-      try {
-        if (!currentDocumentId) {
-          throw new Error('No document selected to attach uploads to')
-        }
-        for (const file of files) {
-          // Use hook to upload document
-          const meetingId =
-            typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
-          const result = await uploadDocument(file, currentDocumentId, meetingId)
-
-          if (!result) {
-            throw new Error('Failed to upload document')
-          }
-        }
-
-        setUploadDialogOpen(false)
-
-        // Refresh document history by fetching latest data
-        const history = await getDocumentHistory(currentDocumentId)
-        setDocumentHistory(
-          history.map((event) => ({
-            event_type: event.event_type,
-            user: event.user,
-            timestamp: event.timestamp,
-          }))
-        )
-      } catch (error) {
-        throw error
+      if (!currentDocumentId) {
+        throw new Error('No document selected to attach uploads to')
       }
+      for (const file of files) {
+        // Use hook to upload document
+        const meetingId =
+          typeof task?.meeting_id === 'string' ? task?.meeting_id : undefined
+        const result = await uploadDocument(file, currentDocumentId, meetingId)
+
+        if (!result) {
+          throw new Error('Failed to upload document')
+        }
+      }
+
+      setUploadDialogOpen(false)
+
+      // Refresh document history by fetching latest data
+      const history = await getDocumentHistory(currentDocumentId)
+      setDocumentHistory(
+        history.map((event) => ({
+          event_type: event.event_type,
+          user: event.user,
+          timestamp: event.timestamp,
+        }))
+      )
     },
     [currentDocumentId, uploadDocument, getDocumentHistory, task]
   )
@@ -1246,7 +1237,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                     height: '100%',
                     border: 'none',
                   }}
-                  title={actualTitle || 'Website View'}
+                  title={actualTitle ?? 'Website View'}
                 />
               </Box>
             ) : (
@@ -1328,8 +1319,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                     ) : isOfficeDocument ? (
                       <OfficeDocumentViewer
                         url={actualfileUrl}
-                        title={actualTitle}
-                        fileType={fileExtension || undefined}
+                        title={actualTitle ?? undefined}
+                        fileType={fileExtension ?? undefined}
                       />
                     ) : (
                       <Box
@@ -1361,11 +1352,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
                   {/* Signature and Form Field Area Overlays - positioned relative to the Page */}
                   {localSignatureAreas
-                    .filter((area) => (area.page || 1) === pageNumber)
+                    .filter((area) => (area.page ?? 1) === pageNumber)
                     .map((area) => {
                       // Check if this is a form field (text or date) based on type or label
                       const fieldType =
-                        area.type ||
+                        area.type ??
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
@@ -1383,7 +1374,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             area={{
                               ...area,
                               type: fieldType,
-                              value: formFieldValues[area.id] || area.value || '',
+                              value: formFieldValues[area.id] ?? area.value ?? '',
                             }}
                             onValueChange={handleFormFieldChange}
                           />
@@ -1391,13 +1382,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                       } else {
                         // Render signature area for signatures
                         const areaSignatureData =
-                          signatureDataMap[area.id] || actualSignatureData
+                          signatureDataMap[area.id] ?? actualSignatureData
                         return (
                           <DraggableSignatureArea
                             key={area.id}
                             area={area}
                             signatureData={areaSignatureData}
-                            documentId={currentDocumentId || ''}
+                            documentId={currentDocumentId ?? ''}
                             onClick={() => handleCustomSignature(area.id)}
                             onPositionUpdate={handlePositionUpdate}
                           />
@@ -1458,7 +1449,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                       <ListItem key={commentItem.id} divider>
                         <ListItemAvatar>
                           <Avatar
-                            src={commentItem.users?.avatar || undefined}
+                            src={commentItem.users?.avatar ?? undefined}
                             sx={{
                               width: 40,
                               height: 40,
@@ -1615,7 +1606,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         open={uploadDialogOpen}
         onClose={handleUploadDialogClose}
         onUpload={handleUploadFiles}
-        meetingId={task?.meeting_id || ''}
+        meetingId={task?.meeting_id ?? ''}
         documentType="signed-document"
       />
     </Dialog>

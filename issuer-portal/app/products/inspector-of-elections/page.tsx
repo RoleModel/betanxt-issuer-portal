@@ -148,6 +148,7 @@ export default function InspectorOfElectionsPage() {
       title={'Inspector of Elections Overview'}
       showCommentButton={false}
       showHistoryButton={false}
+      showDownloadButton={true}
     />
   </>
   )

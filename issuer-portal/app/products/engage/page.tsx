@@ -201,6 +201,7 @@ export default function EngagePage() {
         title={'Engage Overview'}
         showCommentButton={false}
         showHistoryButton={false}
+        showDownloadButton={true}
       />
     </>
   )
