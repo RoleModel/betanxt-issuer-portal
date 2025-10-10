@@ -45,22 +45,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Task action functions
   const approveTask = useCallback(
     async (taskId: string) => {
-      try {
-        const apiClient = await buildApiClient()
-        const result = await apiClient.PUT('/tasks/{id}', {
-          params: { path: { id: taskId } },
-          body: { status: 'COMPLETE' },
-        })
+      const apiClient = await buildApiClient()
+      const result = await apiClient.PUT('/tasks/{id}', {
+        params: { path: { id: taskId } },
+        body: { status: 'COMPLETE' },
+      })
 
-        if (result.error) {
-          throw new Error('Failed to approve task')
-        }
-
-        // Refetch data after approval
-        await refreshMeetingData()
-      } catch (error) {
-        throw error
+      if (result.error) {
+        throw new Error('Failed to approve task')
       }
+
+      // Refetch data after approval
+      await refreshMeetingData()
     },
     [refreshMeetingData]
   )
@@ -109,7 +105,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         // TODO: Add document link support when links property is added to Task schema
         const documentUrl = ''
         setApprovalDocumentUrl(documentUrl)
-        setApprovalTitle(task.title || 'Task')
+        setApprovalTitle(task.title ?? 'Task')
         setApprovalTask(task)
         setApprovalDrawerOpen(true)
         return
@@ -221,7 +217,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       await exportCalendarToIcs({
         tasks,
         keyDates,
-        meetingTitle: meeting?.title || 'Meeting Calendar',
+        meetingTitle: meeting?.title ?? 'Meeting Calendar',
         meetingId: meeting?.id,
       })
     } catch (error) {
@@ -237,7 +233,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       await exportTimelineToPdf({
         tasks,
         keyDates,
-        meetingTitle: meeting?.title || 'Meeting Timeline',
+        meetingTitle: meeting?.title ?? 'Meeting Timeline',
         selectedPhase: 'all',
         clientTicker,
       })

@@ -24,6 +24,7 @@ import {
   Typography,
   styled,
   useMediaQuery,
+  useTheme,
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
@@ -32,7 +33,6 @@ import {
   getPhaseContrastText,
   getPhaseNumber,
 } from '@/components/mui-styling/theme'
-import { theme } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
@@ -136,6 +136,7 @@ export function EventTabs() {
   const activeMeeting = meetingContextValue?.currentMeeting ?? null
 
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
+  const theme = useTheme()
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)

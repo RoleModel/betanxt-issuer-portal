@@ -33,12 +33,12 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const extractClientFromURL = useCallback(
     (pathname: string): string | null => {
       // New format: /[TICKER]/meeting/meeting-id
-      const tickerMatch = pathname.match(/^\/([A-Z]{2,5})\//)
+      const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
       if (tickerMatch) {
         const ticker = tickerMatch[1]
         // Find client by ticker from available clients data
         const matchingClient = clients.find((client) => client.ticker === ticker)
-        return matchingClient?.company_name || matchingClient?.short_name || null
+        return matchingClient?.company_name ?? matchingClient?.short_name ?? null
       }
       return null
     },
@@ -78,7 +78,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Determine current client based on URL and user context
   useEffect(() => {
-    const determineClient = async () => {
+    const determineClient = () => {
       try {
         setLoading(true)
         setError(null)
@@ -104,15 +104,12 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 ? localStorage.getItem('selectedClient')
                 : null
             if (selectedClientStr) {
-              const selectedClient = JSON.parse(selectedClientStr)
-              targetClient = clients.find((c) => c.id === selectedClient.id) || null
-              if (targetClient) {
-              } else {
-              }
-            } else {
+              const selectedClient = JSON.parse(selectedClientStr) as { id: string }
+              targetClient = clients.find((c) => c.id === selectedClient.id) ?? null
+              // Client found in localStorage
             }
-          } catch (error) {
-            console.warn('Failed to parse selectedClient from localStorage:', error)
+          } catch (parseError) {
+            console.warn('Failed to parse selectedClient from localStorage:', parseError)
           }
         }
 
@@ -124,13 +121,12 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             targetClient =
               clients.find(
                 (c) => c.company_name === clientFromURL || c.short_name === clientFromURL
-              ) || null
-            if (targetClient) {
-            }
+              ) ?? null
+            // Client found from URL
 
             if (targetClient && !canAccessClient(targetClient.id)) {
               setError(
-                `Access denied to ${targetClient.company_name || targetClient.short_name}`
+                `Access denied to ${targetClient.company_name ?? targetClient.short_name}`
               )
               setLoading(false)
               return
@@ -151,20 +147,21 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             'selectedClient',
             JSON.stringify({
               id: targetClient.id,
-              name: targetClient.company_name || targetClient.short_name,
+              name: targetClient.company_name ?? targetClient.short_name,
               ticker: targetClient.ticker,
             })
           )
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to determine client')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to determine client'
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
     }
 
     if (!clientsLoading) {
-      void determineClient()
+      determineClient()
     }
   }, [
     pathname,
@@ -179,8 +176,16 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Handle client switching
   const switchClient = (client: Client) => {
     try {
+      console.log('🔄 switchClient called with:', {
+        id: client.id,
+        ticker: client.ticker,
+        name: client.name,
+        company_name: client.company_name,
+        short_name: client.short_name
+      })
+
       if (!canAccessClient(client.id)) {
-        setError(`Access denied to ${client.company_name || client.short_name}`)
+        setError(`Access denied to ${client.company_name ?? client.short_name}`)
         return
       }
 
@@ -192,54 +197,45 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         'selectedClient',
         JSON.stringify({
           id: client.id,
-          name: client.company_name || client.short_name,
+          name: client.company_name ?? client.short_name,
           ticker: client.ticker,
         })
       )
 
       // Update current client state immediately
+      console.log('🔄 Setting current client to:', client.ticker)
       setCurrentClient(client)
 
       // Navigate to the equivalent page for the selected client using ticker-based routing
       if (client.ticker) {
-        let newPath: string
-
-        // Check the current route type and navigate to the equivalent page for the new client
-        if (pathname.includes('/past-meetings')) {
-          // For past-meetings page, navigate to the new client's past-meetings
-          newPath = `/${client.ticker}/past-meetings`
-        } else if (pathname.startsWith('/education')) {
-          // Education pages are now at root level - stay on the same education page
-          // No navigation needed when switching clients on education pages
+        // Only navigate if on a ticker-based route
+        if (pathname.startsWith('/education') || pathname.startsWith('/products')) {
+          // Education and products pages are at root level - just switch the client, no navigation
           return
-        } else if (pathname.startsWith('/products')) {
-          // Products pages are now at root level - stay on the same products page
-          // No navigation needed when switching clients on products pages
-          return
-        } else if (pathname.includes('/meeting/')) {
-          // For meeting pages, extract the current route part after meetingId
-          const meetingMatch = pathname.match(/^\/[A-Z]{2,5}\/meeting\/[^/]+(.*)$/)
-          const routeAfterMeeting = meetingMatch ? meetingMatch[1] : ''
+        }
 
-          // Use the client's default meeting ID
-          const defaultMeetingId = client.meeting_id
-          if (defaultMeetingId) {
-            newPath = `/${client.ticker}/meeting/${defaultMeetingId}${routeAfterMeeting}`
+        // For ticker-based routes, replace the old ticker with the new ticker
+        const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
+        if (tickerMatch) {
+          const oldTicker = tickerMatch[1]
+          const newPath = pathname.replace(`/${oldTicker}/`, `/${client.ticker}/`)
+
+          // If on a meeting route, verify the new client has a meeting_id
+          if (pathname.includes('/meeting/') && !client.meeting_id) {
+            // Redirect to past-meetings if switching to a client without an active meeting
+            router.replace(`/${client.ticker}/past-meetings`)
           } else {
-            // Fallback if no meeting_id available
-            newPath = `/${client.ticker}/past-meetings`
+            router.replace(newPath)
           }
         } else {
-          // Default fallback: navigate to the client's default meeting based on meeting_id
+          // Not on a ticker-based route - navigate to client's default meeting if available
           const defaultMeetingId = client.meeting_id
           if (defaultMeetingId) {
-            newPath = `/${client.ticker}/meeting/${defaultMeetingId}`
+            router.replace(`/${client.ticker}/meeting/${defaultMeetingId}`)
           } else {
-            // Fallback if no meeting_id available
-            newPath = `/${client.ticker}/past-meetings`
+            router.replace(`/${client.ticker}/past-meetings`)
           }
         }
-        router.replace(newPath)
       }
 
       // Reset the switching flag after navigation completes
@@ -257,7 +253,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   // Debug: Show current client state
-  React.useEffect(() => {}, [currentClient])
+  React.useEffect(() => {
+    // Client state logging can be added here if needed
+  }, [currentClient])
 
   return (
     <ClientContext.Provider
@@ -265,7 +263,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentClient,
         availableClients: clients,
         loading: loading || clientsLoading,
-        error: error || clientsError,
+        error: error ?? clientsError,
         switchClient,
         canAccessClient,
         isHydrated: !loading && !clientsLoading && !!currentClient,

@@ -238,7 +238,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           <ToggleButtonGroup
             value={view}
             exclusive
-            onChange={(_, newView) => {
+            onChange={(_, newView: CalendarViewType | null) => {
               if (newView) onViewChange(newView)
             }}
             aria-label="calendar view"
@@ -250,8 +250,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 color: 'white',
                 borderColor: 'rgba(var(--mui-palette-secondary-mainChannel) / 0.7)',
                 '&.Mui-selected': {
-                  background: (theme) => theme.vars?.palette?.secondary?.main,
-                  color: 'white',
+                  background: (theme) => theme.vars?.palette?.secondary.main,
+                  color: (theme) => theme.vars?.palette?.secondary.contrastText,
                   '&:hover': {
                     background: (theme) => theme.vars?.palette?.secondary?.dark,
                   },

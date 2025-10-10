@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Close as CloseIcon,
   CommentOutlined as CommentIcon,
+  Download as DownloadIcon,
   History as HistoryIcon,
   Update as UpdateIcon,
 } from '@mui/icons-material'
@@ -107,6 +108,8 @@ interface DocumentViewerProps {
   showCommentButton?: boolean
   /** When true, completely hides both History & Comment buttons and their side panel */
   hideActivityButtons?: boolean
+  /** When true, shows a download button in the toolbar */
+  showDownloadButton?: boolean
   taskId?: string
   documentType?: string
   isWebsiteView?: boolean
@@ -143,6 +146,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   showCommentButton = true,
   showHistoryButton = true,
   hideActivityButtons = false,
+  showDownloadButton = false,
   signatureData,
   signatureAreas = [],
   documentId,
@@ -309,15 +313,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Construct the proper URL for the document
         let documentUrl =
           (document &&
-          typeof document === 'object' &&
-          'url' in document &&
-          typeof document.url === 'string'
+            typeof document === 'object' &&
+            'url' in document &&
+            typeof document.url === 'string'
             ? document.url
             : undefined) ||
           (document &&
-          typeof document === 'object' &&
-          'file_path' in document &&
-          typeof document.file_path === 'string'
+            typeof document === 'object' &&
+            'file_path' in document &&
+            typeof document.file_path === 'string'
             ? document.file_path
             : undefined)
 
@@ -345,9 +349,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           const docId =
             documentId ||
             (document &&
-            typeof document === 'object' &&
-            'id' in document &&
-            typeof document.id === 'string'
+              typeof document === 'object' &&
+              'id' in document &&
+              typeof document.id === 'string'
               ? document.id
               : `doc-${task.id || Date.now()}`)
           setCurrentDocumentId(docId)
@@ -356,9 +360,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             title:
               task.title ||
               (document &&
-              typeof document === 'object' &&
-              'title' in document &&
-              typeof document.title === 'string'
+                typeof document === 'object' &&
+                'title' in document &&
+                typeof document.title === 'string'
                 ? document.title
                 : 'Document'),
             signatureAreas: areas,
@@ -384,8 +388,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       legacyOnClose ||
       (task
         ? () => {
-            setOpen(false)
-          }
+          setOpen(false)
+        }
         : undefined),
     [legacyOnClose, task]
   )
@@ -804,6 +808,35 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setUploadDialogOpen(false)
   }, [])
 
+  const handleDownloadPdf = useCallback(async () => {
+    const fileUrlToUse = actualfileUrl || fileUrl
+    if (!fileUrlToUse) {
+      alert('No document available for download')
+      return
+    }
+
+    try {
+      // Create a temporary link element to trigger download
+      const link = document.createElement('a')
+      link.href = fileUrlToUse
+
+      // Extract filename from URL or use a default name
+      const urlParts = fileUrlToUse.split('/')
+      const fileName = urlParts[urlParts.length - 1] || `${actualTitle || 'document'}.pdf`
+
+      // Set download attribute with filename
+      link.download = fileName.includes('.pdf') ? fileName : `${fileName}.pdf`
+
+      // Append to body, click, and remove
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      alert('Failed to download document. Please try again.')
+    }
+  }, [actualfileUrl, fileUrl, actualTitle])
+
   const handleComments = useCallback(() => {
     setShowComments(!showComments)
     setShowHistory(false) // Hide history when showing comments
@@ -1101,6 +1134,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               </>
             )}
 
+            {/* Download Button */}
+            {showDownloadButton && !isWebsiteView && isPDF && (
+              <Tooltip title="Download PDF">
+                <IconButton
+                  color="inherit"
+                  onClick={handleDownloadPdf}
+                  aria-label="download pdf"
+                >
+                  <DownloadIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+
             {/* PDF Navigation */}
             {!isWebsiteView && numPages && numPages > 1 && (
               <>
@@ -1273,7 +1319,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                           800,
                           typeof window !== 'undefined'
                             ? window.innerWidth -
-                                (showComments || showHistory ? 500 : 100)
+                            (showComments || showHistory ? 500 : 100)
                             : 800
                         )}
                         onLoadSuccess={onDocumentLoadSuccess}
@@ -1323,7 +1369,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
-                              !area.label?.toLowerCase().includes('signature')
+                            !area.label?.toLowerCase().includes('signature')
                             ? 'text'
                             : area.label?.toLowerCase().includes('date')
                               ? 'date'

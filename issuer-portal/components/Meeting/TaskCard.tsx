@@ -14,13 +14,13 @@ import {
   Skeleton,
   Stack,
   Typography,
+  useTheme,
 } from '@mui/material'
 
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
 import {
   getPhaseColor,
   getStatusBorderColor,
-  theme,
 } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -48,6 +48,7 @@ export function TaskItem({
   isClickable,
   status,
 }: TaskItemProps) {
+  const theme = useTheme()
   const isComplete = status === 'COMPLETE'
   const borderColor = isComplete
     ? theme.vars.palette.complete

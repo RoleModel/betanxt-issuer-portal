@@ -33,7 +33,6 @@ export function useMailing(): UseMailingResult {
         )
 
         if (fetchError) {
-          console.error('Error fetching mailing data:', fetchError)
           const errorMsg =
             typeof fetchError === 'object' && 'message' in fetchError
               ? String((fetchError as { message: unknown }).message)

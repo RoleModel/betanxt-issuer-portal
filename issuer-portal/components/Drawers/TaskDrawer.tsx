@@ -26,7 +26,7 @@ import type { SignatureArea } from '@/components/Drawers/shared/hooks/useDrawerD
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
 import BNFilePreview from '@/components/FileUpload/BNFilePreview'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
-import { getStatusBorderColor, theme as muiTheme } from '@/components/mui-styling/theme'
+import { getStatusBorderColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu, {
   type ContextMenuPosition,
@@ -796,7 +796,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                   const phaseColor = `var(--mui-palette-phase-${taskPhaseNumber - 1}-main)`
                   const borderColor = isComplete
                     ? theme.vars.palette.complete
-                    : getStatusBorderColor(taskToUse?.status, phaseColor, muiTheme)
+                    : getStatusBorderColor(taskToUse?.status, phaseColor, theme)
 
                   return {
                     p: 2,

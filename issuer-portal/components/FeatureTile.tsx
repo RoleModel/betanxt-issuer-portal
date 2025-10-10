@@ -45,43 +45,37 @@ export function FeatureTile({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: (theme: Theme) => theme.vars.palette.primary.main,
+          background: (theme: Theme) => theme.vars.palette.primary.main,
           color: (theme: Theme) =>
             `${theme.vars.palette.primary.contrastText} !important`,
-          hoverBackgroundColor: (theme: Theme) => theme.vars.palette.primary.dark,
-          borderColor: (theme: Theme) => theme.vars.palette.primary.dark,
         }
       case 'secondary':
         return {
-          backgroundColor: (theme: Theme) => theme.vars.palette.secondary.main,
-          color: (theme: Theme) =>
-            `${theme.vars.palette.secondary.contrastText} !important`,
-          hoverBackgroundColor: (theme: Theme) => theme.vars.palette.secondary.dark,
-          hoverColor: (theme: Theme) => theme.vars.palette.secondary.light,
-          borderColor: (theme: Theme) => theme.vars.palette.secondary.dark,
+          background: (theme: Theme) => theme.vars.palette.secondary.main,
+          color: (theme: Theme) => theme.vars.palette.secondary.contrastText,
         }
       case 'tertiary':
         return {
-          backgroundColor: 'var(--mui-palette-tertiary-main)',
-          color: 'var(--mui-palette-tertiary-contrastText)',
-          hoverBackgroundColor: 'var(--mui-palette-tertiary-main)',
-          hoverColor: 'var(--mui-palette-tertiary-main)',
-          borderColor: 'var(--mui-palette-tertiary-main)',
+          background: (theme: Theme) => {
+            const palette = theme.vars.palette as Record<string, unknown>
+            const tertiary = palette.tertiary as { main?: string } | undefined
+            return tertiary?.main ?? theme.vars.palette.primary.main
+          },
+          color: (theme: Theme) => {
+            const palette = theme.vars.palette as Record<string, unknown>
+            const tertiary = palette.tertiary as { contrastText?: string } | undefined
+            return tertiary?.contrastText ?? theme.vars.palette.primary.contrastText
+          },
         }
       case 'base':
         return {
-          backgroundColor: (theme: Theme) => theme.vars.palette.background.default,
-          color: (theme: Theme) => `${theme.vars.palette.text.primary} !important`,
-          hoverBackgroundColor: (theme: Theme) => theme.vars.palette.background.paper,
-          hoverColor: (theme: Theme) => theme.vars.palette.primary.main,
-          borderColor: (theme: Theme) => theme.vars.palette.divider,
+          background: (theme: Theme) => theme.vars.palette.background.default,
+          color: (theme: Theme) => theme.vars.palette.text.primary,
         }
       default:
         return {
-          backgroundColor: (theme: Theme) => theme.vars.palette.tableCellRow.fill,
-          color: (theme: Theme) => `${theme.vars.palette.text.primary} !important`,
-          hoverBackgroundColor: (theme: Theme) => theme.vars.palette.background.default,
-          borderColor: (theme: Theme) => theme.vars.palette.divider,
+          background: (theme: Theme) => theme.vars.palette.tableCellRow.fill,
+          color: (theme: Theme) => theme.vars.palette.text.primary,
         }
     }
   }
@@ -98,9 +92,9 @@ export function FeatureTile({
         flex: flex ? '1 0 0%' : '0 0 auto',
         flexDirection: 'column',
         height: height ?? undefined,
-        backgroundColor: variantStyles.backgroundColor,
+        background: variantStyles.background,
         border: `1px solid`,
-        borderColor: variantStyles.borderColor,
+        borderColor: (theme: Theme) => theme.vars.palette.divider,
         borderRadius: 1,
         pt: 2,
         cursor: href || onClick ? 'pointer' : 'default',
@@ -110,8 +104,6 @@ export function FeatureTile({
           href ?? onClick
             ? {
               transform: 'translateY(-2px)',
-              backgroundColor: variantStyles.hoverBackgroundColor,
-              color: variantStyles.hoverColor,
             }
             : undefined,
       }}

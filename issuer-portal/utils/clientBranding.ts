@@ -11,7 +11,7 @@ export const clientBranding = [
     ticker: 'PAYC',
     primaryColor: '#005C2B',
     secondaryColor: '#193E2D',
-    tertiaryColor: '#00833E',
+    tertiaryColor: '#193E2D',
   },
   {
     ticker: 'WWD',

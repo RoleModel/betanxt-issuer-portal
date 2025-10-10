@@ -1,18 +1,72 @@
 'use client'
 
 import CssBaseline from '@mui/material/CssBaseline'
-import * as React from 'react'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import React, { useMemo } from 'react'
 
-import { DynamicThemeProvider } from './DynamicThemeProvider'
+import { useClient } from '@/contexts/ClientContext'
 import { NextAppDirEmotionCacheProvider } from './EmotionCache'
+import {
+  elevenThemeOptions,
+  paycomThemeOptions,
+  wendysThemeOptions,
+  woodwardThemeOptions,
+} from './theme'
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
+  const { currentClient } = useClient()
+  const [initialLoad, setInitialLoad] = React.useState(true)
+
+  // Wait for client to load on initial render
+  React.useEffect(() => {
+    if (currentClient !== null || !initialLoad) {
+      setInitialLoad(false)
+    }
+  }, [currentClient, initialLoad])
+
+  const ticker = currentClient?.ticker ?? 'WEN'
+
+  console.log('ThemeRegistry - ticker:', ticker, 'currentClient:', currentClient, 'initialLoad:', initialLoad)
+
+  const theme = useMemo(() => {
+    // Don't create theme until client is loaded
+    if (initialLoad && currentClient === null) {
+      return null
+    }
+
+    const themeOptionsMap = {
+      WEN: wendysThemeOptions,
+      PAYC: paycomThemeOptions,
+      WWD: woodwardThemeOptions,
+      ELVN: elevenThemeOptions,
+    }
+
+    const themeOptions = themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
+    console.log('Creating theme for ticker:', ticker)
+    console.log('Theme options primary color:', themeOptions.colorSchemes?.light?.palette?.primary)
+    const createdTheme = createTheme(themeOptions)
+    console.log('Created theme primary color:', createdTheme.palette.primary.main)
+    return createdTheme
+  }, [ticker, initialLoad, currentClient])
+
+  // Show nothing until theme is ready
+  if (!theme) {
+    return null
+  }
+
   return (
     <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <DynamicThemeProvider>
+      <ThemeProvider theme={theme} key={ticker}>
         <CssBaseline enableColorScheme />
         {children}
-      </DynamicThemeProvider>
+      </ThemeProvider>
     </NextAppDirEmotionCacheProvider>
   )
 }
+
+export const useClientTicker = () => {
+  const { currentClient } = useClient()
+  return currentClient?.ticker ?? 'WEN'
+}
+
+export { useTheme } from '@mui/material/styles'

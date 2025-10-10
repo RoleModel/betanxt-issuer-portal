@@ -17,7 +17,7 @@ import {
 
 import { shiftWeekendToMonday } from '@/components/Calendar/CalendarUtils'
 import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
-import { getPhaseColor, theme } from '@/components/mui-styling/theme'
+import { getPhaseColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 import TaskContextMenu from '@/components/ui/TaskContextMenu'
 
@@ -380,7 +380,7 @@ export const ListView: React.FC<ListViewProps> = ({
                       ? `inset 4px 0px 0px 0px ${phaseColor}`
                       : 'none',
 
-                    transition: theme.transitions.create([
+                    transition: (theme) => theme.transitions.create([
                       'box-shadow',
                       'background-color',
                     ]),

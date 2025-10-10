@@ -1,8 +1,15 @@
 'use client'
 
-// Import design system types first
+import { components } from '@rolemodel/betanxt-design-system/themes/base/components'
+import { layout } from '@rolemodel/betanxt-design-system/themes/base/layout'
+import { createDarkOverlays } from '@rolemodel/betanxt-design-system/themes/base/overlays'
+import {
+  basePaletteDark,
+  basePaletteLight,
+} from '@rolemodel/betanxt-design-system/themes/base/palette'
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
-import { baseThemeOptions } from '@rolemodel/betanxt-design-system/themes/baseTheme'
+import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
+import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
 import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
@@ -17,12 +24,32 @@ import {
   purple,
   teal,
 } from '@mui/material/colors'
-import type { PaletteColor, Theme } from '@mui/material/styles'
+import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
 import { createTheme, getContrastRatio } from '@mui/material/styles'
-// Import MUI X Date Pickers theme augmentation
+import { deepmerge } from '@mui/utils'
 import type { } from '@mui/x-date-pickers/themeAugmentation'
 
 import { clientBranding } from '@/utils/clientBranding'
+
+// Manually reconstruct baseThemeOptions to avoid duplicate CSS variable injection
+const baseThemeOptions = {
+  cssVariables: {
+    colorSchemeSelector: 'class',
+  },
+  colorSchemes: {
+    light: {
+      palette: basePaletteLight,
+    },
+    dark: {
+      palette: basePaletteDark,
+      overlays: createDarkOverlays(),
+    },
+  },
+  components,
+  layout,
+  shadows,
+  typography: baseTypography,
+}
 
 export interface LayoutVars {
   navbarHeight: number
@@ -34,7 +61,6 @@ export interface LayoutVars {
 
 declare module '@mui/material/styles' {
   interface Palette {
-    // Add custom phase tokens outside of palette
     keydate: Palette['primary']
     phase: [
       PaletteColor,
@@ -49,23 +75,22 @@ declare module '@mui/material/styles' {
     ]
     complete: string
     aquaLight: string
-    // Design system palette extensions (should come from design system but adding for now)
   }
   interface PaletteOptions {
-    keydate: PaletteOptions['primary']
+    keydate?: PaletteOptions['primary']
     phase?: [
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
-      PaletteColor,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
+      PaletteColorOptions,
     ]
-    complete: string
-    aquaLight: string
+    complete?: string
+    aquaLight?: string
   }
 
   interface PaletteColor {
@@ -127,8 +152,6 @@ const STATUS_COLORS: {
   neutral: ['SUBMITTED_AWAITING_RECORD_DATE', 'REQUEST_FORM_TO_FOLLOW'],
 }
 
-// Utility function to get task/calendar border color based on status
-// Returns phase color for INCOMPLETE and other statuses that don't have special colors
 export const getStatusBorderColor = (
   status: string | null | undefined,
   phaseColor: string,
@@ -150,15 +173,9 @@ export const getStatusBorderColor = (
     return theme.vars.palette.grey[400]
   }
 
-  // All other statuses use phase color
   return phaseColor
 }
 
-/**
- * Gets the client branding colors for a given ticker
- * Defaults to first client (WEN) if ticker not found
- * Automatically calculates contrastText using MUI's getContrastRatio
- */
 const getClientBranding = (ticker?: string) => {
   if (!ticker) {
     const branding = clientBranding[0]
@@ -201,192 +218,159 @@ const getClientBranding = (ticker?: string) => {
  * @returns MUI Theme configured with client-specific branding colors
  */
 export const createClientTheme = (ticker?: string) => {
-  console.log('🔍 createClientTheme called with ticker:', ticker)
   const branding = getClientBranding(ticker)
-  console.log('🔍 Selected branding:', branding)
 
-  // Create client-specific color overrides while preserving all base theme properties
-  // We need to carefully merge to keep phase, keydate, and other custom palette properties
-  const clientColorSchemes = {
-    light: {
-      ...baseThemeOptions.colorSchemes?.light,
-      palette: {
-        ...baseThemeOptions.colorSchemes?.light?.palette,
-        primary: {
-          main: branding.primaryColor,
-          contrastText: branding.primaryContrastText,
+  const clientThemeOptions = deepmerge(baseThemeOptions, {
+    colorSchemes: {
+      light: {
+        palette: {
+          primary: {
+            main: branding.primaryColor,
+            contrastText: branding.primaryContrastText,
+          },
+          secondary: {
+            main: branding.secondaryColor,
+            contrastText: branding.secondaryContrastText,
+          },
+          tertiary: {
+            main: branding.tertiaryColor,
+            contrastText: branding.tertiaryContrastText,
+          },
+          aquaLight: '#CFE2E5',
+          keydate: {
+            main: '#CCE5FF',
+            light: nxtBlue[50],
+            dark: nxtBlue[700],
+            contrastText: '#004d73',
+          },
+          phase: [
+            {
+              main: cyan[800],
+              light: cyan[600],
+              dark: cyan[900],
+              contrastText: '#ffffff',
+            },
+            {
+              main: teal[800],
+              light: teal[700],
+              dark: teal[900],
+              contrastText: teal[50],
+            },
+            {
+              main: purple[700],
+              light: purple[500],
+              dark: purple[900],
+              contrastText: purple[50],
+            },
+            {
+              main: lightBlue[700],
+              light: lightBlue[500],
+              dark: lightBlue[900],
+              contrastText: lightBlue[50],
+            },
+            {
+              main: pink[900],
+              light: pink[500],
+              dark: pink[900],
+              contrastText: pink[50],
+            },
+            {
+              main: blue[800],
+              light: blue[400],
+              dark: blue[900],
+              contrastText: blue[50],
+            },
+            {
+              main: green[800],
+              light: green[500],
+              dark: green[900],
+              contrastText: green[50],
+            },
+            {
+              main: deepPurple[800],
+              light: deepPurple[500],
+              dark: deepPurple[900],
+              contrastText: deepPurple[50],
+            },
+            {
+              main: grey[700],
+              light: grey[500],
+              dark: grey[900],
+              contrastText: grey[50],
+            },
+          ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
+          complete: grey[500],
         },
-        secondary: {
-          main: branding.secondaryColor,
-          contrastText: branding.secondaryContrastText,
+      },
+      dark: {
+        palette: {
+          aquaLight: '#CFE2E5',
+          keydate: {
+            main: nxtBlue[900],
+            light: nxtBlue[700],
+            dark: nxtBlue[600],
+            contrastText: nxtBlue[100],
+          },
+          phase: [
+            {
+              main: cyan[800],
+              light: cyan[300],
+              dark: cyan[900],
+              contrastText: cyan[50],
+            },
+            {
+              main: teal[600],
+              light: teal[400],
+              dark: teal[900],
+              contrastText: teal[50],
+            },
+            {
+              main: purple[700],
+              light: purple[400],
+              dark: purple[900],
+              contrastText: purple[50],
+            },
+            {
+              main: lightBlue[700],
+              light: lightBlue[400],
+              dark: lightBlue[900],
+              contrastText: lightBlue[50],
+            },
+            {
+              main: pink[700],
+              light: pink[400],
+              dark: pink[900],
+              contrastText: pink[50],
+            },
+            {
+              main: blue[700],
+              light: blue[400],
+              dark: blue[900],
+              contrastText: blue[50],
+            },
+            {
+              main: green[700],
+              light: green[500],
+              dark: green[900],
+              contrastText: green[50],
+            },
+            {
+              main: deepPurple[700],
+              light: deepPurple[400],
+              dark: deepPurple[900],
+              contrastText: deepPurple[50],
+            },
+            {
+              main: grey[600],
+              light: grey[400],
+              dark: grey[800],
+              contrastText: grey[50],
+            },
+          ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
+          complete: grey[600],
         },
-        tertiary: {
-          main: branding.tertiaryColor,
-          contrastText: branding.tertiaryContrastText,
-        },
-        aquaLight: '#CFE2E5',
-        keydate: {
-          main: '#CCE5FF',
-          light: nxtBlue[50],
-          dark: nxtBlue[700],
-          contrastText: '#004d73', // Darker blue for better contrast (4.5:1 ratio)
-        },
-        phase: [
-          {
-            main: cyan[800],
-            light: cyan[600],
-            dark: cyan[900],
-            contrastText: '#ffffff',
-          },
-          {
-            main: teal[800],
-            light: teal[700],
-            dark: teal[900],
-            contrastText: teal[50],
-          },
-          {
-            main: purple[700],
-            light: purple[500],
-            dark: purple[900],
-            contrastText: purple[50],
-          },
-          {
-            main: lightBlue[700],
-            light: lightBlue[500],
-            dark: lightBlue[900],
-            contrastText: lightBlue[50],
-          },
-          {
-            main: pink[900],
-            light: pink[500],
-            dark: pink[900],
-            contrastText: pink[50],
-          },
-          {
-            main: blue[800],
-            light: blue[400],
-            dark: blue[900],
-            contrastText: blue[50],
-          },
-          {
-            main: green[800],
-            light: green[500],
-            dark: green[900],
-            contrastText: green[50],
-          },
-          {
-            main: deepPurple[800],
-            light: deepPurple[500],
-            dark: deepPurple[900],
-            contrastText: deepPurple[50],
-          },
-          {
-            main: grey[700],
-            light: grey[500],
-            dark: grey[900],
-            contrastText: grey[50],
-          },
-        ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
-        complete: grey[500],
       },
     },
-    dark: {
-      ...baseThemeOptions.colorSchemes?.dark,
-      palette: {
-        ...baseThemeOptions.colorSchemes?.dark?.palette,
-        primary: {
-          main: branding.primaryColor,
-          contrastText: branding.primaryContrastText,
-        },
-        secondary: {
-          main: branding.secondaryColor,
-          contrastText: branding.secondaryContrastText,
-        },
-        tertiary: {
-          main: branding.tertiaryColor,
-          contrastText: branding.tertiaryContrastText,
-        },
-        aquaLight: '#CFE2E5',
-        keydate: {
-          main: nxtBlue[900],
-          light: nxtBlue[700],
-          dark: nxtBlue[600],
-          contrastText: nxtBlue[100],
-        },
-        phase: [
-          {
-            main: cyan[800],
-            light: cyan[300],
-            dark: cyan[900],
-            contrastText: cyan[50],
-          },
-          {
-            main: teal[600],
-            light: teal[400],
-            dark: teal[900],
-            contrastText: teal[50],
-          },
-          {
-            main: purple[700],
-            light: purple[400],
-            dark: purple[900],
-            contrastText: purple[50],
-          },
-          {
-            main: lightBlue[700],
-            light: lightBlue[400],
-            dark: lightBlue[900],
-            contrastText: lightBlue[50],
-          },
-          {
-            main: pink[700],
-            light: pink[400],
-            dark: pink[900],
-            contrastText: pink[50],
-          },
-          {
-            main: blue[700],
-            light: blue[400],
-            dark: blue[900],
-            contrastText: blue[50],
-          },
-          {
-            main: green[700],
-            light: green[500],
-            dark: green[900],
-            contrastText: green[50],
-          },
-          {
-            main: deepPurple[700],
-            light: deepPurple[400],
-            dark: deepPurple[900],
-            contrastText: deepPurple[50],
-          },
-          {
-            main: grey[600],
-            light: grey[400],
-            dark: grey[800],
-            contrastText: grey[50],
-          },
-        ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
-        complete: grey[600],
-      },
-    },
-  }
-
-  // Merge with base theme options
-  const mergedOptions = {
-    ...baseThemeOptions,
-    colorSchemes: clientColorSchemes,
-  }
-
-  // Build the final theme options
-  const themeOptions = {
-    ...mergedOptions,
-    cssVariables: {
-      colorSchemeSelector: 'class',
-    },
-    defaultColorScheme: 'light' as const,
     breakpoints: {
       values: {
         xs: 0,
@@ -400,19 +384,10 @@ export const createClientTheme = (ticker?: string) => {
       eventTabsHeight: 158,
       navbarHeight: 66,
       appSwitcherHeight: 38,
-      footerHeight: 60,
+      footerHeight: 50,
       drawerWidth: 500,
     },
     components: {
-      // Merge base theme components with our custom overrides
-      ...baseThemeOptions.components,
-      CssBaseline: {
-        styleOverrides: {
-          body: {
-            fontSize: '14px',
-          },
-        },
-      },
       MuiLink: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
@@ -490,7 +465,6 @@ export const createClientTheme = (ticker?: string) => {
                 color: theme.vars?.palette.appBarSecondary?.defaultContrast,
               },
             },
-            // Add any other custom AppBar styles here
           }),
         },
       },
@@ -520,7 +494,6 @@ export const createClientTheme = (ticker?: string) => {
             ]
 
             if (ownerState.color && phaseColors.includes(ownerState.color)) {
-              // Extract phase index from 'phase[X].main' format
               const phaseMatch = /phase\[(\d+)\]\.main/.exec(ownerState.color)
               if (phaseMatch) {
                 const phaseIndex = phaseMatch[1]
@@ -602,7 +575,6 @@ export const createClientTheme = (ticker?: string) => {
           }),
         },
       },
-      // MUI X Date Pickers styling
       MuiPickersLayout: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
@@ -638,47 +610,16 @@ export const createClientTheme = (ticker?: string) => {
           }),
         },
       },
-      // You can add more component overrides here as needed
     },
-  }
+  })
 
-  return createTheme(themeOptions)
+  return clientThemeOptions
 }
 
-// Pre-create all client themes for optimal performance
-const wenTheme = createClientTheme('WEN')
-const paycTheme = createClientTheme('PAYC')
-const wwdTheme = createClientTheme('WWD')
-const elvnTheme = createClientTheme('ELVN')
+// Export theme options instead of created themes to avoid duplicate CSS variable generation
+export const wendysThemeOptions = createClientTheme('WEN')
+export const paycomThemeOptions = createClientTheme('PAYC')
+export const woodwardThemeOptions = createClientTheme('WWD')
+export const elevenThemeOptions = createClientTheme('ELVN')
 
-/**
- * Get the appropriate theme for a given client ticker
- * @param ticker - The client ticker symbol
- * @returns Pre-built MUI Theme for the specified client
- */
-export const getThemeForClient = (ticker?: string): Theme => {
-  if (!ticker) {
-    return wenTheme
-  }
-
-  const upperTicker = ticker.toUpperCase()
-
-  switch (upperTicker) {
-    case 'WEN':
-      return wenTheme
-    case 'PAYC':
-      return paycTheme
-    case 'WWD':
-      return wwdTheme
-    case 'ELVN':
-      return elvnTheme
-    default:
-      return wenTheme
-  }
-}
-
-// Default theme export for backward compatibility (uses WEN branding)
-export const theme = wenTheme
-
-// Export BetaNXT theme for product and education pages
 export const betanxtTheme = createTheme(betanxtThemeOptions)

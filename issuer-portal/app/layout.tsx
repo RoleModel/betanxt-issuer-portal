@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
       <head>
-        <InitColorSchemeScript attribute="class" />
+        {/* InitColorSchemeScript removed - causes inline style conflicts with dynamic client themes */}
       </head>
       <body>
         <AppRouterCacheProvider>
