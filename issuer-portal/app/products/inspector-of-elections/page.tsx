@@ -13,9 +13,12 @@ import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
+import DocumentViewer from '@/components/Documents/DocumentViewer'
+import { useState } from 'react'
 
 export default function InspectorOfElectionsPage() {
   const theme = useTheme()
+  const [open, setOpen] = useState(false)
   const benefits = [
     {
       icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
@@ -126,20 +129,27 @@ export default function InspectorOfElectionsPage() {
     </Stack>
   )
 
-  const rightColumnContent = (
+  const rightColumnContent = (<>
     <SidebarCard
-      title="Inspector Services Overview"
+      title="Why do I need an Inspector of Elections?"
       button
-      buttonText="View Inspector Services Guide PDF"
-      onClick={() => {
-        window.open('https://www.betanxt.com/inspector-of-elections', '_blank')
-      }}
+      buttonText="View PDF Overview"
+      onClick={() => setOpen(true)}
     >
       <Typography variant="body3" component="p">
         Get detailed information about our certified Inspector of Elections services and
         compliance solutions.
       </Typography>
     </SidebarCard>
+    <DocumentViewer
+      open={open}
+      onClose={() => setOpen(false)}
+      fileUrl={'/documents/inspector-of-elections.pdf'}
+      title={'Inspector of Elections Overview'}
+      showCommentButton={false}
+      showHistoryButton={false}
+    />
+  </>
   )
 
   return (
