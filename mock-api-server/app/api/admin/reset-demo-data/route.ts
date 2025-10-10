@@ -35,24 +35,24 @@ export async function POST(_req: NextRequest) {
 
     // Configure SSL for Supabase connections
     // For remote databases (Supabase), we need to handle SSL properly
-    const sslConfig = isLocalhost
-      ? undefined
-      : {
-          rejectUnauthorized: false,
-        }
+    // Temporarily disable SSL verification for the connection
+    const originalTlsReject = process.env.NODE_TLS_REJECT_UNAUTHORIZED
+    if (!isLocalhost) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    }
 
     console.log('Connection details:', {
       isLocalhost,
       hasPostgresUrl: !!process.env.POSTGRES_URL,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       isVercel: !!process.env.VERCEL,
-      sslEnabled: !isLocalhost,
+      tlsRejectDisabled: !isLocalhost,
     })
 
     try {
       client = new Client({
         connectionString: databaseUrl,
-        ssl: sslConfig,
+        ssl: !isLocalhost,
         connectionTimeoutMillis: 30000,
       })
       console.log('Attempting to connect to database...')
@@ -66,6 +66,15 @@ export async function POST(_req: NextRequest) {
         syscall: connectError.syscall,
       })
       throw new Error(`Database connection failed: ${connectError.message}`)
+    } finally {
+      // Restore original TLS setting
+      if (!isLocalhost) {
+        if (originalTlsReject !== undefined) {
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsReject
+        } else {
+          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED
+        }
+      }
     }
 
     // Get the monorepo root (mock-api-server is a child of the root)
