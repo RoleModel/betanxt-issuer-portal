@@ -1214,7 +1214,7 @@ const main = async () => {
           `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
           `record_date, mailing_date, meeting_date, ` +
           `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
-          `distribution_type, transfer_agent, employee_stock_plans, plan_administrator, ` +
+          `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
           `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
           `solicitor_email, inspector, ivr_dial_in_number, ` +
           `total_shares_outstanding, quorum_requirement, client_id, ` +
@@ -1236,6 +1236,7 @@ const main = async () => {
           `${overallCompletion}, ` +
           `${sqlValue('NAA')}, ` +
           `${sqlValue(transferAgent)}, ` +
+          `false, ` +
           `${hasEmployeeStockPlan ? sqlValue('401(k)') : 'NULL'}, ` +
           `${hasEmployeeStockPlan ? sqlValue(planAdmin.company) : 'NULL'}, ` +
           `${hasEmployeeStockPlan ? sqlValue(planAdmin.contact) : 'NULL'}, ` +
