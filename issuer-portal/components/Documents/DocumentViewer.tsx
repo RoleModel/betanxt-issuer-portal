@@ -356,8 +356,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           setDocumentData({
             url: documentUrl,
             title:
-              task.title ||
-              (document &&
+              task.title ??               (document &&
                 typeof document === 'object' &&
                 'title' in document &&
                 typeof document.title === 'string'
@@ -408,12 +407,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }, [actualfileUrl])
 
   // Boolean OR logic is correct here - we want ANY condition to be true
-  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+
   const isPDF =
     fileExtension === 'pdf' ||
     actualfileUrl?.includes('/test-pdf') ||
     actualfileUrl?.startsWith('data:application/pdf')
-  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+   
   const isOfficeDocument = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
     fileExtension ?? ''
   )

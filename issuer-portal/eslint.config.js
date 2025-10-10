@@ -4,7 +4,7 @@ export default [
   ...rootConfig,
   {
     rules: {
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/only-throw-error': 'warn',
     },
   },

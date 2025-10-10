@@ -22,8 +22,19 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/coverage/**',
       '**/supabase/migrations/**',
+      '**/supabase/functions/**',
       '**/*.config.{js,mjs,ts}',
       '**/next-env.d.ts',
+      // Generated files
+      '**/database.types.ts',
+      '**/components.ts',
+      '**/openapi-typescript-codegen/**',
+      // Config files that cause parsing errors
+      'base.js',
+      'nextJsConfig.js',
+      'regenerate-schema.mjs',
+      'scripts/fix-unused-vars.js',
+      'specs/global.d.ts',
     ],
   },
 

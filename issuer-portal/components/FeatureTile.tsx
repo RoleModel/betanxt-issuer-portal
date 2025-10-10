@@ -6,6 +6,8 @@ import React from 'react'
 import type { SxProps } from '@mui/material';
 import { Box, Card, Typography } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
+import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
+import baseTheme from '@rolemodel/betanxt-design-system/themes/baseTheme'
 
 interface FeatureTileProps {
   title: string
@@ -38,75 +40,88 @@ export function FeatureTile({
   variant = 'default',
   onClick,
   href,
-  sx,
   brandFont = false,
 }: FeatureTileProps) {
-  const getVariantStyles = (variant: string) => {
+  // Get colors from betanxt theme
+  const getVariantColors = (variant: string) => {
     switch (variant) {
       case 'primary':
         return {
-          background: (theme: Theme) => theme.vars.palette.primary.main,
-          color: (theme: Theme) =>
-            `${theme.vars.palette.primary.contrastText} !important`,
+          background: betanxtTheme.palette.primary.main,
+          backgroundDark: betanxtTheme.palette.primary.main,
+          color: betanxtTheme.palette.primary.contrastText,
+          colorDark: betanxtTheme.palette.primary.contrastText,
         }
       case 'secondary':
         return {
-          background: (theme: Theme) => theme.vars.palette.secondary.main,
-          color: (theme: Theme) => theme.vars.palette.secondary.contrastText,
+          background: betanxtTheme.palette.secondary.main,
+          backgroundDark: betanxtTheme.palette.secondary.main,
+          color: betanxtTheme.palette.secondary.contrastText,
+          colorDark: betanxtTheme.palette.secondary.contrastText,
         }
       case 'tertiary':
         return {
-          background: (theme: Theme) => {
-            const palette = theme.vars.palette as Record<string, unknown>
-            const tertiary = palette.tertiary as { main?: string } | undefined
-            return tertiary?.main ?? theme.vars.palette.primary.main
-          },
-          color: (theme: Theme) => {
-            const palette = theme.vars.palette as Record<string, unknown>
-            const tertiary = palette.tertiary as { contrastText?: string } | undefined
-            return tertiary?.contrastText ?? theme.vars.palette.primary.contrastText
-          },
+          background: (betanxtTheme.palette as Theme['palette'] & { tertiary?: { main: string } })
+            .tertiary?.main ?? betanxtTheme.palette.primary.main,
+          backgroundDark: (betanxtTheme.palette as Theme['palette'] & { tertiary?: { main: string } })
+            .tertiary?.main ?? betanxtTheme.palette.primary.main,
+          color:
+            (betanxtTheme.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
+              .tertiary?.contrastText ?? betanxtTheme.palette.primary.contrastText,
+          colorDark:
+            (betanxtTheme.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
+              .tertiary?.contrastText ?? betanxtTheme.palette.primary.contrastText,
         }
       case 'base':
         return {
-          background: (theme: Theme) => theme.vars.palette.background.default,
-          color: (theme: Theme) => theme.vars.palette.text.primary,
+          background: baseTheme.palette.background.default,
+          backgroundDark: baseTheme.palette.background.default,
+          color: baseTheme.palette.text.primary,
+          colorDark: baseTheme.palette.text.primary,
         }
       default:
         return {
-          background: (theme: Theme) => theme.vars.palette.tableCellRow.fill,
-          color: (theme: Theme) => theme.vars.palette.text.primary,
+          background: baseTheme.palette.background.paper,
+          backgroundDark: baseTheme.palette.background.paper,
+          color: baseTheme.palette.text.primary,
+          colorDark: baseTheme.palette.text.primary,
         }
     }
   }
 
-  const variantStyles = getVariantStyles(variant)
+  const variantColors = getVariantColors(variant)
 
   const CardContent = (
     <Card
       className="feature-tile"
       variant="outlined"
-      sx={{
-        ...sx,
-        display: 'flex',
-        flex: flex ? '1 0 0%' : '0 0 auto',
-        flexDirection: 'column',
-        height: height ?? undefined,
-        background: variantStyles.background,
-        border: `1px solid`,
-        borderColor: (theme: Theme) => theme.vars.palette.divider,
-        borderRadius: 1,
-        pt: 2,
-        cursor: href || onClick ? 'pointer' : 'default',
-        transition: (theme) =>
-          theme.transitions.create(['transform', 'background-color', 'box-shadow']),
-        '&:hover':
-          href ?? onClick
-            ? {
-              transform: 'translateY(-2px)',
-            }
-            : undefined,
-      }}
+      sx={[
+        {
+          display: 'flex',
+          flex: flex ? '1 0 0%' : '0 0 auto',
+          flexDirection: 'column',
+          height: height ?? undefined,
+          background: variantColors.background,
+          backgroundColor: variantColors.background,
+          color: variantColors.color,
+          pt: 2,
+          cursor: href || onClick ? 'pointer' : 'default',
+          transition:
+            'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+          '&:hover':
+            href || onClick
+              ? {
+                transform: 'translateY(-2px)',
+              }
+              : undefined,
+        },
+        (theme) =>
+          theme.applyStyles('dark', {
+            background: variantColors.backgroundDark,
+            backgroundColor: variantColors.backgroundDark,
+            color: variantColors.colorDark,
+          }),
+      ]}
       onClick={onClick && !href ? onClick : undefined}
     >
       <Box
@@ -122,20 +137,29 @@ export function FeatureTile({
       >
         {icon && (
           <Box
-            sx={{
-              mb: 1,
-              height: iconSize,
-              width: iconSize,
-              fontSize: iconSize,
-              color: variantStyles.color,
-              '& .MuiSvgIcon-root': {
+            sx={[
+              {
+                mb: 1,
                 height: iconSize,
                 width: iconSize,
+                fontSize: iconSize,
+                color: variantColors.color,
+                '& .MuiSvgIcon-root': {
+                  height: iconSize,
+                  width: iconSize,
+                },
+                '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
+                  stroke: variantColors.color,
+                },
               },
-              '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
-                stroke: variantStyles.color,
-              },
-            }}
+              (theme) =>
+                theme.applyStyles('dark', {
+                  color: variantColors.colorDark,
+                  '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
+                    stroke: variantColors.colorDark,
+                  },
+                }),
+            ]}
           >
             {icon}
           </Box>
@@ -145,13 +169,19 @@ export function FeatureTile({
           component="h2"
           variant={titleVariant}
           gutterBottom
-          sx={{
-            fontFamily: brandFont
-              ? 'var(--font-tungsten)'
-              : 'var(--font-roboto-condensed)',
-            fontWeight: 500,
-            color: variantStyles.color,
-          }}
+          sx={[
+            {
+              fontFamily: brandFont
+                ? 'var(--font-tungsten)'
+                : 'var(--font-roboto-condensed)',
+              fontWeight: 500,
+              color: variantColors.color,
+            },
+            (theme) =>
+              theme.applyStyles('dark', {
+                color: variantColors.colorDark,
+              }),
+          ]}
         >
           {title}
         </Typography>
@@ -167,17 +197,32 @@ export function FeatureTile({
           </Typography>
         )}
         <Box
-          sx={(theme) => ({
-            color: variantStyles.color,
-            ...theme.typography.body3,
-          })}
+          sx={[
+            (theme) => ({
+              color: variantColors.color,
+              ...theme.typography.body3,
+            }),
+            (theme) =>
+              theme.applyStyles('dark', {
+                color: variantColors.colorDark,
+              }),
+          ]}
         >
           {description}
         </Box>
         {actionText || href ? (
           <Typography
             variant="body3"
-            sx={{ textDecoration: 'underline', color: variantStyles.color }}
+            sx={[
+              {
+                textDecoration: 'underline',
+                color: variantColors.color,
+              },
+              (theme) =>
+                theme.applyStyles('dark', {
+                  color: variantColors.colorDark,
+                }),
+            ]}
           >
             {actionText}
           </Typography>

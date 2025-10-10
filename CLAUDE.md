@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Project**: BetaNXT Issuer Portal - Proxy Voting & Shareholder Meeting Management System
 **Architecture**: Turborepo monorepo with Next.js 15+ applications
-**Language**: TypeScript 5.x with React 18+
+**Language**: TypeScript 5.x with React 19+
 **Database**: PostgreSQL with Supabase (local development)
-**Authentication**: NextAuth.js v4 with role-based access control
+**Authentication**: NextAuth.js v5 (beta) with role-based access control
 **UI Framework**: MUI 7.3+ with @rolemodel/betanxt-design-system
 **Testing**: Playwright for E2E testing
 
@@ -25,11 +25,14 @@ This is a Turborepo workspace with two main applications:
 ### Development
 
 - `npm run dev` - Start both applications in development mode
-- `npm run build` - Build both applications
-- `npm run lint` - Lint all workspaces
-- `npm run type-check` - Type check all workspaces
+- `npm run build` - Build frontend application (issuer-portal only)
+- `npm run build:all` - Build both applications (frontend + backend)
+- `npm run lint` - Lint all workspaces with auto-fix
+- `npm run lint:strict` - Lint with strict rules (no auto-fix)
 - `npm run test` - Run Playwright tests across workspaces
 - `npm run format` - Format code with Prettier
+- `npm run clean` - Clean build artifacts in both workspaces
+- `npm run clean:all` - Deep clean (removes node_modules, .next, .turbo)
 
 ### Database Operations (from mock-api-server/)
 
@@ -41,7 +44,9 @@ This is a Turborepo workspace with two main applications:
 - `npm run seed:documents` - Upload document files from /data directories to Supabase storage
 - `npm run seed:documents:clean` - Clean all documents then upload fresh files
 - `npm run generate:db-types` - Generate TypeScript types from database schema
-- `npm run full-reset` - Complete reset: schema → seeds → database → types
+- `npm run full-reset` - Complete reset: schema → seeds → database → types → documents
+- `npm run seed:reset` - Generate seeds, reset database, clean and reseed documents
+- `npm run setup:storage` - Ensure documents bucket exists in Supabase storage
 
 ### Schema-Driven Development Workflow
 
@@ -63,19 +68,21 @@ This is a Turborepo workspace with two main applications:
 
 ### Testing
 
+From mock-api-server workspace:
 - `npm run test` - Run all Playwright tests
 - `npm run test:ui` - Run tests with Playwright UI
 - `npm run test:unit` - Unit tests only
 - `npm run test:integration` - Integration tests only
 - `npm run test:e2e` - End-to-end tests only
+- `npm run test:ts` - Type check without emitting files
 
 ## Architecture
 
 ### Frontend (issuer-portal/)
 
 - **Framework**: Next.js 15 with app directory structure (client-side rendered)
-- **State Management**: React Context + custom hooks with lightweight in-memory caching
-- **Authentication**: NextAuth.js v5 with role-based access control
+- **State Management**: React Context + custom hooks with SWR for data fetching/caching
+- **Authentication**: NextAuth.js v5 (beta) with role-based access control
 - **UI Components**: MUI 7.3+ with BetaNXT design system
 - **Forms**: React Hook Form with Zod validation
 - **PDF Handling**: react-pdf for PDF viewing
@@ -103,10 +110,15 @@ This is a Turborepo workspace with two main applications:
 ```typescript
 "@/*": ["./*"]
 "@/components/*": ["./components/*"]
-"@/utils/*": ["./utils/*"]
+"@/contexts/*": ["./contexts/*"]
+"@/domain-models/*": ["./domain-models/*"]
+"@/hooks/*": ["./hooks/*"]
 "@/types/*": ["./types/*"]
-"@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
+"@/utils/*": ["./utils/*"]
+"@/lib/*": ["./lib/*"]
 "@/theme/*": ["./components/mui-styling/theme/*"]
+"@backend/*": ["../mock-api-server/*"]
+"@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
 ```
 
 ## Code Style Guidelines
@@ -336,9 +348,9 @@ import './styles.css'
 
 ---
 
-**Node Version**: 22.15.x (enforced via engines)
+**Node Version**: 22.0.0+ (enforced via engines, backend requires >=22.20.0)
 **Package Manager**: npm 10.9.3
-**Last Updated**: October 1, 2025
+**Last Updated**: October 10, 2025
 
 - Do not use 'any' type assertions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won't type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.
