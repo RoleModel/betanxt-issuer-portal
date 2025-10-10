@@ -20,21 +20,26 @@ export async function POST(_req: NextRequest) {
 
   try {
     // Get database connection string
-    // In development: use local connection
-    // In production: use DATABASE_URL from Vercel
+    // On Vercel (preview or production): use POSTGRES_URL or DATABASE_URL
+    // In local development: use local connection
     const databaseUrl =
+      process.env.POSTGRES_URL ||
       process.env.DATABASE_URL ||
       'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-    console.log('Connecting to database...')
+    console.log('Connecting to database for reset...')
+    console.log('Using database:', databaseUrl.replace(/:[^:@]+@/, ':****@')) // Log without password
+
+    // Always use SSL if not connecting to localhost
+    const isLocalhost = databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
+
     client = new Client({
       connectionString: databaseUrl,
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? {
-              rejectUnauthorized: false, // Required for Supabase SSL certificates
-            }
-          : undefined,
+      ssl: isLocalhost
+        ? undefined
+        : {
+            rejectUnauthorized: false, // Required for Supabase SSL certificates
+          },
     })
     await client.connect()
 
