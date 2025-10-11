@@ -76,13 +76,37 @@ async function seedRemote() {
     console.log('\n🗑️  Step 1: Clearing all remote tables...')
     for (const table of [...tables].reverse()) {
       console.log(`   Clearing ${table}...`)
-      const { error: deleteError } = await supabase
-        .from(table)
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000')
 
-      if (deleteError) {
-        console.error(`   ⚠️  Failed to clear ${table}:`, deleteError.message)
+      let totalDeleted = 0
+      let hasMore = true
+
+      // Delete all records in batches to handle any ID type (UUID, bigint, etc.)
+      while (hasMore) {
+        const { data: existingRecords } = await supabase
+          .from(table)
+          .select('id')
+          .limit(1000)
+
+        if (existingRecords && existingRecords.length > 0) {
+          const ids = existingRecords.map((r) => r.id)
+          const { error: deleteError } = await supabase.from(table).delete().in('id', ids)
+
+          if (deleteError) {
+            console.error(`   ⚠️  Failed to clear ${table}:`, deleteError.message)
+            hasMore = false
+          } else {
+            totalDeleted += ids.length
+            hasMore = existingRecords.length === 1000 // Continue if we got a full batch
+          }
+        } else {
+          hasMore = false
+        }
+      }
+
+      if (totalDeleted > 0) {
+        console.log(`   🗑️  Deleted ${totalDeleted} records from ${table}`)
+      } else {
+        console.log(`   ⏭️  ${table} already empty`)
       }
     }
 
@@ -91,14 +115,34 @@ async function seedRemote() {
     for (const table of tables) {
       console.log(`\n📋 Processing table: ${table}`)
 
-      // Fetch all data from local
-      const { data: localData, error: fetchError } = await localSupabase
-        .from(table)
-        .select('*')
+      // Fetch all data from local using pagination (Supabase has 1000 row limit per query)
+      let localData: any[] = []
+      let page = 0
+      const pageSize = 1000
+      let hasMore = true
 
-      if (fetchError) {
-        console.error(`⚠️  Failed to fetch from local ${table}:`, fetchError.message)
-        continue
+      console.log(`   📥 Fetching data from local...`)
+      while (hasMore) {
+        const { data: pageData, error: fetchError } = await localSupabase
+          .from(table)
+          .select('*')
+          .range(page * pageSize, (page + 1) * pageSize - 1)
+
+        if (fetchError) {
+          console.error(`⚠️  Failed to fetch page ${page} from local ${table}:`, fetchError.message)
+          break
+        }
+
+        if (pageData && pageData.length > 0) {
+          localData = localData.concat(pageData)
+          page++
+          hasMore = pageData.length === pageSize
+          if (localData.length % 5000 === 0) {
+            console.log(`   📊 Fetched ${localData.length} records so far...`)
+          }
+        } else {
+          hasMore = false
+        }
       }
 
       if (!localData || localData.length === 0) {
@@ -106,34 +150,83 @@ async function seedRemote() {
         continue
       }
 
-      console.log(`   📊 Found ${localData.length} records`)
+      console.log(`   📊 Found ${localData.length} total records`)
 
-      // Insert in batches of 500
-      const batchSize = 500
+      // Use smaller batches for large tables to avoid Supabase limits
+      const batchSize = table === 'position' || table === 'position_vote' ? 100 : 500
       let inserted = 0
+      let failed = 0
 
       for (let i = 0; i < localData.length; i += batchSize) {
         const batch = localData.slice(i, i + batchSize)
 
-        const { error: insertError } = await supabase.from(table).insert(batch)
+        const { error: insertError, data: insertData } = await supabase
+          .from(table)
+          .insert(batch)
+          .select()
 
         if (insertError) {
           console.error(
             `   ❌ Failed to insert batch ${i}-${i + batch.length}:`,
             insertError.message
           )
-          // Try one by one
-          for (const row of batch) {
+          console.log(`   🔄 Retrying batch one by one...`)
+
+          // Try one by one to identify problematic records
+          for (let j = 0; j < batch.length; j++) {
+            const row = batch[j]
             const { error } = await supabase.from(table).insert(row)
-            if (!error) inserted++
+            if (!error) {
+              inserted++
+              if (inserted % 100 === 0) {
+                console.log(`   📊 Progress: ${inserted}/${localData.length}`)
+              }
+            } else {
+              failed++
+              if (failed <= 5) {
+                console.error(`   ⚠️  Failed record ${i + j}:`, error.message)
+                console.error(`   Record data:`, JSON.stringify(row).substring(0, 200))
+              }
+            }
           }
         } else {
-          inserted += batch.length
-          console.log(`   ✅ Inserted ${inserted}/${localData.length}`)
+          inserted += insertData?.length || batch.length
+          if (i % 1000 === 0 || inserted === localData.length) {
+            console.log(`   ✅ Inserted ${inserted}/${localData.length}`)
+          }
+        }
+
+        // Add small delay for large tables to avoid rate limiting
+        if (localData.length > 5000 && i % 1000 === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
       }
 
-      console.log(`   ✅ Completed ${table}: ${inserted}/${localData.length} records`)
+      console.log(`   ✅ Completed ${table}: ${inserted}/${localData.length} records inserted, ${failed} failed`)
+
+      // For critical parent tables, abort if inserts failed
+      const criticalTables = ['clients', 'meeting', 'position', 'document']
+      if (criticalTables.includes(table) && inserted < localData.length) {
+        console.error(`   ❌ Critical table ${table} had ${failed} failed inserts - aborting`)
+        console.error(`   This will cause FK violations in child tables`)
+        process.exit(1)
+      }
+
+      // Special verification for position table before position_vote
+      if (table === 'position') {
+        console.log(`\n   🔍 Verifying position table integrity...`)
+        const { count: remoteCount } = await supabase
+          .from('position')
+          .select('*', { count: 'exact', head: true })
+        console.log(`   Local positions: ${localData.length}, Remote positions: ${remoteCount}`)
+
+        if (remoteCount !== localData.length) {
+          console.error(`   ❌ Position count mismatch! Some positions failed to insert.`)
+          console.error(`   Missing: ${localData.length - (remoteCount || 0)} positions`)
+          console.error(`   This will cause FK violations in position_vote table`)
+          process.exit(1)
+        }
+      }
     }
 
     console.log('\n✅ Database seeded successfully!')
