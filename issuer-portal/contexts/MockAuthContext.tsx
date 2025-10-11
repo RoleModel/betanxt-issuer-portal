@@ -40,12 +40,12 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
   useEffect(() => {
     if (session?.user) {
       setUser({
-        id: session.user.id || '',
-        name: session.user.name || '',
-        email: session.user.email || '',
-        username: (session.user as { username?: string }).username || '',
-        type: (session.user as { type?: string }).type || 'user',
-        accountId: (session.user as { accountId?: string }).accountId || '',
+        id: session.user.id ?? '',
+        name: session.user.name ?? '',
+        email: session.user.email ?? '',
+        username: (session.user as { username?: string }).username ?? '',
+        type: (session.user as { type?: string }).type ?? 'user',
+        accountId: (session.user as { accountId?: string }).accountId ?? '',
         client:
           (session.user as { client?: { id: number; name: string } | null }).client ||
           null,

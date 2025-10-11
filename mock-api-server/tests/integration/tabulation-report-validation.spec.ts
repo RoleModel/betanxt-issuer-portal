@@ -14,16 +14,16 @@ test.describe('Tabulation Report Fix Validation', () => {
     console.warn("✅ 2025 Wendy's Annual Meeting Data:")
     console.warn(`📊 Meeting ID: ${data.meetingId}`)
     console.warn(
-      `📈 Total positions: ${data.positionsVoted?.voted + data.positionsVoted?.unvoted || 'N/A'}`
+      `📈 Total positions: ${data.positionsVoted?.voted + data.positionsVoted?.unvoted ?? 'N/A'}`
     )
-    console.warn(`🗳️  Voted positions: ${data.positionsVoted?.voted || 'N/A'}`)
-    console.warn(`💰 Total shares: ${data.positionsVoted?.totalShares || 'N/A'}`)
-    console.warn(`✔️  Voted shares: ${data.positionsVoted?.votedShares || 'N/A'}`)
+    console.warn(`🗳️  Voted positions: ${data.positionsVoted?.voted ?? 'N/A'}`)
+    console.warn(`💰 Total shares: ${data.positionsVoted?.totalShares ?? 'N/A'}`)
+    console.warn(`✔️  Voted shares: ${data.positionsVoted?.votedShares ?? 'N/A'}`)
 
     // Core validation: Real data (not zeros)
     expect(data.meetingId).toBe('wen-annual-meeting-2025')
-    expect(data.positionsVoted?.totalShares || 0).toBeGreaterThan(0)
-    expect(data.positionsVoted?.voted || 0).toBeGreaterThan(0)
+    expect(data.positionsVoted?.totalShares ?? 0).toBeGreaterThan(0)
+    expect(data.positionsVoted?.voted ?? 0).toBeGreaterThan(0)
 
     // Share range performance should have real data
     expect(data.shareRangePerformance).toBeDefined()
@@ -32,7 +32,7 @@ test.describe('Tabulation Report Fix Validation', () => {
 
     // At least some ranges should have shares
     const totalSharesInRanges = data.shareRangePerformance.reduce(
-      (sum: number, range: { totalShares?: number }) => sum + (range.totalShares || 0),
+      (sum: number, range: { totalShares?: number }) => sum + (range.totalShares ?? 0),
       0
     )
     expect(totalSharesInRanges).toBeGreaterThan(0)
@@ -90,8 +90,8 @@ test.describe('Tabulation Report Fix Validation', () => {
 
       if (response.status() === 200) {
         const data = await response.json()
-        const totalShares = data.positionsVoted?.totalShares || 0
-        const votedShares = data.positionsVoted?.votedShares || 0
+        const totalShares = data.positionsVoted?.totalShares ?? 0
+        const votedShares = data.positionsVoted?.votedShares ?? 0
 
         console.warn(
           `✅ ${company.name}: ${totalShares} total shares, ${votedShares} voted`

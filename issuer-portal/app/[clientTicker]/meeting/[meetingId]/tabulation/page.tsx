@@ -106,10 +106,10 @@ export default function TabulationPage() {
 
       return {
         proposalNumber: vp.proposalNumber,
-        proposalTitle: vp.description || rawProposal?.proposalTitle || '',
-        proposalType: rawProposal?.proposalType || '',
-        directorName: vp.directorName || rawProposal?.directorName || '',
-        recommendation: rawProposal?.recommendation || 'FOR',
+        proposalTitle: (vp.description || rawProposal?.proposalTitle) ?? '',
+        proposalType: rawProposal?.proposalType ?? '',
+        directorName: (vp.directorName || rawProposal?.directorName) ?? '',
+        recommendation: rawProposal?.recommendation ?? 'FOR',
         totalVotesFor: vp.votingResults.for.shares,
         totalVotesAgainst: vp.votingResults.against.shares,
         totalVotesAbstain: vp.votingResults.abstain.shares,
@@ -120,8 +120,8 @@ export default function TabulationPage() {
     })
 
     // Calculate quorum data
-    const totalOutstanding = votingSummary?.totalSharesOutstanding || 0
-    const votesRepresented = votingSummary?.totalSharesVoted || 0
+    const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
+    const votesRepresented = votingSummary?.totalSharesVoted ?? 0
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = '50%' // Default, should come from meeting config
@@ -130,21 +130,20 @@ export default function TabulationPage() {
     // Prepare tabulation data in the format expected by the PDF export
     const tabulationData = {
       companyName:
-        currentMeeting.title
+        (currentMeeting.title
           ?.replace(/\d{4}\s*/, '')
           .replace(/Annual.*Meeting.*/, '')
           .trim() ||
-        currentMeeting.ticker ||
-        'Company',
-      meetingType: currentMeeting.meetingType || 'Annual Meeting',
-      meetingDate: currentMeeting.meetingDate || '',
-      recordDate: currentMeeting.recordDate || '',
+        currentMeeting.ticker) ?? 'Company',
+      meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
+      meetingDate: currentMeeting.meetingDate ?? '',
+      recordDate: currentMeeting.recordDate ?? '',
       totalOutstanding,
       votesRepresentedForQuorum: votesRepresented,
       quorumPercentage,
       quorumRequirement,
       votesOverUnderQuorum,
-      cusipList: currentMeeting.cusip || '', // Use cusip from meeting
+      cusipList: currentMeeting.cusip ?? '', // Use cusip from meeting
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
         const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero

@@ -9,7 +9,7 @@ import {
   ArrowUpwardSharp,
   CalendarTodayOutlined as CalendarIcon,
 } from '@mui/icons-material'
-import { useMediaQuery, useTheme } from '@mui/material'
+import { useMediaQuery, useTheme, Paper } from '@mui/material'
 import { Box, Fade, Stack, Typography } from '@mui/material'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -262,21 +262,21 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             const report = tabulationResult.data
             const positionsVoted = report.positionsVoted
             const totalPositions =
-              (positionsVoted?.voted || 0) + (positionsVoted?.unvoted || 0)
-            const votedPositions = positionsVoted?.voted || 0
-            const totalShares = positionsVoted?.totalShares || 0
-            const votedShares = positionsVoted?.votedShares || 0
+              (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0)
+            const votedPositions = positionsVoted?.voted ?? 0
+            const totalShares = positionsVoted?.totalShares ?? 0
+            const votedShares = positionsVoted?.votedShares ?? 0
             const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
 
             const nonDtc = report.nonDtcVoteStatus
-            const webVotes = nonDtc?.webShareholders || 0
-            const paperVotes = nonDtc?.printShareholders || 0
-            const phoneVotes = nonDtc?.ivrShareholders || 0
+            const webVotes = nonDtc?.webShareholders ?? 0
+            const paperVotes = nonDtc?.printShareholders ?? 0
+            const phoneVotes = nonDtc?.ivrShareholders ?? 0
 
             setPreviousYearData({
-              meeting_id: prevMeeting.id || '',
-              meeting_title: prevMeeting.title || '',
-              meeting_date: prevMeeting.meetingDate || '',
+              meeting_id: prevMeeting.id ?? '',
+              meeting_title: prevMeeting.title ?? '',
+              meeting_date: prevMeeting.meetingDate ?? '',
               total_positions: totalPositions,
               positions_voted: votedPositions,
               total_shares: totalShares.toString(),
@@ -286,7 +286,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               web_votes: webVotes,
               paper_votes: paperVotes,
               phone_votes: phoneVotes,
-              status: prevMeeting.status || '',
+              status: prevMeeting.status ?? '',
             })
           } else {
             // Fallback to positions data if tabulation report not available
@@ -306,17 +306,17 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               const votedPositions = positions.filter(
                 (p) => p.voteStatus === 'Voted'
               ).length
-              const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+              const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
               const votedShares = positions
                 .filter((p) => p.voteStatus === 'Voted')
-                .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+                .reduce((sum, p) => sum + (p.sharesVoted ?? p.shares ?? 0), 0)
               const votePercentage =
                 totalShares > 0 ? (votedShares / totalShares) * 100 : 0
 
               setPreviousYearData({
-                meeting_id: prevMeeting.id || '',
-                meeting_title: prevMeeting.title || '',
-                meeting_date: prevMeeting.meetingDate || '',
+                meeting_id: prevMeeting.id ?? '',
+                meeting_title: prevMeeting.title ?? '',
+                meeting_date: prevMeeting.meetingDate ?? '',
                 total_positions: totalPositions,
                 positions_voted: votedPositions,
                 total_shares: totalShares.toString(),
@@ -326,7 +326,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 web_votes: 0,
                 paper_votes: 0,
                 phone_votes: 0,
-                status: prevMeeting.status || '',
+                status: prevMeeting.status ?? '',
               })
             }
           }
@@ -350,9 +350,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
       setLoading(true)
       try {
         const meetingId = currentMeeting.id
-        const meetingTitle = currentMeeting.title || ''
-        const meetingDate = currentMeeting.meetingDate || ''
-        const meetingStatus = currentMeeting.status || ''
+        const meetingTitle = currentMeeting.title ?? ''
+        const meetingDate = currentMeeting.meetingDate ?? ''
+        const meetingStatus = currentMeeting.status ?? ''
 
         const apiClient = await buildApiClient()
         const { data: tabulationReport, error } = (await apiClient.GET(
@@ -368,17 +368,17 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           // Transform API response to match component's expected format
           const positionsVoted = tabulationReport.positionsVoted
           const totalPositions =
-            (positionsVoted?.voted || 0) + (positionsVoted?.unvoted || 0)
-          const votedPositions = positionsVoted?.voted || 0
-          const totalShares = positionsVoted?.totalShares || 0
-          const votedShares = positionsVoted?.votedShares || 0
+            (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0)
+          const votedPositions = positionsVoted?.voted ?? 0
+          const totalShares = positionsVoted?.totalShares ?? 0
+          const votedShares = positionsVoted?.votedShares ?? 0
           const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
 
           // Extract vote counts from non-DTC data
           const nonDtc = tabulationReport.nonDtcVoteStatus
-          const webVotes = nonDtc?.webShareholders || 0
-          const paperVotes = nonDtc?.printShareholders || 0
-          const phoneVotes = nonDtc?.ivrShareholders || 0
+          const webVotes = nonDtc?.webShareholders ?? 0
+          const paperVotes = nonDtc?.printShareholders ?? 0
+          const phoneVotes = nonDtc?.ivrShareholders ?? 0
 
           setData({
             meeting_id: meetingId,
@@ -409,10 +409,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               const votedPositions = positions.filter(
                 (p) => p.voteStatus === 'Voted'
               ).length
-              const totalShares = positions.reduce((sum, p) => sum + (p.shares || 0), 0)
+              const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
               const votedShares = positions
                 .filter((p) => p.voteStatus === 'Voted')
-                .reduce((sum, p) => sum + (p.sharesVoted || p.shares || 0), 0)
+                .reduce((sum, p) => sum + (p.sharesVoted ?? p.shares ?? 0), 0)
               const votePercentage =
                 totalShares > 0 ? (votedShares / totalShares) * 100 : 0
 
@@ -509,10 +509,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const progress =
     data && isVotingPhase
       ? {
-          voted: Math.round(currentVotePercentage),
-          unvoted: 100 - Math.round(currentVotePercentage),
-          toQuorum: Math.round(currentVotePercentage),
-        }
+        voted: Math.round(currentVotePercentage),
+        unvoted: 100 - Math.round(currentVotePercentage),
+        toQuorum: Math.round(currentVotePercentage),
+      }
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
@@ -525,9 +525,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const isPhase7 = (currentPhaseNumber ?? 0) < 7
 
   return (
-    <Box
+    <Paper
       sx={(theme) => ({
-        background: (theme) => theme.vars?.palette.keydate.main,
+        backgroundColor: (theme) => theme.vars?.palette.keydate.main,
         color: (theme) => theme.vars?.palette.keydate.contrastText,
         boxShadow: theme.shadows[5],
         contain: 'paint',
@@ -591,10 +591,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   text:
                     isCompleted && meetingDate
                       ? meetingDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
                       : meetingDate
                         ? calculateDaysUntil(meetingDate.toISOString())
                         : '--',
@@ -671,9 +671,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                     fontWeight: 600,
                     text: voteCutoffDate
                       ? voteCutoffDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })
+                        month: 'short',
+                        day: 'numeric',
+                      })
                       : '0',
                     sx: { whiteSpace: 'nowrap' },
                   }}
@@ -718,8 +718,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   fontWeight={500}
                   variant="body2"
                 >
-                  {Number(data?.shares_voted || 0) >
-                  Number(previousYearData.shares_voted) ? (
+                  {Number(data?.shares_voted ?? 0) >
+                    Number(previousYearData.shares_voted) ? (
                     <ArrowUpwardSharp fontSize="inherit" />
                   ) : (
                     <ArrowDownward fontSize="inherit" />
@@ -758,8 +758,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   fontWeight={500}
                   variant="body2"
                 >
-                  {Number(data?.shares_unvoted || 0) <
-                  Number(previousYearData.shares_unvoted) ? (
+                  {Number(data?.shares_unvoted ?? 0) <
+                    Number(previousYearData.shares_unvoted) ? (
                     <ArrowDownward fontSize="inherit" />
                   ) : (
                     <ArrowUpwardSharp fontSize="inherit" />
@@ -798,7 +798,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant="body2"
                 >
                   {Math.round(progress.toQuorum) >
-                  parseFloat(previousYearData.vote_percentage) ? (
+                    parseFloat(previousYearData.vote_percentage) ? (
                     <ArrowUpwardSharp fontSize="inherit" />
                   ) : (
                     <ArrowDownward fontSize="inherit" />
@@ -875,7 +875,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           </Box>
         </Fade>
       )}
-    </Box>
+    </Paper>
   )
 }
 

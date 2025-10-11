@@ -92,7 +92,7 @@ export default function DocumentSiteCard() {
 
             setHostingSiteStatus({
               id: doc.id,
-              meeting_id: doc.meetingId || '',
+              meeting_id: doc.meetingId ?? '',
               status: mappedStatus,
               site_url: doc.filePath || null,
               approved_by: null,
@@ -247,7 +247,7 @@ export default function DocumentSiteCard() {
   const handleApproveSite = async (): Promise<void> => {
     try {
       await updateHostingSiteStatus('Approved', {
-        approved_by: session?.user?.email || session?.user?.name || 'Unknown User',
+        approved_by: session?.user?.email ?? session?.user?.name ?? 'Unknown User',
         approved_at: new Date().toISOString(),
       })
       setHostingSiteViewerOpen(false)
@@ -292,7 +292,7 @@ export default function DocumentSiteCard() {
               (123456782) to enter the voting site. Once approved, sites will be made
               active in conjunction with the filing mailing date.
             </Typography>
-            <StatusChip status={hostingSiteStatus?.status || 'Incomplete'} />
+            <StatusChip status={hostingSiteStatus?.status ?? 'Incomplete'} />
           </Box>
         </CardContent>
         <CardActions>
@@ -312,7 +312,7 @@ export default function DocumentSiteCard() {
       <DocumentViewer
         open={hostingSiteViewerOpen}
         onClose={handleHostingSiteViewerClose}
-        fileUrl={viewerUrl || ''}
+        fileUrl={viewerUrl ?? ''}
         title="Document Hosting Site"
         isWebsiteView={true}
         onApproveSite={handleApproveSite}

@@ -78,7 +78,7 @@ export async function POST(
     const attendees = body.map((attendee, index) => ({
       id: `${meetingId}-${Date.now()}-${index}`,
       meetingId,
-      registrantType: attendee.registrantType || 'Shareholder',
+      registrantType: attendee.registrantType ?? 'Shareholder',
       firstName: attendee.firstName,
       lastName: attendee.lastName,
       emailAddress: attendee.emailAddress,

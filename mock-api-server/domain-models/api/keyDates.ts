@@ -35,7 +35,7 @@ export async function listKeyDatesForMeeting(
     return {
       data: undefined,
       error: {
-        message: meetingError.message || 'Failed to fetch meeting',
+        message: meetingError.message ?? 'Failed to fetch meeting',
         statusCode: meetingResponse.status,
       },
       response: meetingResponse,
@@ -55,7 +55,7 @@ export async function listKeyDatesForMeeting(
     return {
       data: undefined,
       error: {
-        message: phasesError.message || 'Failed to fetch phases',
+        message: phasesError.message ?? 'Failed to fetch phases',
         statusCode: phasesResponse.status,
       },
       response: phasesResponse,

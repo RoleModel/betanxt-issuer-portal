@@ -78,7 +78,7 @@ export const setCachedResponse = <T>(key: string, data: T): void => {
 }
 
 export const buildApiClient = async () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
 
   let session: Session | null = null
 

@@ -1,6 +1,6 @@
 import 'next-auth'
 
-type Client = {
+interface Client {
   id: number
   name: string
 }

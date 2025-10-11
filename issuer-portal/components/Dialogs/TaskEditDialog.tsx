@@ -210,13 +210,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   const initialFormData = useMemo(() => {
     if (!task) return null
     return {
-      title: task.title || '',
-      description: task.description || '',
+      title: task.title ?? '',
+      description: task.description ?? '',
       status: (task.status as TaskStatus) || 'Incomplete',
       type: (task.type as TaskType) || '',
       phase: task.phaseNumber || 1,
-      due_date: convertToDbDate(task.dueDate || ''),
-      assignee: task.owner || '',
+      due_date: convertToDbDate(task.dueDate ?? ''),
+      assignee: task.owner ?? '',
     }
   }, [task])
 
@@ -232,13 +232,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     return (linksArray as BaseTaskLink[]).map((link, index) => ({
       id: `link-${index}`, // Generate a temporary ID for editing
       label: link.label,
-      url: link.url || '',
+      url: link.url ?? '',
       action: link.action as LinkAction,
     }))
   }, [task, enableLinkEditing])
 
   // Load available document masters (templates) - now using API
-  const loadAvailableDocuments = useCallback(async () => {
+  const loadAvailableDocuments = useCallback(() => {
     try {
       // TODO: Implement document masters API endpoint
       // For now, just return empty array to avoid Supabase dependency
@@ -257,7 +257,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     }
     setLinks(initialLinks)
     setError(null)
-    void loadAvailableDocuments()
+    loadAvailableDocuments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task?.id]) // Only re-run when dialog opens or task changes
 
@@ -307,7 +307,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
       try {
         // Get meeting ID for document creation
-        const meetingId = task.meetingId || 'extraordinary-2023' // fallback
+        const meetingId = task.meetingId ?? 'extraordinary-2023' // fallback
 
         // Create document using our hook instead of direct Supabase
         const documentData = {
@@ -323,7 +323,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
         }
 
         // Refresh available documents and select the new one
-        await loadAvailableDocuments()
+        loadAvailableDocuments()
         if (newDocument.id) {
           setSelectedDocumentId(newDocument.id)
         }
@@ -613,7 +613,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                     <Box>
                       <Typography variant="body3">{doc.title}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {doc.filePath || 'N/A'} • {doc.type}
+                        {doc.filePath ?? 'N/A'} • {doc.type}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -635,7 +635,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                           <strong>{selectedDoc.title}</strong>
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          File: {selectedDoc.filePath || 'N/A'} • Type: {selectedDoc.type}
+                          File: {selectedDoc.filePath ?? 'N/A'} • Type: {selectedDoc.type}
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
@@ -713,7 +713,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                                 <Select
                                   labelId="action-label"
                                   size="small"
-                                  value={link.action || ''}
+                                  value={link.action ?? ''}
                                   label="Action"
                                   onChange={(e) =>
                                     handleLinkChange(index, 'action', e.target.value)
@@ -729,7 +729,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                             </Box>
                             <TextField
                               label="URL (optional)"
-                              value={link.url || ''}
+                              value={link.url ?? ''}
                               onChange={(e) =>
                                 handleLinkChange(index, 'url', e.target.value)
                               }

@@ -199,7 +199,7 @@ async function generatePdfContent(
                 (keyDate) => `
               <div class="timeline-row key-date-row">
                 <div class="row-content">
-                  <div class="task-title">${keyDate.title || 'Untitled Key Date'}</div>
+                  <div class="task-title">${keyDate.title ?? 'Untitled Key Date'}</div>
                   <div class="task-date">${formatDate(keyDate.date)}</div>
                 </div>
               </div>
@@ -211,7 +211,7 @@ async function generatePdfContent(
                 (task) => `
               <div class="timeline-row task-row" style="border-left-color: ${phaseColors[phase - 1]}">
                 <div class="row-content">
-                  <div class="task-title">${task.title || 'Untitled Task'}</div>
+                  <div class="task-title">${task.title ?? 'Untitled Task'}</div>
                   <div class="task-date">${formatDate(task.dueDate)}</div>
                 </div>
               </div>

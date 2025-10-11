@@ -4,8 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const supabaseUrl = 'http://127.0.0.1:54321'
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -91,7 +90,7 @@ async function createDSMDocuments() {
           type: docType,
           file_path: urlData.publicUrl,
           file_type: file.name.split('.').pop()?.toLowerCase() || 'pdf',
-          file_size: file.metadata?.size || 0,
+          file_size: file.metadata?.size ?? 0,
           status: displayCategory === 'post-meeting' ? 'COMPLETED' : 'UPLOADED',
           display_category: displayCategory,
           created_at: new Date().toISOString(),
@@ -117,12 +116,12 @@ async function createDSMDocuments() {
     .like('meeting_id', '%2025%')
 
   console.log(`\n✨ DSM document creation complete!`)
-  console.log(`   Total DSM documents: ${dsmCount?.length || 0}`)
+  console.log(`   Total DSM documents: ${dsmCount?.length ?? 0}`)
 
   // Group by meeting for summary
   const byMeeting: Record<string, number> = {}
   dsmCount?.forEach((doc) => {
-    byMeeting[doc.meeting_id] = (byMeeting[doc.meeting_id] || 0) + 1
+    byMeeting[doc.meeting_id] = (byMeeting[doc.meeting_id] ?? 0) + 1
   })
 
   console.log('\n📊 Documents by meeting:')

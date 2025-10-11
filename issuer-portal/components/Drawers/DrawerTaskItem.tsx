@@ -142,7 +142,7 @@ export default function DrawerTaskItem({
                 mb: 0.25,
               }}
             >
-              {formatDate(task.dueDate || '')}
+              {formatDate(task.dueDate ?? '')}
             </Typography>
             <StatusChip status={task.status ?? null} size="small" />
           </Box>
@@ -160,7 +160,7 @@ export default function DrawerTaskItem({
         {/* Task Links - Only show for issuer-owned tasks */}
         {taskLinks.length > 0 &&
           onLinkClick &&
-          !['BetaNXT', 'DFIN'].includes(task.owner || '') && (
+          !['BetaNXT', 'DFIN'].includes(task.owner ?? '') && (
             <Box sx={{ mt: 1 }}>
               <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center">
                 {taskLinks.map((link: TaskLink, linkIndex: number) => (
@@ -171,7 +171,7 @@ export default function DrawerTaskItem({
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      onLinkClick(link, task.title || 'Task')
+                      onLinkClick(link, task.title ?? 'Task')
                     }}
                     sx={{
                       fontSize: '0.875rem',

@@ -22,7 +22,7 @@ interface FormFieldAreaProps {
 }
 
 export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChange }) => {
-  const [value, setValue] = useState(area.value || '')
+  const [value, setValue] = useState(area.value ?? '')
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -114,7 +114,7 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
               size="small"
               fullWidth
               autoFocus
-              placeholder={area.label || 'Enter text'}
+              placeholder={area.label ?? 'Enter text'}
               sx={{
                 '& .MuiInputBase-root': {
                   backgroundColor: 'white',
@@ -162,7 +162,7 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChang
             textOverflow: 'ellipsis',
           }}
         >
-          {value || area.label || 'Click to enter'}
+          {value ?? area.label ?? 'Click to enter'}
         </Typography>
       </Box>
     )

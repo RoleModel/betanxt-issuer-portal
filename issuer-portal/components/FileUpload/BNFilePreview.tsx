@@ -54,7 +54,7 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           <CircularProgress
             size={32}
             sx={(theme) => ({ color: theme.vars.palette.primary.main })}
-            value={file.progress || 0}
+            value={file.progress ?? 0}
             variant={file.progress !== undefined ? 'determinate' : 'indeterminate'}
           />
         )
@@ -106,7 +106,7 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
       case 'complete':
         return 'Complete'
       case 'error':
-        return file.error || 'Error'
+        return file.error ?? 'Error'
       default:
         return ''
     }
@@ -174,7 +174,7 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           <Box sx={{ mt: 1 }}>
             <FormControl size="small" fullWidth>
               <Select
-                value={file.associatedDocumentId || ''}
+                value={file.associatedDocumentId ?? ''}
                 onChange={(e) => handleAssociationChange(e.target.value)}
                 displayEmpty
                 aria-label="Select DSM Document"

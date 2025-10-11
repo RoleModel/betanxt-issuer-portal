@@ -78,7 +78,7 @@ export async function listTasks(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch tasks' },
+        error: { message: error.message ?? 'Failed to fetch tasks' },
       }
     }
 
@@ -110,7 +110,7 @@ export async function createTask(
         description: request.description,
         due_date: request.dueDate,
         owner: request.owner,
-        status: request.status || 'INCOMPLETE',
+        status: request.status ?? 'INCOMPLETE',
         phase_id: request.phaseId,
         phase_number: request.phaseNumber,
         type: request.type,
@@ -122,7 +122,7 @@ export async function createTask(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create task' },
+        error: { message: error.message ?? 'Failed to create task' },
       }
     }
 
@@ -144,7 +144,7 @@ export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch task' },
+        error: { message: error.message ?? 'Failed to fetch task' },
       }
     }
 
@@ -186,7 +186,7 @@ export async function updateTask(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update task' },
+        error: { message: error.message ?? 'Failed to update task' },
       }
     }
 

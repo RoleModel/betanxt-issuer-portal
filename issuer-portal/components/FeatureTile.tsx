@@ -47,44 +47,44 @@ export function FeatureTile({
     switch (variant) {
       case 'primary':
         return {
-          background: betanxtTheme.palette.primary.main,
-          backgroundDark: betanxtTheme.palette.primary.main,
-          color: betanxtTheme.palette.primary.contrastText,
-          colorDark: betanxtTheme.palette.primary.contrastText,
+          background: betanxtTheme.vars.palette.primary.main,
+          backgroundDark: betanxtTheme.vars.palette.primary.main,
+          color: betanxtTheme.vars.palette.primary.contrastText,
+          colorDark: betanxtTheme.vars.palette.primary.contrastText,
         }
       case 'secondary':
         return {
-          background: betanxtTheme.palette.secondary.main,
-          backgroundDark: betanxtTheme.palette.secondary.main,
-          color: betanxtTheme.palette.secondary.contrastText,
-          colorDark: betanxtTheme.palette.secondary.contrastText,
+          background: betanxtTheme.vars.palette.secondary.main,
+          backgroundDark: betanxtTheme.vars.palette.secondary.main,
+          color: betanxtTheme.vars.palette.secondary.contrastText,
+          colorDark: betanxtTheme.vars.palette.secondary.contrastText,
         }
       case 'tertiary':
         return {
-          background: (betanxtTheme.palette as Theme['palette'] & { tertiary?: { main: string } })
-            .tertiary?.main ?? betanxtTheme.palette.primary.main,
-          backgroundDark: (betanxtTheme.palette as Theme['palette'] & { tertiary?: { main: string } })
-            .tertiary?.main ?? betanxtTheme.palette.primary.main,
+          background: (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { main: string } })
+            .tertiary?.main ?? betanxtTheme.vars.palette.primary.main,
+          backgroundDark: (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { main: string } })
+            .tertiary?.main ?? betanxtTheme.vars.palette.primary.main,
           color:
-            (betanxtTheme.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
-              .tertiary?.contrastText ?? betanxtTheme.palette.primary.contrastText,
+            (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
+              .tertiary?.contrastText ?? betanxtTheme.vars.palette.primary.contrastText,
           colorDark:
-            (betanxtTheme.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
-              .tertiary?.contrastText ?? betanxtTheme.palette.primary.contrastText,
+            (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
+              .tertiary?.contrastText ?? betanxtTheme.vars.palette.primary.contrastText,
         }
       case 'base':
         return {
-          background: baseTheme.palette.background.default,
-          backgroundDark: baseTheme.palette.background.default,
-          color: baseTheme.palette.text.primary,
-          colorDark: baseTheme.palette.text.primary,
+          background: baseTheme.vars.palette.background.default,
+          backgroundDark: baseTheme.vars.palette.background.default,
+          color: baseTheme.vars.palette.text.primary,
+          colorDark: baseTheme.vars.palette.text.primary,
         }
       default:
         return {
-          background: baseTheme.palette.background.paper,
-          backgroundDark: baseTheme.palette.background.paper,
-          color: baseTheme.palette.text.primary,
-          colorDark: baseTheme.palette.text.primary,
+          background: baseTheme.vars.palette.background.paper,
+          backgroundDark: baseTheme.vars.palette.background.paper,
+          color: baseTheme.vars.palette.text.primary,
+          colorDark: baseTheme.vars.palette.text.primary,
         }
     }
   }

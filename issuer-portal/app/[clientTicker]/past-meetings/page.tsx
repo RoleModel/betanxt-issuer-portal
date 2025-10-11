@@ -183,7 +183,7 @@ export default function PastMeetingsPage() {
       })) as ApiClientReturnType<unknown>
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message || 'Failed to fetch meetings')
+        throw new Error(meetingsResponse.error.message ?? 'Failed to fetch meetings')
       }
 
       // Get meetings array from the paginated response - already filtered by API

@@ -63,7 +63,7 @@ test.describe('Pages Accessibility Tests', () => {
         ),
         ...accessibilityScanResults.incomplete
           .filter((i) => i.impact === 'critical' || i.impact === 'serious')
-          .map((i) => `INCOMPLETE: ${i.description} (${i.impact || 'unknown'})`),
+          .map((i) => `INCOMPLETE: ${i.description} (${i.impact ?? 'unknown'})`),
       ]
 
       // Generate detailed violation data using utility functions
@@ -91,15 +91,15 @@ test.describe('Pages Accessibility Tests', () => {
           target: Array.isArray(node.target)
             ? node.target.join(' ')
             : String(node.target),
-          html: node.html || 'HTML not available',
-          failureSummary: node.failureSummary || 'No specific failure details available',
+          html: node.html ?? 'HTML not available',
+          failureSummary: node.failureSummary ?? 'No specific failure details available',
           relatedNodes: [...node.any, ...node.all, ...node.none].flatMap(
             (checkResult) =>
               checkResult.relatedNodes?.map((relatedNode: RelatedNode) => ({
                 target: Array.isArray(relatedNode.target)
                   ? relatedNode.target.join(' ')
                   : String(relatedNode.target),
-                html: relatedNode.html || 'HTML not available',
+                html: relatedNode.html ?? 'HTML not available',
                 failureSummary: 'Related node - no failure summary available',
               })) || []
           ),

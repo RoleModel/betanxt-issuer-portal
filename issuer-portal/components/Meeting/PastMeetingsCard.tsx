@@ -100,7 +100,7 @@ export default function PastMeetingsCard({
   limit = 6,
 }: PastMeetingsCardProps) {
   const { currentClient } = useClient()
-  const clientTicker = currentClient?.ticker || ''
+  const clientTicker = currentClient?.ticker ?? ''
 
   const [meetings, setMeetings] = useState<PastMeetingData[]>([])
   const [loading, setLoading] = useState<boolean>(false)
@@ -142,7 +142,7 @@ export default function PastMeetingsCard({
       })) as ApiClientReturnType<unknown>
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message || 'Failed to load meetings')
+        throw new Error(meetingsResponse.error.message ?? 'Failed to load meetings')
       }
 
       interface MeetingsApiResponse {

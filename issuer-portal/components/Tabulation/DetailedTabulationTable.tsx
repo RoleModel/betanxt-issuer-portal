@@ -68,8 +68,8 @@ export default function DetailedTabulationTable({
   const formatPercentage = (value: number) => `${value.toFixed(2)}%`
 
   // Calculate totals for percentage calculations
-  const totalOutstanding = votingSummary?.totalSharesOutstanding || 0
-  const totalVoted = votingSummary?.totalSharesVoted || 0
+  const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
+  const totalVoted = votingSummary?.totalSharesVoted ?? 0
 
   return (
     <StyledTableContainer>

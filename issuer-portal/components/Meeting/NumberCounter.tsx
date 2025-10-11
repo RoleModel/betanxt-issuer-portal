@@ -30,13 +30,13 @@ export const NumberCounter = ({
       maximumFractionDigits: 1,
     })
     const formatted = formatter.format(value)
-    return `${formatted}${isPercent ? '%' : suffix || ''}`
+    return `${formatted}${isPercent ? '%' : suffix ?? ''}`
   }
 
   return (
     <BNTypographyPair
       primary={{
-        text: label || '',
+        text: label ?? '',
         variant: 'body3',
         fontWeight: 500,
       }}

@@ -101,7 +101,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
           width: area.width,
           height: area.height,
           page_number: area.page || 1,
-          label: area.label || 'signature',
+          label: area.label ?? 'signature',
         })
 
         if (newSignatureArea) {
@@ -179,7 +179,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
               }),
           ]}
         >
-          {area.label || 'Click to sign'}
+          {area.label ?? 'Click to sign'}
         </Typography>
       )
     }
@@ -192,7 +192,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         return (
           <Typography
             sx={{
-              fontFamily: signatureInfo.font || 'cursive',
+              fontFamily: signatureInfo.font ?? 'cursive',
               fontSize: 20,
               fontWeight: 500,
               textAlign: 'center',

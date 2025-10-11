@@ -4,9 +4,9 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'ZgnAkgxVLYDcf9gj'
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? 'ZgnAkgxVLYDcf9gj'
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error('❌ SUPABASE_SERVICE_ROLE_KEY is required')

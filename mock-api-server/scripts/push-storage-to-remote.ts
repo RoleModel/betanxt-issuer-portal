@@ -9,8 +9,8 @@ const localServiceKey =
 
 // Remote Supabase (production)
 const remoteUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
-const remoteServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+const remoteServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 
 if (!remoteServiceKey) {
   console.error('❌ SUPABASE_SERVICE_ROLE_KEY environment variable is required')
@@ -149,8 +149,7 @@ async function pushStorageToRemote() {
         .upload(filePath, buffer, {
           contentType:
             file.metadata?.mimeType ||
-            file.metadata?.mimetype ||
-            'application/octet-stream',
+            file.metadata?.mimetype ?? 'application/octet-stream',
           upsert: false,
         })
 

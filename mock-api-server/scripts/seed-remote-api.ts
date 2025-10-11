@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-const SUPABASE_URL = process.env.REMOTE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+const SUPABASE_URL = process.env.REMOTE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
 const SUPABASE_SERVICE_ROLE_KEY = process.env.REMOTE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -24,8 +24,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 })
 
 // Parse INSERT statements from seed.sql
-function parseInsertStatements(sql: string): Array<{ table: string; values: any[] }> {
-  const inserts: Array<{ table: string; values: any[] }> = []
+function parseInsertStatements(sql: string): { table: string; values: any[] }[] {
+  const inserts: { table: string; values: any[] }[] = []
   const insertRegex = /INSERT INTO (\w+)\s*\([^)]+\)\s*VALUES\s*\(([^;]+)\);/gi
 
   let match

@@ -190,7 +190,7 @@ export default function EndToEndProxySolutionsPage() {
         window.open('https://betanxt.com/issuer-solutions', '_blank')
       }}
     >
-      <Typography variant="body3" component="p">
+      <Typography variant="body3" component="p" gutterBottom>
         Get a complete look at the tools and services available to you in one place.
       </Typography>
     </SidebarCard>

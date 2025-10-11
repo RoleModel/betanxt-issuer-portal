@@ -57,7 +57,7 @@ export const usePhaseCompletion = ({
       const currentPhaseTasks = freshTasks.filter(
         (t: Task) =>
           t.phaseNumber === currentPhaseNumber &&
-          !['BetaNXT', 'DFIN'].includes(t.owner || '')
+          !['BetaNXT', 'DFIN'].includes(t.owner ?? '')
       )
 
       console.log('Phase advancement check:', {
@@ -113,8 +113,8 @@ export const usePhaseCompletion = ({
         }
 
         // Get user name and meeting title for personalized message
-        const userName = session?.user?.name || 'User'
-        const meetingTitle = currentMeeting?.title || 'Shareholder Meeting'
+        const userName = session?.user?.name ?? 'User'
+        const meetingTitle = currentMeeting?.title ?? 'Shareholder Meeting'
         const nextPhaseNumber = currentPhaseNumber + 1
 
         // Dispatch global phase complete event for Layout to show snackbar

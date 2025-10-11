@@ -60,7 +60,7 @@ const getTaskBackground = (
   if (isKeyDate) {
     // Completed tasks on key dates get a muted key date background
     return isCompleted
-      ? theme.vars?.palette?.keydate.main || '#f5f5f5'
+      ? theme.vars?.palette?.keydate.main ?? '#f5f5f5'
       : theme.vars?.palette.keydate.main
   }
 
@@ -450,7 +450,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     }
                   }}
                 >
-                  {getActionIcon(link.action || 'external')}
+                  {getActionIcon(link.action ?? 'external')}
                 </IconButton>
               </Tooltip>
             ))}

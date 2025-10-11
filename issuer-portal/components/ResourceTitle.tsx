@@ -103,7 +103,7 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
     <Box
       className="resource-card"
       sx={{
-        minWidth: minWidth || 'fit-content',
+        minWidth: minWidth ?? 'fit-content',
         flex: '1 1 0%',
         display: 'flex',
         flexDirection: 'column',

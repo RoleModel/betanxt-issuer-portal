@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/* eslint-disable no-console */
+ 
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 
@@ -689,7 +689,7 @@ async function validateSeedData() {
 
       const validation = validateTableData(tableName, data || [])
       validationResults[tableName] = {
-        recordCount: data?.length || 0,
+        recordCount: data?.length ?? 0,
         validation,
         data: data || [],
       }
@@ -700,11 +700,11 @@ async function validateSeedData() {
       // Report table results
       if (validation.valid) {
         console.log(
-          `✅ ${tableName}: ${data?.length || 0} records - All validations passed`
+          `✅ ${tableName}: ${data?.length ?? 0} records - All validations passed`
         )
       } else {
         console.log(
-          `❌ ${tableName}: ${data?.length || 0} records - ${validation.errors.length} errors, ${validation.warnings.length} warnings`
+          `❌ ${tableName}: ${data?.length ?? 0} records - ${validation.errors.length} errors, ${validation.warnings.length} warnings`
         )
       }
 

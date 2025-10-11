@@ -58,7 +58,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
     try {
       setError(null)
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`)
       if (!response.ok) {
         throw new Error('Failed to fetch guest registrants')
@@ -91,8 +91,8 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
     const filtered = guests.filter((guest) => {
       const searchLower = searchTerm.toLowerCase()
-      const fullName = `${guest.firstName || ''} ${guest.lastName || ''}`.toLowerCase()
-      const email = (guest.emailAddress || '').toLowerCase()
+      const fullName = `${guest.firstName ?? ''} ${guest.lastName ?? ''}`.toLowerCase()
+      const email = (guest.emailAddress ?? '').toLowerCase()
 
       return (
         fullName.includes(searchLower) ||
@@ -207,7 +207,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       }))
 
       // Add guests via API (assuming same endpoint as main page)
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`, {
         method: 'POST',
         headers: {

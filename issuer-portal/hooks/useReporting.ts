@@ -171,7 +171,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     const meetingsArray = Array.isArray(meetingsData)
       ? meetingsData
       : (meetingsData as { meetings?: Meeting[] })?.meetings || []
-    const allMeetings = (meetingsArray as Meeting[]).filter((meeting) => {
+    const allMeetings = (meetingsArray).filter((meeting) => {
       const meetingYear =
         meeting.meetingYear ||
         (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
@@ -189,7 +189,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     const proposalPromises = meetingIds.map((id) =>
       apiClient
         .GET('/meetings/{meetingId}/proposals', {
-          params: { path: { meetingId: id || '' } },
+          params: { path: { meetingId: id ?? '' } },
         })
         .catch(() => ({ data: [] }))
     )
@@ -240,7 +240,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
         | undefined
       if (Array.isArray(data)) return data
       if (data && Array.isArray((data as { positions?: Position[] }).positions)) {
-        return (data as { positions?: Position[] }).positions as Position[]
+        return (data as { positions?: Position[] }).positions!
       }
       return []
     })
@@ -311,8 +311,8 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     const mappedQuorumPerformanceData = quorumData
     const availableDirectors = directorPerformanceData.map((d) => d.directorName)
     const availableMeetings = completedMeetings.map((m) => ({
-      id: m.id || '',
-      title: m.title || 'Untitled Meeting',
+      id: m.id ?? '',
+      title: m.title ?? 'Untitled Meeting',
     }))
 
     const result = {
@@ -344,7 +344,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
 export function useReporting(clientTicker: string) {
   const { data, error, isLoading } = useSWR(
     clientTicker ? ['reporting', clientTicker] : null,
-    ([, ticker]) => fetcher(ticker as string),
+    ([, ticker]) => fetcher(ticker),
     {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
@@ -363,16 +363,16 @@ function calculateDirectorPerformance(proposals: Proposal[]): DirectorPerformanc
       p.proposalType === 'Director Election' ||
       p.proposalType === 'DIRECTOR_ELECTION' ||
       p.directorName ||
-      /Election of Director/i.test(p.proposalTitle || '') ||
-      /Director/i.test(p.proposalTitle || '') ||
-      /Elect/i.test(p.proposalTitle || '')
+      /Election of Director/i.test(p.proposalTitle ?? '') ||
+      /Director/i.test(p.proposalTitle ?? '') ||
+      /Elect/i.test(p.proposalTitle ?? '')
   )
 
   const directorMap = new Map<string, DirectorPerformanceData>()
 
   directorProposals.forEach((proposal) => {
     const directorName =
-      proposal.directorName || extractDirectorNameFromTitle(proposal.proposalTitle || '')
+      proposal.directorName || extractDirectorNameFromTitle(proposal.proposalTitle ?? '')
     if (!directorName) return
 
     const existing = directorMap.get(directorName) || {
@@ -383,9 +383,9 @@ function calculateDirectorPerformance(proposals: Proposal[]): DirectorPerformanc
       totalVotes: 0,
     }
 
-    existing.forVotes += proposal.totalVotesFor || 0
-    existing.againstVotes += proposal.totalVotesAgainst || 0
-    existing.abstainVotes += proposal.totalVotesAbstain || 0
+    existing.forVotes += proposal.totalVotesFor ?? 0
+    existing.againstVotes += proposal.totalVotesAgainst ?? 0
+    existing.abstainVotes += proposal.totalVotesAbstain ?? 0
     existing.totalVotes =
       existing.forVotes + existing.againstVotes + existing.abstainVotes
 
@@ -418,7 +418,7 @@ function calculateParticipationData(positions: Position[]): ParticipationData {
         (position as { votingSource?: 'WEB' | 'PRINT' | 'IVR' }).votingSource ??
         position.source ??
         'WEB'
-      acc[method] = (acc[method] || 0) + 1
+      acc[method] = (acc[method] ?? 0) + 1
       return acc
     },
     {} as Record<string, number>
@@ -427,9 +427,9 @@ function calculateParticipationData(positions: Position[]): ParticipationData {
   const totalVotes = positions.length
 
   return {
-    webVoting: votingMethods.WEB || 0,
-    printVoting: votingMethods.PRINT || 0,
-    ivrVoting: votingMethods.IVR || 0,
+    webVoting: votingMethods.WEB ?? 0,
+    printVoting: votingMethods.PRINT ?? 0,
+    ivrVoting: votingMethods.IVR ?? 0,
     totalVotes,
   }
 }
@@ -476,12 +476,12 @@ function calculateYearOverYearData(
     }).length
 
     const totalSharesOutstandingNum = Number.parseInt(
-      meeting.totalSharesOutstanding || '0',
+      meeting.totalSharesOutstanding ?? '0',
       10
     )
     if (meetingPositions.length > 0 && totalSharesOutstandingNum > 0) {
       const actualShares = meetingPositions.reduce(
-        (sum, pos) => sum + (pos.sharesVoted || 0),
+        (sum, pos) => sum + (pos.sharesVoted ?? 0),
         0
       )
       const participationRate = (actualShares / totalSharesOutstandingNum) * 100
@@ -535,11 +535,11 @@ function calculateEventSummaryData(
   }).length
 
   const totalSharesOutstandingNum = Number.parseInt(
-    latestMeeting.totalSharesOutstanding || '0',
+    latestMeeting.totalSharesOutstanding ?? '0',
     10
   )
   const actualShares = meetingPositions.reduce(
-    (sum, pos) => sum + (pos.sharesVoted || 0),
+    (sum, pos) => sum + (pos.sharesVoted ?? 0),
     0
   )
   const participationRate =
@@ -554,7 +554,7 @@ function calculateEventSummaryData(
     materials: {
       sent: meetingPositions.length,
       total: totalSharesOutstandingNum || meetingPositions.length,
-      sentDate: latestMeeting.mailingDate || latestMeeting.meetingDate || '',
+      sentDate: (latestMeeting.mailingDate || latestMeeting.meetingDate) ?? '',
     },
   }
 }
@@ -578,8 +578,8 @@ function calculateAuditComplianceData(
     const complianceScore = Math.max(0, 100 - issues.length * 25)
 
     return {
-      meetingId: meeting.id || '',
-      meetingTitle: meeting.title || 'Untitled Meeting',
+      meetingId: meeting.id ?? '',
+      meetingTitle: meeting.title ?? 'Untitled Meeting',
       complianceScore,
       issues,
       materialsCompliant: !!meeting.mailingDate,
@@ -591,12 +591,12 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
   return meetings.map((meeting) => {
     const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
     const actualShares = meetingPositions.reduce(
-      (sum, pos) => sum + (pos.sharesVoted || 0),
+      (sum, pos) => sum + (pos.sharesVoted ?? 0),
       0
     )
 
     const totalSharesOutstandingNum = Number.parseInt(
-      meeting.totalSharesOutstanding || '0',
+      meeting.totalSharesOutstanding ?? '0',
       10
     )
     const requiredShares =
@@ -607,15 +607,15 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
 
     // Quorum achievement date based on cumulative sharesVoted by date
     const datedVotes = meetingPositions
-      .filter((p) => !!p.dateVoted && (p.sharesVoted || 0) > 0)
+      .filter((p) => !!p.dateVoted && (p.sharesVoted ?? 0) > 0)
       .map((p) => {
         // Parse the date format "MM/DD/YYYY HH:MMAM/PM"
-        const dateStr = p.dateVoted as string
+        const dateStr = p.dateVoted!
         let parsedDate: Date
 
         // Parse MM/DD/YYYY HH:MMAM format manually
         // Format is like "11/25/2024 12:00AM"
-        const match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+        const match = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(dateStr)
         if (match) {
           const [_, month, day, year] = match
           // Create date with just the date components (ignore time)
@@ -628,7 +628,7 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
           }
         }
 
-        return { date: parsedDate, shares: p.sharesVoted || 0 }
+        return { date: parsedDate, shares: p.sharesVoted ?? 0 }
       })
       .sort((a, b) => a.date.getTime() - b.date.getTime())
 
@@ -677,8 +677,8 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
     }
 
     return {
-      meetingId: meeting.id || '',
-      meetingTitle: meeting.title || 'Untitled Meeting',
+      meetingId: meeting.id ?? '',
+      meetingTitle: meeting.title ?? 'Untitled Meeting',
       requiredShares,
       actualShares,
       quorumMet: actualShares >= requiredShares,
@@ -726,10 +726,10 @@ function transformEventSummaryData(
       const year = meeting.meetingDate
         ? new Date(meeting.meetingDate).getFullYear()
         : 'Unknown'
-      const meetingType = meeting.meetingType || 'Annual'
+      const meetingType = meeting.meetingType ?? 'Annual'
 
       // Get meeting-specific data
-      const proposalAgg = proposalsByMeeting.get(meeting.id || '') || {
+      const proposalAgg = proposalsByMeeting.get(meeting.id ?? '') || {
         total: 0,
         passed: 0,
       }
@@ -737,7 +737,7 @@ function transformEventSummaryData(
 
       // Calculate participation rate using shares_voted (not shares)
       const totalSharesOutstandingNum = Number.parseInt(
-        meeting.totalSharesOutstanding || '0',
+        meeting.totalSharesOutstanding ?? '0',
         10
       )
       const actualShares = meetingPositions.reduce((sum, pos) => {
@@ -763,7 +763,7 @@ function transformEventSummaryData(
       const result = {
         event: `${meetingType} ${year}`,
         meetingId: meeting.id,
-        recordDate: meeting.recordDate || meeting.meetingDate || '',
+        recordDate: (meeting.recordDate || meeting.meetingDate) ?? '',
         meetingType: meetingType,
         quorum: quorumMet ? 'Yes' : 'No',
         participation: `${participationRate.toFixed(1)}%`,
@@ -803,7 +803,7 @@ function transformProposalPerformanceData(
   // Group proposals by type and calculate performance metrics
   const proposalsByType = proposals.reduce(
     (acc, proposal) => {
-      const type = proposal.proposalType || 'Unknown'
+      const type = proposal.proposalType ?? 'Unknown'
       if (!acc[type]) {
         acc[type] = { total: 0, passed: 0, support: [] }
       }
@@ -812,9 +812,9 @@ function transformProposalPerformanceData(
         acc[type].passed++
       }
       // Add vote percentages if available using correct field names
-      const forVotes = proposal.totalVotesFor || 0
-      const againstVotes = proposal.totalVotesAgainst || 0
-      const abstainVotes = proposal.totalVotesAbstain || 0
+      const forVotes = proposal.totalVotesFor ?? 0
+      const againstVotes = proposal.totalVotesAgainst ?? 0
+      const abstainVotes = proposal.totalVotesAbstain ?? 0
       const totalVotes = forVotes + againstVotes + abstainVotes
 
       if (totalVotes > 0) {
@@ -852,7 +852,7 @@ function transformAuditComplianceData(
 ): MappedAuditComplianceData[] {
   return auditComplianceData.map((item) => {
     // Extract year from meetingId (format: ticker-type-year)
-    const yearMatch = item.meetingId.match(/(\d{4})$/)
+    const yearMatch = /(\d{4})$/.exec(item.meetingId)
     const year = yearMatch ? yearMatch[1] : ''
     const eventTitle = year ? `${item.meetingTitle} ${year}` : item.meetingTitle
 

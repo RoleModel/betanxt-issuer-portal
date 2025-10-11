@@ -64,10 +64,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
-      <head>
-        {/* InitColorSchemeScript removed - causes inline style conflicts with dynamic client themes */}
-      </head>
       <body>
+        <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider>
           <SessionProvider>
             <ClientProvider>

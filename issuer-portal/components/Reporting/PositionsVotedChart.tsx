@@ -150,7 +150,7 @@ export default function PositionsVotedChart({
         action={
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
-              value={selectedSetKey || ''}
+              value={selectedSetKey ?? ''}
               onChange={(e) => setSelectedSetKey(e.target.value)}
               displayEmpty
             >

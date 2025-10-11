@@ -75,13 +75,13 @@ export default function ReportsPage() {
       [firstSetKey]: {
         // Beneficial = CEDE positions (from DTC vote status)
         beneficial: {
-          voted: dtcVotedItem?.shareholders || 0,
-          notVoted: dtcUnvotedItem?.shareholders || 0,
+          voted: dtcVotedItem?.shareholders ?? 0,
+          notVoted: dtcUnvotedItem?.shareholders ?? 0,
         },
         // Registered = Registered Account positions (from Non-DTC vote status)
         registered: {
-          voted: nonDtcVotedItem?.shareholders || 0,
-          notVoted: nonDtcUnvotedItem?.shareholders || 0,
+          voted: nonDtcVotedItem?.shareholders ?? 0,
+          notVoted: nonDtcUnvotedItem?.shareholders ?? 0,
         },
       },
     }

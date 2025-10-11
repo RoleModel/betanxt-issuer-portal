@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 
 test.describe('Database Connection', () => {
-  const SUPABASE_URL = process.env.SUPABASE_URL || 'http://127.0.0.1:54321'
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  const SUPABASE_URL = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321'
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {

@@ -70,7 +70,7 @@ export function AddDocumentDialog({
   const fetchDSMDocuments = async () => {
     try {
       setIsLoading(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
 
       if (response.ok) {
@@ -122,7 +122,7 @@ export function AddDocumentDialog({
     if (selectedDocumentId) {
       const selectedDoc = dsmDocuments.find(doc => doc.id === selectedDocumentId)
       if (selectedDoc) {
-        onDocumentAdded(selectedDoc.title, selectedDoc.status || 'uploaded')
+        onDocumentAdded(selectedDoc.title, selectedDoc.status ?? 'uploaded')
         handleClose()
       }
     }
@@ -244,7 +244,7 @@ export function AddDocumentDialog({
                     <Box>
                       <Typography variant="body2">{doc.title}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Status: {doc.status || 'Unknown'}
+                        Status: {doc.status ?? 'Unknown'}
                       </Typography>
                     </Box>
                   </MenuItem>

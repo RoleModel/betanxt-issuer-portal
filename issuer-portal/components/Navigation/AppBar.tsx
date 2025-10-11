@@ -67,7 +67,7 @@ NextLinkComponent.displayName = 'NextLinkComponent'
 // Next.js Image component wrapper for BNAppBar logo
 const NextImageComponent = React.memo(
   (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
-    const { src, alt, width, height, style } = props
+    const { src, alt, width: _width, height: _height, style } = props
 
     // Don't render anything if no src is provided (prevents flash)
     if (!src) {
@@ -77,7 +77,7 @@ const NextImageComponent = React.memo(
     return (
       <Image
         src={src}
-        alt={alt || 'Logo'}
+        alt={alt ?? 'Logo'}
         width={120}
         height={40}
         style={style}
@@ -144,7 +144,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         type DbNotification = components['schemas']['Notification']
         const notifications = data as DbNotification[]
         setUnreadCount(notifications.length)
-      } catch (err) {
+      } catch (_err) {
         // Silently fail - notifications are not critical
         setUnreadCount(0)
       }
@@ -166,7 +166,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Extract current meeting ID from pathname
   const currentMeetingId = useMemo(() => {
-    const match = /\/meeting\/([^\/]+)/.exec(pathname)
+    const match = /\/meeting\/([^/]+)/.exec(pathname)
     return match ? match[1] : null
   }, [pathname])
 
@@ -268,7 +268,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     if (typeof window === 'undefined') return null
     try {
       const stored = localStorage.getItem('betanxt-selected-client')
-      return stored ? JSON.parse(stored) : null
+      if (!stored) return null
+      const parsed = JSON.parse(stored) as { ticker?: string }
+      return parsed
     } catch {
       return null
     }
@@ -304,7 +306,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return {
       logoImg: {
         src: logoSrc,
-        alt: `${logoTicker || 'BetaNXT'} logo`,
+        alt: `${logoTicker ?? 'BetaNXT'} logo`,
         width: 'auto',
         height: 44,
         style: {
@@ -383,14 +385,14 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
         onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
       },
-      { label: 'Logout', onClick: () => signOut({ callbackUrl: '/login' }) },
+      { label: 'Logout', onClick: () => void signOut({ callbackUrl: '/login' }) },
     ],
     [router, mode, setMode]
   )
 
   // Create a selectedTabValue that's always a valid tab value
   // Default to 'meeting' (Dashboard) when no current tab matches
-  const selectedTabValue = currentTab || 'meeting'
+  const selectedTabValue = currentTab ?? 'meeting'
 
   // Prepare props object
   const appBarProps = {

@@ -27,7 +27,7 @@ export function useResetDemoData() {
 
     try {
       const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
 
       const response = await fetch(`${apiBaseUrl}/admin/reset-demo-data`, {
         method: 'POST',
@@ -37,7 +37,7 @@ export function useResetDemoData() {
       const data: ResetResponse = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || 'Reset failed')
+        throw new Error(data.error ?? 'Reset failed')
       }
 
       // Reload page to reflect changes

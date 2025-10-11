@@ -56,7 +56,7 @@ export default function LineMarker({
 export function createLineMarkerElement(options: { color?: string; size?: number } = {}) {
   return function LineMarkerElement(props: MarkElementProps) {
     const { x, y, color: seriesColor, ...restProps } = props
-    const finalColor = options.color || seriesColor || '#EB6333'
+    const finalColor = options.color ?? seriesColor ?? '#EB6333'
 
     return (
       <LineMarker

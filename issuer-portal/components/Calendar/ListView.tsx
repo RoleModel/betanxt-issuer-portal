@@ -85,7 +85,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
   // Use currentPhase as default instead of 'all' when no phaseFilter is provided
   const [selectedPhase, setSelectedPhase] = useState<number | 'all'>(
-    phaseFilter || currentPhase || 'all'
+    phaseFilter ?? currentPhase ?? 'all'
   )
 
   // Context menu and edit modal state
@@ -98,7 +98,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
   // Update selectedPhase when phaseFilter prop changes
   useEffect(() => {
-    setSelectedPhase(phaseFilter || currentPhase || 'all')
+    setSelectedPhase(phaseFilter ?? currentPhase ?? 'all')
   }, [phaseFilter, currentPhase])
 
   // Trigger fade in when data is ready and not loading
@@ -138,30 +138,30 @@ export const ListView: React.FC<ListViewProps> = ({
     }
 
     return {
-      id: dbTask.taskId || dbTask.id || '',
-      title: dbTask.title || '',
-      description: dbTask.description || '',
-      status: dbTask.status || 'INCOMPLETE',
-      dueDate: formattedDate || '',
-      owner: dbTask.owner || 'BetaNXT',
+      id: dbTask.taskId ?? dbTask.id ?? '',
+      title: dbTask.title ?? '',
+      description: dbTask.description ?? '',
+      status: dbTask.status ?? 'INCOMPLETE',
+      dueDate: formattedDate ?? '',
+      owner: dbTask.owner ?? 'BetaNXT',
       type: ['upload', 'signature', 'external', 'authorize', 'approve'].includes(
-        dbTask.type || ''
+        dbTask.type ?? ''
       )
-        ? dbTask.type || 'external'
+        ? dbTask.type ?? 'external'
         : 'external',
-      phaseNumber: dbTask.phaseNumber || 1,
-      phaseId: dbTask.phaseId || '',
+      phaseNumber: dbTask.phaseNumber ?? 1,
+      phaseId: dbTask.phaseId ?? '',
       meetingId: dbTask.meetingId,
-      taskId: dbTask.taskId || dbTask.id || '',
-      documentId: dbTask.documentId || null,
-      createdAt: dbTask.createdAt || undefined,
-      updatedAt: dbTask.updatedAt || undefined,
+      taskId: dbTask.taskId ?? dbTask.id ?? '',
+      documentId: dbTask.documentId ?? null,
+      createdAt: dbTask.createdAt ?? undefined,
+      updatedAt: dbTask.updatedAt ?? undefined,
     }
   }
 
   const convertKeyDateToDisplayKeyDate = (keyDate: KeyDate): DisplayKeyDate => ({
     id: keyDate.id,
-    title: keyDate.title || '',
+    title: keyDate.title ?? '',
     date: keyDate.date
       ? (() => {
           try {
@@ -214,7 +214,7 @@ export const ListView: React.FC<ListViewProps> = ({
       const taskMap = new Map<string, Task>()
 
       dbTasks.forEach((task) => {
-        const key = task.title || ''
+        const key = task.title ?? ''
         const existing = taskMap.get(key)
 
         // Keep the task with the earliest phase number (or earliest due date if same phase)
@@ -249,8 +249,8 @@ export const ListView: React.FC<ListViewProps> = ({
 
     // Sort key dates chronologically
     const sortedKeyDates = [...keyDatesToShow].sort((a, b) => {
-      const dateA = parseDateString(a.date || '')
-      const dateB = parseDateString(b.date || '')
+      const dateA = parseDateString(a.date ?? '')
+      const dateB = parseDateString(b.date ?? '')
       return dateA.getTime() - dateB.getTime()
     })
 
@@ -303,7 +303,7 @@ export const ListView: React.FC<ListViewProps> = ({
   }
 
   // Handle task update from edit modal
-  const handleTaskUpdated = async () => {
+  const handleTaskUpdated = () => {
     // Trigger a refresh to get updated task data
     // This will re-fetch from the API
     setEditModalOpen(false)
@@ -482,7 +482,7 @@ export const ListView: React.FC<ListViewProps> = ({
                       combinedItems.push({
                         type: 'keyDate',
                         item: keyDate,
-                        date: parseDateString(keyDate.date || ''),
+                        date: parseDateString(keyDate.date ?? ''),
                       })
                     })
 
@@ -597,7 +597,7 @@ export const ListView: React.FC<ListViewProps> = ({
                             <Paper
                               elevation={0}
                               tabIndex={0}
-                              onClick={() => onTaskClick(task.id || '')}
+                              onClick={() => onTaskClick(task.id ?? '')}
                               onContextMenu={(e) => {
                                 const dbTask = dbTasks.find(
                                   (t) => t.taskId === task.id || t.id === task.id
@@ -605,7 +605,7 @@ export const ListView: React.FC<ListViewProps> = ({
                                 if (dbTask) {
                                   handleTaskRightClick(
                                     e,
-                                    dbTask.id || dbTask.taskId || task.id || ''
+                                    dbTask.id ?? dbTask.taskId ?? task.id ?? ''
                                   )
                                 }
                               }}
@@ -667,7 +667,7 @@ export const ListView: React.FC<ListViewProps> = ({
                                           : 'none',
                                     }}
                                   >
-                                    {task.owner || 'BetaNXT'}
+                                    {task.owner ?? 'BetaNXT'}
                                   </Typography>
                                 </Box>
                                 <Box textAlign={{ xs: 'left', md: 'right' }}>
@@ -679,7 +679,7 @@ export const ListView: React.FC<ListViewProps> = ({
                                     {task.dueDate}
                                   </Typography>
                                   <StatusChip
-                                    status={task.status || 'INCOMPLETE'}
+                                    status={task.status ?? 'INCOMPLETE'}
                                     size="small"
                                   />
                                 </Box>
@@ -719,7 +719,7 @@ export const ListView: React.FC<ListViewProps> = ({
               ? {
                   ...taskToEdit,
                   description: taskToEdit.description ?? '',
-                  dueDate: taskToEdit.dueDate || '',
+                  dueDate: taskToEdit.dueDate ?? '',
                   phaseNumber: taskToEdit.phaseNumber || 1,
                   links: taskToEdit.links || null,
                   type: [
@@ -728,7 +728,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     'external',
                     'authorize',
                     'approve',
-                  ].includes(taskToEdit.type || '')
+                  ].includes(taskToEdit.type ?? '')
                     ? (taskToEdit.type as
                         | 'upload'
                         | 'signature'

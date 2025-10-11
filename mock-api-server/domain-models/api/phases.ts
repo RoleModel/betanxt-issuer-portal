@@ -58,7 +58,7 @@ export async function listPhases(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch phases' },
+        error: { message: error.message ?? 'Failed to fetch phases' },
       }
     }
 
@@ -95,7 +95,7 @@ export async function createPhase(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create phase' },
+        error: { message: error.message ?? 'Failed to create phase' },
       }
     }
 
@@ -117,7 +117,7 @@ export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch phase' },
+        error: { message: error.message ?? 'Failed to fetch phase' },
       }
     }
 
@@ -155,7 +155,7 @@ export async function updatePhase(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update phase' },
+        error: { message: error.message ?? 'Failed to update phase' },
       }
     }
 

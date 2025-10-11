@@ -111,10 +111,10 @@ export class CSVProcessor {
               return
             }
             positions.push({
-              cusip: row.Cusip || '',
-              accountType: this.normalizeAccountType(row['Account Type'] || ''),
-              setKey: row['Set Key'] || '',
-              name: row.Name || '',
+              cusip: row.Cusip ?? '',
+              accountType: this.normalizeAccountType(row['Account Type'] ?? ''),
+              setKey: row['Set Key'] ?? '',
+              name: row.Name ?? '',
               accountNumber: row['Account #'] || null,
               voteStatus: row['Vote Status'] || 'Unvoted',
               shares: this.parseNumber(row.Shares),
@@ -150,8 +150,8 @@ export class CSVProcessor {
               return
             }
             tabulation.push({
-              proposal: row.Proposal || '',
-              mrv: row.MRV || '',
+              proposal: row.Proposal ?? '',
+              mrv: row.MRV ?? '',
               for: this.parseNumber(row.For),
               against: this.parseNumber(row.Against),
               abstain: this.parseNumber(row.Abstain),
@@ -281,11 +281,11 @@ export class CSVProcessor {
         .on('data', (row: Record<string, string>) => {
           if (isFirstRow) {
             meetingInfo = {
-              company: row.Company || row.Issuer || '',
-              cusip: row.CUSIP || row.Cusip || '',
+              company: row.Company || row.Issuer ?? '',
+              cusip: row.CUSIP || row.Cusip ?? '',
               meetingType: row['Meeting Type'] || 'Annual Meeting',
-              recordDate: row['Record Date'] || '',
-              meetingDate: row['Meeting Date'] || '',
+              recordDate: row['Record Date'] ?? '',
+              meetingDate: row['Meeting Date'] ?? '',
               cutoffDate: row['Cutoff Date'] || row['Cut Off Date'] || undefined,
             }
             isFirstRow = false
@@ -313,8 +313,7 @@ export class CSVProcessor {
               row['Proposal Number'] ||
               row.Proposal ||
               row.Prop ||
-              row['Proposal Item'] ||
-              ''
+              row['Proposal Item'] ?? ''
             const rawProposal = proposalColumn.trim()
             const match = /^(\d+(?:\.\d+)?)\s*(.*)$/.exec(rawProposal)
             const number = match ? match[1] : `${proposals.length + 1}`
@@ -322,15 +321,13 @@ export class CSVProcessor {
             const title = (
               row['Proposal Title'] ||
               row.Description ||
-              fallbackTitle ||
-              ''
+              fallbackTitle ?? ''
             ).trim()
 
             const recommendation = (
               row.MRV ||
               row['Management Recommendation'] ||
-              row.Recommendation ||
-              'FOR'
+              row.Recommendation ?? 'FOR'
             )
               .toString()
               .trim()
@@ -345,7 +342,7 @@ export class CSVProcessor {
               row.Abstain || row.Abstentions || row['Votes Abstain'] || '0'
             )
             const totalRaw =
-              row.Total || row['Votes Total'] || row['Total Votes'] || ''
+              row.Total || row['Votes Total'] || row['Total Votes'] ?? ''
             const votesTotal = totalRaw
               ? this.parseNumber(totalRaw)
               : votesFor + votesAgainst + votesAbstain
@@ -419,11 +416,11 @@ export class CSVProcessor {
 
           // Skip if no shares
           const shares = this.parseNumber(
-            rowObj.Shares || rowObj['Share Count'] || rowObj.Holdings || '0'
+            rowObj.Shares || rowObj['Share Count'] || rowObj.Holdings ?? '0'
           )
           if (shares === 0) return
 
-          const rawStatus = (rowObj.Status || rowObj['Vote Status'] || '')
+          const rawStatus = (rowObj.Status || rowObj['Vote Status'] ?? '')
             .toString()
             .trim()
           const normalisedStatus =
@@ -437,14 +434,13 @@ export class CSVProcessor {
             cusip: cusip,
             setKey: rowObj['Set Key'] || rowObj.SetKey || null,
             accountType: this.normalizeAccountType(
-              rowObj['Account Type'] || rowObj.Type || 'Registered Account'
+              rowObj['Account Type'] || rowObj.Type ?? 'Registered Account'
             ),
             name:
               rowObj.Account ||
               rowObj['Account Name'] ||
               rowObj.Name ||
-              rowObj.Shareholder ||
-              'Unknown',
+              rowObj.Shareholder ?? 'Unknown',
             accountNumber:
               rowObj['Account#'] || rowObj['Account Number'] || rowObj.Account || null,
             voteStatus: normalisedStatus,
@@ -452,7 +448,7 @@ export class CSVProcessor {
             sharesVoted: sharesVoted,
             source: (rowObj.Source || rowObj['Vote Method'] || null) ?? null,
             dateVoted: this.parseDate(
-              rowObj['Time Stamp'] || rowObj['Vote Date'] || rowObj['Voted Date'] || ''
+              rowObj['Time Stamp'] || rowObj['Vote Date'] || rowObj['Voted Date'] ?? ''
             ),
             voteMethod:
               rowObj['Vote Method'] || rowObj.Method || rowObj.Source || undefined,
@@ -514,9 +510,9 @@ export class CSVProcessor {
       createReadStream(dtcFilePath)
         .pipe(csvParser())
         .on('data', (row) => {
-          const category = (row.Category || '').toLowerCase()
-          const participants = this.parseNumber(row.Participants || '0')
-          const shares = this.parseNumber(row.Shares || '0')
+          const category = (row.Category ?? '').toLowerCase()
+          const participants = this.parseNumber(row.Participants ?? '0')
+          const shares = this.parseNumber(row.Shares ?? '0')
 
           if (category.includes('unvoted')) {
             results.unvotedParticipants = participants
@@ -565,9 +561,9 @@ export class CSVProcessor {
       createReadStream(nonDtcFilePath)
         .pipe(csvParser())
         .on('data', (row) => {
-          const category = (row.Category || '').toLowerCase()
-          const shareholders = this.parseNumber(row.Shareholders || '0')
-          const shares = this.parseNumber(row.Shares || '0')
+          const category = (row.Category ?? '').toLowerCase()
+          const shareholders = this.parseNumber(row.Shareholders ?? '0')
+          const shares = this.parseNumber(row.Shares ?? '0')
 
           if (category.includes('unvoted')) {
             results.unvotedShareholders = shareholders

@@ -136,7 +136,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
               ).map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell size="small">
-                    <Typography>{doc.title || 'Untitled Document'}</Typography>
+                    <Typography>{doc.title ?? 'Untitled Document'}</Typography>
                   </TableCell>
                   <TableCell size="small">
                     <Typography variant="caption" color="text.secondary">

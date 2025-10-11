@@ -81,13 +81,13 @@ const computeParticipationFromPositions = (
   if (!positions || positions.length === 0) return null
 
   const votedShares = positions.reduce(
-    (sum, position) => sum + (position.sharesVoted || 0),
+    (sum, position) => sum + (position.sharesVoted ?? 0),
     0
   )
 
   const denominator = totalSharesOutstanding
     ? totalSharesOutstanding
-    : positions.reduce((sum, position) => sum + (position.shares || 0), 0)
+    : positions.reduce((sum, position) => sum + (position.shares ?? 0), 0)
 
   if (!Number.isFinite(denominator) || denominator <= 0) {
     return null
@@ -131,9 +131,9 @@ const buildResultsFromCsvProposal = (
   totalSharesOutstanding: number,
   meetingDateISO?: string
 ) => {
-  const totalVotesFor = Math.max(0, Math.round(proposal.votesFor || 0))
-  const totalVotesAgainst = Math.max(0, Math.round(proposal.votesAgainst || 0))
-  const totalVotesAbstain = Math.max(0, Math.round(proposal.votesAbstain || 0))
+  const totalVotesFor = Math.max(0, Math.round(proposal.votesFor ?? 0))
+  const totalVotesAgainst = Math.max(0, Math.round(proposal.votesAgainst ?? 0))
+  const totalVotesAbstain = Math.max(0, Math.round(proposal.votesAbstain ?? 0))
 
   const totalVotesCalculated = totalVotesFor + totalVotesAgainst + totalVotesAbstain
   const totalVotes = Math.max(
@@ -552,7 +552,7 @@ function parseCSV(csvContent: string, hasHeader = true): any[] {
 
     const obj: any = {}
     headers.forEach((header, index) => {
-      obj[header] = values[index] || ''
+      obj[header] = values[index] ?? ''
     })
     return obj
   })
@@ -1305,21 +1305,21 @@ const main = async () => {
         companyMeetings.forEach((meetingId) => {
           const mailingId = copycat.uuid(`mailing-${meetingId}-${timestamp}`)
 
-          const totalAccounts = data.Totals?.Accounts || 0
-          const totalPositions = data.Totals?.Positions || 0
+          const totalAccounts = data.Totals?.Accounts ?? 0
+          const totalPositions = data.Totals?.Positions ?? 0
           const totalRetransmissions = data.Totals?.Retransmissions || null
           const totalRollups = data.Totals?.Rollups || null
 
-          const fullsetMail = data['Mail Positions']?.Fullset || 0
-          const naaMail = data['Mail Positions']?.NAA || 0
+          const fullsetMail = data['Mail Positions']?.Fullset ?? 0
+          const naaMail = data['Mail Positions']?.NAA ?? 0
           const courtesyOtherMail = data['Mail Positions']?.['Courtesy/Other'] || null
 
-          const electronicSuppressed = data['Suppressed Positions']?.Electronic || 0
-          const householdSuppressed = data['Suppressed Positions']?.Household || 0
+          const electronicSuppressed = data['Suppressed Positions']?.Electronic ?? 0
+          const householdSuppressed = data['Suppressed Positions']?.Household ?? 0
           const managedSuppressed = data['Suppressed Positions']?.Managed || null
           const consolidatedSuppressed =
             data['Suppressed Positions']?.Consolidated || null
-          const canceledSuppressed = data['Suppressed Positions']?.Canceled || 0
+          const canceledSuppressed = data['Suppressed Positions']?.Canceled ?? 0
 
           sqlStatements.push(
             `INSERT INTO mailing(id, meeting_id, ticker, total_accounts, total_positions, total_retransmissions, total_rollups, fullset_mail_positions, naa_mail_positions, courtesy_other_mail_positions, electronic_suppressed_positions, household_suppressed_positions, managed_suppressed_positions, consolidated_suppressed_positions, canceled_suppressed_positions, created_at, updated_at) VALUES (` +
@@ -2327,9 +2327,9 @@ const main = async () => {
 
         // Check if CSV has actual vote data
         const hasVoteData =
-          (proposal.votesFor || 0) > 0 ||
-          (proposal.votesAgainst || 0) > 0 ||
-          (proposal.votesAbstain || 0) > 0
+          (proposal.votesFor ?? 0) > 0 ||
+          (proposal.votesAgainst ?? 0) > 0 ||
+          (proposal.votesAbstain ?? 0) > 0
 
         const results =
           isPhase7Special2026 || !hasVoteData
@@ -2409,9 +2409,9 @@ const main = async () => {
 
         // Check if CSV has actual vote data
         const hasVoteData =
-          (proposal.votesFor || 0) > 0 ||
-          (proposal.votesAgainst || 0) > 0 ||
-          (proposal.votesAbstain || 0) > 0
+          (proposal.votesFor ?? 0) > 0 ||
+          (proposal.votesAgainst ?? 0) > 0 ||
+          (proposal.votesAbstain ?? 0) > 0
 
         const results =
           isPhase7Special2026 || !hasVoteData
@@ -2748,8 +2748,8 @@ const main = async () => {
         positionToMeetingMap[positionId] = meetingId
 
         // For Phase 1-5, override vote status to Unvoted
-        let voteStatus = position.voteStatus || 'Unvoted'
-        let sharesVoted = position.sharesVoted || 0
+        let voteStatus = position.voteStatus ?? 'Unvoted'
+        let sharesVoted = position.sharesVoted ?? 0
         let source = position.source
         let dateVoted = position.dateVoted
 
@@ -2773,7 +2773,7 @@ const main = async () => {
           `${sqlValue(position.name)}, ` +
           `${position.accountNumber ? sqlValue(position.accountNumber) : 'NULL'}, ` +
           `${sqlValue(voteStatus)}, ` +
-          `${sqlValue(position.controlNumber || 'CTRL' + String(index + 1).padStart(6, '0'))}, ` +
+          `${sqlValue(position.controlNumber ?? 'CTRL' + String(index + 1).padStart(6, '0'))}, ` +
           `${sqlValue(position.shares)}, ` +
           `${sqlValue(sharesVoted)}, ` +
           `${sqlValue(source)}, ` +
@@ -2796,7 +2796,7 @@ const main = async () => {
 
       if (voteStatusSummary?.nonDtcSummary && meetingPhase >= 6) {
         const summary = voteStatusSummary.nonDtcSummary
-        const totalVotedShares = summary.votedSubtotalShares || 0
+        const totalVotedShares = summary.votedSubtotalShares ?? 0
 
         if (totalVotedShares > 0) {
           // Create positions for each voting method
@@ -3355,7 +3355,7 @@ const main = async () => {
       // Use more descriptive titles
       let title = docType.type
       if (docType.type === 'Shareholder Presentation') {
-        const clientName = meetingToClient[meetingId]?.companyName || ''
+        const clientName = meetingToClient[meetingId]?.companyName ?? ''
         title = `${clientName} Annual Meeting Presentation`
       } else if (docType.type === 'Meeting Minutes') {
         title = '2025 Annual Meeting Minutes'

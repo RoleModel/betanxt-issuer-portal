@@ -18,6 +18,27 @@ function jsonError(message: string, status = 400) {
   })
 }
 
+// Helper to safely extract string values from FormData
+function getFormDataString(formData: FormData, key: string): string | null {
+  const value = formData.get(key)
+  if (value === null) return null
+  // Only return string values, not File objects
+  if (typeof value === 'string') return value
+  return null
+}
+
+// Type for document history entries
+interface HistoryEntry {
+  id: string
+  action: string
+  user: string
+  fileName: string
+  fileSize: number
+  fileType: string
+  timestamp: string
+  notes: string | null
+}
+
 // Signature aligned with generated route validator expectations (params as Promise wrapper)
 export async function POST(
   req: NextRequest,
@@ -29,14 +50,14 @@ export async function POST(
 
     // Get authenticated user
     const session = await auth()
-    const userName = session?.user?.name || session?.user?.username || 'Unknown User'
+    const userName = (session?.user?.name || session?.user?.username) ?? 'Unknown User'
 
     // Expect multipart/form-data
     const formData = await req.formData()
-    const meetingId = formData.get('meetingId')?.toString()
-    const title = formData.get('title')?.toString()
-    const taskId = formData.get('taskId')?.toString()
-    const versionNotes = formData.get('versionNotes')?.toString() || undefined
+    const meetingId = getFormDataString(formData, 'meetingId')
+    const title = getFormDataString(formData, 'title')
+    const taskId = getFormDataString(formData, 'taskId')
+    const versionNotes = getFormDataString(formData, 'versionNotes') || undefined
     const file = formData.get('file') as File | null
 
     if (!meetingId) return jsonError('meetingId is required', 400)
@@ -93,12 +114,12 @@ export async function POST(
       .from(DOCUMENTS_BUCKET)
       .upload(storagePath, buffer, {
         cacheControl: '3600',
-        contentType: file.type || 'application/octet-stream',
+        contentType: file.type ?? 'application/octet-stream',
         upsert: false,
       })
 
     if (uploadError || !uploadData) {
-      return jsonError(`Upload failed: ${uploadError?.message || 'unknown error'}`, 500)
+      return jsonError(`Upload failed: ${uploadError?.message ?? 'unknown error'}`, 500)
     }
 
     // Get public URL (bucket currently public in dev). Later we may switch to signed URLs.
@@ -108,7 +129,7 @@ export async function POST(
 
     // LEGACY SINGLE TABLE PERSISTENCE (no new tables):
     // If client supplies documentId treat as update; else create new row in existing 'document' table.
-    const existingDocumentId = formData.get('documentId')?.toString() || null
+    const existingDocumentId = getFormDataString(formData, 'documentId')
     const nowIso = new Date().toISOString()
 
     // Build history entry (append into JSON array in 'history' column)
@@ -134,7 +155,7 @@ export async function POST(
         title: title || file.name,
         type: documentType,
         file_path: uploadData.path,
-        file_type: file.type || 'application/octet-stream',
+        file_type: file.type ?? 'application/octet-stream',
         file_size: file.size,
         status: documentStatus,
         uploaded_date: nowIso,
@@ -170,14 +191,14 @@ export async function POST(
         .single()
       if (fetchErr) return jsonError(`Load document failed: ${fetchErr.message}`, 500)
       const existingHistory = Array.isArray(existingData?.history)
-        ? existingData.history
+        ? (existingData.history as HistoryEntry[])
         : []
-      const newHistory = [...existingHistory, historyEntry]
+      const newHistory: HistoryEntry[] = [...existingHistory, historyEntry]
       const { error: updateError } = await supabase
         .from('document')
         .update({
           file_path: uploadData.path,
-          file_type: file.type || 'application/octet-stream',
+          file_type: file.type ?? 'application/octet-stream',
           file_size: file.size,
           status: documentStatus,
           uploaded_date: nowIso,

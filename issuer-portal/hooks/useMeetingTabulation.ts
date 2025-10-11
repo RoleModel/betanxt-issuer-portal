@@ -156,7 +156,7 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
             targetDate: asString(phase.targetDate) ?? asString(phase.target_date) ?? null,
           }))
           .filter((phase) => phase.targetDate && phase.targetDate > today)
-          .sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''))
+          .sort((a, b) => (a.targetDate ?? '').localeCompare(b.targetDate ?? ''))
 
         if (upcomingPhases.length > 0) {
           setNextPhaseDate(upcomingPhases[0].targetDate || null)

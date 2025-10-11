@@ -68,7 +68,7 @@ export default function MeetingDocuments({
     addOptimisticDocument,
     removeOptimisticDocument,
   } = useDocumentSync({
-    meetingId: meetingId || '',
+    meetingId: meetingId ?? '',
     onDocumentAdded: (document) => {
       console.log('Document added via real-time sync:', document.title)
     },
@@ -86,8 +86,8 @@ export default function MeetingDocuments({
 
     // Apply the same filtering logic as before
     const filteredDocuments = syncedDocuments.filter((doc) => {
-      const docType = (doc.type || doc.fileType || '').toLowerCase()
-      const docTitle = (doc.title || '').toLowerCase()
+      const docType = (doc.type ?? doc.fileType ?? '').toLowerCase()
+      const docTitle = (doc.title ?? '').toLowerCase()
 
       // Exclude DSM documents (they belong in the DSMDocuments component)
       if (
@@ -204,9 +204,9 @@ export default function MeetingDocuments({
       const fetchedDocuments = await getDocumentsByMeeting(meetingId)
       // Show relevant documents for the meeting phases
       const filteredDocuments = fetchedDocuments.filter((doc) => {
-        const docType = (doc.type || doc.fileType || '').toLowerCase()
-        const docTitle = (doc.title || '').toLowerCase()
-        const category = doc.displayCategory || ''
+        const docType = (doc.type ?? doc.fileType ?? '').toLowerCase()
+        const docTitle = (doc.title ?? '').toLowerCase()
+        const category = doc.displayCategory ?? ''
 
         // Exclude DSM documents (they belong in the DSMDocuments component)
         if (
@@ -410,7 +410,7 @@ export default function MeetingDocuments({
           type: placeholderId?.startsWith('placeholder-')
             ? placeholderId.replace('placeholder-', '')
             : 'document',
-          fileType: file.type || 'application/octet-stream',
+          fileType: file.type ?? 'application/octet-stream',
           fileSize: file.size,
           status: 'DRAFT' as const,
         }
@@ -433,9 +433,9 @@ export default function MeetingDocuments({
           placeholderId.startsWith('placeholder-')
         ) {
           const documentType = placeholderId.replace('placeholder-', '')
-          result = await uploadDocument(file, documentType, meetingId || '', file.name)
+          result = await uploadDocument(file, documentType, meetingId ?? '', file.name)
         } else {
-          result = await uploadDocument(file, file.name, meetingId || '')
+          result = await uploadDocument(file, file.name, meetingId ?? '')
         }
 
         if (!result) {
@@ -466,7 +466,7 @@ export default function MeetingDocuments({
       return
     }
 
-    const storagePath = document.filePath || ''
+    const storagePath = document.filePath ?? ''
 
     if (!storagePath) {
       return
@@ -525,7 +525,7 @@ export default function MeetingDocuments({
 
     // Status config not currently used, but kept for future enhancement
     const _config =
-      statusConfig[status || 'AWAITING_DRAFT'] || statusConfig.AWAITING_DRAFT
+      statusConfig[status ?? 'AWAITING_DRAFT'] || statusConfig.AWAITING_DRAFT
     return <StatusChip status={status || null} />
   }
 
@@ -563,7 +563,7 @@ export default function MeetingDocuments({
       case 'PENDING_AUTHORIZATION':
       case 'SUBMITTED_AWAITING_RECORD_DATE':
         return (
-          <Button variant="text" onClick={() => handleApprove(document.id || '')}>
+          <Button variant="text" onClick={() => handleApprove(document.id ?? '')}>
             View
           </Button>
         )
@@ -611,7 +611,7 @@ export default function MeetingDocuments({
                     <TableCell>
                       <Box>
                         <Typography noWrap fontWeight={500}>
-                          {document.title || 'Untitled'}
+                          {document.title ?? 'Untitled'}
                         </Typography>
                         {document.uploadedDate ? (
                           <Typography color="text.secondary">
@@ -638,7 +638,7 @@ export default function MeetingDocuments({
                     <TableCell>
                       <Typography color="text.secondary">
                         {(() => {
-                          const docType = document.fileType || 'PDF'
+                          const docType = document.fileType ?? 'PDF'
                           // Map MIME types to friendly names
                           if (docType === 'application/pdf') return 'PDF'
                           if (

@@ -109,14 +109,14 @@ const convertDbNotificationToNotificationData = (
   }
 
   return {
-    id: dbNotification.id || '',
+    id: dbNotification.id ?? '',
     user: userName,
-    title: dbNotification.title || '',
+    title: dbNotification.title ?? '',
     date: dbNotification.createdAt
       ? formatNotificationDate(dbNotification.createdAt)
       : '',
-    message: dbNotification.message || '',
-    link: dbNotification.actionUrl || '',
+    message: dbNotification.message ?? '',
+    link: dbNotification.actionUrl ?? '',
     variant: dbNotification.read ? 'read' : 'unread',
     avatar: userAvatar,
     isSystemNotification:

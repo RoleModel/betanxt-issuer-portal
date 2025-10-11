@@ -1,7 +1,8 @@
 'use client'
 
+import type {
+  ReactNode} from 'react';
 import React, {
-  ReactNode,
   createContext,
   useCallback,
   useContext,
@@ -10,7 +11,7 @@ import React, {
 } from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { components } from '@/domain-models/generated-schema'
+import type { components } from '@/domain-models/generated-schema'
 
 type Document = components['schemas']['Document']
 
@@ -24,7 +25,7 @@ interface DocumentContextType {
     meetingId: string,
     files: File[],
     documentType: string,
-    associations?: { [fileId: string]: string }
+    associations?: Record<string, string>
   ) => Promise<void>
 }
 
@@ -69,8 +70,8 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
 
         // For 2025 meetings, also include presentation/slide documents
         if (meetingId.includes('2025')) {
-          const docType = (doc.type || '').toLowerCase()
-          const title = (doc.title || '').toLowerCase()
+          const docType = (doc.type ?? '').toLowerCase()
+          const title = (doc.title ?? '').toLowerCase()
           return (
             docType.includes('presentation') ||
             docType.includes('slide') ||
@@ -93,8 +94,8 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
 
         // For 2025 meetings, also exclude presentation/slide documents
         if (meetingId.includes('2025')) {
-          const docType = (doc.type || '').toLowerCase()
-          const title = (doc.title || '').toLowerCase()
+          const docType = (doc.type ?? '').toLowerCase()
+          const title = (doc.title ?? '').toLowerCase()
           if (
             docType.includes('presentation') ||
             docType.includes('slide') ||
@@ -123,7 +124,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       meetingId: string,
       files: File[],
       documentType: string,
-      associations?: { [fileId: string]: string }
+      associations?: Record<string, string>
     ) => {
       try {
         setLoading(true)
@@ -166,7 +167,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
 
           if (!response.ok) {
             const errorData = await response.json()
-            throw new Error(errorData.error || `Failed to upload ${file.name}`)
+            throw new Error(errorData.error ?? `Failed to upload ${file.name}`)
           }
 
           const result = await response.json()

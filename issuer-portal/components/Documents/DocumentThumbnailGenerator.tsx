@@ -93,7 +93,7 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
         <Box
           component="img"
           src={url}
-          alt={title || 'Document thumbnail'}
+          alt={title ?? 'Document thumbnail'}
           sx={{
             width: '100%',
             height: '100%',

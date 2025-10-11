@@ -36,8 +36,8 @@ export async function GET(
     if (!user) {
       user = {
         id,
-        name: session.user.name || 'Unknown User',
-        email: session.user.email || 'unknown@example.com',
+        name: session.user.name ?? 'Unknown User',
+        email: session.user.email ?? 'unknown@example.com',
         type: session.user.type,
         account_id: session.user.account_id,
         client_ticker: session.user.client_ticker,
@@ -81,8 +81,8 @@ export async function PUT(
     if (!user) {
       user = {
         id,
-        name: session.user.name || 'Unknown User',
-        email: session.user.email || 'unknown@example.com',
+        name: session.user.name ?? 'Unknown User',
+        email: session.user.email ?? 'unknown@example.com',
         type: session.user.type,
         account_id: session.user.account_id,
         client_ticker: session.user.client_ticker,

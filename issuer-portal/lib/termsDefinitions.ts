@@ -533,7 +533,7 @@ export const termsDefinitions = {
     category: 'Market Infrastructure',
     term: 'Securities and Exchange Commission',
     definition:
-      'A federal agency that holds primary responsibility for enforcing federal securities laws and regulating the securities industry, the nation\s stock and options exchanges, and other electronic securities markets in the United States. Created by Congress in 1934 as the first federal regulator of the securities markets, the SEC promotes full public disclosure, protects investors against fraudulent and manipulative practices in the market, and monitors corporate takeover actions in the United States.',
+      "A federal agency that holds primary responsibility for enforcing federal securities laws and regulating the securities industry, the nation's stock and options exchanges, and other electronic securities markets in the United States. Created by Congress in 1934 as the first federal regulator of the securities markets, the SEC promotes full public disclosure, protects investors against fraudulent and manipulative practices in the market, and monitors corporate takeover actions in the United States.",
   },
   sifma: {
     category: 'Market Infrastructure',
@@ -603,7 +603,7 @@ export const termsDefinitions = {
     category: 'Key Dates & Identifiers',
     term: 'CUSIP',
     definition:
-      'A 9-digit alphanumeric security identifier issued to stocks and registered bonds in the United States and Canada for the purposes of facilitating clearance and settlement of trades. The CUSIP distribution system is operated by Standard & Poor\s.',
+      "A 9-digit alphanumeric security identifier issued to stocks and registered bonds in the United States and Canada for the purposes of facilitating clearance and settlement of trades. The CUSIP distribution system is operated by Standard & Poor's.",
   },
   fiscalyear: {
     category: 'Key Dates & Identifiers',
@@ -615,7 +615,7 @@ export const termsDefinitions = {
     category: 'Key Dates & Identifiers',
     term: 'Net Asset Value (NAV)',
     definition:
-      'Represents the net value of an entity and is calculated as the total value of the entity\s assets minus the total value of its liabilities. Most commonly used in the context of a mutual fund or an exchange traded fund (ETF), the NAV represents the per share/unit price of the fund on a specific date or time. NAV is the price at which the shares/units of the funds registered with the SEC are traded (invested or redeemed).',
+      "Represents the net value of an entity and is calculated as the total value of the entity's assets minus the total value of its liabilities. Most commonly used in the context of a mutual fund or an exchange traded fund (ETF), the NAV represents the per share/unit price of the fund on a specific date or time. NAV is the price at which the shares/units of the funds registered with the SEC are traded (invested or redeemed).",
   },
   recorddate: {
     category: 'Key Dates & Identifiers',

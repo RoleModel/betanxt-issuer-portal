@@ -35,7 +35,7 @@ export async function listPositionVotes(opts?: {
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch position votes',
+        message: error.message ?? 'Failed to fetch position votes',
         statusCode: response.status,
       },
       response,
@@ -60,7 +60,7 @@ export async function createPositionVote(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to create position vote',
+        message: error.message ?? 'Failed to create position vote',
         statusCode: response.status,
       },
       response,

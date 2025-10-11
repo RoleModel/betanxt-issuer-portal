@@ -14,10 +14,9 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
 import type { Stats } from 'fs'
 import { join } from 'path'
 
-const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321'
+const supabaseUrl = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321'
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -321,7 +320,7 @@ async function uploadDocument(
         file_path: urlData.publicUrl,
         file_type: ext.toUpperCase(),
         file_size: fileStats.size,
-        status: docType.status || 'APPROVED',
+        status: docType.status ?? 'APPROVED',
         created_at: docDate.toISOString(),
         updated_at: docDate.toISOString(),
       })
@@ -393,7 +392,7 @@ async function linkExistingDocuments() {
     return
   }
 
-  console.log(`Found ${files?.length || 0} files in storage`)
+  console.log(`Found ${files?.length ?? 0} files in storage`)
 
   let linkedCount = 0
   for (const file of files || []) {
@@ -422,7 +421,7 @@ async function linkExistingDocuments() {
       display_category: docType.displayCategory,
       file_path: urlData.publicUrl,
       file_type: (filename.split('.').pop() || 'pdf').toUpperCase(),
-      status: docType.status || 'APPROVED',
+      status: docType.status ?? 'APPROVED',
       updated_at: new Date().toISOString(),
     })
 

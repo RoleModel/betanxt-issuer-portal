@@ -17,12 +17,12 @@ export function floorAndFormatNumber(value: string | number): string {
   if (typeof value === 'string') {
     return numberFormatter.format(parseInt(value) || 0)
   } else {
-    return numberFormatter.format(Math.floor(value || 0))
+    return numberFormatter.format(Math.floor(value ?? 0))
   }
 }
 
 export function formatPreciseNumber(value: number): string {
-  return preciseNumberFormatter.format(value || 0)
+  return preciseNumberFormatter.format(value ?? 0)
 }
 
 export function roundTo(number: number, places: number): number {

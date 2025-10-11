@@ -570,9 +570,7 @@ export interface components {
        * @example 33333333-4444-5555-6666-777777777777
        */
       documentId?: string | null;
-      links?: {
-        [key: string]: unknown;
-      } | null;
+      links?: Record<string, unknown> | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -858,9 +856,7 @@ export interface components {
       /** Format: uuid */
       userId?: string;
       userName?: string;
-      metadata?: {
-        [key: string]: unknown;
-      };
+      metadata?: Record<string, unknown>;
       /** Format: date-time */
       createdAt?: string;
       document?: components["schemas"]["Document"];
@@ -1100,9 +1096,7 @@ export interface components {
       owner?: string;
       /** Format: uuid */
       documentId?: string;
-      links?: {
-        [key: string]: unknown;
-      };
+      links?: Record<string, unknown>;
     };
     CreateDocumentRequest: {
       title: string;
@@ -3149,9 +3143,7 @@ export interface operations {
         "application/json": {
           /** @enum {string} */
           eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "NOT_UPLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
-          metadata?: {
-            [key: string]: unknown;
-          };
+          metadata?: Record<string, unknown>;
         };
       };
     };

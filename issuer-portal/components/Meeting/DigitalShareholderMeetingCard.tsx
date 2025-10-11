@@ -97,7 +97,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         setIsLoading(true)
         const _apiClient = await buildApiClient()
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`
         )
 
         if (response.ok) {
@@ -218,7 +218,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`,
         {
           method: 'POST',
           headers: {
@@ -254,7 +254,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`
+        `${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'}/meetings/${meetingId}/dsm-config`
       )
 
       if (response.ok) {
@@ -559,7 +559,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
             }}
             fileUrl={selectedDocument.filePath}
             documentId={selectedDocument.id}
-            title={selectedDocument.title || 'Previous Year Document'}
+            title={selectedDocument.title ?? 'Previous Year Document'}
             hideActivityButtons={true}
           />
         </Suspense>

@@ -43,7 +43,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
   setDocumentViewerOpen,
 }) => {
   // Only show actions for issuer-owned tasks
-  if (!taskLinks.length || ['BetaNXT', 'DFIN'].includes(task.owner || '')) {
+  if (!taskLinks.length || ['BetaNXT', 'DFIN'].includes(task.owner ?? '')) {
     return null
   }
 
@@ -56,7 +56,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
     if (signedDoc?.filePath) {
       const documentUrl = getStoragePublicUrl(signedDoc.filePath)
       setDocumentUrl(documentUrl)
-      setCurrentDocumentId(signedDoc.id || '')
+      setCurrentDocumentId(signedDoc.id ?? '')
       setSignatureAreas([])
       setDocumentViewerOpen(true)
     } else {
@@ -90,7 +90,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
 
         // For signature tasks that have a signed document, show "View" button instead
         if (hasSignedDocument && link.action === 'signature') {
-          const viewLabel = getTaskActionButtonLabel(task.title || '', true)
+          const viewLabel = getTaskActionButtonLabel(task.title ?? '', true)
 
           return (
             <Link

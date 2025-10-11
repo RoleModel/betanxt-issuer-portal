@@ -28,7 +28,7 @@ export function cacheFn<TArgs extends unknown[], TReturn>(
 ): (...args: TArgs) => Promise<TReturn> {
   return async (...args: TArgs): Promise<TReturn> => {
     const builtTags = tagBuilder(...args)
-    const key = JSON.stringify(['cacheFn', fn.name || 'anon', args])
+    const key = JSON.stringify(['cacheFn', fn.name ?? 'anon', args])
     const cached = nextUnstableCache(async () => fn(...args), [key], {
       tags: builtTags,
       revalidate: options.revalidate ?? 60,

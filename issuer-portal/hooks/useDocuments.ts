@@ -484,7 +484,7 @@ export const useDocuments = (): UseDocumentsResult => {
 
         // Determine document type from ID or use provided title
         let docType = 'signed-form'
-        let title = _documentTitle || 'Signed Document'
+        let title = _documentTitle ?? 'Signed Document'
 
         // Override with specific form types if detected
         if (_documentId.includes('broadridge')) {
@@ -530,7 +530,7 @@ export const useDocuments = (): UseDocumentsResult => {
 
           const { data, error } = result
           if (error || !data) {
-            console.error('Document creation error:', error || 'No data returned')
+            console.error('Document creation error:', error ?? 'No data returned')
             throw new Error('Failed to create signed document')
           }
 
@@ -562,7 +562,7 @@ export const useDocuments = (): UseDocumentsResult => {
 
           const { data, error } = result
           if (error || !data) {
-            console.error('Document creation error:', error || 'No data returned')
+            console.error('Document creation error:', error ?? 'No data returned')
             throw new Error('Failed to create signed document')
           }
 

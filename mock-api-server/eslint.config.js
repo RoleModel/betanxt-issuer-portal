@@ -1,10 +1,11 @@
 // Workspace-specific ESLint overrides for mock-api-server
 // Inherits from root eslint.config.mjs
 
-import rootConfig from '../eslint.config.mjs'
+import { baseConfig } from '../eslint.config.mjs'
 
 export default [
-  ...rootConfig,
+  ...baseConfig,
+  // Mock API Server specific overrides
   {
     rules: {
       '@typescript-eslint/only-throw-error': 'warn',
@@ -12,6 +13,7 @@ export default [
       '@next/next/no-html-link-for-pages': ['error', 'mock-api-server/app'],
     },
   },
+  // Test file overrides (more strict than base config)
   {
     files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
     rules: {

@@ -68,7 +68,7 @@ class AccessibilityReporter implements Reporter {
       (attachment) => attachment.name === 'accessibility-data'
     );
 
-    if (accessibilityAttachment && accessibilityAttachment.body) {
+    if (accessibilityAttachment?.body) {
       try {
         const accessibilityData = JSON.parse(
           accessibilityAttachment.body.toString()
@@ -115,7 +115,7 @@ class AccessibilityReporter implements Reporter {
 
     // Calculate enhanced statistics
     const totalPassedRules = this.accessibilityResults.reduce(
-      (sum, t) => sum + (t.passedElements?.length || 0), 0
+      (sum, t) => sum + (t.passedElements?.length ?? 0), 0
     );
 
     const wcagCriteriaTested = new Set<string>();

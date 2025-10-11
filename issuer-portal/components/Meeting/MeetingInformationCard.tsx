@@ -70,7 +70,7 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
                 }}
               >
                 <TableCell>{info.label}</TableCell>
-                <TableCell align="right">{info.value || '—'}</TableCell>
+                <TableCell align="right">{info.value ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>

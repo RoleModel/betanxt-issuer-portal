@@ -1,7 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-22T18:38:17.317Z
 // Source: openapi-schema/openapi.yaml
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 
 interface RouteParams {
   id: string
@@ -61,8 +62,8 @@ export async function POST(
     // Create a new history event
     const newEvent: HistoryEvent = {
       id: crypto.randomUUID(),
-      event_type: body.event_type || body.eventType || 'unknown',
-      user: body.user || 'current-user',
+      event_type: body.event_type || body.eventType ?? 'unknown',
+      user: body.user ?? 'current-user',
       timestamp: new Date().toISOString(),
       metadata: body.metadata || {},
     }

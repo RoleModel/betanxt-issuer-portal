@@ -35,7 +35,7 @@ export async function listAccounts(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch accounts',
+        message: error.message ?? 'Failed to fetch accounts',
         statusCode: response.status,
       },
       response,
@@ -60,7 +60,7 @@ export async function createAccount(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to create account',
+        message: error.message ?? 'Failed to create account',
         statusCode: response.status,
       },
       response,
@@ -85,7 +85,7 @@ export async function getAccountById(id: string): Promise<ApiResponse<Account>> 
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch account',
+        message: error.message ?? 'Failed to fetch account',
         statusCode: response.status,
       },
       response,
@@ -114,7 +114,7 @@ export async function updateAccount(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to update account',
+        message: error.message ?? 'Failed to update account',
         statusCode: response.status,
       },
       response,
@@ -139,7 +139,7 @@ export async function deleteAccount(id: string): Promise<ApiResponse<void>> {
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to delete account',
+        message: error.message ?? 'Failed to delete account',
         statusCode: response.status,
       },
       response,
@@ -166,7 +166,7 @@ export async function listUserAccounts(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch user accounts',
+        message: error.message ?? 'Failed to fetch user accounts',
         statusCode: response.status,
       },
       response,

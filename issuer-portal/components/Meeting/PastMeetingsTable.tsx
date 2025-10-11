@@ -169,7 +169,7 @@ export default function PastMeetingsTable({
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3" color="text.secondary">
-                        {meeting.cusip || 'N/A'}
+                        {meeting.cusip ?? 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell size="small">

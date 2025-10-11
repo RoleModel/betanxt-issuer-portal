@@ -522,8 +522,8 @@ export default function AccessibilityReportPage() {
         const bParts = b.id.split('.').map(Number)
 
         for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-          const aPart = aParts[i] || 0
-          const bPart = bParts[i] || 0
+          const aPart = aParts[i] ?? 0
+          const bPart = bParts[i] ?? 0
 
           if (aPart !== bPart) {
             return aPart - bPart
@@ -913,7 +913,7 @@ export default function AccessibilityReportPage() {
                   {criteria.violations && criteria.violations.length > 0 ? (
                     <Box>
                       <Typography variant="body3" fontWeight="500" sx={{ mb: 2 }}>
-                        Violations ({criteria.violations?.length || 0}):
+                        Violations ({criteria.violations?.length ?? 0}):
                       </Typography>
                       <Stack spacing={2}>
                         {criteria.violations.map((violation, vIndex) => (
@@ -1415,14 +1415,14 @@ export default function AccessibilityReportPage() {
                                     )}
                                 </Box>
                               ))}
-                              {violation.nodes > (violation.elements?.length || 0) && (
+                              {violation.nodes > (violation.elements?.length ?? 0) && (
                                 <Typography
                                   variant="body3"
                                   color="text.secondary"
                                   sx={{ fontStyle: 'italic' }}
                                 >
                                   ... and{' '}
-                                  {violation.nodes - (violation.elements?.length || 0)}{' '}
+                                  {violation.nodes - (violation.elements?.length ?? 0)}{' '}
                                   more similar elements
                                 </Typography>
                               )}

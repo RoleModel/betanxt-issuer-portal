@@ -31,7 +31,7 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
     if (isProducts) return 'Products'
     if (isMeeting) return 'Meeting'
     if (isPastMeetings) return 'Past Meetings'
-    return toTitle(segments[baseIndex] || '')
+    return toTitle(segments[baseIndex] ?? '')
   }
 
   // Determine the actual page title to display

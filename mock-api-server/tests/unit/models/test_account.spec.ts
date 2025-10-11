@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Account Model', () => {
-  test('should validate account creation with required fields', async () => {
+  test('should validate account creation with required fields', () => {
     // This test will fail initially until AccountService is implemented
     const accountData = {
       account: 'WENDY001',
@@ -15,7 +15,7 @@ test.describe('Account Model', () => {
     expect(accountData.primaryContact).toBeDefined()
   })
 
-  test('should enforce unique account identifier constraint', async () => {
+  test('should enforce unique account identifier constraint', () => {
     // This test will fail initially until database constraints are implemented
     const duplicateAccount = {
       account: 'WENDY001', // Same as above
@@ -27,7 +27,7 @@ test.describe('Account Model', () => {
     expect(duplicateAccount.account).toBe('WENDY001')
   })
 
-  test('should enforce unique company name constraint', async () => {
+  test('should enforce unique company name constraint', () => {
     // This test will fail initially until database constraints are implemented
     const duplicateName = {
       account: 'WENDY002',
@@ -39,7 +39,7 @@ test.describe('Account Model', () => {
     expect(duplicateName.name).toBe("The Wendy's Company")
   })
 
-  test('should validate account identifier format', async () => {
+  test('should validate account identifier format', () => {
     // This test will fail initially until validation is implemented
     const invalidAccount = {
       account: '', // Empty account identifier
@@ -51,7 +51,7 @@ test.describe('Account Model', () => {
     expect(invalidAccount.account.length).toBe(0)
   })
 
-  test('should validate company name length constraints', async () => {
+  test('should validate company name length constraints', () => {
     // This test will fail initially until validation is implemented
     const shortName = {
       account: 'TEST001',
@@ -70,7 +70,7 @@ test.describe('Account Model', () => {
     expect(longName.name.length).toBeGreaterThan(100)
   })
 
-  test('should validate primary contact reference', async () => {
+  test('should validate primary contact reference', () => {
     // This test will fail initially until foreign key validation is implemented
     const invalidContact = {
       account: 'TEST003',
@@ -82,7 +82,7 @@ test.describe('Account Model', () => {
     expect(invalidContact.primaryContact).toBe('invalid-user-id')
   })
 
-  test('should automatically set creation timestamp', async () => {
+  test('should automatically set creation timestamp', () => {
     // This test will fail initially until model implementation includes timestamps
     const _account = {
       account: 'TEST004',
@@ -95,7 +95,7 @@ test.describe('Account Model', () => {
     expect(now).toBeInstanceOf(Date)
   })
 
-  test('should support account relationships', async () => {
+  test('should support account relationships', () => {
     // This test will fail initially until relationships are implemented
     const accountId = 'account-uuid-123'
 

@@ -113,7 +113,7 @@ export default function DocumentHostingCard({
 
   const ivrNumber = {
     label: `IVR Dial-In`,
-    url: meeting?.ivrDialInNumber || '',
+    url: meeting?.ivrDialInNumber ?? '',
     status: meeting?.status,
     hasUrl: false,
   }

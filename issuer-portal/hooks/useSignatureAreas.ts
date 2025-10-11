@@ -70,8 +70,8 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         const newArea: SignatureArea = {
           id: `sig_${Date.now()}`,
           document_id: documentId,
-          x_position: area.x_position || 0,
-          y_position: area.y_position || 0,
+          x_position: area.x_position ?? 0,
+          y_position: area.y_position ?? 0,
           width: area.width || 15,
           height: area.height || 5,
           page_number: area.page_number || 1,
@@ -107,9 +107,9 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         // For now, return the updated area to avoid breaking the component
         const updatedArea: SignatureArea = {
           id: areaId,
-          document_id: updates.document_id || '',
-          x_position: updates.x_position || 0,
-          y_position: updates.y_position || 0,
+          document_id: updates.document_id ?? '',
+          x_position: updates.x_position ?? 0,
+          y_position: updates.y_position ?? 0,
           width: updates.width || 15,
           height: updates.height || 5,
           page_number: updates.page_number || 1,

@@ -73,7 +73,7 @@ export async function listPositions(params?: {
       // Supabase range() has internal limits, so we need to be careful
       // For limits up to 1000, range works fine
       // For higher limits, we should use limit() directly
-      const offset = params?.offset || 0
+      const offset = params?.offset ?? 0
       if (params.limit <= 1000 && offset === 0) {
         query = query.limit(params.limit)
       } else if (offset > 0) {
@@ -97,7 +97,7 @@ export async function listPositions(params?: {
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch positions' },
+        error: { message: error.message ?? 'Failed to fetch positions' },
       }
     }
 
@@ -133,7 +133,7 @@ export async function createPosition(
         control_number: request.controlNumber,
         vote_status: request.voteStatus,
         shares: request.shares,
-        shares_voted: request.sharesVoted || 0,
+        shares_voted: request.sharesVoted ?? 0,
         source: request.source,
         date_voted: request.dateVoted,
       })
@@ -142,7 +142,7 @@ export async function createPosition(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create position' },
+        error: { message: error.message ?? 'Failed to create position' },
       }
     }
 
@@ -168,7 +168,7 @@ export async function getPositionById(id: string): Promise<ApiResponse<Position>
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch position' },
+        error: { message: error.message ?? 'Failed to fetch position' },
       }
     }
 
@@ -211,7 +211,7 @@ export async function updatePosition(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update position' },
+        error: { message: error.message ?? 'Failed to update position' },
       }
     }
 

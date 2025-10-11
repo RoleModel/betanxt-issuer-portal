@@ -38,7 +38,7 @@ export async function listClients(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch clients',
+        message: error.message ?? 'Failed to fetch clients',
         statusCode: response.status,
       },
       response,
@@ -61,7 +61,7 @@ export async function createClient(clientData: unknown): Promise<ApiResponse<Cli
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to create client',
+        message: error.message ?? 'Failed to create client',
         statusCode: response.status,
       },
       response,
@@ -86,7 +86,7 @@ export async function getClientByTicker(ticker: string): Promise<ApiResponse<Cli
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch client',
+        message: error.message ?? 'Failed to fetch client',
         statusCode: response.status,
       },
       response,
@@ -115,7 +115,7 @@ export async function updateClient(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to update client',
+        message: error.message ?? 'Failed to update client',
         statusCode: response.status,
       },
       response,
@@ -140,7 +140,7 @@ export async function deleteClient(ticker: string): Promise<ApiResponse<void>> {
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to delete client',
+        message: error.message ?? 'Failed to delete client',
         statusCode: response.status,
       },
       response,

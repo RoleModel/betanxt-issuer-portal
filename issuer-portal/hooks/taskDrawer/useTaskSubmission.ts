@@ -133,7 +133,7 @@ export const useTaskSubmission = ({
       )
 
       // Determine appropriate status based on task type
-      const newStatus = determineTaskStatus(taskToSubmit.title || '')
+      const newStatus = determineTaskStatus(taskToSubmit.title ?? '')
 
       // Update task status
       if (taskToSubmit.id) {

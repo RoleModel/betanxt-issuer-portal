@@ -351,7 +351,7 @@ const TimelinePDFDocument = ({
                         style={[styles.tableRow, styles.keyDateRow]}
                       >
                         <Text style={[styles.taskCell, styles.boldText]}>
-                          {keyDate.title || 'Untitled Key Date'}
+                          {keyDate.title ?? 'Untitled Key Date'}
                         </Text>
                         <Text style={[styles.dateCell, styles.boldText]}>
                           {item.displayDate}
@@ -373,7 +373,7 @@ const TimelinePDFDocument = ({
                         ]}
                       >
                         <Text style={styles.taskCell}>
-                          {task.title || 'Untitled Task'}
+                          {task.title ?? 'Untitled Task'}
                         </Text>
                         <Text style={styles.dateCell}>
                           {formatDateShort(task.dueDate || null)}

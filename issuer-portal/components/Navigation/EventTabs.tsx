@@ -198,8 +198,7 @@ export function EventTabs() {
   )
   const activeTab = useMemo(
     () =>
-      navigationTabs.find((tab) => tab.route === currentRoute)?.label ||
-      'Meeting Dashboard',
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ?? 'Meeting Dashboard',
     [navigationTabs, currentRoute]
   )
 
@@ -263,7 +262,7 @@ export function EventTabs() {
       const dateA = a.meetingDate ? new Date(a.meetingDate).getTime() : 0
       const dateB = b.meetingDate ? new Date(b.meetingDate).getTime() : 0
       if (dateA === dateB) {
-        return (a.title || '').localeCompare(b.title || '')
+        return (a.title ?? '').localeCompare(b.title ?? '')
       }
       return dateA - dateB
     })
@@ -451,7 +450,7 @@ export function EventTabs() {
     currentPhase: number
     onOpenPhaseDrawer: () => void
   }) => {
-    const phaseLabel = meeting.currentPhase || `Phase ${currentPhase}`
+    const phaseLabel = meeting.currentPhase ?? `Phase ${currentPhase}`
 
     return (
       <Box sx={{ display: 'flex', color: 'text.primary' }}>
@@ -576,17 +575,17 @@ export function EventTabs() {
               <LinearProgress
                 variant="determinate"
                 color={getPhaseNumber(currentPhase) as 'primary'}
-                value={meeting.overallCompletion || 0}
-                aria-label={`Overall completion progress: ${meeting.overallCompletion || 0}%`}
+                value={meeting.overallCompletion ?? 0}
+                aria-label={`Overall completion progress: ${meeting.overallCompletion ?? 0}%`}
                 sx={{ flex: 1, height: 6, borderRadius: 12 }}
               />
               <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                {meeting.overallCompletion || 0}%
+                {meeting.overallCompletion ?? 0}%
               </Typography>
             </Box>
           </Stack>
           <Box display="flex" alignItems="center" height="100%">
-            <StatusChip status={meeting.status || 'Unknown'} size="small" />
+            <StatusChip status={meeting.status ?? 'Unknown'} size="small" />
           </Box>
         </Stack>
       </Box>

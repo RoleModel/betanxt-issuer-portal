@@ -6,10 +6,10 @@ export interface ApiEnvelope<T> {
 
 export function assertOk<T>(res: ApiEnvelope<T>, message?: string): T {
   if (typeof res !== 'object' || res === null) {
-    throw new Error(message || 'Malformed API response')
+    throw new Error(message ?? 'Malformed API response')
   }
   if (res.error !== undefined || res.data === undefined) {
-    throw new Error(message || 'API response error')
+    throw new Error(message ?? 'API response error')
   }
   return res.data
 }

@@ -80,7 +80,7 @@ const StyledBox = styled('div')(({ theme }) => ({
 const Puller = styled('div')(({ theme }) => ({
   width: 30,
   height: 6,
-  backgroundColor: theme.vars?.palette.divider || '#e0e0e0',
+  backgroundColor: theme.vars?.palette.divider ?? '#e0e0e0',
   borderRadius: 3,
   position: 'absolute',
   top: 8,

@@ -42,7 +42,7 @@ export default function PreviewDialog<T>({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
-        {title} - {data?.length || 0} Records
+        {title} - {data?.length ?? 0} Records
       </DialogTitle>
       <DialogContent>
         <Box sx={{ overflowX: 'auto' }}>

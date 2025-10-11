@@ -28,10 +28,10 @@ interface GroupedViolation {
   help: string;
   helpUrl: string;
   type: 'violation' | 'incomplete';
-  occurrences: Array<{
+  occurrences: {
     target: string;
     failureSummary: string;
-  }>;
+  }[];
 }
 
 interface ViolationSummary {
@@ -91,7 +91,7 @@ export function groupViolationsByRule(
     acc[violation.id].occurrences.push(
       ...violation.nodes.map((node) => ({
         target: targetToString(node.target),
-        failureSummary: node.failureSummary || 'No failure summary available',
+        failureSummary: node.failureSummary ?? 'No failure summary available',
       }))
     );
 
@@ -129,7 +129,7 @@ export function createViolationSummary(
     totalSeriousIncomplete: seriousIncomplete.length,
     impactBreakdown: allIssues.reduce<Record<string, number>>((acc, issue) => {
       if (issue.impact) {
-        acc[issue.impact] = (acc[issue.impact] || 0) + 1;
+        acc[issue.impact] = (acc[issue.impact] ?? 0) + 1;
       }
       return acc;
     }, {}),

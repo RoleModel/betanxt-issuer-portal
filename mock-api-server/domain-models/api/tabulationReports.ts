@@ -152,8 +152,8 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
       nonDtcUnvotedShares: 0,
     }),
     positionsVoted: {
-      voted: positionsVoted.voted || 0,
-      unvoted: positionsVoted.unvoted || 0,
+      voted: positionsVoted.voted ?? 0,
+      unvoted: positionsVoted.unvoted ?? 0,
       totalShares: parseFloat(String(positionsVoted.totalShares)) || 0,
       votedShares: parseFloat(String(positionsVoted.votedShares)) || 0,
     },
@@ -185,7 +185,7 @@ export async function getTabulationReport(
       }
       return {
         error: {
-          message: error.message || 'Failed to fetch tabulation report',
+          message: error.message ?? 'Failed to fetch tabulation report',
           statusCode: 500,
         },
       }

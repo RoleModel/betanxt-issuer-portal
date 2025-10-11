@@ -56,7 +56,7 @@ export function transformToDigitalShareholderMeetingInsert(
 ): DigitalShareholderMeetingInsert {
   return {
     meeting_id: meetingId,
-    registrant_type: data.registrantType || 'Shareholder',
+    registrant_type: data.registrantType ?? 'Shareholder',
     first_name: data.firstName,
     last_name: data.lastName,
     email_address: data.emailAddress,

@@ -66,12 +66,12 @@ export default function AgendaPage() {
           // Map the data to our format
           const mappedData = jsonData
             .map((row: ExcelRow) => {
-              const proposalNumber = row['Proposal Number'] || row.Number || ''
-              const proposalTitle = row['Proposal Title'] || row.Title || ''
-              const proposalType = row['Proposal Type'] || row.Type || ''
-              const proposalSubtype = row['Proposal Subtype'] || row.Subtype || ''
-              const directorName = row['Director Name'] || row.Director || ''
-              const recommendation = row.Recommendation || ''
+              const proposalNumber = row['Proposal Number'] ?? row.Number ?? ''
+              const proposalTitle = row['Proposal Title'] ?? row.Title ?? ''
+              const proposalType = row['Proposal Type'] ?? row.Type ?? ''
+              const proposalSubtype = row['Proposal Subtype'] ?? row.Subtype ?? ''
+              const directorName = row['Director Name'] ?? row.Director ?? ''
+              const recommendation = row.Recommendation ?? ''
 
               // Skip rows without required fields
               if (!proposalNumber || !proposalTitle) {
@@ -107,7 +107,7 @@ export default function AgendaPage() {
 
           resolve(mappedData)
         } catch (error) {
-          reject(error)
+          reject(error instanceof Error ? error : new Error('Failed to parse file'))
         }
       }
 

@@ -19,22 +19,22 @@ export default function TabulationReportCard() {
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: currentMeeting.title || 'Company',
-          meetingType: currentMeeting.meetingType || 'Annual Meeting',
-          meetingDate: currentMeeting.meetingDate || '',
-          recordDate: currentMeeting.recordDate || '',
-          totalOutstanding: votingSummary?.totalSharesOutstanding || 0,
-          votesRepresentedForQuorum: votingSummary?.totalSharesVoted || 0,
-          quorumPercentage: votingSummary?.percentageVoted || 0,
+          companyName: currentMeeting.title ?? 'Company',
+          meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
+          meetingDate: currentMeeting.meetingDate ?? '',
+          recordDate: currentMeeting.recordDate ?? '',
+          totalOutstanding: votingSummary?.totalSharesOutstanding ?? 0,
+          votesRepresentedForQuorum: votingSummary?.totalSharesVoted ?? 0,
+          quorumPercentage: votingSummary?.percentageVoted ?? 0,
           quorumRequirement: '50%',
           votesOverUnderQuorum:
-            (votingSummary?.totalSharesVoted || 0) -
-            (votingSummary?.totalSharesOutstanding || 0) * 0.5,
-          cusipList: currentMeeting.cusip || '',
+            (votingSummary?.totalSharesVoted ?? 0) -
+            (votingSummary?.totalSharesOutstanding ?? 0) * 0.5,
+          cusipList: currentMeeting.cusip ?? '',
           proposals: proposals.map((p) => ({
             proposalNumber: String(p.proposalNumber),
-            title: p.proposalTitle || '',
-            directorName: p.directorName || '',
+            title: p.proposalTitle ?? '',
+            directorName: p.directorName ?? '',
             voteFor: p.votingResults.for.shares,
             voteAgainst: p.votingResults.against.shares,
             voteAbstain: p.votingResults.abstain.shares,

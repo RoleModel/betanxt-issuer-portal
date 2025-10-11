@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-async function globalSetup() {
+function globalSetup() {
   // Load environment variables for tests
   config({ path: path.join(__dirname, '../.env.development.local') })
 

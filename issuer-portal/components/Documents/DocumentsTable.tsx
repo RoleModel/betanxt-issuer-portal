@@ -87,7 +87,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                     onClick={doc.filePath ? () => onOpenDocument?.(doc) : undefined}
                   />
                   <Typography variant="body3">
-                    {doc.title || 'Untitled Document'}
+                    {doc.title ?? 'Untitled Document'}
                   </Typography>
                 </Box>
               </TableCell>

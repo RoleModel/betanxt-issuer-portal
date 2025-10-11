@@ -1,19 +1,16 @@
-import rootConfig from '../eslint.config.mjs'
+import baseConfig from '../eslint.config.mjs'
 
 export default [
-  ...rootConfig,
+  ...baseConfig,
+  // Issuer Portal specific overrides
   {
     rules: {
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/only-throw-error': 'warn',
-      '@next/next/no-html-link-for-pages': ['error', 'issuer-portal/app'],
-    },
-  },
-  {
-    rules: {
       '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
+  // Test file overrides
   {
     files: ['**/*.spec.ts', '**/*.spec.tsx'],
     rules: {

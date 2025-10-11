@@ -133,7 +133,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
         status: formData.status as 'COMPLETE' | 'INCOMPLETE' | 'CANCELLED',
         type: formData.type as TaskType,
         dueDate: formData.due_date || null,
-        owner: formData.assignee || 'BetaNXT',
+        owner: formData.assignee ?? 'BetaNXT',
       })
 
       // Update meeting completion after adding new task

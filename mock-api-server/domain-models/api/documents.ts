@@ -114,7 +114,7 @@ export async function listDocuments(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch documents' },
+        error: { message: error.message ?? 'Failed to fetch documents' },
       }
     }
 
@@ -149,7 +149,7 @@ export async function createDocument(
         type: request.type,
         task_id: request.taskId,
         file_path: request.file,
-        status: request.status || 'AWAITING_REVIEW',
+        status: request.status ?? 'AWAITING_REVIEW',
         created_by: defaultUserId,
         created_by_first_name: 'Sarah',
         created_by_last_name: 'Chen',
@@ -164,7 +164,7 @@ export async function createDocument(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create document' },
+        error: { message: error.message ?? 'Failed to create document' },
       }
     }
 
@@ -190,7 +190,7 @@ export async function getDocumentById(id: string): Promise<ApiResponse<Document>
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch document' },
+        error: { message: error.message ?? 'Failed to fetch document' },
       }
     }
 
@@ -229,7 +229,7 @@ export async function updateDocument(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update document' },
+        error: { message: error.message ?? 'Failed to update document' },
       }
     }
 
@@ -263,7 +263,7 @@ export async function getDocumentComments(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch comments' },
+        error: { message: error.message ?? 'Failed to fetch comments' },
       }
     }
 
@@ -271,8 +271,8 @@ export async function getDocumentComments(
     const transformedComments: CommentWithUser[] = (data ?? []).map(
       (dbComment: CommentRowWithUser) => ({
         id: dbComment.id?.toString() || '',
-        comment: dbComment.comment || '',
-        user: dbComment.user_id || 'Unknown User',
+        comment: dbComment.comment ?? '',
+        user: dbComment.user_id ?? 'Unknown User',
         first_name: 'Unknown',
         last_name: 'User',
         created_at: dbComment.created_at || new Date().toISOString(),
@@ -305,14 +305,14 @@ export async function addComment(
       .insert({
         document_id: documentId,
         comment: body.comment,
-        user_id: userId || 'ce4b0ac1-095c-5e6f-a301-e489723079a3', // Default to Dev User
+        user_id: userId ?? 'ce4b0ac1-095c-5e6f-a301-e489723079a3', // Default to Dev User
       })
       .select()
       .single()
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to add comment' },
+        error: { message: error.message ?? 'Failed to add comment' },
       }
     }
 
@@ -338,12 +338,12 @@ export async function downloadDocument(id: string): Promise<ApiResponse<string>>
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to get document file' },
+        error: { message: error.message ?? 'Failed to get document file' },
       }
     }
 
     return {
-      data: data.file_path || '',
+      data: data.file_path ?? '',
     }
   } catch (error) {
     return {

@@ -149,7 +149,7 @@ export default function DigitalShareholderMeetingsPage() {
         </Typography>
       </SidebarCard>
       <SidebarCard title="Want to Know More?">
-        <Typography variant="body3" component="p">
+        <Typography variant="body3" component="p" gutterBottom>
           View the DSM Quickstart Guide for a step-by-step overview of how to run your
           next virtual shareholder meeting.
         </Typography>

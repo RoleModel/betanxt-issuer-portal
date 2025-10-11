@@ -1,4 +1,3 @@
-/* tslint:disable */
  
 export * from './AccountsApi'
 export * from './AuthenticationApi'

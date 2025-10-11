@@ -79,10 +79,10 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
     : [
         {
           event: 'Meeting Summary',
-          recordDate: (data).materials?.sentDate || '',
+          recordDate: (data).materials?.sentDate ?? '',
           meetingType: 'Annual',
           quorum: (data).quorumAchieved ? 'Yes' : 'No',
-          participation: `${((data).participationRate || 0).toFixed(1)}%`,
+          participation: `${((data).participationRate ?? 0).toFixed(1)}%`,
           numProposals: (data).totalProposals,
           outcome: `${(data).passedProposals}/${(data).totalProposals} Passed`,
         },
@@ -119,7 +119,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
             </TableHead>
             <TableBody>
               {paginatedRows.map((row, index) => (
-                <TableRow key={`${row.meetingId || 'row'}-${index}`}>
+                <TableRow key={`${row.meetingId ?? 'row'}-${index}`}>
                   <TableCell component="th" scope="row">
                     {row.meetingId ? (
                       <Button

@@ -55,7 +55,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     try {
       setError(null)
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`)
       if (!response.ok) {
         throw new Error('Failed to fetch participants')
@@ -78,7 +78,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       // Transform data to include role information
       // Documents are meeting-level, not participant-specific
       const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
-        const role = participant.registrantType || 'Shareholder'
+        const role = participant.registrantType ?? 'Shareholder'
 
         // For meeting-level documents, show the first available DSM document for all participants
         // or indicate that documents are available at the meeting level
@@ -195,14 +195,14 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   }
 
   const getAttendanceStatus = (participant: ParticipantWithRole) => {
-    const minutesAttended = participant.minutesAttendedMeeting || 0
+    const minutesAttended = participant.minutesAttendedMeeting ?? 0
     if (minutesAttended > 0) {
       return { label: `${minutesAttended} min`, color: 'success' as const }
     }
     return { label: 'Registered', color: 'default' as const }
   }
 
-  const actualAttendees = participants.filter(p => (p.minutesAttendedMeeting || 0) > 0).length
+  const actualAttendees = participants.filter(p => (p.minutesAttendedMeeting ?? 0) > 0).length
 
   if (error) {
     return (
@@ -322,7 +322,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         onClose={handleCloseDialog}
         participantName={selectedParticipant ? `${selectedParticipant.firstName} ${selectedParticipant.lastName}` : ''}
         meetingId={meetingId}
-        participantId={selectedParticipant?.id || ''}
+        participantId={selectedParticipant?.id ?? ''}
         onDocumentAdded={handleDocumentAdded}
       />
 

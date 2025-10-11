@@ -3,8 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'http://127.0.0.1:54321'
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -75,7 +74,7 @@ async function updateDocumentLinks() {
     return
   }
 
-  console.log(`Found ${storageFiles?.length || 0} files in storage\n`)
+  console.log(`Found ${storageFiles?.length ?? 0} files in storage\n`)
 
   // Process each file and update corresponding document records
   for (const file of storageFiles || []) {
@@ -120,7 +119,7 @@ async function updateDocumentLinks() {
       .from('document')
       .update({
         file_path: urlData.publicUrl,
-        file_size: file.metadata?.size || 0,
+        file_size: file.metadata?.size ?? 0,
         status: 'UPLOADED',
         updated_at: new Date().toISOString(),
       })
@@ -140,7 +139,7 @@ async function updateDocumentLinks() {
           type: docType,
           file_path: urlData.publicUrl,
           file_type: filename.split('.').pop() || 'pdf',
-          file_size: file.metadata?.size || 0,
+          file_size: file.metadata?.size ?? 0,
           status: 'UPLOADED',
           display_category: getDisplayCategory(docType),
           created_at: new Date().toISOString(),
@@ -154,7 +153,7 @@ async function updateDocumentLinks() {
         }
       } else {
         console.error(
-          `❌ Failed to update: ${(updateError as { message?: string })?.message || 'Unknown error'}`
+          `❌ Failed to update: ${(updateError as { message?: string })?.message ?? 'Unknown error'}`
         )
       }
     } else if (updateData && updateData.length > 0) {
@@ -171,7 +170,7 @@ async function updateDocumentLinks() {
     .like('file_path', '%http://127.0.0.1:54321/storage%')
 
   console.log(`\n✨ Document linking complete!`)
-  console.log(`   Total documents linked: ${finalCount?.length || 0}`)
+  console.log(`   Total documents linked: ${finalCount?.length ?? 0}`)
 }
 
 function getDisplayCategory(docType: string): string {

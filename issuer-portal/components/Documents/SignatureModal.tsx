@@ -406,7 +406,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
           borderBottom: 'none',
         }}
       >
-        {title || 'Add your signature'}
+        {title ?? 'Add your signature'}
         <IconButton
           aria-label="close"
           onClick={onClose}

@@ -72,7 +72,7 @@ export async function listProposals(
       return {
         data: undefined,
         error: {
-          message: error.message || 'Failed to fetch proposals',
+          message: error.message ?? 'Failed to fetch proposals',
           statusCode: 500,
         },
       }
@@ -126,7 +126,7 @@ export async function createProposal(
       return {
         data: undefined,
         error: {
-          message: error.message || 'Failed to create proposal',
+          message: error.message ?? 'Failed to create proposal',
           statusCode: 400,
         },
       }
@@ -160,7 +160,7 @@ export async function getProposalById(id: string): Promise<ApiResponse<Proposal>
       return {
         data: undefined,
         error: {
-          message: error.message || 'Failed to fetch proposal',
+          message: error.message ?? 'Failed to fetch proposal',
           statusCode: 404,
         },
       }
@@ -219,7 +219,7 @@ export async function updateProposal(
       return {
         data: undefined,
         error: {
-          message: error.message || 'Failed to update proposal',
+          message: error.message ?? 'Failed to update proposal',
           statusCode: 400,
         },
       }

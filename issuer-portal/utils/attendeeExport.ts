@@ -26,10 +26,10 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
     headers.join(','),
     ...attendees.map((attendee) =>
       [
-        attendee.registrantType || '',
-        attendee.firstName || '',
-        attendee.lastName || '',
-        attendee.emailAddress || '',
+        attendee.registrantType ?? '',
+        attendee.firstName ?? '',
+        attendee.lastName ?? '',
+        attendee.emailAddress ?? '',
         attendee.registrationQuestions ? `"${attendee.registrationQuestions.replace(/"/g, '""')}"` : '',
         attendee.minutesAttendedMeeting?.toString() || '',
         attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
@@ -61,11 +61,11 @@ function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string)
     headers.join('\t'),
     ...attendees.map((attendee) =>
       [
-        attendee.registrantType || '',
-        attendee.firstName || '',
-        attendee.lastName || '',
-        attendee.emailAddress || '',
-        attendee.registrationQuestions || '',
+        attendee.registrantType ?? '',
+        attendee.firstName ?? '',
+        attendee.lastName ?? '',
+        attendee.emailAddress ?? '',
+        attendee.registrationQuestions ?? '',
         attendee.minutesAttendedMeeting?.toString() || '',
         attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
       ].join('\t')
@@ -151,10 +151,10 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
       .map(
         (attendee) => `
         <tr>
-          <td>${attendee.registrantType || '-'}</td>
-          <td>${attendee.firstName || ''} ${attendee.lastName || ''}</td>
-          <td>${attendee.emailAddress || '-'}</td>
-          <td>${attendee.registrationQuestions || '-'}</td>
+          <td>${attendee.registrantType ?? '-'}</td>
+          <td>${attendee.firstName ?? ''} ${attendee.lastName ?? ''}</td>
+          <td>${attendee.emailAddress ?? '-'}</td>
+          <td>${attendee.registrationQuestions ?? '-'}</td>
           <td>${attendee.minutesAttendedMeeting?.toString() || '-'}</td>
           <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '-'}</td>
         </tr>
@@ -256,8 +256,10 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
 
   const actualAttendees = filterActualAttendees(attendees)
   const avgMinutesAttended =
-    actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
-    actualAttendees.length || 0
+    actualAttendees.length > 0
+      ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
+          actualAttendees.length
+      : 0
 
   return {
     total: attendees.length,

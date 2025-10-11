@@ -147,9 +147,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
 
         docs.forEach((doc) => {
           if (doc.title === 'Speaker List') {
-            uploaded['Speaker List'] = doc.id || ''
+            uploaded['Speaker List'] = doc.id ?? ''
           } else if (doc.title === 'Guest Link Registration') {
-            uploaded['Guest Link Registration'] = doc.id || ''
+            uploaded['Guest Link Registration'] = doc.id ?? ''
           }
         })
 
@@ -176,7 +176,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
       if (result?.id) {
         setUploadedDocs((prev) => ({
           ...prev,
-          [uploadType]: result.id || '',
+          [uploadType]: result.id ?? '',
         }))
       }
 

@@ -120,7 +120,7 @@ export async function listMeetings(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch meetings' },
+        error: { message: error.message ?? 'Failed to fetch meetings' },
       }
     }
 
@@ -166,7 +166,7 @@ export async function createMeeting(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to create meeting', statusCode: 400 },
+        error: { message: error.message ?? 'Failed to create meeting', statusCode: 400 },
       }
     }
 
@@ -198,7 +198,7 @@ export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> 
         }
       }
       return {
-        error: { message: error.message || 'Failed to fetch meeting' },
+        error: { message: error.message ?? 'Failed to fetch meeting' },
       }
     }
 
@@ -320,7 +320,7 @@ export async function updateMeeting(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update meeting' },
+        error: { message: error.message ?? 'Failed to update meeting' },
       }
     }
 
@@ -342,7 +342,7 @@ export async function deleteMeeting(id: string): Promise<ApiResponse<void>> {
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to delete meeting' },
+        error: { message: error.message ?? 'Failed to delete meeting' },
       }
     }
 

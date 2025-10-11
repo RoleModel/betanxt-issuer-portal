@@ -72,13 +72,23 @@ const toFiniteNumber = (value: unknown): number => {
 const toStringValue = (value: unknown): string => {
   if (value === null || value === undefined) return ''
   const str = asString(value)
-  return str ?? String(value)
+  if (str) return str
+  // Only convert to string if it's a primitive type
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return ''
 }
 
 const toNullableString = (value: unknown): string | null => {
   if (value === null || value === undefined) return null
   const str = asString(value)
-  return str ?? String(value)
+  if (str) return str
+  // Only convert to string if it's a primitive type
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return null
 }
 
 const normalizePosition = (value: unknown): Position | null => {
@@ -201,7 +211,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
     try {
       await exportPositionsToPdf({
         positions: filteredPositions,
-        meetingTitle: meetingTitle || 'Meeting Positions',
+        meetingTitle: meetingTitle ?? 'Meeting Positions',
         clientTicker,
       })
     } catch (error) {

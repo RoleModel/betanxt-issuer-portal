@@ -77,7 +77,7 @@ export function useDocumentSync({
       setIsLoading(true)
       setError(null)
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
 
       if (!response.ok) {
@@ -97,14 +97,14 @@ export function useDocumentSync({
   const transformDocument = (dbDoc: DatabaseDocument): Document => {
     return {
       id: dbDoc.id,
-      meetingId: dbDoc.meeting_id || '',
+      meetingId: dbDoc.meeting_id ?? '',
       taskId: dbDoc.task_id ?? undefined,
-      title: dbDoc.title || '',
+      title: dbDoc.title ?? '',
       description: dbDoc.description ?? undefined,
-      type: dbDoc.type || '',
-      filePath: dbDoc.file_path || '',
-      fileType: dbDoc.file_type || '',
-      fileSize: dbDoc.file_size || 0,
+      type: dbDoc.type ?? '',
+      filePath: dbDoc.file_path ?? '',
+      fileType: dbDoc.file_type ?? '',
+      fileSize: dbDoc.file_size ?? 0,
       status: (dbDoc.status as Document['status']) || 'DRAFT',
       uploadDate: dbDoc.upload_date ?? undefined,
       uploadedDate: dbDoc.uploaded_date ?? undefined,
@@ -191,8 +191,8 @@ export function useDocumentSync({
     const optimisticDoc: Document = {
       id: `temp-${Date.now()}`,
       meetingId: meetingId,
-      title: document.title || 'Uploading...',
-      type: document.type || 'UNKNOWN',
+      title: document.title ?? 'Uploading...',
+      type: document.type ?? 'UNKNOWN',
       filePath: '',
       fileType: '',
       fileSize: 0,

@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
 })
 
 // Format number with thousand separators and decimals
-const formatNumber = (num: number, decimals: number = 2): string => {
+const formatNumber = (num: number, decimals = 2): string => {
   return num.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -374,7 +374,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
         {/* CUSIP Information */}
         <View style={styles.cusipRow}>
-          <Text style={styles.cusipText}>CUSIP(s): {cusipList || 'N/A'}</Text>
+          <Text style={styles.cusipText}>CUSIP(s): {cusipList ?? 'N/A'}</Text>
         </View>
 
         {/* Proposals Section */}

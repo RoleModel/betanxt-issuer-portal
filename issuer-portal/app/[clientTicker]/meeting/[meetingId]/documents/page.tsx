@@ -8,6 +8,6 @@ interface PageProps {
   params: Promise<{ clientTicker: string; meetingId: string }>
 }
 
-export default async function DocumentsPage({ params }: PageProps) {
+export default function DocumentsPage({ params }: PageProps) {
   return <DocumentsSection params={params} />
 }

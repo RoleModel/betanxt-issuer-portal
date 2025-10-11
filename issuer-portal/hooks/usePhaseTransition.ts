@@ -22,7 +22,7 @@ export function usePhaseTransition(meetingId: string) {
 
       try {
         // Fetch all tasks for the current phase
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
         const response = await fetch(`${API_URL}/meetings/${meetingId}/tasks?phaseId=${currentPhaseId}`)
 
         if (!response.ok) {
@@ -73,7 +73,7 @@ export function usePhaseTransition(meetingId: string) {
         }
 
         // Mark current phase as complete
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
         const completeResponse = await fetch(`${API_URL}/phases/${currentPhaseId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

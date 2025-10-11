@@ -1,10 +1,9 @@
-/* eslint-disable no-console */
+ 
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'http://127.0.0.1:54321'
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -98,7 +97,7 @@ async function linkStorageDocuments() {
               .join(' '),
             file_path: urlData.publicUrl,
             file_type: file.name.split('.').pop() || 'pdf',
-            file_size: file.metadata?.size || 0,
+            file_size: file.metadata?.size ?? 0,
             status: 'UPLOADED',
             display_category: 'general',
             created_at: new Date().toISOString(),
@@ -118,7 +117,7 @@ async function linkStorageDocuments() {
           .from('document')
           .update({
             file_path: urlData.publicUrl,
-            file_size: file.metadata?.size || 0,
+            file_size: file.metadata?.size ?? 0,
             status: 'UPLOADED',
             updated_at: new Date().toISOString(),
           })
@@ -143,7 +142,7 @@ async function linkStorageDocuments() {
             type: docType,
             file_path: urlData.publicUrl,
             file_type: file.name.split('.').pop() || 'pdf',
-            file_size: file.metadata?.size || 0,
+            file_size: file.metadata?.size ?? 0,
             status: 'UPLOADED',
             display_category: getDisplayCategory(docType),
             created_at: new Date().toISOString(),
@@ -167,7 +166,7 @@ async function linkStorageDocuments() {
     .like('file_path', '%http://127.0.0.1:54321/storage%')
 
   console.log(`\n✨ Document linking complete!`)
-  console.log(`   Total documents linked: ${finalCount?.length || 0}`)
+  console.log(`   Total documents linked: ${finalCount?.length ?? 0}`)
 }
 
 function getDisplayCategory(docType: string): string {

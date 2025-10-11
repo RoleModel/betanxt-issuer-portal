@@ -24,7 +24,7 @@ export class UserRoutes {
       return true
     })
 
-    return accessiblePage?.path || '/global-not-found'
+    return accessiblePage?.path ?? '/global-not-found'
   }
 
   async canAccess(pathname: string): Promise<boolean> {

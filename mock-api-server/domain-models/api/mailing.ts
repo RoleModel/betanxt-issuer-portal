@@ -61,7 +61,7 @@ export async function getMailingByMeetingId(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to fetch mailing data' },
+        error: { message: error.message ?? 'Failed to fetch mailing data' },
       }
     }
 

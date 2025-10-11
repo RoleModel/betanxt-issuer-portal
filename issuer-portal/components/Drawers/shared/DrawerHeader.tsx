@@ -83,7 +83,7 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
           </IconButton>
 
           <Typography variant="caption" sx={{ color: 'inherit', fontSize: '12px' }}>
-            {subtitle || `Phase ${navigation.current} of ${navigation.total}`}
+            {subtitle ?? `Phase ${navigation.current} of ${navigation.total}`}
           </Typography>
 
           <IconButton

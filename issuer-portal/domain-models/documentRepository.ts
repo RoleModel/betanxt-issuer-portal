@@ -97,7 +97,7 @@ class DefaultDocumentRepository implements DocumentRepository {
       .from('documents')
       .upload(key, file, {
         upsert: true,
-        contentType: file.type || 'application/octet-stream',
+        contentType: file.type ?? 'application/octet-stream',
       })
     if (upErr || !upData) {
       console.error('Direct storage fallback failed', upErr)

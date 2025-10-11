@@ -45,7 +45,7 @@ function SwitchButton() {
   }
 
   const currentClientName =
-    currentClient?.company_name || currentClient?.short_name || 'Select Client'
+    currentClient?.company_name ?? currentClient?.short_name ?? 'Select Client'
 
   // If user doesn't have permission, just show the client name without dropdown
   if (!canSwitchClients) {

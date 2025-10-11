@@ -64,9 +64,9 @@ export default function VoteStatusSummaryTable({
   const isNonDtcTable = title.includes('Non-DTC')
 
   // Calculate totals for percentage calculations
-  const totalShares = data.find((row) => row.category === 'Grand Total')?.shares || 0
+  const totalShares = data.find((row) => row.category === 'Grand Total')?.shares ?? 0
   const totalShareholders =
-    data.find((row) => row.category === 'Grand Total')?.shareholders || 0
+    data.find((row) => row.category === 'Grand Total')?.shareholders ?? 0
 
   return (
     <Card>

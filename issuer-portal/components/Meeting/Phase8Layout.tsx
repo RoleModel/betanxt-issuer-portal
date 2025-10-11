@@ -31,22 +31,22 @@ export default React.memo(function Phase8Layout({
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: meeting.title || 'Company',
-          meetingType: meeting.meetingType || 'Annual Meeting',
-          meetingDate: meeting.meetingDate || '',
-          recordDate: meeting.recordDate || '',
-          totalOutstanding: votingSummary?.totalSharesOutstanding || 0,
-          votesRepresentedForQuorum: votingSummary?.totalSharesVoted || 0,
-          quorumPercentage: votingSummary?.percentageVoted || 0,
+          companyName: meeting.title ?? 'Company',
+          meetingType: meeting.meetingType ?? 'Annual Meeting',
+          meetingDate: meeting.meetingDate ?? '',
+          recordDate: meeting.recordDate ?? '',
+          totalOutstanding: votingSummary?.totalSharesOutstanding ?? 0,
+          votesRepresentedForQuorum: votingSummary?.totalSharesVoted ?? 0,
+          quorumPercentage: votingSummary?.percentageVoted ?? 0,
           quorumRequirement: '50%',
           votesOverUnderQuorum:
-            (votingSummary?.totalSharesVoted || 0) -
-            (votingSummary?.totalSharesOutstanding || 0) * 0.5,
-          cusipList: meeting.cusip || '',
+            (votingSummary?.totalSharesVoted ?? 0) -
+            (votingSummary?.totalSharesOutstanding ?? 0) * 0.5,
+          cusipList: meeting.cusip ?? '',
           proposals: proposals.map((p) => ({
             proposalNumber: String(p.proposalNumber),
-            title: p.proposalTitle || '',
-            directorName: p.directorName || '',
+            title: p.proposalTitle ?? '',
+            directorName: p.directorName ?? '',
             voteFor: p.votingResults.for.shares,
             voteAgainst: p.votingResults.against.shares,
             voteAbstain: p.votingResults.abstain.shares,

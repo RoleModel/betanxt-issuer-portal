@@ -271,31 +271,31 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         <View style={styles.formRow}>
           <View style={styles.formColumn}>
             <Text style={styles.formField}>
-              Corporate Issuer Name: {formData.issuerName || ''}
+              Corporate Issuer Name: {formData.issuerName ?? ''}
             </Text>
             <Text style={styles.formField}>
-              Full 9-digit CUSIP Number: {formData.cusipNumber || ''}
+              Full 9-digit CUSIP Number: {formData.cusipNumber ?? ''}
             </Text>
-            <Text style={styles.formField}>Address: {formData.address || ''}</Text>
-            <Text style={styles.formField}>City: {formData.city || ''}</Text>
-            <Text style={styles.formField}>State: {formData.state || ''}</Text>
-            <Text style={styles.formField}>Zip Code: {formData.zipCode || ''}</Text>
-            <Text style={styles.formField}>Exchange: {formData.exchange || ''}</Text>
+            <Text style={styles.formField}>Address: {formData.address ?? ''}</Text>
+            <Text style={styles.formField}>City: {formData.city ?? ''}</Text>
+            <Text style={styles.formField}>State: {formData.state ?? ''}</Text>
+            <Text style={styles.formField}>Zip Code: {formData.zipCode ?? ''}</Text>
+            <Text style={styles.formField}>Exchange: {formData.exchange ?? ''}</Text>
             <Text style={styles.formField}>Fiscal Year End:</Text>
           </View>
           <View style={styles.formColumn}>
             <Text style={styles.formField}>
-              Contact Name: {formData.contactName || ''}
+              Contact Name: {formData.contactName ?? ''}
             </Text>
-            <Text style={styles.formField}>Telephone: {formData.telephone || ''}</Text>
-            <Text style={styles.formField}>Email Address 1: {formData.email || ''}</Text>
+            <Text style={styles.formField}>Telephone: {formData.telephone ?? ''}</Text>
+            <Text style={styles.formField}>Email Address 1: {formData.email ?? ''}</Text>
             <Text style={styles.formField}>
-              Contact Name 2: {formData.contactName2 || ''}
+              Contact Name 2: {formData.contactName2 ?? ''}
             </Text>
             <Text style={styles.formField}>
-              Email Address 2: {formData.emailAddress2 || ''}
+              Email Address 2: {formData.emailAddress2 ?? ''}
             </Text>
-            <Text style={styles.formField}>Fax Number: {formData.faxNumber || ''}</Text>
+            <Text style={styles.formField}>Fax Number: {formData.faxNumber ?? ''}</Text>
             <Text style={styles.formField}>Mailer Identification (MID) Number:</Text>
           </View>
         </View>

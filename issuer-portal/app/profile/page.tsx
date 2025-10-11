@@ -26,7 +26,7 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: session?.user?.email || '',
+    email: session?.user?.email ?? '',
     password: '',
   })
 
@@ -35,9 +35,9 @@ const ProfilePage = () => {
     if (session?.user) {
       const nameParts = session.user.name?.split(' ') || []
       setFormData({
-        firstName: nameParts[0] || '',
+        firstName: nameParts[0] ?? '',
         lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email || '',
+        email: session.user.email ?? '',
         password: '',
       })
       // Only update avatar URL from session if we don't have one locally,
@@ -77,9 +77,9 @@ const ProfilePage = () => {
     if (session?.user) {
       const nameParts = session.user.name?.split(' ') || []
       setFormData({
-        firstName: nameParts[0] || '',
+        firstName: nameParts[0] ?? '',
         lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email || '',
+        email: session.user.email ?? '',
         password: '',
       })
     }

@@ -14,9 +14,7 @@ interface BrokerVotingData {
   total: number
 }
 
-interface BrokerVotingByProposal {
-  [proposalId: string]: BrokerVotingData[]
-}
+type BrokerVotingByProposal = Record<string, BrokerVotingData[]>;
 
 interface ShareRangeData {
   range: string

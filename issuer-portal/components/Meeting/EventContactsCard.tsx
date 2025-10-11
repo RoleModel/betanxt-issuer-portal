@@ -63,24 +63,24 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
     ? [
       {
         role: 'Transfer Agent',
-        contact: meeting.transferAgent || '',
+        contact: meeting.transferAgent ?? '',
         isPlaceholder: Boolean(showTransferAgentAsUnconfirmed), // Only show chip if we have data but it's unconfirmed
       },
       {
         role: 'Plan Administrator',
-        contact: meeting.planAdministrator || '',
+        contact: meeting.planAdministrator ?? '',
         email: meeting.planAdministratorContactEmail,
       },
       {
         role: 'Solicitor Contact Info',
-        contact: meeting.solicitor || '',
+        contact: meeting.solicitor ?? '',
         email: meeting.solicitorEmail,
       },
     ]
     : []
 
   const handleConfirmClick = () => {
-    setTransferAgentConfirmation(meeting?.transferAgent || '')
+    setTransferAgentConfirmation(meeting?.transferAgent ?? '')
     setConfirmDialogOpen(true)
   }
 
@@ -168,7 +168,7 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
                             }}
                           />
                         ) : (
-                          contact.contact || '—'
+                          contact.contact ?? '—'
                         )}
                       </Box>
                       {contact.email && (

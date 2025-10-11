@@ -30,7 +30,7 @@ export interface UseDigitalShareholderMeetingReturn {
   mutate: () => Promise<DigitalShareholderMeetingAttendee[] | undefined>
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
 
 export function useDigitalShareholderMeeting(meetingId: string | undefined): UseDigitalShareholderMeetingReturn {
   const fetcher = async (url: string): Promise<DigitalShareholderMeetingAttendee[]> => {

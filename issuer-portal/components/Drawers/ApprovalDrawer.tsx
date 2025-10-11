@@ -109,7 +109,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       setComment('')
       // Don't clear comments here - they will be loaded in the next useEffect
       // Use passed documentId or generate one for the session
-      const docId = documentId || `temp-doc-${Date.now()}`
+      const docId = documentId ?? `temp-doc-${Date.now()}`
       setCurrentDocumentId(docId)
     }
   }, [open, documentId])
@@ -221,9 +221,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
 
     try {
       // Extract user info from session
-      const firstName = (session?.user?.name || '').split(' ')[0] || 'User'
-      const lastName = (session?.user?.name || '').split(' ').slice(1).join(' ') || ''
-      const userId = session?.user?.email || session?.user?.id || 'unknown'
+      const firstName = (session?.user?.name ?? '').split(' ')[0] || 'User'
+      const lastName = (session?.user?.name ?? '').split(' ').slice(1).join(' ') || ''
+      const userId = session?.user?.email ?? session?.user?.id ?? 'unknown'
 
       // Use hook to add comment
       await addCommentToDocument(currentDocumentId, comment.trim(), {
@@ -236,9 +236,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       const optimisticComment: CommentWithUser = {
         id: `temp-${Date.now()}`,
         comment: comment.trim(),
-        user: session?.user?.email || session?.user?.name || 'Current User',
-        first_name: (session?.user?.name || '').split(' ')[0] || 'User',
-        last_name: (session?.user?.name || '').split(' ').slice(1).join(' ') || '',
+        user: session?.user?.email ?? session?.user?.name ?? 'Current User',
+        first_name: (session?.user?.name ?? '').split(' ')[0] || 'User',
+        last_name: (session?.user?.name ?? '').split(' ').slice(1).join(' ') || '',
         created_at: new Date().toISOString(),
         users: null,
       }
@@ -475,15 +475,15 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 fileExtension = mimeType?.split('/')[1] // e.g., 'pdf' from 'application/pdf'
               } else {
                 // Regular URL - extract extension from filename
-                const urlWithoutQuery = fileUrl?.split('?')[0] || ''
+                const urlWithoutQuery = fileUrl?.split('?')[0] ?? ''
                 fileExtension = urlWithoutQuery.split('.').pop()?.toLowerCase()
                 isPdf = fileExtension === 'pdf' || fileUrl?.includes('/test-pdf')
               }
               const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
-                fileExtension || ''
+                fileExtension ?? ''
               )
-              const isAudio = ['m4a', 'mp3', 'wav', 'aac'].includes(fileExtension || '')
-              const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension || '')
+              const isAudio = ['m4a', 'mp3', 'wav', 'aac'].includes(fileExtension ?? '')
+              const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension ?? '')
 
               if (isPdf) {
                 return (
@@ -516,7 +516,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                         </Typography>
                       </Box>
                       <Typography variant="h6" gutterBottom>
-                        {title || 'Excel Spreadsheet'}
+                        {title ?? 'Excel Spreadsheet'}
                       </Typography>
                       <Typography variant="body3" color="text.secondary" paragraph>
                         Download to view this Excel file.
@@ -615,7 +615,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                       onClick={() => {
                         const link = document.createElement('a')
                         link.href = fileUrl
-                        link.download = title || 'document'
+                        link.download = title ?? 'document'
                         link.click()
                       }}
                       sx={{ mt: 2 }}

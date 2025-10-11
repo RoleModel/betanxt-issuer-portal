@@ -95,7 +95,7 @@ export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMCo
     if (error && error.code !== 'PGRST116') {
       // PGRST116 = no rows returned
       return {
-        error: { message: error.message || 'Failed to fetch DSM config' },
+        error: { message: error.message ?? 'Failed to fetch DSM config' },
       }
     }
 
@@ -141,7 +141,7 @@ export async function createOrUpdateDSMConfig(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to save DSM config' },
+        error: { message: error.message ?? 'Failed to save DSM config' },
       }
     }
 
@@ -173,7 +173,7 @@ export async function updateDSMConfig(
 
     if (error) {
       return {
-        error: { message: error.message || 'Failed to update DSM config' },
+        error: { message: error.message ?? 'Failed to update DSM config' },
       }
     }
 

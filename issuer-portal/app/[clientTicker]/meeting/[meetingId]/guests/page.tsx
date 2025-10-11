@@ -79,7 +79,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
 
         // If first row contains "first name", "last name", etc., it's a header row
         if (firstRowValues.some((v) => v.includes('first name') || v.includes('email'))) {
-          const range = XLSX.utils.decode_range(firstSheet['!ref'] || 'A1')
+          const range = XLSX.utils.decode_range(firstSheet['!ref'] ?? 'A1')
 
           // Find the row that contains the actual headers by checking each row
           let headerRowIndex = -1
@@ -87,8 +87,8 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
             const rowValues = []
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
-              const cell = firstSheet[cellAddress]
-              if (cell) rowValues.push(String(cell.v).toLowerCase())
+              const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined
+              if (cell?.v !== undefined) rowValues.push(String(cell.v).toLowerCase())
             }
             // Check if this row has "first name", "last name", and "email"
             if (
@@ -105,8 +105,8 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
             const headers: string[] = []
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: C })
-              const cell = firstSheet[cellAddress]
-              headers.push(cell ? String(cell.v) : '')
+              const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined
+              headers.push(cell?.v !== undefined ? String(cell.v) : '')
             }
 
             // Parse data rows (starting after header row)
@@ -116,9 +116,9 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
               let hasData = false
               for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
-                const cell = firstSheet[cellAddress]
-                row[headers[C]] = cell ? cell.v : ''
-                if (cell?.v) hasData = true
+                const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined
+                row[headers[C]] = cell?.v !== undefined ? cell.v : ''
+                if (cell?.v !== undefined) hasData = true
               }
               // Only add rows that have some data
               if (hasData) jsonData.push(row)
@@ -129,12 +129,12 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
         // Map the data to our format
         const mappedData = jsonData
           .map((row: ExcelRow) => {
-            const registrantType = row['Registrant Type'] || 'Shareholder'
-            const firstName = row['First Name'] || ''
-            const lastName = row['Last Name'] || ''
-            const emailAddress = row['Email Address'] || ''
+            const registrantType = row['Registrant Type'] ?? 'Shareholder'
+            const firstName = row['First Name'] ?? ''
+            const lastName = row['Last Name'] ?? ''
+            const emailAddress = row['Email Address'] ?? ''
             const registrationQuestions =
-              row['Registration (Pre-Meeting) Questions'] || ''
+              row['Registration (Pre-Meeting) Questions'] ?? ''
             const minutesAttendedMeeting =
               typeof row['Minutes Attended Meeting'] === 'number'
                 ? row['Minutes Attended Meeting']
@@ -179,7 +179,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
 
         resolve(mappedData)
       } catch (error) {
-        reject(error)
+        reject(error instanceof Error ? error : new Error('Failed to parse file'))
       }
     }
 
@@ -380,7 +380,7 @@ export default function GuestsPage() {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>Confirm Upload - {previewData?.length || 0} Attendees</DialogTitle>
+        <DialogTitle>Confirm Upload - {previewData?.length ?? 0} Attendees</DialogTitle>
         <DialogContent>
           <Box sx={{ overflowX: 'auto' }}>
             <Table>

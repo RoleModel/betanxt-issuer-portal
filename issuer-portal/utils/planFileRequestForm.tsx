@@ -233,7 +233,7 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
             <PDFImage style={styles.logo} src={logoBase64} />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>{clientData?.ticker || 'LOGO'}</Text>
+              <Text style={styles.logoText}>{clientData?.ticker ?? 'LOGO'}</Text>
             </View>
           )}
           <Text style={styles.date}>{currentDate}</Text>
@@ -246,7 +246,7 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
           </Text>
           <Text style={styles.recipientText}>EQ (AST &amp; Equiniti)</Text>
           <Text style={styles.recipientText}>
-            Re: {clientData?.issuerName || '[COMPANY NAME]'}
+            Re: {clientData?.issuerName ?? '[COMPANY NAME]'}
           </Text>
         </View>
 
@@ -261,12 +261,12 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Issuer:</Text>
             <Text style={styles.tableValue}>
-              {clientData?.issuerName || '[COMPANY NAME]'}
+              {clientData?.issuerName ?? '[COMPANY NAME]'}
             </Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>CUSIP:</Text>
-            <Text style={styles.tableValue}>{clientData?.cusipNumber || '[CUSIP]'}</Text>
+            <Text style={styles.tableValue}>{clientData?.cusipNumber ?? '[CUSIP]'}</Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Date:</Text>
@@ -344,10 +344,10 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
         <View style={styles.signature}>
           <Text style={styles.signatureThankYou}>Thank you,</Text>
           <Text style={styles.signatureName}>
-            {clientData?.contactName || '[AUTHORITY NAME]'}
+            {clientData?.contactName ?? '[AUTHORITY NAME]'}
           </Text>
           <Text style={styles.signatureName}>
-            {clientData?.issuerName || '[COMPANY NAME]'}
+            {clientData?.issuerName ?? '[COMPANY NAME]'}
           </Text>
         </View>
       </Page>
@@ -362,7 +362,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
   if (clientData?.ticker) {
     try {
       const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`
-      // eslint-disable-next-line no-console
+       
       console.log(
         '[PlanFileRequestForm] Loading logo from:',
         logoPath,
@@ -370,7 +370,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
         clientData
       )
       const response = await fetch(logoPath)
-      // eslint-disable-next-line no-console
+       
       console.log(
         '[PlanFileRequestForm] Logo fetch response:',
         response.ok,
@@ -384,7 +384,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
           reader.onerror = reject
           reader.readAsDataURL(blob)
         })
-        // eslint-disable-next-line no-console
+         
         console.log(
           '[PlanFileRequestForm] Logo loaded successfully, base64 length:',
           logoBase64?.length
@@ -394,7 +394,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
       console.error('[PlanFileRequestForm] Logo loading failed:', error)
     }
   } else {
-    // eslint-disable-next-line no-console
+     
     console.log('[PlanFileRequestForm] No ticker in clientData:', clientData)
   }
 

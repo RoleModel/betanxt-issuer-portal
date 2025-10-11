@@ -36,7 +36,7 @@ export async function listUsers(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch users',
+        message: error.message ?? 'Failed to fetch users',
         statusCode: response.status,
       },
       response,
@@ -59,7 +59,7 @@ export async function createUser(body: CreateUserRequest): Promise<ApiResponse<U
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to create user',
+        message: error.message ?? 'Failed to create user',
         statusCode: response.status,
       },
       response,
@@ -84,7 +84,7 @@ export async function getUserById(id: string): Promise<ApiResponse<User>> {
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch user',
+        message: error.message ?? 'Failed to fetch user',
         statusCode: response.status,
       },
       response,
@@ -113,7 +113,7 @@ export async function updateUser(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to update user',
+        message: error.message ?? 'Failed to update user',
         statusCode: response.status,
       },
       response,
@@ -138,7 +138,7 @@ export async function deleteUser(id: string): Promise<ApiResponse<void>> {
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to delete user',
+        message: error.message ?? 'Failed to delete user',
         statusCode: response.status,
       },
       response,
@@ -165,7 +165,7 @@ export async function listAccountUsers(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch users',
+        message: error.message ?? 'Failed to fetch users',
         statusCode: response.status,
       },
       response,
@@ -194,7 +194,7 @@ export async function createAccountUser(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to create user',
+        message: error.message ?? 'Failed to create user',
         statusCode: response.status,
       },
       response,
@@ -221,7 +221,7 @@ export async function listUserAccounts(
     return {
       data: undefined,
       error: {
-        message: error.message || 'Failed to fetch user accounts',
+        message: error.message ?? 'Failed to fetch user accounts',
         statusCode: response.status,
       },
       response,

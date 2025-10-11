@@ -136,7 +136,7 @@ export default function InspectorOfElectionsPage() {
       buttonText="View PDF Overview"
       onClick={() => setOpen(true)}
     >
-      <Typography variant="body3" component="p">
+      <Typography variant="body3" component="p" gutterBottom>
         Get detailed information about our certified Inspector of Elections services and
         compliance solutions.
       </Typography>

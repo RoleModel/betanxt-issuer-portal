@@ -34,7 +34,12 @@ const toFiniteNumber = (value: unknown): number => {
 const toStringValue = (value: unknown): string => {
   if (value === null || value === undefined) return ''
   const str = asString(value)
-  return str ?? String(value)
+  if (str) return str
+  // Only convert to string if it's a primitive type
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return ''
 }
 
 const normalizePosition = (value: unknown): Position | null => {

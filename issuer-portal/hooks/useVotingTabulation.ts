@@ -219,7 +219,7 @@ const fetchVotingData = async (meetingId: string) => {
     }
 
     return {
-      proposalId: proposal.id || '',
+      proposalId: proposal.id ?? '',
       proposalNumber: proposal.proposalNumber,
       description: proposal.title,
       proposalTitle: proposal.title,

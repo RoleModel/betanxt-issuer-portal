@@ -24,7 +24,7 @@ export const usePDFGeneration = () => {
 
       // Add title
       doc.setFontSize(16)
-      doc.text(taskTitle || 'Task Completion Form', 20, 20)
+      doc.text(taskTitle ?? 'Task Completion Form', 20, 20)
 
       let yPosition = 40
 

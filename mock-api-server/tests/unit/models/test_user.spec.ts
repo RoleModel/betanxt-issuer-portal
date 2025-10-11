@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('User Model', () => {
-  test('should validate user creation with required fields', async () => {
+  test('should validate user creation with required fields', () => {
     // This test will fail initially until UserService is implemented
     const userData = {
       username: 'john.doe',
@@ -21,7 +21,7 @@ test.describe('User Model', () => {
     expect(userData.type).toBeDefined()
   })
 
-  test('should enforce unique username constraint', async () => {
+  test('should enforce unique username constraint', () => {
     // This test will fail initially until database constraints are implemented
     const duplicateUsername = {
       username: 'john.doe', // Same as above
@@ -37,7 +37,7 @@ test.describe('User Model', () => {
     expect(duplicateUsername.username).toBe('john.doe')
   })
 
-  test('should enforce unique email constraint', async () => {
+  test('should enforce unique email constraint', () => {
     // This test will fail initially until database constraints are implemented
     const duplicateEmail = {
       username: 'jane.smith',
@@ -53,7 +53,7 @@ test.describe('User Model', () => {
     expect(duplicateEmail.email).toBe('john.doe@wendys.com')
   })
 
-  test('should validate email format', async () => {
+  test('should validate email format', () => {
     // This test will fail initially until validation is implemented
     const invalidEmails = [
       'invalid-email',
@@ -78,7 +78,7 @@ test.describe('User Model', () => {
     })
   })
 
-  test('should validate UserType enum values', async () => {
+  test('should validate UserType enum values', () => {
     // This test will fail initially until enum validation is implemented
     const validTypes = [
       'SYSTEM_ADMIN',
@@ -102,7 +102,7 @@ test.describe('User Model', () => {
     expect(validTypes).not.toContain(invalidType.type)
   })
 
-  test('should validate password security requirements', async () => {
+  test('should validate password security requirements', () => {
     // This test will fail initially until password validation is implemented
     const weakPasswords = [
       '', // Empty
@@ -127,7 +127,7 @@ test.describe('User Model', () => {
     })
   })
 
-  test('should allow optional accountId for system admins', async () => {
+  test('should allow optional accountId for system admins', () => {
     // This test will fail initially until optional relationship is implemented
     const systemAdmin = {
       username: 'system.admin',
@@ -144,7 +144,7 @@ test.describe('User Model', () => {
     expect(systemAdmin.type).toBe('SYSTEM_ADMIN')
   })
 
-  test('should require accountId for non-system users', async () => {
+  test('should require accountId for non-system users', () => {
     // This test will fail initially until validation is implemented
     const userWithoutAccount = {
       username: 'orphan.user',
@@ -161,7 +161,7 @@ test.describe('User Model', () => {
     expect(userWithoutAccount.accountId).toBeNull()
   })
 
-  test('should support user relationships', async () => {
+  test('should support user relationships', () => {
     // This test will fail initially until relationships are implemented
     const userId = 'user-uuid-123'
 
@@ -181,7 +181,7 @@ test.describe('User Model', () => {
     expect(accounts.every((a) => a.primaryContact === userId)).toBe(true)
   })
 
-  test('should hash passwords before storage', async () => {
+  test('should hash passwords before storage', () => {
     // This test will fail initially until password hashing is implemented
     const plainPassword = 'mySecretPassword123'
     const userData = {
