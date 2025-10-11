@@ -178,7 +178,7 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
     tasks,
     loading,
     error,
-    refetch: fetchData,
+    refetch: () => void fetchData(),
     updateTaskById,
     createNewTask,
   }

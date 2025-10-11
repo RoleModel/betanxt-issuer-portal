@@ -255,7 +255,7 @@ export default React.memo(function Phase7Layout({
         }}
       >
         {/* Tabulation Table */}
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Card sx={{ height: 'auto', display: 'flex', flexDirection: 'column' }}>
           <CardHeader
             title="Tabulation"
             action={

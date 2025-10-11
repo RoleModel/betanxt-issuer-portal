@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client'
 
 import React, { useState } from 'react'
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/materia
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import { EmptyState } from '@/components/EmptyState'
+
 import { truncateNumber } from '@/utils/numberUtils'
 
 interface BrokerVotingData {

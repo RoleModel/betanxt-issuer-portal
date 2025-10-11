@@ -417,18 +417,22 @@ export const useDocuments = (): UseDocumentsResult => {
           }
 
           // Upload via the mock-server API
-          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-          const response = await fetch(`${API_BASE_URL}/documents/types/${documentType}/upload`, {
-            method: 'POST',
-            body: formData,
-          })
+          const API_BASE_URL =
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+          const response = await fetch(
+            `${API_BASE_URL}/documents/types/${documentType}/upload`,
+            {
+              method: 'POST',
+              body: formData,
+            }
+          )
 
           if (!response.ok) {
             const errorText = await response.text()
             throw new Error(`Upload failed: ${errorText}`)
           }
 
-          const result = await response.json() as Document & { storagePath?: string }
+          const result = (await response.json()) as Document & { storagePath?: string }
           // Response is the Document object with id, not ApiResponse wrapper
           return result?.id || result?.storagePath || null
         }
@@ -470,7 +474,9 @@ export const useDocuments = (): UseDocumentsResult => {
 
         if (!meetingId) {
           // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
-          const tickerPathMatch = /\/[^/]+\/meeting\/([^/]+)/.exec(window.location.pathname)
+          const tickerPathMatch = /\/[^/]+\/meeting\/([^/]+)/.exec(
+            window.location.pathname
+          )
           if (tickerPathMatch) {
             meetingId = tickerPathMatch[1]
           }

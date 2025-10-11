@@ -116,7 +116,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
 
     // Update position in database for existing signature areas
     try {
-      const updatedArea = await updateSignatureArea(area.id, {
+      const updatedArea = updateSignatureArea(area.id, {
         x_position: position.x,
         y_position: position.y,
       })
@@ -146,12 +146,17 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
 
   useEffect(() => {
     if (isDragging) {
+      // Wrap async handleMouseUp to satisfy void return requirement
+      const handleMouseUpWrapper = () => {
+        void handleMouseUp()
+      }
+
       document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mouseup', handleMouseUpWrapper)
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('mouseup', handleMouseUpWrapper)
       }
     }
   }, [isDragging, handleMouseMove, handleMouseUp])

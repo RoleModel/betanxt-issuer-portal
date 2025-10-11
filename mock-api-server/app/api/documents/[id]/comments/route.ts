@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { supabase } from '@/utils/supabase/client'

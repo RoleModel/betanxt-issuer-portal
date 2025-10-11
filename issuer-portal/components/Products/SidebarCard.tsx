@@ -1,13 +1,5 @@
-import type {
-  CardProps
-} from '@mui/material';
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-} from '@mui/material'
+import type { CardProps } from '@mui/material'
+import { Button, Card, CardContent, CardHeader, Typography } from '@mui/material'
 
 interface SidebarCardProps extends CardProps {
   title: string

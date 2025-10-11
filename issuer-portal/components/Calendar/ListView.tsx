@@ -147,7 +147,7 @@ export const ListView: React.FC<ListViewProps> = ({
       type: ['upload', 'signature', 'external', 'authorize', 'approve'].includes(
         dbTask.type ?? ''
       )
-        ? dbTask.type ?? 'external'
+        ? (dbTask.type ?? 'external')
         : 'external',
       phaseNumber: dbTask.phaseNumber ?? 1,
       phaseId: dbTask.phaseId ?? '',
@@ -380,10 +380,8 @@ export const ListView: React.FC<ListViewProps> = ({
                       ? `inset 4px 0px 0px 0px ${phaseColor}`
                       : 'none',
 
-                    transition: (theme) => theme.transitions.create([
-                      'box-shadow',
-                      'background-color',
-                    ]),
+                    transition: (theme) =>
+                      theme.transitions.create(['box-shadow', 'background-color']),
                     '&:hover': {
                       backgroundColor: (theme) => theme.vars?.palette?.action?.selected,
                       boxShadow: `inset 4px 0px 0px 0px ${phaseColor}`,

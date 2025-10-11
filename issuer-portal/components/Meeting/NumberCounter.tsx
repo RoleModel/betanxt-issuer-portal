@@ -30,7 +30,7 @@ export const NumberCounter = ({
       maximumFractionDigits: 1,
     })
     const formatted = formatter.format(value)
-    return `${formatted}${isPercent ? '%' : suffix ?? ''}`
+    return `${formatted}${isPercent ? '%' : (suffix ?? '')}`
   }
 
   return (

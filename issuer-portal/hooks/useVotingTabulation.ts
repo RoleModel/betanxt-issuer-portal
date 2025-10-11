@@ -287,7 +287,7 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
     votingSummary: data?.votingSummary || null,
     loading: isLoading,
     error: error ? error.message : null,
-    refetch: () => mutate(),
+    refetch: () => void mutate(),
     uploadProposals,
   }
 }

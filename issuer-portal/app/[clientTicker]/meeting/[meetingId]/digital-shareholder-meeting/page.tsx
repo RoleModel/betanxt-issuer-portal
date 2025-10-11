@@ -1,29 +1,21 @@
 'use client'
 
-import React, { useCallback, useState, Suspense } from 'react'
+import React, { Suspense, useCallback, useState } from 'react'
 import * as XLSX from 'xlsx'
 
 import { Refresh } from '@mui/icons-material'
-import {
-  Alert,
-  Button,
-  Container,
-  Snackbar,
-  Typography,
-  Stack
-} from '@mui/material'
-
+import { Alert, Button, Container, Snackbar, Stack, Typography } from '@mui/material'
 
 import EmptyState from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import PreviewDialog, { createTextRenderer } from '@/components/FileUpload/PreviewDialog'
-import { DSMParticipants } from '@/components/Meeting/DigitalShareholderMeeting/DSMParticipants'
 import { DSMGuestRegistrants } from '@/components/Meeting/DigitalShareholderMeeting/DSMGuestRegistrants'
+import { DSMParticipants } from '@/components/Meeting/DigitalShareholderMeeting/DSMParticipants'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useDigitalShareholderMeeting } from '@/hooks/useDigitalShareholderMeeting'
 
-type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>
 
 interface ParsedParticipant {
   firstName: string
@@ -53,7 +45,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/csv',
-      'application/csv'
+      'application/csv',
     ]
 
     const validExtensions = ['.csv', '.xls', '.xlsx']
@@ -137,7 +129,9 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
               let hasData = false
               for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
-                const cell = firstSheet[cellAddress] as { v?: string | number | boolean | Date } | undefined
+                const cell = firstSheet[cellAddress] as
+                  | { v?: string | number | boolean | Date }
+                  | undefined
                 row[headers[C]] = cell?.v ?? ''
                 if (cell?.v) hasData = true
               }
@@ -189,7 +183,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-              `Found columns: ${availableColumns}`
+                `Found columns: ${availableColumns}`
             )
           )
           return
@@ -210,7 +204,6 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
   })
 }
 
-
 export default function DigitalShareholderMeetingPage() {
   const meetingContext = useMeeting()
   const currentMeeting = meetingContext.currentMeeting
@@ -229,7 +222,6 @@ export default function DigitalShareholderMeetingPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [previewData, setPreviewData] = useState<ParsedParticipant[] | null>(null)
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
-
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true)
@@ -267,12 +259,13 @@ export default function DigitalShareholderMeetingPage() {
 
     try {
       // Map presenter data to expected format
-      const mappedData = previewData.map(presenter => ({
+      const mappedData = previewData.map((presenter) => ({
         registrantType: 'Presenter',
         firstName: presenter.firstName,
         lastName: presenter.lastName,
         emailAddress: presenter.emailAddress,
-        registrationQuestions: `${presenter.title ?? ''} - ${presenter.department ?? ''}`.trim(),
+        registrationQuestions:
+          `${presenter.title ?? ''} - ${presenter.department ?? ''}`.trim(),
         minutesAttendedMeeting: 0,
       }))
 
@@ -297,10 +290,7 @@ export default function DigitalShareholderMeetingPage() {
     setUploadDialogOpen(true)
   }, [])
 
-
-
   const hasAttendees = attendees && attendees.length > 0
-
 
   if (error) {
     return (
@@ -329,19 +319,23 @@ export default function DigitalShareholderMeetingPage() {
           <EmptyState
             title="No digital meeting attendees yet — add attendees to get started"
             action={
-              <Button
-                variant="contained"
-                onClick={handleUploadClick}
-              >
+              <Button variant="contained" onClick={handleUploadClick}>
                 Add Attendees
               </Button>
             }
           >
             <Typography component="span" variant="body3">
               Upload attendee data to get started. Your file must include these columns:
-              <span> <strong>First Name</strong> (required), <strong>Last Name</strong> (required), <strong>Email Address</strong> (required), Title (optional). </span>
+              <span>
+                {' '}
+                <strong>First Name</strong> (required), <strong>Last Name</strong>{' '}
+                (required), <strong>Email Address</strong> (required), Title
+                (optional).{' '}
+              </span>
             </Typography>
-            <Typography component="span" variant="body3">Accepted formats: CSV, Excel (.csv, .xls, .xlsx)</Typography>
+            <Typography component="span" variant="body3">
+              Accepted formats: CSV, Excel (.csv, .xls, .xlsx)
+            </Typography>
           </EmptyState>
         </Container>
 
@@ -369,7 +363,8 @@ export default function DigitalShareholderMeetingPage() {
             {
               key: 'firstName',
               label: 'Name',
-              render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
+              render: (_, row) =>
+                createTextRenderer()(`${row.firstName} ${row.lastName}`),
             },
             {
               key: 'emailAddress',
@@ -394,7 +389,6 @@ export default function DigitalShareholderMeetingPage() {
 
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-
       {/* All Components */}
       <Suspense>
         <Stack direction="column" spacing={2}>
@@ -430,7 +424,11 @@ export default function DigitalShareholderMeetingPage() {
           onClose={() => setUploadSuccess(false)}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert severity="success" sx={{ mt: 2 }} onClose={() => setUploadSuccess(false)}>
+          <Alert
+            severity="success"
+            sx={{ mt: 2 }}
+            onClose={() => setUploadSuccess(false)}
+          >
             Participants uploaded successfully!
           </Alert>
         </Snackbar>

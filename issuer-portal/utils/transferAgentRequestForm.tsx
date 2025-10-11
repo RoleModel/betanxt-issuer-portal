@@ -362,7 +362,7 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
   if (clientData?.ticker) {
     try {
       const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`
-       
+
       console.log(
         '[TransferAgentForm] Loading logo from:',
         logoPath,
@@ -370,7 +370,7 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
         clientData
       )
       const response = await fetch(logoPath)
-       
+
       console.log(
         '[TransferAgentForm] Logo fetch response:',
         response.ok,
@@ -384,7 +384,7 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
           reader.onerror = reject
           reader.readAsDataURL(blob)
         })
-         
+
         console.log(
           '[TransferAgentForm] Logo loaded successfully, base64 length:',
           logoBase64?.length
@@ -394,7 +394,6 @@ const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string
       console.error('[TransferAgentForm] Logo loading failed:', error)
     }
   } else {
-     
     console.log('[TransferAgentForm] No ticker in clientData:', clientData)
   }
 

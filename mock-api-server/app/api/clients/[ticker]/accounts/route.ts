@@ -3,6 +3,8 @@
 // Source: openapi-schema/openapi.yaml
 import { NextResponse } from 'next/server'
 
+// Auto-generated stub - async required for Next.js route handler
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function GET(): Promise<NextResponse> {
   try {
     // TODO: Implement listClientAccounts

@@ -56,6 +56,8 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
     }
   }, [session])
 
+  // Must be async to match interface contract (returns Promise)
+  // eslint-disable-next-line @typescript-eslint/require-await
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       // This would typically call the NextAuth signIn function
@@ -67,6 +69,8 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
     }
   }
 
+  // Must be async to match interface contract (returns Promise)
+  // eslint-disable-next-line @typescript-eslint/require-await
   const logout = async (): Promise<void> => {
     try {
       // This would typically call the NextAuth signOut function

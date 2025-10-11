@@ -134,7 +134,8 @@ export default function TabulationPage() {
           ?.replace(/\d{4}\s*/, '')
           .replace(/Annual.*Meeting.*/, '')
           .trim() ||
-        currentMeeting.ticker) ?? 'Company',
+          currentMeeting.ticker) ??
+        'Company',
       meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
       meetingDate: currentMeeting.meetingDate ?? '',
       recordDate: currentMeeting.recordDate ?? '',

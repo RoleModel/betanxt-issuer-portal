@@ -58,14 +58,15 @@ export async function POST(_req: NextRequest) {
       console.log('Attempting to connect to database...')
       await client.connect()
       console.log('Database connection established successfully')
-    } catch (connectError: any) {
+    } catch (connectError: unknown) {
+      const errorMessage = connectError instanceof Error ? connectError.message : 'Unknown error'
       console.error('Connection failed:', {
-        message: connectError.message,
-        code: connectError.code,
-        errno: connectError.errno,
-        syscall: connectError.syscall,
+        message: errorMessage,
+        code: typeof connectError === 'object' && connectError !== null && 'code' in connectError ? connectError.code : undefined,
+        errno: typeof connectError === 'object' && connectError !== null && 'errno' in connectError ? connectError.errno : undefined,
+        syscall: typeof connectError === 'object' && connectError !== null && 'syscall' in connectError ? connectError.syscall : undefined,
       })
-      throw new Error(`Database connection failed: ${connectError.message}`)
+      throw new Error(`Database connection failed: ${errorMessage}`)
     } finally {
       // Restore original TLS setting
       if (!isLocalhost) {

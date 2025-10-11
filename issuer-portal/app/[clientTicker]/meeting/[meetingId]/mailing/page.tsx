@@ -97,7 +97,7 @@ export default function MailingPage() {
                   ) : (
                     <FeatureTile
                       height="auto"
-                      variant='base'
+                      variant="base"
                       title={formatNumber(mailingData?.totalPositions)}
                       subtitle="Positions Received"
                     />
@@ -109,7 +109,7 @@ export default function MailingPage() {
                   ) : (
                     <FeatureTile
                       height="auto"
-                      variant='base'
+                      variant="base"
                       title={formatNumber(mailingData?.totalPositions)}
                       subtitle="Positions Loaded"
                     />
@@ -121,10 +121,10 @@ export default function MailingPage() {
                   ) : (
                     <FeatureTile
                       height="auto"
-                      variant='base'
+                      variant="base"
                       title={formatNumber(
                         (mailingData?.fullsetMailPositions ?? 0) +
-                        (mailingData?.naaMailPositions ?? 0)
+                          (mailingData?.naaMailPositions ?? 0)
                       )}
                       subtitle="Mailing Initiated"
                     />
@@ -136,10 +136,10 @@ export default function MailingPage() {
                   ) : (
                     <FeatureTile
                       height="auto"
-                      variant='base'
+                      variant="base"
                       title={formatNumber(
                         (mailingData?.fullsetMailPositions ?? 0) +
-                        (mailingData?.naaMailPositions ?? 0)
+                          (mailingData?.naaMailPositions ?? 0)
                       )}
                       subtitle="Mailing Complete"
                     />

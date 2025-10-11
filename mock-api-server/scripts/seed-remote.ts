@@ -1,10 +1,14 @@
 #!/usr/bin/env tsx
-import { createClient } from '@supabase/supabase-js'
+import { config } from 'dotenv'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+// Load environment variables from .env.local
+config({ path: '.env.local' })
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? 'ZgnAkgxVLYDcf9gj'
 
@@ -25,8 +29,8 @@ async function seedRemote() {
     password: POSTGRES_PASSWORD,
     database: 'postgres',
     ssl: {
-      rejectUnauthorized: false
-    }
+      rejectUnauthorized: false,
+    },
   })
 
   try {
@@ -50,7 +54,6 @@ async function seedRemote() {
     // Verify by counting clients
     const result = await client.query('SELECT COUNT(*) FROM clients')
     console.log(`✅ Verified: ${result.rows[0].count} clients in database`)
-
   } catch (error) {
     console.error('❌ Seeding failed:', error)
     process.exit(1)
@@ -59,4 +62,7 @@ async function seedRemote() {
   }
 }
 
-seedRemote()
+seedRemote().catch((error) => {
+  console.error('Seeding failed:', error)
+  process.exit(1)
+})

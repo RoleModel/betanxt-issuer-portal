@@ -125,220 +125,214 @@ interface MappedAuditComplianceData {
 }
 
 const fetcher = async (clientTicker: string): Promise<ReportingData> => {
-  try {
-    // ticker provided directly by SWR
-    // Fetch all meetings for the ticker
-    const apiClient = await buildApiClient()
-    const currentYear = new Date().getFullYear()
+  // ticker provided directly by SWR
+  // Fetch all meetings for the ticker
+  const apiClient = await buildApiClient()
+  const currentYear = new Date().getFullYear()
 
-    // Fetch all meetings for this ticker
-    const meetingsResponse = await apiClient.GET('/meetings', {
-      params: { query: { ticker: clientTicker } },
-    })
+  // Fetch all meetings for this ticker
+  const meetingsResponse = await apiClient.GET('/meetings', {
+    params: { query: { ticker: clientTicker } },
+  })
 
-    const { data: meetingsData, error: _meetingsError } = meetingsResponse
+  const { data: meetingsData, error: _meetingsError } = meetingsResponse
 
-    if (!meetingsData) {
-      return {
-        meetings: [],
-        proposals: [],
-        positions: [],
-        directorPerformanceData: [],
-        participationData: { webVoting: 0, printVoting: 0, ivrVoting: 0, totalVotes: 0 },
-        yearOverYearData: [],
-        eventSummaryData: {
-          totalProposals: 0,
-          passedProposals: 0,
-          failedProposals: 0,
-          participationRate: 0,
-          quorumAchieved: false,
-          materials: { sent: 0, total: 0, sentDate: '' },
-        },
-        auditComplianceData: [],
-        quorumData: [],
-        // Transformed data for UI components
-        mappedEventSummary: [],
-        mappedYearOverYear: [],
-        mappedProposalPerformanceData: [],
-        mappedAuditComplianceData: [],
-        mappedQuorumPerformanceData: [],
-        availableDirectors: [],
-        availableMeetings: [],
-      }
-    }
-
-    // Filter out future meetings (keep current year and past)
-    const meetingsArray = Array.isArray(meetingsData)
-      ? meetingsData
-      : (meetingsData as { meetings?: Meeting[] })?.meetings || []
-    const allMeetings = (meetingsArray).filter((meeting) => {
-      const meetingYear =
-        meeting.meetingYear ||
-        (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
-      return meetingYear && meetingYear <= currentYear
-    })
-
-    // Filter to only completed meetings for reporting
-    const completedMeetings = allMeetings.filter(
-      (meeting) => meeting.status === 'COMPLETE'
-    )
-
-    // OPTIMIZATION 2: Parallel fetch of proposals and positions for completed meetings only
-    const meetingIds = completedMeetings.slice(0, 20).map((m) => m.id) // Limit to most recent 20 meetings
-
-    const proposalPromises = meetingIds.map((id) =>
-      apiClient
-        .GET('/meetings/{meetingId}/proposals', {
-          params: { path: { meetingId: id ?? '' } },
-        })
-        .catch(() => ({ data: [] }))
-    )
-    const positionPromises = meetingIds.map(async (id) => {
-      try {
-        const result = await apiClient.GET('/positions', {
-          params: {
-            query: {
-              meetingId: `${id}`,
-              limit: 4000,
-            },
-          },
-        })
-
-        return result
-      } catch (_error) {
-        return { data: [] as Position[] }
-      }
-    })
-
-    const [proposalResults, positionResults] = await Promise.all([
-      Promise.all(proposalPromises),
-      Promise.all(positionPromises),
-    ])
-
-    const allProposals = proposalResults.flatMap((res, idx) => {
-      const mid = meetingIds[idx]
-      const data = (res as unknown as { data?: unknown }).data as
-        | (Proposal & { meetingId?: string })[]
-        | { proposals?: (Proposal & { meetingId?: string })[] }
-        | undefined
-      let list: (Proposal & { meetingId?: string })[] = []
-      if (Array.isArray(data)) list = data
-      if (
-        !Array.isArray(data) &&
-        data &&
-        Array.isArray((data as { proposals?: Proposal[] }).proposals)
-      ) {
-        list =
-          (data as { proposals?: (Proposal & { meetingId?: string })[] }).proposals || []
-      }
-      return list.map((p) => ({ ...p, meetingId: p.meetingId ?? mid })) as Proposal[]
-    })
-    const allPositions: Position[] = positionResults.flatMap((res) => {
-      const data = (res as unknown as { data?: unknown }).data as
-        | Position[]
-        | { positions?: Position[] }
-        | undefined
-      if (Array.isArray(data)) return data
-      if (data && Array.isArray((data as { positions?: Position[] }).positions)) {
-        return (data as { positions?: Position[] }).positions!
-      }
-      return []
-    })
-
-    // CALCULATION 1: Director Performance Data
-    const directorPerformanceData = calculateDirectorPerformance(allProposals)
-
-    // CALCULATION 2: Participation Data (voting method distribution)
-    const participationData = calculateParticipationData(allPositions)
-
-    // CALCULATION 3: Year over Year Data
-    const yearOverYearData = calculateYearOverYearData(
-      completedMeetings,
-      allProposals,
-      allPositions
-    )
-
-    // CALCULATION 4: Event Summary Data
-    const eventSummaryData = calculateEventSummaryData(
-      completedMeetings,
-      allProposals,
-      allPositions
-    )
-
-    // CALCULATION 5: Audit Compliance Data
-    const auditComplianceData = calculateAuditComplianceData(
-      completedMeetings,
-      allProposals
-    )
-
-    // CALCULATION 6: Quorum Data
-    const quorumData = calculateQuorumData(completedMeetings, allPositions)
-
-    // UI TRANSFORMATIONS: Transform data for UI components
-    let mappedEventSummary: MappedEventSummary[] = []
-    let mappedYearOverYear: MappedYearOverYear[] = []
-    let mappedProposalPerformanceData: MappedProposalPerformanceData[] = []
-    let mappedAuditComplianceData: MappedAuditComplianceData[] = []
-
-    try {
-      mappedEventSummary = transformEventSummaryData(
-        completedMeetings,
-        allProposals,
-        allPositions
-      )
-    } catch (_error) {
-      mappedEventSummary = []
-    }
-
-    try {
-      mappedYearOverYear = transformYearOverYearData(yearOverYearData)
-    } catch (_error) {
-      mappedYearOverYear = []
-    }
-
-    try {
-      mappedProposalPerformanceData = transformProposalPerformanceData(allProposals)
-    } catch (_error) {
-      mappedProposalPerformanceData = []
-    }
-
-    try {
-      mappedAuditComplianceData = transformAuditComplianceData(auditComplianceData)
-    } catch (_error) {
-      mappedAuditComplianceData = []
-    }
-
-    const mappedQuorumPerformanceData = quorumData
-    const availableDirectors = directorPerformanceData.map((d) => d.directorName)
-    const availableMeetings = completedMeetings.map((m) => ({
-      id: m.id ?? '',
-      title: m.title ?? 'Untitled Meeting',
-    }))
-
-    const result = {
-      meetings: completedMeetings,
-      proposals: allProposals,
-      positions: allPositions,
-      directorPerformanceData,
-      participationData,
-      yearOverYearData,
-      eventSummaryData,
-      auditComplianceData,
-      quorumData,
+  if (!meetingsData) {
+    return {
+      meetings: [],
+      proposals: [],
+      positions: [],
+      directorPerformanceData: [],
+      participationData: { webVoting: 0, printVoting: 0, ivrVoting: 0, totalVotes: 0 },
+      yearOverYearData: [],
+      eventSummaryData: {
+        totalProposals: 0,
+        passedProposals: 0,
+        failedProposals: 0,
+        participationRate: 0,
+        quorumAchieved: false,
+        materials: { sent: 0, total: 0, sentDate: '' },
+      },
+      auditComplianceData: [],
+      quorumData: [],
       // Transformed data for UI components
-      mappedEventSummary,
-      mappedYearOverYear,
-      mappedProposalPerformanceData,
-      mappedAuditComplianceData,
-      mappedQuorumPerformanceData,
-      availableDirectors,
-      availableMeetings,
+      mappedEventSummary: [],
+      mappedYearOverYear: [],
+      mappedProposalPerformanceData: [],
+      mappedAuditComplianceData: [],
+      mappedQuorumPerformanceData: [],
+      availableDirectors: [],
+      availableMeetings: [],
     }
-
-    return result
-  } catch (error) {
-    throw error
   }
+
+  // Filter out future meetings (keep current year and past)
+  const meetingsArray = Array.isArray(meetingsData)
+    ? meetingsData
+    : (meetingsData as { meetings?: Meeting[] })?.meetings || []
+  const allMeetings = meetingsArray.filter((meeting) => {
+    const meetingYear =
+      meeting.meetingYear ||
+      (meeting.meetingDate ? new Date(meeting.meetingDate).getFullYear() : null)
+    return meetingYear && meetingYear <= currentYear
+  })
+
+  // Filter to only completed meetings for reporting
+  const completedMeetings = allMeetings.filter((meeting) => meeting.status === 'COMPLETE')
+
+  // OPTIMIZATION 2: Parallel fetch of proposals and positions for completed meetings only
+  const meetingIds = completedMeetings.slice(0, 20).map((m) => m.id) // Limit to most recent 20 meetings
+
+  const proposalPromises = meetingIds.map((id) =>
+    apiClient
+      .GET('/meetings/{meetingId}/proposals', {
+        params: { path: { meetingId: id ?? '' } },
+      })
+      .catch(() => ({ data: [] }))
+  )
+  const positionPromises = meetingIds.map(async (id) => {
+    try {
+      const result = await apiClient.GET('/positions', {
+        params: {
+          query: {
+            meetingId: `${id}`,
+            limit: 4000,
+          },
+        },
+      })
+
+      return result
+    } catch (_error) {
+      return { data: [] as Position[] }
+    }
+  })
+
+  const [proposalResults, positionResults] = await Promise.all([
+    Promise.all(proposalPromises),
+    Promise.all(positionPromises),
+  ])
+
+  const allProposals = proposalResults.flatMap((res, idx) => {
+    const mid = meetingIds[idx]
+    const data = (res as unknown as { data?: unknown }).data as
+      | (Proposal & { meetingId?: string })[]
+      | { proposals?: (Proposal & { meetingId?: string })[] }
+      | undefined
+    let list: (Proposal & { meetingId?: string })[] = []
+    if (Array.isArray(data)) list = data
+    if (
+      !Array.isArray(data) &&
+      data &&
+      Array.isArray((data as { proposals?: Proposal[] }).proposals)
+    ) {
+      list =
+        (data as { proposals?: (Proposal & { meetingId?: string })[] }).proposals || []
+    }
+    return list.map((p) => ({ ...p, meetingId: p.meetingId ?? mid })) as Proposal[]
+  })
+  const allPositions: Position[] = positionResults.flatMap((res) => {
+    const data = (res as unknown as { data?: unknown }).data as
+      | Position[]
+      | { positions?: Position[] }
+      | undefined
+    if (Array.isArray(data)) return data
+    if (data && Array.isArray((data as { positions?: Position[] }).positions)) {
+      return (data as { positions?: Position[] }).positions!
+    }
+    return []
+  })
+
+  // CALCULATION 1: Director Performance Data
+  const directorPerformanceData = calculateDirectorPerformance(allProposals)
+
+  // CALCULATION 2: Participation Data (voting method distribution)
+  const participationData = calculateParticipationData(allPositions)
+
+  // CALCULATION 3: Year over Year Data
+  const yearOverYearData = calculateYearOverYearData(
+    completedMeetings,
+    allProposals,
+    allPositions
+  )
+
+  // CALCULATION 4: Event Summary Data
+  const eventSummaryData = calculateEventSummaryData(
+    completedMeetings,
+    allProposals,
+    allPositions
+  )
+
+  // CALCULATION 5: Audit Compliance Data
+  const auditComplianceData = calculateAuditComplianceData(
+    completedMeetings,
+    allProposals
+  )
+
+  // CALCULATION 6: Quorum Data
+  const quorumData = calculateQuorumData(completedMeetings, allPositions)
+
+  // UI TRANSFORMATIONS: Transform data for UI components
+  let mappedEventSummary: MappedEventSummary[] = []
+  let mappedYearOverYear: MappedYearOverYear[] = []
+  let mappedProposalPerformanceData: MappedProposalPerformanceData[] = []
+  let mappedAuditComplianceData: MappedAuditComplianceData[] = []
+
+  try {
+    mappedEventSummary = transformEventSummaryData(
+      completedMeetings,
+      allProposals,
+      allPositions
+    )
+  } catch (_error) {
+    mappedEventSummary = []
+  }
+
+  try {
+    mappedYearOverYear = transformYearOverYearData(yearOverYearData)
+  } catch (_error) {
+    mappedYearOverYear = []
+  }
+
+  try {
+    mappedProposalPerformanceData = transformProposalPerformanceData(allProposals)
+  } catch (_error) {
+    mappedProposalPerformanceData = []
+  }
+
+  try {
+    mappedAuditComplianceData = transformAuditComplianceData(auditComplianceData)
+  } catch (_error) {
+    mappedAuditComplianceData = []
+  }
+
+  const mappedQuorumPerformanceData = quorumData
+  const availableDirectors = directorPerformanceData.map((d) => d.directorName)
+  const availableMeetings = completedMeetings.map((m) => ({
+    id: m.id ?? '',
+    title: m.title ?? 'Untitled Meeting',
+  }))
+
+  const result = {
+    meetings: completedMeetings,
+    proposals: allProposals,
+    positions: allPositions,
+    directorPerformanceData,
+    participationData,
+    yearOverYearData,
+    eventSummaryData,
+    auditComplianceData,
+    quorumData,
+    // Transformed data for UI components
+    mappedEventSummary,
+    mappedYearOverYear,
+    mappedProposalPerformanceData,
+    mappedAuditComplianceData,
+    mappedQuorumPerformanceData,
+    availableDirectors,
+    availableMeetings,
+  }
+
+  return result
 }
 
 export function useReporting(clientTicker: string) {
@@ -776,7 +770,9 @@ function transformEventSummaryData(
       }
 
       results.push(result)
-    } catch {}
+    } catch {
+      // Skip invalid meeting data
+    }
   }
 
   return results

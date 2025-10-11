@@ -1,20 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
   Typography,
-  Box,
-  Divider,
 } from '@mui/material'
+
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
 import BNFilePreview from '@/components/FileUpload/BNFilePreview'
 
@@ -60,6 +62,8 @@ export function AddDocumentDialog({
     if (open && meetingId) {
       void fetchDSMDocuments()
     }
+    // fetchDSMDocuments is a stable function defined in this component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, meetingId])
 
   const fetchDSMDocuments = async () => {
@@ -71,11 +75,11 @@ export function AddDocumentDialog({
       if (response.ok) {
         const documents = await response.json()
         // Filter for DSM-related documents
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dsmDocs = documents.filter((_doc: any) =>
-          _doc.documentType === 'digital-shareholder-meeting' ||
-          _doc.title?.includes('DSM') ||
-          _doc.title?.includes('Digital Shareholder Meeting')
+         
+        const dsmDocs = documents.filter(
+          (_doc: DSMDocument) =>
+            _doc.title?.includes('DSM') ||
+            _doc.title?.includes('Digital Shareholder Meeting')
         )
         setDsmDocuments(dsmDocs)
         setIsUploadMode(dsmDocs.length === 0)
@@ -98,16 +102,16 @@ export function AddDocumentDialog({
       file,
       status: 'pending' as const,
     }))
-    setUploadFiles(prev => [...prev, ...newFiles])
+    setUploadFiles((prev) => [...prev, ...newFiles])
   }
 
   const handleFileRemove = (fileId: string) => {
-    setUploadFiles(prev => prev.filter(f => f.id !== fileId))
+    setUploadFiles((prev) => prev.filter((f) => f.id !== fileId))
   }
 
   const handleAssignExistingDocument = () => {
     if (selectedDocumentId) {
-      const selectedDoc = dsmDocuments.find(doc => doc.id === selectedDocumentId)
+      const selectedDoc = dsmDocuments.find((doc) => doc.id === selectedDocumentId)
       if (selectedDoc) {
         onDocumentAdded(selectedDoc.title, selectedDoc.status ?? 'uploaded')
         handleClose()
@@ -121,21 +125,23 @@ export function AddDocumentDialog({
     try {
       // Simulate upload process
       const file = uploadFiles[0]
-      setUploadFiles(prev => prev.map(f =>
-        f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
+        )
+      )
 
       // Simulate progress
       for (let progress = 0; progress <= 100; progress += 20) {
-        await new Promise(resolve => setTimeout(resolve, 200))
-        setUploadFiles(prev => prev.map(f =>
-          f.id === file.id ? { ...f, progress } : f
-        ))
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        setUploadFiles((prev) =>
+          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
+        )
       }
 
-      setUploadFiles(prev => prev.map(f =>
-        f.id === file.id ? { ...f, status: 'complete' } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) => (f.id === file.id ? { ...f, status: 'complete' } : f))
+      )
 
       // Add document to participant
       onDocumentAdded(file.file.name, 'uploaded')
@@ -145,9 +151,13 @@ export function AddDocumentDialog({
       }, 1000)
     } catch (error) {
       console.error('Upload failed:', error)
-      setUploadFiles(prev => prev.map(f =>
-        f.id === uploadFiles[0].id ? { ...f, status: 'error', error: 'Upload failed' } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) =>
+          f.id === uploadFiles[0].id
+            ? { ...f, status: 'error', error: 'Upload failed' }
+            : f
+        )
+      )
     }
   }
 
@@ -160,9 +170,7 @@ export function AddDocumentDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Add Document for {participantName}
-      </DialogTitle>
+      <DialogTitle>Add Document for {participantName}</DialogTitle>
 
       <DialogContent>
         {isLoading ? (
@@ -185,10 +193,7 @@ export function AddDocumentDialog({
 
             {uploadFiles.map((file) => (
               <Box key={file.id} sx={{ mb: 1 }}>
-                <BNFilePreview
-                  file={file}
-                  onRemove={handleFileRemove}
-                />
+                <BNFilePreview file={file} onRemove={handleFileRemove} />
               </Box>
             ))}
           </Box>
@@ -224,11 +229,7 @@ export function AddDocumentDialog({
               Or upload a new document:
             </Typography>
 
-            <Button
-              variant="outlined"
-              onClick={() => setIsUploadMode(true)}
-              fullWidth
-            >
+            <Button variant="outlined" onClick={() => setIsUploadMode(true)} fullWidth>
               Upload New Document
             </Button>
           </Box>
@@ -236,15 +237,16 @@ export function AddDocumentDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose}>
-          Cancel
-        </Button>
+        <Button onClick={handleClose}>Cancel</Button>
 
         {isUploadMode || dsmDocuments.length === 0 ? (
           <Button
             onClick={handleUploadNewDocument}
             variant="contained"
-            disabled={uploadFiles.length === 0 || uploadFiles.some(f => f.status === 'uploading')}
+            disabled={
+              uploadFiles.length === 0 ||
+              uploadFiles.some((f) => f.status === 'uploading')
+            }
           >
             Upload & Assign
           </Button>

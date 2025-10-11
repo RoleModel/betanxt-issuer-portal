@@ -1,12 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
+import { Upload } from '@mui/icons-material'
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Link,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -14,20 +23,14 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Chip,
-  Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Stack,
 } from '@mui/material'
-import { Upload } from '@mui/icons-material'
 
-import { ExportButton } from './ExportButton'
-import { AddDocumentDialog } from './AddDocumentDialog'
 import BNFileUpload from '@/components/FileUpload/BNFileUpload'
+
 import type { components } from '@/domain-models/generated-schema'
+
+import { AddDocumentDialog } from './AddDocumentDialog'
+import { ExportButton } from './ExportButton'
 
 type DigitalShareholderMeeting = components['schemas']['DigitalShareholderMeeting']
 
@@ -42,12 +45,11 @@ interface ParticipantWithRole extends DigitalShareholderMeeting {
   documentUrl?: string
 }
 
-
-
 export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const [participants, setParticipants] = useState<ParticipantWithRole[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [selectedParticipant, setSelectedParticipant] = useState<ParticipantWithRole | null>(null)
+  const [selectedParticipant, setSelectedParticipant] =
+    useState<ParticipantWithRole | null>(null)
   const [addDocumentDialogOpen, setAddDocumentDialogOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
 
@@ -56,7 +58,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       setError(null)
 
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`)
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      )
       if (!response.ok) {
         throw new Error('Failed to fetch participants')
       }
@@ -65,14 +69,19 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
       // Fetch documents for this meeting
       const documentsResponse = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
-      let documents: { title?: string; documentType?: string; storagePath?: string }[] = []
+      let documents: { title?: string; documentType?: string; storagePath?: string }[] =
+        []
       if (documentsResponse.ok) {
-        documents = await documentsResponse.json() as { title?: string; documentType?: string; storagePath?: string }[]
+        documents = (await documentsResponse.json()) as {
+          title?: string
+          documentType?: string
+          storagePath?: string
+        }[]
       }
 
       // Filter documents to only DSM-related ones uploaded via the upload buttons
-      const dsmDocuments = documents.filter(doc =>
-        doc.documentType === 'digital-shareholder-meeting'
+      const dsmDocuments = documents.filter(
+        (doc) => doc.documentType === 'digital-shareholder-meeting'
       )
 
       // Transform data to include role information
@@ -88,7 +97,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         return {
           ...participant,
           role,
-          documentName: hasDocuments ? `${dsmDocuments.length} meeting document${dsmDocuments.length === 1 ? '' : 's'}` : undefined,
+          documentName: hasDocuments
+            ? `${dsmDocuments.length} meeting document${dsmDocuments.length === 1 ? '' : 's'}`
+            : undefined,
           documentStatus: hasDocuments ? 'uploaded' : undefined,
           documentUrl: firstDocument?.storagePath || undefined,
         }
@@ -112,16 +123,22 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const handleDocumentAdded = (documentName: string, documentStatus: string) => {
     if (selectedParticipant) {
       // Update local state - this should persist until the next manual refresh
-      setParticipants(prev => prev.map(p =>
-        p.id === selectedParticipant.id
-          ? {
-            ...p,
-            documentName,
-            documentStatus: documentStatus as 'uploaded' | 'pending' | 'approved' | 'rejected',
-            documentUrl: `/documents/dsm/${p.id}.pdf`
-          }
-          : p
-      ))
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === selectedParticipant.id
+            ? {
+                ...p,
+                documentName,
+                documentStatus: documentStatus as
+                  | 'uploaded'
+                  | 'pending'
+                  | 'approved'
+                  | 'rejected',
+                documentUrl: `/documents/dsm/${p.id}.pdf`,
+              }
+            : p
+        )
+      )
 
       // Don't auto-refresh since the server might not have the association yet
       // The user can manually refresh if needed
@@ -157,10 +174,13 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         formData.append('meetingId', meetingId)
         formData.append('documentType', 'digital-shareholder-meeting')
 
-        const response = await fetch('/api/documents/types/digital-shareholder-meeting/upload', {
-          method: 'POST',
-          body: formData,
-        })
+        const response = await fetch(
+          '/api/documents/types/digital-shareholder-meeting/upload',
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
 
         if (!response.ok) {
           throw new Error(`Upload failed: ${await response.text()}`)
@@ -176,8 +196,6 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
-
-
 
   const getDocumentStatusColor = (status?: string) => {
     switch (status) {
@@ -202,7 +220,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     return { label: 'Registered', color: 'default' as const }
   }
 
-  const actualAttendees = participants.filter(p => (p.minutesAttendedMeeting ?? 0) > 0).length
+  const actualAttendees = participants.filter(
+    (p) => (p.minutesAttendedMeeting ?? 0) > 0
+  ).length
 
   if (error) {
     return (
@@ -222,11 +242,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         subheader={`${participants.length} registered • ${actualAttendees} attended`}
         action={
           <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<Upload />}
-              onClick={handleUploadClick}
-            >
+            <Button variant="outlined" startIcon={<Upload />} onClick={handleUploadClick}>
               Upload
             </Button>
             <ExportButton
@@ -276,13 +292,15 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                     <TableCell>
                       {participant.documentStatus ? (
                         <Chip
-                          label={participant.documentStatus.charAt(0).toUpperCase() + participant.documentStatus.slice(1)}
+                          label={
+                            participant.documentStatus.charAt(0).toUpperCase() +
+                            participant.documentStatus.slice(1)
+                          }
                           color={getDocumentStatusColor(participant.documentStatus)}
                           size="small"
                         />
                       ) : (
-
-                        "Not Uploaded"
+                        'Not Uploaded'
                       )}
                     </TableCell>
                     <TableCell align="right">
@@ -309,9 +327,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
         {participants.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography color="text.secondary">
-              No participants registered yet
-            </Typography>
+            <Typography color="text.secondary">No participants registered yet</Typography>
           </Box>
         )}
       </CardContent>
@@ -320,7 +336,11 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       <AddDocumentDialog
         open={addDocumentDialogOpen}
         onClose={handleCloseDialog}
-        participantName={selectedParticipant ? `${selectedParticipant.firstName} ${selectedParticipant.lastName}` : ''}
+        participantName={
+          selectedParticipant
+            ? `${selectedParticipant.firstName} ${selectedParticipant.lastName}`
+            : ''
+        }
         meetingId={meetingId}
         participantId={selectedParticipant?.id ?? ''}
         onDocumentAdded={handleDocumentAdded}

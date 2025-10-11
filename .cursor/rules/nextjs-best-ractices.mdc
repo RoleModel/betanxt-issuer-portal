@@ -1,0 +1,74 @@
+---
+globs: *.tsx
+alwaysApply: false
+---
+
+- Use the App Router for better performance and organization of routes.
+- Implement proper error boundaries to handle errors gracefully.
+- Optimize data fetching with `getServerSideProps` or `getStaticProps` as needed.
+- Utilize dynamic routing for cleaner URL structures.
+
+---
+
+name: typescript-best-practices.mdc
+description: TypeScript coding standards and type safety guidelines
+globs: \*_/_.{ts,tsx}
+
+---
+
+- Enable strict mode in `tsconfig.json` for better type safety.
+- Prefer using interfaces over type aliases for object shapes.
+- Use type guards to ensure type safety in conditional logic.
+- Leverage generics for reusable components and functions.
+
+---
+
+name: supabase-best-practices.mdc
+description: Best practices for using Supabase in applications
+globs: \*_/_.{ts,tsx}
+
+---
+
+- Use environment variables to manage Supabase keys securely.
+- Implement real-time subscriptions for data updates.
+- Structure database tables and relationships for optimal querying.
+- Use Supabase's built-in authentication for user management.
+
+---
+
+name: playwright-best-practices.mdc
+description: Best practices for testing with Playwright
+globs: \*_/_.spec.{ts,js}
+
+---
+
+- Organize tests into unit, integration, and end-to-end categories.
+- Use fixtures to set up test data and state.
+- Implement parallel test execution to speed up testing.
+- Utilize Playwright's built-in tracing for debugging flaky tests.
+
+---
+
+name: eslint-best-practices.mdc
+description: Best practices for ESLint configuration and usage
+globs: \*_/_.{ts,tsx,js,jsx}
+
+---
+
+- Use `eslint-config-next` for Next.js specific linting rules.
+- Enable `--fix` option in scripts to automatically fix linting issues.
+- Regularly update ESLint and plugins to leverage new features.
+- Customize rules based on team preferences and project needs.
+
+---
+
+name: openapi-best-practices.mdc
+description: Best practices for working with OpenAPI specifications
+globs: \*_/_.yaml
+
+---
+
+- Keep OpenAPI specifications up-to-date with code changes.
+- Use tools like `openapi-generator-cli` for generating client libraries.
+- Validate OpenAPI specs using `swagger-parser` before deployment.
+- Document all endpoints clearly for better API usability.

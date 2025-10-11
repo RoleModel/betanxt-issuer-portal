@@ -15,11 +15,11 @@ interface FormFieldValue {
 
 export const usePDFGeneration = () => {
   const generateFilledPDF = useCallback(
-    async (
+    (
       taskTitle: string,
       signatureDataMap: Map<string, SignatureData>,
       formFieldValues: Map<string, FormFieldValue>
-    ): Promise<Blob> => {
+    ): Blob => {
       const doc = new jsPDF()
 
       // Add title

@@ -67,7 +67,11 @@ import {
 import { getPhaseColor } from '../mui-styling/theme'
 
 // Phase URL type for UI
-interface PhaseUrl { title: string; description?: string; url?: string }
+interface PhaseUrl {
+  title: string
+  description?: string
+  url?: string
+}
 
 // Swipeable drawer constants
 const drawerBleeding = 60
@@ -155,7 +159,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   const currentPhaseNumber = React.useMemo(() => {
     const label = currentMeeting?.currentPhase ?? `Phase ${phase ?? 1}`
     const parsed = parseInt(label.replace('Phase ', ''))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : phase ?? 1
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : (phase ?? 1)
   }, [currentMeeting?.currentPhase, phase])
 
   // Use shared document management hook
@@ -636,7 +640,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           }
         : undefined
 
-       
       console.log(
         '[PhaseDrawer] handleTaskLinkClick clientData:',
         clientData,

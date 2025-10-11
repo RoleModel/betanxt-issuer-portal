@@ -24,7 +24,7 @@ import {
   teal,
 } from '@mui/material/colors'
 import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
-import { getContrastRatio } from '@mui/material/styles'
+import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
 import type { } from '@mui/x-date-pickers/themeAugmentation'
 
@@ -61,6 +61,7 @@ export interface LayoutVars {
 declare module '@mui/material/styles' {
   interface Palette {
     keydate: Palette['primary']
+    tertiary: PaletteColorOptions
     phase: [
       PaletteColor,
       PaletteColor,
@@ -77,6 +78,7 @@ declare module '@mui/material/styles' {
   }
   interface PaletteOptions {
     keydate?: PaletteOptions['primary']
+    tertiary?: PaletteOptions['primary']
     phase?: [
       PaletteColorOptions,
       PaletteColorOptions,
@@ -233,6 +235,8 @@ export const createClientTheme = (ticker?: string) => {
           },
           tertiary: {
             main: branding.tertiaryColor,
+            light: lighten(branding.tertiaryColor, 0.2),
+            dark: darken(branding.tertiaryColor, 0.2),
             contrastText: branding.tertiaryContrastText,
           },
           aquaLight: '#CFE2E5',
@@ -297,7 +301,17 @@ export const createClientTheme = (ticker?: string) => {
               dark: grey[900],
               contrastText: grey[50],
             },
-          ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
+          ] as [
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[500],
         },
       },
@@ -365,7 +379,17 @@ export const createClientTheme = (ticker?: string) => {
               dark: grey[800],
               contrastText: grey[50],
             },
-          ] as [PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor, PaletteColor],
+          ] as [
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[600],
         },
       },
@@ -449,7 +473,7 @@ export const createClientTheme = (ticker?: string) => {
                 boxShadow: 'none',
               },
               '& .MuiTabs-indicator': {
-                backgroundColor: theme.vars?.palette.appBarSecondary?.tabIndicator,
+                backgroundColor: theme.vars?.palette.primary.main,
                 height: 4,
               },
               '& .MuiTab-root ': {
@@ -457,11 +481,11 @@ export const createClientTheme = (ticker?: string) => {
                 transition: theme.transitions.create(['color']),
               },
               '& .MuiTab-root:hover ': {
-                color: theme.vars?.palette.appBarSecondary?.hover,
-                boxShadow: `inset 0 -4px 0 0 ${theme.vars?.palette.appBarSecondary?.hover}`,
+                color: theme.vars?.palette.primary.main,
+                boxShadow: `inset 0 -4px 0 0 ${theme.vars?.palette.primary.main}`,
               },
               '& .MuiTabs-root .Mui-selected': {
-                color: theme.vars?.palette.appBarSecondary?.defaultContrast,
+                color: theme.vars?.palette.primary.main,
               },
             },
           }),
@@ -620,4 +644,3 @@ export const wendysThemeOptions = createClientTheme('WEN')
 export const paycomThemeOptions = createClientTheme('PAYC')
 export const woodwardThemeOptions = createClientTheme('WWD')
 export const elevenThemeOptions = createClientTheme('ELVN')
-

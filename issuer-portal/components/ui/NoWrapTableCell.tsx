@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { SxProps, TableCellProps } from '@mui/material';
+import type { SxProps, TableCellProps } from '@mui/material'
 import { TableCell } from '@mui/material'
 import { Tooltip } from '@mui/material'
 

@@ -41,13 +41,17 @@ import type { components } from '@/domain-models/generated-schema'
 import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import type {
-  ExtendedDocumentStatus} from '@/utils/documentUtils';
+import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
 import {
   DOCUMENT_STATUS_VALUES,
   getDocumentStatusLabel,
   getStoragePublicUrl,
 } from '@/utils/documentUtils'
+
+/**
+ * Documents page for managing meeting documents
+ * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
+ */
 
 /**
  * Documents page for managing meeting documents
@@ -128,7 +132,7 @@ interface ParsedProposal {
   recommendation: string
 }
 
-type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>
 
 export default function DocumentsPage({ params }: DocumentsPageProps) {
   React.use(params) // Consume params but don't store
@@ -368,7 +372,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
           resolve(mappedData)
         } catch (error) {
-          reject(error)
+          reject(error instanceof Error ? error : new Error(String(error)))
         }
       }
 
@@ -654,7 +658,9 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           onApprove={handleApproveDocument}
           taskStatus={selectedDocument.status}
           onOpenFullscreen={handleOpenFullscreen}
-          onAddComment={() => {}}
+          onAddComment={() => {
+            // Comment functionality not implemented yet
+          }}
         />
       )}
 

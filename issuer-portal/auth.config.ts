@@ -32,11 +32,17 @@ export default {
         }
 
         if (!credentials?.username || !credentials?.password) {
-          console.log('Missing credentials:', { username: credentials?.username, hasPassword: !!credentials?.password })
+          console.log('Missing credentials:', {
+            username: credentials?.username,
+            hasPassword: !!credentials?.password,
+          })
           return null
         }
 
-        console.log('Login attempt:', { username: credentials.username, password: credentials.password })
+        console.log('Login attempt:', {
+          username: credentials.username,
+          password: credentials.password,
+        })
 
         // For development, allow these test users:
         const testUsers = [
@@ -95,12 +101,18 @@ export default {
         ]
 
         const user = testUsers.find(
-          (u) => u.username === credentials.username &&
-            (u.password ? credentials.password === u.password : credentials.password === 'password')
+          (u) =>
+            u.username === credentials.username &&
+            (u.password
+              ? credentials.password === u.password
+              : credentials.password === 'password')
         )
 
         console.log('User found:', user ? user.username : 'No user found')
-        console.log('Available users:', testUsers.map(u => ({ username: u.username, password: u.password })))
+        console.log(
+          'Available users:',
+          testUsers.map((u) => ({ username: u.username, password: u.password }))
+        )
 
         if (user) {
           return {
@@ -157,7 +169,8 @@ export default {
         token.account_id = user.account_id
         token.client_ticker = user.client_ticker
         token.username = user.username
-        token.roles = user.type === 'admin' || user.type === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER']
+        token.roles =
+          user.type === 'admin' || user.type === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER']
       }
 
       // Handle session updates (like avatar uploads)
@@ -173,7 +186,8 @@ export default {
       session.user.id = (token.id as string | undefined) ?? token.sub ?? ''
       session.user.type = (token.type as string | undefined) ?? undefined
       session.user.account_id = (token.account_id as string | undefined) ?? undefined
-      session.user.client_ticker = (token.client_ticker as string | null | undefined) ?? null
+      session.user.client_ticker =
+        (token.client_ticker as string | null | undefined) ?? null
       session.user.username = (token.username as string | undefined) ?? undefined
       session.user.image = (token.image as string | null | undefined) ?? null
       session.user.roles = Array.isArray(token.roles) ? (token.roles as string[]) : []

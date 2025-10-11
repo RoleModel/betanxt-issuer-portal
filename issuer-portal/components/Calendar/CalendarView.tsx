@@ -212,9 +212,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     window.print()
   }
 
-  const handleExportIcs = async () => {
+  const handleExportIcs = () => {
     try {
-      await exportCalendarToIcs({
+      exportCalendarToIcs({
         tasks,
         keyDates,
         meetingTitle: meeting?.title ?? 'Meeting Calendar',

@@ -44,6 +44,11 @@ import {
  * Provides controls for switching between month and list views
  */
 
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
 export type CalendarViewType = 'month' | 'list'
 
 interface CalendarHeaderProps {
@@ -249,16 +254,18 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               height: 40,
               '& .MuiToggleButton-root': {
                 color: (theme) => theme.vars?.palette?.common.white,
-                borderColor: 'rgba(var(--mui-palette-secondary-mainChannel) / 0.7)',
+                borderColor: (theme) => theme.vars?.palette?.common.white,
                 '&.Mui-selected': {
-                  background: (theme) => theme.vars?.palette?.secondary.main,
-                  color: (theme) => theme.vars?.palette?.secondary.contrastText,
+                  background: (theme) => theme.vars?.palette?.common.white,
+                  color: (theme) => theme.vars?.palette?.primary.main,
                   '&:hover': {
                     background: (theme) => theme.vars?.palette?.secondary?.light,
+                    color: (theme) => theme.vars?.palette?.common.white,
                   },
                 },
                 '&:hover': {
                   background: 'rgba(255,255,255,0.1)',
+                  color: (theme) => theme.vars?.palette?.common.white,
                 },
               },
             }}

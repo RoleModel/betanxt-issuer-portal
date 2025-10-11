@@ -2,10 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Issuer Portal Monorepo Root",
   "files": [],
-  "exclude": [
-    "node_modules",
-    "**/node_modules"
-  ],
+  "exclude": ["node_modules", "**/node_modules"],
   "references": [
     {
       "path": "issuer-portal"

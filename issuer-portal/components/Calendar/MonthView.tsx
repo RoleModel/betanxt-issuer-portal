@@ -625,7 +625,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
 
         {months.map((month: CalendarMonth) => (
           <MonthGrid
-            key={`${month.year}-${month.month}`}
+            key={`${month.year}-${month.month.getMonth()}`}
             month={month}
             onTaskClick={onTaskClick}
             onTaskRightClick={handleTaskRightClick}

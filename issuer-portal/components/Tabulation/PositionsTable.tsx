@@ -74,7 +74,11 @@ const toStringValue = (value: unknown): string => {
   const str = asString(value)
   if (str) return str
   // Only convert to string if it's a primitive type
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return String(value)
   }
   return ''
@@ -85,7 +89,11 @@ const toNullableString = (value: unknown): string | null => {
   const str = asString(value)
   if (str) return str
   // Only convert to string if it's a primitive type
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return String(value)
   }
   return null

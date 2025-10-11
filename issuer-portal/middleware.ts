@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server'
 
 import { auth } from '@/authentication/auth-config'
 
+// Must be async to match NextAuth middleware signature
+// eslint-disable-next-line @typescript-eslint/require-await
 export default auth(async function middleware(request: NextRequest) {
   const { nextUrl } = request
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'

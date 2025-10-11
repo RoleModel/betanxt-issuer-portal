@@ -24,14 +24,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
     })
 
     // Generate PDF content
-    await generatePdfContent(
-      pdf,
-      tasks,
-      keyDates,
-      meetingTitle,
-      selectedPhase,
-      clientTicker
-    )
+    generatePdfContent(pdf, tasks, keyDates, meetingTitle, selectedPhase, clientTicker)
 
     // Download the PDF directly
     const fileName = `${meetingTitle.replace(/\s+/g, '_')}_Timeline_${
@@ -45,7 +38,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
   }
 }
 
-async function generatePdfContent(
+function generatePdfContent(
   pdf: unknown,
   tasks: Task[],
   keyDates: KeyDate[],

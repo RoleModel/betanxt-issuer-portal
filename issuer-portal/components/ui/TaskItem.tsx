@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 
 import { Box, Button, Typography, styled, useTheme } from '@mui/material'
@@ -6,8 +8,6 @@ import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/th
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { Task } from '@/types/api-exports'
-
-;('use client')
 
 interface TaskItemProps {
   task: Task

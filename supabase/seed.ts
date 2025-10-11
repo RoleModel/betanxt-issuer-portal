@@ -1,10 +1,11 @@
 /* eslint-disable */
-import { fileURLToPath } from 'url'
-import path from 'path'
-import { DateTime } from 'luxon'
 import { copycat } from '@snaplet/copycat'
-import { seedConfig } from './seed.config'
+import { DateTime } from 'luxon'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
 import { CSVProcessor } from '../mock-api-server/csv-processor'
+import { seedConfig } from './seed.config'
 
 type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>
 
@@ -1918,7 +1919,7 @@ const main = async () => {
         'Time to schedule your logistics call/dry run for your special meeting. Click here to view your dashboard and coordinate with your team.',
       type: 'info',
       priority: 'high',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%207`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/7`,
       forMeetings: ['special-meeting-2026'],
     },
     {
@@ -1927,7 +1928,7 @@ const main = async () => {
         'Your Digital Shareholder Meeting setup is ready to begin. Click here to configure your virtual meeting settings and get everything ready.',
       type: 'info',
       priority: 'high',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%207`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/7`,
     },
     {
       title: 'Comment on Document',
@@ -1992,23 +1993,36 @@ const main = async () => {
 
       // Find a relevant meeting for this notification
       let meetingId: string | null = null
-      const accountClient = seedConfig.accounts[userIndex % seedConfig.accounts.length]
+
+      // Get the user's associated account and client
+      // Skip relationship manager (index 0), map issuer users to accounts
+      let userAccount
+      if (userIndex === 0) {
+        // Relationship manager - use first account as fallback
+        userAccount = seedConfig.accounts[0]
+      } else {
+        // Issuer users - map to correct account (userIndex - 1 because RM is at index 0)
+        const accountIndex = userIndex - 1
+        userAccount = accountIndex < seedConfig.accounts.length
+          ? seedConfig.accounts[accountIndex]
+          : seedConfig.accounts[0] // Fallback to first account
+      }
+
+      const userClientTicker = userAccount.clientTicker.toLowerCase()
 
       if ('forMeetings' in template && template.forMeetings) {
         // Find specific meeting type for this client
         meetingId =
           meetingIds.find(
             (id) =>
-              id.includes(accountClient.clientTicker.toLowerCase()) &&
+              id.includes(userClientTicker) &&
               template.forMeetings?.some((type) => id.includes(type))
           ) || null
       } else {
         // Use any 2026 meeting for this client
         meetingId =
-          meetingIds.find(
-            (id) =>
-              id.includes(accountClient.clientTicker.toLowerCase()) && id.includes('2026')
-          ) || null
+          meetingIds.find((id) => id.includes(userClientTicker) && id.includes('2026')) ||
+          null
       }
 
       // Calculate notification timing based on index
@@ -2030,7 +2044,13 @@ const main = async () => {
         if (client) {
           actionUrl = template.link(client.ticker).replace('{{meetingId}}', meetingId)
           message = template.message // Keep message as-is, link will be in action_url field
+        } else {
+          console.warn(`Client not found for meetingId: ${meetingId}`)
         }
+      } else if ('link' in template && !meetingId) {
+        console.warn(
+          `No meetingId found for notification: ${template.title} for user: ${user.username}`
+        )
       }
 
       sqlStatements.push(

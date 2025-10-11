@@ -305,7 +305,8 @@ export async function fetchDSMDocuments(
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>
-      const rowId = typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
+      const rowId =
+        typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
       const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
@@ -313,25 +314,34 @@ export async function fetchDSMDocuments(
               (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
             )
             .map((h) => ({
-              id: typeof h.id === 'string' ? h.id : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
+              id:
+                typeof h.id === 'string'
+                  ? h.id
+                  : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
               documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
               action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
-              userId: typeof h.userId === 'string' ? h.userId : (typeof h.user_id === 'string' ? h.user_id : ''),
-              userName: typeof h.userName === 'string'
-                ? h.userName
-                : typeof h.user_name === 'string'
-                  ? h.user_name
-                  : typeof h.user === 'string'
-                    ? h.user
-                    : 'Unknown User',
-              timestamp: typeof h.timestamp === 'string'
-                ? h.timestamp
-                : typeof h.created_at === 'string'
-                  ? h.created_at
-                  : new Date().toISOString(),
+              userId:
+                typeof h.userId === 'string'
+                  ? h.userId
+                  : typeof h.user_id === 'string'
+                    ? h.user_id
+                    : '',
+              userName:
+                typeof h.userName === 'string'
+                  ? h.userName
+                  : typeof h.user_name === 'string'
+                    ? h.user_name
+                    : typeof h.user === 'string'
+                      ? h.user
+                      : 'Unknown User',
+              timestamp:
+                typeof h.timestamp === 'string'
+                  ? h.timestamp
+                  : typeof h.created_at === 'string'
+                    ? h.created_at
+                    : new Date().toISOString(),
               details:
-                typeof h.details === 'object' &&
-                h.details !== null
+                typeof h.details === 'object' && h.details !== null
                   ? (h.details as Record<string, unknown>)
                   : undefined,
             }))
@@ -344,9 +354,9 @@ export async function fetchDSMDocuments(
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
-            (row.updated_at as string) ??
-            (row.created_at as string) ??
-            new Date().toISOString(),
+          (row.updated_at as string) ??
+          (row.created_at as string) ??
+          new Date().toISOString(),
         url: typeof row.file_path === 'string' ? row.file_path : undefined,
         history: historyArray,
       }
@@ -365,18 +375,25 @@ export async function fetchDSMDocuments(
             const r = d as Record<string, unknown>
             return {
               id: String(r.id),
-              name: typeof r.title === 'string' ? r.title : (typeof r.name === 'string' ? r.name : 'Untitled'),
+              name:
+                typeof r.title === 'string'
+                  ? r.title
+                  : typeof r.name === 'string'
+                    ? r.name
+                    : 'Untitled',
               type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string' ? r.status : 'DRAFT') as DocumentStatus,
+              status: (typeof r.status === 'string'
+                ? r.status
+                : 'DRAFT') as DocumentStatus,
               size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
               uploadedAt:
                 (r.uploadedDate as string) ??
-                  (r.uploaded_date as string) ??
-                  (r.updatedAt as string) ??
-                  (r.updated_at as string) ??
-                  (r.createdAt as string) ??
-                  (r.created_at as string) ??
-                  new Date().toISOString(),
+                (r.uploaded_date as string) ??
+                (r.updatedAt as string) ??
+                (r.updated_at as string) ??
+                (r.createdAt as string) ??
+                (r.created_at as string) ??
+                new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
               history: Array.isArray(r.history)
                 ? (r.history as DocumentHistoryEntry[])
@@ -418,7 +435,8 @@ export async function fetchRegularDocuments(
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>
-      const rowId = typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
+      const rowId =
+        typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
       const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
@@ -426,25 +444,34 @@ export async function fetchRegularDocuments(
               (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
             )
             .map((h) => ({
-              id: typeof h.id === 'string' ? h.id : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
+              id:
+                typeof h.id === 'string'
+                  ? h.id
+                  : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
               documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
               action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
-              userId: typeof h.userId === 'string' ? h.userId : (typeof h.user_id === 'string' ? h.user_id : ''),
-              userName: typeof h.userName === 'string'
-                ? h.userName
-                : typeof h.user_name === 'string'
-                  ? h.user_name
-                  : typeof h.user === 'string'
-                    ? h.user
-                    : 'Unknown User',
-              timestamp: typeof h.timestamp === 'string'
-                ? h.timestamp
-                : typeof h.created_at === 'string'
-                  ? h.created_at
-                  : new Date().toISOString(),
+              userId:
+                typeof h.userId === 'string'
+                  ? h.userId
+                  : typeof h.user_id === 'string'
+                    ? h.user_id
+                    : '',
+              userName:
+                typeof h.userName === 'string'
+                  ? h.userName
+                  : typeof h.user_name === 'string'
+                    ? h.user_name
+                    : typeof h.user === 'string'
+                      ? h.user
+                      : 'Unknown User',
+              timestamp:
+                typeof h.timestamp === 'string'
+                  ? h.timestamp
+                  : typeof h.created_at === 'string'
+                    ? h.created_at
+                    : new Date().toISOString(),
               details:
-                typeof h.details === 'object' &&
-                h.details !== null
+                typeof h.details === 'object' && h.details !== null
                   ? (h.details as Record<string, unknown>)
                   : undefined,
             }))
@@ -457,9 +484,9 @@ export async function fetchRegularDocuments(
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
-            (row.updated_at as string) ??
-            (row.created_at as string) ??
-            new Date().toISOString(),
+          (row.updated_at as string) ??
+          (row.created_at as string) ??
+          new Date().toISOString(),
         url: typeof row.file_path === 'string' ? row.file_path : undefined,
         history: historyArray,
       }
@@ -475,18 +502,25 @@ export async function fetchRegularDocuments(
             const r = d as Record<string, unknown>
             return {
               id: String(r.id),
-              name: typeof r.title === 'string' ? r.title : (typeof r.name === 'string' ? r.name : 'Untitled'),
+              name:
+                typeof r.title === 'string'
+                  ? r.title
+                  : typeof r.name === 'string'
+                    ? r.name
+                    : 'Untitled',
               type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string' ? r.status : 'DRAFT') as DocumentStatus,
+              status: (typeof r.status === 'string'
+                ? r.status
+                : 'DRAFT') as DocumentStatus,
               size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
               uploadedAt:
                 (r.uploadedDate as string) ??
-                  (r.uploaded_date as string) ??
-                  (r.updatedAt as string) ??
-                  (r.updated_at as string) ??
-                  (r.createdAt as string) ??
-                  (r.created_at as string) ??
-                  new Date().toISOString(),
+                (r.uploaded_date as string) ??
+                (r.updatedAt as string) ??
+                (r.updated_at as string) ??
+                (r.createdAt as string) ??
+                (r.created_at as string) ??
+                new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
               history: Array.isArray(r.history)
                 ? (r.history as DocumentHistoryEntry[])
@@ -540,18 +574,25 @@ export async function updateDocumentStatus(
         return {
           data: {
             id: typeof d.id === 'string' ? d.id : documentId,
-            name: typeof d.title === 'string' ? d.title : (typeof d.name === 'string' ? d.name : 'Untitled'),
+            name:
+              typeof d.title === 'string'
+                ? d.title
+                : typeof d.name === 'string'
+                  ? d.name
+                  : 'Untitled',
             type: String((d.type as string) ?? (d.fileType as string) ?? 'pdf'),
-            status: (typeof d.status === 'string' ? d.status : persistStatus) as DocumentStatus,
+            status: (typeof d.status === 'string'
+              ? d.status
+              : persistStatus) as DocumentStatus,
             size: Number((d.fileSize as number) ?? (d.file_size as number) ?? 0),
             uploadedAt:
               (d.uploadedDate as string) ??
-                (d.uploaded_date as string) ??
-                (d.updatedAt as string) ??
-                (d.updated_at as string) ??
-                (d.createdAt as string) ??
-                (d.created_at as string) ??
-                new Date().toISOString(),
+              (d.uploaded_date as string) ??
+              (d.updatedAt as string) ??
+              (d.updated_at as string) ??
+              (d.createdAt as string) ??
+              (d.created_at as string) ??
+              new Date().toISOString(),
             url: (d.filePath as string) ?? (d.file_path as string),
           },
           error: null,
@@ -581,15 +622,22 @@ export async function updateDocumentStatus(
     return {
       data: {
         id: typeof d.id === 'string' ? d.id : documentId,
-        name: typeof d.title === 'string' ? d.title : (typeof d.name === 'string' ? d.name : 'Untitled'),
+        name:
+          typeof d.title === 'string'
+            ? d.title
+            : typeof d.name === 'string'
+              ? d.name
+              : 'Untitled',
         type: String((d.type as string) ?? (d.file_type as string) ?? 'pdf'),
-        status: (typeof d.status === 'string' ? d.status : persistStatus) as DocumentStatus,
+        status: (typeof d.status === 'string'
+          ? d.status
+          : persistStatus) as DocumentStatus,
         size: Number(d.file_size ?? 0),
         uploadedAt:
           (d.uploaded_date as string) ??
-            (d.updated_at as string) ??
-            (d.created_at as string) ??
-            new Date().toISOString(),
+          (d.updated_at as string) ??
+          (d.created_at as string) ??
+          new Date().toISOString(),
         url: typeof d.file_path === 'string' ? d.file_path : undefined,
       },
       error: null,

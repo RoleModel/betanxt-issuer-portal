@@ -26,7 +26,7 @@ export interface UseSignatureAreasResult {
   updateSignatureArea: (
     areaId: string,
     updates: Partial<SignatureArea>
-  ) => Promise<SignatureArea | null>
+  ) => SignatureArea | null
   checkDocumentExists: (documentId: string) => Promise<boolean>
 }
 
@@ -35,6 +35,8 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
   const [error, setError] = useState<string | null>(null)
 
   const checkDocumentExists = useCallback(
+    // Mock implementation - will use await when connected to real API
+    // eslint-disable-next-line @typescript-eslint/require-await
     async (_documentId: string): Promise<boolean> => {
       try {
         // This would need to call a document API endpoint
@@ -93,10 +95,7 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
   )
 
   const updateSignatureArea = useCallback(
-    async (
-      areaId: string,
-      updates: Partial<SignatureArea>
-    ): Promise<SignatureArea | null> => {
+    (areaId: string, updates: Partial<SignatureArea>): SignatureArea | null => {
       try {
         setLoading(true)
         setError(null)

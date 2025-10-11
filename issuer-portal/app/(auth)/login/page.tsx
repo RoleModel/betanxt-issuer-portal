@@ -5,8 +5,6 @@ import { getSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export const dynamic = 'force-dynamic'
-
 import {
   Alert,
   Box,
@@ -21,6 +19,8 @@ import {
 } from '@mui/material'
 
 import Layout from '@/components/Layout/Layout'
+
+export const dynamic = 'force-dynamic'
 
 const LoginPage = () => {
   const [username, setUsername] = useState('')

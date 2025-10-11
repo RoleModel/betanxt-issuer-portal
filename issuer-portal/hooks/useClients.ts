@@ -1,14 +1,11 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useCallback, useEffect, useState } from 'react'
+import useSWR from 'swr'
 
-import buildApiClient, {
-  getCacheKey,
-  getCachedResponse,
-  setCachedResponse,
-} from '@/domain-models/apiClient'
+import buildApiClient from '@/domain-models/apiClient'
 
+import { clientsSWRConfig } from '@/lib/swr-config'
 import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 export interface Client {
@@ -77,14 +74,14 @@ const normalizeClient = (raw: unknown): Client | null => {
   const accountsRaw = record.accounts
   const accounts = Array.isArray(accountsRaw)
     ? accountsRaw
-        .map((account) => asRecord(account))
-        .filter((account): account is Record<string, unknown> => Boolean(account))
-        .map((account) => ({
-          id: asString(account.id) ?? '',
-          name: asString(account.name) ?? undefined,
-          primary_contact: asString(account.primary_contact) ?? undefined,
-        }))
-        .filter((account) => account.id)
+      .map((account) => asRecord(account))
+      .filter((account): account is Record<string, unknown> => Boolean(account))
+      .map((account) => ({
+        id: asString(account.id) ?? '',
+        name: asString(account.name) ?? undefined,
+        primary_contact: asString(account.primary_contact) ?? undefined,
+      }))
+      .filter((account) => account.id)
     : undefined
 
   const phaseValue = pickNumber(record, ['phase']) ?? 2
@@ -166,102 +163,52 @@ const getApiErrorMessage = (err: unknown, fallback: string): string => {
 export const useClients = (): UseClientsResult => {
   const { data: session } = useSession()
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const cacheKey = getCacheKey('/clients', { bypassAuth, userId: session?.user?.id })
-
-      // Check cache first
-      const cachedClients = getCachedResponse<Client[]>(cacheKey)
-      if (cachedClients) {
-        setClients(cachedClients)
-        setLoading(false)
-        return
-      }
-
-      // If using auth bypass, just fetch all clients directly
-      if (bypassAuth) {
-        const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/clients')
-
-        if (error) {
-          throw new Error(
-            `API Error: ${getApiErrorMessage(error, 'Failed to fetch clients')}`
-          )
-        }
-
-        const apiClients = extractClientPayload(data)
-        const transformedClients: Client[] = transformApiClients(apiClients)
-
-        // Cache the transformed clients
-        setCachedResponse(cacheKey, transformedClients)
-        setClients(transformedClients)
-        return
-      }
-
-      // Only fetch if we have a session (non-bypass mode)
-      if (!session?.user?.id) {
-        setClients([])
-        setLoading(false)
-        return
-      }
-
-      // For authenticated users, fetch clients they have access to
-      // For now, just fetch all clients (can be refined later for user-specific access)
-      const apiClient = await buildApiClient()
-      const { data, error } = await apiClient.GET('/clients')
-
-      if (error) {
-        const message = getApiErrorMessage(error, 'Failed to fetch clients')
-        throw new Error(`API Error: ${message}`)
-      }
-
-      // Transform the API response to match our Client interface
-      // The API returns an array directly, not wrapped in a 'clients' property
-      const apiClients = extractClientPayload(data)
-      const transformedClients: Client[] = transformApiClients(apiClients)
-
-      // Cache the transformed clients
-      setCachedResponse(cacheKey, transformedClients)
-      setClients(transformedClients)
-    } catch (err) {
-      let errorMessage = 'Failed to fetch clients'
-
-      if (err instanceof Error) {
-        errorMessage = err.message
-      } else if (typeof err === 'string') {
-        errorMessage = err
-      }
-
-      // Add helpful context for common issues
-      if (errorMessage.includes('fetch')) {
-        errorMessage += ' (The server is restarting)'
-      }
-
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
+  // Custom fetcher for clients
+  const clientsFetcher = async () => {
+    // Only fetch if we have a session (non-bypass mode) or bypass is enabled
+    if (!bypassAuth && !session?.user?.id) {
+      return []
     }
-  }, [bypassAuth, session?.user?.id])
 
-  const refetch = async () => {
-    await fetchClients()
+    const apiClient = await buildApiClient()
+    const { data, error } = await apiClient.GET('/clients')
+
+    if (error) {
+      throw new Error(
+        `API Error: ${getApiErrorMessage(error, 'Failed to fetch clients')}`
+      )
+    }
+
+    // Transform the API response to match our Client interface
+    const apiClients = extractClientPayload(data)
+    return transformApiClients(apiClients)
   }
 
-  useEffect(() => {
-    void fetchClients()
-  }, [fetchClients])
+  // Use SWR for data fetching with deduplication
+  const { data, error, isLoading, mutate } = useSWR(
+    // Key includes session info to refetch when user changes
+    session?.user?.id || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
+    clientsFetcher,
+    clientsSWRConfig
+  )
+
+  // Transform error for consistent interface
+  let errorMessage: string | null = null
+  if (error) {
+    errorMessage = error instanceof Error ? error.message : 'Failed to fetch clients'
+    // Add helpful context for common issues
+    if (errorMessage.includes('fetch')) {
+      errorMessage += ' (The server is restarting)'
+    }
+  }
 
   return {
-    clients,
-    loading,
-    error,
-    refetch,
+    clients: data || [],
+    loading: isLoading,
+    error: errorMessage,
+    refetch: async () => {
+      await mutate()
+    },
   }
 }

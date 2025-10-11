@@ -1,13 +1,15 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-30T00:31:43.171Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { createPositionVote } from '@/domain-models/api/votes'
 
 import type { components } from '@/types/api'
 
+// Auto-generated stub - async required for Next.js route handler
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function GET(): Promise<NextResponse> {
   try {
     // TODO: Implement getPositionVotes

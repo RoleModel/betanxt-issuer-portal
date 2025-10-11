@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
+  Chip,
   Table,
   TableBody,
   TableCell,
@@ -13,11 +15,11 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Chip,
 } from '@mui/material'
 
-import { ExportButton } from '../ExportButton'
 import type { components } from '@/domain-models/generated-schema'
+
+import { ExportButton } from '../ExportButton'
 
 type DigitalShareholderMeeting = components['schemas']['DigitalShareholderMeeting']
 
@@ -34,7 +36,9 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
       setError(null)
 
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`)
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      )
       if (!response.ok) {
         throw new Error('Failed to fetch actual attendees')
       }

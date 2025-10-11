@@ -1,6 +1,6 @@
 'use client'
 
-import type { SxProps, Theme} from '@mui/material';
+import type { SxProps, Theme } from '@mui/material'
 import { Avatar, Box, Typography } from '@mui/material'
 
 interface EditAvatarButtonProps {

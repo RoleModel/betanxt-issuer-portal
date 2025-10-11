@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react';
-import { createContext, useContext, useReducer, useEffect } from 'react'
+import type { ReactNode } from 'react'
+import { createContext, useContext, useEffect, useReducer } from 'react'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -94,7 +94,7 @@ interface PhaseProviderProps {
 
 export function PhaseProvider({
   children,
-  meetingId,
+  meetingId: _meetingId,
   initialPhases = [],
   initialTasks = [],
 }: PhaseProviderProps) {
@@ -183,6 +183,8 @@ export function PhaseProvider({
 
       return () => clearTimeout(timer)
     }
+    // advanceToNextPhase depends on state variables already tracked
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canAdvance, state.isTransitioning])
 
   const value: PhaseContextType = {

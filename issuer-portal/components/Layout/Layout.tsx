@@ -1,10 +1,10 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
-import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react'
 import React, { Suspense, useMemo, useState } from 'react'
 
 import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
@@ -79,9 +79,7 @@ function Layout({
 
   const handleContactsClick = () => {
     // Find the SpeedDial element to use as anchor
-    const speedDialElement = document.querySelector(
-      '[aria-label="Support Contacts"]'
-    )
+    const speedDialElement = document.querySelector('[aria-label="Support Contacts"]')
     if (speedDialElement instanceof HTMLElement) {
       setAnchorEl(speedDialElement)
     }
@@ -238,11 +236,11 @@ function Layout({
             links={
               bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
                 ? [
-                  {
-                    label: 'Reset',
-                    href: '#reset-demo',
-                  },
-                ]
+                    {
+                      label: 'Reset',
+                      href: '#reset-demo',
+                    },
+                  ]
                 : []
             }
           />

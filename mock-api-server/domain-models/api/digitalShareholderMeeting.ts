@@ -15,7 +15,7 @@ export interface DigitalShareholderMeetingResponse {
   firstName: string | null
   lastName: string | null
   emailAddress: string | null
-  registrationQuestions: unknown | null
+  registrationQuestions: unknown
   minutesAttendedMeeting: number | null
   createdAt: string | null
   updatedAt: string | null

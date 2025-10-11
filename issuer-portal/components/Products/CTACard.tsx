@@ -55,11 +55,7 @@ export function CTACard() {
     >
       <CardHeader
         title={
-          <Typography
-            variant="h1"
-            component="p"
-            fontFamily={'var(--font-tungsten)'}
-          >
+          <Typography variant="h1" component="p" fontFamily={'var(--font-tungsten)'}>
             Let&apos;s Talk
           </Typography>
         }

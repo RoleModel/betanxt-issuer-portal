@@ -234,7 +234,7 @@ export default function VotingPerformanceChart({
               id: 'leftAxis',
               scaleType: 'linear',
               min: 0,
-              max: Math.max(...(shares)) * 1.2,
+              max: Math.max(...shares) * 1.2,
               valueFormatter: (value) => abbreviateNumber(value as number),
             },
             {

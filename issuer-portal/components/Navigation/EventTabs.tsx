@@ -140,7 +140,7 @@ export function EventTabs() {
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
-  const meetingIdFromUrl = (/\/meeting\/([^/]+)/.exec(pathname))?.[1]
+  const meetingIdFromUrl = /\/meeting\/([^/]+)/.exec(pathname)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -198,7 +198,8 @@ export function EventTabs() {
   )
   const activeTab = useMemo(
     () =>
-      navigationTabs.find((tab) => tab.route === currentRoute)?.label ?? 'Meeting Dashboard',
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ??
+      'Meeting Dashboard',
     [navigationTabs, currentRoute]
   )
 
@@ -235,7 +236,7 @@ export function EventTabs() {
       recordDate: formatDate(m.recordDate ?? ''),
       mailingDate: formatDate(m.mailingDate ?? ''),
       meetingDate: formatDate(m.meetingDate ?? ''),
-      status: (m.status!) ?? 'ACTIVE',
+      status: m.status! ?? 'ACTIVE',
       currentPhase: m.currentPhase ?? 'Phase 1',
       overallCompletion: m.overallCompletion ?? 0,
       client: currentClient?.company_name ?? '',
@@ -323,9 +324,7 @@ export function EventTabs() {
   const scrollLeft = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
-      const tabs = container.querySelectorAll(
-        '[data-tab-index]'
-      )
+      const tabs = container.querySelectorAll('[data-tab-index]')
 
       if (tabs.length === 0) return
 
@@ -366,9 +365,7 @@ export function EventTabs() {
   const scrollRight = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
-      const tabs = container.querySelectorAll(
-        '[data-tab-index]'
-      )
+      const tabs = container.querySelectorAll('[data-tab-index]')
 
       if (tabs.length === 0) return
 

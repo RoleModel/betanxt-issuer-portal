@@ -116,7 +116,6 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 1,
-          cursor: 'pointer',
           backgroundColor: (theme) => theme.vars.palette.background.default,
           transition: (theme) =>
             theme.transitions.create(['transform', 'background-color']),
@@ -125,7 +124,6 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
             backgroundColor: (theme) => theme.vars.palette.background.paper,
           },
         }}
-        onClick={href ? () => window.open(href, '_blank') : onClick}
       >
         <Box
           sx={{
@@ -146,12 +144,14 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
               width: 80,
               aspectRatio: '8.5 / 11',
               margin: '0 auto',
+              cursor: 'pointer',
               backgroundColor: (theme) => theme.vars.palette.tableCellRow.fill,
               borderRadius: 1,
               border: '1px solid',
               borderColor: (theme) => theme.vars.palette.divider,
               overflow: 'hidden',
             }}
+            onClick={href ? () => window.open(href, '_blank') : onClick}
           >
             {fileUrl ? (
               <PDFPreview fileUrl={fileUrl} />

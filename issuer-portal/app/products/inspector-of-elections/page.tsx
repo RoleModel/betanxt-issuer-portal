@@ -6,15 +6,15 @@ import HandshakeAgreementIcon from '@rolemodel/betanxt-design-system/components/
 import JusticeScaleIcon from '@rolemodel/betanxt-design-system/components/icons/brand/JusticeScaleIcon'
 import PersonShieldIcon from '@rolemodel/betanxt-design-system/components/icons/brand/PersonShieldIcon'
 import TeamCircleIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamCircleIcon'
+import { useState } from 'react'
 
 import { Card, CardContent, CardHeader, Stack, Typography, useTheme } from '@mui/material'
 
+import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
-import DocumentViewer from '@/components/Documents/DocumentViewer'
-import { useState } from 'react'
 
 export default function InspectorOfElectionsPage() {
   const theme = useTheme()
@@ -129,28 +129,29 @@ export default function InspectorOfElectionsPage() {
     </Stack>
   )
 
-  const rightColumnContent = (<>
-    <SidebarCard
-      title="Why do I need an Inspector of Elections?"
-      button
-      buttonText="View PDF Overview"
-      onClick={() => setOpen(true)}
-    >
-      <Typography variant="body3" component="p" gutterBottom>
-        Get detailed information about our certified Inspector of Elections services and
-        compliance solutions.
-      </Typography>
-    </SidebarCard>
-    <DocumentViewer
-      open={open}
-      onClose={() => setOpen(false)}
-      fileUrl={'/documents/inspector-of-elections.pdf'}
-      title={'Inspector of Elections Overview'}
-      showCommentButton={false}
-      showHistoryButton={false}
-      showDownloadButton={true}
-    />
-  </>
+  const rightColumnContent = (
+    <>
+      <SidebarCard
+        title="Why do I need an Inspector of Elections?"
+        button
+        buttonText="View PDF Overview"
+        onClick={() => setOpen(true)}
+      >
+        <Typography variant="body3" component="p" gutterBottom>
+          Get detailed information about our certified Inspector of Elections services and
+          compliance solutions.
+        </Typography>
+      </SidebarCard>
+      <DocumentViewer
+        open={open}
+        onClose={() => setOpen(false)}
+        fileUrl={'/documents/inspector-of-elections.pdf'}
+        title={'Inspector of Elections Overview'}
+        showCommentButton={false}
+        showHistoryButton={false}
+        showDownloadButton={true}
+      />
+    </>
   )
 
   return (

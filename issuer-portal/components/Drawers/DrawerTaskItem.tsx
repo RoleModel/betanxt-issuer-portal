@@ -20,7 +20,7 @@ import { useMeeting } from '@/contexts/MeetingContext'
 import { useTasks } from '@/hooks/useTasks'
 import { formatDate } from '@/lib/formats'
 import type { Task } from '@/types/api-exports'
-import type { TaskLink} from '@/utils/taskLinks';
+import type { TaskLink } from '@/utils/taskLinks'
 import { parseTaskLinks } from '@/utils/taskLinks'
 import {
   getDTCCAuthorizationStatus,

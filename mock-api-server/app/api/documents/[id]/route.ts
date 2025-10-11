@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-30T00:31:43.168Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { getDocumentById, updateDocument } from '@/domain-models/api/documents'

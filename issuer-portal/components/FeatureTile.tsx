@@ -1,13 +1,12 @@
 'use client'
 
+import baseTheme from '@rolemodel/betanxt-design-system/themes/baseTheme'
+import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import Link from 'next/link'
 import React from 'react'
 
-import type { SxProps } from '@mui/material';
+import type { PaletteColor, SxProps } from '@mui/material'
 import { Box, Card, Typography } from '@mui/material'
-import type { Theme } from '@mui/material/styles'
-import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import baseTheme from '@rolemodel/betanxt-design-system/themes/baseTheme'
 
 interface FeatureTileProps {
   title: string
@@ -47,31 +46,27 @@ export function FeatureTile({
     switch (variant) {
       case 'primary':
         return {
-          background: betanxtTheme.vars.palette.primary.main,
-          backgroundDark: betanxtTheme.vars.palette.primary.main,
-          color: betanxtTheme.vars.palette.primary.contrastText,
-          colorDark: betanxtTheme.vars.palette.primary.contrastText,
+          background: betanxtTheme.palette.primary.main,
+          backgroundDark: betanxtTheme.palette.primary.main,
+          color: betanxtTheme.palette.primary.contrastText,
+          colorDark: betanxtTheme.palette.primary.contrastText,
         }
       case 'secondary':
         return {
-          background: betanxtTheme.vars.palette.secondary.main,
-          backgroundDark: betanxtTheme.vars.palette.secondary.main,
-          color: betanxtTheme.vars.palette.secondary.contrastText,
-          colorDark: betanxtTheme.vars.palette.secondary.contrastText,
+          background: betanxtTheme.palette.secondary.main,
+          backgroundDark: betanxtTheme.palette.secondary.main,
+          color: betanxtTheme.palette.secondary.contrastText,
+          colorDark: betanxtTheme.palette.secondary.contrastText,
         }
-      case 'tertiary':
+      case 'tertiary': {
+        const tertiary = betanxtTheme.palette.tertiary as PaletteColor
         return {
-          background: (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { main: string } })
-            .tertiary?.main ?? betanxtTheme.vars.palette.primary.main,
-          backgroundDark: (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { main: string } })
-            .tertiary?.main ?? betanxtTheme.vars.palette.primary.main,
-          color:
-            (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
-              .tertiary?.contrastText ?? betanxtTheme.vars.palette.primary.contrastText,
-          colorDark:
-            (betanxtTheme.vars.palette as Theme['palette'] & { tertiary?: { contrastText: string } })
-              .tertiary?.contrastText ?? betanxtTheme.vars.palette.primary.contrastText,
+          background: tertiary.main,
+          backgroundDark: tertiary.main,
+          color: tertiary.contrastText,
+          colorDark: tertiary.contrastText,
         }
+      }
       case 'base':
         return {
           background: baseTheme.vars.palette.background.default,
@@ -81,8 +76,8 @@ export function FeatureTile({
         }
       default:
         return {
-          background: baseTheme.vars.palette.background.paper,
-          backgroundDark: baseTheme.vars.palette.background.paper,
+          background: baseTheme.vars.palette.background.default,
+          backgroundDark: baseTheme.vars.palette.background.default,
           color: baseTheme.vars.palette.text.primary,
           colorDark: baseTheme.vars.palette.text.primary,
         }
@@ -188,10 +183,10 @@ export function FeatureTile({
         {subtitle && (
           <Typography
             variant="body1"
-            sx={{
-              color: 'secondary.main',
+            sx={(theme) => ({
+              color: theme.vars.palette.primary.main,
               fontWeight: 600,
-            }}
+            })}
           >
             {subtitle}
           </Typography>

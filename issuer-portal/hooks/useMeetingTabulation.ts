@@ -184,6 +184,6 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
     voteCutoffDate,
     loading,
     error,
-    refetch: fetchData,
+    refetch: () => void fetchData(),
   }
 }

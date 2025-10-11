@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { TabContext, TabPanel } from '@mui/lab'
 import {
@@ -19,8 +19,9 @@ import {
   styled,
 } from '@mui/material'
 
-import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
+import { useNotifications } from '@/contexts/NotificationContext'
 
 import Notification from './Notification'
 
@@ -100,7 +101,9 @@ const convertDbNotificationToNotificationData = (
   let userAvatar: string | undefined = undefined
 
   if (isCommentNotification && dbNotification.message) {
-    const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(dbNotification.message)
+    const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(
+      dbNotification.message
+    )
     if (match) {
       userName = match[1].trim()
       // Don't set userAvatar - let MUI Avatar use the username for initials
@@ -132,10 +135,20 @@ export function NotificationPopper({
   onNotificationClick,
 }: NotificationPopperProps) {
   const router = useRouter()
-  const [notifications, setNotifications] = useState<NotificationData[]>([])
-  const [_loading, setLoading] = useState(true)
+  const {
+    notifications: dbNotifications,
+    loading: _loading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications()
   const [tabValue, setTabValue] = useState('0')
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  // Convert DB notifications to UI format
+  const notifications = useMemo(
+    () => dbNotifications.map(convertDbNotificationToNotificationData),
+    [dbNotifications]
+  )
 
   const unreadNotifications = notifications.filter((n) => n.variant === 'unread')
   const unreadCount = unreadNotifications.length
@@ -144,88 +157,30 @@ export function NotificationPopper({
     setTabValue(newValue)
   }
 
-  // Fetch notifications when component opens
-  useEffect(() => {
-    if (open) {
-      const fetchNotifications = async () => {
-        try {
-          setLoading(true)
-          const apiClient = await buildApiClient()
-          const { data, error } = await apiClient.GET('/notifications')
-
-          if (error || !data) {
-            console.error('Failed to fetch notifications:', error)
-            setNotifications([])
-            return
-          }
-
-          const notificationData = (data as DbNotification[]).map(
-            convertDbNotificationToNotificationData
-          )
-          setNotifications(notificationData)
-        } catch (err) {
-          console.error('Error fetching notifications:', err)
-          setNotifications([])
-        } finally {
-          setLoading(false)
-        }
-      }
-
-      void fetchNotifications()
-    }
-  }, [open])
+  // No need to fetch notifications here - they're already available from context
 
   const handleNotificationClick = async (notification: NotificationData) => {
-    // Mark as read in the backend
-    try {
-      const apiClient = await buildApiClient()
-      await apiClient.PATCH('/notifications/{notificationId}/mark-read', {
-        params: { path: { notificationId: notification.id } },
-      })
+    // Mark as read using context
+    await markAsRead(notification.id)
 
-      // Update local state
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notification.id ? { ...n, variant: 'read' as const } : n
-        )
-      )
+    // Navigate to the notification's link if it exists
+    if (notification.link) {
+      router.push(notification.link)
+      onClose?.() // Close the popover after navigation
+    }
 
-      // Navigate to the notification's link if it exists
-      if (notification.link) {
-        router.push(notification.link)
-        onClose?.() // Close the popover after navigation
-      }
-
-      if (onNotificationClick) {
-        onNotificationClick(notification)
-      }
-    } catch (err) {
-      console.error('Failed to mark notification as read:', err)
+    if (onNotificationClick) {
+      onNotificationClick(notification)
     }
   }
 
   const handleMarkAllRead = async () => {
-    // Mark all unread notifications as read in the backend
-    try {
-      const apiClient = await buildApiClient()
-      const markReadPromises = unreadNotifications.map((notification) =>
-        apiClient.PATCH('/notifications/{notificationId}/mark-read', {
-          params: { path: { notificationId: notification.id } },
-        })
-      )
-
-      await Promise.all(markReadPromises)
-
-      // Update local state
-      setNotifications((prev) => prev.map((n) => ({ ...n, variant: 'read' as const })))
-    } catch (err) {
-      console.error('Failed to mark all notifications as read:', err)
-    }
+    await markAllAsRead()
   }
 
   const handleClearAll = () => {
-    // Just clear local state - notifications remain in backend
-    setNotifications([])
+    // Just close the popover - notifications remain in backend
+    onClose?.()
   }
 
   useEffect(() => {

@@ -69,6 +69,7 @@ This is a Turborepo workspace with two main applications:
 ### Testing
 
 From mock-api-server workspace:
+
 - `npm run test` - Run all Playwright tests
 - `npm run test:ui` - Run tests with Playwright UI
 - `npm run test:unit` - Unit tests only

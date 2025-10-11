@@ -45,7 +45,7 @@ interface DigitalShareholderMeetingAttendee {
   updatedAt: string
 }
 
-type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
+type ExcelRow = Record<string, string | number | boolean | Date | undefined>
 
 interface ParsedAttendee {
   registrantType: string
@@ -171,7 +171,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-              `Found columns: ${availableColumns}`
+                `Found columns: ${availableColumns}`
             )
           )
           return

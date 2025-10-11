@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-30T00:31:43.167Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { getPhaseById, updatePhase } from '@/domain-models/api/phases'

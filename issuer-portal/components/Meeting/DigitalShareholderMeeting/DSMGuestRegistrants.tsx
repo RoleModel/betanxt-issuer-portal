@@ -1,33 +1,36 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import * as XLSX from 'xlsx'
+
+import { Email, Search, Upload } from '@mui/icons-material'
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
+  IconButton,
+  InputAdornment,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
-  IconButton,
-  Tooltip,
   TextField,
-  InputAdornment,
-  Button,
-  Stack,
-  Alert,
+  Tooltip,
+  Typography,
 } from '@mui/material'
-import { Search, Email, Upload } from '@mui/icons-material'
 
-import { ExportButton } from './ExportButton'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import PreviewDialog, { createTextRenderer } from '@/components/FileUpload/PreviewDialog'
+
 import type { components } from '@/domain-models/generated-schema'
+
+import { ExportButton } from './ExportButton'
 
 type DigitalShareholderMeeting = components['schemas']['DigitalShareholderMeeting']
 type ExcelRow = Record<string, string | number | boolean | Date | undefined>
@@ -59,7 +62,9 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       setError(null)
 
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`)
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      )
       if (!response.ok) {
         throw new Error('Failed to fetch guest registrants')
       }
@@ -94,10 +99,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       const fullName = `${guest.firstName ?? ''} ${guest.lastName ?? ''}`.toLowerCase()
       const email = (guest.emailAddress ?? '').toLowerCase()
 
-      return (
-        fullName.includes(searchLower) ||
-        email.includes(searchLower)
-      )
+      return fullName.includes(searchLower) || email.includes(searchLower)
     })
 
     setFilteredGuests(filtered)
@@ -197,7 +199,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
     try {
       // Map guest data to expected format
-      const mappedData = previewData.map(guest => ({
+      const mappedData = previewData.map((guest) => ({
         registrantType: 'Guest',
         firstName: guest.firstName,
         lastName: guest.lastName,
@@ -208,13 +210,16 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
       // Add guests via API (assuming same endpoint as main page)
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(mappedData),
-      })
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mappedData),
+        }
+      )
 
       if (!response.ok) {
         throw new Error('Failed to add guests')
@@ -237,7 +242,6 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
     setUploadDialogOpen(true)
   }, [])
 
-
   if (error) {
     return (
       <Card>
@@ -255,11 +259,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         title="Guest Registrants"
         action={
           <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<Upload />}
-              onClick={handleUploadClick}
-            >
+            <Button variant="outlined" startIcon={<Upload />} onClick={handleUploadClick}>
               Upload
             </Button>
             <ExportButton
@@ -287,7 +287,6 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
                 ),
               },
             }}
-
           />
         </Box>
 
@@ -318,15 +317,12 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
                     <TableCell>
                       {guest.firstName} {guest.lastName}
                     </TableCell>
-                    <TableCell>
-                      {guest.emailAddress}
-                    </TableCell>
+                    <TableCell>{guest.emailAddress}</TableCell>
                     <TableCell>
                       <Typography variant="caption" color="text.secondary">
                         {guest.createdAt
                           ? new Date(guest.createdAt).toLocaleDateString()
-                          : 'Unknown'
-                        }
+                          : 'Unknown'}
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
@@ -335,11 +331,16 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
                           <IconButton
                             size="small"
                             onClick={() => {
-                              const subject = encodeURIComponent('Regarding Your Meeting Registration')
+                              const subject = encodeURIComponent(
+                                'Regarding Your Meeting Registration'
+                              )
                               const body = encodeURIComponent(
                                 `Dear ${guest.firstName} ${guest.lastName},\n\nThank you for registering for our shareholder meeting.\n\nBest regards`
                               )
-                              window.open(`mailto:${guest.emailAddress}?subject=${subject}&body=${body}`, '_blank')
+                              window.open(
+                                `mailto:${guest.emailAddress}?subject=${subject}&body=${body}`,
+                                '_blank'
+                              )
                             }}
                           >
                             <Email fontSize="small" />
@@ -353,7 +354,10 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
               {/* Show empty row when no guests at all */}
               {guests.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4, color: 'text.disabled' }}>
+                  <TableCell
+                    colSpan={4}
+                    sx={{ textAlign: 'center', py: 4, color: 'text.disabled' }}
+                  >
                     No guests have been added yet.
                   </TableCell>
                 </TableRow>
@@ -369,7 +373,6 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
             </Typography>
           </Box>
         )}
-
       </CardContent>
 
       {/* File Upload Dialog */}

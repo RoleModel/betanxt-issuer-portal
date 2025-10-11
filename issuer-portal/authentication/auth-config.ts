@@ -69,7 +69,8 @@ export const config = {
         ]
 
         const user = testUsers.find(
-          (u) => u.username === credentials.username && u.password === credentials.password
+          (u) =>
+            u.username === credentials.username && u.password === credentials.password
         )
 
         if (user) {
@@ -161,11 +162,11 @@ export const config = {
           typeof token.accountId === 'string' ? token.accountId : undefined
         session.user.client =
           token.client &&
-            typeof token.client === 'object' &&
-            'id' in token.client &&
-            'name' in token.client &&
-            typeof token.client.id === 'number' &&
-            typeof token.client.name === 'string'
+          typeof token.client === 'object' &&
+          'id' in token.client &&
+          'name' in token.client &&
+          typeof token.client.id === 'number' &&
+          typeof token.client.name === 'string'
             ? { id: token.client.id, name: token.client.name }
             : null
         session.user.roles = Array.isArray(token.roles) ? token.roles : []

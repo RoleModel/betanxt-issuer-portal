@@ -41,9 +41,7 @@ const FileUploadDialog = ({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>(
-    {}
-  )
+  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>({})
 
   const handleClose = () => {
     setUploadFiles([])

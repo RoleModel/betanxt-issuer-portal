@@ -3,6 +3,38 @@ import React from 'react'
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
 import { Avatar, Box, Link, Paper, Stack, Typography } from '@mui/material'
 
+// Helper function to convert URL paths to readable actions
+const getLinkText = (link: string, title: string): string => {
+  // Extract meaningful action from URL path
+  if (link.includes('/dashboard')) {
+    if (title.includes('Event Has Been Created')) {
+      return 'View Meeting Dashboard'
+    }
+    if (title.includes('Schedule Your Logistics')) {
+      return 'Schedule Logistics Call'
+    }
+    if (title.includes('Transfer Agent Request')) {
+      return 'View Task Details'
+    }
+    return 'Go to Dashboard'
+  }
+
+  if (link.includes('/documents')) {
+    return 'Review Document'
+  }
+
+  if (link.includes('/calendar')) {
+    return 'View Calendar'
+  }
+
+  if (link.includes('/tabulation')) {
+    return 'View Results'
+  }
+
+  // Fallback to a generic action
+  return 'View Details'
+}
+
 interface NotificationProps {
   user: string
   title: string
@@ -35,6 +67,7 @@ const Notification = ({
         display: 'flex',
         width: '100%',
         minWidth: 400,
+        maxWidth: 500,
         backgroundColor: 'background.default',
         boxShadow: `0px 0px 0p 1px ${theme.vars.palette.divider}`,
         borderLeft: `6px solid ${isUnread ? theme.vars.palette.success.main : theme.vars.palette.complete}`,
@@ -141,19 +174,29 @@ const Notification = ({
 
           {link && (
             <Link
-              href="#"
+              component="button"
               variant="body3"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onClick?.()
+              }}
               sx={{
                 color: 'primary.main',
                 textDecoration: 'none',
                 fontWeight: 500,
                 fontSize: '14px',
+                cursor: 'pointer',
+                border: 'none',
+                background: 'none',
+                padding: 0,
+                textAlign: 'left',
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              {link}
+              {getLinkText(link, title)}
             </Link>
           )}
         </Stack>

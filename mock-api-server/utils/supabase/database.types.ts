@@ -14,7 +14,7 @@ export type Database = {
           client: string | null
           client_id: string | null
           created_at: string | null
-          id: string | null
+          id: string
           name: string | null
           primary_contact: string | null
         }
@@ -22,7 +22,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string | null
+          id?: string
           name?: string | null
           primary_contact?: string | null
         }
@@ -30,7 +30,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string | null
+          id?: string
           name?: string | null
           primary_contact?: string | null
         }
@@ -42,7 +42,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           description: string | null
-          id: string | null
+          id: string
           industry: string | null
           is_active: boolean | null
           primary_contact: string | null
@@ -57,7 +57,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string | null
+          id?: string
           industry?: string | null
           is_active?: boolean | null
           primary_contact?: string | null
@@ -72,7 +72,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string | null
+          id?: string
           industry?: string | null
           is_active?: boolean | null
           primary_contact?: string | null
@@ -91,7 +91,7 @@ export type Database = {
           document: string | null
           document_id: string | null
           first_name: string | null
-          id: number | null
+          id: number
           last_name: string | null
           user: string | null
           user_id: string | null
@@ -102,7 +102,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           first_name?: string | null
-          id?: number | null
+          id?: number
           last_name?: string | null
           user?: string | null
           user_id?: string | null
@@ -113,19 +113,34 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           first_name?: string | null
-          id?: number | null
+          id?: number
           last_name?: string | null
           user?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "comment_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       digital_shareholder_meeting: {
         Row: {
           created_at: string | null
           email_address: string | null
           first_name: string | null
-          id: string | null
+          id: string
           last_name: string | null
           meeting_id: string | null
           minutes_attended_meeting: number | null
@@ -139,7 +154,7 @@ export type Database = {
           created_at?: string | null
           email_address?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
@@ -153,7 +168,7 @@ export type Database = {
           created_at?: string | null
           email_address?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
@@ -163,7 +178,15 @@ export type Database = {
           registration_questions?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "digital_shareholder_meeting_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document: {
         Row: {
@@ -185,7 +208,7 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           history: Json | null
-          id: string | null
+          id: string
           in_progress_date: string | null
           meeting: string | null
           meeting_id: string | null
@@ -221,7 +244,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string | null
+          id?: string
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
@@ -257,7 +280,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string | null
+          id?: string
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
@@ -274,7 +297,15 @@ export type Database = {
           upload_date?: string | null
           uploaded_date?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "document_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_history: {
         Row: {
@@ -284,7 +315,7 @@ export type Database = {
           event_type:
             | Database["public"]["Enums"]["document_history_event_type"]
             | null
-          id: string | null
+          id: string
           metadata: Json | null
           user: string | null
           user_id: string | null
@@ -297,7 +328,7 @@ export type Database = {
           event_type?:
             | Database["public"]["Enums"]["document_history_event_type"]
             | null
-          id?: string | null
+          id?: string
           metadata?: Json | null
           user?: string | null
           user_id?: string | null
@@ -310,13 +341,21 @@ export type Database = {
           event_type?:
             | Database["public"]["Enums"]["document_history_event_type"]
             | null
-          id?: string | null
+          id?: string
           metadata?: Json | null
           user?: string | null
           user_id?: string | null
           user_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "document_history_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dsm_config: {
         Row: {
@@ -330,7 +369,7 @@ export type Database = {
           dsm_producer_email: string | null
           dsm_producer_name: string | null
           guest_link_registration_doc_id: string | null
-          id: string | null
+          id: string
           inspector_email: string | null
           inspector_name: string | null
           ioe_enabled: boolean | null
@@ -356,7 +395,7 @@ export type Database = {
           dsm_producer_email?: string | null
           dsm_producer_name?: string | null
           guest_link_registration_doc_id?: string | null
-          id?: string | null
+          id: string
           inspector_email?: string | null
           inspector_name?: string | null
           ioe_enabled?: boolean | null
@@ -382,7 +421,7 @@ export type Database = {
           dsm_producer_email?: string | null
           dsm_producer_name?: string | null
           guest_link_registration_doc_id?: string | null
-          id?: string | null
+          id?: string
           inspector_email?: string | null
           inspector_name?: string | null
           ioe_enabled?: boolean | null
@@ -397,7 +436,15 @@ export type Database = {
           static_slide_doc_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dsm_config_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mailing: {
         Row: {
@@ -408,7 +455,7 @@ export type Database = {
           electronic_suppressed_positions: number | null
           fullset_mail_positions: number | null
           household_suppressed_positions: number | null
-          id: string | null
+          id: string
           managed_suppressed_positions: number | null
           meeting_id: string | null
           naa_mail_positions: number | null
@@ -427,7 +474,7 @@ export type Database = {
           electronic_suppressed_positions?: number | null
           fullset_mail_positions?: number | null
           household_suppressed_positions?: number | null
-          id?: string | null
+          id?: string
           managed_suppressed_positions?: number | null
           meeting_id?: string | null
           naa_mail_positions?: number | null
@@ -446,7 +493,7 @@ export type Database = {
           electronic_suppressed_positions?: number | null
           fullset_mail_positions?: number | null
           household_suppressed_positions?: number | null
-          id?: string | null
+          id?: string
           managed_suppressed_positions?: number | null
           meeting_id?: string | null
           naa_mail_positions?: number | null
@@ -457,7 +504,15 @@ export type Database = {
           total_rollups?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mailing_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meeting: {
         Row: {
@@ -470,7 +525,7 @@ export type Database = {
           distribution_type: string | null
           employee_stock_plans: string | null
           filing_date: string | null
-          id: string | null
+          id: string
           inspector: string | null
           ivr_dial_in_number: string | null
           mailing_date: string | null
@@ -504,7 +559,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id?: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -538,7 +593,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string | null
+          id?: string
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -562,14 +617,22 @@ export type Database = {
           transfer_agent_confirmed?: boolean | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meeting_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["ticker"]
+          },
+        ]
       }
       notification: {
         Row: {
           action_url: string | null
           created_at: string | null
           expires_at: string | null
-          id: string | null
+          id: string
           meeting_id: string | null
           message: string | null
           priority: Database["public"]["Enums"]["notification_priority"] | null
@@ -584,7 +647,7 @@ export type Database = {
           action_url?: string | null
           created_at?: string | null
           expires_at?: string | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           message?: string | null
           priority?: Database["public"]["Enums"]["notification_priority"] | null
@@ -599,7 +662,7 @@ export type Database = {
           action_url?: string | null
           created_at?: string | null
           expires_at?: string | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           message?: string | null
           priority?: Database["public"]["Enums"]["notification_priority"] | null
@@ -610,12 +673,20 @@ export type Database = {
           type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       phase: {
         Row: {
           created_at: string | null
-          id: string | null
+          id: string
           key_dates: string | null
           meeting_id: string | null
           name: string | null
@@ -625,7 +696,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id?: string | null
+          id?: string
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -635,7 +706,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          id?: string | null
+          id?: string
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -643,7 +714,15 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "phase_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       position: {
         Row: {
@@ -653,7 +732,7 @@ export type Database = {
           created_at: string | null
           cusip: string | null
           date_voted: string | null
-          id: string | null
+          id: string
           meeting_id: string | null
           name: string | null
           set_key: string | null
@@ -672,7 +751,7 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
@@ -691,7 +770,7 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
@@ -703,12 +782,20 @@ export type Database = {
             | Database["public"]["Enums"]["position_vote_status"]
             | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "position_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       position_vote: {
         Row: {
           created_at: string | null
-          id: string | null
+          id: string
           position_id: string | null
           proposal_id: string | null
           shares_voting: string | null
@@ -716,7 +803,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id?: string | null
+          id?: string
           position_id?: string | null
           proposal_id?: string | null
           shares_voting?: string | null
@@ -724,13 +811,21 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          id?: string | null
+          id?: string
           position_id?: string | null
           proposal_id?: string | null
           shares_voting?: string | null
           vote?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "position_vote_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposal: {
         Row: {
@@ -745,7 +840,7 @@ export type Database = {
             | null
           for_percentage: number | null
           frequency_options: Json | null
-          id: string | null
+          id: string
           meeting_id: string | null
           participation_rate: number | null
           proposal_number: number | null
@@ -774,7 +869,7 @@ export type Database = {
             | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -803,7 +898,7 @@ export type Database = {
             | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string | null
+          id?: string
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -820,7 +915,15 @@ export type Database = {
           voting_completed?: boolean | null
           voting_completed_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "proposal_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signature: {
         Row: {
@@ -828,7 +931,7 @@ export type Database = {
           document: string | null
           document_id: string | null
           height: number | null
-          id: string | null
+          id: string
           page_number: number | null
           required: boolean | null
           signature_type: string | null
@@ -842,7 +945,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           height?: number | null
-          id?: string | null
+          id?: string
           page_number?: number | null
           required?: boolean | null
           signature_type?: string | null
@@ -856,7 +959,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           height?: number | null
-          id?: string | null
+          id?: string
           page_number?: number | null
           required?: boolean | null
           signature_type?: string | null
@@ -865,7 +968,15 @@ export type Database = {
           x_position?: number | null
           y_position?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "signature_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tabulation_report: {
         Row: {
@@ -910,7 +1021,15 @@ export type Database = {
           updated_at?: string | null
           vote_distribution?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tabulation_report_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       task: {
         Row: {
@@ -918,7 +1037,7 @@ export type Database = {
           description: string | null
           document_id: string | null
           due_date: string | null
-          id: string | null
+          id: string
           links: Json | null
           meeting_id: string | null
           owner: string | null
@@ -935,7 +1054,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string | null
+          id?: string
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -952,7 +1071,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string | null
+          id?: string
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -964,7 +1083,22 @@ export type Database = {
           type?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "task_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meeting"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "phase"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user: {
         Row: {
@@ -973,7 +1107,7 @@ export type Database = {
           avatar_url: string | null
           email: string | null
           first_name: string | null
-          id: string | null
+          id: string
           last_name: string | null
           password: string | null
           type: string | null
@@ -985,7 +1119,7 @@ export type Database = {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -997,7 +1131,7 @@ export type Database = {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string | null
+          id?: string
           last_name?: string | null
           password?: string | null
           type?: string | null

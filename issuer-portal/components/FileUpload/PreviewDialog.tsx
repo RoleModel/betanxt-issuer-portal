@@ -84,7 +84,9 @@ export default function PreviewDialog<T>({
 
 // Helper function for creating chip renderers
 export const createChipRenderer = (
-  getColor: (value: string) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
+  getColor: (
+    value: string
+  ) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
 ) => {
   const ChipRenderer = (value: unknown) => (
     <Chip

@@ -16,6 +16,7 @@ import '@/components/Documents/react-pdf.css'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
 import { ClientProvider } from '@/contexts/ClientContext'
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -69,16 +70,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppRouterCacheProvider>
           <SessionProvider>
             <ClientProvider>
-              <ThemeRegistry>
-                <GlobalStyles
-                  styles={{
-                    'html, body': {
-                      height: '100%',
-                    },
-                  }}
-                />
-                {children}
-              </ThemeRegistry>
+              <NotificationProvider>
+                <ThemeRegistry>
+                  <GlobalStyles
+                    styles={{
+                      'html, body': {
+                        height: '100%',
+                      },
+                    }}
+                  />
+                  {children}
+                </ThemeRegistry>
+              </NotificationProvider>
             </ClientProvider>
           </SessionProvider>
         </AppRouterCacheProvider>

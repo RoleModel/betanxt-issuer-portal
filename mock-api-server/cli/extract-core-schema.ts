@@ -112,7 +112,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     )
     const matches = fullSchema.match(tableStartRegex)
 
-    if (matches && matches[0]) {
+    if (matches?.[0]) {
       let tableSection = matches[0]
 
       // Replace CREATE TABLE IF NOT EXISTS with DROP + CREATE TABLE

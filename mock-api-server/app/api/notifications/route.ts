@@ -44,7 +44,24 @@ export async function GET(request: Request): Promise<NextResponse> {
       )
     }
 
-    return NextResponse.json(notifications || [])
+    // Transform snake_case to camelCase for API consistency
+    const transformedNotifications = (notifications || []).map((notification) => ({
+      id: notification.id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      priority: notification.priority,
+      read: notification.read,
+      userId: notification.user_id,
+      meetingId: notification.meeting_id,
+      taskId: notification.task_id,
+      actionUrl: notification.action_url, // This is the key transformation for links
+      createdAt: notification.created_at,
+      readAt: notification.read_at,
+      expiresAt: notification.expires_at,
+    }))
+
+    return NextResponse.json(transformedNotifications)
   } catch (error) {
     return NextResponse.json(
       {

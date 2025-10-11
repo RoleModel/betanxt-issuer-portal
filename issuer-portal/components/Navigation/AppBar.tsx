@@ -6,28 +6,18 @@ import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
 import { useColorScheme } from '@mui/material/styles'
 
-import type { NotificationData } from '@/components/Notifications/NotificationPopper'
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
-
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 
 // Custom hook to safely use meeting context when it might not be available
@@ -79,12 +69,12 @@ const NextImageComponent = React.memo(
         src={src}
         alt={alt ?? 'Logo'}
         width={120}
-        height={40}
+        height={44}
         style={style}
         loading="eager"
         priority
         blurDataURL={src}
-        sizes="(max-width: 600px) 40px, 40px"
+        sizes="(max-width: 600px) 120px, 120px"
       />
     )
   }
@@ -114,7 +104,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(
     null
   )
-  const [unreadCount, setUnreadCount] = useState(0)
   // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -124,34 +113,14 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   // Get theme context for toggle functionality
   const { mode, setMode } = useColorScheme()
 
-  // Fetch unread notification count on mount and when user is available
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (!props.user) return
-
-      try {
-        const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/notifications', {
-          params: { query: { read: false } },
-        })
-
-        if (error || !data) {
-          // Silently fail - notifications are not critical
-          setUnreadCount(0)
-          return
-        }
-
-        type DbNotification = components['schemas']['Notification']
-        const notifications = data as DbNotification[]
-        setUnreadCount(notifications.length)
-      } catch (_err) {
-        // Silently fail - notifications are not critical
-        setUnreadCount(0)
-      }
-    }
-
-    void fetchUnreadCount()
-  }, [props.user])
+  // Get notification count from context
+  let unreadCount = 0
+  try {
+    const notificationContext = useNotifications()
+    unreadCount = notificationContext.unreadCount
+  } catch {
+    // NotificationProvider not available - silently fail
+  }
 
   // Get client logo based on client ticker or name (shared with PDF export)
   const getClientLogo = useCallback(
@@ -251,17 +220,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const handleNotificationClose = useCallback(() => {
     setNotificationsOpen(false)
   }, [])
-
-  const handleNotificationItemClick = useCallback(
-    (notification: NotificationData) => {
-      if (notification.link) {
-        // Use router.push for client-side navigation (faster)
-        router.push(notification.link)
-      }
-      setNotificationsOpen(false)
-    },
-    [router]
-  )
 
   // Cache stored client once - avoid localStorage read on every render
   const storedClient = useMemo(() => {
@@ -364,7 +322,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
           anchorEl={notificationAnchor}
           open={notificationsOpen}
           onClose={handleNotificationClose}
-          onNotificationClick={handleNotificationItemClick}
         />
       </>
     ),
@@ -374,7 +331,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       notificationAnchor,
       handleNotificationClick,
       handleNotificationClose,
-      handleNotificationItemClick,
     ]
   )
 

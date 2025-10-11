@@ -64,9 +64,7 @@ export const useTaskSubmission = ({
       }
 
       // Upload each file to document repository with progress tracking
-      for (let i = 0; i < uploadFiles.length; i++) {
-        const uploadFile = uploadFiles[i]
-
+      for (const uploadFile of uploadFiles) {
         // Update file status to uploading
         if (setUploadFiles) {
           setUploadFiles((prev) =>

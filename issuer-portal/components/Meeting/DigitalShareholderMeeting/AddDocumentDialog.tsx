@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
   Typography,
-  Box,
-  Divider,
 } from '@mui/material'
 
 import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
@@ -74,16 +75,17 @@ export function AddDocumentDialog({
       const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
 
       if (response.ok) {
-        const documents = await response.json() as {
+        const documents = (await response.json()) as {
           documentType?: string
           title?: string
           [key: string]: unknown
         }[]
         // Filter for DSM-related documents
-        const dsmDocs = documents.filter((doc) =>
-          doc.documentType === 'digital-shareholder-meeting' ||
-          doc.title?.includes('DSM') ||
-          doc.title?.includes('Digital Shareholder Meeting')
+        const dsmDocs = documents.filter(
+          (doc) =>
+            doc.documentType === 'digital-shareholder-meeting' ||
+            doc.title?.includes('DSM') ||
+            doc.title?.includes('Digital Shareholder Meeting')
         )
         setDsmDocuments(dsmDocs as unknown as DSMDocument[])
         setIsUploadMode(dsmDocs.length === 0)
@@ -106,7 +108,7 @@ export function AddDocumentDialog({
       file,
       status: 'complete' as const, // Set to complete initially, will change to uploading when upload starts
     }))
-    setUploadFiles(prev => [...prev, ...newFiles])
+    setUploadFiles((prev) => [...prev, ...newFiles])
   }
 
   const handleFileRejections = (rejections: unknown[]) => {
@@ -115,12 +117,12 @@ export function AddDocumentDialog({
   }
 
   const handleFileRemove = (fileId: string) => {
-    setUploadFiles(prev => prev.filter(f => f.id !== fileId))
+    setUploadFiles((prev) => prev.filter((f) => f.id !== fileId))
   }
 
   const handleAssignExistingDocument = () => {
     if (selectedDocumentId) {
-      const selectedDoc = dsmDocuments.find(doc => doc.id === selectedDocumentId)
+      const selectedDoc = dsmDocuments.find((doc) => doc.id === selectedDocumentId)
       if (selectedDoc) {
         onDocumentAdded(selectedDoc.title, selectedDoc.status ?? 'uploaded')
         handleClose()
@@ -133,9 +135,11 @@ export function AddDocumentDialog({
 
     try {
       const file = uploadFiles[0]
-      setUploadFiles(prev => prev.map(f =>
-        f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
+        )
+      )
 
       // Create unique filename to avoid duplicates
       const timestamp = Date.now()
@@ -154,21 +158,26 @@ export function AddDocumentDialog({
       formData.append('participantId', participantId)
 
       // Upload via API route
-      const response = await fetch('/api/documents/types/digital-shareholder-meeting/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await fetch(
+        '/api/documents/types/digital-shareholder-meeting/upload',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
 
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(`Upload failed: ${errorText}`)
       }
 
-      await response.json() as { id?: string; storagePath?: string }
+      ;(await response.json()) as { id?: string; storagePath?: string }
 
-      setUploadFiles(prev => prev.map(f =>
-        f.id === file.id ? { ...f, status: 'complete', progress: 100 } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: 'complete', progress: 100 } : f
+        )
+      )
 
       // Add document to participant
       onDocumentAdded(file.file.name, 'uploaded')
@@ -178,9 +187,17 @@ export function AddDocumentDialog({
       }, 1000)
     } catch (error) {
       console.error('Upload failed:', error)
-      setUploadFiles(prev => prev.map(f =>
-        f.id === uploadFiles[0].id ? { ...f, status: 'error', error: error instanceof Error ? error.message : 'Upload failed' } : f
-      ))
+      setUploadFiles((prev) =>
+        prev.map((f) =>
+          f.id === uploadFiles[0].id
+            ? {
+                ...f,
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed',
+              }
+            : f
+        )
+      )
     }
   }
 
@@ -193,9 +210,7 @@ export function AddDocumentDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Add Document for {participantName}
-      </DialogTitle>
+      <DialogTitle>Add Document for {participantName}</DialogTitle>
 
       <DialogContent>
         {isLoading ? (
@@ -219,10 +234,7 @@ export function AddDocumentDialog({
 
             {uploadFiles.map((file) => (
               <Box key={file.id} sx={{ mb: 1 }}>
-                <BNFilePreview
-                  file={file}
-                  onRemove={handleFileRemove}
-                />
+                <BNFilePreview file={file} onRemove={handleFileRemove} />
               </Box>
             ))}
           </Box>
@@ -258,11 +270,7 @@ export function AddDocumentDialog({
               Or upload a new document:
             </Typography>
 
-            <Button
-              variant="outlined"
-              onClick={() => setIsUploadMode(true)}
-              fullWidth
-            >
+            <Button variant="outlined" onClick={() => setIsUploadMode(true)} fullWidth>
               Upload New Document
             </Button>
           </Box>
@@ -278,7 +286,10 @@ export function AddDocumentDialog({
           <Button
             onClick={handleUploadNewDocument}
             variant="contained"
-            disabled={uploadFiles.length === 0 || uploadFiles.some(f => f.status === 'uploading')}
+            disabled={
+              uploadFiles.length === 0 ||
+              uploadFiles.some((f) => f.status === 'uploading')
+            }
           >
             Upload & Assign
           </Button>

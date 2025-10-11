@@ -74,7 +74,7 @@ const computeParticipationMetrics = (
     if (!isPositionVoted(position)) return sum
     const sharesValue =
       position.sharesVoted ??
-      (asRecord(position as unknown)?.shares_voted) ??
+      asRecord(position as unknown)?.shares_voted ??
       position.shares ??
       0
     return sum + parseNumericValue(sharesValue)

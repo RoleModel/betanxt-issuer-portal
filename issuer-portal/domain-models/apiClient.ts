@@ -37,7 +37,7 @@ interface SessionCacheEntry {
 }
 
 let sessionCache: SessionCacheEntry | null = null
-const SESSION_CACHE_TTL = 60 * 1000 // 60 seconds - longer cache to reduce API calls
+const SESSION_CACHE_TTL = 5 * 60 * 1000 // 5 minutes - longer cache to reduce API calls
 
 const getCachedSession = async (): Promise<Session | null> => {
   // Check if we have a valid cached session

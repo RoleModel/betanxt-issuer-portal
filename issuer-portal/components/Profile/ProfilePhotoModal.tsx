@@ -198,11 +198,11 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
       // First update session to ensure all components get the updated data
       if (updateSession) {
         // Force session refresh by calling update with new image data
-        await updateSession({ image: (updatedUser.avatarUrl ?? null) })
+        await updateSession({ image: updatedUser.avatarUrl ?? null })
       }
 
       // Then update the parent component immediately for faster UI feedback
-      onPhotoUpdate?.((updatedUser.avatarUrl ?? null))
+      onPhotoUpdate?.(updatedUser.avatarUrl ?? null)
 
       onClose()
     } catch (_err) {

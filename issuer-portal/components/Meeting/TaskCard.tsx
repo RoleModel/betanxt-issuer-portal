@@ -18,10 +18,7 @@ import {
 } from '@mui/material'
 
 import TaskDrawer from '@/components/Drawers/TaskDrawer'
-import {
-  getPhaseColor,
-  getStatusBorderColor,
-} from '@/components/mui-styling/theme'
+import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/theme'
 import StatusChip from '@/components/ui/StatusChip'
 
 import { useMeeting } from '@/contexts/MeetingContext'

@@ -232,8 +232,8 @@ export default function ReportingPage() {
         // Check if there are actual votes (not just null values)
         const hasVotes =
           (p.totalVotesFor ?? 0) +
-          (p.totalVotesAgainst ?? 0) +
-          (p.totalVotesAbstain ?? 0) >
+            (p.totalVotesAgainst ?? 0) +
+            (p.totalVotesAbstain ?? 0) >
           0
 
         return isDirectorProposal && hasVotes

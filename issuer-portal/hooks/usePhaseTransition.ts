@@ -1,8 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 import type { components } from '@/domain-models/generated-schema'
 
-type Phase = components['schemas']['Phase']
 type Task = components['schemas']['Task']
 
 interface PhaseTransitionResult {
@@ -22,8 +21,11 @@ export function usePhaseTransition(meetingId: string) {
 
       try {
         // Fetch all tasks for the current phase
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-        const response = await fetch(`${API_URL}/meetings/${meetingId}/tasks?phaseId=${currentPhaseId}`)
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+        const response = await fetch(
+          `${API_URL}/meetings/${meetingId}/tasks?phaseId=${currentPhaseId}`
+        )
 
         if (!response.ok) {
           throw new Error('Failed to fetch phase tasks')
@@ -41,7 +43,9 @@ export function usePhaseTransition(meetingId: string) {
         return {
           canTransition,
           incompleteTasks,
-          reason: canTransition ? null : `${incompleteTasks.length} task(s) must be completed`,
+          reason: canTransition
+            ? null
+            : `${incompleteTasks.length} task(s) must be completed`,
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Validation failed'
@@ -73,7 +77,8 @@ export function usePhaseTransition(meetingId: string) {
         }
 
         // Mark current phase as complete
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
         const completeResponse = await fetch(`${API_URL}/phases/${currentPhaseId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -97,7 +102,8 @@ export function usePhaseTransition(meetingId: string) {
 
         return true
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Phase transition failed'
+        const errorMessage =
+          err instanceof Error ? err.message : 'Phase transition failed'
         setError(errorMessage)
         return false
       } finally {

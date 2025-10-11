@@ -1,5 +1,4 @@
 #!/usr/bin/env tsx
- 
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 
@@ -1128,4 +1127,7 @@ async function validateSeedData() {
 }
 
 // Run validation
-validateSeedData()
+validateSeedData().catch((error) => {
+  console.error('Validation failed:', error)
+  process.exit(1)
+})

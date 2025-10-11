@@ -1,81 +1,71 @@
 import NextAuth from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
 import type { JWT } from 'next-auth/jwt'
-import Credentials from 'next-auth/providers/credentials'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET ?? 'development-secret-please-change-in-production',
+  secret: process.env.NEXTAUTH_SECRET ??
+    'fallback-secret-for-development-only-change-in-production',
+
+  // Configure caching to reduce API calls
+  useSecureCookies: process.env.NODE_ENV === 'production',
+
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: 'credentials',
       credentials: {
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
+      // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
-        // Check if auth bypass is enabled
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-          // Return a mock user for development
-          return {
-            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            name: 'Dev User',
-            email: 'dev@example.com',
-            username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toUpperCase() || 'ADMIN',
-            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c', // Wendy's account ID
-            client_ticker: null,
-          }
-        }
-
         if (!credentials?.username || !credentials?.password) {
           return null
         }
 
-        // For development, allow these test users:
-        const testUsers = [
-          {
-            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            name: 'Dev User',
-            email: 'dev@example.com',
-            type: 'ADMIN' as const,
-            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
-            client_ticker: null,
-            username: 'devuser',
-          },
-          {
-            id: 'e3e85881-afe0-52f7-9c33-a1d0f58836e7',
-            username: 'mike.chen',
-            name: 'Mike Chen',
-            email: 'mike.chen@wendys.com',
-            type: 'ADMIN',
-            account_id: '02ddeb48-9faf-5caf-91ad-60e9d0ba928c',
-            client_ticker: 'WEN',
-          },
-          {
-            id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
-            username: 'lisa.rodriguez',
-            name: 'Lisa Rodriguez',
-            email: 'lisa.rodriguez@paycom.com',
-            type: 'ISSUER',
-            account_id: 'cb08ea39-1128-5956-b828-9eaeb94b7892',
-            client_ticker: 'PAYC',
-          },
-        ]
+        // Mock authentication for development
+        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+          // Mock user data based on username
+          const mockUsers = {
+            mike: {
+              id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
+              username: 'mike',
+              type: 'ISSUER' as const,
+              account_id: 'acc-wen-001',
+              client_ticker: 'WEN',
+            },
+            lisa: {
+              id: 'c2g6173b-10c7-6ed2-c29d-4911d6041fcb',
+              username: 'lisa',
+              type: 'ISSUER' as const,
+              account_id: 'acc-paycom-001',
+              client_ticker: 'PAYC',
+            },
+            david: {
+              id: 'd3h7284c-21d8-7fe3-d30e-5a22e7152gdc',
+              username: 'david',
+              type: 'ISSUER' as const,
+              account_id: 'acc-woodward-001',
+              client_ticker: 'WWD',
+            },
+            jenny: {
+              id: 'e4i8395d-32e9-8gf4-e41f-6b33f8263hed',
+              username: 'jenny',
+              type: 'ISSUER' as const,
+              account_id: 'acc-enliven-001',
+              client_ticker: 'ELVN',
+            },
+          }
 
-        const user = testUsers.find(
-          (u) =>
-            u.username === credentials.username && credentials.password === 'password'
-        )
-
-        if (user) {
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            username: user.username,
-            type: user.type,
-            account_id: user.account_id,
-            client_ticker: user.client_ticker,
+          const user = mockUsers[credentials.username as keyof typeof mockUsers]
+          if (user && credentials.password === 'password') {
+            return {
+              id: user.id,
+              username: user.username,
+              type: user.type,
+              account_id: user.account_id,
+              client_ticker: user.client_ticker,
+            }
           }
         }
 
@@ -85,11 +75,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours - session will be updated every 24 hours
   },
   pages: {
     signIn: '/login',
   },
   callbacks: {
+    // NextAuth.js requires callbacks to be async even if they don't use await
+    // eslint-disable-next-line @typescript-eslint/require-await
     async jwt({ token, user, trigger, session: updateData }) {
       if (user) {
         token.id = user.id // Store the actual user ID
@@ -108,6 +102,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return token
     },
+    // NextAuth.js requires callbacks to be async even if they don't use await
+    // eslint-disable-next-line @typescript-eslint/require-await
     async session({ session, token }) {
       const t = token as JWT & { sub?: string; id?: string; image?: string }
       session.user.id = t.id ?? t.sub ?? '' // Use the stored user ID, fallback to sub
@@ -118,6 +114,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.image = t.image ?? null // Include the image field
       return session
     },
+    // NextAuth.js requires callbacks to be async even if they don't use await
+    // eslint-disable-next-line @typescript-eslint/require-await
     async redirect({ url, baseUrl }) {
       // Let the app handle dynamic client routing
       if (url === baseUrl) {

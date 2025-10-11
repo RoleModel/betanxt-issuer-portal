@@ -27,6 +27,11 @@ export default function EducationContent() {
         description: 'How the proxy process works',
         actionText: 'View Guide',
         icon: <ChecklistDocumentIcon fontSize="3xl" />,
+        onClick: () => {
+          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setViewerTitle('Proxy Guide')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'SPR Registration Guide',
@@ -39,7 +44,7 @@ export default function EducationContent() {
         description: 'Insights to support the execution of your annual meeting',
         actionText: 'View Guide',
         onClick: () => {
-          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
+          setFileUrl('/documents/DSM-Quick-Start-Guide.pdf')
           setViewerTitle('Digital Shareholder Meeting Guide')
           setViewerOpen(true)
         },
@@ -89,6 +94,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/betanxt-nobo-request-form-0125-250220.pdf',
         href: '/documents/betanxt-nobo-request-form-0125-250220.pdf',
+        onClick: () => {
+          setFileUrl('/documents/betanxt-nobo-request-form-0125-250220.pdf')
+          setViewerTitle('NOBO Request Form')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Proxy Campaign Set-Up Form',
@@ -97,6 +107,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/proxy-campaign-set-up-2025-250127.pdf',
         href: '/documents/proxy-campaign-set-up-2025-250127.pdf',
+        onClick: () => {
+          setFileUrl('/documents/proxy-campaign-set-up-2025-250127.pdf')
+          setViewerTitle('Proxy Campaign Set-Up For')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Fee Schedule',
@@ -105,6 +120,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/proxy-fee-schedule-january-2025-250127.pdf',
         href: '/documents/proxy-fee-schedule-january-2025-250127.pdf',
+        onClick: () => {
+          setFileUrl('/documents/proxy-fee-schedule-january-2025-250127.pdf')
+          setViewerTitle('Fee Schedule')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Delivery Guidelines',
@@ -113,6 +133,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/delivery-guidelines-2025-250127.pdf',
         href: '/documents/delivery-guidelines-2025-250127.pdf',
+        onClick: () => {
+          setFileUrl('/documents/delivery-guidelines-2025-250127.pdf')
+          setViewerTitle('Delivery Guidelines')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Legal Proxy',
@@ -121,6 +146,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/legal-proxy-250127.pdf',
         href: '/documents/legal-proxy-250127.pdf',
+        onClick: () => {
+          setFileUrl('/documents/legal-proxy-250127.pdf')
+          setViewerTitle('Legal Proxy')
+          setViewerOpen(true)
+        },
       },
       {
         title: 'Sample Invoices',
@@ -129,6 +159,11 @@ export default function EducationContent() {
         actionText: 'Download',
         fileUrl: '/documents/bpx-bpv-invoice-250127.pdf',
         href: '/documents/bpx-bpv-invoice-250127.pdf',
+        onClick: () => {
+          setFileUrl('/documents/bpx-bpv-invoice-250127.pdf')
+          setViewerTitle('Sample Invoices')
+          setViewerOpen(true)
+        },
       },
     ],
     []
@@ -272,6 +307,7 @@ export default function EducationContent() {
         onClose={handleViewerClose}
         fileUrl={fileUrl}
         title={viewerTitle}
+        showDownloadButton={true}
       />
     </Container>
   )

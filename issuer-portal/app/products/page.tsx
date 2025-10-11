@@ -10,7 +10,5 @@ const ProductsContent = dynamic(() => import('@/components/Products/ProductsCont
 })
 
 export default function ProductsPage() {
-  return (
-    <ProductsContent />
-  )
+  return <ProductsContent />
 }

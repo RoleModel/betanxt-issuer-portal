@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-30T00:31:43.165Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { listAccountUsers } from '@/domain-models/api/users'
@@ -42,6 +42,8 @@ export async function GET(
   }
 }
 
+// Auto-generated stub - async required for Next.js route handler
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function POST(): Promise<NextResponse> {
   try {
     // TODO: Implement createAccountUser

@@ -12,13 +12,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Link,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
   TextField,
-  Link,
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
@@ -57,26 +57,27 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Show "Not yet confirmed" if we have a transfer agent value but it hasn't been confirmed
-  const showTransferAgentAsUnconfirmed = meeting?.transferAgent && !meeting?.transferAgentConfirmed
+  const showTransferAgentAsUnconfirmed =
+    meeting?.transferAgent && !meeting?.transferAgentConfirmed
 
   const contacts: ContactInfo[] = meeting
     ? [
-      {
-        role: 'Transfer Agent',
-        contact: meeting.transferAgent ?? '',
-        isPlaceholder: Boolean(showTransferAgentAsUnconfirmed), // Only show chip if we have data but it's unconfirmed
-      },
-      {
-        role: 'Plan Administrator',
-        contact: meeting.planAdministrator ?? '',
-        email: meeting.planAdministratorContactEmail,
-      },
-      {
-        role: 'Solicitor Contact Info',
-        contact: meeting.solicitor ?? '',
-        email: meeting.solicitorEmail,
-      },
-    ]
+        {
+          role: 'Transfer Agent',
+          contact: meeting.transferAgent ?? '',
+          isPlaceholder: Boolean(showTransferAgentAsUnconfirmed), // Only show chip if we have data but it's unconfirmed
+        },
+        {
+          role: 'Plan Administrator',
+          contact: meeting.planAdministrator ?? '',
+          email: meeting.planAdministratorContactEmail,
+        },
+        {
+          role: 'Solicitor Contact Info',
+          contact: meeting.solicitor ?? '',
+          email: meeting.solicitorEmail,
+        },
+      ]
     : []
 
   const handleConfirmClick = () => {
@@ -168,23 +169,22 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
                             }}
                           />
                         ) : (
-                          contact.contact ?? '—'
+                          (contact.contact ?? '—')
                         )}
                       </Box>
                       {contact.email && (
                         <Link href={`mailto:${contact.email}`}>{contact.email}</Link>
                       )}
                     </Box>
-                    {contact.role === 'Transfer Agent' &&
-                      contact.isPlaceholder && (
-                        <Button
-                          variant="text"
-                          onClick={handleConfirmClick}
-                          sx={{ minWidth: 'fit-content', flexShrink: 0 }}
-                        >
-                          Confirm
-                        </Button>
-                      )}
+                    {contact.role === 'Transfer Agent' && contact.isPlaceholder && (
+                      <Button
+                        variant="text"
+                        onClick={handleConfirmClick}
+                        sx={{ minWidth: 'fit-content', flexShrink: 0 }}
+                      >
+                        Confirm
+                      </Button>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>

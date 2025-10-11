@@ -68,7 +68,7 @@ const normalizePhase = (raw: unknown): Phase | null => {
         ? 'ACTIVE'
         : 'NOT_STARTED'
 
-  const kdRec = (asRecord(rec.keyDates) || asRecord(rec.key_dates) || {})
+  const kdRec = asRecord(rec.keyDates) || asRecord(rec.key_dates) || {}
   const keyDates: Phase['keyDates'] = {
     startDate: getStr(kdRec, ['startDate', 'start_date']),
     endDate: getStr(kdRec, ['endDate', 'end_date']),
@@ -143,6 +143,6 @@ export const usePhases = (meetingId?: string): UsePhasesResult => {
     phases: data || [],
     loading: isLoading,
     error: error ? error.message : null,
-    refetch: () => mutate(),
+    refetch: () => void mutate(),
   }
 }

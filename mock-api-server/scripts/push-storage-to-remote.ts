@@ -1,6 +1,9 @@
 #!/usr/bin/env npx tsx
- 
 import { createClient } from '@supabase/supabase-js'
+import { config } from 'dotenv'
+
+// Load environment variables from .env.local
+config({ path: '.env.local' })
 
 // Local Supabase
 const localUrl = 'http://127.0.0.1:54321'
@@ -91,7 +94,7 @@ async function pushStorageToRemote() {
         }
 
         for (const file of files || []) {
-          if (file.name && file.name.includes('.')) {
+          if (file.name?.includes('.')) {
             allFiles.push({
               path: `${folderPath}/${file.name}`,
               metadata: file.metadata,
@@ -148,8 +151,8 @@ async function pushStorageToRemote() {
         .from('documents')
         .upload(filePath, buffer, {
           contentType:
-            file.metadata?.mimeType ||
-            file.metadata?.mimetype ?? 'application/octet-stream',
+            (file.metadata?.mimeType || file.metadata?.mimetype) ??
+            'application/octet-stream',
           upsert: false,
         })
 
@@ -161,7 +164,9 @@ async function pushStorageToRemote() {
         successCount++
       }
     } catch (error) {
-      console.error(`   ❌ Error: ${error}`)
+      console.error(
+        `   ❌ Error: ${error instanceof Error ? error.message : String(error)}`
+      )
       errorCount++
     }
   }

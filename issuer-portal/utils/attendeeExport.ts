@@ -30,7 +30,9 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
         attendee.firstName ?? '',
         attendee.lastName ?? '',
         attendee.emailAddress ?? '',
-        attendee.registrationQuestions ? `"${attendee.registrationQuestions.replace(/"/g, '""')}"` : '',
+        attendee.registrationQuestions
+          ? `"${attendee.registrationQuestions.replace(/"/g, '""')}"`
+          : '',
         attendee.minutesAttendedMeeting?.toString() || '',
         attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
       ].join(',')
@@ -148,8 +150,8 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
     </thead>
     <tbody>
       ${attendees
-      .map(
-        (attendee) => `
+        .map(
+          (attendee) => `
         <tr>
           <td>${attendee.registrantType ?? '-'}</td>
           <td>${attendee.firstName ?? ''} ${attendee.lastName ?? ''}</td>
@@ -159,8 +161,8 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
           <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '-'}</td>
         </tr>
       `
-      )
-      .join('')}
+        )
+        .join('')}
     </tbody>
   </table>
   
@@ -220,7 +222,7 @@ export function exportAttendees(
       exportToPDF(attendees, filename)
       break
     default:
-      throw new Error(`Unsupported export format: ${options.format}`)
+      throw new Error(`Unsupported export format: ${String(options.format)}`)
   }
 }
 
@@ -258,7 +260,7 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
   const avgMinutesAttended =
     actualAttendees.length > 0
       ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
-          actualAttendees.length
+        actualAttendees.length
       : 0
 
   return {
@@ -269,5 +271,3 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
     avgMinutesAttended: Math.round(avgMinutesAttended),
   }
 }
-
-

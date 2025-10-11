@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
+import type { components } from '@/domain-models/generated-schema'
 
 import { getBrowserSupabase } from '@/lib/browserSupabase'
-import type { components } from '@/domain-models/generated-schema'
 
 type Document = components['schemas']['Document']
 
@@ -133,53 +134,76 @@ export function useDocumentSync({
     void fetchDocuments()
 
     // Subscribe to document changes - cast to RealtimeChannel for proper typing
-    const channel = supabase.channel(`documents:${meetingId}`) as unknown as RealtimeChannel
+    const channel = supabase.channel(
+      `documents:${meetingId}`
+    ) as unknown as RealtimeChannel
 
     channel
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'document',
-        filter: `meeting_id=eq.${meetingId}`,
-      }, (payload: RealtimePayload) => {
-        if (payload.new) {
-          const newDocument = transformDocument(payload.new)
-          setDocuments((prev) => [...prev, newDocument])
-          onDocumentAdded?.(newDocument)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'document',
+          filter: `meeting_id=eq.${meetingId}`,
+        },
+        (payload: RealtimePayload) => {
+          if (payload.new) {
+            const newDocument = transformDocument(payload.new)
+            setDocuments((prev) => [...prev, newDocument])
+            onDocumentAdded?.(newDocument)
+          }
         }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'document',
-        filter: `meeting_id=eq.${meetingId}`,
-      }, (payload: RealtimePayload) => {
-        if (payload.new) {
-          const updatedDocument = transformDocument(payload.new)
-          setDocuments((prev) =>
-            prev.map((doc) => (doc.id === updatedDocument.id ? updatedDocument : doc))
-          )
-          onDocumentUpdated?.(updatedDocument)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'document',
+          filter: `meeting_id=eq.${meetingId}`,
+        },
+        (payload: RealtimePayload) => {
+          if (payload.new) {
+            const updatedDocument = transformDocument(payload.new)
+            setDocuments((prev) =>
+              prev.map((doc) => (doc.id === updatedDocument.id ? updatedDocument : doc))
+            )
+            onDocumentUpdated?.(updatedDocument)
+          }
         }
-      })
-      .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'document',
-        filter: `meeting_id=eq.${meetingId}`,
-      }, (payload: RealtimePayload) => {
-        if (payload.old?.id) {
-          setDocuments((prev) => prev.filter((doc) => doc.id !== payload.old?.id))
-          onDocumentDeleted?.(payload.old.id)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'document',
+          filter: `meeting_id=eq.${meetingId}`,
+        },
+        (payload: RealtimePayload) => {
+          if (payload.old?.id) {
+            setDocuments((prev) => prev.filter((doc) => doc.id !== payload.old?.id))
+            onDocumentDeleted?.(payload.old.id)
+          }
         }
-      })
+      )
       .subscribe()
 
     // Cleanup subscription on unmount
     return () => {
-      void supabase.removeChannel(channel as unknown as ReturnType<typeof supabase.channel>)
+      void supabase.removeChannel(
+        channel as unknown as ReturnType<typeof supabase.channel>
+      )
     }
-  }, [meetingId, supabase, onDocumentAdded, onDocumentUpdated, onDocumentDeleted, fetchDocuments])
+  }, [
+    meetingId,
+    supabase,
+    onDocumentAdded,
+    onDocumentUpdated,
+    onDocumentDeleted,
+    fetchDocuments,
+  ])
 
   // Manual refresh function
   const refresh = useCallback(() => {
@@ -187,24 +211,27 @@ export function useDocumentSync({
   }, [fetchDocuments])
 
   // Optimistic update for uploads
-  const addOptimisticDocument = useCallback((document: Partial<Document>) => {
-    const optimisticDoc: Document = {
-      id: `temp-${Date.now()}`,
-      meetingId: meetingId,
-      title: document.title ?? 'Uploading...',
-      type: document.type ?? 'UNKNOWN',
-      filePath: '',
-      fileType: '',
-      fileSize: 0,
-      status: 'DRAFT',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...document,
-    } as Document
+  const addOptimisticDocument = useCallback(
+    (document: Partial<Document>) => {
+      const optimisticDoc: Document = {
+        id: `temp-${Date.now()}`,
+        meetingId: meetingId,
+        title: document.title ?? 'Uploading...',
+        type: document.type ?? 'UNKNOWN',
+        filePath: '',
+        fileType: '',
+        fileSize: 0,
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...document,
+      } as Document
 
-    setDocuments((prev) => [...prev, optimisticDoc])
-    return optimisticDoc.id
-  }, [meetingId])
+      setDocuments((prev) => [...prev, optimisticDoc])
+      return optimisticDoc.id
+    },
+    [meetingId]
+  )
 
   const removeOptimisticDocument = useCallback((tempId: string) => {
     setDocuments((prev) => prev.filter((doc) => doc.id !== tempId))

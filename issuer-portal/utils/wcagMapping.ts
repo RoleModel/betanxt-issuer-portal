@@ -22,7 +22,7 @@ export function extractWcagCriteria(tags: string[]): string {
 
     // Convert number format to dotted format
     // e.g., '111' -> '1.1.1', '413' -> '4.1.3'
-    const digits = (/\d+/.exec(value))?.[0] ?? ''
+    const digits = /\d+/.exec(value)?.[0] ?? ''
     if (digits.length >= 3) {
       const formatted = digits.split('').join('.')
       criteria.push(formatted)

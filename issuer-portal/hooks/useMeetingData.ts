@@ -143,9 +143,7 @@ const normalizePhase = (raw: unknown): Phase | null => {
         : 'NOT_STARTED'
 
   const kdRec =
-    asRecord(rec.keyDates) ||
-    asRecord(rec.key_dates) ||
-    ({} as Record<string, unknown>)
+    asRecord(rec.keyDates) || asRecord(rec.key_dates) || ({} as Record<string, unknown>)
   const keyDates: Phase['keyDates'] = {
     startDate: pickString(kdRec, ['startDate', 'start_date']) ?? null,
     endDate: pickString(kdRec, ['endDate', 'end_date']) ?? null,
@@ -176,147 +174,143 @@ const normalizePhase = (raw: unknown): Phase | null => {
 }
 
 const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
-  try {
-    const apiClient = await buildApiClient()
+  const apiClient = await buildApiClient()
 
-    // Fetch all data in parallel
-    const [phasesResult, proposalsResult, positionsResult] = await Promise.all([
-      apiClient.GET('/meetings/{meetingId}/phases', {
-        params: { path: { meetingId } },
-      }),
-      apiClient.GET('/meetings/{meetingId}/proposals', {
-        params: { path: { meetingId } },
-      }),
-      apiClient.GET('/positions', {
-        params: { query: { meetingId } },
-      }),
-    ])
+  // Fetch all data in parallel
+  const [phasesResult, proposalsResult, positionsResult] = await Promise.all([
+    apiClient.GET('/meetings/{meetingId}/phases', {
+      params: { path: { meetingId } },
+    }),
+    apiClient.GET('/meetings/{meetingId}/proposals', {
+      params: { path: { meetingId } },
+    }),
+    apiClient.GET('/positions', {
+      params: { query: { meetingId } },
+    }),
+  ])
 
-    // Process phases
-    const phases: Phase[] = []
-    const { data: phasesData, error: phasesError } = phasesResult
-    if (!phasesError && phasesData) {
-      const items: unknown[] = Array.isArray(phasesData) ? (phasesData as unknown[]) : []
-      for (const item of items) {
-        const normalized = normalizePhase(item)
-        if (normalized) phases.push(normalized)
-      }
+  // Process phases
+  const phases: Phase[] = []
+  const { data: phasesData, error: phasesError } = phasesResult
+  if (!phasesError && phasesData) {
+    const items: unknown[] = Array.isArray(phasesData) ? (phasesData as unknown[]) : []
+    for (const item of items) {
+      const normalized = normalizePhase(item)
+      if (normalized) phases.push(normalized)
+    }
+  }
+
+  // Process proposals and voting data
+  let proposals: ProposalVoting[] = []
+  let votingSummary: VotingSummary | null = null
+
+  const { data: proposalsData, error: proposalsError } = proposalsResult
+  const { data: positionsData, error: _positionsError } = positionsResult
+
+  if (!proposalsError && proposalsData) {
+    const proposalsPayload = proposalsData
+    const proposalsRaw = Array.isArray(proposalsPayload)
+      ? proposalsPayload
+      : asArray(asRecord(proposalsPayload)?.proposals)
+
+    const positionsRaw = Array.isArray(positionsData)
+      ? positionsData
+      : asArray(asRecord(positionsData)?.positions)
+    const positions = positionsRaw
+      .map((position) => normalizePosition(position))
+      .filter((position): position is NormalizedPosition => position !== null)
+
+    // Calculate voting summary
+    const totalPositions = positions.length
+    const positionsVoted = positions.filter(
+      (position) => position.voteStatus === 'VOTED'
+    ).length
+    const totalShares = positions.reduce((sum, position) => sum + position.shares, 0)
+    const sharesVoted = positions
+      .filter((position) => position.voteStatus === 'VOTED')
+      .reduce((sum, position) => sum + position.sharesVoted, 0)
+
+    const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0
+
+    // Count voting methods
+    const webVotes = positions.filter(
+      (position) => position.votingSource === 'WEB'
+    ).length
+    const paperVotes = positions.filter(
+      (position) => position.votingSource === 'PRINT'
+    ).length
+    const phoneVotes = positions.filter(
+      (position) => position.votingSource === 'IVR'
+    ).length
+
+    votingSummary = {
+      totalSharesVoted: sharesVoted,
+      totalSharesOutstanding: totalShares,
+      percentageVoted: Math.round(percentageVoted),
+      positionsVoted,
+      totalPositions,
+      lastUpdated: new Date().toISOString(),
+      votingMethods: {
+        web: webVotes,
+        paper: paperVotes,
+        phone: phoneVotes,
+      },
+      votingBreakdown: {
+        for: { shares: 0, percentage: 0 },
+        against: { shares: 0, percentage: 0 },
+        abstain: { shares: 0, percentage: 0 },
+        withhold: { shares: 0, percentage: 0 },
+      },
     }
 
-    // Process proposals and voting data
-    let proposals: ProposalVoting[] = []
-    let votingSummary: VotingSummary | null = null
+    // Transform proposals data for voting display
+    proposals = proposalsRaw
+      .map((proposal) => normalizeProposal(proposal))
+      .filter((proposal): proposal is NormalizedProposal => proposal !== null)
+      .map((proposal) => {
+        // Mock voting results - in real implementation, fetch from voting endpoints
+        const mockVotingResults = {
+          for: { shares: Math.floor(Math.random() * sharesVoted * 0.7), percentage: 0 },
+          against: {
+            shares: Math.floor(Math.random() * sharesVoted * 0.2),
+            percentage: 0,
+          },
+          abstain: {
+            shares: Math.floor(Math.random() * sharesVoted * 0.1),
+            percentage: 0,
+          },
+        }
 
-    const { data: proposalsData, error: proposalsError } = proposalsResult
-    const { data: positionsData, error: _positionsError } = positionsResult
+        const totalVoted =
+          mockVotingResults.for.shares +
+          mockVotingResults.against.shares +
+          mockVotingResults.abstain.shares
 
-    if (!proposalsError && proposalsData) {
-      const proposalsPayload = proposalsData
-      const proposalsRaw = Array.isArray(proposalsPayload)
-        ? proposalsPayload
-        : asArray(asRecord(proposalsPayload)?.proposals)
+        if (totalVoted > 0) {
+          mockVotingResults.for.percentage =
+            (mockVotingResults.for.shares / totalVoted) * 100
+          mockVotingResults.against.percentage =
+            (mockVotingResults.against.shares / totalVoted) * 100
+          mockVotingResults.abstain.percentage =
+            (mockVotingResults.abstain.shares / totalVoted) * 100
+        }
 
-      const positionsRaw = Array.isArray(positionsData)
-        ? positionsData
-        : asArray(asRecord(positionsData)?.positions)
-      const positions = positionsRaw
-        .map((position) => normalizePosition(position))
-        .filter((position): position is NormalizedPosition => position !== null)
+        return {
+          proposalId: proposal.id,
+          proposalNumber: parseInt(proposal.proposalNumber, 10) || 0,
+          description: proposal.proposalType,
+          directorName: proposal.directorName,
+          votingResults: mockVotingResults,
+          totalShares: totalVoted,
+          status: 'active' as const,
+        }
+      })
+  }
 
-      // Calculate voting summary
-      const totalPositions = positions.length
-      const positionsVoted = positions.filter(
-        (position) => position.voteStatus === 'VOTED'
-      ).length
-      const totalShares = positions.reduce((sum, position) => sum + position.shares, 0)
-      const sharesVoted = positions
-        .filter((position) => position.voteStatus === 'VOTED')
-        .reduce((sum, position) => sum + position.sharesVoted, 0)
-
-      const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0
-
-      // Count voting methods
-      const webVotes = positions.filter(
-        (position) => position.votingSource === 'WEB'
-      ).length
-      const paperVotes = positions.filter(
-        (position) => position.votingSource === 'PRINT'
-      ).length
-      const phoneVotes = positions.filter(
-        (position) => position.votingSource === 'IVR'
-      ).length
-
-      votingSummary = {
-        totalSharesVoted: sharesVoted,
-        totalSharesOutstanding: totalShares,
-        percentageVoted: Math.round(percentageVoted),
-        positionsVoted,
-        totalPositions,
-        lastUpdated: new Date().toISOString(),
-        votingMethods: {
-          web: webVotes,
-          paper: paperVotes,
-          phone: phoneVotes,
-        },
-        votingBreakdown: {
-          for: { shares: 0, percentage: 0 },
-          against: { shares: 0, percentage: 0 },
-          abstain: { shares: 0, percentage: 0 },
-          withhold: { shares: 0, percentage: 0 },
-        },
-      }
-
-      // Transform proposals data for voting display
-      proposals = proposalsRaw
-        .map((proposal) => normalizeProposal(proposal))
-        .filter((proposal): proposal is NormalizedProposal => proposal !== null)
-        .map((proposal) => {
-          // Mock voting results - in real implementation, fetch from voting endpoints
-          const mockVotingResults = {
-            for: { shares: Math.floor(Math.random() * sharesVoted * 0.7), percentage: 0 },
-            against: {
-              shares: Math.floor(Math.random() * sharesVoted * 0.2),
-              percentage: 0,
-            },
-            abstain: {
-              shares: Math.floor(Math.random() * sharesVoted * 0.1),
-              percentage: 0,
-            },
-          }
-
-          const totalVoted =
-            mockVotingResults.for.shares +
-            mockVotingResults.against.shares +
-            mockVotingResults.abstain.shares
-
-          if (totalVoted > 0) {
-            mockVotingResults.for.percentage =
-              (mockVotingResults.for.shares / totalVoted) * 100
-            mockVotingResults.against.percentage =
-              (mockVotingResults.against.shares / totalVoted) * 100
-            mockVotingResults.abstain.percentage =
-              (mockVotingResults.abstain.shares / totalVoted) * 100
-          }
-
-          return {
-            proposalId: proposal.id,
-            proposalNumber: parseInt(proposal.proposalNumber, 10) || 0,
-            description: proposal.proposalType,
-            directorName: proposal.directorName,
-            votingResults: mockVotingResults,
-            totalShares: totalVoted,
-            status: 'active' as const,
-          }
-        })
-    }
-
-    return {
-      phases,
-      proposals,
-      votingSummary,
-    }
-  } catch (error) {
-    throw error
+  return {
+    phases,
+    proposals,
+    votingSummary,
   }
 }
 
@@ -351,6 +345,6 @@ export const useMeetingData = (
       : { phases: [], proposals: [], votingSummary: null, meeting },
     loading: isLoading,
     error: error ? error.message : null,
-    refetch: () => mutate(),
+    refetch: () => void mutate(),
   }
 }

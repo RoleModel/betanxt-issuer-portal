@@ -75,16 +75,16 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   // Handle both old and new data formats
   const isRowFormat = Array.isArray(data)
   const rows: EventSummaryRow[] = isRowFormat
-    ? (data)
+    ? data
     : [
         {
           event: 'Meeting Summary',
-          recordDate: (data).materials?.sentDate ?? '',
+          recordDate: data.materials?.sentDate ?? '',
           meetingType: 'Annual',
-          quorum: (data).quorumAchieved ? 'Yes' : 'No',
-          participation: `${((data).participationRate ?? 0).toFixed(1)}%`,
-          numProposals: (data).totalProposals,
-          outcome: `${(data).passedProposals}/${(data).totalProposals} Passed`,
+          quorum: data.quorumAchieved ? 'Yes' : 'No',
+          participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
+          numProposals: data.totalProposals,
+          outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
         },
       ]
 

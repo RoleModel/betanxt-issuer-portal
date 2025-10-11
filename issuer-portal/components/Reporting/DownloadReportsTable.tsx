@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+
 import { getBrowserSupabase } from '@/lib/browserSupabase'
 
 interface ReportItem {
@@ -48,11 +49,7 @@ const MOCK_REPORTS: ReportItem[] = [
   { name: 'Final Tabulation Summary', isMock: true },
 ]
 
-export default function DownloadReportsTable({
-  meetingId,
-}: {
-  meetingId: string
-}) {
+export default function DownloadReportsTable({ meetingId }: { meetingId: string }) {
   const [reports, setReports] = useState<ReportItem[]>([])
   const supabase = getBrowserSupabase()
 
@@ -98,9 +95,7 @@ export default function DownloadReportsTable({
       return
     }
 
-    const { data, error } = await supabase.storage
-      .from('documents')
-      .download(path)
+    const { data, error } = await supabase.storage.from('documents').download(path)
 
     if (error) {
       console.error('Error downloading report:', error)

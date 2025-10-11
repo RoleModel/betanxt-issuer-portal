@@ -123,6 +123,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
     setIsComponentMounted(true)
 
     // Add global error handler for IntersectionObserver cleanup errors
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalUnobserve = IntersectionObserver.prototype.unobserve
 
     // Override unobserve to catch and suppress the specific error

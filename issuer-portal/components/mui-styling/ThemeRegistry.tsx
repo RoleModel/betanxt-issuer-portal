@@ -1,10 +1,12 @@
 'use client'
 
-import CssBaseline from '@mui/material/CssBaseline'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
 import React, { useMemo } from 'react'
 
+import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
+
 import { useClient } from '@/contexts/ClientContext'
+
 import { NextAppDirEmotionCacheProvider } from './EmotionCache'
 import {
   elevenThemeOptions,
@@ -39,7 +41,8 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
       ELVN: elevenThemeOptions,
     }
 
-    const themeOptions = themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
+    const themeOptions =
+      themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
     return createTheme(themeOptions)
   }, [ticker, initialLoad, currentClient])
 

@@ -51,8 +51,8 @@ const generateUid = (prefix: string, id: string): string => {
   return `${prefix}-${id}@betanxt-issuer-portal`
 }
 
-export async function exportCalendarToIcs(options: IcsExportOptions): Promise<void> {
-  const { tasks, keyDates, meetingTitle, meetingId = 'meeting' } = options
+export function exportCalendarToIcs(options: IcsExportOptions): void {
+  const { tasks, keyDates, meetingTitle } = options
 
   const now = getCurrentIcsTimestamp()
   const lines: string[] = []

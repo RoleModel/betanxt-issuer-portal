@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import type { BarLabelProps } from '@mui/x-charts/BarChart';
+import type { BarLabelProps } from '@mui/x-charts/BarChart'
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -36,7 +36,11 @@ const toStringValue = (value: unknown): string => {
   const str = asString(value)
   if (str) return str
   // Only convert to string if it's a primitive type
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return String(value)
   }
   return ''

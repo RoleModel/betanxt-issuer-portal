@@ -32,7 +32,9 @@ export interface UseDigitalShareholderMeetingReturn {
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
 
-export function useDigitalShareholderMeeting(meetingId: string | undefined): UseDigitalShareholderMeetingReturn {
+export function useDigitalShareholderMeeting(
+  meetingId: string | undefined
+): UseDigitalShareholderMeetingReturn {
   const fetcher = async (url: string): Promise<DigitalShareholderMeetingAttendee[]> => {
     const response = await fetch(`${API_URL}${url}`)
     if (!response.ok) {
@@ -74,7 +76,7 @@ export function useDigitalShareholderMeeting(meetingId: string | undefined): Use
       throw new Error('Failed to upload attendees')
     }
 
-    const result = await response.json() as unknown
+    const result = (await response.json()) as unknown
     await mutate()
     return result
   }

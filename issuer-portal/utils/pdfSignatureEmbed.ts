@@ -53,7 +53,7 @@ export async function embedSignaturesIntoPDF({
         // Get the signature data for this area
         const signatureData = signatureDataMap[area.id]
 
-        if (signatureData && signatureData.startsWith('data:image')) {
+        if (signatureData?.startsWith('data:image')) {
           try {
             // Extract the base64 image data
             const base64Data = signatureData.split(',')[1]
@@ -119,7 +119,7 @@ export async function embedSignaturesIntoPDF({
   }
 }
 
-export async function convertDataUriToPdfBytes(dataUri: string): Promise<Uint8Array> {
+export function convertDataUriToPdfBytes(dataUri: string): Uint8Array {
   if (!dataUri.startsWith('data:application/pdf')) {
     throw new Error('Invalid PDF data URI')
   }

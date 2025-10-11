@@ -39,7 +39,6 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         setHtmlContent(result.value)
 
         if (result.messages.length > 0 && process.env.NODE_ENV === 'development') {
-           
           console.log('Mammoth conversion messages:', result.messages)
         }
 

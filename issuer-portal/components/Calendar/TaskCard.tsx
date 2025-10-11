@@ -60,7 +60,7 @@ const getTaskBackground = (
   if (isKeyDate) {
     // Completed tasks on key dates get a muted key date background
     return isCompleted
-      ? theme.vars?.palette?.keydate.main ?? '#f5f5f5'
+      ? (theme.vars?.palette?.keydate.main ?? '#f5f5f5')
       : theme.vars?.palette.keydate.main
   }
 
@@ -297,7 +297,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         border:
                           task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
                             ? 'none'
-                            : (theme) => `1px solid ${theme.vars?.palette.keydate.contrastText}`,
+                            : (theme) =>
+                                `1px solid ${theme.vars?.palette.keydate.contrastText}`,
                       }
                     : isMeetingDate
                       ? {

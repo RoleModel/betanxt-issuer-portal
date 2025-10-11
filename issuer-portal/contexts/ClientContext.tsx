@@ -153,7 +153,8 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           )
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to determine client'
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to determine client'
         setError(errorMessage)
       } finally {
         setLoading(false)
@@ -181,7 +182,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ticker: client.ticker,
         name: client.name,
         company_name: client.company_name,
-        short_name: client.short_name
+        short_name: client.short_name,
       })
 
       if (!canAccessClient(client.id)) {

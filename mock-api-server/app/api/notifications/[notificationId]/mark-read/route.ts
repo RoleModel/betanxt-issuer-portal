@@ -9,8 +9,18 @@ export async function PATCH(
   try {
     const { notificationId } = await params
 
-    // For mock API, we'll bypass auth and use a hardcoded user ID
-    const userId = 'user-1' // Default mock user ID
+    // For mock API, we'll bypass auth and get the first issuer user
+    const { data: users } = await supabase
+      .from('user')
+      .select('id')
+      .eq('type', 'ISSUER')
+      .limit(1)
+
+    const userId = users?.[0]?.id
+
+    if (!userId) {
+      return NextResponse.json({ error: 'No user found' }, { status: 404 })
+    }
 
     // Update notification to mark as read
     const { data, error } = await supabase
@@ -35,7 +45,24 @@ export async function PATCH(
       return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
-    return NextResponse.json(data)
+    // Transform snake_case to camelCase for API consistency
+    const transformedNotification = {
+      id: data.id,
+      title: data.title,
+      message: data.message,
+      type: data.type,
+      priority: data.priority,
+      read: data.read,
+      userId: data.user_id,
+      meetingId: data.meeting_id,
+      taskId: data.task_id,
+      actionUrl: data.action_url,
+      createdAt: data.created_at,
+      readAt: data.read_at,
+      expiresAt: data.expires_at,
+    }
+
+    return NextResponse.json(transformedNotification)
   } catch (error) {
     return NextResponse.json(
       {

@@ -46,7 +46,7 @@ interface DomainModel {
   functions: string[]
 }
 
-type DomainModelMap = Record<string, DomainModel>;
+type DomainModelMap = Record<string, DomainModel>
 
 /**
  * Scan for existing domain model functions
@@ -346,7 +346,7 @@ function generateDomainModelCall(
     } else if (functionName === 'listDocuments') {
       // listDocuments(meetingId: string, opts?: { type?: string; status?: string })
       const pathParams = route.path.match(/\{([^}]+)\}/g)
-      if (pathParams && pathParams.some((p) => p.includes('meetingId'))) {
+      if (pathParams?.some((p) => p.includes('meetingId'))) {
         callParams.push('meetingId')
       }
       // Add options object with query params
@@ -397,7 +397,7 @@ function generateDomainModelCall(
       // listTasks(meetingId?: string, opts?: { phaseId?: string; status?: string })
       // Check if we have a meetingId from path parameters
       const pathParams = route.path.match(/\{([^}]+)\}/g)
-      if (pathParams && pathParams.some((p) => p.includes('meetingId'))) {
+      if (pathParams?.some((p) => p.includes('meetingId'))) {
         callParams.push('meetingId')
       }
       // Add options object with query params (excluding owner which isn't supported)

@@ -2,15 +2,15 @@
 
 import React from 'react'
 
-import type { SxProps, Theme } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material'
 import { Chip } from '@mui/material'
 
+import type { TaskStatus } from '@/types/api-exports'
 import {
   DOCUMENT_STATUS_VALUES,
   type DocumentStatus,
   getDocumentStatusLabel,
 } from '@/utils/documentUtils'
-import type { TaskStatus } from '@/types/api-exports'
 
 // Unified status types - combining document and task statuses
 export type UnifiedStatus =
@@ -255,7 +255,6 @@ const StatusChip: React.FC<StatusChipProps> = ({
           fontSize: size === 'small' ? '0.75rem' : '0.875rem',
           height: size === 'small' ? 20 : 24,
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     />

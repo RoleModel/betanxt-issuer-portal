@@ -257,7 +257,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               label:
                 area.signature_type === 'electronic'
                   ? 'Click to sign'
-                  : area.signature_type ?? 'Click to sign',
+                  : (area.signature_type ?? 'Click to sign'),
               signed: false,
             })
           )
@@ -313,15 +313,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Construct the proper URL for the document
         let documentUrl =
           (document &&
-            typeof document === 'object' &&
-            'url' in document &&
-            typeof document.url === 'string'
+          typeof document === 'object' &&
+          'url' in document &&
+          typeof document.url === 'string'
             ? document.url
             : undefined) ??
           (document &&
-            typeof document === 'object' &&
-            'file_path' in document &&
-            typeof document.file_path === 'string'
+          typeof document === 'object' &&
+          'file_path' in document &&
+          typeof document.file_path === 'string'
             ? document.file_path
             : undefined)
 
@@ -347,19 +347,20 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           const docId =
             documentId ??
             (document &&
-              typeof document === 'object' &&
-              'id' in document &&
-              typeof document.id === 'string'
+            typeof document === 'object' &&
+            'id' in document &&
+            typeof document.id === 'string'
               ? document.id
               : `doc-${task.id ?? Date.now()}`)
           setCurrentDocumentId(docId)
           setDocumentData({
             url: documentUrl,
             title:
-              task.title ??               (document &&
-                typeof document === 'object' &&
-                'title' in document &&
-                typeof document.title === 'string'
+              task.title ??
+              (document &&
+              typeof document === 'object' &&
+              'title' in document &&
+              typeof document.title === 'string'
                 ? document.title
                 : 'Document'),
             signatureAreas: areas,
@@ -385,17 +386,17 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       legacyOnClose ??
       (task
         ? () => {
-          setOpen(false)
-        }
+            setOpen(false)
+          }
         : undefined),
     [legacyOnClose, task]
   )
   const actualfileUrl = useMemo(
-    () => (fileUrl ?? (task ? documentData?.url : undefined)),
+    () => fileUrl ?? (task ? documentData?.url : undefined),
     [fileUrl, task, documentData?.url]
   )
   const actualTitle = useMemo(
-    () => (title ?? (task ? documentData?.title : undefined)),
+    () => title ?? (task ? documentData?.title : undefined),
     [title, task, documentData?.title]
   )
 
@@ -412,14 +413,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     fileExtension === 'pdf' ||
     actualfileUrl?.includes('/test-pdf') ||
     actualfileUrl?.startsWith('data:application/pdf')
-   
+
   const isOfficeDocument = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(
     fileExtension ?? ''
   )
-  const actualSignatureData = signatureData ??
-    (task
-      ? internalSignatureData
-      : undefined)
+  const actualSignatureData = signatureData ?? (task ? internalSignatureData : undefined)
 
   // Initialize with a stable ID based on available props
   const getStableDocumentId = useCallback(() => {
@@ -475,7 +473,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // Sync signature areas when props change (prioritize legacy props)
   useEffect(() => {
     const areasToUse =
-      signatureAreas.length > 0 ? signatureAreas : documentData?.signatureAreas ?? []
+      signatureAreas.length > 0 ? signatureAreas : (documentData?.signatureAreas ?? [])
     // Only update if the arrays are actually different
     if (JSON.stringify(prevSignatureAreasRef.current) !== JSON.stringify(areasToUse)) {
       setLocalSignatureAreas(areasToUse)
@@ -507,17 +505,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }, [documentKey]) // Only depend on the memoized document key
 
   const handlePositionUpdate = useCallback(
-    async (areaId: string, x: number, y: number) => {
+    (areaId: string, x: number, y: number) => {
       try {
         // Update in database using hook
-        const updatedArea = await updateSignatureArea(areaId, {
+        void updateSignatureArea(areaId, {
           x_position: x,
           y_position: y,
         })
-
-        if (!updatedArea) {
-          // Failed to update signature area position
-        }
 
         // Update local state - handle both temp area replacement and position updates
         setLocalSignatureAreas((prev) => {
@@ -585,11 +579,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setIsLoading(false)
   }, [])
 
-  // Set the current document ID when the dialog opens
+  // Set the current document ID and reset page when the dialog opens
   useEffect(() => {
-    if (actualOpen && !currentDocumentId) {
-      const docId = getStableDocumentId()
-      setCurrentDocumentId(docId)
+    if (actualOpen) {
+      // Reset page number to 1 when opening
+      setPageNumber(1)
+
+      if (!currentDocumentId) {
+        const docId = getStableDocumentId()
+        setCurrentDocumentId(docId)
+      }
     }
   }, [actualOpen, currentDocumentId, getStableDocumentId])
 
@@ -679,7 +678,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Get the original PDF bytes
         if (fileUrlToUse.startsWith('data:')) {
           // For data URIs, convert directly to bytes
-          pdfBytes = await convertDataUriToPdfBytes(fileUrlToUse)
+          pdfBytes = convertDataUriToPdfBytes(fileUrlToUse)
         } else {
           // For regular URLs, fetch the PDF
           const response = await fetch(fileUrlToUse)
@@ -718,7 +717,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           if (!documentIdForUpload.includes('-signed-')) {
             // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
             if (
-              /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(documentIdForUpload)
+              /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(
+                documentIdForUpload
+              )
             ) {
               documentIdForUpload = documentIdForUpload.replace(
                 /^([^-]+-[^-]+-[^-]+)/,
@@ -1309,7 +1310,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                           800,
                           typeof window !== 'undefined'
                             ? window.innerWidth -
-                            (showComments || showHistory ? 500 : 100)
+                                (showComments || showHistory ? 500 : 100)
                             : 800
                         )}
                         onLoadSuccess={onDocumentLoadSuccess}
@@ -1359,7 +1360,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
-                            !area.label?.toLowerCase().includes('signature')
+                              !area.label?.toLowerCase().includes('signature')
                             ? 'text'
                             : area.label?.toLowerCase().includes('date')
                               ? 'date'

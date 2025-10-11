@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import CommentsIcon from '@rolemodel/betanxt-design-system/components/icons/brand/CommentsIcon'
 import DatabaseStackIcon from '@rolemodel/betanxt-design-system/components/icons/brand/DatabaseStackIcon'
 import TeamGrowthIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamGrowthIcon'
 import TimerClockIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TimerClockIcon'
 import Image from 'next/image'
+import { useState } from 'react'
 
 import { Check } from '@mui/icons-material'
 import {
@@ -25,11 +25,11 @@ import {
   useTheme,
 } from '@mui/material'
 
+import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
-import DocumentViewer from '@/components/Documents/DocumentViewer'
 
 export default function EngagePage() {
   const theme = useTheme()

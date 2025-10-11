@@ -31,7 +31,7 @@ import {
 
 import OfficeDocumentViewer from '@/components/Documents/OfficeDocumentViewer'
 import PDFViewer from '@/components/Documents/PDFViewer'
-import StatusChip, { type UnifiedStatus } from '@/components/ui/StatusChip'
+import StatusChip from '@/components/ui/StatusChip'
 
 import {
   type DocumentComment,
@@ -51,7 +51,7 @@ interface ApprovalDrawerProps {
   title: string
   fileUrl: string
   onApprove: () => void
-  taskStatus?: UnifiedStatus | string | null
+  taskStatus?: string | null
   onOpenFullscreen?: () => void
   reviewCount?: number
   totalReviews?: number
