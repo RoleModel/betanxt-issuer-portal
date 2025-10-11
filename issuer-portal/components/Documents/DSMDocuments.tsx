@@ -19,6 +19,8 @@ import {
   Typography,
 } from '@mui/material'
 
+import { FileUploadOutlined } from '@mui/icons-material'
+
 import SrOnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -106,7 +108,10 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
         title={' Digital Shareholder Meeting Documents'}
         subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
         action={
-          <Button variant="contained" onClick={onUpload} sx={{ textTransform: 'none' }}>
+          <Button variant="contained"
+            onClick={onUpload}
+            startIcon={<FileUploadOutlined />}
+          >
             Upload
           </Button>
         }
@@ -129,9 +134,9 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
             <TableBody>
               {(dsmRowsPerPage > 0
                 ? mergedRows.slice(
-                    dsmPage * dsmRowsPerPage,
-                    dsmPage * dsmRowsPerPage + dsmRowsPerPage
-                  )
+                  dsmPage * dsmRowsPerPage,
+                  dsmPage * dsmRowsPerPage + dsmRowsPerPage
+                )
                 : mergedRows
               ).map((doc) => (
                 <TableRow key={doc.id}>

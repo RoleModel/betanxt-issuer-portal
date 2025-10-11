@@ -361,13 +361,13 @@ function _transformPositionsVoted(positionsVoted: unknown): PositionsVotedData {
 }
 
 export function useReports(meetingId?: string) {
-  const { data, error, isLoading } = useSWR<ReportsData, Error, ReportsKey | null>(
+  const { data, error, isLoading, isValidating } = useSWR<ReportsData, Error, ReportsKey | null>(
     meetingId ? ['reports', meetingId] : null,
     fetchReports,
     {
       dedupingInterval: 30_000,
       revalidateOnFocus: false,
-      keepPreviousData: true,
+      keepPreviousData: false, // Changed to false to prevent stale data issues
     }
   )
 
@@ -382,7 +382,7 @@ export function useReports(meetingId?: string) {
       beneficial: { voted: 0, notVoted: 0 },
     },
     setKeys: data?.setKeys || [],
-    loading: isLoading,
+    loading: isLoading || isValidating,
     error,
   }
 }

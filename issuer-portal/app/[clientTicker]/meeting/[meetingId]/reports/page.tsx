@@ -88,10 +88,19 @@ export default function ReportsPage() {
   }, [setKeys, dtcVoteStatus, nonDtcVoteStatus])
 
   const [proposals, setProposals] = useState<Proposal[]>([])
+  const [proposalsLoading, setProposalsLoading] = useState(false)
 
   // Fetch proposals for the meeting
   useEffect(() => {
-    if (!meetingId) return
+    if (!meetingId) {
+      setProposals([])
+      setProposalsLoading(false)
+      return
+    }
+
+    // Reset state when meetingId changes
+    setProposals([])
+    setProposalsLoading(true)
 
     const fetchProposals = async () => {
       try {
@@ -127,6 +136,8 @@ export default function ReportsPage() {
         }
       } catch (error) {
         console.error('Failed to fetch proposals:', error)
+      } finally {
+        setProposalsLoading(false)
       }
     }
 
@@ -180,6 +191,7 @@ export default function ReportsPage() {
             meetingId={meetingId}
             proposals={proposals}
             brokerData={brokerVotingByProposal}
+            loading={reportsLoading || proposalsLoading}
           />
         </Grid>
         <Grid

@@ -2,7 +2,16 @@
 
 import React, { useState } from 'react'
 
-import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import { EmptyState } from '@/components/EmptyState'
@@ -27,19 +36,28 @@ interface BrokerVotingChartProps {
   meetingId?: string
   proposals?: Proposal[]
   brokerData?: Record<string, BrokerVotingData[]>
+  loading?: boolean
 }
 
 export default function BrokerVotingChart({
+  meetingId,
   proposals = [],
   brokerData = {},
+  loading = false,
 }: BrokerVotingChartProps) {
   const [selectedProposalId, setSelectedProposalId] = useState<string>('')
 
+  // Reset selectedProposalId when meetingId changes or when current selection is invalid
   React.useEffect(() => {
-    if (proposals.length > 0 && !selectedProposalId) {
-      setSelectedProposalId(proposals[0].id)
+    if (proposals.length > 0) {
+      const currentProposalExists = proposals.some((p) => p.id === selectedProposalId)
+      if (!currentProposalExists) {
+        setSelectedProposalId(proposals[0].id)
+      }
+    } else {
+      setSelectedProposalId('')
     }
-  }, [proposals, selectedProposalId])
+  }, [proposals, selectedProposalId, meetingId])
 
   // Map generic proposal keys (proposal1, proposal2) to actual proposal IDs based on order
   const mappedBrokerData = React.useMemo(() => {
@@ -73,8 +91,32 @@ export default function BrokerVotingChart({
       : []
   const hasData = Object.keys(mappedBrokerData).length > 0
 
+  // Early return for loading state - like other charts on the page
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader title="Broker Voting by Proposal" />
+        <CardContent>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            height={350}
+            gap={2}
+          >
+            <CircularProgress />
+            <Typography variant="body3" color="text.secondary">
+              Loading broker voting data...
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <CardHeader
         title="Broker Voting by Proposal"
         action={
@@ -142,8 +184,8 @@ export default function BrokerVotingChart({
                 color: 'var(--mui-palette-action-active)',
               },
             ]}
-            height={Math.max(300, data.length * 50 + 75)}
-            margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+            height={Math.max(330, data.length * 50 + 80)}
+            margin={{ left: 10, right: 20, top: 10, bottom: 40 }}
             grid={{ vertical: true, horizontal: false }}
             slotProps={{
               legend: {
