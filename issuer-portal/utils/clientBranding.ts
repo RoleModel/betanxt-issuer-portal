@@ -3,7 +3,7 @@
 export const clientBranding = [
   {
     ticker: 'WEN',
-    primaryColor: '#0389ba',
+    primaryColor: '#0078A3',
     secondaryColor: '#DAD55E',
     tertiaryColor: '#DB163A',
   },
