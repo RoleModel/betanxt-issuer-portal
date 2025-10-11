@@ -247,13 +247,13 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               display: { xs: 'none', sm: 'flex' },
               height: 40,
               '& .MuiToggleButton-root': {
-                color: 'white',
+                color: (theme) => theme.vars?.palette?.common.white,
                 borderColor: 'rgba(var(--mui-palette-secondary-mainChannel) / 0.7)',
                 '&.Mui-selected': {
                   background: (theme) => theme.vars?.palette?.secondary.main,
                   color: (theme) => theme.vars?.palette?.secondary.contrastText,
                   '&:hover': {
-                    background: (theme) => theme.vars?.palette?.secondary?.dark,
+                    background: (theme) => theme.vars?.palette?.secondary?.light,
                   },
                 },
                 '&:hover': {

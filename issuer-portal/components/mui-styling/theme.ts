@@ -2,7 +2,7 @@
 
 import { components } from '@rolemodel/betanxt-design-system/themes/base/components'
 import { layout } from '@rolemodel/betanxt-design-system/themes/base/layout'
-import { createDarkOverlays } from '@rolemodel/betanxt-design-system/themes/base/overlays'
+import { createBaseDarkOverlays } from '@rolemodel/betanxt-design-system/themes/base/overlays'
 import {
   basePaletteDark,
   basePaletteLight,
@@ -10,7 +10,6 @@ import {
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
-import { betanxtThemeOptions } from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
@@ -25,7 +24,7 @@ import {
   teal,
 } from '@mui/material/colors'
 import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
-import { createTheme, getContrastRatio } from '@mui/material/styles'
+import { getContrastRatio } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
 import type { } from '@mui/x-date-pickers/themeAugmentation'
 
@@ -42,7 +41,7 @@ const baseThemeOptions = {
     },
     dark: {
       palette: basePaletteDark,
-      overlays: createDarkOverlays(),
+      overlays: createBaseDarkOverlays(),
     },
   },
   components,
@@ -622,4 +621,3 @@ export const paycomThemeOptions = createClientTheme('PAYC')
 export const woodwardThemeOptions = createClientTheme('WWD')
 export const elevenThemeOptions = createClientTheme('ELVN')
 
-export const betanxtTheme = createTheme(betanxtThemeOptions)

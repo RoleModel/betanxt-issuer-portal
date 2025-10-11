@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client'
 
 import React, { useState } from 'react'
@@ -71,20 +72,6 @@ export default function BrokerVotingChart({
       ? mappedBrokerData[selectedProposalId]
       : []
   const hasData = Object.keys(mappedBrokerData).length > 0
-
-  if (proposals.length === 0) {
-    return (
-      <Card>
-        <CardHeader title="Broker Voting by Proposal" />
-        <CardContent>
-          <EmptyState
-            title="No proposals available"
-            description="Broker voting data will appear when proposals are available."
-          />
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Card>

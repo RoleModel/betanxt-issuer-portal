@@ -22,7 +22,8 @@ import { getBrowserSupabase } from '@/lib/browserSupabase'
 
 interface ReportItem {
   name: string
-  path: string
+  path?: string
+  isMock?: boolean
 }
 
 interface StorageFile {
@@ -34,6 +35,19 @@ interface StorageFile {
   metadata: Record<string, unknown>
 }
 
+const MOCK_REPORTS: ReportItem[] = [
+  { name: 'Broker Analysis Report', isMock: true },
+  { name: 'Institutional Ownership Report', isMock: true },
+  { name: 'Vote Reconciliation Report', isMock: true },
+  { name: 'Top Shareholders Report', isMock: true },
+  { name: 'Voting Timeline Report', isMock: true },
+  { name: 'Non-Vote Analysis', isMock: true },
+  { name: 'Regional Distribution Report', isMock: true },
+  { name: 'Vote Method Breakdown', isMock: true },
+  { name: 'Proxy Statement Metrics', isMock: true },
+  { name: 'Final Tabulation Summary', isMock: true },
+]
+
 export default function DownloadReportsTable({
   meetingId,
 }: {
@@ -44,30 +58,46 @@ export default function DownloadReportsTable({
 
   useEffect(() => {
     async function fetchReports() {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .list(`${meetingId}/reports`)
+      // Only fetch real reports for Wendy's 2025 annual meeting
+      if (meetingId === 'wen-annual-meeting-2025') {
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .list(`${meetingId}/reports`)
 
-      if (error) {
-        console.error('Error fetching reports:', error)
-        return
-      }
+        if (error) {
+          console.error('Error fetching reports:', error)
+          setReports(MOCK_REPORTS)
+          return
+        }
 
-      if (data) {
-        const reportItems = (data as StorageFile[])
-          .filter((file: StorageFile) => file.name.endsWith('.xls'))
-          .map((file: StorageFile) => ({
-            name: file.name.replace('.xls', ''),
-            path: `${meetingId}/reports/${file.name}`,
-          }))
-        setReports(reportItems)
+        if (data) {
+          const reportItems = (data as StorageFile[])
+            .filter((file: StorageFile) => file.name.endsWith('.xls'))
+            .map((file: StorageFile) => ({
+              name: file.name.replace('.xls', ''),
+              path: `${meetingId}/reports/${file.name}`,
+              isMock: false,
+            }))
+          setReports(reportItems.length > 0 ? reportItems : MOCK_REPORTS)
+        }
+      } else {
+        // Use mock reports for all other meetings
+        setReports(MOCK_REPORTS)
       }
     }
 
-    fetchReports()
+    void fetchReports()
   }, [meetingId, supabase])
 
-  const handleDownload = async (path: string, fileName: string) => {
+  const handleDownload = async (
+    path: string | undefined,
+    fileName: string,
+    isMock: boolean
+  ) => {
+    if (isMock || !path) {
+      return
+    }
+
     const { data, error } = await supabase.storage
       .from('documents')
       .download(path)
@@ -113,8 +143,13 @@ export default function DownloadReportsTable({
                       <IconButton
                         aria-label={`Download ${report.name} as XLS`}
                         title={`Download ${report.name} as XLS`}
+                        disabled={report.isMock}
                         onClick={() =>
-                          handleDownload(report.path, `${report.name}.xls`)
+                          handleDownload(
+                            report.path,
+                            `${report.name}.xls`,
+                            report.isMock ?? false
+                          )
                         }
                       >
                         <IconForFileType fileType="XLS" />
