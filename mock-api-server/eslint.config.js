@@ -9,6 +9,7 @@ export default [
     rules: {
       '@typescript-eslint/only-throw-error': 'warn',
       '@typescript-eslint/no-unused-expressions': 'off',
+      '@next/next/no-html-link-for-pages': ['error', 'mock-api-server/app'],
     },
   },
   {

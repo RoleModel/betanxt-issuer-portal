@@ -6,6 +6,7 @@ export default [
     rules: {
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/only-throw-error': 'warn',
+      '@next/next/no-html-link-for-pages': ['error', 'issuer-portal/app'],
     },
   },
   {

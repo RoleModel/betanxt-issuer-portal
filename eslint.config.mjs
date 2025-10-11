@@ -4,7 +4,7 @@ import reactPlugin from 'eslint-plugin-react'
 import hooksPlugin from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   // Base JavaScript recommended rules
   js.configs.recommended,
 
@@ -29,12 +29,29 @@ export default tseslint.config(
       '**/database.types.ts',
       '**/components.ts',
       '**/openapi-typescript-codegen/**',
+      '**/generated-schema.ts',
+      '**/api-schema-types.ts',
+      '**/*.min.js',
+      '**/*.worker.js',
+      // Testing
+      '**/playwright-report/**',
+      '**/test-results/**',
+      // Public assets
+      '**/public/**/*.js',
+      '**/public/**/*.min.js',
       // Config files that cause parsing errors
       'base.js',
       'nextJsConfig.js',
       'regenerate-schema.mjs',
       'scripts/fix-unused-vars.js',
       'specs/global.d.ts',
+      // Misc
+      '**/.DS_Store',
+      '**/*.pem',
+      '**/.env*.local',
+      '**/.vercel/**',
+      '**/*.tsbuildinfo',
+      '**/out/**',
     ],
   },
 
@@ -110,4 +127,4 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   }
-)
+]
