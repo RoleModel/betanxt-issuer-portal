@@ -68,10 +68,18 @@ export const config = {
           },
         ]
 
+        console.log('🔐 Attempting login with:', {
+          username: credentials.username,
+          providedPassword: credentials.password,
+          bypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH
+        })
+
         const user = testUsers.find(
           (u) =>
             u.username === credentials.username && u.password === credentials.password
         )
+
+        console.log('🔐 User found:', user ? 'YES' : 'NO')
 
         if (user) {
           return {
