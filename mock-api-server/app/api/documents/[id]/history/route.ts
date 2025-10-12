@@ -4,6 +4,8 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { supabase } from '@/utils/supabase/client'
+
 interface RouteParams {
   id: string
 }
@@ -16,9 +18,6 @@ interface HistoryEvent {
   metadata?: Record<string, unknown>
 }
 
-// In-memory storage for document history (in production, this would be in a database)
-const documentHistory = new Map<string, HistoryEvent[]>()
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<RouteParams> }
@@ -27,10 +26,27 @@ export async function GET(
     const resolvedParams = await params
     const documentId = resolvedParams.id
 
-    // Get history for this document
-    const history = documentHistory.get(documentId) || []
+    // Get history for this document from database
+    const { data: history, error: dbError } = await supabase
+      .from('document_history')
+      .select('*')
+      .eq('document_id', documentId)
+      .order('timestamp', { ascending: false })
 
-    return NextResponse.json(history)
+    if (dbError) {
+      throw new Error(`Database error: ${dbError.message}`)
+    }
+
+    // Transform database records to API format
+    const historyEvents: HistoryEvent[] = (history || []).map((record) => ({
+      id: record.id,
+      event_type: record.event_type,
+      user: record.user,
+      timestamp: record.timestamp,
+      metadata: record.metadata || undefined,
+    }))
+
+    return NextResponse.json(historyEvents)
   } catch (error) {
     return NextResponse.json(
       {
@@ -59,19 +75,31 @@ export async function POST(
     const documentId = resolvedParams.id
     const body = (await request.json()) as HistoryEventRequest
 
-    // Create a new history event
-    const newEvent: HistoryEvent = {
-      id: crypto.randomUUID(),
-      event_type: (body.event_type || body.eventType) ?? 'unknown',
-      user: body.user ?? 'current-user',
-      timestamp: new Date().toISOString(),
-      metadata: body.metadata || {},
+    // Insert new history event into database
+    const { data, error: dbError } = await supabase
+      .from('document_history')
+      .insert({
+        document_id: documentId,
+        event_type: (body.event_type || body.eventType) ?? 'unknown',
+        user: body.user ?? 'current-user',
+        timestamp: new Date().toISOString(),
+        metadata: body.metadata || {},
+      })
+      .select()
+      .single()
+
+    if (dbError) {
+      throw new Error(`Database error: ${dbError.message}`)
     }
 
-    // Add to document history
-    const currentHistory = documentHistory.get(documentId) || []
-    currentHistory.push(newEvent)
-    documentHistory.set(documentId, currentHistory)
+    // Transform database record to API format
+    const newEvent: HistoryEvent = {
+      id: data.id,
+      event_type: data.event_type,
+      user: data.user,
+      timestamp: data.timestamp,
+      metadata: data.metadata || undefined,
+    }
 
     return NextResponse.json(newEvent, { status: 201 })
   } catch (error) {

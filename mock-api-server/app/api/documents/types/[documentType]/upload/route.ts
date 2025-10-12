@@ -120,8 +120,11 @@ export async function POST(
 
     // Add document history entry for upload
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
-      await fetch(`${API_URL}/documents/${data.id}/history`, {
+      // Use the request's origin to build the correct URL (works on both localhost and Vercel)
+      const origin = request.headers.get('origin') || request.headers.get('host') || 'http://localhost:3001'
+      const baseUrl = origin.startsWith('http') ? origin : `https://${origin}`
+
+      await fetch(`${baseUrl}/api/documents/${data.id}/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -170,7 +170,7 @@ export function AddDocumentDialog({
         throw new Error(`Upload failed: ${errorText}`)
       }
 
-      ; (await response.json()) as { id?: string; storagePath?: string }
+      const result = (await response.json()) as { id?: string; storagePath?: string; status?: string }
 
       setUploadFiles((prev) =>
         prev.map((f) =>
@@ -178,8 +178,8 @@ export function AddDocumentDialog({
         )
       )
 
-      // Add document to participant
-      onDocumentAdded(file.file.name, 'uploaded')
+      // Add document to participant with actual status from API
+      onDocumentAdded(file.file.name, result.status ?? 'UPLOADED')
 
       // Dispatch event to notify other components
       window.dispatchEvent(
