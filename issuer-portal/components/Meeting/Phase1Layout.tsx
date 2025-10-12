@@ -37,6 +37,7 @@ function Phase1Layout({ meetingId, meeting, phase = 1, onUpdate }: Phase1LayoutP
             meeting={{
               id: meeting?.id || undefined,
               transferAgent: meeting?.transferAgent || undefined,
+              transferAgentConfirmed: meeting?.transferAgentConfirmed || undefined,
               planAdministrator: meeting?.planAdministrator || undefined,
               planAdministratorContactEmail:
                 meeting?.planAdministratorContactEmail || undefined,
