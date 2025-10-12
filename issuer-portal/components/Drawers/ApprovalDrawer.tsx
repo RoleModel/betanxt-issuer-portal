@@ -1,9 +1,11 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import React, { useState } from 'react'
 import ReactAudioPlayer from 'react-audio-player'
-import ReactPlayer from 'react-player'
+
+const ReactPlayer = dynamic(() => import('react-player'), { ssr: false })
 
 import {
   ChevronLeftOutlined as ChevronLeftIcon,
