@@ -187,6 +187,7 @@ export function MeetingProvider({
             solicitor: asString(record.solicitor) || undefined,
             solicitorEmail: asString(record.solicitorEmail) || undefined,
             inspector: asString(record.inspector) || undefined,
+            ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
             clientId: asString(record.clientId) || undefined,
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,
