@@ -27,6 +27,7 @@ import {
 
 import BNFileUpload from '@/components/FileUpload/BNFileUpload'
 import SkeletonTable from '@/components/ui/SkeletonTable'
+import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
 import { useDocuments } from '@/contexts/DocumentContext'
@@ -200,37 +201,6 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     }
   }
 
-  const getDocumentStatusColor = (status?: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'success'
-      case 'UPLOADED':
-        return 'info'
-      case 'AWAITING_REVIEW':
-        return 'warning'
-      case 'AWAITING_DRAFT':
-      case 'DRAFT':
-        return 'warning'
-      case 'IN_PROGRESS':
-        return 'info'
-      case 'AUTHORIZED':
-      case 'COMPLETED':
-      case 'SIGNED':
-        return 'success'
-      default:
-        return 'default'
-    }
-  }
-
-  const formatDocumentStatus = (status?: string) => {
-    if (!status) return 'Not Uploaded'
-    // Convert AWAITING_REVIEW to "Awaiting Review", etc.
-    return status
-      .split('_')
-      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(' ')
-  }
-
   const getAttendanceStatus = (participant: ParticipantWithRole) => {
     const minutesAttended = participant.minutesAttendedMeeting ?? 0
     if (minutesAttended > 0) {
@@ -315,15 +285,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                       />
                     </TableCell>
                     <TableCell>
-                      {participant.documentStatus ? (
-                        <Chip
-                          label={formatDocumentStatus(participant.documentStatus)}
-                          color={getDocumentStatusColor(participant.documentStatus)}
-                          size="small"
-                        />
-                      ) : (
-                        'Not Uploaded'
-                      )}
+                      <StatusChip status={participant.documentStatus || null} size="small" />
                     </TableCell>
                     <TableCell align="right">
                       {participant.documentName ? (
