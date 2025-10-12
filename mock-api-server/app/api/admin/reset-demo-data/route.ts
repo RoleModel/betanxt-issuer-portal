@@ -76,12 +76,12 @@ export async function POST(_req: NextRequest) {
           document_history,
           comment,
           mailing,
+          position_vote,
           position,
           proposal,
           task,
           document,
-          dsm_guest_registrant,
-          dsm_participant,
+          digital_shareholder_meeting,
           dsm_config,
           phase,
           meeting,
@@ -89,7 +89,6 @@ export async function POST(_req: NextRequest) {
           clients,
           notification,
           tabulation_report,
-          position_vote,
           "user"
         RESTART IDENTITY CASCADE;
       `
