@@ -29,6 +29,7 @@ import BNFileUpload from '@/components/FileUpload/BNFileUpload'
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
 import type { components } from '@/domain-models/generated-schema'
+import { useDocuments } from '@/contexts/DocumentContext'
 
 import { AddDocumentDialog } from './AddDocumentDialog'
 import { ExportButton } from './ExportButton'
@@ -42,11 +43,12 @@ interface DSMParticipantsProps {
 interface ParticipantWithRole extends DigitalShareholderMeeting {
   role: string
   documentName?: string
-  documentStatus?: 'uploaded' | 'pending' | 'approved' | 'rejected'
+  documentStatus?: string
   documentUrl?: string
 }
 
 export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
+  const { dsmDocuments, refreshDocuments } = useDocuments()
   const [participants, setParticipants] = useState<ParticipantWithRole[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -71,34 +73,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       const data = (await response.json()) as DigitalShareholderMeeting[]
 
       console.log('[DSMParticipants] Fetched participants:', data)
-
-      // Fetch documents for this meeting
-      const documentsResponse = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
-      let documents: {
-        id?: string
-        title?: string
-        type?: string
-        participantId?: string
-        filePath?: string
-      }[] = []
-      if (documentsResponse.ok) {
-        documents = (await documentsResponse.json()) as {
-          id?: string
-          title?: string
-          type?: string
-          participantId?: string
-          filePath?: string
-        }[]
-      }
-
-      console.log('[DSMParticipants] Fetched documents:', documents.length, documents)
-
-      // Filter documents to only DSM-related ones
-      const dsmDocuments = documents.filter(
-        (doc) => doc.type === 'digital-shareholder-meeting'
-      )
-
-      console.log('[DSMParticipants] DSM documents:', dsmDocuments.length, dsmDocuments)
+      console.log('[DSMParticipants] DSM documents from context:', dsmDocuments.length, dsmDocuments)
 
       // Transform data to include role information
       const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
@@ -122,7 +97,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
           documentName: hasDocuments
             ? firstDocument?.title?.replace(/\.[^/.]+$/, '') // Clean title without extension
             : undefined,
-          documentStatus: hasDocuments ? 'uploaded' : undefined,
+          documentStatus: firstDocument?.status || undefined, // Use actual document status from API
           documentUrl: firstDocument?.filePath || undefined,
         }
       })
@@ -133,7 +108,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [meetingId])
+  }, [meetingId, dsmDocuments])
 
   useEffect(() => {
     void fetchParticipants()
@@ -159,30 +134,14 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     setAddDocumentDialogOpen(true)
   }
 
-  const handleDocumentAdded = (documentName: string, documentStatus: string) => {
+  const handleDocumentAdded = async () => {
     if (selectedParticipant) {
       console.log('[DSMParticipants] Document added for participant:', selectedParticipant)
 
-      // Update local state - this should persist until the next manual refresh
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id === selectedParticipant.id
-            ? {
-              ...p,
-              documentName,
-              documentStatus: documentStatus as
-                | 'uploaded'
-                | 'pending'
-                | 'approved'
-                | 'rejected',
-              documentUrl: `/documents/dsm/${p.id}.pdf`,
-            }
-            : p
-        )
-      )
+      // Refresh documents from DocumentContext to get latest status
+      await refreshDocuments(meetingId)
 
-      // Don't auto-refresh since the server might not have the association yet
-      // The user can manually refresh if needed
+      // fetchParticipants will automatically run due to dsmDocuments dependency
     }
   }
 
@@ -222,7 +181,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         }
       }
 
-      // Refresh participants data after upload
+      // Refresh documents via DocumentContext
+      await refreshDocuments(meetingId)
+
       setUploadDialogOpen(false)
 
       // Dispatch event to notify other components (like DocumentsSection)
@@ -232,8 +193,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         })
       )
 
-      // Trigger a re-fetch by calling the fetch function again
-      void fetchParticipants()
+      // fetchParticipants will automatically run due to dsmDocuments dependency
     } catch (error) {
       console.error('Upload failed:', error)
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -242,17 +202,33 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
   const getDocumentStatusColor = (status?: string) => {
     switch (status) {
-      case 'approved':
+      case 'APPROVED':
         return 'success'
-      case 'uploaded':
+      case 'UPLOADED':
         return 'info'
-      case 'pending':
+      case 'AWAITING_REVIEW':
         return 'warning'
-      case 'rejected':
-        return 'error'
+      case 'AWAITING_DRAFT':
+      case 'DRAFT':
+        return 'warning'
+      case 'IN_PROGRESS':
+        return 'info'
+      case 'AUTHORIZED':
+      case 'COMPLETED':
+      case 'SIGNED':
+        return 'success'
       default:
         return 'default'
     }
+  }
+
+  const formatDocumentStatus = (status?: string) => {
+    if (!status) return 'Not Uploaded'
+    // Convert AWAITING_REVIEW to "Awaiting Review", etc.
+    return status
+      .split('_')
+      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(' ')
   }
 
   const getAttendanceStatus = (participant: ParticipantWithRole) => {
@@ -341,10 +317,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                     <TableCell>
                       {participant.documentStatus ? (
                         <Chip
-                          label={
-                            participant.documentStatus.charAt(0).toUpperCase() +
-                            participant.documentStatus.slice(1)
-                          }
+                          label={formatDocumentStatus(participant.documentStatus)}
                           color={getDocumentStatusColor(participant.documentStatus)}
                           size="small"
                         />
