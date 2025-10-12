@@ -12,8 +12,24 @@ export const config = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('🔐 AUTHORIZE CALLED - credentials:', JSON.stringify(credentials))
+        console.log('🔐 BYPASS AUTH:', process.env.NEXT_PUBLIC_BYPASS_AUTH)
+
+        // TEMPORARY: Always return a user to test if auth flow works
+        return {
+          id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+          name: 'Test User',
+          email: 'test@betanxt.com',
+          username: credentials?.username || 'test.user',
+          type: 'admin',
+          accountId: undefined,
+          client: null,
+          roles: ['ADMIN', 'USER'],
+        }
+
         // Check if auth bypass is enabled
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+          console.log('🔐 Using bypass auth mode')
           // Return a mock user for development
           return {
             id: process.env.NEXT_PUBLIC_BYPASS_USER_ID ?? 'dev-user-123',
@@ -139,9 +155,10 @@ export const config = {
             }
           }
         } catch (error) {
-          console.error('Credential authentication failed', error)
+          console.error('🔐 API auth failed:', error)
         }
 
+        console.log('🔐 RETURNING NULL - auth failed')
         return null
       },
     }),
