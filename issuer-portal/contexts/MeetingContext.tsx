@@ -179,6 +179,7 @@ export function MeetingProvider({
             mailingDate: asString(record.mailingDate) || undefined,
             distributionType: asString(record.distributionType) || undefined,
             transferAgent: asString(record.transferAgent) || undefined,
+            transferAgentConfirmed: typeof record.transferAgentConfirmed === 'boolean' ? record.transferAgentConfirmed : null,
             clientId: asString(record.clientId) || undefined,
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,
