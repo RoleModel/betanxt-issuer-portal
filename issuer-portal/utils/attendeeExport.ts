@@ -17,26 +17,28 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
     'First Name',
     'Last Name',
     'Email',
-    'Registration Questions',
     'Minutes Attended',
     'Created At',
   ]
 
   const csvRows = [
     headers.join(','),
-    ...attendees.map((attendee) =>
-      [
-        attendee.registrantType ?? '',
+    ...attendees.map((attendee) => {
+      // Determine the display type
+      const displayType = attendee.registrantType === 'Other' &&
+        attendee.registrationQuestions?.includes('Presenter')
+        ? 'Presenter'
+        : (attendee.registrantType ?? '')
+
+      return [
+        displayType,
         attendee.firstName ?? '',
         attendee.lastName ?? '',
         attendee.emailAddress ?? '',
-        attendee.registrationQuestions
-          ? `"${attendee.registrationQuestions.replace(/"/g, '""')}"`
-          : '',
         attendee.minutesAttendedMeeting?.toString() || '',
         attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
       ].join(',')
-    ),
+    }),
   ]
 
   const csvContent = csvRows.join('\n')
@@ -54,24 +56,28 @@ function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string)
     'First Name',
     'Last Name',
     'Email',
-    'Registration Questions',
     'Minutes Attended',
     'Created At',
   ]
 
   const rows = [
     headers.join('\t'),
-    ...attendees.map((attendee) =>
-      [
-        attendee.registrantType ?? '',
+    ...attendees.map((attendee) => {
+      // Determine the display type
+      const displayType = attendee.registrantType === 'Other' &&
+        attendee.registrationQuestions?.includes('Presenter')
+        ? 'Presenter'
+        : (attendee.registrantType ?? '')
+
+      return [
+        displayType,
         attendee.firstName ?? '',
         attendee.lastName ?? '',
         attendee.emailAddress ?? '',
-        attendee.registrationQuestions ?? '',
         attendee.minutesAttendedMeeting?.toString() || '',
         attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
       ].join('\t')
-    ),
+    }),
   ]
 
   const content = rows.join('\n')
@@ -108,8 +114,8 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
       margin-top: 20px;
     }
     th {
-      background-color: #0066cc;
-      color: white;
+      background-color: #cccccc;
+      color: black;
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
@@ -143,26 +149,32 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
         <th>Type</th>
         <th>Name</th>
         <th>Email</th>
-        <th>Registration Questions</th>
         <th>Minutes Attended</th>
         <th>Registered At</th>
       </tr>
     </thead>
     <tbody>
-      ${attendees
-        .map(
-          (attendee) => `
+            ${attendees
+      .map(
+        (attendee) => {
+          // Determine the display type
+          const displayType = attendee.registrantType === 'Other' &&
+            attendee.registrationQuestions?.includes('Presenter')
+            ? 'Presenter'
+            : (attendee.registrantType ?? '-')
+
+          return `
         <tr>
-          <td>${attendee.registrantType ?? '-'}</td>
+          <td>${displayType}</td>
           <td>${attendee.firstName ?? ''} ${attendee.lastName ?? ''}</td>
           <td>${attendee.emailAddress ?? '-'}</td>
-          <td>${attendee.registrationQuestions ?? '-'}</td>
           <td>${attendee.minutesAttendedMeeting?.toString() || '-'}</td>
           <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '-'}</td>
         </tr>
       `
-        )
-        .join('')}
+        }
+      )
+      .join('')}
     </tbody>
   </table>
   
@@ -260,7 +272,7 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
   const avgMinutesAttended =
     actualAttendees.length > 0
       ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
-        actualAttendees.length
+      actualAttendees.length
       : 0
 
   return {

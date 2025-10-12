@@ -2808,6 +2808,11 @@ components:
           type: string
           format: uuid
           nullable: true
+        participantId:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID of the DSM participant this document is assigned to
         title:
           type: string
         description:
@@ -3683,6 +3688,11 @@ components:
           format: uuid
           nullable: true
           description: Optional task linkage identifier
+        participantId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional participant ID for DSM document assignments
         file:
           type: string
           format: binary

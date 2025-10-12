@@ -28,6 +28,18 @@ export async function POST(
     const versionNotes = formData.get('versionNotes') as string | null
     const taskId = formData.get('taskId') as string | null
     const documentTitle = formData.get('title') as string | null
+    const participantIdRaw = formData.get('participantId') as string | null
+
+    // Treat empty string as null
+    const participantId =
+      participantIdRaw && participantIdRaw.trim() !== '' ? participantIdRaw : null
+
+    console.log(
+      '[Upload] Received participantId (raw):',
+      participantIdRaw,
+      '(processed):',
+      participantId
+    )
 
     if (!meetingId || !file) {
       return NextResponse.json(
@@ -83,6 +95,7 @@ export async function POST(
       file: uploadData.path, // Store the storage path, not base64
       description: versionNotes || undefined,
       taskId: taskId || undefined,
+      participantId: participantId || undefined,
     } as components['schemas']['CreateDocumentRequest'])
 
     if (error) {

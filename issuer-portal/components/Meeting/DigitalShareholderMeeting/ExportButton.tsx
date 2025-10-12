@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { Download, FileDownload, PictureAsPdf, TableChart } from '@mui/icons-material'
+import { FileDownloadOutlined, PictureAsPdf, TableChart } from '@mui/icons-material'
 import {
   Button,
   CircularProgress,
@@ -70,8 +70,8 @@ export function ExportButton({
 
   if (attendees.length === 0) {
     return (
-      <Button variant={variant} size={size} disabled startIcon={<Download />}>
-        Export (No Data)
+      <Button variant={variant} size={size} disabled startIcon={<FileDownloadOutlined />}>
+        Export (No Attendees)
       </Button>
     )
   }
@@ -83,7 +83,7 @@ export function ExportButton({
         size={size}
         disabled={disabled || isExporting}
         onClick={handleClick}
-        startIcon={isExporting ? <CircularProgress size={16} /> : <Download />}
+        startIcon={isExporting ? <CircularProgress size={16} /> : <FileDownloadOutlined />}
         aria-controls={open ? 'export-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
@@ -111,7 +111,7 @@ export function ExportButton({
       >
         <MenuItem onClick={() => handleExport('csv')}>
           <ListItemIcon>
-            <FileDownload fontSize="small" />
+            <FileDownloadOutlined fontSize="small" />
           </ListItemIcon>
           <ListItemText primary="Export as CSV" secondary="Excel compatible, 5KB" />
         </MenuItem>

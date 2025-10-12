@@ -84,29 +84,19 @@ export default function MeetingDocuments({
   useEffect(() => {
     if (!syncedDocuments) return
 
-    // Apply the same filtering logic as before
+    // Filter out DSM and hosting site documents
     const filteredDocuments = syncedDocuments.filter((doc) => {
-      const docType = (doc.type ?? doc.fileType ?? '').toLowerCase()
-      const docTitle = (doc.title ?? '').toLowerCase()
-
       // Exclude DSM documents (they belong in the DSMDocuments component)
-      if (
-        doc.displayCategory === 'dsm' ||
-        docType === 'dsm-document' ||
-        docType.includes('presentation') ||
-        docType.includes('slide') ||
-        docTitle.includes('presentation') ||
-        docTitle.includes('slide')
-      ) {
+      if (doc.type === 'digital-shareholder-meeting') {
         return false
       }
 
       // Exclude hosting site documents
-      if (docType === 'hosting_site' || docType === 'hosting site') {
+      if (doc.type === 'HOSTING_SITE') {
         return false
       }
 
-      // Include all other documents (including signed forms)
+      // Include all other documents
       return true
     })
 
@@ -201,70 +191,19 @@ export default function MeetingDocuments({
     setLoading(true)
     try {
       const fetchedDocuments = await getDocumentsByMeeting(meetingId)
-      // Show relevant documents for the meeting phases
+      // Filter out DSM and hosting site documents
       const filteredDocuments = fetchedDocuments.filter((doc) => {
-        const docType = (doc.type ?? doc.fileType ?? '').toLowerCase()
-        const docTitle = (doc.title ?? '').toLowerCase()
-        const category = doc.displayCategory ?? ''
-
         // Exclude DSM documents (they belong in the DSMDocuments component)
-        if (
-          doc.displayCategory === 'dsm' ||
-          docType === 'dsm-document' ||
-          docType.includes('presentation') ||
-          docType.includes('slide') ||
-          docTitle.includes('presentation') ||
-          docTitle.includes('slide')
-        ) {
+        if (doc.type === 'digital-shareholder-meeting') {
           return false
         }
 
         // Exclude hosting site documents
-        if (docType === 'hosting_site' || docType === 'hosting site') {
+        if (doc.type === 'HOSTING_SITE') {
           return false
         }
 
-        // Include proxy materials (Phase 2-4)
-        if (
-          category === 'proxy-materials' ||
-          docType.includes('proxy') ||
-          docType.includes('notice') ||
-          docTitle.includes('proxy') ||
-          docTitle.includes('notice') ||
-          docTitle.includes('voting instruction')
-        ) {
-          return true
-        }
-
-        // Include meeting materials (Phase 3-5)
-        if (
-          category === 'meeting-materials' ||
-          docType.includes('agenda') ||
-          docType.includes('script') ||
-          docType.includes('procedure') ||
-          docType.includes('guest') ||
-          docType.includes('inspector') ||
-          docType.includes('q&a')
-        ) {
-          return true
-        }
-
-        // Include post-meeting documents (Phase 6-8)
-        if (category === 'post-meeting') {
-          return true
-        }
-
-        // Include draft proxy statement if it exists
-        if (docType.includes('draft') && docType.includes('proxy')) {
-          return true
-        }
-
-        // Exclude internal documents by default
-        if (category === 'internal') {
-          return false
-        }
-
-        // Include other general documents
+        // Include all other documents
         return true
       })
 

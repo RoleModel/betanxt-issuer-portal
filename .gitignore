@@ -24,5 +24,7 @@ issuer-portal/test-results/*
 issuer-portal/playwright-report/index.html
 .env*.local
 data/
+!mock-api-server/data/
 .env.production
 mock-api-server/.env.vercel.production
+mock-api-server/.DS_Store

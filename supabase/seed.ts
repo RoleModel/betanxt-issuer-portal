@@ -3723,8 +3723,9 @@ SELECT
   sqlStatements.push('')
 
   // Digital shareholder meeting attendees
-  sqlStatements.push('-- Insert digital shareholder meeting attendees')
-
+  // DISABLED: We don't want fake DSM attendees for testing participant-specific document uploads
+  // sqlStatements.push('-- Insert digital shareholder meeting attendees')
+  /*
   meetingIds.forEach((meetingId) => {
     const year = parseInt(meetingId.split('-').slice(-1)[0])
 
@@ -3804,6 +3805,7 @@ SELECT
       }
     }
   })
+  */
 
   sqlStatements.push('')
 

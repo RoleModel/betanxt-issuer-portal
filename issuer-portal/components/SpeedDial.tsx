@@ -97,7 +97,7 @@ export default function IssuerSpeedDial({
     <Box
       sx={(theme) => ({
         position: 'fixed',
-        bottom: theme.spacing(7.5),
+        bottom: theme.spacing(5.5),
         right: theme.spacing(2),
         zIndex: 500,
         transform: 'translateZ(0px)',
@@ -133,6 +133,9 @@ export default function IssuerSpeedDial({
                 sx: {
                   backgroundColor: 'primary.main',
                   color: 'primary.contrastText',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
                 },
                 children: <Typography variant="body3">{action.name}</Typography>,
               },

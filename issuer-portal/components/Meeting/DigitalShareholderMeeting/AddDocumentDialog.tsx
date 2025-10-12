@@ -133,6 +133,8 @@ export function AddDocumentDialog({
   const handleUploadNewDocument = async () => {
     if (uploadFiles.length === 0) return
 
+    console.log('[AddDocumentDialog] Uploading for participant:', participantId, participantName)
+
     try {
       const file = uploadFiles[0]
       setUploadFiles((prev) =>
@@ -141,25 +143,22 @@ export function AddDocumentDialog({
         )
       )
 
-      // Create unique filename to avoid duplicates
-      const timestamp = Date.now()
-      const randomId = Math.random().toString(36).substring(2, 8)
-      const fileExtension = file.file.name.split('.').pop()
-      const uniqueFileName = `${file.file.name.split('.')[0]}_${timestamp}_${randomId}.${fileExtension}`
-
-      const renamedFile = new File([file.file], uniqueFileName, { type: file.file.type })
-
-      // Create FormData for file upload
+      // Create FormData for file upload - use original file and send title separately
       const formData = new FormData()
-      formData.append('file', renamedFile)
+      formData.append('file', file.file)
       formData.append('meetingId', meetingId)
       formData.append('documentType', 'digital-shareholder-meeting')
+      formData.append('title', file.file.name) // Send original filename as title
       formData.append('participantName', participantName)
       formData.append('participantId', participantId)
 
+      console.log('[AddDocumentDialog] Uploading for participant:', participantId, participantName)
+      console.log('[AddDocumentDialog] FormData participantId:', formData.get('participantId'))
+
       // Upload via API route
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
       const response = await fetch(
-        '/api/documents/types/digital-shareholder-meeting/upload',
+        `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
         {
           method: 'POST',
           body: formData,
@@ -171,7 +170,7 @@ export function AddDocumentDialog({
         throw new Error(`Upload failed: ${errorText}`)
       }
 
-      ;(await response.json()) as { id?: string; storagePath?: string }
+      ; (await response.json()) as { id?: string; storagePath?: string }
 
       setUploadFiles((prev) =>
         prev.map((f) =>
@@ -182,6 +181,13 @@ export function AddDocumentDialog({
       // Add document to participant
       onDocumentAdded(file.file.name, 'uploaded')
 
+      // Dispatch event to notify other components
+      window.dispatchEvent(
+        new CustomEvent('documentsUploaded', {
+          detail: { meetingId },
+        })
+      )
+
       setTimeout(() => {
         handleClose()
       }, 1000)
@@ -191,10 +197,10 @@ export function AddDocumentDialog({
         prev.map((f) =>
           f.id === uploadFiles[0].id
             ? {
-                ...f,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Upload failed',
-              }
+              ...f,
+              status: 'error',
+              error: error instanceof Error ? error.message : 'Upload failed',
+            }
             : f
         )
       )

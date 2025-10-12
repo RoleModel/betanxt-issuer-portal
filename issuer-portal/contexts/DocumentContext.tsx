@@ -57,51 +57,26 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       const allDocuments = data as Document[]
 
       // Separate DSM documents from regular documents
+      // DSM documents have type 'digital-shareholder-meeting'
       const dsm = allDocuments.filter((doc) => {
-        // Include documents marked as DSM category
-        if (doc.displayCategory === 'dsm' || doc.type === 'dsm-document') return true
-
-        // For 2025 meetings, also include presentation/slide documents
-        if (meetingId.includes('2025')) {
-          const docType = (doc.type ?? '').toLowerCase()
-          const title = (doc.title ?? '').toLowerCase()
-          return (
-            docType.includes('presentation') ||
-            docType.includes('slide') ||
-            title.includes('presentation') ||
-            title.includes('slide') ||
-            docType.includes('shareholder presentation') ||
-            docType.includes('intro slide')
-          )
-        }
-        return false
+        return doc.type === 'digital-shareholder-meeting'
       })
 
-      // Regular documents are everything that's NOT a DSM document or HOSTING_SITE
+      // Regular documents are everything else except HOSTING_SITE
       const regular = allDocuments.filter((doc) => {
         // Exclude HOSTING_SITE documents
         if (doc.type === 'HOSTING_SITE') return false
 
         // Exclude DSM documents
-        if (doc.displayCategory === 'dsm' || doc.type === 'dsm-document') return false
-
-        // For 2025 meetings, also exclude presentation/slide documents
-        if (meetingId.includes('2025')) {
-          const docType = (doc.type ?? '').toLowerCase()
-          const title = (doc.title ?? '').toLowerCase()
-          if (
-            docType.includes('presentation') ||
-            docType.includes('slide') ||
-            title.includes('presentation') ||
-            title.includes('slide')
-          ) {
-            return false
-          }
-        }
+        if (doc.type === 'digital-shareholder-meeting') return false
 
         // Include everything else
         return true
       })
+
+      console.log('[DocumentContext] Total documents:', allDocuments.length)
+      console.log('[DocumentContext] DSM documents:', dsm.length, dsm.map(d => ({ title: d.title, type: d.type })))
+      console.log('[DocumentContext] Regular documents:', regular.length)
 
       setDocuments(regular)
       setDsmDocuments(dsm)

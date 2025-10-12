@@ -21,7 +21,8 @@
     "supabase:reset": "supabase db reset",
     "supabase:dump-local": "supabase db dump --local",
     "supabase:migrate": "supabase db push --include-all --linked",
-    "generate:seeds": "npx tsx ../supabase/seed.ts && npx tsx ../supabase/seed.ts > ../supabase/seed.sql",
+    "generate:seeds": "npx tsx ../supabase/seed.ts && npx tsx ../supabase/seed.ts > ../supabase/seed.sql && npm run sync:seed-data",
+    "sync:seed-data": "mkdir -p data/migrations && cp ../supabase/seed.sql data/seed.sql && cp -r ../supabase/migrations/*.sql data/migrations/",
     "generate:db-types": "supabase gen types typescript --local --schema public > utils/supabase/database.types.ts",
     "generate:postgres-schema": "openapi-generator-cli generate -i ./openapi-schema/openapi.yaml -g postgresql-schema -o ../supabase/migrations --additional-properties=identifierNamingConvention=snake_case,defaultDatabaseName=public,schemaName=public && npx tsx cli/extract-core-schema.ts",
     "seed:reset": "npm run generate:seeds && supabase db reset && npm run seed:documents:clean",
@@ -32,7 +33,7 @@
     "seed:documents": "npx tsx scripts/seed-documents.ts",
     "seed:documents:clean": "npx tsx scripts/seed-documents.ts -- --clean",
     "seed:documents:link": "npx tsx scripts/seed-documents.ts -- --link",
-    "seed:remote": "npx tsx scripts/truncate-remote.ts && sleep 2 && npx tsx scripts/seed-remote-api.ts",
+    "seed:remote": "npx tsx scripts/truncate-remote.ts && sleep 2 && npx tsx scripts/migrate-remote.ts && sleep 2 && npx tsx scripts/seed-remote.ts",
     "storage:sync": "npx tsx scripts/push-storage-to-remote.ts",
     "format": "prettier --write ."
   },

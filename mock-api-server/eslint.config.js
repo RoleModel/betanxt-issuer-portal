@@ -4,6 +4,10 @@ import baseConfig from '../eslint.config.mjs'
 
 export default [
   ...baseConfig,
+  // Ignore generated files
+  {
+    ignores: ['types/api.ts', 'utils/supabase/database.types.ts'],
+  },
   // Mock API Server specific overrides
   {
     rules: {

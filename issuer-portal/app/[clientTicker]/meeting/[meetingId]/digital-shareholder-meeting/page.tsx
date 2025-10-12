@@ -208,7 +208,9 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
 export default function DigitalShareholderMeetingPage() {
   const meetingContext = useMeeting()
   const currentMeeting = meetingContext.currentMeeting
-  const digitalMeetingData = useDigitalShareholderMeeting(currentMeeting?.id) as {
+
+  // Only call the hook when we have a meeting ID
+  const digitalMeetingData = useDigitalShareholderMeeting(currentMeeting?.id || undefined) as {
     attendees: unknown[]
     error: unknown
     isLoading: boolean
@@ -223,6 +225,12 @@ export default function DigitalShareholderMeetingPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [previewData, setPreviewData] = useState<ParsedParticipant[] | null>(null)
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
+  const [hasMounted, setHasMounted] = useState(false)
+
+  // Track when component has mounted
+  React.useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true)
@@ -261,12 +269,12 @@ export default function DigitalShareholderMeetingPage() {
     try {
       // Map presenter data to expected format
       const mappedData = previewData.map((presenter) => ({
-        registrantType: 'Presenter',
+        registrantType: 'Other' as const, // Using 'Other' for presenters as 'Presenter' is not in the enum
         firstName: presenter.firstName,
         lastName: presenter.lastName,
         emailAddress: presenter.emailAddress,
         registrationQuestions:
-          `${presenter.title ?? ''} - ${presenter.department ?? ''}`.trim(),
+          `Presenter - ${presenter.title ?? ''} - ${presenter.department ?? ''}`.trim(),
         minutesAttendedMeeting: 0,
       }))
 
@@ -274,6 +282,9 @@ export default function DigitalShareholderMeetingPage() {
       setUploadSuccess(true)
       setPreviewDialogOpen(false)
       setPreviewData(null)
+
+      // Dispatch event to notify DSMParticipants to refresh
+      window.dispatchEvent(new CustomEvent('dsmAttendeesUploaded'))
 
       // Show success message briefly
       setTimeout(() => {
@@ -292,6 +303,11 @@ export default function DigitalShareholderMeetingPage() {
   }, [])
 
   const hasAttendees = attendees && attendees.length > 0
+
+  // Don't show empty state while loading, if meeting ID is not available, or if not mounted
+  if (!hasMounted || isLoading || !currentMeeting?.id) {
+    return null // Let loading.tsx handle it
+  }
 
   if (error) {
     return (
@@ -313,6 +329,7 @@ export default function DigitalShareholderMeetingPage() {
     )
   }
 
+  // Only show empty state after data has loaded
   if (!isLoading && !hasAttendees) {
     return (
       <>
@@ -387,85 +404,85 @@ export default function DigitalShareholderMeetingPage() {
       </>
     )
   }
-  if (!isLoading) {
-    return (
-      <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-        {/* All Components */}
-        <Suspense>
-          <Stack direction="column" spacing={2}>
-            <DSMParticipants meetingId={currentMeeting?.id ?? ''} />
-            <DSMGuestRegistrants meetingId={currentMeeting?.id ?? ''} />
-          </Stack>
-        </Suspense>
 
-        {/* Upload Dialog */}
-        <FileUploadDialog
-          open={uploadDialogOpen}
-          onClose={() => {
-            setUploadDialogOpen(false)
-            setUploadError(null)
-            setUploadSuccess(false)
-          }}
-          onUpload={handleFileUpload}
-          meetingId={currentMeeting?.id ?? ''}
-          documentType="digital-shareholder-meeting"
-        />
+  // Main content - show after loading is complete
+  return (
+    <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
+      {/* All Components */}
+      <Suspense>
+        <Stack direction="column" spacing={2}>
+          <DSMParticipants meetingId={currentMeeting?.id ?? ''} />
+          <DSMGuestRegistrants meetingId={currentMeeting?.id ?? ''} />
+        </Stack>
+      </Suspense>
 
-        {/* Error and Success Alerts */}
-        {uploadError && (
-          <Alert severity="error" sx={{ mt: 2 }} onClose={() => setUploadError(null)}>
-            {uploadError}
-          </Alert>
-        )}
+      {/* Upload Dialog */}
+      <FileUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => {
+          setUploadDialogOpen(false)
+          setUploadError(null)
+          setUploadSuccess(false)
+        }}
+        onUpload={handleFileUpload}
+        meetingId={currentMeeting?.id ?? ''}
+        documentType="digital-shareholder-meeting"
+      />
 
-        {uploadSuccess && (
-          <Snackbar
-            open={uploadSuccess}
-            autoHideDuration={6000}
+      {/* Error and Success Alerts */}
+      {uploadError && (
+        <Alert severity="error" sx={{ mt: 2 }} onClose={() => setUploadError(null)}>
+          {uploadError}
+        </Alert>
+      )}
+
+      {uploadSuccess && (
+        <Snackbar
+          open={uploadSuccess}
+          autoHideDuration={6000}
+          onClose={() => setUploadSuccess(false)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert
+            severity="success"
+            sx={{ mt: 2 }}
             onClose={() => setUploadSuccess(false)}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <Alert
-              severity="success"
-              sx={{ mt: 2 }}
-              onClose={() => setUploadSuccess(false)}
-            >
-              Participants uploaded successfully!
-            </Alert>
-          </Snackbar>
-        )}
+            Participants uploaded successfully!
+          </Alert>
+        </Snackbar>
+      )}
 
-        {/* Preview Dialog */}
-        <PreviewDialog
-          open={previewDialogOpen}
-          onClose={handleCancelPreview}
-          onConfirm={handleConfirmUpload}
-          data={previewData}
-          title="Confirm Upload"
-          columns={[
-            {
-              key: 'firstName',
-              label: 'Name',
-              render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
-            },
-            {
-              key: 'emailAddress',
-              label: 'Email',
-              render: createTextRenderer(),
-            },
-            {
-              key: 'title',
-              label: 'Title',
-              render: createTextRenderer(),
-            },
-            {
-              key: 'department',
-              label: 'Department',
-              render: createTextRenderer(),
-            },
-          ]}
-        />
-      </Container>
-    )
-  }
+      {/* Preview Dialog */}
+      <PreviewDialog
+        open={previewDialogOpen}
+        onClose={handleCancelPreview}
+        onConfirm={handleConfirmUpload}
+        data={previewData}
+        title="Confirm Upload"
+        columns={[
+          {
+            key: 'firstName',
+            label: 'Name',
+            render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
+          },
+          {
+            key: 'emailAddress',
+            label: 'Email',
+            render: createTextRenderer(),
+          },
+          {
+            key: 'title',
+            label: 'Title',
+            render: createTextRenderer(),
+          },
+          {
+            key: 'department',
+            label: 'Department',
+            render: createTextRenderer(),
+          },
+        ]}
+      />
+    </Container>
+  )
 }

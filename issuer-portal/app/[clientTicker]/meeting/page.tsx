@@ -151,7 +151,7 @@ export default function MeetingsPage() {
           <TableContainer>
             <Table stickyHeader>
               <TableHead>
-                <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>
                     <TableSortLabel
                       active={orderBy === 'title'}

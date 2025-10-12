@@ -23,9 +23,9 @@ console.log(`   URL: ${SUPABASE_URL}`)
 
 async function seedRemote() {
   const client = new pg.Client({
-    host: 'db.vfgjzlcakdrpsbzuqklz.supabase.co',
+    host: 'aws-1-us-east-2.pooler.supabase.com',
     port: 5432,
-    user: 'postgres',
+    user: 'postgres.vfgjzlcakdrpsbzuqklz',
     password: POSTGRES_PASSWORD,
     database: 'postgres',
     ssl: {
@@ -62,7 +62,42 @@ async function seedRemote() {
   }
 }
 
+// Handle connection termination errors from Supabase pooler
+const handleConnectionError = (error: unknown): boolean => {
+  const errorStr = String(error)
+  if (
+    errorStr.includes('db_termination') ||
+    errorStr.includes('shutdown') ||
+    errorStr.includes('ECONNRESET') ||
+    errorStr.includes('57P01')
+  ) {
+    // Expected - Supabase pooler terminates connections
+    return true
+  }
+  return false
+}
+
+process.on('uncaughtException', (error) => {
+  if (handleConnectionError(error)) {
+    process.exit(0)
+  }
+  console.error('Uncaught exception:', error)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (error) => {
+  if (handleConnectionError(error)) {
+    process.exit(0)
+  }
+  console.error('Unhandled rejection:', error)
+  process.exit(1)
+})
+
 seedRemote().catch((error) => {
+  if (handleConnectionError(error)) {
+    console.log('ℹ️  Database connection terminated (expected after seeding)')
+    process.exit(0)
+  }
   console.error('Seeding failed:', error)
   process.exit(1)
 })

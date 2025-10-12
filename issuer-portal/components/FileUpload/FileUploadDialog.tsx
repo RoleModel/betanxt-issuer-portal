@@ -121,13 +121,11 @@ const FileUploadDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ p: 0 }}>
+      <DialogTitle>
         <Box
           display="flex"
           alignItems="center"
           justifyContent="space-between"
-          px={3}
-          py={2}
         >
           Upload Document
           <IconButton
@@ -141,7 +139,7 @@ const FileUploadDialog = ({
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, py: 0 }}>
+      <DialogContent>
         {uploadError && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setUploadError(null)}>
             {uploadError}

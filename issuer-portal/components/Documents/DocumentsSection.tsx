@@ -209,12 +209,21 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       }
     }
 
+    const handleDocumentsUploaded = (event: Event) => {
+      const customEvent = event as CustomEvent<{ meetingId: string }>
+      if (currentMeeting?.id && customEvent.detail.meetingId === currentMeeting.id) {
+        void refreshDocuments(currentMeeting.id)
+      }
+    }
+
     window.addEventListener('focus', handleFocus)
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('documentsUploaded', handleDocumentsUploaded)
 
     return () => {
       window.removeEventListener('focus', handleFocus)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('documentsUploaded', handleDocumentsUploaded)
     }
   }, [currentMeeting?.id, refreshDocuments])
 

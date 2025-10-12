@@ -79,7 +79,7 @@ export function CTACard() {
             >
               <Box
                 sx={{
-                  '& textarea:focus-visible': {
+                  '& textarea:focusVisible': {
                     outline: '2px solid var(--mui-palette-primary-main) !important',
                   },
                 }}

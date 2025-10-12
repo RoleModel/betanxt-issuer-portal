@@ -135,7 +135,7 @@ export default function PastMeetingsTable({
           <Table stickyHeader>
             <SROnlyTableCaption>Past meetings</SROnlyTableCaption>
             <TableHead>
-              <TableRow sx={{ backgroundColor: 'grey.100' }}>
+              <TableRow>
                 {renderHeaderCell('Meeting', 'title')}
                 {renderHeaderCell('CUSIP', 'cusip')}
                 {renderHeaderCell('Date', 'meetingDate')}

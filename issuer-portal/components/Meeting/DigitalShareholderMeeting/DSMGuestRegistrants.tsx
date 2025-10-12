@@ -260,7 +260,7 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         action={
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" startIcon={<Upload />} onClick={handleUploadClick}>
-              Upload
+              Add Guests
             </Button>
             <ExportButton
               attendees={guests}
@@ -272,23 +272,25 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       />
       <CardContent>
         {/* Search */}
-        <Box sx={{ p: 2 }}>
-          <TextField
-            size="small"
-            placeholder="Search guests"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </Box>
+        {guests.length > 0 && (
+          <Box sx={{ p: 2 }}>
+            <TextField
+              size="small"
+              placeholder="Search guests"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Box>
+        )}
 
         {/* Upload Error */}
         {uploadError && (
@@ -302,14 +304,16 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         {/* Guests Table */}
         <TableContainer sx={{ maxHeight: 500 }}>
           <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Registered</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
+            {guests.length > 0 && (
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Registered</TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+            )}
             <TableBody>
               {filteredGuests.map((guest) => {
                 return (

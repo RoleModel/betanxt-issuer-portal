@@ -169,7 +169,7 @@ export default function DigitalShareholderMeetingsPage() {
             }
           }}
           sx={{
-            '&:focus-visible': {
+            '&:focusVisible': {
               outline: '2px solid',
               outlineColor: (theme) => theme.vars.palette.primary.main,
               outlineOffset: 2,

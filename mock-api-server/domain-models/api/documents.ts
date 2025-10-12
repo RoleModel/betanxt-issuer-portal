@@ -65,6 +65,7 @@ function transformDocument(dbDocument: DocumentRow): Document {
       | 'COMPLETED'
       | undefined,
     taskId: nullToUndefined(dbDocument.task_id),
+    participantId: nullToUndefined(dbDocument.participant_id),
     filePath: nullToUndefined(dbDocument.file_path),
     displayCategory: nullToUndefined(dbDocument.display_category),
     fileType: nullToUndefined(dbDocument.file_type),
@@ -139,6 +140,7 @@ export async function createDocument(
     const now = new Date().toISOString()
     // Default user: Sarah Chen (from seed data)
     const defaultUserId = '14f7b303-44c8-5dce-9b73-c75c2199d7f9'
+
     const { data, error } = await supabase
       .from('document')
       .insert({
@@ -148,8 +150,9 @@ export async function createDocument(
         description: request.description,
         type: request.type,
         task_id: request.taskId,
+        participant_id: request.participantId,
         file_path: request.file,
-        status: request.status ?? 'AWAITING_REVIEW',
+        status: request.status ?? 'UPLOADED',
         created_by: defaultUserId,
         created_by_first_name: 'Sarah',
         created_by_last_name: 'Chen',

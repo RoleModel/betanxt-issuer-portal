@@ -14,7 +14,7 @@ export type Database = {
           client: string | null
           client_id: string | null
           created_at: string | null
-          id: string
+          id: string | null
           name: string | null
           primary_contact: string | null
         }
@@ -22,7 +22,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string
+          id?: string | null
           name?: string | null
           primary_contact?: string | null
         }
@@ -30,7 +30,7 @@ export type Database = {
           client?: string | null
           client_id?: string | null
           created_at?: string | null
-          id?: string
+          id?: string | null
           name?: string | null
           primary_contact?: string | null
         }
@@ -42,7 +42,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           description: string | null
-          id: string
+          id: string | null
           industry: string | null
           is_active: boolean | null
           primary_contact: string | null
@@ -57,7 +57,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
+          id?: string | null
           industry?: string | null
           is_active?: boolean | null
           primary_contact?: string | null
@@ -72,7 +72,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
+          id?: string | null
           industry?: string | null
           is_active?: boolean | null
           primary_contact?: string | null
@@ -91,7 +91,7 @@ export type Database = {
           document: string | null
           document_id: string | null
           first_name: string | null
-          id: number
+          id: number | null
           last_name: string | null
           user: string | null
           user_id: string | null
@@ -102,7 +102,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           first_name?: string | null
-          id?: number
+          id?: number | null
           last_name?: string | null
           user?: string | null
           user_id?: string | null
@@ -113,39 +113,24 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           first_name?: string | null
-          id?: number
+          id?: number | null
           last_name?: string | null
           user?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "comment_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "document"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comment_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       digital_shareholder_meeting: {
         Row: {
           created_at: string | null
           email_address: string | null
           first_name: string | null
-          id: string
+          id: string | null
           last_name: string | null
           meeting_id: string | null
           minutes_attended_meeting: number | null
           registrant_type:
-            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
             | null
           registration_questions: string | null
           updated_at: string | null
@@ -154,12 +139,12 @@ export type Database = {
           created_at?: string | null
           email_address?: string | null
           first_name?: string | null
-          id?: string
+          id?: string | null
           last_name?: string | null
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
             | null
           registration_questions?: string | null
           updated_at?: string | null
@@ -168,25 +153,17 @@ export type Database = {
           created_at?: string | null
           email_address?: string | null
           first_name?: string | null
-          id?: string
+          id?: string | null
           last_name?: string | null
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database["public"]["Enums"]["digital_shareholder_meeting_registrant_type"]
+            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
             | null
           registration_questions?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "digital_shareholder_meeting_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document: {
         Row: {
@@ -202,16 +179,17 @@ export type Database = {
           deadline: string | null
           description: string | null
           display_category:
-            | Database["public"]["Enums"]["document_display_category"]
+            | Database['public']['Enums']['document_display_category']
             | null
           file_path: string | null
           file_size: number | null
           file_type: string | null
           history: Json | null
-          id: string
+          id: string | null
           in_progress_date: string | null
           meeting: string | null
           meeting_id: string | null
+          participant_id: string | null
           signatures: Json | null
           signed_date: string | null
           status: string | null
@@ -238,16 +216,17 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database["public"]["Enums"]["document_display_category"]
+            | Database['public']['Enums']['document_display_category']
             | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string
+          id?: string | null
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
+          participant_id?: string | null
           signatures?: Json | null
           signed_date?: string | null
           status?: string | null
@@ -274,16 +253,17 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database["public"]["Enums"]["document_display_category"]
+            | Database['public']['Enums']['document_display_category']
             | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           history?: Json | null
-          id?: string
+          id?: string | null
           in_progress_date?: string | null
           meeting?: string | null
           meeting_id?: string | null
+          participant_id?: string | null
           signatures?: Json | null
           signed_date?: string | null
           status?: string | null
@@ -297,25 +277,15 @@ export type Database = {
           upload_date?: string | null
           uploaded_date?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_history: {
         Row: {
           created_at: string | null
           document: string | null
           document_id: string | null
-          event_type:
-            | Database["public"]["Enums"]["document_history_event_type"]
-            | null
-          id: string
+          event_type: Database['public']['Enums']['document_history_event_type'] | null
+          id: string | null
           metadata: Json | null
           user: string | null
           user_id: string | null
@@ -325,10 +295,8 @@ export type Database = {
           created_at?: string | null
           document?: string | null
           document_id?: string | null
-          event_type?:
-            | Database["public"]["Enums"]["document_history_event_type"]
-            | null
-          id?: string
+          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          id?: string | null
           metadata?: Json | null
           user?: string | null
           user_id?: string | null
@@ -338,24 +306,14 @@ export type Database = {
           created_at?: string | null
           document?: string | null
           document_id?: string | null
-          event_type?:
-            | Database["public"]["Enums"]["document_history_event_type"]
-            | null
-          id?: string
+          event_type?: Database['public']['Enums']['document_history_event_type'] | null
+          id?: string | null
           metadata?: Json | null
           user?: string | null
           user_id?: string | null
           user_name?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_history_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "document"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       dsm_config: {
         Row: {
@@ -369,7 +327,7 @@ export type Database = {
           dsm_producer_email: string | null
           dsm_producer_name: string | null
           guest_link_registration_doc_id: string | null
-          id: string
+          id: string | null
           inspector_email: string | null
           inspector_name: string | null
           ioe_enabled: boolean | null
@@ -395,7 +353,7 @@ export type Database = {
           dsm_producer_email?: string | null
           dsm_producer_name?: string | null
           guest_link_registration_doc_id?: string | null
-          id: string
+          id?: string | null
           inspector_email?: string | null
           inspector_name?: string | null
           ioe_enabled?: boolean | null
@@ -421,7 +379,7 @@ export type Database = {
           dsm_producer_email?: string | null
           dsm_producer_name?: string | null
           guest_link_registration_doc_id?: string | null
-          id?: string
+          id?: string | null
           inspector_email?: string | null
           inspector_name?: string | null
           ioe_enabled?: boolean | null
@@ -436,15 +394,7 @@ export type Database = {
           static_slide_doc_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "dsm_config_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: true
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mailing: {
         Row: {
@@ -455,7 +405,7 @@ export type Database = {
           electronic_suppressed_positions: number | null
           fullset_mail_positions: number | null
           household_suppressed_positions: number | null
-          id: string
+          id: string | null
           managed_suppressed_positions: number | null
           meeting_id: string | null
           naa_mail_positions: number | null
@@ -474,7 +424,7 @@ export type Database = {
           electronic_suppressed_positions?: number | null
           fullset_mail_positions?: number | null
           household_suppressed_positions?: number | null
-          id?: string
+          id?: string | null
           managed_suppressed_positions?: number | null
           meeting_id?: string | null
           naa_mail_positions?: number | null
@@ -493,7 +443,7 @@ export type Database = {
           electronic_suppressed_positions?: number | null
           fullset_mail_positions?: number | null
           household_suppressed_positions?: number | null
-          id?: string
+          id?: string | null
           managed_suppressed_positions?: number | null
           meeting_id?: string | null
           naa_mail_positions?: number | null
@@ -504,15 +454,7 @@ export type Database = {
           total_rollups?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mailing_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       meeting: {
         Row: {
@@ -525,7 +467,7 @@ export type Database = {
           distribution_type: string | null
           employee_stock_plans: string | null
           filing_date: string | null
-          id: string
+          id: string | null
           inspector: string | null
           ivr_dial_in_number: string | null
           mailing_date: string | null
@@ -559,7 +501,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string
+          id?: string | null
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -593,7 +535,7 @@ export type Database = {
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
-          id?: string
+          id?: string | null
           inspector?: string | null
           ivr_dial_in_number?: string | null
           mailing_date?: string | null
@@ -617,76 +559,60 @@ export type Database = {
           transfer_agent_confirmed?: boolean | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "meeting_ticker_fkey"
-            columns: ["ticker"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["ticker"]
-          },
-        ]
+        Relationships: []
       }
       notification: {
         Row: {
           action_url: string | null
           created_at: string | null
           expires_at: string | null
-          id: string
+          id: string | null
           meeting_id: string | null
           message: string | null
-          priority: Database["public"]["Enums"]["notification_priority"] | null
+          priority: Database['public']['Enums']['notification_priority'] | null
           read: boolean | null
           read_at: string | null
           task_id: string | null
           title: string | null
-          type: Database["public"]["Enums"]["notification_type"] | null
+          type: Database['public']['Enums']['notification_type'] | null
           user_id: string | null
         }
         Insert: {
           action_url?: string | null
           created_at?: string | null
           expires_at?: string | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
         Update: {
           action_url?: string | null
           created_at?: string | null
           expires_at?: string | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           message?: string | null
-          priority?: Database["public"]["Enums"]["notification_priority"] | null
+          priority?: Database['public']['Enums']['notification_priority'] | null
           read?: boolean | null
           read_at?: string | null
           task_id?: string | null
           title?: string | null
-          type?: Database["public"]["Enums"]["notification_type"] | null
+          type?: Database['public']['Enums']['notification_type'] | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "notification_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       phase: {
         Row: {
           created_at: string | null
-          id: string
+          id: string | null
           key_dates: string | null
           meeting_id: string | null
           name: string | null
@@ -696,7 +622,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id?: string
+          id?: string | null
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -706,7 +632,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          id?: string
+          id?: string | null
           key_dates?: string | null
           meeting_id?: string | null
           name?: string | null
@@ -714,15 +640,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "phase_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       position: {
         Row: {
@@ -732,17 +650,15 @@ export type Database = {
           created_at: string | null
           cusip: string | null
           date_voted: string | null
-          id: string
+          id: string | null
           meeting_id: string | null
           name: string | null
           set_key: string | null
           shares: number | null
           shares_voted: number | null
-          source: Database["public"]["Enums"]["position_source"] | null
+          source: Database['public']['Enums']['position_source'] | null
           updated_at: string | null
-          vote_status:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status: Database['public']['Enums']['position_vote_status'] | null
         }
         Insert: {
           account_number?: string | null
@@ -751,17 +667,15 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
         Update: {
           account_number?: string | null
@@ -770,32 +684,22 @@ export type Database = {
           created_at?: string | null
           cusip?: string | null
           date_voted?: string | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           name?: string | null
           set_key?: string | null
           shares?: number | null
           shares_voted?: number | null
-          source?: Database["public"]["Enums"]["position_source"] | null
+          source?: Database['public']['Enums']['position_source'] | null
           updated_at?: string | null
-          vote_status?:
-            | Database["public"]["Enums"]["position_vote_status"]
-            | null
+          vote_status?: Database['public']['Enums']['position_vote_status'] | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "position_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       position_vote: {
         Row: {
           created_at: string | null
-          id: string
+          id: string | null
           position_id: string | null
           proposal_id: string | null
           shares_voting: string | null
@@ -803,7 +707,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id?: string
+          id?: string | null
           position_id?: string | null
           proposal_id?: string | null
           shares_voting?: string | null
@@ -811,21 +715,13 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          id?: string
+          id?: string | null
           position_id?: string | null
           proposal_id?: string | null
           shares_voting?: string | null
           vote?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "position_vote_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
-            referencedRelation: "position"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       proposal: {
         Row: {
@@ -835,12 +731,10 @@ export type Database = {
           director_class: string | null
           director_name: string | null
           director_term_years: number | null
-          final_result:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage: number | null
           frequency_options: Json | null
-          id: string
+          id: string | null
           meeting_id: string | null
           participation_rate: number | null
           proposal_number: number | null
@@ -864,12 +758,10 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -893,12 +785,10 @@ export type Database = {
           director_class?: string | null
           director_name?: string | null
           director_term_years?: number | null
-          final_result?:
-            | Database["public"]["Enums"]["proposal_final_result"]
-            | null
+          final_result?: Database['public']['Enums']['proposal_final_result'] | null
           for_percentage?: number | null
           frequency_options?: Json | null
-          id?: string
+          id?: string | null
           meeting_id?: string | null
           participation_rate?: number | null
           proposal_number?: number | null
@@ -915,15 +805,7 @@ export type Database = {
           voting_completed?: boolean | null
           voting_completed_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "proposal_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       signature: {
         Row: {
@@ -931,7 +813,7 @@ export type Database = {
           document: string | null
           document_id: string | null
           height: number | null
-          id: string
+          id: string | null
           page_number: number | null
           required: boolean | null
           signature_type: string | null
@@ -945,7 +827,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           height?: number | null
-          id?: string
+          id?: string | null
           page_number?: number | null
           required?: boolean | null
           signature_type?: string | null
@@ -959,7 +841,7 @@ export type Database = {
           document?: string | null
           document_id?: string | null
           height?: number | null
-          id?: string
+          id?: string | null
           page_number?: number | null
           required?: boolean | null
           signature_type?: string | null
@@ -968,15 +850,7 @@ export type Database = {
           x_position?: number | null
           y_position?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "signature_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "document"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tabulation_report: {
         Row: {
@@ -1021,15 +895,7 @@ export type Database = {
           updated_at?: string | null
           vote_distribution?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "tabulation_report_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: true
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       task: {
         Row: {
@@ -1037,7 +903,7 @@ export type Database = {
           description: string | null
           document_id: string | null
           due_date: string | null
-          id: string
+          id: string | null
           links: Json | null
           meeting_id: string | null
           owner: string | null
@@ -1054,7 +920,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string
+          id?: string | null
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -1071,7 +937,7 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
-          id?: string
+          id?: string | null
           links?: Json | null
           meeting_id?: string | null
           owner?: string | null
@@ -1083,22 +949,7 @@ export type Database = {
           type?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "task_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meeting"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_phase_id_fkey"
-            columns: ["phase_id"]
-            isOneToOne: false
-            referencedRelation: "phase"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user: {
         Row: {
@@ -1107,7 +958,7 @@ export type Database = {
           avatar_url: string | null
           email: string | null
           first_name: string | null
-          id: string
+          id: string | null
           last_name: string | null
           password: string | null
           type: string | null
@@ -1119,7 +970,7 @@ export type Database = {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string
+          id?: string | null
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -1131,7 +982,7 @@ export type Database = {
           avatar_url?: string | null
           email?: string | null
           first_name?: string | null
-          id?: string
+          id?: string | null
           last_name?: string | null
           password?: string | null
           type?: string | null
@@ -1148,55 +999,55 @@ export type Database = {
     }
     Enums: {
       add_document_event_request_event_type:
-        | "CREATED"
-        | "UPLOADED"
-        | "VIEWED"
-        | "DOWNLOADED"
-        | "NOT_UPLOADED"
-        | "SIGNED"
-        | "APPROVED"
-        | "REJECTED"
-        | "COMMENTED"
-        | "UPDATED"
-        | "DELETED"
-      cast_vote_request_vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD"
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'NOT_UPLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
       create_digital_shareholder_meeting_request_registrant_type:
-        | "Shareholder"
-        | "Guest"
-        | "Proxy"
-        | "Other"
-      create_position_request_source: "WEB" | "PRINT" | "IVR"
-      create_position_request_vote_status: "Voted" | "Unvoted"
+        | 'Shareholder'
+        | 'Guest'
+        | 'Proxy'
+        | 'Other'
+      create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      create_position_request_vote_status: 'Voted' | 'Unvoted'
       digital_shareholder_meeting_registrant_type:
-        | "Shareholder"
-        | "Guest"
-        | "Proxy"
-        | "Other"
+        | 'Shareholder'
+        | 'Guest'
+        | 'Proxy'
+        | 'Other'
       document_display_category:
-        | "general"
-        | "dsm"
-        | "proxy-materials"
-        | "meeting-materials"
-        | "post-meeting"
-        | "internal"
+        | 'general'
+        | 'dsm'
+        | 'proxy-materials'
+        | 'meeting-materials'
+        | 'post-meeting'
+        | 'internal'
       document_history_event_type:
-        | "CREATED"
-        | "UPLOADED"
-        | "VIEWED"
-        | "DOWNLOADED"
-        | "SIGNED"
-        | "APPROVED"
-        | "REJECTED"
-        | "COMMENTED"
-        | "UPDATED"
-        | "DELETED"
-      notification_priority: "low" | "medium" | "high" | "critical"
-      notification_type: "info" | "warning" | "error" | "success"
-      position_source: "WEB" | "PRINT" | "IVR"
-      position_vote_status: "Voted" | "Unvoted"
-      proposal_final_result: "PASSED" | "FAILED" | "PENDING"
-      update_position_request_source: "WEB" | "PRINT" | "IVR"
-      update_position_request_vote_status: "Voted" | "Unvoted"
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
+      notification_priority: 'low' | 'medium' | 'high' | 'critical'
+      notification_type: 'info' | 'warning' | 'error' | 'success'
+      position_source: 'WEB' | 'PRINT' | 'IVR'
+      position_vote_status: 'Voted' | 'Unvoted'
+      proposal_final_result: 'PASSED' | 'FAILED' | 'PENDING'
+      update_position_request_source: 'WEB' | 'PRINT' | 'IVR'
+      update_position_request_vote_status: 'Voted' | 'Unvoted'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1204,33 +1055,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1239,23 +1090,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1264,23 +1115,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1289,97 +1140,96 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
       add_document_event_request_event_type: [
-        "CREATED",
-        "UPLOADED",
-        "VIEWED",
-        "DOWNLOADED",
-        "NOT_UPLOADED",
-        "SIGNED",
-        "APPROVED",
-        "REJECTED",
-        "COMMENTED",
-        "UPDATED",
-        "DELETED",
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'NOT_UPLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
       ],
-      cast_vote_request_vote: ["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"],
+      cast_vote_request_vote: ['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'],
       create_digital_shareholder_meeting_request_registrant_type: [
-        "Shareholder",
-        "Guest",
-        "Proxy",
-        "Other",
+        'Shareholder',
+        'Guest',
+        'Proxy',
+        'Other',
       ],
-      create_position_request_source: ["WEB", "PRINT", "IVR"],
-      create_position_request_vote_status: ["Voted", "Unvoted"],
+      create_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      create_position_request_vote_status: ['Voted', 'Unvoted'],
       digital_shareholder_meeting_registrant_type: [
-        "Shareholder",
-        "Guest",
-        "Proxy",
-        "Other",
+        'Shareholder',
+        'Guest',
+        'Proxy',
+        'Other',
       ],
       document_display_category: [
-        "general",
-        "dsm",
-        "proxy-materials",
-        "meeting-materials",
-        "post-meeting",
-        "internal",
+        'general',
+        'dsm',
+        'proxy-materials',
+        'meeting-materials',
+        'post-meeting',
+        'internal',
       ],
       document_history_event_type: [
-        "CREATED",
-        "UPLOADED",
-        "VIEWED",
-        "DOWNLOADED",
-        "SIGNED",
-        "APPROVED",
-        "REJECTED",
-        "COMMENTED",
-        "UPDATED",
-        "DELETED",
+        'CREATED',
+        'UPLOADED',
+        'VIEWED',
+        'DOWNLOADED',
+        'SIGNED',
+        'APPROVED',
+        'REJECTED',
+        'COMMENTED',
+        'UPDATED',
+        'DELETED',
       ],
-      notification_priority: ["low", "medium", "high", "critical"],
-      notification_type: ["info", "warning", "error", "success"],
-      position_source: ["WEB", "PRINT", "IVR"],
-      position_vote_status: ["Voted", "Unvoted"],
-      proposal_final_result: ["PASSED", "FAILED", "PENDING"],
-      update_position_request_source: ["WEB", "PRINT", "IVR"],
-      update_position_request_vote_status: ["Voted", "Unvoted"],
+      notification_priority: ['low', 'medium', 'high', 'critical'],
+      notification_type: ['info', 'warning', 'error', 'success'],
+      position_source: ['WEB', 'PRINT', 'IVR'],
+      position_vote_status: ['Voted', 'Unvoted'],
+      proposal_final_result: ['PASSED', 'FAILED', 'PENDING'],
+      update_position_request_source: ['WEB', 'PRINT', 'IVR'],
+      update_position_request_vote_status: ['Voted', 'Unvoted'],
     },
   },
 } as const
-

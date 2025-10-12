@@ -143,7 +143,10 @@ async function seedRemote() {
           .range(page * pageSize, (page + 1) * pageSize - 1)
 
         if (fetchError) {
-          console.error(`⚠️  Failed to fetch page ${page} from local ${table}:`, fetchError.message)
+          console.error(
+            `⚠️  Failed to fetch page ${page} from local ${table}:`,
+            fetchError.message
+          )
           break
         }
 
@@ -216,12 +219,16 @@ async function seedRemote() {
         }
       }
 
-      console.log(`   ✅ Completed ${table}: ${inserted}/${localData.length} records inserted, ${failed} failed`)
+      console.log(
+        `   ✅ Completed ${table}: ${inserted}/${localData.length} records inserted, ${failed} failed`
+      )
 
       // For critical parent tables, abort if inserts failed
       const criticalTables = ['clients', 'meeting', 'position', 'document']
       if (criticalTables.includes(table) && inserted < localData.length) {
-        console.error(`   ❌ Critical table ${table} had ${failed} failed inserts - aborting`)
+        console.error(
+          `   ❌ Critical table ${table} had ${failed} failed inserts - aborting`
+        )
         console.error(`   This will cause FK violations in child tables`)
         process.exit(1)
       }
@@ -232,7 +239,9 @@ async function seedRemote() {
         const { count: remoteCount } = await supabase
           .from('position')
           .select('*', { count: 'exact', head: true })
-        console.log(`   Local positions: ${localData.length}, Remote positions: ${remoteCount}`)
+        console.log(
+          `   Local positions: ${localData.length}, Remote positions: ${remoteCount}`
+        )
 
         if (remoteCount !== localData.length) {
           console.error(`   ❌ Position count mismatch! Some positions failed to insert.`)

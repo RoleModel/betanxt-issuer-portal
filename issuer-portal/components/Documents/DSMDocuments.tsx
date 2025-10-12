@@ -69,6 +69,10 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
     placeholders = [],
   } = props
 
+  console.log('[DSMDocuments] Received dsmDocuments:', dsmDocuments.length, dsmDocuments.map(d => ({ title: d.title, type: d.type })))
+
+
+
   // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
   const mergedRows: Document[] = []
 
@@ -79,7 +83,17 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
 
   // For each placeholder, either show the real document or the placeholder
   placeholders.forEach((placeholder) => {
-    const realDoc = uploadedDocsByTitle.get(placeholder.title.toLowerCase())
+    // Try exact match first
+    let realDoc = uploadedDocsByTitle.get(placeholder.title.toLowerCase())
+
+    // If no exact match and placeholder is "Static Slide or Presentation",
+    // look for documents containing "presentation"
+    if (!realDoc && placeholder.title.toLowerCase() === 'static slide or presentation') {
+      realDoc = dsmDocuments.find(doc =>
+        doc.title?.toLowerCase().includes('presentation')
+      )
+    }
+
     if (realDoc) {
       mergedRows.push(realDoc)
     } else {

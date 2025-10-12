@@ -6,21 +6,14 @@ import { NextResponse } from 'next/server'
 
 import { supabase } from '@/utils/supabase/client'
 
-// In-memory storage for uploaded attendees (in production this would use a database)
-interface StoredAttendee {
-  id: string
-  meetingId: string
-  registrantType: string
+interface IncomingAttendee {
+  registrantType?: 'Shareholder' | 'Guest' | 'Proxy' | 'Other'
   firstName: string
   lastName: string
   emailAddress: string
-  registrationQuestions?: unknown
-  minutesAttendedMeeting?: number
-  createdAt: string
-  updatedAt: string
+  registrationQuestions?: string | null
+  minutesAttendedMeeting?: number | null
 }
-
-const attendeeStorage = new Map<string, StoredAttendee[]>()
 
 export async function GET(
   request: NextRequest,
@@ -29,23 +22,33 @@ export async function GET(
   try {
     const { meetingId } = await params
 
-    // Try to get from database first (for seeded data)
-    try {
-      const { data, error } = await supabase
-        .from('digital_shareholder_meeting_attendee')
-        .select('*')
-        .eq('meeting_id', meetingId)
+    const { data, error } = await supabase
+      .from('digital_shareholder_meeting')
+      .select('*')
+      .eq('meeting_id', meetingId)
 
-      if (!error && data) {
-        return NextResponse.json(data)
-      }
-    } catch (_dbError) {
-      // Database table might not exist yet, fall back to in-memory storage
+    if (error) {
+      return NextResponse.json(
+        { error: error.message, operationId: 'getDigitalShareholderMeeting' },
+        { status: 500 }
+      )
     }
 
-    // For uploaded data, return stored attendees or empty array
-    const storedAttendees = attendeeStorage.get(meetingId) || []
-    return NextResponse.json(storedAttendees)
+    // Transform snake_case to camelCase for frontend compatibility
+    const transformedData = (data ?? []).map(row => ({
+      id: row.id,
+      meetingId: row.meeting_id,
+      registrantType: row.registrant_type,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      emailAddress: row.email_address,
+      registrationQuestions: row.registration_questions,
+      minutesAttendedMeeting: row.minutes_attended_meeting,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }))
+
+    return NextResponse.json(transformedData)
   } catch (error) {
     return NextResponse.json(
       {
@@ -74,25 +77,46 @@ export async function POST(
       )
     }
 
-    // Process and store the attendees
-    const attendees = body.map((attendee, index) => ({
-      id: `${meetingId}-${Date.now()}-${index}`,
-      meetingId,
-      registrantType: attendee.registrantType ?? 'Shareholder',
-      firstName: attendee.firstName,
-      lastName: attendee.lastName,
-      emailAddress: attendee.emailAddress,
-      registrationQuestions: attendee.registrationQuestions || undefined,
-      minutesAttendedMeeting: attendee.minutesAttendedMeeting || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const rows = (body as IncomingAttendee[]).map((attendee) => ({
+      id: crypto.randomUUID(), // Generate UUID for each participant
+      meeting_id: meetingId,
+      registrant_type: attendee.registrantType ?? 'Shareholder',
+      first_name: attendee.firstName,
+      last_name: attendee.lastName,
+      email_address: attendee.emailAddress,
+      registration_questions: attendee.registrationQuestions ?? null,
+      minutes_attended_meeting: attendee.minutesAttendedMeeting ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }))
 
-    // Store in memory (in production this would go to database)
-    const existingAttendees = attendeeStorage.get(meetingId) || []
-    attendeeStorage.set(meetingId, [...existingAttendees, ...attendees])
+    const { data, error } = await supabase
+      .from('digital_shareholder_meeting')
+      .insert(rows)
+      .select('*')
 
-    return NextResponse.json(attendees, { status: 201 })
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to insert attendees', details: error.message },
+        { status: 500 }
+      )
+    }
+
+    // Transform snake_case to camelCase for frontend compatibility
+    const transformedData = (data ?? []).map(row => ({
+      id: row.id,
+      meetingId: row.meeting_id,
+      registrantType: row.registrant_type,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      emailAddress: row.email_address,
+      registrationQuestions: row.registration_questions,
+      minutesAttendedMeeting: row.minutes_attended_meeting,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }))
+
+    return NextResponse.json(transformedData, { status: 201 })
   } catch (error) {
     return NextResponse.json(
       {

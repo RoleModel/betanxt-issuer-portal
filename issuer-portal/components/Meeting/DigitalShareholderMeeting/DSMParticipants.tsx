@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { Upload } from '@mui/icons-material'
+import { FileUploadOutlined } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -26,6 +26,7 @@ import {
 } from '@mui/material'
 
 import BNFileUpload from '@/components/FileUpload/BNFileUpload'
+import SkeletonTable from '@/components/ui/SkeletonTable'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -47,6 +48,7 @@ interface ParticipantWithRole extends DigitalShareholderMeeting {
 
 export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const [participants, setParticipants] = useState<ParticipantWithRole[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedParticipant, setSelectedParticipant] =
     useState<ParticipantWithRole | null>(null)
@@ -56,6 +58,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const fetchParticipants = useCallback(async () => {
     try {
       setError(null)
+      setIsLoading(true)
 
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
       const response = await fetch(
@@ -67,47 +70,68 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
       const data = (await response.json()) as DigitalShareholderMeeting[]
 
+      console.log('[DSMParticipants] Fetched participants:', data)
+
       // Fetch documents for this meeting
       const documentsResponse = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
-      let documents: { title?: string; documentType?: string; storagePath?: string }[] =
-        []
+      let documents: {
+        id?: string
+        title?: string
+        type?: string
+        participantId?: string
+        filePath?: string
+      }[] = []
       if (documentsResponse.ok) {
         documents = (await documentsResponse.json()) as {
+          id?: string
           title?: string
-          documentType?: string
-          storagePath?: string
+          type?: string
+          participantId?: string
+          filePath?: string
         }[]
       }
 
-      // Filter documents to only DSM-related ones uploaded via the upload buttons
+      console.log('[DSMParticipants] Fetched documents:', documents.length, documents)
+
+      // Filter documents to only DSM-related ones
       const dsmDocuments = documents.filter(
-        (doc) => doc.documentType === 'digital-shareholder-meeting'
+        (doc) => doc.type === 'digital-shareholder-meeting'
       )
 
+      console.log('[DSMParticipants] DSM documents:', dsmDocuments.length, dsmDocuments)
+
       // Transform data to include role information
-      // Documents are meeting-level, not participant-specific
       const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
         const role = participant.registrantType ?? 'Shareholder'
 
-        // For meeting-level documents, show the first available DSM document for all participants
-        // or indicate that documents are available at the meeting level
-        const hasDocuments = dsmDocuments.length > 0
-        const firstDocument = dsmDocuments[0]
+        // Find participant-specific documents (documents should be linked to participant ID)
+        const participantDocuments = dsmDocuments.filter(
+          (doc) => {
+            console.log(`[DSMParticipants] Checking doc.participantId: "${doc.participantId}" === participant.id: "${participant.id}"`)
+            // Only match documents that have a participantId and it matches this participant
+            return doc.participantId && doc.participantId === participant.id
+          }
+        )
+
+        const hasDocuments = participantDocuments.length > 0
+        const firstDocument = participantDocuments[0]
 
         return {
           ...participant,
           role,
           documentName: hasDocuments
-            ? `${dsmDocuments.length} meeting document${dsmDocuments.length === 1 ? '' : 's'}`
+            ? firstDocument?.title?.replace(/\.[^/.]+$/, '') // Clean title without extension
             : undefined,
           documentStatus: hasDocuments ? 'uploaded' : undefined,
-          documentUrl: firstDocument?.storagePath || undefined,
+          documentUrl: firstDocument?.filePath || undefined,
         }
       })
 
       setParticipants(participantsWithRoles)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load participants')
+    } finally {
+      setIsLoading(false)
     }
   }, [meetingId])
 
@@ -115,27 +139,44 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     void fetchParticipants()
   }, [fetchParticipants])
 
+  // Listen for attendees upload event
+  useEffect(() => {
+    const handleAttendeesUploaded = () => {
+      console.log('[DSMParticipants] Attendees uploaded event received, refreshing...')
+      void fetchParticipants()
+    }
+
+    window.addEventListener('dsmAttendeesUploaded', handleAttendeesUploaded)
+
+    return () => {
+      window.removeEventListener('dsmAttendeesUploaded', handleAttendeesUploaded)
+    }
+  }, [fetchParticipants])
+
   const handleAddDocument = (participant: ParticipantWithRole) => {
+    console.log('[DSMParticipants] Adding document for participant:', participant.id, participant.firstName, participant.lastName)
     setSelectedParticipant(participant)
     setAddDocumentDialogOpen(true)
   }
 
   const handleDocumentAdded = (documentName: string, documentStatus: string) => {
     if (selectedParticipant) {
+      console.log('[DSMParticipants] Document added for participant:', selectedParticipant)
+
       // Update local state - this should persist until the next manual refresh
       setParticipants((prev) =>
         prev.map((p) =>
           p.id === selectedParticipant.id
             ? {
-                ...p,
-                documentName,
-                documentStatus: documentStatus as
-                  | 'uploaded'
-                  | 'pending'
-                  | 'approved'
-                  | 'rejected',
-                documentUrl: `/documents/dsm/${p.id}.pdf`,
-              }
+              ...p,
+              documentName,
+              documentStatus: documentStatus as
+                | 'uploaded'
+                | 'pending'
+                | 'approved'
+                | 'rejected',
+              documentUrl: `/documents/dsm/${p.id}.pdf`,
+            }
             : p
         )
       )
@@ -161,21 +202,15 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const handleFileUpload = async (files: File[]) => {
     try {
       for (const file of files) {
-        // Create unique filename to avoid duplicates
-        const timestamp = Date.now()
-        const randomId = Math.random().toString(36).substring(2, 8)
-        const fileExtension = file.name.split('.').pop()
-        const uniqueFileName = `${file.name.split('.')[0]}_${timestamp}_${randomId}.${fileExtension}`
-
-        const renamedFile = new File([file], uniqueFileName, { type: file.type })
-
         const formData = new FormData()
-        formData.append('file', renamedFile)
+        formData.append('file', file)
         formData.append('meetingId', meetingId)
         formData.append('documentType', 'digital-shareholder-meeting')
+        formData.append('title', file.name.replace(/\.[^/.]+$/, '')) // Use original filename as title
 
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
         const response = await fetch(
-          '/api/documents/types/digital-shareholder-meeting/upload',
+          `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
           {
             method: 'POST',
             body: formData,
@@ -189,6 +224,14 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
       // Refresh participants data after upload
       setUploadDialogOpen(false)
+
+      // Dispatch event to notify other components (like DocumentsSection)
+      window.dispatchEvent(
+        new CustomEvent('documentsUploaded', {
+          detail: { meetingId },
+        })
+      )
+
       // Trigger a re-fetch by calling the fetch function again
       void fetchParticipants()
     } catch (error) {
@@ -224,6 +267,10 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     (p) => (p.minutesAttendedMeeting ?? 0) > 0
   ).length
 
+  if (isLoading) {
+    return <SkeletonTable rows={5} columns={5} />
+  }
+
   if (error) {
     return (
       <Card>
@@ -242,8 +289,8 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         subheader={`${participants.length} registered • ${actualAttendees} attended`}
         action={
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<Upload />} onClick={handleUploadClick}>
-              Upload
+            <Button variant="outlined" startIcon={<FileUploadOutlined />} onClick={handleUploadClick}>
+              Add Attendees
             </Button>
             <ExportButton
               attendees={participants}
@@ -267,11 +314,13 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {participants.map((participant) => {
+              {participants.map((participant, index) => {
                 const attendanceStatus = getAttendanceStatus(participant)
 
                 return (
-                  <TableRow key={participant.id} hover>
+                  <TableRow
+                    key={participant.id || `participant-${participant.emailAddress}-${index}`}
+                    hover>
                     <TableCell>
                       <Typography variant="body3" fontWeight="medium">
                         {participant.firstName} {participant.lastName}

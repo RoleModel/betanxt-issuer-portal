@@ -26,7 +26,25 @@ async function truncateRemote() {
 
     console.log('\n🗑️  Truncating all tables...')
 
+    // Check if tables exist before truncating
+    const checkTablesQuery = `
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      AND table_type = 'BASE TABLE'
+    `
+
+    const { rows: existingTables } = await client.query(checkTablesQuery)
+
+    if (existingTables.length === 0) {
+      console.log('ℹ️  No tables found - database is already empty')
+      return
+    }
+
+    console.log(`Found ${existingTables.length} tables to truncate`)
+
     // Truncate all tables in correct order with CASCADE
+    // Tables are already verified to exist above
     const truncateQuery = `
       TRUNCATE TABLE
         signature,
@@ -69,6 +87,37 @@ async function truncateRemote() {
     }
   }
 }
+
+// Handle connection termination errors from Supabase pooler
+const handleConnectionError = (error: unknown): boolean => {
+  const errorStr = String(error)
+  if (
+    errorStr.includes('db_termination') ||
+    errorStr.includes('shutdown') ||
+    errorStr.includes('ECONNRESET') ||
+    errorStr.includes('57P01')
+  ) {
+    // Expected - Supabase pooler terminates connections
+    return true
+  }
+  return false
+}
+
+process.on('uncaughtException', (error) => {
+  if (handleConnectionError(error)) {
+    process.exit(0)
+  }
+  console.error('Uncaught exception:', error)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (error) => {
+  if (handleConnectionError(error)) {
+    process.exit(0)
+  }
+  console.error('Unhandled rejection:', error)
+  process.exit(1)
+})
 
 truncateRemote().catch((error) => {
   // Don't fail for connection termination errors - they're expected after TRUNCATE

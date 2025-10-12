@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import React from 'react'
 
 import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/material'
+import { WebOutlined } from '@mui/icons-material'
 
 import RevisionRequestDialog from '@/components/Documents/RevisionRequestDialog'
 import StatusChip from '@/components/ui/StatusChip'
@@ -284,6 +285,7 @@ export default function DocumentSiteCard() {
               gap: 2,
             }}
           >
+            <WebOutlined sx={{ fontSize: 40 }} />
             <Typography variant="h4" component="p">
               Document Hosting Site
             </Typography>
