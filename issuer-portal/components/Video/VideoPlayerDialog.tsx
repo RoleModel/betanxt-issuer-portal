@@ -30,11 +30,9 @@ export default function VideoPlayerDialog({
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogContent
         sx={{
-          p: 0,
+          p: 2,
           position: 'relative',
-          backgroundColor: (theme) => theme.vars.palette.background.paper,
-          borderBottomLeftRadius: 1,
-          borderBottomRightRadius: 1,
+          backgroundColor: (theme) => theme.vars.palette.common.black,
           '&:hover .MuiIconButton-root': {
             visibility: 'visible',
             opacity: 1,

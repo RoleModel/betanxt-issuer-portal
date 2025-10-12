@@ -303,7 +303,7 @@ export default function VideoPlayer({
       <Box
         sx={{
           position: 'absolute',
-          bottom: 16,
+          top: 24,
           left: 24,
           right: 24,
           zIndex: 1,
