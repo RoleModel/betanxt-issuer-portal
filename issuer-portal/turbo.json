@@ -1,19 +1,51 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "GITHUB_TOKEN",
+        "ANTHROPIC_API_KEY",
+        "GH_TOKEN",
+        "GITHUB_PACKAGES_TOKEN",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_API_BASE_URL",
+        "NEXT_PUBLIC_REQUIRE_DOCUMENT_REVIEW",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "AUTH_TRUST_HOST",
+        "POSTGRES_URL",
+        "POSTGRES_PRISMA_URL",
+        "POSTGRES_URL_NON_POOLING",
+        "POSTGRES_USER",
+        "POSTGRES_HOST",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DATABASE"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "start": {
+      "cache": false,
+      "persistent": true,
       "dependsOn": ["build"]
     },
     "test": {
+      "dependsOn": ["^build"],
       "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
     },
     "clean": {
       "cache": false
