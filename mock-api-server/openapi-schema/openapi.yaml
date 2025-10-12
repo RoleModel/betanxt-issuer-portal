@@ -2639,6 +2639,7 @@ components:
           example: 'Computershare Trust Company'
         transferAgentConfirmed:
           type: boolean
+          nullable: true
           default: false
           description: Whether the transfer agent has been confirmed (demo feature)
         employeeStockPlans:
@@ -3531,6 +3532,7 @@ components:
           type: string
         transferAgentConfirmed:
           type: boolean
+          nullable: true
         employeeStockPlans:
           type: string
         planAdministrator:
