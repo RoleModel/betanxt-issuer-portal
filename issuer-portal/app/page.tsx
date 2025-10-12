@@ -39,6 +39,10 @@ export default function HomePage() {
       const defaultMeetingId = `${firstClient.ticker.toLowerCase()}-annual-meeting-2026`
       setHasRedirected(true)
       router.push(`/${firstClient.ticker}/meeting/${defaultMeetingId}`)
+    } else if (!clientLoading) {
+      // Loading complete but no clients available - redirect to login
+      setHasRedirected(true)
+      router.push('/login')
     }
   }, [router, currentClient, availableClients, clientLoading, hasRedirected])
 
