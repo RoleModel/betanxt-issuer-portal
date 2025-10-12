@@ -531,7 +531,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
         color: (theme) => theme.vars?.palette.keydate.contrastText,
         boxShadow: theme.shadows[5],
         contain: 'paint',
-        borderRadius: 2,
+        borderRadius: 1,
         p: 1,
         pb: 0,
         position: 'relative',

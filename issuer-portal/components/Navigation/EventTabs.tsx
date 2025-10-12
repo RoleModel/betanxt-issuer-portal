@@ -15,6 +15,7 @@ import React, {
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
+  Container,
   IconButton,
   LinearProgress,
   Paper,
@@ -754,7 +755,7 @@ export function EventTabs() {
           },
         }}
       >
-        <Box sx={{ position: 'relative' }}>
+        <Container maxWidth="xl" sx={{ position: 'relative' }}>
           {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
           {canScrollLeft && transformedMeetings.length > 1 && (
             <ScrollButton
@@ -782,7 +783,7 @@ export function EventTabs() {
             onScroll={checkScrollButtons}
             sx={{
               py: 0,
-              px: { xs: 1, sm: 3 },
+              px: { xs: 1, sm: 0 },
               maxWidth: '100%',
               overflowX: 'auto',
               overflowY: 'visible', // Allow vertical overflow for the covering line
@@ -806,7 +807,7 @@ export function EventTabs() {
               ))}
             </Stack>
           </Box>
-        </Box>
+        </Container>
       </Paper>
 
       <Paper
@@ -833,62 +834,60 @@ export function EventTabs() {
             }}
           />
         )}
-        <Box sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
-          <Stack direction="row" sx={{ position: 'relative' }}>
-            <Tabs
-              value={activeTab}
-              variant="scrollable"
-              allowScrollButtonsMobile
-              scrollButtons="auto"
-              aria-label="Meeting Navigation"
-              sx={{
-                position: 'relative',
-                pointerEvents: 'auto',
-                opacity: isPending ? 0.6 : 1,
-                transition: 'opacity 0.2s',
-              }}
-            >
-              {navigationTabs.map((tab) => {
-                const isActive = activeTab === tab.label
-                // Use ticker from currentMeeting if available, fallback to currentClient
-                const ticker = currentMeeting?.ticker || currentClient?.ticker
-                const tabHref =
-                  currentMeeting && ticker
-                    ? `/${ticker}/meeting/${currentMeeting.id}${tab.route}`
-                    : '#'
+        <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
+          <Tabs
+            value={activeTab}
+            variant="scrollable"
+            allowScrollButtonsMobile
+            scrollButtons="auto"
+            aria-label="Meeting Navigation"
+            sx={{
+              position: 'relative',
+              pointerEvents: 'auto',
+              opacity: isPending ? 0.6 : 1,
+              transition: 'opacity 0.2s',
+            }}
+          >
+            {navigationTabs.map((tab) => {
+              const isActive = activeTab === tab.label
+              // Use ticker from currentMeeting if available, fallback to currentClient
+              const ticker = currentMeeting?.ticker || currentClient?.ticker
+              const tabHref =
+                currentMeeting && ticker
+                  ? `/${ticker}/meeting/${currentMeeting.id}${tab.route}`
+                  : '#'
 
-                return (
-                  <Tab
-                    key={tab.label}
-                    value={tab.label}
-                    label={tab.label}
-                    component={Link}
-                    href={tabHref}
-                    sx={(theme) => ({
-                      color: isActive
-                        ? 'var(--mui-palette-primary-main)'
-                        : 'var(--mui-palette-text-secondary)',
-                      fontWeight: 500,
-                      fontSize: '0.875rem',
-                      textTransform: 'none',
-                      textDecoration: 'none',
-                      px: 2,
-                      py: 1.125,
-                      minWidth: 'fit-content',
-                      borderRadius: 0,
-                      cursor: 'pointer',
-                      pointerEvents: 'auto',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                        color: theme.vars?.palette.primary.main,
-                      },
-                    })}
-                  />
-                )
-              })}
-            </Tabs>
-          </Stack>
-        </Box>
+              return (
+                <Tab
+                  key={tab.label}
+                  value={tab.label}
+                  label={tab.label}
+                  component={Link}
+                  href={tabHref}
+                  sx={(theme) => ({
+                    color: isActive
+                      ? 'var(--mui-palette-primary-main)'
+                      : 'var(--mui-palette-text-secondary)',
+                    fontWeight: 500,
+                    fontSize: '0.875rem',
+                    textTransform: 'none',
+                    textDecoration: 'none',
+                    px: 2,
+                    py: 1.125,
+                    minWidth: 'fit-content',
+                    borderRadius: 0,
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: theme.vars?.palette.primary.main,
+                    },
+                  })}
+                />
+              )
+            })}
+          </Tabs>
+        </Container>
       </Paper>
       <PhaseDrawer
         open={phaseDrawerOpen}

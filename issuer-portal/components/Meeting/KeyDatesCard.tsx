@@ -221,7 +221,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   }
 
   return (
-    <Card variant="outlined">
+    <Card>
       <CardHeader
         title={<Typography variant="h3">Key Dates</Typography>}
         action={
