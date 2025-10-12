@@ -125,7 +125,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
         py: 2,
         background: theme.vars?.palette?.appBarPrimary?.defaultFill,
         color: theme.vars?.palette?.appBarPrimary?.defaultContrast,
-        borderRadius: '4px 4px 0px 0px',
+        borderRadius: 0,
         position: isFullscreen ? 'relative' : 'sticky',
         borderBottom: (theme) => `1px solid ${theme.vars?.palette?.divider}`,
         top: isFullscreen ? 0 : undefined,

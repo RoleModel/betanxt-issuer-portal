@@ -243,145 +243,144 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   }
 
   return (
-    <Container
-      layout="position"
-      className="CalendarContainer"
-      ref={calendarRef}
-      component={motion.div}
-      initial={false}
-      animate={{
-        marginTop: isFullscreen ? 4 : 16,
-        marginBottom: isFullscreen ? 4 : 24,
-        paddingLeft: isFullscreen ? 4 : 16,
-        paddingRight: isFullscreen ? 4 : 16,
-      }}
-      transition={{
-        type: 'tween',
-        duration: 0.3,
-        ease: 'easeInOut',
-      }}
-      maxWidth={false}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: isFullscreen ? 'calc(100vh - 8px)' : 'auto',
-        transition: 'height 0.2s ease-in-out',
-        zIndex: isFullscreen ? 5000 : 100,
-        position: isFullscreen ? 'fixed' : 'relative',
-        top: isFullscreen ? 0 : undefined,
-        isolation: 'isolate',
-        '&:before': {
-          content: '""',
-          position: isFullscreen ? 'fixed' : 'relative',
-          top: 0,
-          left: 0,
-          width: isFullscreen ? '100vw' : 'auto',
-          height: isFullscreen ? '100vh' : 'auto',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 1,
-        },
-      }}
-    >
-      <Box
+    <>
+
+      <Container
+        className="CalendarContainer"
+        ref={calendarRef}
         component={motion.div}
-        sx={(theme) => ({
-          border: `1px solid`,
-          borderColor: theme.vars?.palette?.divider,
-          borderRadius: 2,
-          height: isFullscreen ? '100%' : 'auto',
+        layout="position" // Only animate position changes, not size
+        layoutScroll // Preserve scroll position
+        initial={false}
+        transition={{
+          layout: {
+            type: 'tween',
+            duration: 0.25,
+            ease: [0.2, 0, 0.2, 1] // Material UI standard easing
+          }
+        }}
+        maxWidth={isFullscreen ? false : 'xl'}
+        sx={{
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
-          zIndex: 3,
-        })}
+          isolation: 'isolate',
+          borderRadius: 2,
+          position: isFullscreen ? 'fixed' : 'relative',
+          inset: isFullscreen ? 0 : 'auto',
+          width: isFullscreen ? '100vw' : 'auto',
+          height: isFullscreen ? '100vh' : 'auto',
+          margin: isFullscreen ? 0 : 'auto',
+          marginTop: isFullscreen ? 0 : 2,
+          marginBottom: isFullscreen ? 0 : 2,
+          zIndex: isFullscreen ? 5000 : 100,
+          padding: isFullscreen ? 1 : 0,
+          tranformOrigin: 'center center',
+          paddingLeft: { sm: 1, md: isFullscreen ? 1 : 2, },
+          paddingRight: { sm: 1, md: isFullscreen ? 1 : 2, },
+        }}
       >
-        {/* Header with controls */}
-        <CalendarHeader
-          view={view}
-          onViewChange={handleViewChange}
-          searchQuery={filters.searchQuery}
-          onSearchChange={handleSearchChange}
-          statusFilter={filters.statusFilter}
-          onStatusFilterChange={handleStatusFilterChange}
-          phaseFilter={filters.phaseFilter}
-          onPhaseFilterChange={handlePhaseFilterChange}
-          isFullscreen={isFullscreen}
-          onFullscreenToggle={handleFullscreenToggle}
-          onAddClick={handleAddClick}
-          onPrint={handlePrint}
-          onExportIcs={handleExportIcs}
-          onExportPdf={handleExportPdf}
-        />
-
-        {/* Main content area */}
         <Box
-          sx={(theme) => ({
-            flex: 1,
-            overflow: isFullscreen ? 'auto' : 'hidden',
-            webkitOverflowScrolling: isFullscreen ? 'touch' : 'auto',
-            scrollBehavior: isFullscreen ? 'smooth' : 'auto',
+          component={motion.div}
+          layoutRoot // Prevents layout animations from propagating to children
+          sx={{
+            border: `1px solid`,
+            borderColor: 'var(--mui-palette-divider)',
+            borderRadius: 2,
+            height: isFullscreen ? '100%' : 'auto',
             display: 'flex',
             flexDirection: 'column',
-            background: theme.vars?.palette?.background?.default,
-          })}
+            overflow: 'hidden',
+            zIndex: 3,
+          }}
         >
-          {view === 'month' && !isMobile ? (
-            <MonthView
-              searchQuery={filters.searchQuery}
-              statusFilter={filters.statusFilter}
-              phaseFilter={filters.phaseFilter}
-              onTaskClick={handleTaskClick}
-              tasks={tasks}
-              keyDates={keyDates}
-              loading={tasksLoading}
-              onRefresh={async () => {
-                await refreshMeetingData()
-              }}
-            />
-          ) : (
-            <ListView
-              searchQuery={filters.searchQuery}
-              statusFilter={filters.statusFilter}
-              phaseFilter={filters.phaseFilter}
-              onTaskClick={handleTaskClick}
-              tasks={tasks}
-              keyDates={keyDates}
-              loading={tasksLoading}
-            />
-          )}
+          {/* Header with controls */}
+          <CalendarHeader
+            view={view}
+            onViewChange={handleViewChange}
+            searchQuery={filters.searchQuery}
+            onSearchChange={handleSearchChange}
+            statusFilter={filters.statusFilter}
+            onStatusFilterChange={handleStatusFilterChange}
+            phaseFilter={filters.phaseFilter}
+            onPhaseFilterChange={handlePhaseFilterChange}
+            isFullscreen={isFullscreen}
+            onFullscreenToggle={handleFullscreenToggle}
+            onAddClick={handleAddClick}
+            onPrint={handlePrint}
+            onExportIcs={handleExportIcs}
+            onExportPdf={handleExportPdf}
+          />
+
+          {/* Main content area */}
+          <Box
+            sx={(theme) => ({
+              flex: 1,
+              overflow: isFullscreen ? 'auto' : 'hidden',
+              webkitOverflowScrolling: isFullscreen ? 'touch' : 'auto',
+              scrollBehavior: isFullscreen ? 'smooth' : 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              background: theme.vars?.palette?.background?.default,
+            })}
+          >
+            {view === 'month' && !isMobile ? (
+              <MonthView
+                searchQuery={filters.searchQuery}
+                statusFilter={filters.statusFilter}
+                phaseFilter={filters.phaseFilter}
+                onTaskClick={handleTaskClick}
+                tasks={tasks}
+                keyDates={keyDates}
+                loading={tasksLoading}
+                onRefresh={async () => {
+                  await refreshMeetingData()
+                }}
+              />
+            ) : (
+              <ListView
+                searchQuery={filters.searchQuery}
+                statusFilter={filters.statusFilter}
+                phaseFilter={filters.phaseFilter}
+                onTaskClick={handleTaskClick}
+                tasks={tasks}
+                keyDates={keyDates}
+                loading={tasksLoading}
+              />
+            )}
+          </Box>
         </Box>
-      </Box>
 
-      <TaskDrawer
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        task={selectedTask}
-        onTaskUpdate={async (updatedTask) => {
-          // Update the selected task
-          setSelectedTask(updatedTask)
-          // Refresh meeting data to update all tasks in the UI
-          await refreshMeetingData()
-        }}
-      />
+        <TaskDrawer
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          task={selectedTask}
+          onTaskUpdate={async (updatedTask) => {
+            // Update the selected task
+            setSelectedTask(updatedTask)
+            // Refresh meeting data to update all tasks in the UI
+            await refreshMeetingData()
+          }}
+        />
 
-      <ApprovalDrawer
-        open={approvalDrawerOpen}
-        onClose={handleApprovalDrawerClose}
-        title={approvalTitle}
-        fileUrl={approvalDocumentUrl}
-        onApprove={handleApprove}
-        taskStatus={approvalTask?.status}
-        onOpenFullscreen={handleOpenFullscreen}
-        onAddComment={handleApprovalAddComment}
-      />
+        <ApprovalDrawer
+          open={approvalDrawerOpen}
+          onClose={handleApprovalDrawerClose}
+          title={approvalTitle}
+          fileUrl={approvalDocumentUrl}
+          onApprove={handleApprove}
+          taskStatus={approvalTask?.status}
+          onOpenFullscreen={handleOpenFullscreen}
+          onAddComment={handleApprovalAddComment}
+        />
 
-      <TaskAddModal
-        open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        onTaskAdded={handleTaskAdded}
-        activeMeeting={meeting}
-      />
-    </Container>
+        <TaskAddModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onTaskAdded={handleTaskAdded}
+          activeMeeting={meeting}
+        />
+      </Container>
+    </>
   )
 }
 
