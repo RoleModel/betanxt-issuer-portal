@@ -1,7 +1,5 @@
-import { readFile } from 'fs/promises'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import path from 'path'
 import { Client } from 'pg'
 
 export const runtime = 'nodejs'
@@ -14,6 +12,23 @@ interface ResetStats {
   signatures: number
   documents: number
   dsmConfigs: number
+}
+
+async function executeWithRetry(
+  client: Client,
+  query: string,
+  maxRetries = 3
+): Promise<void> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await client.query(query)
+      return
+    } catch (error) {
+      if (i === maxRetries - 1) throw error
+      console.log(`Retry ${i + 1}/${maxRetries} after error:`, error)
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)))
+    }
+  }
 }
 
 export async function POST(_req: NextRequest) {
@@ -43,68 +58,112 @@ export async function POST(_req: NextRequest) {
         connectionString: databaseUrl,
         ssl: !isLocalhost ? { rejectUnauthorized: false } : false,
         connectionTimeoutMillis: 30000,
+        query_timeout: 300000, // 5 minutes
       })
 
       console.log('Connecting to database...')
       await client.connect()
       console.log('Database connection established')
 
-      // Step 1: Truncate all data tables (preserve schema)
-      console.log('Truncating data tables...')
-      await client.query(`
-        TRUNCATE TABLE
-          signature,
-          document_history,
-          comment,
-          mailing,
-          position,
-          proposal,
-          task,
-          document,
-          dsm_guest_registrant,
-          dsm_participant,
-          dsm_config,
-          phase,
-          meeting,
-          account,
-          clients
-        CASCADE;
-      `)
-      console.log('Data tables truncated')
+      // Start transaction for atomic reset
+      await client.query('BEGIN')
 
-      // Step 2: Apply seed data from bundled data directory
-      console.log('Applying seed data...')
-      const dataDir = path.join(process.cwd(), 'data')
-      const seedPath = path.join(dataDir, 'seed.sql')
-      const seedSql = await readFile(seedPath, 'utf-8')
+      try {
+        // Step 1: Truncate all data tables (preserve schema)
+        console.log('Truncating data tables...')
+        await executeWithRetry(
+          client,
+          `
+          TRUNCATE TABLE
+            signature,
+            document_history,
+            comment,
+            mailing,
+            position,
+            proposal,
+            task,
+            document,
+            dsm_guest_registrant,
+            dsm_participant,
+            dsm_config,
+            phase,
+            meeting,
+            account,
+            clients,
+            notification,
+            tabulation_report,
+            position_vote,
+            "user"
+          RESTART IDENTITY CASCADE;
+        `
+        )
+        console.log('Data tables truncated')
 
-      // Execute seed SQL
-      await client.query(seedSql)
-      console.log('Seed data applied')
+        // Step 2: Call seed data from Supabase storage
+        console.log('Fetching seed data from Supabase storage...')
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
+        const seedUrl = `${supabaseUrl}/storage/v1/object/public/documents/backup.sql`
 
-      // Get stats from database
-      const meetingsResult = await client.query('SELECT COUNT(*) FROM meeting')
-      const phasesResult = await client.query('SELECT COUNT(*) FROM phase')
-      const tasksResult = await client.query('SELECT COUNT(*) FROM task')
-      const documentsResult = await client.query('SELECT COUNT(*) FROM document')
+        console.log('Fetching from:', seedUrl)
+        const seedResponse = await fetch(seedUrl)
 
-      const stats: ResetStats = {
-        meetings: parseInt(meetingsResult.rows[0].count),
-        phases: parseInt(phasesResult.rows[0].count),
-        tasks: parseInt(tasksResult.rows[0].count),
-        signatures: 0,
-        documents: parseInt(documentsResult.rows[0].count),
-        dsmConfigs: 0,
+        if (!seedResponse.ok) {
+          throw new Error(`Failed to fetch seed data: ${seedResponse.status} ${seedResponse.statusText}`)
+        }
+
+        const seedSql = await seedResponse.text()
+        console.log(`Seed SQL size: ${(seedSql.length / 1024 / 1024).toFixed(2)} MB`)
+
+        // Execute seed SQL with retry
+        console.log('Applying seed data...')
+        await executeWithRetry(client, seedSql)
+        console.log('Seed data applied')
+
+        // Commit transaction
+        await client.query('COMMIT')
+        console.log('Transaction committed')
+
+        // Grant permissions (outside transaction)
+        console.log('Granting permissions...')
+        await client.query(
+          'GRANT ALL ON SCHEMA public TO anon, authenticated, service_role'
+        )
+        await client.query(
+          'GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role'
+        )
+        await client.query(
+          'GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role'
+        )
+        console.log('Permissions granted')
+
+        // Get stats from database
+        const meetingsResult = await client.query('SELECT COUNT(*) FROM meeting')
+        const phasesResult = await client.query('SELECT COUNT(*) FROM phase')
+        const tasksResult = await client.query('SELECT COUNT(*) FROM task')
+        const documentsResult = await client.query('SELECT COUNT(*) FROM document')
+
+        const stats: ResetStats = {
+          meetings: parseInt(meetingsResult.rows[0].count),
+          phases: parseInt(phasesResult.rows[0].count),
+          tasks: parseInt(tasksResult.rows[0].count),
+          signatures: 0,
+          documents: parseInt(documentsResult.rows[0].count),
+          dsmConfigs: 0,
+        }
+
+        console.log('Database reset completed successfully:', stats)
+
+        return NextResponse.json({
+          success: true,
+          message: 'Demo data reset successfully',
+          stats,
+          timestamp: new Date().toISOString(),
+        })
+      } catch (error) {
+        // Rollback on error
+        await client.query('ROLLBACK')
+        throw error
       }
-
-      console.log('Database reset completed successfully:', stats)
-
-      return NextResponse.json({
-        success: true,
-        message: 'Demo data reset successfully',
-        stats,
-        timestamp: new Date().toISOString(),
-      })
     } finally {
       // Restore original TLS setting
       if (!isLocalhost) {
@@ -121,6 +180,7 @@ export async function POST(_req: NextRequest) {
       {
         success: false,
         error: error instanceof Error ? error.message : 'Reset failed',
+        details: error instanceof Error ? error.stack : undefined,
       },
       { status: 500 }
     )
