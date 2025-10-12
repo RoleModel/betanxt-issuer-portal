@@ -118,6 +118,27 @@ export async function POST(
       )
     }
 
+    // Add document history entry for upload
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      await fetch(`${API_URL}/documents/${data.id}/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'UPLOADED',
+          user: 'System',
+          metadata: {
+            filename: file.name,
+            fileSize: file.size,
+            documentType,
+          },
+        }),
+      })
+    } catch (historyError) {
+      // Log but don't fail the upload if history creation fails
+      console.error('Failed to create document history:', historyError)
+    }
+
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     console.error('[Upload Route Error]:', error)
