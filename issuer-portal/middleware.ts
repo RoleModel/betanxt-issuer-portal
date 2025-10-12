@@ -49,11 +49,8 @@ export default auth(async function middleware(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
       }
 
-      // If user doesn't have a client ticker (admin/dev user), allow access but redirect to first available client
-      if (!userClientTicker && !bypassAuth) {
-        // For non-bypass users without a client ticker, redirect to home to determine client
-        return NextResponse.redirect(new URL('/', nextUrl))
-      }
+      // Allow users without client_ticker to access any client
+      // The ClientContext will handle access control based on their account/relationships
     }
   }
 
