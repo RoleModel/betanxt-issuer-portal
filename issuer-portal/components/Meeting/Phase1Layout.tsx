@@ -35,14 +35,14 @@ function Phase1Layout({ meetingId, meeting, phase = 1, onUpdate }: Phase1LayoutP
         <Grid size={{ xs: 12, md: 6 }}>
           <EventContactsCard
             meeting={{
-              id: meeting?.id || undefined,
-              transferAgent: meeting?.transferAgent || undefined,
-              transferAgentConfirmed: meeting?.transferAgentConfirmed || undefined,
-              planAdministrator: meeting?.planAdministrator || undefined,
+              id: meeting?.id ?? undefined,
+              transferAgent: meeting?.transferAgent ?? undefined,
+              transferAgentConfirmed: meeting?.transferAgentConfirmed ?? undefined,
+              planAdministrator: meeting?.planAdministrator ?? undefined,
               planAdministratorContactEmail:
-                meeting?.planAdministratorContactEmail || undefined,
-              solicitor: meeting?.solicitor || undefined,
-              solicitorEmail: meeting?.solicitorEmail || undefined,
+                meeting?.planAdministratorContactEmail ?? undefined,
+              solicitor: meeting?.solicitor ?? undefined,
+              solicitorEmail: meeting?.solicitorEmail ?? undefined,
             }}
             onUpdate={onUpdate}
           />
@@ -50,11 +50,11 @@ function Phase1Layout({ meetingId, meeting, phase = 1, onUpdate }: Phase1LayoutP
         <Grid size={{ xs: 12, md: 6 }}>
           <MeetingInformationCard
             meeting={{
-              meetingType: meeting?.meetingType || undefined,
+              meetingType: meeting?.meetingType ?? undefined,
               inspector: meeting?.inspector ?? undefined,
-              cusip: meeting?.cusip || undefined,
-              ticker: meeting?.ticker || undefined,
-              employeeStockPlans: meeting?.employeeStockPlans || undefined,
+              cusip: meeting?.cusip ?? undefined,
+              ticker: meeting?.ticker ?? undefined,
+              employeeStockPlans: meeting?.employeeStockPlans ?? undefined,
             }}
           />
         </Grid>
