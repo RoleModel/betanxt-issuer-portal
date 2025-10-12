@@ -91,12 +91,17 @@ export async function POST(
     // Create full storage URL path for database
     const fullStoragePath = `/storage/v1/object/public/documents/${uploadData.path}`
 
+    // Determine document status based on NEXT_PUBLIC_REQUIRE_PROXY_REVIEW environment variable
+    // If true (default), documents require review. If false, they're marked as uploaded immediately.
+    const requireReview = process.env.NEXT_PUBLIC_REQUIRE_PROXY_REVIEW !== 'false'
+    const documentStatus = requireReview ? 'AWAITING_REVIEW' : 'UPLOADED'
+
     // Create document record with storage path
     const { data, error } = await createDocument(meetingId, {
       title,
       type: documentType,
       file: fullStoragePath, // Store the full storage URL path
-      status: 'AWAITING_REVIEW', // Set status to Awaiting Review for all uploaded documents
+      status: documentStatus,
       description: versionNotes || undefined,
       taskId: taskId || undefined,
       participantId: participantId || undefined,
