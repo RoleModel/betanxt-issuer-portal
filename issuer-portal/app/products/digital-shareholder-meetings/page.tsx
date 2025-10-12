@@ -7,6 +7,7 @@ import React from 'react'
 
 import { Check } from '@mui/icons-material'
 import {
+  Box,
   Card,
   CardContent,
   CardHeader,
@@ -24,11 +25,14 @@ import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
+import VideoPlayer from '@/components/Video/VideoPlayer'
+import VideoPlayerDialog from '@/components/Video/VideoPlayerDialog'
 
 export default function DigitalShareholderMeetingsPage() {
   const [open, setOpen] = React.useState(false)
   const [fileUrl, setFileUrl] = React.useState<string>('')
   const [viewerTitle, setViewerTitle] = React.useState<string>('')
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false)
 
   const benefits = [
     {
@@ -132,7 +136,7 @@ export default function DigitalShareholderMeetingsPage() {
   )
 
   const rightColumnContent = (
-    <>
+    <Stack spacing={2}>
       <SidebarCard
         title="DSM Quickstart Guide"
         button={true}
@@ -148,27 +152,64 @@ export default function DigitalShareholderMeetingsPage() {
           next virtual shareholder meeting.
         </Typography>
       </SidebarCard>
+
       <SidebarCard title="Want to Know More?">
-        <Typography variant="body3" component="p" gutterBottom>
-          View the DSM Quickstart Guide for a step-by-step overview of how to run your
-          next virtual shareholder meeting.
+        <Typography variant="body3" component="p" sx={{ mb: 2 }}>
+          Our Digital Shareholder Meeting solution provides equal access for all shareholders, enabling seamless registration and effortless participation.
         </Typography>
+        <Box
+          aria-label="Play Digital Shareholder Meeting demo video"
+          tabIndex={0}
+          role="button"
+          onClick={() => setIsVideoOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setIsVideoOpen(true)
+            }
+          }}
+          sx={{
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: (theme) => theme.vars.palette.primary.main,
+              outlineOffset: 2,
+              borderRadius: 1,
+            },
+          }}
+        >
+          <VideoPlayer
+            poster="/images/digital-shareholder-meeting-video-1.webp"
+            title=""
+            description=""
+            showPlayButton={false}
+          />
+        </Box>
       </SidebarCard>
-    </>
+    </Stack>
   )
 
   return (
-    <ProductsLayout
-      leftColumnContent={leftColumnContent}
-      rightColumnContent={rightColumnContent}
-      documentViewer={
-        <DocumentViewer
-          open={open}
-          onClose={() => setOpen(false)}
-          fileUrl={fileUrl}
-          title={viewerTitle}
-        />
-      }
-    />
+    <>
+      <ProductsLayout
+        leftColumnContent={leftColumnContent}
+        rightColumnContent={rightColumnContent}
+        documentViewer={
+          <DocumentViewer
+            open={open}
+            onClose={() => setOpen(false)}
+            fileUrl={fileUrl}
+            title={viewerTitle}
+          />
+        }
+      />
+      <VideoPlayerDialog
+        open={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        src="/digital-shareholder-meeting.mp4"
+        title="BetaNXT Digital Shareholder Meeting"
+        description="See how our platform transforms virtual shareholder meetings"
+        poster="/images/digital-shareholder-meeting-video-1.webp"
+      />
+    </>
   )
 }

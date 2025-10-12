@@ -53,6 +53,15 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   const fileUrl = useMemo(() => {
     if (!filePath) return null
 
+    // Handle storage URLs (both absolute and relative)
+    if (filePath.startsWith('/storage/v1/object/public/')) {
+      // Convert relative storage paths to full Supabase URLs
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+      const fullUrl = `${supabaseUrl}${filePath}`
+      console.log('[DocumentThumbnail] Converting relative storage path:', filePath, 'to:', fullUrl)
+      return fullUrl
+    }
+
     // Absolute URLs
     if (isStorageUrl(filePath)) return filePath
 
@@ -66,8 +75,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         : `/documents/${filePath}`
     }
 
-    // Already-rooted path
-    if (filePath.toLowerCase().endsWith('.pdf') && filePath.startsWith('/documents/')) {
+    // Already-rooted path (but not storage paths)
+    if (filePath.toLowerCase().endsWith('.pdf') &&
+      filePath.startsWith('/documents/') &&
+      !filePath.startsWith('/storage/')) {
       // Map /documents/<key>.pdf to Supabase storage public URL
       const storageKey = filePath.slice('/documents/'.length)
       return getStoragePublicUrl(storageKey)
@@ -156,12 +167,21 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   }
 
   const onDocumentLoadError = (error: Error) => {
-    console.error('PDF thumbnail load error:', error)
+    // Suppress 400 errors for missing documents in development
+    if (!error.message.includes('400') && !error.message.includes('Unexpected server response')) {
+      console.error('PDF thumbnail load error:', error)
+    }
     setHasError(true)
   }
 
-  // No file path provided
-  if (!fileUrl) {
+  // Check if this is a mock/development URL that doesn't exist
+  const isMockUrl = fileUrl?.includes('127.0.0.1:54321') &&
+    (fileUrl.includes('/transfer-agent-request/') ||
+      fileUrl.includes('/plan-file-request/') ||
+      fileUrl.includes('/broadridge-form/'))
+
+  // No file path provided or mock URL
+  if (!fileUrl || isMockUrl) {
     return (
       <Box
         sx={{
@@ -312,10 +332,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         transition: 'all 0.2s ease',
         '&:hover': onClick
           ? {
-              borderColor: 'primary.main',
-              boxShadow: 2,
-              transform: 'scale(1.02)',
-            }
+            borderColor: 'primary.main',
+            boxShadow: 2,
+            transform: 'scale(1.02)',
+          }
           : {},
       }}
       onClick={onClick}
@@ -358,20 +378,24 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           },
         }}
       >
-        <Document
-          file={fileUrl}
-          loading={<CircularProgress size={20} />}
-          error={<ErrorOutlineOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onDocumentLoadError}
-        >
-          <Page
-            pageNumber={1}
-            width={width}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-          />
-        </Document>
+        {hasError ? (
+          <ErrorOutlineOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />
+        ) : (
+          <Document
+            file={fileUrl}
+            loading={<CircularProgress size={20} />}
+            error={<ErrorOutlineOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+          >
+            <Page
+              pageNumber={1}
+              width={width}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+            />
+          </Document>
+        )}
       </Box>
     </Box>
   )

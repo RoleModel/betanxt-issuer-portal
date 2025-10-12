@@ -12,6 +12,7 @@ interface VideoPlayerProps {
   poster?: string
   seriesNumber?: string
   showSeries?: boolean
+  showPlayButton?: boolean
   onVideoEnd?: () => void
 }
 
@@ -23,6 +24,7 @@ export default function VideoPlayer({
   seriesNumber = '#1',
   showSeries = false,
   onVideoEnd,
+  showPlayButton = true,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -160,7 +162,7 @@ export default function VideoPlayer({
       )}
 
       {/* Play button overlay */}
-      {!isPlaying && (
+      {!isPlaying && showPlayButton && (
         <Box
           className="video-play-button"
           sx={{
@@ -208,7 +210,7 @@ export default function VideoPlayer({
             left: 0,
             right: 0,
             background:
-              'linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%)',
+              'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)',
             padding: 2,
             opacity: showControls || !isPlaying ? 1 : 0,
             transition: 'opacity 0.3s ease',

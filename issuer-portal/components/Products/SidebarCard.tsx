@@ -25,6 +25,8 @@ export const SidebarCard = (props: SidebarCardProps) => {
             variant="pageTitle"
             fontFamily="var(--font-tungsten)"
             component="h3"
+            fontSize="2.325rem"
+            fontWeight={500}
             sx={{ color: (theme) => theme.vars.palette.text.primary }}
           >
             {title}

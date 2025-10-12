@@ -96,8 +96,28 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         let targetClient: Client | null = null
 
-        // 1. First check localStorage for manually selected client (takes priority)
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+        // 1. First check if URL implies a specific client (takes priority for client access control)
+        const clientFromURL = extractClientFromURL(pathname)
+        if (clientFromURL) {
+          targetClient =
+            clients.find(
+              (c) => c.company_name === clientFromURL || c.short_name === clientFromURL
+            ) ?? null
+
+          // If URL specifies a client, use it and update localStorage
+          if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+            try {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('selectedClient', JSON.stringify({ id: targetClient.id }))
+              }
+            } catch (error) {
+              console.warn('Failed to update selectedClient in localStorage:', error)
+            }
+          }
+        }
+
+        // 2. If no URL client, check localStorage for manually selected client
+        if (!targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
           try {
             const selectedClientStr =
               typeof window !== 'undefined'
@@ -106,31 +126,20 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (selectedClientStr) {
               const selectedClient = JSON.parse(selectedClientStr) as { id: string }
               targetClient = clients.find((c) => c.id === selectedClient.id) ?? null
-              // Client found in localStorage
             }
           } catch (parseError) {
             console.warn('Failed to parse selectedClient from localStorage:', parseError)
           }
         }
 
-        // 2. If no localStorage client, check if URL implies a specific client (meeting page)
-        // But only if we're in normal auth mode (not bypass) or no localStorage client exists
-        if (!targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH !== 'true') {
-          const clientFromURL = extractClientFromURL(pathname)
-          if (clientFromURL) {
-            targetClient =
-              clients.find(
-                (c) => c.company_name === clientFromURL || c.short_name === clientFromURL
-              ) ?? null
-            // Client found from URL
-
-            if (targetClient && !canAccessClient(targetClient.id)) {
-              setError(
-                `Access denied to ${targetClient.company_name ?? targetClient.short_name}`
-              )
-              setLoading(false)
-              return
-            }
+        // 3. For authenticated users, check access to URL client
+        if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH !== 'true') {
+          if (!canAccessClient(targetClient.id)) {
+            setError(
+              `Access denied to ${targetClient.company_name ?? targetClient.short_name}`
+            )
+            setLoading(false)
+            return
           }
         }
 

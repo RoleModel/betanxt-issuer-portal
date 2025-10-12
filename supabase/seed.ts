@@ -1805,22 +1805,27 @@ const main = async () => {
           `${sqlValue(createdAt)});`
         )
 
-        // Track tasks that need signed documents
-        const needsSignedDoc =
-          (taskStatus === 'SUBMITTED_AWAITING_RECORD_DATE' ||
-            taskStatus === 'PENDING_AUTHORIZATION' ||
-            taskStatus === 'AUTHORIZED') &&
-          (task.title.toLowerCase().includes('transfer agent') ||
-            task.title.toLowerCase().includes('plan file request') ||
-            task.title.toLowerCase().includes('broadridge'))
+        // Skip generating signed documents for development since files don't exist
+        // This prevents 400 errors in the UI for non-existent PDF files
+        const shouldGenerateSignedDocs = false // Set to true when actual files exist
 
-        if (needsSignedDoc) {
-          tasksNeedingSignedDocs.push({
-            taskId,
-            meetingId,
-            taskTitle: task.title,
-            taskStatus,
-          })
+        if (shouldGenerateSignedDocs) {
+          const needsSignedDoc =
+            (taskStatus === 'SUBMITTED_AWAITING_RECORD_DATE' ||
+              taskStatus === 'PENDING_AUTHORIZATION' ||
+              taskStatus === 'AUTHORIZED') &&
+            (task.title.toLowerCase().includes('transfer agent') ||
+              task.title.toLowerCase().includes('plan file request') ||
+              task.title.toLowerCase().includes('broadridge'))
+
+          if (needsSignedDoc) {
+            tasksNeedingSignedDocs.push({
+              taskId,
+              meetingId,
+              taskTitle: task.title,
+              taskStatus,
+            })
+          }
         }
 
         taskCounter++
@@ -1910,7 +1915,7 @@ const main = async () => {
         'Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.',
       type: 'success',
       priority: 'high',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%201`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/1`,
       forMeetings: ['annual-meeting-2026'],
     },
     {
@@ -1929,6 +1934,7 @@ const main = async () => {
       type: 'info',
       priority: 'high',
       link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/7`,
+      forMeetings: ['special-meeting-2026'],
     },
     {
       title: 'Comment on Document',
@@ -1961,7 +1967,7 @@ const main = async () => {
         'You have 3 tasks due within the next 2 days. Please review your task list and complete them on time.',
       type: 'warning',
       priority: 'medium',
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%201`,
+      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/1`,
     },
     {
       title: 'Document Review Complete',
@@ -2077,6 +2083,8 @@ const main = async () => {
   // Generate documents with all fields
   sqlStatements.push('-- Insert documents')
   const documentIds: string[] = []
+
+  // Documents are handled by separate seed-documents.ts script after upload to storage
 
   sqlStatements.push('')
 
@@ -3320,125 +3328,47 @@ const main = async () => {
   sqlStatements.push('-- Insert DSM documents for 2025 meetings')
   const dsmDocumentTypes = [
     {
-      type: 'Shareholder Presentation',
+      type: 'Agenda',
       displayCategory: 'dsm',
-      storagePath: 'shareholder-presentation',
+      storagePath: 'agenda',
     },
-    { type: 'Intro Slide', displayCategory: 'dsm', storagePath: 'intro-slide' },
+    {
+      type: 'Static Slide or Presentation',
+      displayCategory: 'dsm',
+      storagePath: 'static-slide'
+    },
+    {
+      type: 'Documents to Display',
+      displayCategory: 'dsm',
+      storagePath: 'documents-display',
+    },
+    {
+      type: 'Speaker List',
+      displayCategory: 'dsm',
+      storagePath: 'speaker-list'
+    },
+    {
+      type: 'Guest Link Registration',
+      displayCategory: 'dsm',
+      storagePath: 'guest-registration',
+    },
+    {
+      type: '2025 Virtual Annual Meeting Rules of Conduct',
+      displayCategory: 'dsm',
+      storagePath: 'rules-of-conduct',
+    },
   ]
 
-  // Generate regular proxy documents for 2025 meetings
-  sqlStatements.push('-- Insert proxy documents for 2025 meetings')
-  const proxyDocumentTypes = [
-    {
-      type: 'Proxy Statement',
-      displayCategory: 'proxy-materials',
-      storagePath: 'proxy-statement',
-    },
-    {
-      type: 'Annual Report',
-      displayCategory: 'proxy-materials',
-      storagePath: 'annual-report',
-    },
-    {
-      type: 'Notice of Annual Meeting',
-      displayCategory: 'proxy-materials',
-      storagePath: 'notice-of-meeting',
-    },
-  ]
+  // Skip generating fake proxy documents - only use actual uploaded files
 
-  // Only add DSM documents for 2025 annual meetings
-  const dsmMeetings = meetingIds.filter(
-    (id) => id.includes('2025') && id.includes('annual')
-  )
-
-  dsmMeetings.forEach((meetingId) => {
-    dsmDocumentTypes.forEach((docType) => {
-      const dsmDocId = copycat.uuid(`dsm-doc-${meetingId}-${docType.type}`)
-      documentIds.push(dsmDocId)
-
-      // Generate appropriate status based on display category
-      let status = 'UPLOADED'
-      if (docType.displayCategory === 'post-meeting') {
-        status = 'COMPLETED'
-      } else if (
-        docType.displayCategory === 'dsm' ||
-        docType.displayCategory === 'proxy-materials'
-      ) {
-        status = 'AUTHORIZED'
-      }
-
-      // Generate storage URL - point to placeholder PDF files
-      const fileName = `${docType.storagePath}.pdf`
-      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
-
-      // Use more descriptive titles
-      let title = docType.type
-      if (docType.type === 'Shareholder Presentation') {
-        const clientName = meetingToClient[meetingId]?.companyName ?? ''
-        title = `${clientName} Annual Meeting Presentation`
-      } else if (docType.type === 'Meeting Minutes') {
-        title = '2025 Annual Meeting Minutes'
-      } else if (docType.type === 'Proxy Notice') {
-        title = 'Notice of Annual Meeting'
-      }
-
-      sqlStatements.push(
-        `INSERT INTO document(` +
-        `id, meeting_id, title, type, file_path, file_type, file_size, ` +
-        `status, display_category, created_at, updated_at) VALUES (` +
-        `${sqlValue(dsmDocId)}, ` +
-        `${sqlValue(meetingId)}, ` +
-        `${sqlValue(title)}, ` +
-        `${sqlValue(docType.type)}, ` +
-        `${sqlValue(storageUrl)}, ` +
-        `${sqlValue('pdf')}, ` +
-        `${1024 * 250}, ` + // Approximate file size
-        `${sqlValue(status)}, ` +
-        `${sqlValue(docType.displayCategory)}, ` +
-        `${sqlValue(createdAt)}, ` +
-        `${sqlValue(createdAt)});`
-      )
-    })
-  })
+  // Skip generating mock DSM documents - only use actual files from /data directory
+  // The actualDocuments array above will handle real files
 
   sqlStatements.push(
-    `-- Generated ${dsmMeetings.length * dsmDocumentTypes.length} DSM documents for 2025 meetings`
+    `-- Skipped generating mock DSM documents - using actual files only`
   )
 
-  // Add regular proxy documents for 2025 meetings
-  dsmMeetings.forEach((meetingId) => {
-    proxyDocumentTypes.forEach((docType) => {
-      const proxyDocId = copycat.uuid(`proxy-doc-${meetingId}-${docType.type}`)
-      documentIds.push(proxyDocId)
-
-      const status = 'APPROVED'
-      const fileName = `${docType.storagePath}.pdf`
-      const storageUrl = `http://127.0.0.1:54321/storage/v1/object/public/documents/${meetingId}/${docType.storagePath}/${fileName}`
-
-      sqlStatements.push(
-        `INSERT INTO document(` +
-        `id, meeting_id, title, type, file_path, file_type, file_size, ` +
-        `status, display_category, created_at, updated_at) VALUES (` +
-        `${sqlValue(proxyDocId)}, ` +
-        `${sqlValue(meetingId)}, ` +
-        `${sqlValue(docType.type)}, ` +
-        `${sqlValue(docType.type)}, ` +
-        `${sqlValue(storageUrl)}, ` +
-        `'PDF', ` +
-        `${copycat.int(meetingId + docType.type, { min: 500000, max: 5000000 })}, ` +
-        `${sqlValue(status)}, ` +
-        `${sqlValue(docType.displayCategory)}, ` +
-        `${sqlValue(copycat.dateString(meetingId + docType.type + 'created', { minYear: 2024, maxYear: 2025 }))}, ` +
-        `${sqlValue(copycat.dateString(meetingId + docType.type + 'updated', { minYear: 2024, maxYear: 2025 }))}` +
-        `);`
-      )
-    })
-  })
-
-  sqlStatements.push(
-    `-- Generated ${dsmMeetings.length * proxyDocumentTypes.length} proxy documents for 2025 meetings`
-  )
+  // Skip generating fake proxy documents - seed-documents.ts handles real files
   sqlStatements.push('')
 
   // Generate comments for some documents

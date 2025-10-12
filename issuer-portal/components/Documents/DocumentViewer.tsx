@@ -313,15 +313,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Construct the proper URL for the document
         let documentUrl =
           (document &&
-          typeof document === 'object' &&
-          'url' in document &&
-          typeof document.url === 'string'
+            typeof document === 'object' &&
+            'url' in document &&
+            typeof document.url === 'string'
             ? document.url
             : undefined) ??
           (document &&
-          typeof document === 'object' &&
-          'file_path' in document &&
-          typeof document.file_path === 'string'
+            typeof document === 'object' &&
+            'file_path' in document &&
+            typeof document.file_path === 'string'
             ? document.file_path
             : undefined)
 
@@ -347,9 +347,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           const docId =
             documentId ??
             (document &&
-            typeof document === 'object' &&
-            'id' in document &&
-            typeof document.id === 'string'
+              typeof document === 'object' &&
+              'id' in document &&
+              typeof document.id === 'string'
               ? document.id
               : `doc-${task.id ?? Date.now()}`)
           setCurrentDocumentId(docId)
@@ -358,9 +358,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             title:
               task.title ??
               (document &&
-              typeof document === 'object' &&
-              'title' in document &&
-              typeof document.title === 'string'
+                typeof document === 'object' &&
+                'title' in document &&
+                typeof document.title === 'string'
                 ? document.title
                 : 'Document'),
             signatureAreas: areas,
@@ -386,8 +386,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       legacyOnClose ??
       (task
         ? () => {
-            setOpen(false)
-          }
+          setOpen(false)
+        }
         : undefined),
     [legacyOnClose, task]
   )
@@ -1303,19 +1303,30 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 >
                   {actualfileUrl ? (
                     isPDF ? (
-                      <PDFViewer
-                        file={actualfileUrl}
-                        pageNumber={pageNumber}
-                        width={Math.min(
-                          800,
-                          typeof window !== 'undefined'
-                            ? window.innerWidth -
+                      (() => {
+                        // Convert relative storage paths to full Supabase URLs
+                        let pdfUrl = actualfileUrl
+                        if (actualfileUrl.startsWith('/storage/v1/object/public/')) {
+                          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+                          pdfUrl = `${supabaseUrl}${actualfileUrl}`
+                        }
+
+                        return (
+                          <PDFViewer
+                            file={pdfUrl}
+                            pageNumber={pageNumber}
+                            width={Math.min(
+                              800,
+                              typeof window !== 'undefined'
+                                ? window.innerWidth -
                                 (showComments || showHistory ? 500 : 100)
-                            : 800
-                        )}
-                        onLoadSuccess={onDocumentLoadSuccess}
-                        onLoadError={onDocumentLoadError}
-                      />
+                                : 800
+                            )}
+                            onLoadSuccess={onDocumentLoadSuccess}
+                            onLoadError={onDocumentLoadError}
+                          />
+                        )
+                      })()
                     ) : isOfficeDocument ? (
                       <OfficeDocumentViewer
                         url={actualfileUrl}
@@ -1360,7 +1371,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
-                              !area.label?.toLowerCase().includes('signature')
+                            !area.label?.toLowerCase().includes('signature')
                             ? 'text'
                             : area.label?.toLowerCase().includes('date')
                               ? 'date'

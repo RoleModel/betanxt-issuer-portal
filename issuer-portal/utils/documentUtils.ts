@@ -294,7 +294,7 @@ export function getStoragePublicUrl(filePath: string): string {
 
 // Simple URL detector used by UI code
 export function isStorageUrl(pathOrUrl: string): boolean {
-  return /^https?:\/\//i.test(pathOrUrl)
+  return /^https?:\/\//i.test(pathOrUrl) || pathOrUrl.startsWith('/storage/v1/object/public/')
 }
 
 // Fetch DSM documents for a meeting (category = 'DSM')
@@ -310,41 +310,41 @@ export async function fetchDSMDocuments(
       const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter(
-              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
-            )
-            .map((h) => ({
-              id:
-                typeof h.id === 'string'
-                  ? h.id
-                  : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
-              action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
-              userId:
-                typeof h.userId === 'string'
-                  ? h.userId
-                  : typeof h.user_id === 'string'
-                    ? h.user_id
-                    : '',
-              userName:
-                typeof h.userName === 'string'
-                  ? h.userName
-                  : typeof h.user_name === 'string'
-                    ? h.user_name
-                    : typeof h.user === 'string'
-                      ? h.user
-                      : 'Unknown User',
-              timestamp:
-                typeof h.timestamp === 'string'
-                  ? h.timestamp
-                  : typeof h.created_at === 'string'
-                    ? h.created_at
-                    : new Date().toISOString(),
-              details:
-                typeof h.details === 'object' && h.details !== null
-                  ? (h.details as Record<string, unknown>)
-                  : undefined,
-            }))
+          .filter(
+            (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
+          )
+          .map((h) => ({
+            id:
+              typeof h.id === 'string'
+                ? h.id
+                : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
+            documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
+            action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
+            userId:
+              typeof h.userId === 'string'
+                ? h.userId
+                : typeof h.user_id === 'string'
+                  ? h.user_id
+                  : '',
+            userName:
+              typeof h.userName === 'string'
+                ? h.userName
+                : typeof h.user_name === 'string'
+                  ? h.user_name
+                  : typeof h.user === 'string'
+                    ? h.user
+                    : 'Unknown User',
+            timestamp:
+              typeof h.timestamp === 'string'
+                ? h.timestamp
+                : typeof h.created_at === 'string'
+                  ? h.created_at
+                  : new Date().toISOString(),
+            details:
+              typeof h.details === 'object' && h.details !== null
+                ? (h.details as Record<string, unknown>)
+                : undefined,
+          }))
         : []
       return {
         id: rowId,
@@ -372,34 +372,34 @@ export async function fetchDSMDocuments(
       // Assume API already returns proper shape; minimally adapt
       const adapted = Array.isArray(resp.data)
         ? resp.data.map((d) => {
-            const r = d as Record<string, unknown>
-            return {
-              id: String(r.id),
-              name:
-                typeof r.title === 'string'
-                  ? r.title
-                  : typeof r.name === 'string'
-                    ? r.name
-                    : 'Untitled',
-              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string'
-                ? r.status
-                : 'DRAFT') as DocumentStatus,
-              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
-              uploadedAt:
-                (r.uploadedDate as string) ??
-                (r.uploaded_date as string) ??
-                (r.updatedAt as string) ??
-                (r.updated_at as string) ??
-                (r.createdAt as string) ??
-                (r.created_at as string) ??
-                new Date().toISOString(),
-              url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history)
-                ? (r.history as DocumentHistoryEntry[])
-                : [],
-            }
-          })
+          const r = d as Record<string, unknown>
+          return {
+            id: String(r.id),
+            name:
+              typeof r.title === 'string'
+                ? r.title
+                : typeof r.name === 'string'
+                  ? r.name
+                  : 'Untitled',
+            type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
+            status: (typeof r.status === 'string'
+              ? r.status
+              : 'DRAFT') as DocumentStatus,
+            size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+            uploadedAt:
+              (r.uploadedDate as string) ??
+              (r.uploaded_date as string) ??
+              (r.updatedAt as string) ??
+              (r.updated_at as string) ??
+              (r.createdAt as string) ??
+              (r.created_at as string) ??
+              new Date().toISOString(),
+            url: (r.filePath as string) ?? (r.file_path as string),
+            history: Array.isArray(r.history)
+              ? (r.history as DocumentHistoryEntry[])
+              : [],
+          }
+        })
         : []
       return { data: adapted, error: null }
     }
@@ -440,41 +440,41 @@ export async function fetchRegularDocuments(
       const historyRaw = row.history
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter(
-              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
-            )
-            .map((h) => ({
-              id:
-                typeof h.id === 'string'
-                  ? h.id
-                  : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
-              action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
-              userId:
-                typeof h.userId === 'string'
-                  ? h.userId
-                  : typeof h.user_id === 'string'
-                    ? h.user_id
-                    : '',
-              userName:
-                typeof h.userName === 'string'
-                  ? h.userName
-                  : typeof h.user_name === 'string'
-                    ? h.user_name
-                    : typeof h.user === 'string'
-                      ? h.user
-                      : 'Unknown User',
-              timestamp:
-                typeof h.timestamp === 'string'
-                  ? h.timestamp
-                  : typeof h.created_at === 'string'
-                    ? h.created_at
-                    : new Date().toISOString(),
-              details:
-                typeof h.details === 'object' && h.details !== null
-                  ? (h.details as Record<string, unknown>)
-                  : undefined,
-            }))
+          .filter(
+            (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
+          )
+          .map((h) => ({
+            id:
+              typeof h.id === 'string'
+                ? h.id
+                : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
+            documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
+            action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
+            userId:
+              typeof h.userId === 'string'
+                ? h.userId
+                : typeof h.user_id === 'string'
+                  ? h.user_id
+                  : '',
+            userName:
+              typeof h.userName === 'string'
+                ? h.userName
+                : typeof h.user_name === 'string'
+                  ? h.user_name
+                  : typeof h.user === 'string'
+                    ? h.user
+                    : 'Unknown User',
+            timestamp:
+              typeof h.timestamp === 'string'
+                ? h.timestamp
+                : typeof h.created_at === 'string'
+                  ? h.created_at
+                  : new Date().toISOString(),
+            details:
+              typeof h.details === 'object' && h.details !== null
+                ? (h.details as Record<string, unknown>)
+                : undefined,
+          }))
         : []
       return {
         id: rowId,
@@ -499,34 +499,34 @@ export async function fetchRegularDocuments(
     if (!resp.error && resp.data) {
       const adapted = Array.isArray(resp.data)
         ? resp.data.map((d) => {
-            const r = d as Record<string, unknown>
-            return {
-              id: String(r.id),
-              name:
-                typeof r.title === 'string'
-                  ? r.title
-                  : typeof r.name === 'string'
-                    ? r.name
-                    : 'Untitled',
-              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string'
-                ? r.status
-                : 'DRAFT') as DocumentStatus,
-              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
-              uploadedAt:
-                (r.uploadedDate as string) ??
-                (r.uploaded_date as string) ??
-                (r.updatedAt as string) ??
-                (r.updated_at as string) ??
-                (r.createdAt as string) ??
-                (r.created_at as string) ??
-                new Date().toISOString(),
-              url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history)
-                ? (r.history as DocumentHistoryEntry[])
-                : [],
-            }
-          })
+          const r = d as Record<string, unknown>
+          return {
+            id: String(r.id),
+            name:
+              typeof r.title === 'string'
+                ? r.title
+                : typeof r.name === 'string'
+                  ? r.name
+                  : 'Untitled',
+            type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
+            status: (typeof r.status === 'string'
+              ? r.status
+              : 'DRAFT') as DocumentStatus,
+            size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+            uploadedAt:
+              (r.uploadedDate as string) ??
+              (r.uploaded_date as string) ??
+              (r.updatedAt as string) ??
+              (r.updated_at as string) ??
+              (r.createdAt as string) ??
+              (r.created_at as string) ??
+              new Date().toISOString(),
+            url: (r.filePath as string) ?? (r.file_path as string),
+            history: Array.isArray(r.history)
+              ? (r.history as DocumentHistoryEntry[])
+              : [],
+          }
+        })
         : []
       return { data: adapted, error: null }
     }

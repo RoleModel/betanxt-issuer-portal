@@ -79,24 +79,38 @@ async function seedRemote() {
 
       let totalDeleted = 0
       let hasMore = true
+      let attempts = 0
+      const maxAttempts = 100 // Safety limit
 
-      // Delete all records in batches to handle any ID type (UUID, bigint, etc.)
-      while (hasMore) {
-        const { data: existingRecords } = await supabase
+      // Delete all records in smaller batches to handle large tables
+      while (hasMore && attempts < maxAttempts) {
+        attempts++
+
+        const { data: existingRecords, error: selectError } = await supabase
           .from(table)
           .select('id')
-          .limit(1000)
+          .limit(100) // Smaller batches for large tables
+
+        if (selectError) {
+          console.error(`   ⚠️  Failed to query ${table}:`, selectError.message)
+          break
+        }
 
         if (existingRecords && existingRecords.length > 0) {
           const ids = existingRecords.map((r) => r.id)
           const { error: deleteError } = await supabase.from(table).delete().in('id', ids)
 
           if (deleteError) {
-            console.error(`   ⚠️  Failed to clear ${table}:`, deleteError.message)
+            console.error(`   ⚠️  Failed to delete from ${table}:`, deleteError.message)
+            // Try to continue despite errors
             hasMore = false
           } else {
             totalDeleted += ids.length
-            hasMore = existingRecords.length === 1000 // Continue if we got a full batch
+            hasMore = existingRecords.length === 100 // Continue if we got a full batch
+
+            if (totalDeleted % 1000 === 0) {
+              console.log(`   🔄 Deleted ${totalDeleted} records so far...`)
+            }
           }
         } else {
           hasMore = false
@@ -104,7 +118,7 @@ async function seedRemote() {
       }
 
       if (totalDeleted > 0) {
-        console.log(`   🗑️  Deleted ${totalDeleted} records from ${table}`)
+        console.log(`   ✅ Deleted ${totalDeleted} records from ${table}`)
       } else {
         console.log(`   ⏭️  ${table} already empty`)
       }
@@ -116,7 +130,7 @@ async function seedRemote() {
       console.log(`\n📋 Processing table: ${table}`)
 
       // Fetch all data from local using pagination (Supabase has 1000 row limit per query)
-      let localData: any[] = []
+      let localData: Record<string, unknown>[] = []
       let page = 0
       const pageSize = 1000
       let hasMore = true

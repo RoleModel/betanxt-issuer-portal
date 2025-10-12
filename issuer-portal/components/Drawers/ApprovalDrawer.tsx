@@ -486,9 +486,16 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension ?? '')
 
               if (isPdf) {
+                // Convert relative storage paths to full Supabase URLs
+                let pdfUrl = fileUrl
+                if (fileUrl?.startsWith('/storage/v1/object/public/')) {
+                  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+                  pdfUrl = `${supabaseUrl}${fileUrl}`
+                }
+
                 return (
                   <PDFViewer
-                    file={fileUrl}
+                    file={pdfUrl}
                     pageNumber={currentPage}
                     onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
                   />

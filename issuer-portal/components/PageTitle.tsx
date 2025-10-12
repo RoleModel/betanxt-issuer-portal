@@ -58,7 +58,6 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
         <Breadcrumbs
           aria-label="breadcrumb"
           sx={{
-            mb: 1,
             'MuiBreadcrumbs-li': {
               display: 'flex',
               alignItems: 'center',
@@ -115,8 +114,9 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
       <Typography
         component="h1"
         variant="pageTitle"
-        fontWeight={600}
+        fontWeight={500}
         fontFamily={'var(--font-tungsten)'}
+        gutterBottom
       >
         {getPageTitle()}
       </Typography>

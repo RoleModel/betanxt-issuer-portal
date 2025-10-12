@@ -22,7 +22,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  useTheme,
 } from '@mui/material'
 
 import DocumentViewer from '@/components/Documents/DocumentViewer'
@@ -30,9 +29,9 @@ import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
+import { ContentTitle } from '@/components/ContentTitle'
 
 export default function EngagePage() {
-  const theme = useTheme()
 
   const [open, setOpen] = useState(false)
 
@@ -83,16 +82,9 @@ export default function EngagePage() {
 
   const leftColumnContent = (
     <Stack gap={2}>
-      <Typography
-        variant="h1"
-        fontFamily={'var(--font-tungsten)'}
-        sx={{
-          fontWeight: 700,
-          color: theme.vars.palette.text.primary,
-        }}
-      >
-        Achieve quorum and proposal passage by generating greater participation
-      </Typography>
+      <ContentTitle
+        title="Achieve quorum and proposal passage by generating greater participation"
+      />
       <Typography variant="body1">
         <strong>Retail shareholder</strong> votes are critical to achieving quorum and
         passing proposals. Large retail brokerage firms continue to adjust their
@@ -137,7 +129,10 @@ export default function EngagePage() {
           alt="BetaNXT Engage Omni-channel Communication"
           width={415}
           height={420}
-          style={{ margin: '0 auto' }}
+          className="invert"
+          style={{
+            margin: '0 auto',
+          }}
         />
       </Paper>
       <Card>

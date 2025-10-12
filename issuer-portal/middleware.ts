@@ -34,6 +34,29 @@ export default auth(async function middleware(request: NextRequest) {
     }
   }
 
+  // Check client access control for ticker-based routes
+  if (session) {
+    const tickerMatch = /^\/([A-Z]{2,5})\//.exec(nextUrl.pathname)
+    if (tickerMatch) {
+      const requestedTicker = tickerMatch[1]
+      const userClientTicker = session.user?.client_ticker
+
+      // If user has a specific client ticker and it doesn't match the requested one
+      if (userClientTicker && userClientTicker !== requestedTicker) {
+        // Redirect to their own client's equivalent page
+        const redirectPath = nextUrl.pathname.replace(`/${requestedTicker}/`, `/${userClientTicker}/`)
+        const redirectUrl = new URL(redirectPath + nextUrl.search, nextUrl)
+        return NextResponse.redirect(redirectUrl)
+      }
+
+      // If user doesn't have a client ticker (admin/dev user), allow access but redirect to first available client
+      if (!userClientTicker && !bypassAuth) {
+        // For non-bypass users without a client ticker, redirect to home to determine client
+        return NextResponse.redirect(new URL('/', nextUrl))
+      }
+    }
+  }
+
   return NextResponse.next()
 })
 

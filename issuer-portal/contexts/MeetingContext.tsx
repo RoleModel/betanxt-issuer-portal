@@ -152,11 +152,9 @@ export function MeetingProvider({
           return
         }
 
-        console.log('[MeetingContext] Raw API response:', data)
         // The API returns { meetings: Meeting[], pagination: ... }
         const responseData = asRecord(data)
         const meetingsData = responseData ? asArray(responseData.meetings) : []
-        console.log('[MeetingContext] Parsed meetings data:', meetingsData)
         const normalizedMeetings: Meeting[] = []
 
         for (const item of meetingsData) {
@@ -189,21 +187,17 @@ export function MeetingProvider({
           normalizedMeetings.push(meeting)
         }
 
-        console.log('[MeetingContext] Fetched meetings:', normalizedMeetings.length, normalizedMeetings)
         setMeetings(normalizedMeetings)
 
         // Set current meeting if we don't have one or if URL suggests a different one
         const meetingIdFromURL = getMeetingIdFromURL()
-        console.log('[MeetingContext] Meeting ID from URL:', meetingIdFromURL)
         if (meetingIdFromURL) {
           const targetMeeting = normalizedMeetings.find((m) => m.id === meetingIdFromURL)
-          console.log('[MeetingContext] Target meeting found:', targetMeeting?.title)
           if (targetMeeting && (!currentMeeting || currentMeeting.id !== targetMeeting.id)) {
             setCurrentMeeting(targetMeeting)
           }
         } else if (!currentMeeting && normalizedMeetings.length > 0) {
           // Fallback to first meeting if no URL context
-          console.log('[MeetingContext] Setting first meeting as current')
           setCurrentMeeting(normalizedMeetings[0])
         }
       } catch (err) {
@@ -330,7 +324,6 @@ export function MeetingProvider({
   // Fetch meeting data when current meeting changes
   useEffect(() => {
     if (currentMeeting?.id) {
-      console.log('[MeetingContext] Current meeting changed, refreshing data for:', currentMeeting.id)
       void refreshMeetingData()
     }
   }, [currentMeeting?.id, refreshMeetingData])

@@ -221,7 +221,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   }
 
   return (
-    <Card>
+    <Card variant="outlined">
       <CardHeader
         title={<Typography variant="h3">Key Dates</Typography>}
         action={
@@ -253,20 +253,41 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
         >
           {loading || phasesLoading
             ? // Skeleton loading for key dates
-              Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
+            Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
             : displayKeyDates.map((phaseItem, index) => {
-                const daysUntil = calculateDaysUntil(phaseItem.dateString)
-                const isPast = daysUntil < 0
-                return (
-                  <KeyDateBox
-                    key={index}
-                    isMeeting={phaseItem.isMeeting}
+              const daysUntil = calculateDaysUntil(phaseItem.dateString)
+              const isPast = daysUntil < 0
+              return (
+                <KeyDateBox
+                  key={index}
+                  isMeeting={phaseItem.isMeeting}
+                  isPast={isPast}
+                  phaseColor={phaseItem.phaseColor}
+                >
+                  <KeyDateTypography
+                    variant="body3"
                     isPast={isPast}
-                    phaseColor={phaseItem.phaseColor}
+                    sx={(theme) => {
+                      return {
+                        color: phaseItem.isMeeting
+                          ? theme.vars.palette.keydate.light
+                          : theme.vars.palette.text.primary,
+                      }
+                    }}
+                  >
+                    {phaseItem.title}
+                  </KeyDateTypography>
+                  <Box
+                    display="flex"
+                    alignItems="baseline"
+                    justifyContent="space-between"
+                    gap={1}
+                    width="100%"
                   >
                     <KeyDateTypography
-                      variant="body3"
                       isPast={isPast}
+                      variant="body3"
+                      fontWeight={500}
                       sx={(theme) => {
                         return {
                           color: phaseItem.isMeeting
@@ -275,47 +296,26 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                         }
                       }}
                     >
-                      {phaseItem.title}
+                      {phaseItem.date}
                     </KeyDateTypography>
-                    <Box
-                      display="flex"
-                      alignItems="baseline"
-                      justifyContent="space-between"
-                      gap={1}
-                      width="100%"
-                    >
-                      <KeyDateTypography
-                        isPast={isPast}
-                        variant="body3"
-                        fontWeight={500}
-                        sx={(theme) => {
-                          return {
-                            color: phaseItem.isMeeting
-                              ? theme.vars.palette.keydate.light
-                              : theme.vars.palette.text.primary,
-                          }
-                        }}
-                      >
-                        {phaseItem.date}
-                      </KeyDateTypography>
 
-                      <Typography
-                        variant="body3"
-                        fontWeight={600}
-                        sx={(theme) => {
-                          return {
-                            color: phaseItem.isMeeting
-                              ? theme.vars.palette.keydate.light
-                              : theme.vars.palette.text.secondary,
-                          }
-                        }}
-                      >
-                        {formatDaysUntil(daysUntil)}
-                      </Typography>
-                    </Box>
-                  </KeyDateBox>
-                )
-              })}
+                    <Typography
+                      variant="body3"
+                      fontWeight={600}
+                      sx={(theme) => {
+                        return {
+                          color: phaseItem.isMeeting
+                            ? theme.vars.palette.keydate.light
+                            : theme.vars.palette.text.secondary,
+                        }
+                      }}
+                    >
+                      {formatDaysUntil(daysUntil)}
+                    </Typography>
+                  </Box>
+                </KeyDateBox>
+              )
+            })}
         </Box>
       </CardContent>
       <PhaseDrawer phase={currentPhase} open={open} onClose={toggleDrawer(false)} />

@@ -23,15 +23,12 @@ const AutoAreasizeStyles = {
   width: '100%',
   border: '1px solid',
   backgroundColor: 'var(--mui-palette-inputOutlinedEnabledFill)',
-  borderColor: 'var(--mui-palette-primary-main)',
+  borderColor: 'var(--mui-palette-inputOutlinedEnabledBorder)',
   borderRadius: '4px',
   fontSize: '1rem',
   lineHeight: 1.3,
   fontFamily: 'var(--font-roboto)',
-  '&:focus': {
-    outline: 'var(--mui-palette-primary-main)',
-  },
-}
+} as React.CSSProperties
 
 export function CTACard() {
   const theme = useTheme()
@@ -80,18 +77,26 @@ export function CTACard() {
                 gap: 1,
               }}
             >
-              <TextareaAutosize
-                name="Contact Message"
-                id="contact-message"
-                style={AutoAreasizeStyles}
-                placeholder="How can we help you this proxy season?"
-                minRows={5}
-                value={contactForm.message}
-                onChange={(e) =>
-                  setContactForm({ ...contactForm, message: e.target.value })
-                }
-                required
-              />
+              <Box
+                sx={{
+                  '& textarea:focus-visible': {
+                    outline: '2px solid var(--mui-palette-primary-main) !important',
+                  },
+                }}
+              >
+                <TextareaAutosize
+                  name="Contact Message"
+                  id="contact-message"
+                  style={AutoAreasizeStyles}
+                  placeholder="How can we help you this proxy season?"
+                  minRows={5}
+                  value={contactForm.message}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, message: e.target.value })
+                  }
+                  required
+                />
+              </Box>
               <Button
                 type="submit"
                 variant="contained"

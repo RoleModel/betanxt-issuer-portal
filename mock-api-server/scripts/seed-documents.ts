@@ -297,8 +297,10 @@ async function uploadDocument(
 
     console.log(`   ✓ Uploaded to storage: ${storageData?.path || storagePath}`)
 
-    // Get public URL
+    // Get public URL - use relative path for production compatibility
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(storagePath)
+    // Convert to relative URL for production compatibility
+    const publicUrl = urlData.publicUrl.replace(/^https?:\/\/[^/]+/, '')
 
     // Create database record with generated ID
     const docId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -317,7 +319,7 @@ async function uploadDocument(
         title: getCleanTitle(filename, docType),
         type: docType.type,
         display_category: docType.displayCategory,
-        file_path: urlData.publicUrl,
+        file_path: publicUrl,
         file_type: ext.toUpperCase(),
         file_size: fileStats.size,
         status: docType.status ?? 'APPROVED',
@@ -413,13 +415,15 @@ async function linkExistingDocuments() {
     }
 
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(file.name)
+    // Convert to relative URL for production compatibility
+    const publicUrl = urlData.publicUrl.replace(/^https?:\/\/[^/]+/, '')
 
     const { error: upsertError } = await supabase.from('document').upsert({
       meeting_id: meetingId,
       title: getCleanTitle(filename, docType),
       type: docType.type,
       display_category: docType.displayCategory,
-      file_path: urlData.publicUrl,
+      file_path: publicUrl,
       file_type: (filename.split('.').pop() || 'pdf').toUpperCase(),
       status: docType.status ?? 'APPROVED',
       updated_at: new Date().toISOString(),

@@ -76,8 +76,8 @@ export function FeatureTile({
         }
       default:
         return {
-          background: baseTheme.vars.palette.background.default,
-          backgroundDark: baseTheme.vars.palette.background.default,
+          background: baseTheme.vars.palette.background.paper,
+          backgroundDark: baseTheme.vars.palette.background.paper,
           color: baseTheme.vars.palette.text.primary,
           colorDark: baseTheme.vars.palette.text.primary,
         }

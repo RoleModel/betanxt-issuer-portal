@@ -57,7 +57,7 @@ export default function ProductLayout({
       </Box>
       <Box
         sx={{
-          mt: 6,
+          mt: 15,
           order: {
             xs: 1,
             md: 2,
@@ -67,7 +67,7 @@ export default function ProductLayout({
         <Box
           sx={{
             position: 'sticky',
-            top: (theme) => theme.spacing(2),
+            top: (theme) => theme.spacing(25),
             display: 'flex',
             flexDirection: 'column',
             gap: 3,

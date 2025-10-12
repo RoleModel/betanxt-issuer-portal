@@ -8,16 +8,16 @@ import PersonShieldIcon from '@rolemodel/betanxt-design-system/components/icons/
 import TeamCircleIcon from '@rolemodel/betanxt-design-system/components/icons/brand/TeamCircleIcon'
 import { useState } from 'react'
 
-import { Card, CardContent, CardHeader, Stack, Typography, useTheme } from '@mui/material'
+import { Card, CardContent, CardHeader, Stack, Typography } from '@mui/material'
 
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
+import { ContentTitle } from '@/components/ContentTitle'
 
 export default function InspectorOfElectionsPage() {
-  const theme = useTheme()
   const [open, setOpen] = useState(false)
   const benefits = [
     {
@@ -78,25 +78,11 @@ export default function InspectorOfElectionsPage() {
 
   const leftColumnContent = (
     <Stack useFlexGap gap={2}>
-      <Typography
-        variant="h1"
-        sx={{
-          fontFamily: 'var(--font-tungsten)',
-          fontWeight: 700,
-          color: theme.vars.palette.text.primary,
-        }}
-      >
-        Achieve quorum and proposal passage by generating greater participation
-      </Typography>
+      <ContentTitle
+        title="Ensure legal compliance and voting accuracy with certified oversight solutions"
+      />
       <Typography variant="body1">
-        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to
-        participate in annual meetings remotely with the same level of access as in-person
-        attendees - they can view, vote, and ask questions. DSM also allows you to shape
-        your meeting to best facilitate your shareholders&apos; engagement with ease of
-        access on any device, real-time voting, questions, polling, and more. Combined
-        with the platform&apos;s Q&A management capabilities, branding options, and
-        high-touch service, DSM is the industry&apos;s most innovative and leading
-        platform.
+        Most states require an Inspector of Election to ensure the propriety of shareholder voting processes. BetaNXT provides certified Inspector of Elections services that tabulate votes with precision, ensure regulatory compliance, and make legally binding declarations of results. Our experienced team manages the entire oversight process, from pre-meeting preparation to final result certification.
       </Typography>
       <Card>
         <CardHeader title="Benefits" />
@@ -126,7 +112,7 @@ export default function InspectorOfElectionsPage() {
         </CardContent>
       </Card>
       <CTACard />
-    </Stack>
+    </Stack >
   )
 
   const rightColumnContent = (

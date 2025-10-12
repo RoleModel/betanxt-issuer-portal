@@ -7,7 +7,7 @@ import { Roboto, Roboto_Condensed } from 'next/font/google'
 import localFont from 'next/font/local'
 import React from 'react'
 
-import { GlobalStyles } from '@mui/material'
+import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import type { } from '@mui/material/themeCssVarsAugmentation'
@@ -72,13 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ClientProvider>
               <NotificationProvider>
                 <ThemeRegistry>
-                  <GlobalStyles
-                    styles={{
-                      'html, body': {
-                        height: '100%',
-                      },
-                    }}
-                  />
+                  <GlobalStyle />
                   {children}
                 </ThemeRegistry>
               </NotificationProvider>

@@ -509,10 +509,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const progress =
     data && isVotingPhase
       ? {
-          voted: Math.round(currentVotePercentage),
-          unvoted: 100 - Math.round(currentVotePercentage),
-          toQuorum: Math.round(currentVotePercentage),
-        }
+        voted: Math.round(currentVotePercentage),
+        unvoted: 100 - Math.round(currentVotePercentage),
+        toQuorum: Math.round(currentVotePercentage),
+      }
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
@@ -591,10 +591,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   text:
                     isCompleted && meetingDate
                       ? meetingDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
                       : meetingDate
                         ? calculateDaysUntil(meetingDate.toISOString())
                         : '--',
@@ -671,9 +671,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                     fontWeight: 600,
                     text: voteCutoffDate
                       ? voteCutoffDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })
+                        month: 'short',
+                        day: 'numeric',
+                      })
                       : '0',
                     sx: { whiteSpace: 'nowrap' },
                   }}
@@ -683,7 +683,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             )}
             {!isPhase7 && previousYearData && !isMobile && (
               <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
-                <Typography noWrap variant="body2">
+                <Typography noWrap variant="body2" fontWeight={500}>
                   Last Year
                 </Typography>
               </Box>
@@ -719,7 +719,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant="body2"
                 >
                   {Number(data?.shares_voted ?? 0) >
-                  Number(previousYearData.shares_voted) ? (
+                    Number(previousYearData.shares_voted) ? (
                     <ArrowUpwardSharp fontSize="inherit" />
                   ) : (
                     <ArrowDownward fontSize="inherit" />
@@ -759,7 +759,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant="body2"
                 >
                   {Number(data?.shares_unvoted ?? 0) <
-                  Number(previousYearData.shares_unvoted) ? (
+                    Number(previousYearData.shares_unvoted) ? (
                     <ArrowDownward fontSize="inherit" />
                   ) : (
                     <ArrowUpwardSharp fontSize="inherit" />
@@ -798,7 +798,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant="body2"
                 >
                   {Math.round(progress.toQuorum) >
-                  parseFloat(previousYearData.vote_percentage) ? (
+                    parseFloat(previousYearData.vote_percentage) ? (
                     <ArrowUpwardSharp fontSize="inherit" />
                   ) : (
                     <ArrowDownward fontSize="inherit" />

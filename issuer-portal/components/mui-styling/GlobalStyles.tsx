@@ -6,6 +6,14 @@ const globalStyles = {
       top: '104px !important',
     },
   },
+  'html, body': {
+    height: '100%',
+  },
+  ':root.dark': {
+    '& .invert': {
+      filter: 'invert(1) hue-rotate(176deg) brightness(200%)',
+    },
+  },
 }
 
 const GlobalStyle = () => <GlobalStyles styles={globalStyles} />

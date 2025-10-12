@@ -189,24 +189,20 @@ export default function EducationContent() {
         href: '/products/inspector-of-elections',
       },
       {
-        title: 'Digital Shareholder Meeting Guide',
+        title: 'Digital Shareholder Meetings',
         description:
           'Enable shareholders to participate in annual meetings remotely with the same level of access as in-person attendees',
         actionText: 'Learn More',
         icon: <GlobeNetworkIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: 'tertiary' as const,
-        onClick: () => {
-          setFileUrl('/documents/proxy-guide-2025-250204.pdf')
-          setViewerTitle('Digital Shareholder Meeting Guide')
-          setViewerOpen(true)
-        },
+        href: '/products/digital-shareholder-meetings',
       },
       {
         title: 'Marketing Assets',
         description: 'Description of Marketing Assets services',
         actionText: 'Learn More',
         icon: <LaptopPlayIcon accentColor="#ebb322" fontSize="3xl" />,
-        variant: 'default' as const,
+        variant: 'base' as const,
       },
     ],
     []
@@ -234,6 +230,7 @@ export default function EducationContent() {
                       titleVariant="h1"
                       {...item}
                       height="100%"
+                      variant="base"
                     />
                   </Grid>
                 ))}

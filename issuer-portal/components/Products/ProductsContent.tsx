@@ -22,7 +22,7 @@ export default function ProductsContent() {
           'Issuers require a comprehensive shareholder communications solution to simplify proxy management and BetaNXT Engage shareholders. BetaNXT streamlines proxy meeting events by centralizing communications and distributing proxy materials.',
         actionText: 'Learn More',
         icon: <TrendingUpIcon accentColor="#ebb322" fontSize="3xl" />,
-        variant: 'default' as const,
+        variant: 'base' as const,
         brandFont: true,
         href: '/products/end-to-end-proxy-solutions',
       },
