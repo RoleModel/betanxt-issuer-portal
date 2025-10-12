@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import path from 'path'
@@ -49,30 +49,32 @@ export async function POST(_req: NextRequest) {
       await client.connect()
       console.log('Database connection established')
 
-      // Step 1: Drop and recreate public schema
-      console.log('Dropping public schema...')
-      await client.query('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;')
-      console.log('Public schema recreated')
+      // Step 1: Truncate all data tables (preserve schema)
+      console.log('Truncating data tables...')
+      await client.query(`
+        TRUNCATE TABLE
+          signature,
+          document_history,
+          comment,
+          mailing,
+          position,
+          proposal,
+          task,
+          document,
+          dsm_guest_registrant,
+          dsm_participant,
+          dsm_config,
+          phase,
+          meeting,
+          account,
+          clients
+        CASCADE;
+      `)
+      console.log('Data tables truncated')
 
-      // Step 2: Apply migrations from bundled data directory
-      console.log('Applying migrations...')
-      const dataDir = path.join(process.cwd(), 'data')
-      const migrationsDir = path.join(dataDir, 'migrations')
-
-      const migrationFiles = await readdir(migrationsDir)
-      const sqlMigrations = migrationFiles.filter((f) => f.endsWith('.sql')).sort()
-
-      for (const migrationFile of sqlMigrations) {
-        console.log(`  Applying migration: ${migrationFile}`)
-        const migrationPath = path.join(migrationsDir, migrationFile)
-        const migrationSql = await readFile(migrationPath, 'utf-8')
-        await client.query(migrationSql)
-      }
-
-      console.log(`Applied ${sqlMigrations.length} migrations`)
-
-      // Step 3: Apply seed data from bundled data directory
+      // Step 2: Apply seed data from bundled data directory
       console.log('Applying seed data...')
+      const dataDir = path.join(process.cwd(), 'data')
       const seedPath = path.join(dataDir, 'seed.sql')
       const seedSql = await readFile(seedPath, 'utf-8')
 
