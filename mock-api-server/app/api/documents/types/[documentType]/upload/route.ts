@@ -88,11 +88,14 @@ export async function POST(
       file.name.replace(/\.[^/.]+$/, '') ??
       documentType.replace(/-/g, ' ')
 
+    // Create full storage URL path for database
+    const fullStoragePath = `/storage/v1/object/public/documents/${uploadData.path}`
+
     // Create document record with storage path
     const { data, error } = await createDocument(meetingId, {
       title,
       type: documentType,
-      file: uploadData.path, // Store the storage path, not base64
+      file: fullStoragePath, // Store the full storage URL path
       description: versionNotes || undefined,
       taskId: taskId || undefined,
       participantId: participantId || undefined,
