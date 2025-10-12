@@ -96,6 +96,7 @@ export async function POST(
       title,
       type: documentType,
       file: fullStoragePath, // Store the full storage URL path
+      status: 'AWAITING_REVIEW', // Set status to Awaiting Review for all uploaded documents
       description: versionNotes || undefined,
       taskId: taskId || undefined,
       participantId: participantId || undefined,
