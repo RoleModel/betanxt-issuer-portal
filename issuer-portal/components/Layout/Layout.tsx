@@ -161,7 +161,7 @@ function Layout({
           <Box
             sx={{
               flexShrink: 0,
-              zIndex: 5000,
+              zIndex: 1201,
             }}
           >
             <BNAppBarClient user={bnUser} />
