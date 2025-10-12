@@ -1,7 +1,7 @@
 'use client'
 
 import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import type { PropsWithChildren } from 'react'
@@ -161,6 +161,7 @@ function Layout({
           <Box
             sx={{
               flexShrink: 0,
+              zIndex: 5000,
             }}
           >
             <BNAppBarClient user={bnUser} />
@@ -236,11 +237,11 @@ function Layout({
             links={
               bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
                 ? [
-                    {
-                      label: 'Reset',
-                      href: '#reset-demo',
-                    },
-                  ]
+                  {
+                    label: 'Reset',
+                    href: '#reset-demo',
+                  },
+                ]
                 : []
             }
           />
