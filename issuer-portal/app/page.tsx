@@ -11,6 +11,7 @@ export default function HomePage() {
   const { currentClient, availableClients, loading: clientLoading, error } = useClient()
   const router = useRouter()
   const [showError, setShowError] = useState(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
     // Show error after 5 seconds if still loading
@@ -25,19 +26,21 @@ export default function HomePage() {
 
   useEffect(() => {
     // Middleware already handles authentication, so just redirect to client meeting once loaded
-    if (clientLoading) return // Still loading
+    if (clientLoading || hasRedirected) return // Still loading or already redirected
 
     if (currentClient) {
       // Have a client, redirect to client meeting
       const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2026`
+      setHasRedirected(true)
       router.push(`/${currentClient.ticker}/meeting/${defaultMeetingId}`)
     } else if (availableClients.length > 0) {
       // No current client but have available clients - redirect to first one
       const firstClient = availableClients[0]
       const defaultMeetingId = `${firstClient.ticker.toLowerCase()}-annual-meeting-2026`
+      setHasRedirected(true)
       router.push(`/${firstClient.ticker}/meeting/${defaultMeetingId}`)
     }
-  }, [router, currentClient, availableClients, clientLoading])
+  }, [router, currentClient, availableClients, clientLoading, hasRedirected])
 
   if (error || showError) {
     return (
