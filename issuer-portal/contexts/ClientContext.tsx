@@ -22,8 +22,8 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
-  const { clients, loading: clientsLoading, error: clientsError } = useClients()
 
+  const { clients, loading: clientsLoading, error: clientsError } = useClients()
   const [currentClient, setCurrentClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -287,7 +287,16 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 export const useClient = () => {
   const context = useContext(ClientContext)
   if (context === undefined) {
-    throw new Error('useClient must be used within a ClientProvider')
+    // Return default values when not within a ClientProvider (e.g., on login page)
+    return {
+      currentClient: null,
+      availableClients: [],
+      loading: false,
+      error: null,
+      switchClient: () => {},
+      canAccessClient: () => false,
+      isHydrated: true,
+    }
   }
   return context
 }
