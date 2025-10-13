@@ -17,36 +17,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
-        try {
-          console.log('🔐 AUTH - START - credentials received:', {
-            username: credentials?.username,
-            password: credentials?.password ? '***' : 'missing',
-            hasUsername: !!credentials?.username,
-            hasPassword: !!credentials?.password,
-          })
-
-          // TEMPORARY: Return a user for ANY credentials to test if auth flow works
-          if (credentials?.username && credentials?.password) {
-            console.log('🔐 AUTH - TEMPORARY: returning test user for any credentials')
-            const user = {
-              id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
-              username: credentials.username as string,
-              type: 'ADMIN' as const,
-              account_id: undefined,
-              client_ticker: null,
-            }
-            console.log('🔐 AUTH - returning user:', JSON.stringify(user))
-            return user
-          }
-
-          console.log('🔐 AUTH - no credentials, returning null')
-          return null
-        } catch (error) {
-          console.error('🔐 AUTH - ERROR in authorize:', error)
-          return null
-        }
+        console.log('🔐 AUTH - START - credentials received:', {
+          username: credentials?.username,
+          password: credentials?.password ? '***' : 'missing',
+          hasUsername: !!credentials?.username,
+          hasPassword: !!credentials?.password,
+        })
 
         if (!credentials?.username || !credentials?.password) {
           console.log('🔐 AUTH - missing credentials, returning null')
