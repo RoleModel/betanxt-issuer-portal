@@ -192,6 +192,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Check if viewing a past meeting first
     if (isViewingPastMeeting) return 'past-meetings'
 
+    // Check for specific page routes that don't have tabs
+    if (pathname === '/profile' || pathname.startsWith('/profile/')) return null
+
     if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
       return 'past-meetings'
     if (MEETING_REPORTS_REGEX.test(pathname)) return 'meeting'
@@ -366,9 +369,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     [router, mode, setMode, handleLogout]
   )
 
-  // Create a selectedTabValue that's always a valid tab value
-  // Default to 'meeting' (Dashboard) when no current tab matches
-  const selectedTabValue = currentTab ?? 'meeting'
+  // Create a selectedTabValue - use false for pages without active tabs
+  // This prevents any tab from being highlighted on non-tab pages like profile
+  const selectedTabValue = currentTab === null ? false : currentTab
 
   // Prepare props object
   const appBarProps = {
