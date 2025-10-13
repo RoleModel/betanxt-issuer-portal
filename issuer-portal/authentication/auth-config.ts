@@ -20,13 +20,14 @@ export const config = {
           id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
           name: 'Test User',
           email: 'test@betanxt.com',
-          username: credentials?.username || 'test.user',
+          username: (typeof credentials?.username === 'string' ? credentials.username : 'test.user'),
           type: 'admin',
           accountId: undefined,
           client: null,
           roles: ['ADMIN', 'USER'],
         }
 
+        /*
         // Check if auth bypass is enabled
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
           console.log('🔐 Using bypass auth mode')
@@ -160,6 +161,7 @@ export const config = {
 
         console.log('🔐 RETURNING NULL - auth failed')
         return null
+        */
       },
     }),
   ],
