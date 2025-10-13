@@ -152,6 +152,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         account_id?: string
         client_ticker?: string | null
         username?: string
+        name?: string
+        email?: string
       }
       // Type assertion for custom session user properties
       const user = session.user as typeof session.user & {
@@ -166,6 +168,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       user.client_ticker = t.client_ticker ?? null
       user.username = t.username ?? undefined
       user.image = t.image ?? null // Include the image field
+      // Populate name and email for profile page - use token values or fallback to username
+      user.name = t.name ?? t.username ?? session.user.name ?? 'User'
+      user.email = t.email ?? session.user.email ?? `${t.username ?? 'user'}@example.com`
       return session
     },
     // NextAuth.js requires callbacks to be async even if they don't use await
