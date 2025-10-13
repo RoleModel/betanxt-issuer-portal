@@ -2,7 +2,6 @@
 
 import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
 import type { User } from 'next-auth'
-import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -337,9 +336,23 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     ]
   )
 
-  const handleLogout = useCallback(() => {
-    void signOut({ callbackUrl: '/login', redirect: true })
-  }, [])
+  const handleLogout = useCallback(async () => {
+    try {
+      // NextAuth v5 beta requires explicit POST to signout endpoint
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      // Then redirect to login
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Fallback to router push even if signout request fails
+      router.push('/login')
+    }
+  }, [router])
 
   const menuItems = useMemo(
     () => [
@@ -348,7 +361,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
         onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
       },
-      { label: 'Logout', onClick: handleLogout },
+      { label: 'Logout', onClick: () => void handleLogout() },
     ],
     [router, mode, setMode, handleLogout]
   )
