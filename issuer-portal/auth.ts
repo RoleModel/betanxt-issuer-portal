@@ -17,6 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
+      // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
         console.error('🔐🔐🔐 AUTH AUTHORIZE CALLED - credentials received:', {
           username: credentials?.username,
@@ -133,11 +134,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log('🔐 JWT callback - user:', user ? 'EXISTS' : 'null')
         if (user) {
           console.log('🔐 JWT callback - setting token properties')
-          token.id = user.id // Store the actual user ID
-          token.type = user.type
-          token.account_id = user.account_id
-          token.client_ticker = user.client_ticker
-          token.username = user.username
+          // Type assertion for custom user properties
+          const customUser = user as typeof user & {
+            type?: string
+            account_id?: string
+            client_ticker?: string | null
+            username?: string
+          }
+          token.id = customUser.id // Store the actual user ID
+          token.type = customUser.type
+          token.account_id = customUser.account_id
+          token.client_ticker = customUser.client_ticker
+          token.username = customUser.username
           console.log('🔐 JWT callback - token set:', { id: token.id, username: token.username })
         }
 
@@ -158,13 +166,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // NextAuth.js requires callbacks to be async even if they don't use await
     // eslint-disable-next-line @typescript-eslint/require-await
     async session({ session, token }) {
-      const t = token as JWT & { sub?: string; id?: string; image?: string }
-      session.user.id = t.id ?? t.sub ?? '' // Use the stored user ID, fallback to sub
-      session.user.type = t.type ?? undefined
-      session.user.account_id = t.account_id ?? undefined
-      session.user.client_ticker = t.client_ticker ?? null
-      session.user.username = t.username ?? undefined
-      session.user.image = t.image ?? null // Include the image field
+      const t = token as JWT & {
+        sub?: string
+        id?: string
+        image?: string
+        type?: string
+        account_id?: string
+        client_ticker?: string | null
+        username?: string
+      }
+      // Type assertion for custom session user properties
+      const user = session.user as typeof session.user & {
+        type?: string
+        account_id?: string
+        client_ticker?: string | null
+        username?: string
+      }
+      user.id = t.id ?? t.sub ?? '' // Use the stored user ID, fallback to sub
+      user.type = t.type ?? undefined
+      user.account_id = t.account_id ?? undefined
+      user.client_ticker = t.client_ticker ?? null
+      user.username = t.username ?? undefined
+      user.image = t.image ?? null // Include the image field
       return session
     },
     // NextAuth.js requires callbacks to be async even if they don't use await

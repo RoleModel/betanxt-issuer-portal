@@ -43,5 +43,6 @@ declare module 'next-auth/jwt' {
     client_ticker?: string | null
     client?: Client | null
     roles?: string[]
+    image?: string | null
   }
 }
