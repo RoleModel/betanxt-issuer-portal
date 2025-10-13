@@ -19,7 +19,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
+        console.log('🔐 AUTH - credentials received:', {
+          username: credentials?.username,
+          password: credentials?.password ? '***' : 'missing'
+        })
+
         if (!credentials?.username || !credentials?.password) {
+          console.log('🔐 AUTH - missing credentials, returning null')
           return null
         }
 
@@ -83,17 +89,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           }
 
+        console.log('🔐 AUTH - looking up user:', credentials.username)
+        console.log('🔐 AUTH - available users:', Object.keys(mockUsers))
+
         const user = mockUsers[credentials.username as string]
-        if (user && credentials.password === user.password) {
-          return {
-            id: user.id,
-            username: user.username,
-            type: user.type,
-            account_id: user.account_id,
-            client_ticker: user.client_ticker,
+        console.log('🔐 AUTH - user found:', user ? 'YES' : 'NO')
+
+        if (user) {
+          console.log('🔐 AUTH - checking password match')
+          if (credentials.password === user.password) {
+            console.log('🔐 AUTH - password matches, returning user')
+            return {
+              id: user.id,
+              username: user.username,
+              type: user.type,
+              account_id: user.account_id,
+              client_ticker: user.client_ticker,
+            }
+          } else {
+            console.log('🔐 AUTH - password does NOT match')
           }
         }
 
+        console.log('🔐 AUTH - returning null')
         return null
       },
     }),
