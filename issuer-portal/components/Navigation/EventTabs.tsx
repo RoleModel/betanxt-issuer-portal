@@ -651,69 +651,75 @@ export function EventTabs() {
     }, [currentPath, ticker, meetingId, meeting.currentPhase])
 
     return (
-      <Box
+      <Link
         href={targetPath}
-        component={Link}
         key={meeting.id || index}
-        data-tab-index={index}
-        tabIndex={0}
-        role="tab"
-        aria-selected={isActive}
-        sx={(theme) => ({
+        passHref
+        style={{
           textDecoration: 'none',
-          display: 'flex',
-          flexDirection: 'row',
-          height: isMobile ? 'auto' : 110,
-          cursor: isActive ? 'default' : 'pointer',
-          overflowX: 'hidden',
-          backgroundColor: isActive
-            ? theme.vars.palette.background.default
-            : theme.vars.palette.common.white,
-          ...theme.applyStyles('dark', {
+          color: 'inherit',
+        }}
+      >
+        <Box
+          data-tab-index={index}
+          tabIndex={0}
+          role="tab"
+          aria-selected={isActive}
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'row',
+            height: isMobile ? 'auto' : 110,
+            cursor: isActive ? 'default' : 'pointer',
+            overflowX: 'hidden',
             backgroundColor: isActive
               ? theme.vars.palette.background.default
-              : theme.vars.palette.common.black,
-          }),
-          color: isActive
-            ? theme.vars.palette.primary.main
-            : theme.vars.palette.text.secondary,
-          position: 'relative',
-          borderRight: `1px solid ${theme.vars.palette.divider}`,
-          minWidth: 'fit-content',
-          transition: theme.transitions.create(['color']),
-          '&:hover': { color: theme.vars.palette.primary.main },
-        })}
-      >
-        <Box sx={{ px: 2, pt: 1.5 }}>
-          <Stack>
-            <Typography
-              variant="h1"
-              sx={{
-                fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
-                fontWeight: 500,
-                fontSize: '2rem',
-                lineHeight: 1.125,
-                letterSpacing: '0.47%',
-                textDecoration: 'none',
-                color: 'inherit',
-                mb: 1,
-                fontDisplay: 'swap',
-              }}
-            >
-              {meeting.title}
-            </Typography>
-            {isActive && !isMobile ? (
-              <ActiveMeetingDetails
-                meeting={meeting}
-                currentPhase={currentPhase}
-                onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
-              />
-            ) : (
-              !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
-            )}
-          </Stack>
+              : theme.vars.palette.common.white,
+            ...theme.applyStyles('dark', {
+              backgroundColor: isActive
+                ? theme.vars.palette.background.default
+                : theme.vars.palette.common.black,
+            }),
+            color: isActive
+              ? theme.vars.palette.primary.main
+              : theme.vars.palette.text.secondary,
+            position: 'relative',
+            borderRight: `1px solid ${theme.vars.palette.divider}`,
+            minWidth: 'fit-content',
+            transition: theme.transitions.create(['color']),
+            '&:hover': { color: theme.vars.palette.primary.main },
+          })}
+        >
+          <Box sx={{ px: 2, pt: 1.5 }}>
+            <Stack>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '2rem',
+                  lineHeight: 1.125,
+                  letterSpacing: '0.47%',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  mb: 1,
+                  fontDisplay: 'swap',
+                }}
+              >
+                {meeting.title}
+              </Typography>
+              {isActive && !isMobile ? (
+                <ActiveMeetingDetails
+                  meeting={meeting}
+                  currentPhase={currentPhase}
+                  onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
+                />
+              ) : (
+                !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
+              )}
+            </Stack>
+          </Box>
         </Box>
-      </Box>
+      </Link>
     )
   })
 

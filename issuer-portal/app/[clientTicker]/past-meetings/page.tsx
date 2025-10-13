@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { Box, Container, LinearProgress } from '@mui/material'
 
-import Layout from '@/components/Layout/Layout'
 import PastMeetingsTable, {
   type Order,
   type PastMeetingData,
@@ -351,21 +350,19 @@ export default function PastMeetingsPage() {
   }
 
   return (
-    <Layout navBar={true} eventTabs={false}>
-      <Box sx={{ p: { xs: 1, sm: 3 }, flexGrow: 1, flex: 1 }}>
-        <Container maxWidth="xl">
-          <PastMeetingsTable
-            clientTicker={clientTicker}
-            order={order}
-            orderBy={orderBy}
-            onRequestSort={handleRequestSort}
-            meetings={sortedMeetings}
-            rawMeetingsCount={meetings.length}
-            loading={loading}
-            formatDate={formatDate}
-          />
-        </Container>
-      </Box>
-    </Layout>
+    <Box sx={{ p: { xs: 1, sm: 3 }, flexGrow: 1, flex: 1 }}>
+      <Container maxWidth="xl">
+        <PastMeetingsTable
+          clientTicker={clientTicker}
+          order={order}
+          orderBy={orderBy}
+          onRequestSort={handleRequestSort}
+          meetings={sortedMeetings}
+          rawMeetingsCount={meetings.length}
+          loading={loading}
+          formatDate={formatDate}
+        />
+      </Container>
+    </Box>
   )
 }

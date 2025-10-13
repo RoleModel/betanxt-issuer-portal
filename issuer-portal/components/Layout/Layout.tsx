@@ -43,6 +43,7 @@ function Layout({
     message: '',
   })
 
+
   // Expose snackbar handler globally for phase completion
   React.useEffect(() => {
     const handlePhaseComplete = (event: CustomEvent<{ message: string }>) => {
@@ -148,7 +149,6 @@ function Layout({
           <Box
             sx={{
               flexShrink: 0,
-              zIndex: 1201,
             }}
           >
             <BNAppBarClient appSwitcher={true} user={bnUser} />

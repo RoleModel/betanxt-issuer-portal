@@ -3,7 +3,6 @@
 import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
 import type { User } from 'next-auth'
 import Image from 'next/image'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 
@@ -38,22 +37,6 @@ const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
 
-// Memoized Next.js Link component wrapper for BNAppBar - defined outside to prevent recreation
-interface NextLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
-  to: string
-  children: React.ReactNode
-}
-
-const NextLinkComponent = React.memo(
-  React.forwardRef<HTMLAnchorElement, NextLinkProps>(
-    ({ to, children, ...props }, ref) => (
-      <Link href={to} prefetch={false} ref={ref} {...props}>
-        {children}
-      </Link>
-    )
-  )
-)
-NextLinkComponent.displayName = 'NextLinkComponent'
 
 // Next.js Image component wrapper for BNAppBar logo
 const NextImageComponent = React.memo(
@@ -176,15 +159,15 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     const tickerPrefix = navTicker ? `/${navTicker}` : ''
 
     return [
-      { label: 'Dashboard', value: 'meeting', to: dashboardPath },
+      { label: 'Dashboard', value: 'meeting', href: dashboardPath },
       {
         label: 'Past Meetings',
         value: 'past-meetings',
-        to: `${tickerPrefix}/past-meetings`,
+        href: `${tickerPrefix}/past-meetings`,
       },
-      { label: 'Reporting', value: 'reporting', to: `${tickerPrefix}/reporting` },
-      { label: 'Education', value: 'education', to: '/education' },
-      { label: 'Products', value: 'products', to: '/products' },
+      { label: 'Reporting', value: 'reporting', href: `${tickerPrefix}/reporting` },
+      { label: 'Education', value: 'education', href: '/education' },
+      { label: 'Products', value: 'products', href: '/products' },
     ]
   }, [dashboardPath, urlTicker, currentClient?.ticker])
 
@@ -378,20 +361,47 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     [router, mode, setMode, handleLogout]
   )
 
-  // Create a selectedTabValue - use false for pages without active tabs
+  // Create a selectedTabValue - use undefined for pages without active tabs
   // This prevents any tab from being highlighted on non-tab pages like profile
-  const selectedTabValue = currentTab === null ? false : currentTab
+  const selectedTabValue = currentTab === null ? undefined : currentTab
+
+  // Handle tab change with client-side navigation
+  const handleTabChange = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      event.preventDefault()
+      const selectedTab = exampleTabs.find((tab) => tab.value === newValue)
+      if (selectedTab?.href) {
+        router.push(selectedTab.href)
+      }
+    },
+    [exampleTabs, router]
+  )
+
+  // Intercept all clicks on the AppBar to prevent default navigation
+  const handleWrapperClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+
+    // Find the closest anchor tag
+    const anchor = target.closest('a')
+    const href = anchor?.getAttribute('href')
+    // Only intercept internal navigation (not external links)
+    if (href?.startsWith('/')) {
+      event.preventDefault()
+      event.stopPropagation()
+      router.push(href)
+    }
+  }, [router])
 
   // Prepare props object
   const appBarProps = {
     slots: { logoImg: NextImageComponent, end: endSlot },
     slotProps,
     color: 'secondary' as const,
-    LinkComponent: NextLinkComponent,
     tabs: shouldHideTabs ? [] : exampleTabs,
     avatar,
     menuItems,
     selectedTabValue,
+    onTabChange: handleTabChange,
   }
 
   // Handle SSR where mode might be undefined
@@ -399,18 +409,20 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return null
   }
 
-  return <BNAppBar {...appBarProps} >
-    {props.appSwitcher && (
-      <Box
-        aria-label="Client and Application Switcher"
-        role="complementary"
-        sx={{ flexShrink: 0 }}
-      >
-        <ClientAppSwitcher currentAppTitle="Issuer Portal" />
-      </Box>
-    )}
-
-  </BNAppBar>
+  return (
+    <Box onClick={handleWrapperClick}>
+      <BNAppBar {...appBarProps} >
+        {props.appSwitcher && (
+          <Box
+            aria-label="Client and Application Switcher"
+            role="complementary"
+          >
+            <ClientAppSwitcher currentAppTitle="Issuer Portal" />
+          </Box>
+        )}
+      </BNAppBar>
+    </Box>
+  )
 })
 
 export { BNAppBar }

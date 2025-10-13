@@ -8,6 +8,7 @@ import localFont from 'next/font/local'
 import React from 'react'
 
 import GlobalStyle from '@/components/mui-styling/GlobalStyles'
+import RootLayoutClient from '@/components/Layout/RootLayoutClient'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import type { } from '@mui/material/themeCssVarsAugmentation'
@@ -73,7 +74,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NotificationProvider>
                 <ThemeRegistry>
                   <GlobalStyle />
-                  {children}
+                  <RootLayoutClient>
+                    {children}
+                  </RootLayoutClient>
                 </ThemeRegistry>
               </NotificationProvider>
             </ClientProvider>
