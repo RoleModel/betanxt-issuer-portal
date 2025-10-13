@@ -1,9 +1,7 @@
 'use client'
 
 import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
-import { getSession, signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 
 import {
   Alert,
@@ -20,43 +18,26 @@ import {
 
 import Layout from '@/components/Layout/Layout'
 
+import { authenticate } from './actions'
+
 export const dynamic = 'force-dynamic'
 
 const LoginPage = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setIsLoading(true)
 
-    try {
-      const result = await signIn('credentials', {
-        username,
-        password,
-        redirect: false,
-      })
-
+    startTransition(async () => {
+      const result = await authenticate(username, password)
       if (result?.error) {
-        setError('Invalid username or password')
-      } else {
-        // Check if sign in was successful
-        const session = await getSession()
-        if (session) {
-          // Let the app handle dynamic client routing
-          router.push('/')
-        }
+        setError(result.error)
       }
-    } catch (err) {
-      console.error('Login failed', err)
-      setError('An error occurred during login')
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
   return (
@@ -117,8 +98,8 @@ const LoginPage = () => {
                 </CardContent>
               )}
               <CardActions>
-                <Button type="submit" variant="contained" disabled={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                <Button type="submit" variant="contained" disabled={isPending}>
+                  {isPending ? 'Signing in...' : 'Sign In'}
                 </Button>
               </CardActions>
             </form>
