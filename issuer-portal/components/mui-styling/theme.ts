@@ -62,6 +62,11 @@ declare module '@mui/material/styles' {
   interface Palette {
     keydate: Palette['primary']
     tertiary: PaletteColorOptions
+    appSwitcher: {
+      background: string
+      hover: string
+      contrastText: string
+    }
     phase: [
       PaletteColor,
       PaletteColor,
@@ -79,6 +84,11 @@ declare module '@mui/material/styles' {
   interface PaletteOptions {
     keydate?: PaletteOptions['primary']
     tertiary?: PaletteOptions['primary']
+    appSwitcher?: {
+      background: string
+      hover: string
+      contrastText: string
+    }
     phase?: [
       PaletteColorOptions,
       PaletteColorOptions,
@@ -239,6 +249,11 @@ export const createClientTheme = (ticker?: string) => {
             dark: darken(branding.tertiaryColor, 0.2),
             contrastText: branding.tertiaryContrastText,
           },
+          appSwitcher: {
+            background: '#171717',
+            hover: '#363636',
+            contrastText: '#ffffff',
+          },
           aquaLight: '#CFE2E5',
           keydate: {
             main: '#CCE5FF',
@@ -323,6 +338,11 @@ export const createClientTheme = (ticker?: string) => {
             light: nxtBlue[700],
             dark: nxtBlue[600],
             contrastText: nxtBlue[100],
+          },
+          appSwitcher: {
+            background: '#080808',
+            hover: '#363636',
+            contrastText: '#ffffff',
           },
           phase: [
             {
