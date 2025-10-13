@@ -19,21 +19,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
-        console.log('🔐 AUTH - credentials received:', {
-          username: credentials?.username,
-          password: credentials?.password ? '***' : 'missing'
-        })
+        try {
+          console.log('🔐 AUTH - START - credentials received:', {
+            username: credentials?.username,
+            password: credentials?.password ? '***' : 'missing',
+            hasUsername: !!credentials?.username,
+            hasPassword: !!credentials?.password,
+          })
 
-        // TEMPORARY: Return a user for ANY credentials to test if auth flow works
-        if (credentials?.username && credentials?.password) {
-          console.log('🔐 AUTH - TEMPORARY: returning test user for any credentials')
-          return {
-            id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
-            username: credentials.username as string,
-            type: 'ADMIN',
-            account_id: undefined,
-            client_ticker: null,
+          // TEMPORARY: Return a user for ANY credentials to test if auth flow works
+          if (credentials?.username && credentials?.password) {
+            console.log('🔐 AUTH - TEMPORARY: returning test user for any credentials')
+            const user = {
+              id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+              username: credentials.username as string,
+              type: 'ADMIN' as const,
+              account_id: undefined,
+              client_ticker: null,
+            }
+            console.log('🔐 AUTH - returning user:', JSON.stringify(user))
+            return user
           }
+
+          console.log('🔐 AUTH - no credentials, returning null')
+          return null
+        } catch (error) {
+          console.error('🔐 AUTH - ERROR in authorize:', error)
+          return null
         }
 
         if (!credentials?.username || !credentials?.password) {
@@ -140,22 +152,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // NextAuth.js requires callbacks to be async even if they don't use await
     // eslint-disable-next-line @typescript-eslint/require-await
     async jwt({ token, user, trigger, session: updateData }) {
-      if (user) {
-        token.id = user.id // Store the actual user ID
-        token.type = user.type
-        token.account_id = user.account_id
-        token.client_ticker = user.client_ticker
-        token.username = user.username
-      }
-
-      // Handle session updates (like avatar uploads)
-      if (trigger === 'update' && updateData) {
-        if (updateData.image !== undefined) {
-          token.image = updateData.image
+      try {
+        console.log('🔐 JWT callback - user:', user ? 'EXISTS' : 'null')
+        if (user) {
+          console.log('🔐 JWT callback - setting token properties')
+          token.id = user.id // Store the actual user ID
+          token.type = user.type
+          token.account_id = user.account_id
+          token.client_ticker = user.client_ticker
+          token.username = user.username
+          console.log('🔐 JWT callback - token set:', { id: token.id, username: token.username })
         }
-      }
 
-      return token
+        // Handle session updates (like avatar uploads)
+        if (trigger === 'update' && updateData) {
+          if (updateData.image !== undefined) {
+            token.image = updateData.image
+          }
+        }
+
+        console.log('🔐 JWT callback - returning token')
+        return token
+      } catch (error) {
+        console.error('🔐 JWT callback - ERROR:', error)
+        return token
+      }
     },
     // NextAuth.js requires callbacks to be async even if they don't use await
     // eslint-disable-next-line @typescript-eslint/require-await
