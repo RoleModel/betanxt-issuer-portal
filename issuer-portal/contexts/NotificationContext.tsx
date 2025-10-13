@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 import { buildApiClient } from '@/domain-models/apiClient'
+import { useClient } from '@/contexts/ClientContext'
 
 import type { components } from '@/types/api'
 
@@ -41,6 +42,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<DbNotification[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { currentClient } = useClient()
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -49,8 +51,21 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       setLoading(true)
       setError(null)
 
+      // Only fetch if we have a current client
+      if (!currentClient?.ticker) {
+        setNotifications([])
+        setLoading(false)
+        return
+      }
+
       const apiClient = await buildApiClient()
-      const { data, error } = await apiClient.GET('/notifications')
+      const { data, error } = await apiClient.GET('/notifications', {
+        params: {
+          query: {
+            ticker: currentClient.ticker,
+          },
+        },
+      })
 
       if (error || !data) {
         setError(getApiErrorMessage(error, 'Failed to fetch notifications'))
@@ -66,7 +81,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [currentClient?.ticker])
 
   const markAsRead = useCallback(
     async (notificationId: string) => {

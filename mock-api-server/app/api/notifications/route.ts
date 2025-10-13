@@ -4,6 +4,13 @@ import { supabase } from '@/utils/supabase/client'
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const unreadOnly = searchParams.get('unread') === 'true'
+    const ticker = searchParams.get('ticker')
+    const meetingId = searchParams.get('meetingId')
+
     // For mock API, we'll bypass auth and get the first issuer user
     // In production, you would use proper auth here
     const { data: users } = await supabase
@@ -18,18 +25,32 @@ export async function GET(request: Request): Promise<NextResponse> {
       return NextResponse.json([], { status: 200 })
     }
 
-    // Get query parameters
-    const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const unreadOnly = searchParams.get('unread') === 'true'
-
-    // Query notifications for the current user
+    // If ticker is provided, filter notifications by meetings for that ticker
     let query = supabase
       .from('notification')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    // Filter by meeting if ticker or meetingId is provided
+    if (meetingId) {
+      query = query.eq('meeting_id', meetingId)
+    } else if (ticker) {
+      // Get all meeting IDs for this ticker
+      const { data: meetings } = await supabase
+        .from('meeting')
+        .select('id')
+        .eq('ticker', ticker)
+
+      const meetingIds = meetings?.map((m) => m.id) || []
+      if (meetingIds.length > 0) {
+        query = query.in('meeting_id', meetingIds)
+      } else {
+        // No meetings for this ticker, return empty
+        return NextResponse.json([])
+      }
+    }
 
     if (unreadOnly) {
       query = query.eq('read', false)

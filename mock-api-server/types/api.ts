@@ -4103,6 +4103,10 @@ export interface operations {
     listNotifications: {
         parameters: {
             query?: {
+                /** @description Filter notifications by client ticker */
+                ticker?: string;
+                /** @description Filter notifications by meeting ID */
+                meetingId?: string;
                 /** @description Filter by read status */
                 read?: boolean;
                 /** @description Filter by notification type */

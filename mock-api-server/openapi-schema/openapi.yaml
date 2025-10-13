@@ -2319,6 +2319,18 @@ paths:
       summary: List user notifications
       tags: [Notifications]
       parameters:
+        - name: ticker
+          in: query
+          description: Filter notifications by client ticker
+          schema:
+            type: string
+            example: 'WEN'
+        - name: meetingId
+          in: query
+          description: Filter notifications by meeting ID
+          schema:
+            type: string
+            example: 'wen-annual-meeting-2026'
         - name: read
           in: query
           description: Filter by read status
