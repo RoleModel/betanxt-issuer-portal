@@ -1,7 +1,6 @@
 'use server'
 
 import { AuthError } from 'next-auth'
-import { isRedirectError } from 'next/dist/client/components/redirect'
 
 import { signIn } from '@/auth'
 
@@ -18,7 +17,7 @@ export async function authenticate(
   } catch (error) {
     // NextAuth throws NEXT_REDIRECT when signIn succeeds and redirects
     // We need to re-throw it so Next.js can handle the redirect
-    if (isRedirectError(error)) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
       throw error
     }
 
