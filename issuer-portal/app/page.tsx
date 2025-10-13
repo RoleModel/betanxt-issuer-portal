@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -8,6 +9,7 @@ import { Box, LinearProgress, Typography } from '@mui/material'
 import { useClient } from '@/contexts/ClientContext'
 
 export default function HomePage() {
+  const { data: session } = useSession()
   const { currentClient, availableClients, loading: clientLoading, error } = useClient()
   const router = useRouter()
   const [showError, setShowError] = useState(false)
@@ -40,11 +42,19 @@ export default function HomePage() {
       setHasRedirected(true)
       router.push(`/${firstClient.ticker}/meeting/${defaultMeetingId}`)
     } else if (!clientLoading) {
-      // Loading complete but no clients available - redirect to login
-      setHasRedirected(true)
-      router.push('/login')
+      // Loading complete but no clients available
+      // For ADMIN users without a specific client, redirect to first available client
+      // For other users, this is an error state - should not happen
+      if (session?.user?.type === 'ADMIN') {
+        // Redirect to WEN as default for admins
+        setHasRedirected(true)
+        router.push('/WEN/meeting/wen-annual-meeting-2026')
+      } else {
+        setHasRedirected(true)
+        router.push('/login')
+      }
     }
-  }, [router, currentClient, availableClients, clientLoading, hasRedirected])
+  }, [router, currentClient, availableClients, clientLoading, hasRedirected, session])
 
   if (error || showError) {
     return (
