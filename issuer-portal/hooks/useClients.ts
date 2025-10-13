@@ -167,12 +167,12 @@ export const useClients = (): UseClientsResult => {
   // Custom fetcher for clients
   const clientsFetcher = async () => {
     // Only fetch if we have a session (non-bypass mode) or bypass is enabled
-    if (!bypassAuth && !session?.user?.id) {
+    if (!bypassAuth && !session) {
       return []
     }
 
     const apiClient = await buildApiClient()
-    const { data, error } = await apiClient.GET('/clients')
+    const { data, error} = await apiClient.GET('/clients')
 
     if (error) {
       throw new Error(
@@ -188,7 +188,7 @@ export const useClients = (): UseClientsResult => {
   // Use SWR for data fetching with deduplication
   const { data, error, isLoading, mutate } = useSWR(
     // Key includes session info to refetch when user changes
-    session?.user?.id || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
+    session || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
     clientsFetcher,
     clientsSWRConfig
   )
