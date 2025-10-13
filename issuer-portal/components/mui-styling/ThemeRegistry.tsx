@@ -17,20 +17,12 @@ import {
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
-  const [initialLoad, setInitialLoad] = React.useState(true)
 
-  // Wait for client to load on initial render to prevent duplicate CSS variable injection
-  React.useEffect(() => {
-    if (currentClient !== null || !initialLoad) {
-      setInitialLoad(false)
-    }
-  }, [currentClient, initialLoad])
-
-  const ticker = currentClient?.ticker ?? 'WEN'
+  const ticker = currentClient?.ticker
 
   const theme = useMemo(() => {
-    // Don't create theme until client is loaded
-    if (initialLoad && currentClient === null) {
+    // Don't create theme until we have actual client ticker
+    if (!ticker) {
       return null
     }
 
@@ -44,22 +36,16 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const themeOptions =
       themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
     return createTheme(themeOptions)
-  }, [ticker, initialLoad, currentClient])
+  }, [ticker])
 
-  // Show skeleton while theme loads to improve FCP - don't block rendering
+  // Wait for client to load before rendering to prevent wrong theme CSS injection
   if (!theme) {
-    return (
-      <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-        <div style={{ minHeight: '100vh', backgroundColor: '#fff' }}>
-          {children}
-        </div>
-      </NextAppDirEmotionCacheProvider>
-    )
+    return null
   }
 
   return (
     <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme} key={ticker}>
+      <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>
