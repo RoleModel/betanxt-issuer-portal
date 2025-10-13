@@ -341,14 +341,23 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   const handleLogout = useCallback(async () => {
     try {
-      // NextAuth v5 beta requires explicit POST to signout endpoint
+      // NextAuth v5 beta requires CSRF token for signout
+      // Get CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf')
+      const { csrfToken } = await csrfResponse.json() as { csrfToken: string }
+
+      // Then call signout with CSRF token
       await fetch('/api/auth/signout', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
+        body: new URLSearchParams({
+          csrfToken,
+        }),
       })
-      // Then redirect to login
+
+      // Redirect to login
       router.push('/login')
     } catch (error) {
       console.error('Logout failed:', error)
