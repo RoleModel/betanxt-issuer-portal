@@ -19,15 +19,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
-        console.error('🔐🔐🔐 AUTH AUTHORIZE CALLED - credentials received:', {
-          username: credentials?.username,
-          password: credentials?.password ? '***' : 'missing',
-          hasUsername: !!credentials?.username,
-          hasPassword: !!credentials?.password,
-        })
 
         if (!credentials?.username || !credentials?.password) {
-          console.error('🔐🔐🔐 AUTH - missing credentials, returning null')
           return null
         }
 
@@ -41,66 +34,60 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           account_id?: string;
           client_ticker?: string | null;
         }> = {
-            'dev.user': {
-              id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-              username: 'dev.user',
-              password: 'ju$Ky8Ad1#%g',
-              type: 'ADMIN',
-              account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
-              client_ticker: null,
-            },
-            'test.user': {
-              id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
-              username: 'test.user',
-              password: '9yUDDftg@Lh!',
-              type: 'ADMIN',
-              account_id: undefined,
-              client_ticker: null,
-            },
-            mike: {
-              id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
-              username: 'mike',
-              password: 'password',
-              type: 'ISSUER',
-              account_id: 'acc-wen-001',
-              client_ticker: 'WEN',
-            },
-            lisa: {
-              id: 'c2g6173b-10c7-6ed2-c29d-4911d6041fcb',
-              username: 'lisa',
-              password: 'password',
-              type: 'ISSUER',
-              account_id: 'acc-paycom-001',
-              client_ticker: 'PAYC',
-            },
-            david: {
-              id: 'd3h7284c-21d8-7fe3-d30e-5a22e7152gdc',
-              username: 'david',
-              password: 'password',
-              type: 'ISSUER',
-              account_id: 'acc-woodward-001',
-              client_ticker: 'WWD',
-            },
-            jenny: {
-              id: 'e4i8395d-32e9-8gf4-e41f-6b33f8263hed',
-              username: 'jenny',
-              password: 'password',
-              type: 'ISSUER',
-              account_id: 'acc-enliven-001',
-              client_ticker: 'ELVN',
-            },
-          }
-
-        console.error('🔐🔐🔐 AUTH - looking up user:', credentials.username)
-        console.error('🔐🔐🔐 AUTH - available users:', Object.keys(mockUsers))
+          'dev.user': {
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            username: 'dev.user',
+            password: 'ju$Ky8Ad1#%g',
+            type: 'ADMIN',
+            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client_ticker: null,
+          },
+          'test.user': {
+            id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+            username: 'test.user',
+            password: '9yUDDftg@Lh!',
+            type: 'ADMIN',
+            account_id: undefined,
+            client_ticker: null,
+          },
+          mike: {
+            id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
+            username: 'mike',
+            password: 'password',
+            type: 'ISSUER',
+            account_id: 'acc-wen-001',
+            client_ticker: 'WEN',
+          },
+          lisa: {
+            id: 'c2g6173b-10c7-6ed2-c29d-4911d6041fcb',
+            username: 'lisa',
+            password: 'password',
+            type: 'ISSUER',
+            account_id: 'acc-paycom-001',
+            client_ticker: 'PAYC',
+          },
+          david: {
+            id: 'd3h7284c-21d8-7fe3-d30e-5a22e7152gdc',
+            username: 'david',
+            password: 'password',
+            type: 'ISSUER',
+            account_id: 'acc-woodward-001',
+            client_ticker: 'WWD',
+          },
+          jenny: {
+            id: 'e4i8395d-32e9-8gf4-e41f-6b33f8263hed',
+            username: 'jenny',
+            password: 'password',
+            type: 'ISSUER',
+            account_id: 'acc-enliven-001',
+            client_ticker: 'ELVN',
+          },
+        }
 
         const user = mockUsers[credentials.username as string]
-        console.error('🔐🔐🔐 AUTH - user found:', user ? 'YES' : 'NO')
 
         if (user) {
-          console.error('🔐🔐🔐 AUTH - checking password match')
           if (credentials.password === user.password) {
-            console.error('🔐🔐🔐 AUTH - password matches, returning user')
             return {
               id: user.id,
               username: user.username,
@@ -108,12 +95,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               account_id: user.account_id,
               client_ticker: user.client_ticker,
             }
-          } else {
-            console.error('🔐🔐🔐 AUTH - password does NOT match')
           }
         }
-
-        console.error('🔐🔐🔐 AUTH - returning null')
         return null
       },
     }),
@@ -131,9 +114,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // eslint-disable-next-line @typescript-eslint/require-await
     async jwt({ token, user, trigger, session: updateData }) {
       try {
-        console.log('🔐 JWT callback - user:', user ? 'EXISTS' : 'null')
         if (user) {
-          console.log('🔐 JWT callback - setting token properties')
           // Type assertion for custom user properties
           const customUser = user as typeof user & {
             type?: string
@@ -146,7 +127,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.account_id = customUser.account_id
           token.client_ticker = customUser.client_ticker
           token.username = customUser.username
-          console.log('🔐 JWT callback - token set:', { id: token.id, username: token.username })
         }
 
         // Handle session updates (like avatar uploads)
@@ -156,10 +136,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        console.log('🔐 JWT callback - returning token')
         return token
       } catch (error) {
-        console.error('🔐 JWT callback - ERROR:', error)
         return token
       }
     },
