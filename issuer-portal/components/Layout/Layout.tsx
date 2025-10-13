@@ -13,7 +13,6 @@ import { Alert, Box, Snackbar, Stack } from '@mui/material'
 import { ResetDemoDataDialog } from '@/components/Dialogs/ResetDemoDataDialog'
 import { InfoDialog } from '@/components/InfoDialog'
 import { BNAppBarClient } from '@/components/Navigation/AppBar'
-import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
 import { EventTabs } from '@/components/Navigation/EventTabs'
 import IssuerSpeedDial from '@/components/SpeedDial'
 import SupportContactsPopover from '@/components/SupportContactsPopover'
@@ -30,11 +29,8 @@ interface LayoutProps {
   eventTabs?: boolean
 }
 
-const currentApp = 'Issuer Portal'
-
 function Layout({
   children,
-  appSwitcher = true,
   navBar = true,
   eventTabs = false,
 }: PropsWithChildren<LayoutProps>) {
@@ -148,15 +144,6 @@ function Layout({
   return (
     <Suspense fallback={<Loading />}>
       <Stack sx={{ minHeight: '100vh' }}>
-        {appSwitcher && (
-          <Box
-            aria-label="Client and Application Switcher"
-            role="complementary"
-            sx={{ flexShrink: 0 }}
-          >
-            <ClientAppSwitcher currentAppTitle={currentApp} />
-          </Box>
-        )}
         {navBar && (
           <Box
             sx={{
@@ -164,7 +151,7 @@ function Layout({
               zIndex: 1201,
             }}
           >
-            <BNAppBarClient user={bnUser} />
+            <BNAppBarClient appSwitcher={true} user={bnUser} />
           </Box>
         )}
         {eventTabs && (

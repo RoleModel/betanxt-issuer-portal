@@ -11,9 +11,11 @@ import React, { useCallback, useContext, useMemo, useRef, useState } from 'react
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton } from '@mui/material'
 import { useColorScheme } from '@mui/material/styles'
+import { Box } from '@mui/material'
 
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
+import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
 
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
@@ -89,6 +91,7 @@ interface BNAppBarWrapperProps {
   color?: 'primary' | 'secondary'
   tabPermissions?: Record<string, boolean>
   user?: User
+  appSwitcher?: boolean
 }
 
 export function BNAppBarClient(props: BNAppBarWrapperProps) {
@@ -367,7 +370,18 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return null
   }
 
-  return <BNAppBar {...appBarProps} />
+  return <BNAppBar {...appBarProps} >
+    {props.appSwitcher && (
+      <Box
+        aria-label="Client and Application Switcher"
+        role="complementary"
+        sx={{ flexShrink: 0 }}
+      >
+        <ClientAppSwitcher currentAppTitle="Issuer Portal" />
+      </Box>
+    )}
+
+  </BNAppBar>
 })
 
 export { BNAppBar }
