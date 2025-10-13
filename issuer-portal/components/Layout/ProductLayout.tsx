@@ -38,14 +38,14 @@ export default function ProductLayout({
         },
         flexGrow1: 1,
         flexDirection: {
-          xs: 'column-reverse',
+          xs: 'column',
         },
         gap: 3,
       }}
     >
       <Box
         sx={{
-          xs: {
+          sm: {
             order: 2,
           },
           md: {
@@ -57,9 +57,12 @@ export default function ProductLayout({
       </Box>
       <Box
         sx={{
-          mt: 15,
+          mt: {
+            sm: 0,
+            md: 25,
+          },
           order: {
-            xs: 1,
+            sm: 1,
             md: 2,
           },
         }}
@@ -67,7 +70,10 @@ export default function ProductLayout({
         <Box
           sx={{
             position: 'sticky',
-            top: (theme) => theme.spacing(25),
+            top: {
+              sm: 2,
+              md: 25,
+            },
             display: 'flex',
             flexDirection: 'column',
             gap: 3,
