@@ -46,9 +46,15 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     return createTheme(themeOptions)
   }, [ticker, initialLoad, currentClient])
 
-  // Show nothing until theme is ready
+  // Show skeleton while theme loads to improve FCP - don't block rendering
   if (!theme) {
-    return null
+    return (
+      <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: '#fff' }}>
+          {children}
+        </div>
+      </NextAppDirEmotionCacheProvider>
+    )
   }
 
   return (

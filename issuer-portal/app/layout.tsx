@@ -21,17 +21,17 @@ import { NotificationProvider } from '@/contexts/NotificationContext'
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
-  display: 'swap',
+  display: 'optional', // Faster FCP - use fallback if font not loaded
   variable: '--font-roboto',
-  preload: true,
+  preload: false, // Let browser prioritize critical resources
 })
 
 const robotoCondensed = Roboto_Condensed({
   weight: ['400', '500', '700'],
   subsets: ['latin'],
-  display: 'swap',
+  display: 'optional',
   variable: '--font-roboto-condensed',
-  preload: true,
+  preload: false,
 })
 
 const Tungsten = localFont({
@@ -40,8 +40,8 @@ const Tungsten = localFont({
     { path: '../public/fonts/Tungsten-Medium.woff2', weight: '500' },
   ],
   variable: '--font-tungsten',
-  display: 'swap',
-  preload: true,
+  display: 'optional',
+  preload: false,
 })
 
 export const viewport: Viewport = {
