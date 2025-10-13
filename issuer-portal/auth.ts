@@ -24,6 +24,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           password: credentials?.password ? '***' : 'missing'
         })
 
+        // TEMPORARY: Return a user for ANY credentials to test if auth flow works
+        if (credentials?.username && credentials?.password) {
+          console.log('🔐 AUTH - TEMPORARY: returning test user for any credentials')
+          return {
+            id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+            username: credentials.username as string,
+            type: 'ADMIN',
+            account_id: undefined,
+            client_ticker: null,
+          }
+        }
+
         if (!credentials?.username || !credentials?.password) {
           console.log('🔐 AUTH - missing credentials, returning null')
           return null
