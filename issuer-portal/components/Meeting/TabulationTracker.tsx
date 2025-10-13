@@ -192,14 +192,14 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
           }
 
           // Final fallback: if no reasonable phase date found, use meeting date
-          if (!selectedDate && currentMeeting.meetingDate) {
+          if (!selectedDate && currentMeeting?.meetingDate) {
             selectedDate = toLocalMidnight(currentMeeting.meetingDate)
           }
 
           setNextPhaseDate(selectedDate)
 
           // Vote cutoff is typically 2 days before meeting date
-          if (currentMeeting.meetingDate) {
+          if (currentMeeting?.meetingDate) {
             const meetingLocal = toLocalMidnight(currentMeeting.meetingDate)
             if (meetingLocal) {
               const cutoffDate = new Date(meetingLocal)
