@@ -337,6 +337,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     ]
   )
 
+  const handleLogout = useCallback(() => {
+    void signOut({ callbackUrl: '/login', redirect: true })
+  }, [])
+
   const menuItems = useMemo(
     () => [
       { label: 'Profile', onClick: () => router.push('/profile') },
@@ -344,9 +348,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
         onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
       },
-      { label: 'Logout', onClick: () => void signOut({ callbackUrl: '/login' }) },
+      { label: 'Logout', onClick: handleLogout },
     ],
-    [router, mode, setMode]
+    [router, mode, setMode, handleLogout]
   )
 
   // Create a selectedTabValue that's always a valid tab value
