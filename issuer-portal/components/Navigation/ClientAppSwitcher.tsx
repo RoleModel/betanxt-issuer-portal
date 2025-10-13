@@ -103,7 +103,7 @@ function SwitchButton() {
                 backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
               },
               '&.Mui-selected': {
-                backgroundColor: (theme) => theme.vars.palette.appSwitcher.hover,
+                backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
               },
             }}
           >
