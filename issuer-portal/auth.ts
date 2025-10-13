@@ -18,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        console.log('🔐 AUTH - START - credentials received:', {
+        console.error('🔐🔐🔐 AUTH AUTHORIZE CALLED - credentials received:', {
           username: credentials?.username,
           password: credentials?.password ? '***' : 'missing',
           hasUsername: !!credentials?.username,
@@ -26,7 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         })
 
         if (!credentials?.username || !credentials?.password) {
-          console.log('🔐 AUTH - missing credentials, returning null')
+          console.error('🔐🔐🔐 AUTH - missing credentials, returning null')
           return null
         }
 
@@ -90,16 +90,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           }
 
-        console.log('🔐 AUTH - looking up user:', credentials.username)
-        console.log('🔐 AUTH - available users:', Object.keys(mockUsers))
+        console.error('🔐🔐🔐 AUTH - looking up user:', credentials.username)
+        console.error('🔐🔐🔐 AUTH - available users:', Object.keys(mockUsers))
 
         const user = mockUsers[credentials.username as string]
-        console.log('🔐 AUTH - user found:', user ? 'YES' : 'NO')
+        console.error('🔐🔐🔐 AUTH - user found:', user ? 'YES' : 'NO')
 
         if (user) {
-          console.log('🔐 AUTH - checking password match')
+          console.error('🔐🔐🔐 AUTH - checking password match')
           if (credentials.password === user.password) {
-            console.log('🔐 AUTH - password matches, returning user')
+            console.error('🔐🔐🔐 AUTH - password matches, returning user')
             return {
               id: user.id,
               username: user.username,
@@ -108,11 +108,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               client_ticker: user.client_ticker,
             }
           } else {
-            console.log('🔐 AUTH - password does NOT match')
+            console.error('🔐🔐🔐 AUTH - password does NOT match')
           }
         }
 
-        console.log('🔐 AUTH - returning null')
+        console.error('🔐🔐🔐 AUTH - returning null')
         return null
       },
     }),
