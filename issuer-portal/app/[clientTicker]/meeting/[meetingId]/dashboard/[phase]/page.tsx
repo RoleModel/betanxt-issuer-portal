@@ -4,38 +4,38 @@ import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import React, { useMemo } from 'react'
 
-import { Box, CircularProgress, Container, Typography } from '@mui/material'
+import { Box, Container, LinearProgress, Typography } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 
 // Dynamically load heavy phase layouts & tracker to reduce initial JS bundle
 const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase2Layout = dynamic(() => import('@/components/Meeting/Phase2Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase3Layout = dynamic(() => import('@/components/Meeting/Phase3Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase4Layout = dynamic(() => import('@/components/Meeting/Phase4Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase5Layout = dynamic(() => import('@/components/Meeting/Phase5Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase6Layout = dynamic(() => import('@/components/Meeting/Phase6Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase7Layout = dynamic(() => import('@/components/Meeting/Phase7Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const Phase8Layout = dynamic(() => import('@/components/Meeting/Phase8Layout'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 const TabulationTracker = dynamic(() => import('@/components/Meeting/TabulationTracker'), {
-  loading: () => <CircularProgress />,
+  loading: () => <LinearProgress />,
 })
 
 export default function PhasePage() {
