@@ -59,13 +59,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
   const [phases, setPhases] = useState<Phase[]>([])
 
-  // Reset all state when meeting changes
+  // Set loading when meeting changes, but keep old data visible until new data arrives
   useEffect(() => {
-    setData(null)
-    setPreviousYearData(null)
-    setPhases([])
-    setNextPhaseDate(null)
-    setVoteCutoffDate(null)
     setLoading(true)
   }, [currentMeeting?.id])
 
