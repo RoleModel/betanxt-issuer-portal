@@ -85,9 +85,9 @@ declare module '@mui/material/styles' {
     keydate?: PaletteOptions['primary']
     tertiary?: PaletteOptions['primary']
     appSwitcher?: {
-      background: string
-      hover: string
-      contrastText: string
+      background?: string
+      hover?: string
+      contrastText?: string
     }
     phase?: [
       PaletteColorOptions,
