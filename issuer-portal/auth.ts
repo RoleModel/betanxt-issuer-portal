@@ -137,7 +137,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         return token
-      } catch (error) {
+      } catch (_error) {
         return token
       }
     },
