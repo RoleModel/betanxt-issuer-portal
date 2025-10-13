@@ -24,9 +24,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // Mock authentication for development
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-          // Mock user data based on username
-          const mockUsers = {
+        // Mock user data based on username
+        const mockUsers = {
             mike: {
               id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
               username: 'mike',
@@ -57,15 +56,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           }
 
-          const user = mockUsers[credentials.username as keyof typeof mockUsers]
-          if (user && credentials.password === 'password') {
-            return {
-              id: user.id,
-              username: user.username,
-              type: user.type,
-              account_id: user.account_id,
-              client_ticker: user.client_ticker,
-            }
+        const user = mockUsers[credentials.username as keyof typeof mockUsers]
+        if (user && credentials.password === 'password') {
+          return {
+            id: user.id,
+            username: user.username,
+            type: user.type,
+            account_id: user.account_id,
+            client_ticker: user.client_ticker,
           }
         }
 
