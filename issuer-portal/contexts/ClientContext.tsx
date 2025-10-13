@@ -297,7 +297,9 @@ export const useClient = () => {
       availableClients: [],
       loading: false,
       error: null,
-      switchClient: () => {},
+      switchClient: () => {
+        // No-op when outside provider
+      },
       canAccessClient: () => false,
       isHydrated: true,
     }

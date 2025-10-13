@@ -2,6 +2,10 @@ import baseConfig from '../eslint.config.mjs'
 
 export default [
   ...baseConfig,
+  // Ignore auto-generated files
+  {
+    ignores: ['types/api.ts'],
+  },
   // Issuer Portal specific overrides
   {
     rules: {

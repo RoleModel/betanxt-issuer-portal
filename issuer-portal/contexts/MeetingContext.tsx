@@ -215,7 +215,7 @@ export function MeetingProvider({
         setIsLoading(false)
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL]
+    [getTickerFromURL, getMeetingIdFromURL, currentMeeting]
   )
 
   const getMeetingById = useCallback(
