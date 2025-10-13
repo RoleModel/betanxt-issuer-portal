@@ -215,7 +215,7 @@ export function MeetingProvider({
         setIsLoading(false)
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL, currentMeeting]
+    [getTickerFromURL, getMeetingIdFromURL]
   )
 
   const getMeetingById = useCallback(
@@ -324,18 +324,26 @@ export function MeetingProvider({
     const meetingIdFromURL = getMeetingIdFromURL()
     if (meetingIdFromURL && meetings.length > 0) {
       const targetMeeting = meetings.find((m) => m.id === meetingIdFromURL)
-      if (targetMeeting && (!currentMeeting || currentMeeting.id !== targetMeeting.id)) {
-        setCurrentMeeting(targetMeeting)
+      // Only update if we found a target meeting and it's different from current
+      if (targetMeeting) {
+        setCurrentMeeting((prev) => {
+          // Only update if different to avoid unnecessary re-renders
+          if (!prev || prev.id !== targetMeeting.id) {
+            return targetMeeting
+          }
+          return prev
+        })
       }
     }
-  }, [meetings, getMeetingIdFromURL, currentMeeting])
+  }, [meetings, getMeetingIdFromURL])
 
   // Fetch meeting data when current meeting changes
   useEffect(() => {
     if (currentMeeting?.id) {
       void refreshMeetingData()
     }
-  }, [currentMeeting?.id, refreshMeetingData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMeeting?.id])
 
   return (
     <MeetingContext.Provider
