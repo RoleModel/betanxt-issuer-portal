@@ -43,14 +43,12 @@ interface TabulationTrackerProps {
   meetingId?: string
 }
 
-const TabulationTracker: React.FC<TabulationTrackerProps> = ({
-  meetingId: _meetingId,
-}) => {
+const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
   // Get data from shared MeetingContext
   const { currentMeeting } = useMeeting()
   const [data, setData] = useState<TabulationData | null>(null)
   const [previousYearData, setPreviousYearData] = useState<TabulationData | null>(null)
-  const [loading, setLoading] = useState(true) // Start as loading to prevent flash
+  const [loading, setLoading] = useState(false) // Don't start as loading to prevent double LinearProgress
   const [loadingProgress, setLoadingProgress] = useState(0)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -59,10 +57,9 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
   const [phases, setPhases] = useState<Phase[]>([])
 
-  // Set loading when meeting changes, but keep old data visible until new data arrives
-  useEffect(() => {
-    setLoading(true)
-  }, [currentMeeting?.id])
+  // Use meetingId from props (URL) as source of truth instead of context
+  // Context might lag behind during navigation
+  const currentMeetingId = meetingId ?? currentMeeting?.id
 
   // Animate loading progress
   useEffect(() => {
@@ -112,13 +109,13 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   // Fetch phases to get next phase date and vote cutoff
   useEffect(() => {
     const fetchPhases = async () => {
-      if (!currentMeeting?.id) return
+      if (!currentMeetingId) return
 
       try {
         const apiClient = await buildApiClient()
         const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
           params: {
-            path: { meetingId: currentMeeting.id },
+            path: { meetingId: currentMeetingId },
           },
         })
         if (!error && data) {
@@ -217,17 +214,17 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     }
 
     void fetchPhases()
-  }, [currentMeeting?.id, currentMeeting?.meetingDate])
+  }, [currentMeetingId, currentMeeting?.meetingDate])
 
   // Fetch previous year's meeting data
   useEffect(() => {
     const fetchPreviousYearData = async () => {
-      if (!currentMeeting?.id) return
+      if (!currentMeetingId) return
 
       try {
         // Extract meeting type and year from current meeting ID
         // Format: ticker-meetingType-year (e.g., "wen-special-meeting-2026")
-        const idParts = currentMeeting.id.split('-')
+        const idParts = currentMeetingId.split('-')
         if (idParts.length < 4) return // ticker-meeting-type-year
 
         const currentYear = parseInt(idParts[idParts.length - 1])
@@ -342,29 +339,28 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     }
 
     void fetchPreviousYearData()
-  }, [currentMeeting?.id])
+  }, [currentMeetingId])
 
   // Fetch tabulation data from API instead of calculating locally
   useEffect(() => {
     const fetchTabulationData = async () => {
-      if (!currentMeeting?.id) {
+      if (!currentMeetingId) {
         setLoading(false) // No meeting data, stop loading
         return
       }
 
       setLoading(true)
       try {
-        const meetingId = currentMeeting.id
-        const meetingTitle = currentMeeting.title ?? ''
-        const meetingDate = currentMeeting.meetingDate ?? ''
-        const meetingStatus = currentMeeting.status ?? ''
+        const meetingTitle = currentMeeting?.title ?? ''
+        const meetingDate = currentMeeting?.meetingDate ?? ''
+        const meetingStatus = currentMeeting?.status ?? ''
 
         const apiClient = await buildApiClient()
         const { data: tabulationReport, error } = (await apiClient.GET(
           '/meetings/{meetingId}/tabulation-report',
           {
             params: {
-              path: { meetingId },
+              path: { meetingId: currentMeetingId },
             },
           }
         )) as { data?: TabulationReport; error?: unknown }
@@ -386,7 +382,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           const phoneVotes = nonDtc?.ivrShareholders ?? 0
 
           setData({
-            meeting_id: meetingId,
+            meeting_id: currentMeetingId,
             meeting_title: meetingTitle,
             meeting_date: meetingDate,
             total_positions: totalPositions,
@@ -404,7 +400,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
           // Fallback to positions-based calculation when tabulation report doesn't exist
           try {
             const positionsResult = (await apiClient.GET('/positions', {
-              params: { query: { meetingId } },
+              params: { query: { meetingId: currentMeetingId } },
             })) as { data?: { positions?: Position[] }; error?: unknown }
 
             const positions = positionsResult.data?.positions
@@ -429,7 +425,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
               // Using fallback calculation based on positions data
 
               setData({
-                meeting_id: meetingId,
+                meeting_id: currentMeetingId,
                 meeting_title: meetingTitle,
                 meeting_date: meetingDate,
                 total_positions: totalPositions,
@@ -446,7 +442,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             } else {
               // Empty data if no positions available either
               setData({
-                meeting_id: meetingId,
+                meeting_id: currentMeetingId,
                 meeting_title: meetingTitle,
                 meeting_date: meetingDate,
                 total_positions: 0,
@@ -465,7 +461,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
             console.error('Fallback positions calculation failed:', fallbackError)
             // Final fallback to empty data
             setData({
-              meeting_id: meetingId,
+              meeting_id: currentMeetingId,
               meeting_title: meetingTitle,
               meeting_date: meetingDate,
               total_positions: 0,
@@ -491,7 +487,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
     void fetchTabulationData()
     // Only depend on meeting ID - extract other values inside effect to avoid re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentMeeting?.id])
+  }, [currentMeetingId])
 
   // Calculate progress data - only show actual voting data in phase 6+
   // Check both phase data and meeting.currentPhase (which should be "Phase 6" for the WEN special meeting)
@@ -508,11 +504,15 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
   )
   const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
 
+  // Only use data if it matches the current meeting - otherwise show loading/empty state
+  // If no data yet, also return null
+  const currentData = data?.meeting_id === currentMeetingId ? data : null
+
   // Get quorum requirement from meeting (percentage)
-  const currentVotePercentage = data ? parseFloat(data.vote_percentage) : 0
+  const currentVotePercentage = currentData ? parseFloat(currentData.vote_percentage) : 0
 
   const progress =
-    data && isVotingPhase
+    currentData && isVotingPhase
       ? {
         voted: Math.round(currentVotePercentage),
         unvoted: 100 - Math.round(currentVotePercentage),
@@ -522,10 +522,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
 
   // Meeting status determines what data to show
   const isCompleted =
-    data?.status === 'COMPLETE' ||
-    data?.status === 'completed' ||
+    currentData?.status === 'COMPLETE' ||
+    currentData?.status === 'completed' ||
     currentMeeting?.status === 'COMPLETE'
-  const meetingDate = data?.meeting_date ? new Date(data.meeting_date) : null
+  const meetingDate = currentData?.meeting_date ? new Date(currentData.meeting_date) : null
 
   const isPhase7 = (currentPhaseNumber ?? 0) < 7
 
@@ -544,9 +544,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
         minHeight: !isPhase7 && !isMobile ? '105.6px' : '86px',
       })}
     >
-      {!loading && (
-        <Fade in={true} timeout={1000} appear>
-          <Stack
+      <Fade in={true} timeout={1000} appear>
+        <Stack
             direction={'row'}
             flexWrap={'wrap'}
             display={'grid'}
@@ -638,7 +637,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   secondary={{
                     variant: 'h2',
                     fontWeight: 600,
-                    text: data ? data.total_positions.toLocaleString() : '--',
+                    text: currentData ? currentData.total_positions.toLocaleString() : '--',
                   }}
                   sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
                 />
@@ -656,7 +655,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   secondary={{
                     variant: 'h2',
                     fontWeight: 600,
-                    text: data ? data.positions_voted.toLocaleString() : '--',
+                    text: currentData ? currentData.positions_voted.toLocaleString() : '--',
                     sx: { whiteSpace: 'nowrap' },
                   }}
                   sx={{ flex: 1 }}
@@ -707,8 +706,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant: 'h2',
                   fontWeight: 600,
                   text:
-                    data && isVotingPhase
-                      ? Number(data.shares_voted).toLocaleString()
+                    currentData && isVotingPhase
+                      ? Number(currentData.shares_voted).toLocaleString()
                       : '0',
                 }}
                 sx={{ flex: 1 }}
@@ -723,7 +722,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   fontWeight={500}
                   variant="body2"
                 >
-                  {Number(data?.shares_voted ?? 0) >
+                  {Number(currentData?.shares_voted ?? 0) >
                     Number(previousYearData.shares_voted) ? (
                     <ArrowUpwardSharp fontSize="inherit" />
                   ) : (
@@ -747,8 +746,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   variant: 'h2',
                   fontWeight: 600,
                   text:
-                    data && isVotingPhase
-                      ? Number(data.shares_unvoted).toLocaleString()
+                    currentData && isVotingPhase
+                      ? Number(currentData.shares_unvoted).toLocaleString()
                       : '0',
                 }}
                 sx={{ flex: 1 }}
@@ -763,7 +762,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                   fontWeight={500}
                   variant="body2"
                 >
-                  {Number(data?.shares_unvoted ?? 0) <
+                  {Number(currentData?.shares_unvoted ?? 0) <
                     Number(previousYearData.shares_unvoted) ? (
                     <ArrowDownward fontSize="inherit" />
                   ) : (
@@ -812,13 +811,11 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 </Typography>
               )}
             </Box>
-          </Stack>
-        </Fade>
-      )}
+        </Stack>
+      </Fade>
 
       {/* Progress Bar at Bottom */}
-      {!loading && (
-        <Fade in={true} timeout={500}>
+      <Fade in={true} timeout={500}>
           <Box
             sx={{
               display: 'flex',
@@ -877,9 +874,8 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({
                 {progress.unvoted}% Unvoted
               </Typography>
             </Box>
-          </Box>
-        </Fade>
-      )}
+        </Box>
+      </Fade>
     </Paper>
   )
 }
