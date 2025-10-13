@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-import { auth } from '@/authentication/auth-config'
+import { auth } from '@/auth'
 
 // Must be async to match NextAuth middleware signature
 // eslint-disable-next-line @typescript-eslint/require-await

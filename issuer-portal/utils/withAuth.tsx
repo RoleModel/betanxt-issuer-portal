@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 
 import UserRoutes from '@/domain-models/UserRoutes'
 
-import { auth } from '@/authentication/auth-config'
+import { auth } from '@/auth'
 
 interface WithAuthOptions {
   requiredPermissions?: string[]

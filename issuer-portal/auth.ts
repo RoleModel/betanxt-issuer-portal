@@ -25,39 +25,66 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Mock authentication for development
         // Mock user data based on username
-        const mockUsers = {
+        const mockUsers: Record<string, {
+          id: string;
+          username: string;
+          password: string;
+          type: 'ISSUER' | 'ADMIN';
+          account_id?: string;
+          client_ticker?: string | null;
+        }> = {
+            'dev.user': {
+              id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+              username: 'dev.user',
+              password: 'ju$Ky8Ad1#%g',
+              type: 'ADMIN',
+              account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+              client_ticker: null,
+            },
+            'test.user': {
+              id: '7d170e7c-7d1f-5ae0-ac54-c987eb45b2a9',
+              username: 'test.user',
+              password: '9yUDDftg@Lh!',
+              type: 'ADMIN',
+              account_id: undefined,
+              client_ticker: null,
+            },
             mike: {
               id: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab',
               username: 'mike',
-              type: 'ISSUER' as const,
+              password: 'password',
+              type: 'ISSUER',
               account_id: 'acc-wen-001',
               client_ticker: 'WEN',
             },
             lisa: {
               id: 'c2g6173b-10c7-6ed2-c29d-4911d6041fcb',
               username: 'lisa',
-              type: 'ISSUER' as const,
+              password: 'password',
+              type: 'ISSUER',
               account_id: 'acc-paycom-001',
               client_ticker: 'PAYC',
             },
             david: {
               id: 'd3h7284c-21d8-7fe3-d30e-5a22e7152gdc',
               username: 'david',
-              type: 'ISSUER' as const,
+              password: 'password',
+              type: 'ISSUER',
               account_id: 'acc-woodward-001',
               client_ticker: 'WWD',
             },
             jenny: {
               id: 'e4i8395d-32e9-8gf4-e41f-6b33f8263hed',
               username: 'jenny',
-              type: 'ISSUER' as const,
+              password: 'password',
+              type: 'ISSUER',
               account_id: 'acc-enliven-001',
               client_ticker: 'ELVN',
             },
           }
 
-        const user = mockUsers[credentials.username as keyof typeof mockUsers]
-        if (user && credentials.password === 'password') {
+        const user = mockUsers[credentials.username as string]
+        if (user && credentials.password === user.password) {
           return {
             id: user.id,
             username: user.username,

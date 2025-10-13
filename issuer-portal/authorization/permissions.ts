@@ -1,4 +1,4 @@
-import { auth } from '@/authentication/auth-config'
+import { auth } from '@/auth'
 
 type Permission =
   | 'viewMeeting'
