@@ -652,6 +652,8 @@ export function EventTabs() {
 
     return (
       <Box
+        href={targetPath}
+        component={Link}
         key={meeting.id || index}
         data-tab-index={index}
         tabIndex={0}
@@ -685,9 +687,7 @@ export function EventTabs() {
         <Box sx={{ px: 2, pt: 1.5 }}>
           <Stack>
             <Typography
-              href={targetPath}
               variant="h1"
-              component={Link}
               sx={{
                 fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
                 fontWeight: 500,
