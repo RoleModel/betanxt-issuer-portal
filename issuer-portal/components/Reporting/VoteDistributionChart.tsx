@@ -7,12 +7,12 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Typography,
 } from '@mui/material'
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart'
 
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 interface VoteDistributionData {
   id: string
@@ -33,26 +33,7 @@ export default function VoteDistributionChart({
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
   if (loading) {
-    return (
-      <Card sx={{ flex: '1 0 auto' }}>
-        <CardHeader title="Vote Distribution by Account Type" />
-        <CardContent>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            height={300}
-            gap={2}
-          >
-            <CircularProgress />
-            <Typography variant="body3" color="text.secondary">
-              Loading vote distribution data...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
+    return <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />
   }
 
   if (data.length === 0) {

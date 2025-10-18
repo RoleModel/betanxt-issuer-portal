@@ -3,18 +3,16 @@
 import React, { useState } from 'react'
 
 import {
-  Box,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   MenuItem,
   TextField,
-  Typography,
 } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import { EmptyState } from '@/components/EmptyState'
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 import { truncateNumber } from '@/utils/numberUtils'
 
@@ -93,26 +91,7 @@ export default function BrokerVotingChart({
 
   // Early return for loading state - like other charts on the page
   if (loading) {
-    return (
-      <Card>
-        <CardHeader title="Broker Voting by Proposal" />
-        <CardContent>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            height={350}
-            gap={2}
-          >
-            <CircularProgress />
-            <Typography variant="body3" color="text.secondary">
-              Loading broker voting data...
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    )
+    return <SkeletonChart title="Broker Voting by Proposal" height={350} showLegend />
   }
 
   return (

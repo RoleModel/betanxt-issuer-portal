@@ -133,6 +133,129 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />
 })
 
+interface WebsiteIframeWithErrorHandlingProps {
+  url: string
+  title: string
+}
+
+const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingProps> = ({
+  url,
+  title,
+}) => {
+  const [hasError, setHasError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  const handleIframeLoad = useCallback(() => {
+    setIsLoading(false)
+
+    // Try to detect if the iframe loaded a 404 page
+    // Note: Due to CORS restrictions, we can't always access iframe content
+    // but we can detect some error cases
+    try {
+      const iframe = iframeRef.current
+      if (iframe?.contentWindow) {
+        // Set a timeout to check if the page loaded properly
+        setTimeout(() => {
+          try {
+            // This will throw an error if CORS blocks access, which is expected
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+            if (iframeDoc) {
+              const title = iframeDoc.title.toLowerCase()
+              // Check for common 404 page indicators
+              if (title.includes('404') || title.includes('not found') || title.includes('error')) {
+                setHasError(true)
+              }
+            }
+          } catch {
+            // CORS error is expected for external sites, don't treat as error
+            // The site loaded, just can't access content due to CORS
+          }
+        }, 2000) // Give the page time to load
+      }
+    } catch {
+      // Ignore errors from CORS restrictions
+    }
+  }, [])
+
+  const handleIframeError = useCallback(() => {
+    setHasError(true)
+    setIsLoading(false)
+  }, [])
+
+  if (hasError) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+          gap: 2,
+          p: 4,
+        }}
+      >
+        <Typography variant="h6" color="text.primary">
+          Document Hosting Site Unavailable
+        </Typography>
+        <Typography variant="body3" color="text.secondary" textAlign="center">
+          The document hosting site could not be loaded. This may be because the site has not been set up yet or is temporarily unavailable.
+        </Typography>
+        <Typography variant="body3" color="text.secondary" textAlign="center">
+          Please contact your administrator if this issue persists.
+        </Typography>
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        borderRadius: 1,
+        boxShadow: (theme) => theme.shadows[4],
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      {isLoading && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <CircularProgress />
+          <Typography variant="body3" color="text.secondary">
+            Loading document hosting site...
+          </Typography>
+        </Box>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={url}
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+        }}
+        title={title}
+        onLoad={handleIframeLoad}
+        onError={handleIframeError}
+      />
+    </Box>
+  )
+}
+
 const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // New task-based props
   task,
@@ -1221,36 +1344,28 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           {isWebsiteView ? (
             // Website iframe view
             actualfileUrl ? (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 1,
-                  boxShadow: (theme) => theme.shadows[4],
-                  overflow: 'hidden',
-                }}
-              >
-                <iframe
-                  src={actualfileUrl}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                  }}
-                  title={actualTitle ?? 'Website View'}
-                />
-              </Box>
+              <WebsiteIframeWithErrorHandling
+                url={actualfileUrl}
+                title={actualTitle ?? 'Website View'}
+              />
             ) : (
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: 'column',
                   justifyContent: 'center',
                   alignItems: 'center',
                   height: '100%',
-                  color: 'text.secondary',
+                  gap: 2,
+                  p: 4,
                 }}
               >
-                <Typography variant="body3">No URL provided for website view</Typography>
+                <Typography variant="h6" color="text.primary">
+                  Document Hosting Site Not Available
+                </Typography>
+                <Typography variant="body3" color="text.secondary" textAlign="center">
+                  The document hosting site has not been set up yet. Please contact your administrator to configure the hosting site.
+                </Typography>
               </Box>
             )
           ) : (

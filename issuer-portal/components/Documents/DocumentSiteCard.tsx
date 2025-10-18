@@ -197,6 +197,12 @@ export default function DocumentSiteCard() {
   }
 
   const handleViewHostingSite = () => {
+    // Check if we have a valid URL before opening the viewer
+    if (!viewerUrl) {
+      // Show an alert or notification that the site is not available
+      alert('Document hosting site is not available. Please ensure the client branding ID is configured.')
+      return
+    }
     setHostingSiteViewerOpen(true)
   }
 
@@ -265,7 +271,7 @@ export default function DocumentSiteCard() {
   ).toString()
   const viewerUrl =
     currentClient?.branding_id && derivedYear
-      ? `https://www.proxydocs.com/branding/${currentClient.branding_id}/${derivedYear}/issuer/`
+      ? `https://www.proxydocs.com/branding/${currentClient.branding_id}/2025/issuer/`
       : undefined
 
   return (

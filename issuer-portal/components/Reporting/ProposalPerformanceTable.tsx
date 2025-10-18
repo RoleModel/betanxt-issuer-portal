@@ -18,6 +18,8 @@ import {
   TableSortLabel,
 } from '@mui/material'
 
+import SkeletonTable from '@/components/ui/SkeletonTable'
+
 interface ProposalPerformanceData {
   type: string
   totalPresented: string
@@ -29,12 +31,16 @@ interface ProposalPerformanceData {
 
 interface ProposalPerformanceTableProps {
   data: ProposalPerformanceData[]
+  loading?: boolean
 }
 
 type Order = 'asc' | 'desc'
 type OrderBy = keyof ProposalPerformanceData
 
-const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({ data }) => {
+const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
+  data,
+  loading = false
+}) => {
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(5)
   const [order, setOrder] = React.useState<Order>('desc')
@@ -61,6 +67,7 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({ dat
   }
 
   const sortedData = React.useMemo(() => {
+    if (loading || !data) return []
     return [...data].sort((a, b) => {
       let aValue: string | number = a[orderBy]
       let bValue: string | number = b[orderBy]
@@ -81,7 +88,11 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({ dat
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
       }
     })
-  }, [data, order, orderBy])
+  }, [data, order, orderBy, loading])
+
+  if (loading) {
+    return <SkeletonTable rows={5} columns={6} />
+  }
 
   return (
     <Card>

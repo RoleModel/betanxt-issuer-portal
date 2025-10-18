@@ -15,9 +15,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-
 import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
-import EmptyState from '@/components/EmptyState'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
@@ -53,15 +51,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
     onOpenDocument,
   } = props
 
-  if (documents.length === 0) {
-    return (
-      <EmptyState
-        title="No Documents"
-        description="Upload documents to get started with your meeting materials."
-        minHeight={300}
-      />
-    )
-  }
 
   return (
     <TableContainer data-testid="documents-table">
@@ -96,6 +85,15 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                   <Typography variant="caption" display="block" color="text.secondary">
                     {doc.updatedAt
                       ? new Date(doc.updatedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })
+                      : doc.createdAt
+                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -103,15 +101,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                           minute: '2-digit',
                           hour12: true,
                         })
-                      : doc.createdAt
-                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })
                         : '-'}
                   </Typography>
                 </Box>

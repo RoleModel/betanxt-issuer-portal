@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import {
   BarPlot,
   ChartDataProvider,
@@ -14,6 +14,8 @@ import {
   LinePlot,
   MarkPlot,
 } from '@mui/x-charts'
+
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 import { CustomLegend } from './index'
 
@@ -37,21 +39,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   title: _title = 'Year over Year Performance',
 }) => {
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        height={300}
-        gap={2}
-      >
-        <CircularProgress />
-        <Typography variant="body3" color="text.secondary">
-          Loading year over year data...
-        </Typography>
-      </Box>
-    )
+    return <SkeletonChart height={400} showLegend />
   }
 
   if (!data || data.length === 0) {

@@ -2,8 +2,10 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
+
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 import { ChartDataProvider } from '@/components/Reporting/ChartDataContext'
 
@@ -27,21 +29,7 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
   title: _title = 'Director Performance',
 }) => {
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        height={300}
-        gap={2}
-      >
-        <CircularProgress />
-        <Typography variant="body3" color="text.secondary">
-          Loading director performance data...
-        </Typography>
-      </Box>
-    )
+    return <SkeletonChart height={400} showLegend />
   }
 
   // Check if data is empty or undefined

@@ -4,12 +4,10 @@ import Link from 'next/link'
 import React from 'react'
 
 import {
-  Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -18,6 +16,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+
+import SkeletonTable from '@/components/ui/SkeletonTable'
 
 interface QuorumData {
   meetingId: string
@@ -45,16 +45,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   clientTicker = '',
 }) => {
   if (loading) {
-    return (
-      <Card>
-        <CardHeader title={title} />
-        <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" height={200}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      </Card>
-    )
+    return <SkeletonTable rows={4} columns={4} />
   }
 
   if (!data || data.length === 0) {

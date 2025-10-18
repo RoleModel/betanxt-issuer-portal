@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
-import { Box, Card, CardContent, CardHeader, CircularProgress } from '@mui/material'
+import { Box, Card, CardContent, CardHeader } from '@mui/material'
 import {
   BarPlot,
   ChartDataProvider,
@@ -16,6 +16,7 @@ import {
 import { ChartsXAxis } from '@mui/x-charts/ChartsXAxis'
 
 import { EmptyState } from '@/components/EmptyState'
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 import buildApiClient from '@/domain-models/apiClient'
 
@@ -135,16 +136,7 @@ export default function VotingPerformanceChart({
   }, [meetingId])
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader title="Voting Performance By Share Range" />
-        <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" height={300}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      </Card>
-    )
+    return <SkeletonChart title="Voting Performance By Share Range" height={345} showLegend />
   }
 
   if (data.length === 0) {

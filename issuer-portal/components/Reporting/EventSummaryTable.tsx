@@ -4,12 +4,10 @@ import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 
 import {
-  Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -18,6 +16,8 @@ import {
   TablePagination,
   TableRow,
 } from '@mui/material'
+
+import SkeletonTable from '@/components/ui/SkeletonTable'
 
 interface EventSummaryRow {
   event: string
@@ -60,16 +60,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(5)
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader title={title} />
-        <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" height={200}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      </Card>
-    )
+    return <SkeletonTable rows={5} columns={7} />
   }
 
   // Handle both old and new data formats
@@ -77,16 +68,16 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   const rows: EventSummaryRow[] = isRowFormat
     ? data
     : [
-        {
-          event: 'Meeting Summary',
-          recordDate: data.materials?.sentDate ?? '',
-          meetingType: 'Annual',
-          quorum: data.quorumAchieved ? 'Yes' : 'No',
-          participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
-          numProposals: data.totalProposals,
-          outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
-        },
-      ]
+      {
+        event: 'Meeting Summary',
+        recordDate: data.materials?.sentDate ?? '',
+        meetingType: 'Annual',
+        quorum: data.quorumAchieved ? 'Yes' : 'No',
+        participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
+        numProposals: data.totalProposals,
+        outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
+      },
+    ]
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage)
@@ -138,10 +129,10 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                   <TableCell size="small">
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })
                       : '--'}
                   </TableCell>
                   <TableCell size="small">{row.meetingType}</TableCell>

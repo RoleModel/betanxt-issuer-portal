@@ -2,8 +2,10 @@
 
 import React from 'react'
 
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
+
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 interface ParticipationData {
   meetings: {
@@ -25,21 +27,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   title: _title = 'Voting Method Distribution',
 }) => {
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        height={300}
-        gap={2}
-      >
-        <CircularProgress />
-        <Typography variant="body3" color="text.secondary">
-          Loading participation data...
-        </Typography>
-      </Box>
-    )
+    return <SkeletonChart height={400} />
   }
 
   if (!data.meetings || data.meetings.length === 0) {
