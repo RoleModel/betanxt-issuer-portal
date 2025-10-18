@@ -86,19 +86,12 @@ export default function DocumentHostingCard({
 }: DocumentHostingCardProps) {
   const { currentClient } = useClient()
 
-  // Get year from meetingYear or derive from meetingDate, fallback to 2024
-  const getYear = () => {
-    if (meeting?.meetingYear) return meeting.meetingYear
-    if (meeting?.meetingDate) return new Date(meeting.meetingDate).getFullYear()
-    return 2024
-  }
-
   // Get brandingId from client prop, currentClient context, or meeting's ticker as fallback
 
   // Generate dynamic URLs based on client branding and ticker
   const hostingSite = {
     label: 'Document Hosting Site',
-    url: `https://www.proxydocs.com/branding/${currentClient?.branding_id}/${getYear()}/issuer/`,
+    url: `https://www.proxydocs.com/branding/${currentClient?.branding_id}/2025/issuer/`,
     status: meeting?.status,
     hasUrl: true,
   }

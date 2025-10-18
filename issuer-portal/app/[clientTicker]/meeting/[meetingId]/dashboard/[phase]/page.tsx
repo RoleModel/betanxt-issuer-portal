@@ -4,39 +4,21 @@ import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import React, { useMemo } from 'react'
 
-import { Box, Container, LinearProgress, Typography } from '@mui/material'
+import { Box, Container, Typography } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 
 // Dynamically load heavy phase layouts & tracker to reduce initial JS bundle
-const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase2Layout = dynamic(() => import('@/components/Meeting/Phase2Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase3Layout = dynamic(() => import('@/components/Meeting/Phase3Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase4Layout = dynamic(() => import('@/components/Meeting/Phase4Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase5Layout = dynamic(() => import('@/components/Meeting/Phase5Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase6Layout = dynamic(() => import('@/components/Meeting/Phase6Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase7Layout = dynamic(() => import('@/components/Meeting/Phase7Layout'), {
-  loading: () => <LinearProgress />,
-})
-const Phase8Layout = dynamic(() => import('@/components/Meeting/Phase8Layout'), {
-  loading: () => <LinearProgress />,
-})
-const TabulationTracker = dynamic(() => import('@/components/Meeting/TabulationTracker'), {
-  loading: () => <LinearProgress />,
-})
+const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'), {})
+const Phase2Layout = dynamic(() => import('@/components/Meeting/Phase2Layout'), {})
+const Phase3Layout = dynamic(() => import('@/components/Meeting/Phase3Layout'), {})
+const Phase4Layout = dynamic(() => import('@/components/Meeting/Phase4Layout'), {})
+const Phase5Layout = dynamic(() => import('@/components/Meeting/Phase5Layout'), {})
+const Phase6Layout = dynamic(() => import('@/components/Meeting/Phase6Layout'), {})
+const Phase7Layout = dynamic(() => import('@/components/Meeting/Phase7Layout'), {})
+const Phase8Layout = dynamic(() => import('@/components/Meeting/Phase8Layout'), {})
+const TabulationTracker = dynamic(() => import('@/components/Meeting/TabulationTracker'), {})
 
 export default function PhasePage() {
   const params = useParams()
@@ -79,14 +61,14 @@ export default function PhasePage() {
   // Ensure meeting has proper client.isActive value for Phase layouts
   const meetingForPhase = meeting
     ? {
-        ...meeting,
-        client: meeting.client
-          ? {
-              ...meeting.client,
-              isActive: meeting.client.isActive ?? true,
-            }
-          : meeting.client,
-      }
+      ...meeting,
+      client: meeting.client
+        ? {
+          ...meeting.client,
+          isActive: meeting.client.isActive ?? true,
+        }
+        : meeting.client,
+    }
     : meeting
 
   const renderPhaseLayout = () => {

@@ -1,8 +1,3 @@
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
 'use client'
 
 import dynamic from 'next/dynamic'
@@ -35,6 +30,7 @@ import DocumentSiteCard from '@/components/Documents/DocumentSiteCard'
 import DocumentsTable from '@/components/Documents/DocumentsTable'
 import EmptyState from '@/components/EmptyState'
 import SkeletonTable from '@/components/ui/SkeletonTable'
+import DocumentEditIcon from '@rolemodel/betanxt-design-system/components/icons/brand/DocumentEditIcon'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -47,45 +43,6 @@ import {
   getDocumentStatusLabel,
 } from '@/utils/documentUtils'
 
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
-
-/**
- * Documents page for managing meeting documents
- * Displays uploaded documents and Digital Shareholder Meeting (DSM) documents
- */
 
 type Document = Omit<components['schemas']['Document'], 'status'> & {
   status?: ExtendedDocumentStatus
@@ -534,6 +491,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                         : 'Upload documents to get started.'
                     }
                     minHeight={300}
+                    icon={<DocumentEditIcon sx={{ fontSize: 40 }} />}
                   />
                 ) : (
                   <>

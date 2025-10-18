@@ -39,7 +39,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   title: _title = 'Year over Year Performance',
 }) => {
   if (loading) {
-    return <SkeletonChart height={400} showLegend />
+    return <SkeletonChart height={320} showLegend noCard />
   }
 
   if (!data || data.length === 0) {

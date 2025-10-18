@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-import { Box, LinearProgress, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 
 import { useMeeting } from '@/contexts/MeetingContext'
 
@@ -55,7 +55,4 @@ export default function MeetingDashboardPage() {
       </Box>
     )
   }
-
-  // Show loading while determining phase or while loading is true
-  return <LinearProgress />
 }

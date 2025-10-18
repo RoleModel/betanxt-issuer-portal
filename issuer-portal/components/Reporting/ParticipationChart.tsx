@@ -27,7 +27,7 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
   title: _title = 'Voting Method Distribution',
 }) => {
   if (loading) {
-    return <SkeletonChart height={400} />
+    return <SkeletonChart height={400} noCard />
   }
 
   if (!data.meetings || data.meetings.length === 0) {

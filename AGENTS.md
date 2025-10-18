@@ -25,3 +25,24 @@ Follow the existing Conventional-Commit-inspired prefixes (`feat:`, `fix:`, `cho
 ## Environment & Security Notes
 
 Create `.env.local` from `issuer-portal/env.template` and keep Supabase service keys server-side only. Use the mock API by pointing `NEXT_PUBLIC_API_BASE_URL` at `http://localhost:3001`. Never commit generated secrets or Playwright reports; add sensitive overrides through Vercel or Supabase configuration.
+
+[byterover-mcp]
+
+[byterover-mcp]
+
+You are given two tools from Byterover MCP server, including
+## 1. `byterover-store-knowledge`
+You `MUST` always use this tool when:
+
++ Learning new patterns, APIs, or architectural decisions from the codebase
++ Encountering error solutions or debugging techniques
++ Finding reusable code patterns or utility functions
++ Completing any significant task or plan implementation
+
+## 2. `byterover-retrieve-knowledge`
+You `MUST` always use this tool when:
+
++ Starting any new task or implementation to gather relevant context
++ Before making architectural decisions to understand existing patterns
++ When debugging issues to check for previous solutions
++ Working with unfamiliar parts of the codebase

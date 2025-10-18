@@ -355,3 +355,24 @@ import './styles.css'
 
 - Do not use 'any' type assertions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won't type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.
+
+[byterover-mcp]
+
+[byterover-mcp]
+
+You are given two tools from Byterover MCP server, including
+## 1. `byterover-store-knowledge`
+You `MUST` always use this tool when:
+
++ Learning new patterns, APIs, or architectural decisions from the codebase
++ Encountering error solutions or debugging techniques
++ Finding reusable code patterns or utility functions
++ Completing any significant task or plan implementation
+
+## 2. `byterover-retrieve-knowledge`
+You `MUST` always use this tool when:
+
++ Starting any new task or implementation to gather relevant context
++ Before making architectural decisions to understand existing patterns
++ When debugging issues to check for previous solutions
++ Working with unfamiliar parts of the codebase
