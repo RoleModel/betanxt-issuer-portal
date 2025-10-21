@@ -1077,9 +1077,20 @@ const main = async () => {
         const isPastMeeting = yearConfig.year <= 2024
         const status = currentPhase === 8 || isPastMeeting ? 'COMPLETE' : 'ACTIVE'
         const phaseName = `Phase ${currentPhase}`
-        // Only COMPLETE meetings (phase 8 or past years) should show 100% completion
-        // ACTIVE meetings should show 0% completion
-        const overallCompletion = currentPhase === 8 || isPastMeeting ? 100 : 0
+        // Calculate completion based on phase and meeting type
+        let overallCompletion = 0
+        if (currentPhase === 8 || isPastMeeting) {
+          overallCompletion = 100
+        } else if (currentPhase === 7) {
+          // Phase 7 meetings are in active voting - higher completion for special meetings
+          overallCompletion = meeting.type.toLowerCase().includes('special') ? 85 : 75
+        } else if (currentPhase >= 5) {
+          // Later phases show progressive completion
+          overallCompletion = Math.min(currentPhase * 10, 60)
+        } else {
+          // Early phases show minimal completion
+          overallCompletion = currentPhase * 5
+        }
 
         meetingPhaseMap[meetingId] = currentPhase
 
