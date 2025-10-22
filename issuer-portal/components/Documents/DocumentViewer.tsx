@@ -520,7 +520,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   )
   const actualTitle = useMemo(() => {
     const titleValue = title ?? (task ? documentData?.title : undefined)
-    return titleValue && titleValue.trim() ? titleValue.trim() : undefined
+    return titleValue?.trim() || undefined
   }, [title, task, documentData?.title])
 
   // Determine file type from URL
@@ -826,7 +826,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         // Upload the signed document
         if (currentDocumentId && uploadDocument) {
-          const baseTitle = (actualTitle && actualTitle.trim()) || (task?.title && task?.title.trim()) || 'Document'
+          const baseTitle = actualTitle?.trim() || task?.title?.trim() || 'Document'
           const documentTitle = baseTitle.includes(' - Signed')
             ? baseTitle
             : `${baseTitle} - Signed`

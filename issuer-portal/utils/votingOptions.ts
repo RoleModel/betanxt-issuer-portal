@@ -14,11 +14,13 @@ export interface VotingOptions {
 export const isDirectorElection = (proposalType?: string, proposalNumber?: string | number): boolean => {
   if (!proposalType) return false
 
+  const lowerType = proposalType.toLowerCase()
+
   // Check if it's a director election (typically proposals 1-3 or contains "Election" in type)
   return (
-    proposalType.toLowerCase().includes('election') ||
-    proposalType.toLowerCase().includes('director') ||
-    (proposalNumber && ['1', '2', '3'].includes(proposalNumber.toString()))
+    lowerType.includes('election') ||
+    lowerType.includes('director') ||
+    (proposalNumber !== undefined && proposalNumber !== null && ['1', '2', '3'].includes(proposalNumber.toString()))
   )
 }
 

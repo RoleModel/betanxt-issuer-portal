@@ -148,7 +148,7 @@ export async function createDocument(
       try {
         // Extract base64 data and content type
         const [header, base64Data] = request.file.split(',')
-        const contentType = header.match(/data:([^;]+)/)?.[1] || 'application/pdf'
+        const contentType = /data:([^;]+)/.exec(header)?.[1] || 'application/pdf'
         const fileExtension = contentType.includes('pdf') ? 'pdf' : 'bin'
 
         // Convert base64 to buffer
