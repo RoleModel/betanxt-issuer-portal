@@ -2,8 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { Card, CardContent, Container, IconButton, LinearProgress, Skeleton, Tooltip } from '@mui/material'
-import { InfoOutlined } from '@mui/icons-material'
+import { Card, CardContent, Container, LinearProgress, Skeleton } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import EmptyState from '@/components/EmptyState'
@@ -101,13 +100,6 @@ export default function MailingPage() {
                       variant="base"
                       title={formatNumber(mailingData?.fullsetMailPositions)}
                       subtitle="Full Set"
-                      action={
-                        <Tooltip title="Complete proxy materials mailed to shareholders">
-                          <IconButton size="small">
-                            <InfoOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      }
                     />
                   )}
                 </Grid>
@@ -120,13 +112,6 @@ export default function MailingPage() {
                       variant="base"
                       title={formatNumber(mailingData?.naaMailPositions)}
                       subtitle="NAA"
-                      action={
-                        <Tooltip title="Notice and Access - shareholders receive notice with website access to materials">
-                          <IconButton size="small">
-                            <InfoOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      }
                     />
                   )}
                 </Grid>
@@ -139,13 +124,6 @@ export default function MailingPage() {
                       variant="base"
                       title={formatNumber(mailingData?.electronicSuppressedPositions)}
                       subtitle="Electronic"
-                      action={
-                        <Tooltip title="Electronic delivery via email">
-                          <IconButton size="small">
-                            <InfoOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      }
                     />
                   )}
                 </Grid>
