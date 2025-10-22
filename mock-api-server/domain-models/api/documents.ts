@@ -141,6 +141,49 @@ export async function createDocument(
     // Default user: Sarah Chen (from seed data)
     const defaultUserId = '14f7b303-44c8-5dce-9b73-c75c2199d7f9'
 
+    let filePath = request.file
+
+    // Check if file is base64 data and needs to be uploaded to storage
+    if (typeof request.file === 'string' && request.file.startsWith('data:')) {
+      try {
+        // Extract base64 data and content type
+        const [header, base64Data] = request.file.split(',')
+        const contentType = header.match(/data:([^;]+)/)?.[1] || 'application/pdf'
+        const fileExtension = contentType.includes('pdf') ? 'pdf' : 'bin'
+
+        // Convert base64 to buffer
+        const buffer = Buffer.from(base64Data, 'base64')
+
+        // Generate storage path
+        const timestamp = Date.now()
+        const randomId = Math.random().toString(36).substring(2, 11)
+        const storagePath = `${meetingId}/${request.type}/${timestamp}_${randomId}.${fileExtension}`
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(storagePath, buffer, {
+            contentType,
+            upsert: false,
+          })
+
+        if (uploadError) {
+          return {
+            error: { message: `Failed to upload file: ${uploadError.message}` },
+          }
+        }
+
+        // Set file path to storage URL
+        filePath = `/storage/v1/object/public/documents/${uploadData.path}`
+      } catch (uploadErr) {
+        return {
+          error: {
+            message: `Failed to process file data: ${uploadErr instanceof Error ? uploadErr.message : 'Unknown error'}`
+          },
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from('document')
       .insert({
@@ -151,7 +194,7 @@ export async function createDocument(
         type: request.type,
         task_id: request.taskId,
         participant_id: request.participantId,
-        file_path: request.file,
+        file_path: filePath,
         status: request.status ?? 'UPLOADED',
         created_by: defaultUserId,
         created_by_first_name: 'Sarah',

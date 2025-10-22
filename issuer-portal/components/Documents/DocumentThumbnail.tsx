@@ -175,10 +175,8 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   }
 
   // Check if this is a mock/development URL that doesn't exist
-  const isMockUrl = fileUrl?.includes('127.0.0.1:54321') &&
-    (fileUrl.includes('/transfer-agent-request/') ||
-      fileUrl.includes('/plan-file-request/') ||
-      fileUrl.includes('/broadridge-form/'))
+  // Note: Signed documents may have these paths but should still show previews
+  const isMockUrl = false // Disabled - let all URLs attempt to load
 
   // No file path provided or mock URL
   if (!fileUrl || isMockUrl) {
