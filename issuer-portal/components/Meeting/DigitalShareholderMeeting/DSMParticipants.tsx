@@ -236,7 +236,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         action={
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" startIcon={<FileUploadOutlined />} onClick={handleUploadClick}>
-              Add Attendees
+              Add Participants
             </Button>
             <ExportButton
               attendees={participants}

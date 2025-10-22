@@ -52,10 +52,9 @@ const buildMetricsFromMailing = (mailing: MailingType | null): MailingMetric[] =
     { label: 'Full Set', value: formatNumber(mailing.fullsetMailPositions) },
     { label: 'NAA', value: formatNumber(mailing.naaMailPositions) },
     { label: 'Courtesy/Other', value: formatNumber(mailing.courtesyOtherMailPositions) },
-    { label: 'Suppressed Positions', group: 'section' },
     { label: 'Electronic', value: formatNumber(mailing.electronicSuppressedPositions) },
+    { label: 'Suppressed Positions', group: 'section' },
     { label: 'Household', value: formatNumber(mailing.householdSuppressedPositions) },
-    { label: 'Managed', value: formatNumber(mailing.managedSuppressedPositions) },
     {
       label: 'Consolidated',
       value: formatNumber(mailing.consolidatedSuppressedPositions),

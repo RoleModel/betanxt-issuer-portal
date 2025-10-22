@@ -17,21 +17,41 @@ import {
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { formatNumber } from '@/utils/numberUtils'
+import { getVotingOptions } from '@/utils/votingOptions'
 
 interface DetailedTabulationTableProps {
   meetingId: string
 }
 
-const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
-  '& .MuiTableCell-root': {
-    padding: theme.spacing(1, 2),
-    fontSize: '0.875rem',
-  },
-  '& .MuiTableCell-head': {
-    fontWeight: 600,
-    backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
-  },
-}))
+function StyledTableContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <TableContainer
+      sx={[
+        (theme) => ({
+          maxHeight: 900,
+          '& .MuiTableCell-root': {
+            padding: theme.spacing(1, 2),
+            fontSize: '0.875rem',
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
+          },
+        }),
+        (theme) =>
+          theme.applyStyles('dark', {
+            backgroundColor: theme.palette.common.black,
+            '& .MuiTableCell-head': {
+              fontWeight: 600,
+              backgroundColor: theme.palette.common.black,
+            },
+          }),
+      ]}
+    >
+      {children}
+    </TableContainer>
+  )
+}
 
 const ProposalHeaderCell = styled(TableCell)(({ theme }) => ({
   backgroundColor: theme.vars.palette.action.hover,
@@ -43,6 +63,32 @@ const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   paddingLeft: theme.spacing(4),
   fontWeight: 500,
 }))
+
+function TotalsRow({ children }: { children: React.ReactNode }) {
+  return (
+    <TableRow
+      sx={[
+        (theme) => ({
+          backgroundColor: theme.palette.common.white,
+          // boxShadow: `0 1px 0px 0px inset ${theme.palette.divider}`,
+        }),
+        (theme) =>
+          theme.applyStyles('dark', {
+            backgroundColor: theme.palette.common.black,
+          }),
+      ]}
+    >
+      {children}
+    </TableRow>
+  )
+}
+
+
+const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 600,
+  paddingLeft: theme.spacing(2),
+}))
+
 
 export default function DetailedTabulationTable({
   meetingId,
@@ -69,17 +115,17 @@ export default function DetailedTabulationTable({
 
   // Calculate totals for percentage calculations
   const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
-  const totalVoted = votingSummary?.totalSharesVoted ?? 0
+
+
 
   return (
     <StyledTableContainer>
-      <Table size="small">
+      <Table stickyHeader aria-label="Tabulation Details">
         <TableHead>
-          <TableRow>
+          <TableRow >
             <TableCell />
             <TableCell align="right">Vote Submitted</TableCell>
             <TableCell align="right">% of Outstanding</TableCell>
-            <TableCell align="right">% of Total Voted</TableCell>
             <TableCell align="right">% of Proposal Votes</TableCell>
           </TableRow>
         </TableHead>
@@ -94,11 +140,18 @@ export default function DetailedTabulationTable({
           </TableRow>
 
           {proposals.map((proposal) => {
+            const votingLabels = getVotingOptions(proposal.proposalType, proposal.proposalNumber)
+
+            // Calculate total votes for this proposal
+            const proposalTotal = proposal.votingResults.for.shares +
+              proposal.votingResults.against.shares +
+              proposal.votingResults.abstain.shares
+
             return (
               <React.Fragment key={proposal.proposalId}>
                 {/* Proposal Header */}
                 <TableRow>
-                  <ProposalHeaderCell colSpan={5}>
+                  <ProposalHeaderCell colSpan={4}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="dataHeader">
                         Proposal {proposal.proposalNumber}
@@ -112,7 +165,7 @@ export default function DetailedTabulationTable({
 
                 {/* For Votes */}
                 <TableRow>
-                  <VoteTypeCell>For</VoteTypeCell>
+                  <VoteTypeCell>{votingLabels.for}</VoteTypeCell>
                   <TableCell align="right">
                     {formatNumber(proposal.votingResults.for.shares)}
                   </TableCell>
@@ -124,20 +177,13 @@ export default function DetailedTabulationTable({
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {formatPercentage(
-                      totalVoted > 0
-                        ? (proposal.votingResults.for.shares / totalVoted) * 100
-                        : 0
-                    )}
-                  </TableCell>
-                  <TableCell align="right">
                     {formatPercentage(proposal.votingResults.for.percentage)}
                   </TableCell>
                 </TableRow>
 
-                {/* Against Votes */}
+                {/* Against/Withhold Votes */}
                 <TableRow>
-                  <VoteTypeCell>Against</VoteTypeCell>
+                  <VoteTypeCell>{votingLabels.against}</VoteTypeCell>
                   <TableCell align="right">
                     {formatNumber(proposal.votingResults.against.shares)}
                   </TableCell>
@@ -149,20 +195,13 @@ export default function DetailedTabulationTable({
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {formatPercentage(
-                      totalVoted > 0
-                        ? (proposal.votingResults.against.shares / totalVoted) * 100
-                        : 0
-                    )}
-                  </TableCell>
-                  <TableCell align="right">
                     {formatPercentage(proposal.votingResults.against.percentage)}
                   </TableCell>
                 </TableRow>
 
-                {/* Abstain/Withold Votes */}
+                {/* Abstain Votes */}
                 <TableRow>
-                  <VoteTypeCell>Abstain/Withold</VoteTypeCell>
+                  <VoteTypeCell>{votingLabels.abstain}</VoteTypeCell>
                   <TableCell align="right">
                     {formatNumber(proposal.votingResults.abstain.shares)}
                   </TableCell>
@@ -174,19 +213,37 @@ export default function DetailedTabulationTable({
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {formatPercentage(
-                      totalVoted > 0
-                        ? (proposal.votingResults.abstain.shares / totalVoted) * 100
-                        : 0
-                    )}
-                  </TableCell>
-                  <TableCell align="right">
                     {formatPercentage(proposal.votingResults.abstain.percentage)}
                   </TableCell>
                 </TableRow>
+
+                {/* Proposal Total */}
+                <TotalsRow>
+                  <TotalsHeaderCell>
+                    <Typography variant="dataHeader">Total</Typography>
+                  </TotalsHeaderCell>
+                  <TableCell align="right">
+                    <Typography variant="dataHeader">
+                      {formatNumber(proposalTotal)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="dataHeader">
+                      {formatPercentage(
+                        totalOutstanding > 0 ? (proposalTotal / totalOutstanding) * 100 : 0
+                      )}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="dataHeader">
+                      100.00%
+                    </Typography>
+                  </TableCell>
+                </TotalsRow>
               </React.Fragment>
             )
           })}
+
         </TableBody>
       </Table>
     </StyledTableContainer>

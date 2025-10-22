@@ -10,6 +10,7 @@ import { Container } from '@mui/material'
 
 import FeatureTile from '@/components/FeatureTile'
 
+import { useClient } from '@/contexts/ClientContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
@@ -23,6 +24,7 @@ export default React.memo(function Phase8Layout({
   meeting,
   meetingId,
 }: Phase8LayoutProps) {
+  const { currentClient } = useClient()
   const { proposals, votingSummary } = useVotingTabulation(meetingId)
 
   const handleTabulationDownload = async () => {
@@ -31,7 +33,7 @@ export default React.memo(function Phase8Layout({
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: meeting.title ?? 'Company',
+          companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
           meetingType: meeting.meetingType ?? 'Annual Meeting',
           meetingDate: meeting.meetingDate ?? '',
           recordDate: meeting.recordDate ?? '',

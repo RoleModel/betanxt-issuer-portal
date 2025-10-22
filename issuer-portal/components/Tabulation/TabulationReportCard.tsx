@@ -7,11 +7,13 @@ import FeatureTile from '@/components/FeatureTile'
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
+import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 export default function TabulationReportCard() {
+  const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
   const { proposals: votingProposals, votingSummary } = useVotingTabulation(
     currentMeeting?.id
@@ -78,13 +80,7 @@ export default function TabulationReportCard() {
 
     // Prepare tabulation data in the format expected by the PDF export
     const tabulationData = {
-      companyName:
-        currentMeeting.title
-          ?.replace(/\d{4}\s*/, '')
-          .replace(/Annual.*Meeting.*/, '')
-          .trim() ??
-        currentMeeting.ticker ??
-        'Company',
+      companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
       meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
       meetingDate: currentMeeting.meetingDate ?? '',
       recordDate: currentMeeting.recordDate ?? '',
@@ -134,10 +130,10 @@ export default function TabulationReportCard() {
 
   return (
     <FeatureTile
-      title="Tabulation Report"
+      title="Prelimary Tabulation Report"
       variant="tertiary"
       flex={true}
-      description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
+      description="Results for each proposal, showing vote counts, percentages, and quorum status."
       actionText={isDataReady ? 'Download' : 'Loading...'}
       onClick={isDataReady ? handleDownload : undefined}
       sx={{

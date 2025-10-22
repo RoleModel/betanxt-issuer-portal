@@ -44,7 +44,6 @@ interface ProposalVote {
   percentAgainst: number
   percentAbstain: number
   percentOfOutstanding: number
-  percentOfTotalVoted: number
   percentOfProposalVotes: number
 }
 
@@ -156,6 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     paddingVertical: 4,
     paddingHorizontal: 4,
+    whiteSpace: 'nowrap'
   },
   tableRow: {
     flexDirection: 'row',
@@ -169,18 +169,21 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     fontFamily: 'Roboto',
     letterSpacing: 0.21,
+    whiteSpace: 'nowrap',
   },
   cellBold: {
     fontSize: 7,
     fontWeight: 500,
     fontFamily: 'Roboto',
     letterSpacing: 0.21,
+    whiteSpace: 'nowrap'
   },
   cell: {
     fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
     letterSpacing: 0.13,
+    whiteSpace: 'nowrap'
   },
   cellRight: {
     textAlign: 'right',
@@ -188,9 +191,9 @@ const styles = StyleSheet.create({
   // Column widths
   colLabel: { width: '100%', whiteSpace: 'nowrap' },
   colProposal: { flex: 1 },
-  colVote: { width: '15%', textAlign: 'right' },
-  colPercent: { width: '15%', textAlign: 'right' },
-  colPercentRight: { width: '15%', textAlign: 'right' },
+  colVote: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
+  colPercent: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
+  colPercentRight: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
   fallbackLogo: {
     fontSize: 12,
     fontWeight: 700,
@@ -288,7 +291,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
         {/* Title Section */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Tabulation Report</Text>
+          <Text style={styles.title}>Preliminary Tabulation Report</Text>
           <Text style={styles.subtitle}>{meetingType}</Text>
         </View>
 
@@ -387,9 +390,6 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
             <Text style={[styles.headerCell, styles.colPercent]}>
               % of{'\n'}Outstanding
             </Text>
-            <Text style={[styles.headerCell, styles.colPercent]}>
-              % of{'\n'}Total Voted
-            </Text>
             <Text style={[styles.headerCell, styles.colPercentRight]}>
               % of{'\n'}Proposal Votes
             </Text>
@@ -406,15 +406,6 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                   </Text>
                 </View>
 
-                {/* Director Name if applicable */}
-                {proposal.directorName && (
-                  <View style={styles.proposalHeader}>
-                    <Text style={[styles.cellBold, styles.colLabel]}>
-                      Proposal {proposal.proposalNumber} {proposal.directorName}
-                    </Text>
-                  </View>
-                )}
-
                 {/* Vote rows */}
                 <View style={styles.tableRow}>
                   <Text style={[styles.cellBold, styles.colLabel]}>For</Text>
@@ -426,14 +417,6 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatPercent(
                       tabulationData.totalOutstanding > 0
                         ? (proposal.voteFor / tabulationData.totalOutstanding) * 100
-                        : 0
-                    )}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.votesRepresentedForQuorum > 0
-                        ? (proposal.voteFor / tabulationData.votesRepresentedForQuorum) *
-                            100
                         : 0
                     )}
                   </Text>
@@ -455,15 +438,6 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                         : 0
                     )}
                   </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.votesRepresentedForQuorum > 0
-                        ? (proposal.voteAgainst /
-                            tabulationData.votesRepresentedForQuorum) *
-                            100
-                        : 0
-                    )}
-                  </Text>
                   <Text style={[styles.cell, styles.colPercentRight]}>
                     {formatPercent(proposal.percentAgainst)}
                   </Text>
@@ -479,15 +453,6 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {formatPercent(
                       tabulationData.totalOutstanding > 0
                         ? (proposal.voteAbstain / tabulationData.totalOutstanding) * 100
-                        : 0
-                    )}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.votesRepresentedForQuorum > 0
-                        ? (proposal.voteAbstain /
-                            tabulationData.votesRepresentedForQuorum) *
-                            100
                         : 0
                     )}
                   </Text>
@@ -535,9 +500,8 @@ export async function exportTabulationPdf(options: ExportOptions) {
     // Create download link and trigger download
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
-    const fileName = `${tabulationData.companyName.replace(/\s+/g, '_')}_Tabulation_Report_${
-      new Date().toISOString().split('T')[0]
-    }.pdf`
+    const fileName = `${tabulationData.companyName.replace(/\s+/g, '_')}_Tabulation_Report_${new Date().toISOString().split('T')[0]
+      }.pdf`
     link.href = url
     link.download = fileName
     document.body.appendChild(link)

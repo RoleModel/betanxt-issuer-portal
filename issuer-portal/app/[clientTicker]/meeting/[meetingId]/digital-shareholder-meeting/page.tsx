@@ -236,6 +236,11 @@ export default function DigitalShareholderMeetingPage() {
     setUploadDialogOpen(true)
   }
 
+  const handleGuestRegistrantsUpload = () => {
+    // For now, use the same upload dialog - the upload logic will handle the data appropriately
+    setUploadDialogOpen(true)
+  }
+
   const handleFileUpload = useCallback(
     async (files: File[], _associations?: Record<string, string>) => {
       if (!currentMeeting?.id || files.length === 0) return
@@ -337,9 +342,14 @@ export default function DigitalShareholderMeetingPage() {
           <EmptyState
             title="No digital meeting attendees yet — add attendees to get started"
             action={
-              <Button variant="contained" onClick={handleUploadClick} startIcon={<FileUploadOutlined />}>
-                Add Attendees
-              </Button>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button variant="contained" onClick={handleUploadClick} startIcon={<FileUploadOutlined />}>
+                  Add Participants
+                </Button>
+                <Button variant="outlined" onClick={handleGuestRegistrantsUpload} startIcon={<FileUploadOutlined />}>
+                  Upload Guest Registrants
+                </Button>
+              </Stack>
             }
           >
             <Typography component="span" variant="body3">

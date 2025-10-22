@@ -10,7 +10,7 @@ export const termsDefinitions = {
     category: 'Meetings & Events',
     term: 'Annual Meeting',
     definition:
-      "A meeting held once a year to elect board directors and transact business that requires shareholder approval. The chief executive officer reports to shareholders the year's results and outlook for the coming year. Outside the U.S., an annual meeting is referred to as an annual general meeting.",
+      "A meeting held once a year to elect board directors and transact business that requires shareholder approval. The chief executive officer reports to shareholder's the year's results and outlook for the coming year. Outside the U.S., an annual meeting is referred to as an annual general meeting.",
   },
   continuousnetpayment: {
     category: 'Payment & Settlement',
@@ -34,19 +34,19 @@ export const termsDefinitions = {
     category: 'Meetings & Events',
     term: 'Quorum',
     definition:
-      'The minimum number of shareholders that must be present or represented by proxy at an annual or special meeting in order to transact business at the meeting.',
+      'The minimum number of shares that must be represented by proxy at an annual or special meeting in order to transact business at the meeting.',
   },
   specialmeeting: {
     category: 'Meetings & Events',
     term: 'Special Meeting',
     definition:
-      'A meeting other than an annual meeting held whenever a fund complex makes changes to the board of directors and transacts business that requires shareholder approval.',
+      'A meeting other than an annual meeting held whenever an organization makes changes to the board of directors and transacts business that requires shareholder approval.',
   },
   virtualannualmeeting: {
     category: 'Meetings & Events',
     term: 'Virtual Annual Meeting',
     definition:
-      'An annual meeting conducted by the board of directors of a public company via an electronic communication format, allowing shareholders to participate remotely. A companys state of incorporation authorizes the format(s) by which a company can conduct its annual meeting.',
+      'An annual meeting conducted by the board of directors of a public company via an electronic communication format, allowing shareholders to participate remotely. A company\'s state of incorporation authorizes the format(s) by which a company can conduct its annual meeting.',
   },
 
   // Proxy & Voting (Mechanics & Materials)
@@ -59,13 +59,13 @@ export const termsDefinitions = {
     category: 'Proxy & Voting',
     term: 'Broker Non-vote',
     definition:
-      'A broker non-vote occurs when routine and non-routine matters need to be voted on in the same agenda during a proxy solicitation. A broker non-vote is the difference between the number of shares voting on a routine proposal (including the broker\'s discretionary voting) and a non-routine proposal (NOT including the broker\'s discretionary voting when a beneficial owner has not provided proxy instructions for non-routine matters). The effect of this can result in routine matters passing the requirement, while non-routine matters do not, since the actual impact of a broker non-vote is the same as a vote "against" the proposal.',
+      'A broker non-vote occurs when routine and non-routine matters need to be voted on in the same agenda during a proxy solicitation. A broker non-vote is the difference between the number of shares voting on a routine proposal (including the broker\'s discretionary voting) and a non-routine proposal (NOT including the broker\'s discretionary voting when a beneficial owner has not provided proxy instructions for non-routine matters).',
   },
   certificateoftabulation: {
     category: 'Proxy & Voting',
     term: 'Certificate of Tabulation',
     definition:
-      'The Inspector of Election for a companys shareholder meeting attests to the manner and validity of data collected at the end of the meeting.',
+      'The Inspector of Elections is the individual or group designated by the corporation to oversee all voting matters at a shareholder meeting. This person verifies the validity of proxies and ballots, ensures only those in proper form are counted, and supervises the entire vote-counting process. They record and certify the final results and cannot be overruled on voting determinations, though they do not participate in the procedural conduct of the meeting.',
   },
   contestedproposal: {
     category: 'Proxy & Voting',
@@ -435,7 +435,7 @@ export const termsDefinitions = {
     category: 'Communications & Delivery',
     term: 'e-Consent',
     definition:
-      'A shareholders request to receive shareholder communications electronically or online.',
+      'A shareholder\'s request to receive shareholder communications electronically or online.',
   },
   householding: {
     category: 'Communications & Delivery',
@@ -459,7 +459,7 @@ export const termsDefinitions = {
     category: 'Communications & Delivery',
     term: 'Notice and Access (NAA)',
     definition:
-      'The SEC\'s "Internet Availability of Proxy Materials" rule. Pursuant to the SEC\'s proxy rules, a company may, but is not required to, furnish proxy materials to shareholders through a "notice and access" model. A company choosing this model must post its proxy materials on an internet website and send a Notice of Internet Availability of Proxy Materials at least 40 days before the meeting date. Merger proposals are restricted from this process. This voluntary "notice and access" system resulted from issuer concerns related to the rising cost of proxy solicitations. Issuers expressed that the costs of proxy solicitations far outweigh their benefits, particularly because of the low levels of shareholder participation in proxy solicitations.',
+      'The SEC\'s "Internet Availability of Proxy Materials" rule. Pursuant to the SEC\'s proxy rules, a company may, but is not required to, furnish proxy materials to shareholders through a "notice and access" model. A company choosing this model must post its proxy materials on an internet website and send a Notice of Internet Availability of Proxy Materials at least 40 days before the meeting date. Merger proposals are restricted from this process.',
   },
   postsalesuppression: {
     category: 'Communications & Delivery',

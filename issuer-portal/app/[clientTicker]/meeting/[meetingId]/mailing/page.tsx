@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { Card, CardContent, Container, LinearProgress, Skeleton } from '@mui/material'
+import { Card, CardContent, Container, IconButton, LinearProgress, Skeleton, Tooltip } from '@mui/material'
+import { InfoOutlined } from '@mui/icons-material'
 import Grid from '@mui/material/Grid'
 
 import EmptyState from '@/components/EmptyState'
@@ -91,57 +92,60 @@ export default function MailingPage() {
           <Card>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 3 }}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   {mailingLoading ? (
                     <Skeleton variant="rounded" height={80} />
                   ) : (
                     <FeatureTile
                       height="auto"
                       variant="base"
-                      title={formatNumber(mailingData?.totalPositions)}
-                      subtitle="Positions Received"
+                      title={formatNumber(mailingData?.fullsetMailPositions)}
+                      subtitle="Full Set"
+                      action={
+                        <Tooltip title="Complete proxy materials mailed to shareholders">
+                          <IconButton size="small">
+                            <InfoOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      }
                     />
                   )}
                 </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   {mailingLoading ? (
                     <Skeleton variant="rounded" height={80} />
                   ) : (
                     <FeatureTile
                       height="auto"
                       variant="base"
-                      title={formatNumber(mailingData?.totalPositions)}
-                      subtitle="Positions Loaded"
+                      title={formatNumber(mailingData?.naaMailPositions)}
+                      subtitle="NAA"
+                      action={
+                        <Tooltip title="Notice and Access - shareholders receive notice with website access to materials">
+                          <IconButton size="small">
+                            <InfoOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      }
                     />
                   )}
                 </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   {mailingLoading ? (
                     <Skeleton variant="rounded" height={80} />
                   ) : (
                     <FeatureTile
                       height="auto"
                       variant="base"
-                      title={formatNumber(
-                        (mailingData?.fullsetMailPositions ?? 0) +
-                          (mailingData?.naaMailPositions ?? 0)
-                      )}
-                      subtitle="Mailing Initiated"
-                    />
-                  )}
-                </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
-                  {mailingLoading ? (
-                    <Skeleton variant="rounded" height={80} />
-                  ) : (
-                    <FeatureTile
-                      height="auto"
-                      variant="base"
-                      title={formatNumber(
-                        (mailingData?.fullsetMailPositions ?? 0) +
-                          (mailingData?.naaMailPositions ?? 0)
-                      )}
-                      subtitle="Mailing Complete"
+                      title={formatNumber(mailingData?.electronicSuppressedPositions)}
+                      subtitle="Electronic"
+                      action={
+                        <Tooltip title="Electronic delivery via email">
+                          <IconButton size="small">
+                            <InfoOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      }
                     />
                   )}
                 </Grid>

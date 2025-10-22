@@ -63,7 +63,7 @@ const getNavigationTabs = (currentPhase: number) => [
   { label: 'Documents', route: '/documents' },
   { label: 'Mailing', route: '/mailing' },
   { label: 'Tabulation', route: '/tabulation' },
-  { label: 'Reports', route: '/reports' },
+  { label: 'Performance/Reports', route: '/reports' },
   { label: 'Agenda', route: '/agenda' },
   { label: 'Digital Shareholder Meeting', route: '/digital-shareholder-meeting' },
 ]

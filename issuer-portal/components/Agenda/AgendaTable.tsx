@@ -18,6 +18,7 @@ import {
 
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import { getVotingOptionsDisplay } from '@/utils/votingOptions'
 
 interface AgendaTableProps {
   onUploadClick?: () => void
@@ -27,18 +28,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
   const { currentMeeting } = useMeeting()
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
-  // Default vote options for most proposals
+  // Use shared utility for vote options
   const getVoteOptions = (proposalType?: string, proposalNumber?: string) => {
-    // Check if it's a director election (typically proposals 1-3 or contains "Election" in type)
-    const isDirectorElection =
-      proposalType?.toLowerCase().includes('election') ||
-      proposalType?.toLowerCase().includes('director') ||
-      (proposalNumber && ['1', '2', '3'].includes(proposalNumber))
-
-    if (isDirectorElection) {
-      return 'FOR / WITHHOLD'
-    }
-    return 'FOR / AGAINST / ABSTAIN'
+    return getVotingOptionsDisplay(proposalType, proposalNumber)
   }
 
   return (

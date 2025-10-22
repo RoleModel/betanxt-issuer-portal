@@ -13,12 +13,12 @@ import {
   TableHead,
   TableRow,
   Typography,
-  styled,
 } from '@mui/material'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
 import type { ProposalVoting } from '@/types/phases'
+import { getTabulationHeaders } from '@/utils/votingOptions'
 
 import SkeletonTable from '../ui/SkeletonTable'
 
@@ -42,14 +42,9 @@ export default function VotingTabulationTable({
     return `${percentage.toFixed(2)}%`
   }
 
-  const TotalsRow = styled('tr')(({ theme }) => [
-    {
-      backgroundColor: theme.vars?.palette.grey[50],
-    },
-    theme.applyStyles('dark', {
-      backgroundColor: theme.vars?.palette.grey[900],
-    }),
-  ])
+  // Get appropriate headers based on proposal types in this table
+  const votingLabels = getTabulationHeaders(proposals)
+
 
   if (loading) {
     return (
@@ -66,9 +61,9 @@ export default function VotingTabulationTable({
         <TableHead>
           <TableRow>
             <TableCell>Proposals</TableCell>
-            <TableCell align="right">For</TableCell>
-            <TableCell align="right">Against</TableCell>
-            <TableCell align="right">Abstain</TableCell>
+            <TableCell align="right">{votingLabels.for}</TableCell>
+            <TableCell align="right">{votingLabels.against}</TableCell>
+            <TableCell align="right">{votingLabels.abstain}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -80,7 +75,7 @@ export default function VotingTabulationTable({
               <TableCell>
                 <Box>
                   <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
-                    {proposal.proposalNumber}. {proposal.description}
+                    {proposal.proposalNumber} {proposal.description}
                   </Typography>
                 </Box>
               </TableCell>
@@ -159,122 +154,6 @@ export default function VotingTabulationTable({
             </TableRow>
           ))}
 
-          {/* Totals row */}
-          {proposals.length > 0 && (
-            <TotalsRow>
-              <TableCell>Totals</TableCell>
-              <TableCell align="right">
-                <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.for.percentage,
-                          0
-                        ) / proposals.length
-                      ),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(
-                        proposals.reduce((sum, p) => sum + p.votingResults.for.shares, 0)
-                      ),
-                    }}
-                  />
-                  <LinearProgress
-                    color="chartSeries[0].main"
-                    variant="determinate"
-                    value={
-                      proposals.reduce(
-                        (sum, p) => sum + p.votingResults.for.percentage,
-                        0
-                      ) / proposals.length
-                    }
-                  />
-                </Box>
-              </TableCell>
-              <TableCell align="right">
-                <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.against.percentage,
-                          0
-                        ) / proposals.length
-                      ),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.against.shares,
-                          0
-                        )
-                      ),
-                    }}
-                  />
-                  <LinearProgress
-                    color="chartSeries[3].main"
-                    variant="determinate"
-                    value={
-                      proposals.reduce(
-                        (sum, p) => sum + p.votingResults.against.percentage,
-                        0
-                      ) / proposals.length
-                    }
-                  />
-                </Box>
-              </TableCell>
-              <TableCell align="right">
-                <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.abstain.percentage,
-                          0
-                        ) / proposals.length
-                      ),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(
-                        proposals.reduce(
-                          (sum, p) => sum + p.votingResults.abstain.shares,
-                          0
-                        )
-                      ),
-                    }}
-                  />
-                  <LinearProgress
-                    variant="determinate"
-                    value={
-                      proposals.reduce(
-                        (sum, p) => sum + p.votingResults.abstain.percentage,
-                        0
-                      ) / proposals.length
-                    }
-                  />
-                </Box>
-              </TableCell>
-            </TotalsRow>
-          )}
         </TableBody>
       </Table>
     </TableContainer>

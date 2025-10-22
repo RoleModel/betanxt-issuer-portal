@@ -3,6 +3,7 @@
 import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
 import React from 'react'
 
+import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
@@ -10,6 +11,7 @@ import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 import FeatureTile from '../FeatureTile'
 
 export default function TabulationReportCard() {
+  const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
   const { proposals, votingSummary } = useVotingTabulation(currentMeeting?.id)
 
@@ -19,7 +21,7 @@ export default function TabulationReportCard() {
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: currentMeeting.title ?? 'Company',
+          companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
           meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
           meetingDate: currentMeeting.meetingDate ?? '',
           recordDate: currentMeeting.recordDate ?? '',
@@ -59,8 +61,8 @@ export default function TabulationReportCard() {
 
   return (
     <FeatureTile
-      title="Tabulation Report"
-      description="Voting results for each proposal, showing vote counts, percentages, and quorum status."
+      title="Prelimimary Tabulation Report"
+      description="Results for each proposal, showing vote counts, percentages, and quorum status."
       icon={<IconForFileType fileType="PDF" />}
       variant="tertiary"
       actionText="Download"

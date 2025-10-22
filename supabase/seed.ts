@@ -3526,14 +3526,14 @@ VALUES (
     (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
     jsonb_build_object(
         'proposal1', jsonb_build_array(
-            jsonb_build_object('broker', 'CEDE & CO', 'for', 1500000, 'against', 75000, 'abstain', 25000),
+            jsonb_build_object('broker', 'Charles Schwab', 'for', 1500000, 'against', 75000, 'abstain', 25000),
             jsonb_build_object('broker', 'BlackRock', 'for', 250000, 'against', 15000, 'abstain', 5000),
             jsonb_build_object('broker', 'Vanguard', 'for', 180000, 'against', 12000, 'abstain', 8000),
             jsonb_build_object('broker', 'State Street', 'for', 95000, 'against', 8000, 'abstain', 2000),
             jsonb_build_object('broker', 'Fidelity', 'for', 75000, 'against', 5000, 'abstain', 1500)
         ),
         'proposal2', jsonb_build_array(
-            jsonb_build_object('broker', 'CEDE & CO', 'for', 1450000, 'against', 120000, 'abstain', 30000),
+            jsonb_build_object('broker', 'Charles Schwab', 'for', 1450000, 'against', 120000, 'abstain', 30000),
             jsonb_build_object('broker', 'BlackRock', 'for', 240000, 'against', 25000, 'abstain', 5000),
             jsonb_build_object('broker', 'Vanguard', 'for', 170000, 'against', 22000, 'abstain', 8000),
             jsonb_build_object('broker', 'State Street', 'for', 88000, 'against', 15000, 'abstain', 2000),
@@ -3637,14 +3637,14 @@ SELECT
     (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
     jsonb_build_object(
         'proposal1', jsonb_build_array(
-            jsonb_build_object('broker', 'CEDE & CO', 'for', 1200000, 'against', 85000, 'abstain', 15000),
+            jsonb_build_object('broker', 'Charles Schwab', 'for', 1200000, 'against', 85000, 'abstain', 15000),
             jsonb_build_object('broker', 'BlackRock', 'for', 200000, 'against', 18000, 'abstain', 7000),
             jsonb_build_object('broker', 'Vanguard', 'for', 150000, 'against', 15000, 'abstain', 10000),
             jsonb_build_object('broker', 'State Street', 'for', 85000, 'against', 10000, 'abstain', 3000),
             jsonb_build_object('broker', 'Fidelity', 'for', 65000, 'against', 6000, 'abstain', 2000)
         ),
         'proposal2', jsonb_build_array(
-            jsonb_build_object('broker', 'CEDE & CO', 'for', 1150000, 'against', 135000, 'abstain', 15000),
+            jsonb_build_object('broker', 'Charles Schwab', 'for', 1150000, 'against', 135000, 'abstain', 15000),
             jsonb_build_object('broker', 'BlackRock', 'for', 190000, 'against', 30000, 'abstain', 5000),
             jsonb_build_object('broker', 'Vanguard', 'for', 140000, 'against', 25000, 'abstain', 10000),
             jsonb_build_object('broker', 'State Street', 'for', 80000, 'against', 18000, 'abstain', 5000),

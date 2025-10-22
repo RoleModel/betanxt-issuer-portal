@@ -6,7 +6,6 @@ import { Card, CardActionArea, CardContent, Link, Stack, Typography } from '@mui
 
 import type { components } from '@/domain-models/generated-schema'
 
-import { useClient } from '@/contexts/ClientContext'
 import type { Client } from '@/hooks/useClients'
 
 type Meeting = components['schemas']['Meeting']
@@ -84,14 +83,10 @@ export default function DocumentHostingCard({
   meeting,
   className,
 }: DocumentHostingCardProps) {
-  const { currentClient } = useClient()
-
-  // Get brandingId from client prop, currentClient context, or meeting's ticker as fallback
-
   // Generate dynamic URLs based on client branding and ticker
   const hostingSite = {
     label: 'Document Hosting Site',
-    url: `https://www.proxydocs.com/branding/${currentClient?.branding_id}/2025/issuer/`,
+    url: `https://www.proxydocs.com/${meeting?.ticker}`,
     status: meeting?.status,
     hasUrl: true,
   }
@@ -99,7 +94,7 @@ export default function DocumentHostingCard({
   // Generate proxy push URL based on ticker
   const eVoteSite = {
     label: 'eVote Site',
-    url: meeting?.ticker ? `https://www.proxypush.com/evote/${meeting.ticker}/login` : '',
+    url: meeting?.ticker ? `https://www.proxypush.com/${meeting?.ticker}` : '',
     status: meeting?.status,
     hasUrl: true,
   }
