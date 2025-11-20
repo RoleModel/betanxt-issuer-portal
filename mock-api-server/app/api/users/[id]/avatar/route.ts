@@ -1,42 +1,15 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-11-20T14:13:02.941Z
+// Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
 
 import { NextResponse } from 'next/server'
 
 import { handleCors, withCors } from '@/utils/cors'
 
-export async function GET(): Promise<NextResponse> {
-  try {
-    // TODO: Implement getDSMConfig
-    // Operation: getDSMConfig
-    // This route was auto-generated from OpenAPI spec
-    
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .eq('meetingId', meetingId)
-
-    return withCors(NextResponse.json([]))
-  } catch (error) {
-    return withCors(
-      NextResponse.json(
-        { 
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getDSMConfig'
-        },
-        { status: 500 }
-      )
-    )
-  }
-}
-
 export async function POST(): Promise<NextResponse> {
   try {
-    // TODO: Implement createOrUpdateDSMConfig
-    // Operation: createOrUpdateDSMConfig
+    // TODO: Implement uploadUserAvatar
+    // Operation: uploadUserAvatar
     // This route was auto-generated from OpenAPI spec
     
     // Parse request body
@@ -55,7 +28,7 @@ export async function POST(): Promise<NextResponse> {
         { 
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createOrUpdateDSMConfig'
+          operationId: 'uploadUserAvatar'
         },
         { status: 500 }
       )
@@ -63,30 +36,26 @@ export async function POST(): Promise<NextResponse> {
   }
 }
 
-export async function PUT(): Promise<NextResponse> {
+export async function DELETE(): Promise<NextResponse> {
   try {
-    // TODO: Implement updateDSMConfig
-    // Operation: updateDSMConfig
+    // TODO: Implement deleteUserAvatar
+    // Operation: deleteUserAvatar
     // This route was auto-generated from OpenAPI spec
     
-    // Parse request body
-    // const body = await request.json()
-
-    // Example: Update data in Supabase
+    // Example: Delete data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
-    //   .update(body)
-    //   .eq('meetingId', meetingId)
-    //   .select()
+    //   .delete()
+    //   .eq('id', id)
 
-    return withCors(NextResponse.json({}))
+    return withCors(new NextResponse(null, { status: 204 }))
   } catch (error) {
     return withCors(
       NextResponse.json(
         { 
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'updateDSMConfig'
+          operationId: 'deleteUserAvatar'
         },
         { status: 500 }
       )

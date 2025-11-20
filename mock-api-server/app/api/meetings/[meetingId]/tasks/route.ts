@@ -1,11 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.167Z
+// Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import { createTask, listTasks } from '@/domain-models/api/tasks'
-
+import { handleCors, withCors } from '@/utils/cors'
+import { listTasks, createTask } from '@/domain-models/api/tasks'
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -25,30 +26,34 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const phaseId = searchParams.get('phaseId') || undefined
     const statusParam = searchParams.get('status') || undefined
-    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
-      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
-        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = 
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam) 
+        ? statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
         : undefined
 
     // Use existing domain model function
     const { data, error } = await listTasks(meetingId, { phaseId, status })
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listTasks',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'listTasks'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -69,21 +74,30 @@ export async function POST(
     const { data, error } = await createTask(meetingId, body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 400 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return withCors(NextResponse.json(data, { status: 201 }))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createTask',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'createTask'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }
