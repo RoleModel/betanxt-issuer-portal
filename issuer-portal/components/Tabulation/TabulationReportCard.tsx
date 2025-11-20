@@ -78,6 +78,15 @@ export default function TabulationReportCard() {
     const quorumRequirement = '50%' // Default, should come from meeting config
     const votesOverUnderQuorum = votesRepresented - totalOutstanding * 0.5
 
+    // Determine if meeting has concluded
+    const isMeetingConcluded = currentMeeting.meetingDate
+      ? new Date(currentMeeting.meetingDate) < new Date()
+      : false
+
+    const reportTitle = isMeetingConcluded
+      ? 'Final Tabulation Results'
+      : 'Preliminary Tabulation Results'
+
     // Prepare tabulation data in the format expected by the PDF export
     const tabulationData = {
       companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
@@ -90,6 +99,7 @@ export default function TabulationReportCard() {
       quorumRequirement,
       votesOverUnderQuorum,
       cusipList: currentMeeting.cusip ?? '', // Use cusip from meeting
+      reportTitle, // Pass the dynamic title
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
         const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero
@@ -128,9 +138,18 @@ export default function TabulationReportCard() {
 
   const isDataReady = !!(currentMeeting && votingProposals.length > 0)
 
+  // Determine if meeting has concluded (meeting date has passed)
+  const isMeetingConcluded = currentMeeting?.meetingDate
+    ? new Date(currentMeeting.meetingDate) < new Date()
+    : false
+
+  const reportTitle = isMeetingConcluded
+    ? 'Final Tabulation Results'
+    : 'Preliminary Tabulation Results'
+
   return (
     <FeatureTile
-      title="Prelimary Tabulation Report"
+      title={reportTitle}
       variant="tertiary"
       flex={true}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."

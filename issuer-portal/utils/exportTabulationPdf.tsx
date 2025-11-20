@@ -59,6 +59,7 @@ interface TabulationData {
   votesOverUnderQuorum: number
   cusipList: string
   proposals: ProposalVote[]
+  reportTitle?: string // Optional custom title (Preliminary vs Final)
 }
 
 interface ExportOptions {
@@ -291,7 +292,9 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
         {/* Title Section */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Preliminary Tabulation Report</Text>
+          <Text style={styles.title}>
+            {tabulationData.reportTitle || 'Preliminary Tabulation Results'}
+          </Text>
           <Text style={styles.subtitle}>{meetingType}</Text>
         </View>
 
