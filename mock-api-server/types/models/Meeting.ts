@@ -94,6 +94,12 @@ export interface Meeting {
   meetingDate?: Date
   /**
    *
+   * @type {Date}
+   * @memberof Meeting
+   */
+  cutoffDate?: Date | null
+  /**
+   *
    * @type {string}
    * @memberof Meeting
    */
@@ -248,6 +254,7 @@ export function MeetingFromJSONTyped(json: any, ignoreDiscriminator: boolean): M
     recordDate: json['recordDate'] == null ? undefined : new Date(json['recordDate']),
     mailingDate: json['mailingDate'] == null ? undefined : new Date(json['mailingDate']),
     meetingDate: json['meetingDate'] == null ? undefined : new Date(json['meetingDate']),
+    cutoffDate: json['cutoffDate'] == null ? undefined : new Date(json['cutoffDate']),
     meetingType: json['meetingType'] == null ? undefined : json['meetingType'],
     meetingYear: json['meetingYear'] == null ? undefined : json['meetingYear'],
     status: json['status'] == null ? undefined : MeetingStatusFromJSON(json['status']),
@@ -326,6 +333,10 @@ export function MeetingToJSONTyped(
       value['meetingDate'] == null
         ? undefined
         : value['meetingDate'].toISOString().substring(0, 10),
+    cutoffDate:
+      value['cutoffDate'] === null
+        ? null
+        : (value['cutoffDate'] as any)?.toISOString().substring(0, 10),
     meetingType: value['meetingType'],
     meetingYear: value['meetingYear'],
     status: MeetingStatusToJSON(value['status']),

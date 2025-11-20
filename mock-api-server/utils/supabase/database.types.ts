@@ -470,6 +470,7 @@ export type Database = {
           created_at: string | null
           current_phase: string | null
           cusip: string | null
+          cutoff_date: string | null
           distribution_type: string | null
           employee_stock_plans: string | null
           filing_date: string | null
@@ -504,6 +505,7 @@ export type Database = {
           created_at?: string | null
           current_phase?: string | null
           cusip?: string | null
+          cutoff_date?: string | null
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null
@@ -538,6 +540,7 @@ export type Database = {
           created_at?: string | null
           current_phase?: string | null
           cusip?: string | null
+          cutoff_date?: string | null
           distribution_type?: string | null
           employee_stock_plans?: string | null
           filing_date?: string | null

@@ -2,7 +2,7 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import type { JWT } from 'next-auth/jwt'
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET ??
     'fallback-secret-for-development-only-change-in-production',

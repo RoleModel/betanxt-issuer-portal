@@ -17,7 +17,9 @@ interface ApiResponse<T> {
   }
 }
 
-type MeetingRow = Database['public']['Tables']['meeting']['Row']
+type MeetingRow = Database['public']['Tables']['meeting']['Row'] & {
+  cutoff_date?: string | null
+}
 type MeetingRowWithRelations = Omit<MeetingRow, 'client'> & {
   client?: MeetingRow['client'] | Meeting['client']
 }
@@ -30,7 +32,7 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 // Transform snake_case database fields to camelCase API fields
 function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
   return {
-    id: dbMeeting.id,
+    id: nullToUndefined(dbMeeting.id),
     title: nullToUndefined(dbMeeting.title),
     cusip: nullToUndefined(dbMeeting.cusip),
     ticker: nullToUndefined(dbMeeting.ticker),
@@ -40,6 +42,7 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     recordDate: nullToUndefined(dbMeeting.record_date),
     mailingDate: nullToUndefined(dbMeeting.mailing_date),
     meetingDate: nullToUndefined(dbMeeting.meeting_date),
+    cutoffDate: nullToUndefined(dbMeeting.cutoff_date),
     meetingType: nullToUndefined(dbMeeting.meeting_type),
     meetingYear: nullToUndefined(dbMeeting.meeting_year),
     status: nullToUndefined(dbMeeting.status) as
@@ -51,7 +54,7 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     overallCompletion: nullToUndefined(dbMeeting.overall_completion),
     distributionType: nullToUndefined(dbMeeting.distribution_type),
     transferAgent: nullToUndefined(dbMeeting.transfer_agent),
-    transferAgentConfirmed: nullToUndefined(dbMeeting.transfer_agent_confirmed),
+    transferAgentConfirmed: dbMeeting.transfer_agent_confirmed,
     employeeStockPlans: nullToUndefined(dbMeeting.employee_stock_plans),
     planAdministrator: nullToUndefined(dbMeeting.plan_administrator),
     planAdministratorContact: nullToUndefined(dbMeeting.plan_administrator_contact),
@@ -261,24 +264,16 @@ export async function updateMeeting(
     // Transform camelCase to snake_case for database
     const dbUpdate: Record<string, unknown> = {}
     if (meetingData.title !== undefined) dbUpdate.title = meetingData.title
-    if (meetingData.cusip !== undefined) dbUpdate.cusip = meetingData.cusip
-    if (meetingData.ticker !== undefined) dbUpdate.ticker = meetingData.ticker
-    if (meetingData.preFilingDate !== undefined)
-      dbUpdate.pre_filing_date = meetingData.preFilingDate
-    if (meetingData.filingDate !== undefined)
-      dbUpdate.filing_date = meetingData.filingDate
-    if (meetingData.brokerSearchDate !== undefined)
-      dbUpdate.broker_search_date = meetingData.brokerSearchDate
     if (meetingData.recordDate !== undefined)
       dbUpdate.record_date = meetingData.recordDate
     if (meetingData.mailingDate !== undefined)
       dbUpdate.mailing_date = meetingData.mailingDate
     if (meetingData.meetingDate !== undefined)
       dbUpdate.meeting_date = meetingData.meetingDate
+    if (meetingData.cutoffDate !== undefined)
+      dbUpdate.cutoff_date = meetingData.cutoffDate
     if (meetingData.meetingType !== undefined)
       dbUpdate.meeting_type = meetingData.meetingType
-    if (meetingData.meetingYear !== undefined)
-      dbUpdate.meeting_year = meetingData.meetingYear
     if (meetingData.status !== undefined) dbUpdate.status = meetingData.status
     if (meetingData.currentPhase !== undefined)
       dbUpdate.current_phase = meetingData.currentPhase
@@ -288,8 +283,6 @@ export async function updateMeeting(
       dbUpdate.distribution_type = meetingData.distributionType
     if (meetingData.transferAgent !== undefined)
       dbUpdate.transfer_agent = meetingData.transferAgent
-    if (meetingData.transferAgentConfirmed !== undefined)
-      dbUpdate.transfer_agent_confirmed = meetingData.transferAgentConfirmed
     if (meetingData.employeeStockPlans !== undefined)
       dbUpdate.employee_stock_plans = meetingData.employeeStockPlans
     if (meetingData.planAdministrator !== undefined)
@@ -302,14 +295,12 @@ export async function updateMeeting(
     if (meetingData.solicitor !== undefined) dbUpdate.solicitor = meetingData.solicitor
     if (meetingData.solicitorEmail !== undefined)
       dbUpdate.solicitor_email = meetingData.solicitorEmail
-    if (meetingData.inspector !== undefined) dbUpdate.inspector = meetingData.inspector
     if (meetingData.ivrDialInNumber !== undefined)
       dbUpdate.ivr_dial_in_number = meetingData.ivrDialInNumber
     if (meetingData.totalSharesOutstanding !== undefined)
       dbUpdate.total_shares_outstanding = meetingData.totalSharesOutstanding
     if (meetingData.quorumRequirement !== undefined)
       dbUpdate.quorum_requirement = meetingData.quorumRequirement
-    if (meetingData.clientId !== undefined) dbUpdate.client_id = meetingData.clientId
 
     const { data, error } = await supabase
       .from('meeting')

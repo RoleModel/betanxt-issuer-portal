@@ -1,130 +1,69 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.170Z
+// Generated on 2025-11-20T14:13:02.942Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
 import { NextResponse } from 'next/server'
 
-import { supabase } from '@/utils/supabase/client'
+import { handleCors, withCors } from '@/utils/cors'
 
-interface IncomingAttendee {
-  registrantType?: 'Shareholder' | 'Guest' | 'Proxy' | 'Other'
-  firstName: string
-  lastName: string
-  emailAddress: string
-  registrationQuestions?: string | null
-  minutesAttendedMeeting?: number | null
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ meetingId: string }> }
-): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
-    const { meetingId } = await params
+    // TODO: Implement getDigitalShareholderMeeting
+    // Operation: getDigitalShareholderMeeting
+    // This route was auto-generated from OpenAPI spec
+    
+    // Example: Fetch data from Supabase
+    // const { data, error } = await supabase
+    //   .from('table_name')
+    //   .select('*')
+    //   .eq('meetingId', meetingId)
 
-    const { data, error } = await supabase
-      .from('digital_shareholder_meeting')
-      .select('*')
-      .eq('meeting_id', meetingId)
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message, operationId: 'getDigitalShareholderMeeting' },
+    return withCors(NextResponse.json([]))
+  } catch (error) {
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'getDigitalShareholderMeeting'
+        },
         { status: 500 }
       )
-    }
-
-    // Transform snake_case to camelCase for frontend compatibility
-    const transformedData = (data ?? []).map(row => ({
-      id: row.id,
-      meetingId: row.meeting_id,
-      registrantType: row.registrant_type,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      emailAddress: row.email_address,
-      registrationQuestions: row.registration_questions,
-      minutesAttendedMeeting: row.minutes_attended_meeting,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }))
-
-    return NextResponse.json(transformedData)
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDigitalShareholderMeeting',
-      },
-      { status: 500 }
     )
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ meetingId: string }> }
-): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
-    const { meetingId } = await params
-    const body = await request.json()
+    // TODO: Implement createDigitalShareholderMeetingAttendees
+    // Operation: createDigitalShareholderMeetingAttendees
+    // This route was auto-generated from OpenAPI spec
+    
+    // Parse request body
+    // const body = await request.json()
 
-    // Validate the request body
-    if (!Array.isArray(body)) {
-      return NextResponse.json(
-        { error: 'Request body must be an array of attendees' },
-        { status: 400 }
-      )
-    }
+    // Example: Insert data into Supabase
+    // const { data, error } = await supabase
+    //   .from('table_name')
+    //   .insert(body)
+    //   .select()
 
-    const rows = (body as IncomingAttendee[]).map((attendee) => ({
-      id: crypto.randomUUID(), // Generate UUID for each participant
-      meeting_id: meetingId,
-      registrant_type: attendee.registrantType ?? 'Shareholder',
-      first_name: attendee.firstName,
-      last_name: attendee.lastName,
-      email_address: attendee.emailAddress,
-      registration_questions: attendee.registrationQuestions ?? null,
-      minutes_attended_meeting: attendee.minutesAttendedMeeting ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }))
-
-    const { data, error } = await supabase
-      .from('digital_shareholder_meeting')
-      .insert(rows)
-      .select('*')
-
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to insert attendees', details: error.message },
+    return withCors(NextResponse.json({}, { status: 201 }))
+  } catch (error) {
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'createDigitalShareholderMeetingAttendees'
+        },
         { status: 500 }
       )
-    }
-
-    // Transform snake_case to camelCase for frontend compatibility
-    const transformedData = (data ?? []).map(row => ({
-      id: row.id,
-      meetingId: row.meeting_id,
-      registrantType: row.registrant_type,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      emailAddress: row.email_address,
-      registrationQuestions: row.registration_questions,
-      minutesAttendedMeeting: row.minutes_attended_meeting,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }))
-
-    return NextResponse.json(transformedData, { status: 201 })
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createDigitalShareholderMeetingAttendees',
-      },
-      { status: 500 }
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

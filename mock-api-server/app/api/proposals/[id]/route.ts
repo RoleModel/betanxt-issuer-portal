@@ -1,11 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.171Z
+// Generated on 2025-11-20T14:13:02.942Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
+import { handleCors, withCors } from '@/utils/cors'
 import { getProposalById, updateProposal } from '@/domain-models/api/proposals'
-
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -25,21 +26,25 @@ export async function GET(
     const { data, error } = await getProposalById(id)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getProposalById',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'getProposalById'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -60,21 +65,30 @@ export async function PUT(
     const { data, error } = await updateProposal(id, body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateProposal',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'updateProposal'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

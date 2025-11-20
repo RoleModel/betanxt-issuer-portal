@@ -1,11 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.166Z
+// Generated on 2025-11-20T14:13:02.938Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import { createClient, listClients } from '@/domain-models/api/clients'
-
+import { handleCors, withCors } from '@/utils/cors'
+import { listClients, createClient } from '@/domain-models/api/clients'
 import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -18,21 +19,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await listClients(undefined, undefined, ticker)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listClients',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'listClients'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -46,21 +51,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await createClient(body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 400 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return withCors(NextResponse.json(data, { status: 201 }))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createClient',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'createClient'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

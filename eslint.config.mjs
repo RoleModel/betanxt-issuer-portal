@@ -31,6 +31,7 @@ export default [
       '**/openapi-typescript-codegen/**',
       '**/generated-schema.ts',
       '**/api-schema-types.ts',
+      '**/types/api.ts',
       '**/*.min.js',
       '**/*.worker.js',
       // Testing

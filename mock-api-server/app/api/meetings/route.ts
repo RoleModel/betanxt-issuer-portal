@@ -1,60 +1,53 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.166Z
+// Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import { createMeeting, listMeetings } from '@/domain-models/api/meetings'
-
+import { handleCors, withCors } from '@/utils/cors'
+import { listMeetings, createMeeting } from '@/domain-models/api/meetings'
 import type { components } from '@/types/api'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
-    const page = searchParams.get('page')
-      ? parseInt(searchParams.get('page')!, 10)
-      : undefined
-    const limit = searchParams.get('limit')
-      ? parseInt(searchParams.get('limit')!, 10)
-      : undefined
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : undefined
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
     const statusParam = searchParams.get('status') || undefined
-    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
-      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
-        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = 
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam) 
+        ? statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
         : undefined
     const clientId = searchParams.get('clientId') || undefined
-    const meetingYear = searchParams.get('meetingYear')
-      ? parseInt(searchParams.get('meetingYear')!, 10)
-      : undefined
+    const meetingYear = searchParams.get('meetingYear') ? parseInt(searchParams.get('meetingYear')!, 10) : undefined
     const cusip = searchParams.get('cusip') || undefined
     const ticker = searchParams.get('ticker') || undefined
 
     // Use existing domain model function
-    const { data, error } = await listMeetings(page, limit, {
-      status,
-      clientId,
-      meetingYear,
-      cusip,
-      ticker,
-    })
+    const { data, error } = await listMeetings(page, limit, { status, clientId, meetingYear, cusip, ticker })
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listMeetings',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'listMeetings'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -68,21 +61,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await createMeeting(body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 400 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return withCors(NextResponse.json(data, { status: 201 }))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createMeeting',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'createMeeting'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

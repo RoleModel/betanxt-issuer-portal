@@ -1,15 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.165Z
+// Generated on 2025-11-20T14:13:02.937Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import {
-  deleteAccount,
-  getAccountById,
-  updateAccount,
-} from '@/domain-models/api/accounts'
-
+import { handleCors, withCors } from '@/utils/cors'
+import { getAccountById, updateAccount, deleteAccount } from '@/domain-models/api/accounts'
 import type { components } from '@/types/api'
 
 interface RouteParams {
@@ -29,21 +26,25 @@ export async function GET(
     const { data, error } = await getAccountById(accountId)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getAccountById',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'getAccountById'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -64,21 +65,25 @@ export async function PUT(
     const { data, error } = await updateAccount(accountId, body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'updateAccount',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'updateAccount'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -96,21 +101,30 @@ export async function DELETE(
     const { data, error } = await deleteAccount(accountId)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'deleteAccount',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'deleteAccount'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

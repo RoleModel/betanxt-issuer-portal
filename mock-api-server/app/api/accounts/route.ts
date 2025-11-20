@@ -1,11 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
-// Generated on 2025-09-30T00:31:43.164Z
+// Generated on 2025-11-20T14:13:02.936Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
+
+import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 
-import { createAccount, listAccounts } from '@/domain-models/api/accounts'
-
+import { handleCors, withCors } from '@/utils/cors'
+import { listAccounts, createAccount } from '@/domain-models/api/accounts'
 import type { components } from '@/types/api'
 
 export async function GET(): Promise<NextResponse> {
@@ -14,21 +15,25 @@ export async function GET(): Promise<NextResponse> {
     const { data, error } = await listAccounts()
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 500 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       )
     }
 
-    return NextResponse.json(data)
+    return withCors(NextResponse.json(data))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'listAccounts',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'listAccounts'
+        },
+        { status: 500 }
+      )
     )
   }
 }
@@ -42,21 +47,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await createAccount(body)
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.statusCode || 400 }
+      return withCors(
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    return withCors(NextResponse.json(data, { status: 201 }))
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'createAccount',
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { 
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'createAccount'
+        },
+        { status: 500 }
+      )
     )
   }
+}
+
+// Handle preflight requests
+export function OPTIONS() {
+  return handleCors()
 }

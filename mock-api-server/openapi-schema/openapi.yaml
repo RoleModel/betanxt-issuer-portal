@@ -2628,6 +2628,11 @@ components:
           type: string
           format: date
           example: '2025-05-15'
+        cutoffDate:
+          type: string
+          format: date
+          nullable: true
+          description: Voting cutoff date (previous business day before meeting)
         meetingType:
           type: string
         meetingYear:
@@ -3474,6 +3479,9 @@ components:
         meetingDate:
           type: string
           format: date
+        cutoffDate:
+          type: string
+          format: date
         meetingType:
           type: string
         meetingYear:
@@ -3526,6 +3534,9 @@ components:
           type: string
           format: date
         meetingDate:
+          type: string
+          format: date
+        cutoffDate:
           type: string
           format: date
         meetingType:

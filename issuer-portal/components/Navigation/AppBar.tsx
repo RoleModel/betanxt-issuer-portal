@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
-import { Badge, IconButton } from '@mui/material'
+import { Badge, IconButton, Typography } from '@mui/material'
 import { useColorScheme } from '@mui/material/styles'
 import { Box } from '@mui/material'
 
@@ -19,13 +19,15 @@ import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
+import buildApiClient from '@/domain-models/apiClient'
+
+import { formatMeetingDate } from '@/utils/meetingUtils'
 
 // Custom hook to safely use meeting context when it might not be available
 const useMeetingSafe = () => {
   const context = useContext(MeetingContext)
-  // Return the context if available, otherwise return a safe default
   return useMemo(
-    () => context || { meetings: [] as { id?: string; status?: string }[] },
+    () => context || { meetings: [] as { id?: string; status?: string }[], currentMeeting: null },
     [context]
   )
 }
@@ -35,6 +37,7 @@ const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
 const PAST_MEETINGS_REGEX = /^\/[A-Z]+\/past-meetings$/
 const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
+const SECURE_FILE_TRANSFER_REGEX = /^\/[A-Z]+\/secure-file-transfer$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
 
 
@@ -92,6 +95,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
+
+
   // Get current client for logo and branding
   const { currentClient } = useClient()
 
@@ -117,6 +122,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   // Get meetings data - handle case where meeting context may not be available
   const meetingContext = useMeetingSafe()
   const meetings = useMemo(() => meetingContext.meetings, [meetingContext.meetings])
+  const [routeMeetingStatus, setRouteMeetingStatus] = useState<string | null>(null)
+  const [statusLoading, setStatusLoading] = useState(false)
+  const [routeMeetingDate, setRouteMeetingDate] = useState<string | null>(null)
 
   // Extract current meeting ID from pathname
   const currentMeetingId = useMemo(() => {
@@ -124,12 +132,47 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return match ? match[1] : null
   }, [pathname])
 
+  React.useEffect(() => {
+    let active = true
+    const fetchStatus = async () => {
+      try {
+        if (!currentMeetingId) {
+          setRouteMeetingStatus(null)
+          setStatusLoading(false)
+          return
+        }
+        setStatusLoading(true)
+        const api = await buildApiClient()
+        const { data } = await api.GET('/meetings/{meetingId}', { params: { path: { meetingId: currentMeetingId } } })
+        if (active) {
+          const status = (data && (data as { status?: string }).status) || null
+          setRouteMeetingStatus(status)
+          const date = (data && (data as { meetingDate?: string }).meetingDate) || null
+          setRouteMeetingDate(date)
+          setStatusLoading(false)
+        }
+      } catch {
+        if (active) {
+          setRouteMeetingStatus(null)
+          setRouteMeetingDate(null)
+          setStatusLoading(false)
+        }
+      }
+    }
+    void fetchStatus()
+    return () => {
+      active = false
+    }
+  }, [currentMeetingId])
+
   // Check if current meeting is a past meeting (completed)
   const isViewingPastMeeting = useMemo(() => {
     if (!currentMeetingId) return false
     const meeting = meetings.find((m: { id?: string }) => m.id === currentMeetingId)
-    return meeting?.status === 'COMPLETE'
-  }, [currentMeetingId, meetings])
+    const rawStatus = meeting?.status ?? meetingContext?.currentMeeting?.status ?? routeMeetingStatus
+    const normalized = typeof rawStatus === 'string' ? rawStatus.toUpperCase() : rawStatus
+    return normalized === 'COMPLETE' || normalized === 'COMPLETED'
+  }, [currentMeetingId, meetings, meetingContext?.currentMeeting?.status, routeMeetingStatus])
 
   // Use the current client's ticker for dashboard path, fallback to '/' if no client
   const dashboardPath = useMemo(() => {
@@ -166,6 +209,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         href: `${tickerPrefix}/past-meetings`,
       },
       { label: 'Reporting', value: 'reporting', href: `${tickerPrefix}/reporting` },
+      { label: 'File Transfer', value: 'secure-file-transfer', href: `${tickerPrefix}/secure-file-transfer` },
       { label: 'Education', value: 'education', href: '/education' },
       { label: 'Products', value: 'products', href: '/products' },
     ]
@@ -174,6 +218,16 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const currentTab = useMemo(() => {
     // Check if viewing a past meeting first
     if (isViewingPastMeeting) return 'past-meetings'
+    // While status is loading for a specific meeting route, avoid dashboard flicker
+    if (currentMeetingId && statusLoading) return 'past-meetings'
+
+    // If the current meeting route differs from the active meeting, treat it as past
+    const activeMeeting = meetings.find(
+      (m: { id?: string; status?: string }) => m.status && m.status !== 'COMPLETE'
+    )
+    if (currentMeetingId && activeMeeting?.id && activeMeeting.id !== currentMeetingId) {
+      return 'past-meetings'
+    }
 
     // Check for specific page routes that don't have tabs
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return null
@@ -182,18 +236,44 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       return 'past-meetings'
     if (MEETING_REPORTS_REGEX.test(pathname)) return 'meeting'
     if (REPORTING_REGEX.test(pathname)) return 'reporting'
+    if (SECURE_FILE_TRANSFER_REGEX.test(pathname)) return 'secure-file-transfer'
     if (pathname === '/education' || pathname.startsWith('/education/'))
       return 'education'
     if (pathname === '/products' || pathname.startsWith('/products/')) return 'products'
+    // If viewing a meeting route that isn't in the active meetings list, treat as past
+    if (currentMeetingId && meetings.length > 0) {
+      const isInActiveList = meetings.some((m: { id?: string }) => m.id === currentMeetingId)
+      if (!isInActiveList) return 'past-meetings'
+    }
     if (
       pathname === '/' ||
       pathname === '/meeting' ||
       MEETING_PREFIX_REGEX.test(pathname) ||
       pathname.startsWith('/meeting/')
     )
-      return 'meeting'
+      return isViewingPastMeeting ? 'past-meetings' : (statusLoading && currentMeetingId ? 'past-meetings' : 'meeting')
     return null
-  }, [pathname, isViewingPastMeeting])
+  }, [pathname, isViewingPastMeeting, currentMeetingId, meetings, statusLoading])
+
+  const meetingStatus: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | null = useMemo(() => {
+    if (!currentMeetingId) return null
+    const meeting = meetings.find((m) => m.id === currentMeetingId)
+    const raw = meeting?.status ?? routeMeetingStatus
+    const normalized = typeof raw === 'string' ? raw.toUpperCase() : raw
+    return (normalized === 'ACTIVE' || normalized === 'COMPLETE' || normalized === 'ADJOURNED')
+      ? (normalized)
+      : null
+  }, [currentMeetingId, meetings, routeMeetingStatus])
+
+  const meetingDateRaw = useMemo(() => {
+    if (!currentMeetingId) return null
+    const meeting = meetings.find((m) => m.id === currentMeetingId) as { meetingDate?: string } | undefined
+    return meeting?.meetingDate ?? meetingContext?.currentMeeting?.meetingDate ?? routeMeetingDate
+  }, [currentMeetingId, meetings, meetingContext?.currentMeeting?.meetingDate, routeMeetingDate])
+
+  const meetingDateLabel = useMemo(() => {
+    return meetingDateRaw ? formatMeetingDate(meetingDateRaw) : null
+  }, [meetingDateRaw])
 
   const handleNotificationClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -401,6 +481,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     avatar,
     menuItems,
     selectedTabValue,
+    meetingStatus,
     onTabChange: handleTabChange,
   }
 
@@ -421,6 +502,37 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
           </Box>
         )}
       </BNAppBar>
+      {!!currentMeetingId && (
+        <Box
+          sx={{
+            paddingInline: 3,
+            paddingBlock: .5,
+            borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            backgroundColor: (theme) =>
+              !meetingStatus || meetingStatus === 'ACTIVE'
+                ? 'transparent'
+                : meetingStatus === 'COMPLETE'
+                  ? theme.vars.palette.warning.main
+                  : theme.vars.palette.warning.main,
+            transition: 'background-color 120ms ease',
+          }}
+        >
+          <Typography variant="body3" fontWeight={500} sx={{
+            color: (theme) =>
+              !meetingStatus || meetingStatus === 'ACTIVE'
+                ? 'text.primary'
+                : meetingStatus === 'COMPLETE'
+                  ? theme.vars.palette.warning.contrastText
+                  : theme.vars.palette.warning.contrastText,
+          }}>
+            {meetingStatus === 'COMPLETE' && meetingDateLabel
+              ? `You are viewing a past meeting from ${meetingDateLabel}.`
+              : (!meetingStatus || meetingStatus === 'ACTIVE')
+                ? 'You are viewing an active meeting.'
+                : 'You are viewing a meeting with unknown status.'}
+          </Typography>
+        </Box>
+      )}
     </Box>
   )
 })

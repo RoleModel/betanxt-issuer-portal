@@ -1,16 +1,7 @@
 import React, { useState } from 'react'
 
 import CloseIcon from '@mui/icons-material/Close'
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-} from '@mui/material'
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField } from '@mui/material'
 
 import BNFileUpload from './BNFileUpload'
 import type { DSMDocumentOption, UploadFile } from './types'
@@ -20,6 +11,11 @@ interface FileUploadDialogProps {
   onClose: () => void
   onUpload: (files: File[], associations?: Record<string, string>) => void
   onUploadSuccess?: () => void
+  onUploadWithNotes?: (
+    files: File[],
+    associations?: Record<string, string>,
+    description?: string
+  ) => void
   meetingId?: string
   documentType?: string
   isDragging?: boolean
@@ -32,6 +28,7 @@ const FileUploadDialog = ({
   onClose,
   onUpload,
   onUploadSuccess,
+  onUploadWithNotes,
   // meetingId,
   documentType = 'dsm-document',
   // isDragging,
@@ -42,6 +39,7 @@ const FileUploadDialog = ({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [fileAssociations, setFileAssociations] = useState<Record<string, string>>({})
+  const [description, setDescription] = useState('')
 
   const handleClose = () => {
     setUploadFiles([])
@@ -96,13 +94,16 @@ const FileUploadDialog = ({
     if (filesToUpload.length > 0) {
       setIsUploading(true)
       try {
-        // Call the parent's onUpload handler with associations
-        onUpload(filesToUpload, associations)
+        if (onUploadWithNotes) {
+          onUploadWithNotes(filesToUpload, associations, description)
+        } else {
+          onUpload(filesToUpload, associations)
+        }
 
         // Call success callback if provided
         onUploadSuccess?.()
 
-        // Close dialog on success
+        setDescription('')
         handleClose()
       } catch (error) {
         console.error('Submit error:', error)
@@ -145,6 +146,16 @@ const FileUploadDialog = ({
             {uploadError}
           </Alert>
         )}
+        <Stack spacing={2} sx={{ mb: 2 }}>
+          <TextField
+            label="Description"
+            placeholder="Add a description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            multiline
+            minRows={2}
+          />
+        </Stack>
         <BNFileUpload
           maxFiles={5}
           acceptedFileTypes={

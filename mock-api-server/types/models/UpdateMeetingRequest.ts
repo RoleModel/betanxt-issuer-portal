@@ -51,6 +51,12 @@ export interface UpdateMeetingRequest {
   meetingDate?: Date
   /**
    *
+   * @type {Date}
+   * @memberof UpdateMeetingRequest
+   */
+  cutoffDate?: Date
+  /**
+   *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
@@ -166,6 +172,7 @@ export function UpdateMeetingRequestFromJSONTyped(
     recordDate: json['recordDate'] == null ? undefined : new Date(json['recordDate']),
     mailingDate: json['mailingDate'] == null ? undefined : new Date(json['mailingDate']),
     meetingDate: json['meetingDate'] == null ? undefined : new Date(json['meetingDate']),
+    cutoffDate: json['cutoffDate'] == null ? undefined : new Date(json['cutoffDate']),
     meetingType: json['meetingType'] == null ? undefined : json['meetingType'],
     status: json['status'] == null ? undefined : MeetingStatusFromJSON(json['status']),
     currentPhase: json['currentPhase'] == null ? undefined : json['currentPhase'],
@@ -223,6 +230,10 @@ export function UpdateMeetingRequestToJSONTyped(
       value['meetingDate'] == null
         ? undefined
         : value['meetingDate'].toISOString().substring(0, 10),
+    cutoffDate:
+      value['cutoffDate'] == null
+        ? undefined
+        : value['cutoffDate'].toISOString().substring(0, 10),
     meetingType: value['meetingType'],
     status: MeetingStatusToJSON(value['status']),
     currentPhase: value['currentPhase'],

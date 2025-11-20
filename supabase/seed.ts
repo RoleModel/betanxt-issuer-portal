@@ -1065,6 +1065,15 @@ const main = async () => {
           brokerSearchDateTime.toISODate() || brokerSearchDateTime.toFormat('yyyy-MM-dd')
         const preFilingDate =
           preFilingDateTime.toISODate() || preFilingDateTime.toFormat('yyyy-MM-dd')
+        const cutoffDateTimeRaw = meetingDateTime.minus({ days: 1 })
+        const cutoffDateTime =
+          cutoffDateTimeRaw.weekday === 7
+            ? cutoffDateTimeRaw.minus({ days: 2 })
+            : cutoffDateTimeRaw.weekday === 6
+              ? cutoffDateTimeRaw.minus({ days: 1 })
+              : cutoffDateTimeRaw
+        const cutoffDate =
+          cutoffDateTime.toISODate() || cutoffDateTime.toFormat('yyyy-MM-dd')
 
         const meetingTypeSlug = meeting.type.toLowerCase().replace(/\s+/g, '-')
         const meetingId = `${client.ticker.toLowerCase()}-${meetingTypeSlug}-${yearConfig.year}`
@@ -1224,7 +1233,7 @@ const main = async () => {
         sqlStatements.push(
           `INSERT INTO meeting(` +
           `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
-          `record_date, mailing_date, meeting_date, ` +
+          `record_date, mailing_date, meeting_date, cutoff_date, ` +
           `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
           `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
           `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
@@ -1241,6 +1250,7 @@ const main = async () => {
           `${sqlValue(recordDate)}, ` +
           `${sqlValue(mailingDate)}, ` +
           `${sqlValue(meetingDate)}, ` +
+          `${sqlValue(cutoffDate)}, ` +
           `${sqlValue(meeting.type)}, ` +
           `${yearConfig.year}, ` +
           `${sqlValue(status)}, ` +

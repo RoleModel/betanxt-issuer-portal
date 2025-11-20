@@ -73,7 +73,10 @@ class DefaultDocumentRepository implements DocumentRepository {
       const form = new FormData()
       form.append('meetingId', meetingId)
       form.append('file', file)
-      if (versionNotes) form.append('versionNotes', versionNotes)
+      if (versionNotes && versionNotes.trim().length > 0) {
+        form.append('versionNotes', versionNotes)
+        form.append('title', versionNotes.trim())
+      }
       const resp = await fetch(
         `/api/documents/types/${encodeURIComponent(documentType)}/upload`,
         {
@@ -105,10 +108,14 @@ class DefaultDocumentRepository implements DocumentRepository {
     }
     try {
       const api = await buildApiClient()
+      const titleOverride = (versionNotes && versionNotes.trim().length > 0)
+        ? versionNotes.trim()
+        : file.name
       const createBody: components['schemas']['CreateDocumentRequest'] = {
-        title: file.name,
+        title: titleOverride,
+        description: versionNotes && versionNotes.trim().length > 0 ? versionNotes.trim() : undefined,
         type: documentType,
-        file: upData.path, // The API expects 'file' not 'filePath'
+        file: upData.path,
       }
       const { data } = await api.POST('/meetings/{meetingId}/documents', {
         params: { path: { meetingId } },

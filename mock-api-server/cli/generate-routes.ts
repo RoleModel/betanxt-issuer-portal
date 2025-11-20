@@ -532,7 +532,9 @@ function generateRouteContent(route: RouteInfo, domainModels: DomainModelMap): s
 // Generated on ${new Date().toISOString()}
 // Source: openapi-schema/openapi.yaml
 
-import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/server'`
+import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/server'
+
+import { handleCors, withCors } from '@/utils/cors'`
 
   // Add domain model imports if found
   if (domainModelImports.size > 0) {
@@ -708,16 +710,18 @@ import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/ser
       content += functionCall
 
       content += `\n    if (error) {\n`
-      content += `      return NextResponse.json(\n`
-      content += `        { error: error.message },\n`
-      content += `        { status: error.statusCode || ${method === 'POST' ? '400' : '500'} }\n`
+      content += `      return withCors(\n`
+      content += `        NextResponse.json(\n`
+      content += `          { error: error.message },\n`
+      content += `          { status: error.statusCode || ${method === 'POST' ? '400' : '500'} }\n`
+      content += `        )\n`
       content += `      )\n`
       content += `    }\n\n`
 
       if (method === 'POST') {
-        content += `    return NextResponse.json(data, { status: 201 })\n`
+        content += `    return withCors(NextResponse.json(data, { status: 201 }))\n`
       } else {
-        content += `    return NextResponse.json(data)\n`
+        content += `    return withCors(NextResponse.json(data))\n`
       }
     } else {
       // Add operation-specific implementation hints
@@ -780,29 +784,37 @@ import { ${needsNextRequest ? 'NextRequest, ' : ''}NextResponse } from 'next/ser
 
       // Fallback minimal implementation to avoid 501s in tests
       if (method === 'GET') {
-        content += `    return NextResponse.json([])\n`
+        content += `    return withCors(NextResponse.json([]))\n`
       } else if (method === 'POST') {
-        content += `    return NextResponse.json({}, { status: 201 })\n`
+        content += `    return withCors(NextResponse.json({}, { status: 201 }))\n`
       } else if (method === 'PUT') {
-        content += `    return NextResponse.json({})\n`
+        content += `    return withCors(NextResponse.json({}))\n`
       } else if (method === 'DELETE') {
-        content += `    return new NextResponse(null, { status: 204 })\n`
+        content += `    return withCors(new NextResponse(null, { status: 204 }))\n`
       } else {
-        content += `    return NextResponse.json({ status: 'OK' })\n`
+        content += `    return withCors(NextResponse.json({ status: 'OK' }))\n`
       }
     }
     content += `  } catch (error) {\n`
-    content += `    return NextResponse.json(\n`
-    content += `      { \n`
-    content += `        error: 'Internal server error',\n`
-    content += `        message: error instanceof Error ? error.message : 'Unknown error',\n`
-    content += `        operationId: '${operationId ?? 'unknown'}'\n`
-    content += `      },\n`
-    content += `      { status: 500 }\n`
+    content += `    return withCors(\n`
+    content += `      NextResponse.json(\n`
+    content += `        { \n`
+    content += `          error: 'Internal server error',\n`
+    content += `          message: error instanceof Error ? error.message : 'Unknown error',\n`
+    content += `          operationId: '${operationId ?? 'unknown'}'\n`
+    content += `        },\n`
+    content += `        { status: 500 }\n`
+    content += `      )\n`
     content += `    )\n`
     content += `  }\n`
     content += `}\n\n`
   }
+
+  // Add OPTIONS handler for CORS preflight requests
+  content += `// Handle preflight requests\n`
+  content += `export function OPTIONS() {\n`
+  content += `  return handleCors()\n`
+  content += `}\n`
 
   return content
 }

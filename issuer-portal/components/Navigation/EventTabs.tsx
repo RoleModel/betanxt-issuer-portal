@@ -34,7 +34,6 @@ import {
   getPhaseContrastText,
   getPhaseNumber,
 } from '@/components/mui-styling/theme'
-import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -51,6 +50,7 @@ interface MeetingTab {
   recordDate: string
   mailingDate: string
   meetingDate: string
+  cutoffDate: string
   status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
   currentPhase: string
   overallCompletion: number
@@ -237,6 +237,7 @@ export function EventTabs() {
       recordDate: formatDate(m.recordDate ?? ''),
       mailingDate: formatDate(m.mailingDate ?? ''),
       meetingDate: formatDate(m.meetingDate ?? ''),
+      cutoffDate: formatDate(m.cutoffDate ?? ''),
       status: m.status! ?? 'ACTIVE',
       currentPhase: m.currentPhase ?? 'Phase 1',
       overallCompletion: m.overallCompletion ?? 0,
@@ -497,12 +498,26 @@ export function EventTabs() {
               color: 'text.secondary',
               variant: 'caption',
               fontWeight: 500,
+              text: 'Cutoff Date',
+            }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: `${meeting.cutoffDate} 11:00 AM Eastern Time`,
+            }}
+          />
+          <BNTypographyPair
+            sx={{ whiteSpace: 'nowrap' }}
+            primary={{
+              color: 'text.secondary',
+              variant: 'caption',
+              fontWeight: 500,
               text: 'Meeting Date',
             }}
             secondary={{
               variant: 'body3',
               fontWeight: 500,
-              text: meeting.meetingDate,
+              text: `${meeting.meetingDate} 11:00 AM Local Time`,
             }}
           />
           <Stack>
@@ -582,9 +597,7 @@ export function EventTabs() {
               </Typography>
             </Box>
           </Stack>
-          <Box display="flex" alignItems="center" height="100%">
-            <StatusChip status={meeting.status ?? 'Unknown'} size="small" />
-          </Box>
+
         </Stack>
       </Box>
     )
@@ -651,75 +664,77 @@ export function EventTabs() {
     }, [currentPath, ticker, meetingId, meeting.currentPhase])
 
     return (
-      <Link
-        href={targetPath}
-        key={meeting.id || index}
-        passHref
-        style={{
-          textDecoration: 'none',
-          color: 'inherit',
-        }}
-      >
-        <Box
-          data-tab-index={index}
-          tabIndex={0}
-          role="tab"
-          aria-selected={isActive}
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'row',
-            height: isMobile ? 'auto' : 110,
-            cursor: isActive ? 'default' : 'pointer',
-            overflowX: 'hidden',
-            backgroundColor: isActive
-              ? theme.vars.palette.background.default
-              : theme.vars.palette.common.white,
-            ...theme.applyStyles('dark', {
+      <Stack>
+        <Link
+          href={targetPath}
+          key={meeting.id || index}
+          passHref
+          style={{
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
+          <Box
+            data-tab-index={index}
+            tabIndex={0}
+            role="tab"
+            aria-selected={isActive}
+            sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              cursor: isActive ? 'default' : 'pointer',
+              overflowX: 'hidden',
               backgroundColor: isActive
                 ? theme.vars.palette.background.default
-                : theme.vars.palette.common.black,
-            }),
-            color: isActive
-              ? theme.vars.palette.primary.main
-              : theme.vars.palette.text.secondary,
-            position: 'relative',
-            borderRight: `1px solid ${theme.vars.palette.divider}`,
-            minWidth: 'fit-content',
-            transition: theme.transitions.create(['color']),
-            '&:hover': { color: theme.vars.palette.primary.main },
-          })}
-        >
-          <Box sx={{ px: 2, pt: 1.5 }}>
-            <Stack>
-              <Typography
-                variant="h1"
-                sx={{
-                  fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '2rem',
-                  lineHeight: 1.125,
-                  letterSpacing: '0.47%',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  mb: 1,
-                  fontDisplay: 'swap',
-                }}
-              >
-                {meeting.title}
-              </Typography>
-              {isActive && !isMobile ? (
-                <ActiveMeetingDetails
-                  meeting={meeting}
-                  currentPhase={currentPhase}
-                  onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
-                />
-              ) : (
-                !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
-              )}
-            </Stack>
+                : theme.vars.palette.common.white,
+              ...theme.applyStyles('dark', {
+                backgroundColor: isActive
+                  ? theme.vars.palette.background.default
+                  : theme.vars.palette.common.black,
+              }),
+              color: isActive
+                ? theme.vars.palette.primary.main
+                : theme.vars.palette.text.secondary,
+              position: 'relative',
+              borderRight: `1px solid ${theme.vars.palette.divider}`,
+              minWidth: 'fit-content',
+              transition: theme.transitions.create(['color']),
+              '&:hover': { color: theme.vars.palette.primary.main },
+            })}
+          >
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Stack>
+                <Typography
+                  variant="h1"
+                  sx={{
+                    fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                    fontWeight: 500,
+                    fontSize: '2rem',
+                    lineHeight: 1.125,
+                    letterSpacing: '0.47%',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    mb: 1,
+                    fontDisplay: 'swap',
+                  }}
+                >
+                  {meeting.title}
+                </Typography>
+
+                {isActive && !isMobile ? (
+                  <ActiveMeetingDetails
+                    meeting={meeting}
+                    currentPhase={currentPhase}
+                    onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
+                  />
+                ) : (
+                  !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
+                )}
+              </Stack>
+            </Box>
           </Box>
-        </Box>
-      </Link>
+        </Link>
+      </Stack>
     )
   })
 
