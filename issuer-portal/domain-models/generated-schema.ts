@@ -484,6 +484,11 @@ export interface components {
       /** Format: decimal */
       quorumRequirement?: number;
       /**
+       * @description Total broker non-votes for this meeting
+       * @example 22480600
+       */
+      brokerNonVote?: number | null;
+      /**
        * Format: uuid
        * @description The client this meeting belongs to
        */
@@ -738,17 +743,17 @@ export interface components {
       finalResult?: "PASSED" | "FAILED" | "PENDING" | null;
       /**
        * @description Total number of votes in favor
-       * @example 150000000
+       * @example 150000000.19
        */
       totalVotesFor?: number | null;
       /**
        * @description Total number of votes against
-       * @example 25000000
+       * @example 25000000.39
        */
       totalVotesAgainst?: number | null;
       /**
        * @description Total number of abstained votes
-       * @example 5000000
+       * @example 5000000.21
        */
       totalVotesAbstain?: number | null;
       /**
@@ -1060,6 +1065,11 @@ export interface components {
       totalSharesOutstanding?: string;
       /** Format: decimal */
       quorumRequirement?: number;
+      /**
+       * @description Total broker non-votes for this meeting
+       * @example 22480600
+       */
+      brokerNonVote?: number | null;
     };
     CreatePhaseRequest: {
       name: string;

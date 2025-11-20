@@ -145,6 +145,7 @@ export default function TabulationPage() {
       quorumRequirement,
       votesOverUnderQuorum,
       cusipList: currentMeeting.cusip ?? '', // Use cusip from meeting
+      brokerNonVote: currentMeeting.brokerNonVote ?? 0,
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
         const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero

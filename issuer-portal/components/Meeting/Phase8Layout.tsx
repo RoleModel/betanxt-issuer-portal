@@ -45,6 +45,7 @@ export default React.memo(function Phase8Layout({
             (votingSummary?.totalSharesVoted ?? 0) -
             (votingSummary?.totalSharesOutstanding ?? 0) * 0.5,
           cusipList: meeting.cusip ?? '',
+          brokerNonVote: meeting.brokerNonVote ?? 0,
           proposals: proposals.map((p) => ({
             proposalNumber: String(p.proposalNumber),
             title: p.proposalTitle ?? '',

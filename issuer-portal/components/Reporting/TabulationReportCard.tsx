@@ -1,7 +1,6 @@
 'use client'
 
 import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
-import React from 'react'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -33,6 +32,7 @@ export default function TabulationReportCard() {
             (votingSummary?.totalSharesVoted ?? 0) -
             (votingSummary?.totalSharesOutstanding ?? 0) * 0.5,
           cusipList: currentMeeting.cusip ?? '',
+          brokerNonVote: currentMeeting.brokerNonVote ?? 0,
           proposals: proposals.map((p) => ({
             proposalNumber: String(p.proposalNumber),
             title: p.proposalTitle ?? '',

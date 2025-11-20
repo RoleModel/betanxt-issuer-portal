@@ -40,7 +40,7 @@ import type { components } from '@/domain-models/generated-schema'
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
-import { formatDate } from '@/lib/formats'
+import { formatDateWithYear } from '@/lib/formats'
 
 interface MeetingTab {
   id: string
@@ -50,7 +50,6 @@ interface MeetingTab {
   recordDate: string
   mailingDate: string
   meetingDate: string
-  cutoffDate: string
   status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
   currentPhase: string
   overallCompletion: number
@@ -234,10 +233,9 @@ export function EventTabs() {
       title: m.title ?? 'Meeting',
       ticker: m.ticker ?? '',
       cusip: m.cusip ?? '',
-      recordDate: formatDate(m.recordDate ?? ''),
-      mailingDate: formatDate(m.mailingDate ?? ''),
-      meetingDate: formatDate(m.meetingDate ?? ''),
-      cutoffDate: formatDate(m.cutoffDate ?? ''),
+      recordDate: formatDateWithYear(m.recordDate ?? ''),
+      mailingDate: formatDateWithYear(m.mailingDate ?? ''),
+      meetingDate: formatDateWithYear(m.meetingDate ?? ''),
       status: m.status! ?? 'ACTIVE',
       currentPhase: m.currentPhase ?? 'Phase 1',
       overallCompletion: m.overallCompletion ?? 0,
@@ -490,20 +488,6 @@ export function EventTabs() {
               variant: 'body3',
               fontWeight: 500,
               text: meeting.mailingDate,
-            }}
-          />
-          <BNTypographyPair
-            sx={{ whiteSpace: 'nowrap' }}
-            primary={{
-              color: 'text.secondary',
-              variant: 'caption',
-              fontWeight: 500,
-              text: 'Cutoff Date',
-            }}
-            secondary={{
-              variant: 'body3',
-              fontWeight: 500,
-              text: `${meeting.cutoffDate} 11:00 AM Eastern Time`,
             }}
           />
           <BNTypographyPair

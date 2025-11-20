@@ -1,6 +1,6 @@
 -- BetaNXT Issuer Portal Database Schema
 -- Generated from OpenAPI specification (core data models only)
--- Date: 2025-10-12T07:50:08.502Z
+-- Date: 2025-11-20T19:15:07.263Z
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -135,6 +135,7 @@ CREATE TABLE public.meeting (
     record_date DATE DEFAULT NULL,
     mailing_date DATE DEFAULT NULL,
     meeting_date DATE DEFAULT NULL,
+    cutoff_date DATE DEFAULT NULL,
     meeting_type TEXT DEFAULT NULL,
     meeting_year INTEGER DEFAULT NULL,
     status TEXT DEFAULT NULL,
@@ -153,6 +154,7 @@ CREATE TABLE public.meeting (
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
+    broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
@@ -165,6 +167,7 @@ COMMENT ON COLUMN meeting.broker_search_date IS 'Original param name - brokerSea
 COMMENT ON COLUMN meeting.record_date IS 'Original param name - recordDate.';
 COMMENT ON COLUMN meeting.mailing_date IS 'Original param name - mailingDate.';
 COMMENT ON COLUMN meeting.meeting_date IS 'Original param name - meetingDate.';
+COMMENT ON COLUMN meeting.cutoff_date IS 'Voting cutoff date (previous business day before meeting). Original param name - cutoffDate.';
 COMMENT ON COLUMN meeting.meeting_type IS 'Original param name - meetingType.';
 COMMENT ON COLUMN meeting.meeting_year IS 'Original param name - meetingYear.';
 COMMENT ON COLUMN meeting.current_phase IS 'Original param name - currentPhase.';
@@ -179,6 +182,7 @@ COMMENT ON COLUMN meeting.plan_administrator_contact_email IS 'Original param na
 COMMENT ON COLUMN meeting.solicitor_email IS 'Original param name - solicitorEmail.';
 COMMENT ON COLUMN meeting.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN meeting.quorum_requirement IS 'Original param name - quorumRequirement.';
+COMMENT ON COLUMN meeting.broker_non_vote IS 'Total broker non-votes for this meeting. Original param name - brokerNonVote.';
 COMMENT ON COLUMN meeting.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
 COMMENT ON COLUMN meeting.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN meeting.updated_at IS 'Original param name - updatedAt.';
@@ -456,10 +460,10 @@ CREATE TABLE public.proposal (
     frequency_options JSON DEFAULT NULL,
     recommendation TEXT DEFAULT NULL,
     final_result proposal_final_result DEFAULT NULL,
-    total_votes_for INTEGER DEFAULT NULL,
-    total_votes_against INTEGER DEFAULT NULL,
-    total_votes_abstain INTEGER DEFAULT NULL,
-    total_shares_eligible INTEGER DEFAULT NULL,
+    total_votes_for DECIMAL(20, 9) DEFAULT NULL,
+    total_votes_against DECIMAL(20, 9) DEFAULT NULL,
+    total_votes_abstain DECIMAL(20, 9) DEFAULT NULL,
+    total_shares_eligible DECIMAL(20, 9) DEFAULT NULL,
     for_percentage DECIMAL(20, 9) DEFAULT NULL,
     against_percentage DECIMAL(20, 9) DEFAULT NULL,
     abstain_percentage DECIMAL(20, 9) DEFAULT NULL,

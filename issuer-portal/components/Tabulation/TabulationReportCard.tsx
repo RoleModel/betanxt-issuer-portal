@@ -48,31 +48,39 @@ export default function TabulationReportCard() {
       return
     }
     // Map proposals to the format expected by the PDF export
-    const proposalsForExport = votingProposals.map((vp) => {
-      const rawProposal = rawProposals.find(
-        (rp) =>
-          ('proposalNumber' in rp && rp.proposalNumber === vp.proposalNumber) ||
-          ('proposal_number' in rp && rp.proposal_number === vp.proposalNumber)
-      )
+    // Use raw proposal data which contains the actual totals from the CSV
+    const proposalsForExport = rawProposals.map((rp) => {
+      const totalVotesFor = rp.totalVotesFor ?? 0
+      const totalVotesAgainst = rp.totalVotesAgainst ?? 0
+      const totalVotesAbstain = rp.totalVotesAbstain ?? 0
+      const totalVotes = totalVotesFor + totalVotesAgainst + totalVotesAbstain
 
       return {
-        proposalNumber: vp.proposalNumber,
-        proposalTitle: vp.description ?? rawProposal?.proposalTitle ?? '',
-        proposalType: rawProposal?.proposalType ?? '',
-        directorName: vp.directorName ?? rawProposal?.directorName ?? '',
-        recommendation: rawProposal?.recommendation ?? 'FOR',
-        totalVotesFor: vp.votingResults.for.shares,
-        totalVotesAgainst: vp.votingResults.against.shares,
-        totalVotesAbstain: vp.votingResults.abstain.shares,
-        forPercentage: vp.votingResults.for.percentage,
-        againstPercentage: vp.votingResults.against.percentage,
-        abstainPercentage: vp.votingResults.abstain.percentage,
+        proposalNumber: rp.proposalNumber ?? 0,
+        proposalTitle: rp.proposalTitle ?? '',
+        proposalType: rp.proposalType ?? '',
+        directorName: rp.directorName ?? '',
+        recommendation: rp.recommendation ?? 'FOR',
+        totalVotesFor,
+        totalVotesAgainst,
+        totalVotesAbstain,
+        forPercentage: totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0,
+        againstPercentage: totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
+        abstainPercentage: totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
       }
     })
 
-    // Calculate quorum data
-    const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
-    const votesRepresented = votingSummary?.totalSharesVoted ?? 0
+    // Calculate quorum data from meeting and proposal totals
+    const totalOutstanding = Number(currentMeeting.totalSharesOutstanding ?? 0)
+
+    // Get votes represented from the first proposal's total (all proposals should have same total)
+    const firstProposal = rawProposals[0]
+    const votesRepresented = firstProposal
+      ? (firstProposal.totalVotesFor ?? 0) +
+        (firstProposal.totalVotesAgainst ?? 0) +
+        (firstProposal.totalVotesAbstain ?? 0)
+      : 0
+
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = '50%' // Default, should come from meeting config
@@ -100,6 +108,7 @@ export default function TabulationReportCard() {
       votesOverUnderQuorum,
       cusipList: currentMeeting.cusip ?? '', // Use cusip from meeting
       reportTitle, // Pass the dynamic title
+      brokerNonVote: currentMeeting.brokerNonVote ?? 0,
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
         const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero

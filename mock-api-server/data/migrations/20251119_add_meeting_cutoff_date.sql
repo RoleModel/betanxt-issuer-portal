@@ -1,4 +1,3 @@
--- Add voting cutoff date (business day before meeting)
 ALTER TABLE public.meeting
   ADD COLUMN IF NOT EXISTS cutoff_date DATE DEFAULT NULL;
 

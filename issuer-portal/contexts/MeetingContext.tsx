@@ -343,9 +343,10 @@ export function MeetingProvider({
               params: { path: { meetingId: meetingIdFromURL } },
             })
             if (data) {
+              const meetingData = data as Meeting
               setCurrentMeeting((prev) => {
-                if (!prev || prev.id !== data.id) {
-                  return normalizeMeeting(data)
+                if (!prev || prev.id !== meetingData.id) {
+                  return meetingData
                 }
                 return prev
               })

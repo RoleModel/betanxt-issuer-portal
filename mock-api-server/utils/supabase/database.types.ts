@@ -464,6 +464,7 @@ export type Database = {
       }
       meeting: {
         Row: {
+          broker_non_vote: number | null
           broker_search_date: string | null
           client: string | null
           client_id: string | null
@@ -499,6 +500,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          broker_non_vote?: number | null
           broker_search_date?: string | null
           client?: string | null
           client_id?: string | null
@@ -534,6 +536,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          broker_non_vote?: number | null
           broker_search_date?: string | null
           client?: string | null
           client_id?: string | null

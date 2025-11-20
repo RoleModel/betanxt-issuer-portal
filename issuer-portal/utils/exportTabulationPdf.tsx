@@ -58,6 +58,7 @@ interface TabulationData {
   quorumRequirement: string
   votesOverUnderQuorum: number
   cusipList: string
+  brokerNonVote: number
   proposals: ProposalVote[]
   reportTitle?: string // Optional custom title (Preliminary vs Final)
 }
@@ -72,62 +73,80 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 36,
+    padding: 30,
     fontFamily: 'Roboto',
+    fontSize: 8,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
     alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
   },
   clientLogo: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
   },
   betanxtLogo: {
-    width: 73,
-    height: 17,
+    width: 60,
+    height: 14,
+    marginBottom: 4,
+  },
+  mediantLogo: {
+    width: 60,
+    height: 14,
+  },
+  logoGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   titleSection: {
-    paddingBottom: 10,
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  titleLeft: {
+    flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 700,
-    marginBottom: 2,
+    marginBottom: 4,
     fontFamily: 'Roboto',
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: 'Roboto',
     color: '#666666',
+    textAlign: 'center',
   },
   infoSection: {
-    marginBottom: 12,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
   },
   infoRow: {
     flexDirection: 'row',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    paddingVertical: 2,
+    gap: 8,
   },
   infoCell: {
-    flex: 1,
-    paddingHorizontal: 4,
+    flexDirection: 'row',
+    gap: 4,
   },
   infoLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 400,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
-    letterSpacing: 0.13,
   },
   infoValue: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 400,
     fontFamily: 'Roboto',
     color: '#1f1e1c',
@@ -144,57 +163,97 @@ const styles = StyleSheet.create({
     color: '#1f1e1c',
   },
   proposalSection: {
-    marginTop: 10,
+    marginTop: 16,
+  },
+  tableContainer: {
+    borderWidth: 0.5,
+    borderColor: '#333333',
+    marginTop: 8,
   },
   tableHeader: {
     flexDirection: 'row',
     paddingVertical: 4,
     paddingHorizontal: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333333',
   },
   proposalHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1F487D',
     paddingVertical: 4,
-    paddingHorizontal: 4,
-    whiteSpace: 'nowrap'
+    paddingHorizontal: 6,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333333',
+  },
+  proposalTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  proposalSubheader: {
+    flexDirection: 'row',
+    backgroundColor: '#1F487D',
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333333',
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 4,
+    paddingVertical: 3,
     paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    backgroundColor: '#A3E1EA',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333333',
+  },
+  tableRowAlt: {
+    flexDirection: 'row',
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333333',
   },
   headerCell: {
     fontSize: 7,
-    fontWeight: 500,
+    fontWeight: 700,
     fontFamily: 'Roboto',
-    letterSpacing: 0.21,
+    color: '#000000',
+    textAlign: 'left',
+    paddingHorizontal: 4,
     whiteSpace: 'nowrap',
   },
   cellBold: {
     fontSize: 7,
-    fontWeight: 500,
+    fontWeight: 700,
     fontFamily: 'Roboto',
-    letterSpacing: 0.21,
-    whiteSpace: 'nowrap'
+    paddingHorizontal: 4,
+    whiteSpace: 'nowrap',
   },
   cell: {
     fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
-    letterSpacing: 0.13,
-    whiteSpace: 'nowrap'
+    paddingHorizontal: 4,
+    whiteSpace: 'nowrap',
   },
   cellRight: {
     textAlign: 'right',
   },
-  // Column widths
-  colLabel: { width: '100%', whiteSpace: 'nowrap' },
-  colProposal: { flex: 1 },
-  colVote: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
-  colPercent: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
-  colPercentRight: { width: '30%', textAlign: 'right', whiteSpace: 'nowrap', wordBreak: "keep-all" },
+  cellLeft: {
+    textAlign: 'left',
+  },
+  // Column widths - updated to match image layout with borders
+  colEmpty: { width: '8%', minWidth: 50 },
+  colVoteSubmitted: { width: '16%', minWidth: 95 },
+  colAsPercentOS: { width: '13%', minWidth: 75, textAlign: 'right' },
+  colAsPercentTotal: { width: '13%', minWidth: 80, textAlign: 'right' },
+  colAsPercentProposal: { width: '13%', minWidth: 90, textAlign: 'right' },
+  colAsPercentExcluding: { width: '20%', minWidth: 110, textAlign: 'right' },
+  colBrokerNonVote: { width: '17%', minWidth: 90, textAlign: 'right' },
   fallbackLogo: {
     fontSize: 12,
     fontWeight: 700,
@@ -264,12 +323,13 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
     quorumRequirement,
     votesOverUnderQuorum,
     cusipList,
+    brokerNonVote,
     proposals,
   } = tabulationData
 
   return (
     <Document>
-      <Page size="LETTER" style={styles.page}>
+      <Page size="LETTER" orientation="landscape" style={styles.page}>
         {/* Header with logos */}
         <View style={styles.header}>
           <View>
@@ -281,6 +341,20 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
               </Text>
             )}
           </View>
+          <View style={{ marginBottom: 8, textAlign: 'center' }}>
+            <Text style={styles.title}>US TABULATION PROPOSAL REPORT</Text>
+            <Text style={styles.subtitle}>
+              Run Date: {new Date().toLocaleString('en-US', {
+                month: 'numeric',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+              })}
+            </Text>
+          </View>
           <View>
             {betanxtLogoUrl ? (
               <PDFImage style={styles.betanxtLogo} src={betanxtLogoUrl} />
@@ -290,181 +364,285 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
           </View>
         </View>
 
-        {/* Title Section */}
-        <View style={styles.titleSection}>
-          <Text style={styles.title}>
-            {tabulationData.reportTitle || 'Preliminary Tabulation Results'}
-          </Text>
-          <Text style={styles.subtitle}>{meetingType}</Text>
-        </View>
 
-        {/* Meeting Information */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Company Name:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{companyName}</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Total Outstanding:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{formatNumber(totalOutstanding)}</Text>
-            </View>
+        {/* Meeting Information Table - 5 rows, 4 columns */}
+        <View style={{ marginBottom: 8, fontSize: 8 }}>
+          {/* Row 1 */}
+          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: '15%' }]}>Company Name:</Text>
+            <Text style={[styles.infoValue, { width: '35%' }]}>{companyName}</Text>
+            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>Total Outstanding:</Text>
+            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>{formatNumber(totalOutstanding)}</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Type:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{meetingType}</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Votes Represented for Quorum:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>
-                {formatNumber(votesRepresentedForQuorum)}
-              </Text>
-            </View>
+          {/* Row 2 */}
+          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: '15%' }]}>Type:</Text>
+            <Text style={[styles.infoValue, { width: '35%' }]}>{meetingType}</Text>
+            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>Votes Represented for Quorum:</Text>
+            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>{formatNumber(votesRepresentedForQuorum)}</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Meeting Date:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{formatDate(meetingDate)}</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Quorum:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{formatPercent(quorumPercentage)}</Text>
-            </View>
+          {/* Row 3 */}
+          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: '15%' }]}>Meeting Date:</Text>
+            <Text style={[styles.infoValue, { width: '35%' }]}>{formatDate(meetingDate)}</Text>
+            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>Quorum:</Text>
+            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>{formatPercent(quorumPercentage)}</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Record Date:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{formatDate(recordDate)}</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>% Needed for Quorum:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>{quorumRequirement}</Text>
-            </View>
+          {/* Row 4 */}
+          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: '15%' }]}>Record Date:</Text>
+            <Text style={[styles.infoValue, { width: '35%' }]}>{formatDate(recordDate)}</Text>
+            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>% Needed for Quorum:</Text>
+            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>{quorumRequirement} + 1 Vote</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoCell} />
-            <View style={styles.infoCell} />
-            <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Votes over / (under) Quorum:</Text>
-            </View>
-            <View style={styles.infoCell}>
-              <Text style={styles.infoValue}>
-                {votesOverUnderQuorum < 0 ? '(' : ''}
-                {formatNumber(Math.abs(votesOverUnderQuorum), 0)}
-                {votesOverUnderQuorum < 0 ? ')' : ''}
-              </Text>
-            </View>
+          {/* Row 5 */}
+          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: '15%' }]}>CUSIP(s) (multiplier):</Text>
+            <Text style={[styles.infoValue, { width: '35%' }]}>{cusipList ?? 'N/A'}</Text>
+            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>Votes over / (under) Quorum:</Text>
+            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>{formatNumber(votesOverUnderQuorum)}</Text>
           </View>
+
+
         </View>
 
         {/* CUSIP Information */}
-        <View style={styles.cusipRow}>
-          <Text style={styles.cusipText}>CUSIP(s): {cusipList ?? 'N/A'}</Text>
-        </View>
+
 
         {/* Proposals Section */}
         <View style={styles.proposalSection}>
-          {/* Table Header */}
-          <View style={styles.tableHeader}>
-            <View style={styles.colLabel} />
-            <View style={styles.colProposal} />
-            <Text style={[styles.headerCell, styles.colVote]}>Vote{'\n'}Submitted</Text>
-            <Text style={[styles.headerCell, styles.colPercent]}>
-              % of{'\n'}Outstanding
-            </Text>
-            <Text style={[styles.headerCell, styles.colPercentRight]}>
-              % of{'\n'}Proposal Votes
-            </Text>
-          </View>
-
-          {/* Proposals */}
+          {/* Render proposals by grouping director elections */}
           {proposals && proposals.length > 0 ? (
-            proposals.map((proposal, index) => (
-              <View key={index}>
-                {/* Proposal Header */}
-                <View style={styles.proposalHeader}>
-                  <Text style={[styles.cellBold, styles.colLabel]}>
-                    Proposal {proposal.proposalNumber} {proposal.title}
-                  </Text>
-                </View>
+            (() => {
+              // Group proposals by type
+              const directorProposals = proposals.filter(p => p.directorName)
+              const otherProposals = proposals.filter(p => !p.directorName)
 
-                {/* Vote rows */}
-                <View style={styles.tableRow}>
-                  <Text style={[styles.cellBold, styles.colLabel]}>For</Text>
-                  <View style={styles.colProposal} />
-                  <Text style={[styles.cell, styles.colVote, styles.cellRight]}>
-                    {formatNumber(proposal.voteFor)}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.totalOutstanding > 0
-                        ? (proposal.voteFor / tabulationData.totalOutstanding) * 100
-                        : 0
-                    )}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(proposal.percentFor)}
-                  </Text>
-                </View>
+              return (
+                <>
+                  {directorProposals.length > 0 && (
+                    <View style={styles.proposalSection}>
+                      {directorProposals.map((proposal, index) => {
+                        const totalVotes = proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain
+                        const excludingAbstain = proposal.voteFor + proposal.voteAgainst
+                        return (
+                          <View key={`director-${index}`} style={styles.tableContainer} wrap={false}>
+                            <View style={styles.proposalHeader}>
+                              <Text style={[styles.cellBold, { color: '#ffffff' }]}>
+                                Proposal {proposal.proposalNumber}
+                              </Text>
+                              <Text style={[styles.cellBold, styles.cellLeft, { color: '#ffffff' }]}>
+                                {proposal.directorName}
+                              </Text>
+                            </View>
+                            <View style={styles.tableHeader}>
+                              <View style={styles.colEmpty} />
+                              <Text style={[styles.headerCell, styles.colVoteSubmitted, styles.cellRight]}>VOTES Submitted</Text>
+                              <Text style={[styles.headerCell, styles.colAsPercentOS, styles.cellRight]}>As % of O/S</Text>
+                              <Text style={[styles.headerCell, styles.colAsPercentTotal, styles.cellRight]}>As % TOTAL Voted</Text>
+                              <Text style={[styles.headerCell, styles.colAsPercentProposal, styles.cellRight]}>As % of Proposal Votes</Text>
+                              <Text style={[styles.headerCell, styles.colAsPercentExcluding, styles.cellRight]}>As % of Proposal Votes{'\n'}(Excluding Withhold/Abstain)</Text>
+                              <Text style={[styles.headerCell, styles.colBrokerNonVote, styles.cellRight]}>Broker Non Vote</Text>
+                            </View>
+                            <View style={styles.tableRow}>
+                              <Text style={[styles.cellBold, { width: '10%' }]}>For</Text>
+                              <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                                {formatNumber(proposal.voteFor)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteFor / totalOutstanding) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                                {formatPercent((proposal.voteFor / votesRepresentedForQuorum) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                                {formatPercent(proposal.percentFor)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
+                                {formatPercent((proposal.voteFor / excludingAbstain) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]}>
+                                {formatNumber(brokerNonVote)}
+                              </Text>
+                            </View>
+                            <View style={styles.tableRowAlt}>
+                              <Text style={[styles.cellBold, { width: '10%' }]}>Against</Text>
+                              <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                                {formatNumber(proposal.voteAgainst)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteAgainst / totalOutstanding) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                                {formatPercent((proposal.voteAgainst / votesRepresentedForQuorum) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                                {formatPercent(proposal.percentAgainst)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
+                                {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                            </View>
+                            <View style={styles.tableRow}>
+                              <Text style={[styles.cellBold, { width: '10%' }]}>Withhold/Abstain</Text>
+                              <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                                {formatNumber(proposal.voteAbstain)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteAbstain / totalOutstanding) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                                {formatPercent((proposal.voteAbstain / votesRepresentedForQuorum) * 100)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                                {formatPercent(proposal.percentAbstain)}
+                              </Text>
+                              <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]} />
+                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                            </View>
+                            <View style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}>
+                              <Text style={[styles.cellBold, { width: '10%' }]} />
+                              <Text style={[styles.cellBold, styles.colVoteSubmitted]}>
+                                {formatNumber(totalVotes)}
+                              </Text>
+                              <Text style={[styles.cellBold, styles.colAsPercentOS]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentTotal]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentProposal]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentExcluding]} />
+                              <Text style={[styles.cellBold, styles.colBrokerNonVote]} />
+                            </View>
+                          </View>
+                        )
+                      })}
+                    </View>
+                  )}
 
-                <View style={styles.tableRow}>
-                  <Text style={[styles.cellBold, styles.colLabel]}>Against</Text>
-                  <View style={styles.colProposal} />
-                  <Text style={[styles.cell, styles.colVote, styles.cellRight]}>
-                    {formatNumber(proposal.voteAgainst)}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.totalOutstanding > 0
-                        ? (proposal.voteAgainst / tabulationData.totalOutstanding) * 100
-                        : 0
-                    )}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(proposal.percentAgainst)}
-                  </Text>
-                </View>
+                  {/* Other Proposals */}
+                  {otherProposals.map((proposal, proposalIndex) => {
+                    const totalVotes = proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain
+                    const excludingAbstain = proposal.voteFor + proposal.voteAgainst
 
-                <View style={styles.tableRow}>
-                  <Text style={[styles.cellBold, styles.colLabel]}>Abstain/Withold</Text>
-                  <View style={styles.colProposal} />
-                  <Text style={[styles.cell, styles.colVote, styles.cellRight]}>
-                    {formatNumber(proposal.voteAbstain)}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercent]}>
-                    {formatPercent(
-                      tabulationData.totalOutstanding > 0
-                        ? (proposal.voteAbstain / tabulationData.totalOutstanding) * 100
-                        : 0
-                    )}
-                  </Text>
-                  <Text style={[styles.cell, styles.colPercentRight]}>
-                    {formatPercent(proposal.percentAbstain)}
-                  </Text>
-                </View>
-              </View>
-            ))
+                    return (
+                      <View key={`other-${proposalIndex}`} style={styles.tableContainer} wrap={false}>
+                        {/* Proposal Header */}
+                        <View style={styles.proposalHeader}>
+                          <Text style={[styles.cellBold, { color: '#ffffff' }]}>
+                            Proposal {proposal.proposalNumber}
+                          </Text>
+                          <Text style={[styles.cellBold, styles.cellLeft, { color: '#ffffff' }]}>
+                            {proposal.title}
+                          </Text>
+                        </View>
+
+                        {/* Table Header */}
+                        <View style={styles.tableHeader}>
+                          <View style={styles.colEmpty} />
+                          <Text style={[styles.headerCell, styles.colVoteSubmitted, styles.cellRight]}>
+                            VOTES Submitted
+                          </Text>
+                          <Text style={[styles.headerCell, styles.colAsPercentOS, styles.cellRight]}>
+                            As % of O/S
+                          </Text>
+                          <Text style={[styles.headerCell, styles.colAsPercentTotal, styles.cellRight]}>
+                            As % TOTAL Voted
+                          </Text>
+                          <Text style={[styles.headerCell, styles.colAsPercentProposal, styles.cellRight]}>
+                            As % of Proposal Votes
+                          </Text>
+                          <Text style={[styles.headerCell, styles.colAsPercentExcluding, styles.cellRight]}>
+                            As % of Proposal Votes{'\n'}(Excluding Withhold/Abstain)
+                          </Text>
+                          <Text style={[styles.headerCell, styles.colBrokerNonVote, styles.cellRight]}>
+                            Broker Non Vote
+                          </Text>
+                        </View>
+
+                        {/* For Row */}
+                        <View style={styles.tableRow}>
+                          <Text style={[styles.cellBold, { width: '10%' }]}>For</Text>
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                            {formatNumber(proposal.voteFor)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                            {formatPercent((proposal.voteFor / totalOutstanding) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                            {formatPercent((proposal.voteFor / votesRepresentedForQuorum) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                            {formatPercent(proposal.percentFor)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
+                            {formatPercent((proposal.voteFor / excludingAbstain) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]}>
+                            {formatNumber(brokerNonVote)}
+                          </Text>
+                        </View>
+
+                        {/* Against Row */}
+                        <View style={styles.tableRowAlt}>
+                          <Text style={[styles.cellBold, { width: '10%' }]}>Against</Text>
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                            {formatNumber(proposal.voteAgainst)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                            {formatPercent((proposal.voteAgainst / totalOutstanding) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                            {formatPercent((proposal.voteAgainst / votesRepresentedForQuorum) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                            {formatPercent(proposal.percentAgainst)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
+                            {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                        </View>
+
+                        {/* Abstain Row */}
+                        <View style={styles.tableRow}>
+                          <Text style={[styles.cellBold, { width: '10%' }]}>Abstain</Text>
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
+                            {formatNumber(proposal.voteAbstain)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                            {formatPercent((proposal.voteAbstain / totalOutstanding) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                            {formatPercent((proposal.voteAbstain / votesRepresentedForQuorum) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
+                            {formatPercent(proposal.percentAbstain)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]} />
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                        </View>
+
+                        {/* Total Row */}
+                        <View style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}>
+                          <Text style={[styles.cellBold, { width: '10%' }]} />
+                          <Text style={[styles.cellBold, styles.colVoteSubmitted]}>
+                            {formatNumber(totalVotes)}
+                          </Text>
+                          <Text style={[styles.cellBold, styles.colAsPercentOS]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentTotal]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentProposal]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentExcluding]} />
+                          <Text style={[styles.cellBold, styles.colBrokerNonVote]} />
+                        </View>
+                      </View>
+                    )
+                  })}
+                </>
+              )
+            })()
           ) : (
             <View style={styles.tableRow}>
               <Text style={styles.cell}>No proposals to display</Text>

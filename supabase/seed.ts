@@ -132,18 +132,18 @@ const buildResultsFromCsvProposal = (
   totalSharesOutstanding: number,
   meetingDateISO?: string
 ) => {
-  const totalVotesFor = Math.max(0, Math.round(proposal.votesFor ?? 0))
-  const totalVotesAgainst = Math.max(0, Math.round(proposal.votesAgainst ?? 0))
-  const totalVotesAbstain = Math.max(0, Math.round(proposal.votesAbstain ?? 0))
+  const totalVotesFor = Math.max(0, proposal.votesFor ?? 0)
+  const totalVotesAgainst = Math.max(0, proposal.votesAgainst ?? 0)
+  const totalVotesAbstain = Math.max(0, proposal.votesAbstain ?? 0)
 
   const totalVotesCalculated = totalVotesFor + totalVotesAgainst + totalVotesAbstain
   const totalVotes = Math.max(
     totalVotesCalculated,
-    Math.round(proposal.votesTotal || totalVotesCalculated)
+    proposal.votesTotal || totalVotesCalculated
   )
 
   const totalSharesEligible = Math.max(
-    Math.round(totalSharesOutstanding || totalVotes),
+    totalSharesOutstanding || totalVotes,
     totalVotes
   )
 
@@ -1238,7 +1238,7 @@ const main = async () => {
           `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
           `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
           `solicitor_email, inspector, ivr_dial_in_number, ` +
-          `total_shares_outstanding, quorum_requirement, client_id, ` +
+          `total_shares_outstanding, quorum_requirement, broker_non_vote, client_id, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(meetingId)}, ` +
           `${sqlValue(meeting.type)}, ` +
@@ -1269,6 +1269,7 @@ const main = async () => {
           `${sqlValue('1-800-' + String(Math.random()).substring(2, 5) + '-' + String(Math.random()).substring(2, 7))}, ` +
           `${account.totalSharesOutstanding}, ` +
           `${account.quorumRequirement}, ` +
+          `${account.brokerNonVote || 'NULL'}, ` +
           `${sqlValue(clientIds[client.ticker])}, ` +
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(createdAt)});`
@@ -2355,7 +2356,7 @@ const main = async () => {
         proposal.subtype === 'Individual'
       ) {
         // For director elections from CSV, extract director name if possible
-        const directorMatch = proposal.title.match(/([A-Za-z\s.]+)$/)
+        const directorMatch = proposal.title.match(/([A-Za-z\s.\-]+)$/)
         const directorName = directorMatch ? directorMatch[1].trim() : proposal.title
 
         // Clean up proposal title by removing the proposal number prefix (e.g., "1.01 ")

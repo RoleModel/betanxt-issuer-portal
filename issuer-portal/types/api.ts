@@ -3,3235 +3,4181 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/auth/login": {
-    /** User login */
-    post: operations["loginUser"];
-  };
-  "/auth/logout": {
-    /** User logout */
-    post: operations["logoutUser"];
-  };
-  "/auth/me": {
-    /** Get current user profile */
-    get: operations["getCurrentUser"];
-  };
-  "/accounts": {
-    /** List accounts */
-    get: operations["listAccounts"];
-    /** Create new account */
-    post: operations["createAccount"];
-  };
-  "/accounts/{accountId}": {
-    /** Get account by ID */
-    get: operations["getAccountById"];
-    /** Update account */
-    put: operations["updateAccount"];
-    /** Delete account */
-    delete: operations["deleteAccount"];
-  };
-  "/accounts/{accountId}/users": {
-    /** List users for an account */
-    get: operations["listAccountUsers"];
-    /** Create new user for an account */
-    post: operations["createAccountUser"];
-  };
-  "/clients": {
-    /** List clients */
-    get: operations["listClients"];
-    /** Create new client */
-    post: operations["createClient"];
-  };
-  "/clients/{ticker}": {
-    /** Get client by ticker */
-    get: operations["getClientByTicker"];
-    /** Update client */
-    put: operations["updateClient"];
-    /** Delete client */
-    delete: operations["deleteClient"];
-  };
-  "/clients/{ticker}/accounts": {
-    /** List accounts for a client */
-    get: operations["listClientAccounts"];
-  };
-  "/users": {
-    /** List users */
-    get: operations["listUsers"];
-    /** Create new user */
-    post: operations["createUser"];
-  };
-  "/users/{id}": {
-    /** Get user by ID */
-    get: operations["getUserById"];
-    /** Update user */
-    put: operations["updateUser"];
-    /** Delete user */
-    delete: operations["deleteUser"];
-  };
-  "/users/{id}/accounts": {
-    /**
-     * Get accounts accessible by user
-     * @description Returns accounts that a user has access to based on their role and relationships
-     */
-    get: operations["listUserAccounts"];
-  };
-  "/users/{id}/avatar": {
-    /** Upload user profile photo */
-    post: operations["uploadUserAvatar"];
-    /** Remove user profile photo */
-    delete: operations["deleteUserAvatar"];
-  };
-  "/users/{id}/avatar/url": {
-    /** Get user profile photo URL */
-    get: operations["getUserAvatarUrl"];
-  };
-  "/meetings": {
-    /** List meetings */
-    get: operations["listMeetings"];
-    /** Create new meeting */
-    post: operations["createMeeting"];
-  };
-  "/meetings/{meetingId}": {
-    /** Get meeting by ID */
-    get: operations["getMeetingById"];
-    /** Update meeting */
-    put: operations["updateMeeting"];
-    /** Delete meeting */
-    delete: operations["deleteMeeting"];
-  };
-  "/meetings/{meetingId}/phases": {
-    /** List phases for a meeting */
-    get: operations["listPhases"];
-    /** Create new phase */
-    post: operations["createPhase"];
-  };
-  "/phases/{id}": {
-    /** Get phase by ID */
-    get: operations["getPhaseById"];
-    /** Update phase */
-    put: operations["updatePhase"];
-  };
-  "/meetings/{meetingId}/tasks": {
-    /** List tasks for a meeting */
-    get: operations["listTasks"];
-    /** Create new task */
-    post: operations["createTask"];
-  };
-  "/tasks/{id}": {
-    /** Get task by ID */
-    get: operations["getTaskById"];
-    /** Update task */
-    put: operations["updateTask"];
-  };
-  "/meetings/{meetingId}/documents": {
-    /** List documents for a meeting */
-    get: operations["listDocuments"];
-    /** Create new document */
-    post: operations["createDocument"];
-  };
-  "/documents/{id}": {
-    /** Get document by ID */
-    get: operations["getDocumentById"];
-    /** Update document */
-    put: operations["updateDocument"];
-  };
-  "/documents/{id}/download": {
-    /** Download document file */
-    get: operations["downloadDocument"];
-  };
-  "/documents/forms/{formType}/sign-digital": {
-    /** Digitally sign a generated form */
-    post: operations["signFormDigital"];
-  };
-  "/documents/forms/{formType}/upload-executed": {
-    /** Upload executed (wet-signed) form PDF */
-    post: operations["uploadExecutedForm"];
-  };
-  "/documents/types/{documentType}/upload": {
-    /** Upload or create a new document version (proxy or supporting) */
-    post: operations["uploadDocumentVersion"];
-  };
-  "/documents/types/{documentType}/{versionId}/approve": {
-    /** Approve a pending proxy material version */
-    post: operations["approveDocumentVersion"];
-  };
-  "/documents/types/{documentType}/{versionId}/replace": {
-    /** Replace an approved proxy material (creates new pending version) */
-    post: operations["replaceApprovedVersion"];
-  };
-  "/documents/readiness": {
-    /** Get readiness aggregation for a meeting */
-    get: operations["getDocumentsReadiness"];
-  };
-  "/documents/types/{documentType}/history": {
-    /** Get version history for a document type within a meeting */
-    get: operations["getDocumentHistory"];
-  };
-  "/meetings/{meetingId}/dsm-config": {
-    /** Get DSM configuration for a meeting */
-    get: operations["getDSMConfig"];
-    /** Update DSM configuration */
-    put: operations["updateDSMConfig"];
-    /** Create or update DSM configuration */
-    post: operations["createOrUpdateDSMConfig"];
-  };
-  "/positions": {
-    /**
-     * List positions
-     * @description List positions with Supabase PostgREST filters.
-     *
-     * Common usage:
-     * - Filter by meeting: `?meetingId=eq.wen-annual-meeting-2025`
-     * - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
-     * - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
-     * - Include meeting data: `?select=*,meetings(*)`
-     * - Include position votes: `?select=*,position_votes(*)`
-     * - Order by shares: `?order=shares.desc`
-     * - Pagination: `?limit=20&offset=40`
-     */
-    get: operations["listPositions"];
-    /** Create new position */
-    post: operations["createPosition"];
-  };
-  "/positions/{id}": {
-    /** Get position by ID */
-    get: operations["getPositionById"];
-    /** Update position */
-    put: operations["updatePosition"];
-  };
-  "/meetings/{meetingId}/tabulation-report": {
-    /** Get pre-calculated tabulation report for a meeting */
-    get: operations["getTabulationReport"];
-  };
-  "/meetings/{meetingId}/mailing": {
-    /** Get mailing statistics for a meeting */
-    get: operations["getMailingStatistics"];
-  };
-  "/meetings/{meetingId}/digital-shareholder-meeting": {
-    /** Get digital shareholder meeting attendees */
-    get: operations["getDigitalShareholderMeeting"];
-    /** Bulk create digital shareholder meeting attendees */
-    post: operations["createDigitalShareholderMeetingAttendees"];
-  };
-  "/meetings/{meetingId}/proposals": {
-    /** List proposals for a meeting */
-    get: operations["listProposals"];
-    /** Create new proposal */
-    post: operations["createProposal"];
-  };
-  "/proposals/{id}": {
-    /** Get proposal by ID */
-    get: operations["getProposalById"];
-    /** Update proposal */
-    put: operations["updateProposal"];
-  };
-  "/position_votes": {
-    /**
-     * Get position votes
-     * @description Get position votes using Supabase PostgREST filters.
-     *
-     * Common usage examples:
-     * - Get votes for a position: `?positionId=eq.{uuid}`
-     * - Get votes for a proposal: `?proposalId=eq.{uuid}`
-     * - Include related data: `?select=*,positions(*),proposals(*)`
-     * - Order by date: `?order=createdAt.desc`
-     *
-     * Supabase operators:
-     * - `eq` - equals
-     * - `neq` - not equals
-     * - `gt` - greater than
-     * - `gte` - greater than or equal
-     * - `lt` - less than
-     * - `lte` - less than or equal
-     * - `like` - LIKE operator
-     * - `ilike` - ILIKE operator
-     * - `in` - one of a list of values
-     * - `is` - checking for null/not null
-     */
-    get: operations["getPositionVotes"];
-    /**
-     * Create a position vote
-     * @description Create a new position vote record.
-     *
-     * Note: In Supabase PostgREST, you POST directly to the table endpoint.
-     * The positionId should be included in the request body, not the URL path.
-     */
-    post: operations["createPositionVote"];
-  };
-  "/documents/{id}/comments": {
-    /** Get comments for a document */
-    get: operations["getDocumentComments"];
-    /** Add comment to a document */
-    post: operations["addComment"];
-  };
-  "/documents/{id}/events": {
-    /** Get event history for a specific document */
-    get: operations["getDocumentEvents"];
-    /** Add event to document history */
-    post: operations["addDocumentEvent"];
-  };
-  "/notifications": {
-    /** List user notifications */
-    get: operations["listNotifications"];
-  };
-  "/notifications/{notificationId}/mark-read": {
-    /** Mark notification as read */
-    patch: operations["markNotificationRead"];
-  };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** User login */
+        post: operations["loginUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** User logout */
+        post: operations["logoutUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current user profile */
+        get: operations["getCurrentUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List accounts */
+        get: operations["listAccounts"];
+        put?: never;
+        /** Create new account */
+        post: operations["createAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/accounts/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get account by ID */
+        get: operations["getAccountById"];
+        /** Update account */
+        put: operations["updateAccount"];
+        post?: never;
+        /** Delete account */
+        delete: operations["deleteAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/accounts/{accountId}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users for an account */
+        get: operations["listAccountUsers"];
+        put?: never;
+        /** Create new user for an account */
+        post: operations["createAccountUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List clients */
+        get: operations["listClients"];
+        put?: never;
+        /** Create new client */
+        post: operations["createClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{ticker}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get client by ticker */
+        get: operations["getClientByTicker"];
+        /** Update client */
+        put: operations["updateClient"];
+        post?: never;
+        /** Delete client */
+        delete: operations["deleteClient"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{ticker}/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List accounts for a client */
+        get: operations["listClientAccounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users */
+        get: operations["listUsers"];
+        put?: never;
+        /** Create new user */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user by ID */
+        get: operations["getUserById"];
+        /** Update user */
+        put: operations["updateUser"];
+        post?: never;
+        /** Delete user */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get accounts accessible by user
+         * @description Returns accounts that a user has access to based on their role and relationships
+         */
+        get: operations["listUserAccounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload user profile photo */
+        post: operations["uploadUserAvatar"];
+        /** Remove user profile photo */
+        delete: operations["deleteUserAvatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/avatar/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user profile photo URL */
+        get: operations["getUserAvatarUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List meetings */
+        get: operations["listMeetings"];
+        put?: never;
+        /** Create new meeting */
+        post: operations["createMeeting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get meeting by ID */
+        get: operations["getMeetingById"];
+        /** Update meeting */
+        put: operations["updateMeeting"];
+        post?: never;
+        /** Delete meeting */
+        delete: operations["deleteMeeting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/phases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List phases for a meeting */
+        get: operations["listPhases"];
+        put?: never;
+        /** Create new phase */
+        post: operations["createPhase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/phases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get phase by ID */
+        get: operations["getPhaseById"];
+        /** Update phase */
+        put: operations["updatePhase"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks for a meeting */
+        get: operations["listTasks"];
+        put?: never;
+        /** Create new task */
+        post: operations["createTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get task by ID */
+        get: operations["getTaskById"];
+        /** Update task */
+        put: operations["updateTask"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List documents for a meeting */
+        get: operations["listDocuments"];
+        put?: never;
+        /** Create new document */
+        post: operations["createDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get document by ID */
+        get: operations["getDocumentById"];
+        /** Update document */
+        put: operations["updateDocument"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download document file */
+        get: operations["downloadDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/forms/{formType}/sign-digital": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Digitally sign a generated form */
+        post: operations["signFormDigital"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/forms/{formType}/upload-executed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload executed (wet-signed) form PDF */
+        post: operations["uploadExecutedForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/types/{documentType}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or create a new document version (proxy or supporting) */
+        post: operations["uploadDocumentVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/types/{documentType}/{versionId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending proxy material version */
+        post: operations["approveDocumentVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/types/{documentType}/{versionId}/replace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace an approved proxy material (creates new pending version) */
+        post: operations["replaceApprovedVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get readiness aggregation for a meeting */
+        get: operations["getDocumentsReadiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/types/{documentType}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get version history for a document type within a meeting */
+        get: operations["getDocumentHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/dsm-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get DSM configuration for a meeting */
+        get: operations["getDSMConfig"];
+        /** Update DSM configuration */
+        put: operations["updateDSMConfig"];
+        /** Create or update DSM configuration */
+        post: operations["createOrUpdateDSMConfig"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List positions
+         * @description List positions with Supabase PostgREST filters.
+         *
+         *     Common usage:
+         *     - Filter by meeting: `?meetingId=eq.wen-annual-meeting-2025`
+         *     - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
+         *     - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
+         *     - Include meeting data: `?select=*,meetings(*)`
+         *     - Include position votes: `?select=*,position_votes(*)`
+         *     - Order by shares: `?order=shares.desc`
+         *     - Pagination: `?limit=20&offset=40`
+         *
+         */
+        get: operations["listPositions"];
+        put?: never;
+        /** Create new position */
+        post: operations["createPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/positions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get position by ID */
+        get: operations["getPositionById"];
+        /** Update position */
+        put: operations["updatePosition"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/tabulation-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get pre-calculated tabulation report for a meeting */
+        get: operations["getTabulationReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/mailing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get mailing statistics for a meeting */
+        get: operations["getMailingStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/digital-shareholder-meeting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get digital shareholder meeting attendees */
+        get: operations["getDigitalShareholderMeeting"];
+        put?: never;
+        /** Bulk create digital shareholder meeting attendees */
+        post: operations["createDigitalShareholderMeetingAttendees"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meetings/{meetingId}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List proposals for a meeting */
+        get: operations["listProposals"];
+        put?: never;
+        /** Create new proposal */
+        post: operations["createProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proposals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get proposal by ID */
+        get: operations["getProposalById"];
+        /** Update proposal */
+        put: operations["updateProposal"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/position_votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get position votes
+         * @description Get position votes using Supabase PostgREST filters.
+         *
+         *     Common usage examples:
+         *     - Get votes for a position: `?positionId=eq.{uuid}`
+         *     - Get votes for a proposal: `?proposalId=eq.{uuid}`
+         *     - Include related data: `?select=*,positions(*),proposals(*)`
+         *     - Order by date: `?order=createdAt.desc`
+         *
+         *     Supabase operators:
+         *     - `eq` - equals
+         *     - `neq` - not equals
+         *     - `gt` - greater than
+         *     - `gte` - greater than or equal
+         *     - `lt` - less than
+         *     - `lte` - less than or equal
+         *     - `like` - LIKE operator
+         *     - `ilike` - ILIKE operator
+         *     - `in` - one of a list of values
+         *     - `is` - checking for null/not null
+         *
+         */
+        get: operations["getPositionVotes"];
+        put?: never;
+        /**
+         * Create a position vote
+         * @description Create a new position vote record.
+         *
+         *     Note: In Supabase PostgREST, you POST directly to the table endpoint.
+         *     The positionId should be included in the request body, not the URL path.
+         *
+         */
+        post: operations["createPositionVote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get comments for a document */
+        get: operations["getDocumentComments"];
+        put?: never;
+        /** Add comment to a document */
+        post: operations["addComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get event history for a specific document */
+        get: operations["getDocumentEvents"];
+        put?: never;
+        /** Add event to document history */
+        post: operations["addDocumentEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List user notifications */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{notificationId}/mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark notification as read */
+        patch: operations["markNotificationRead"];
+        trace?: never;
+    };
 }
-
 export type webhooks = Record<string, never>;
-
 export interface components {
-  schemas: {
-    /** @enum {string} */
-    UserType: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER";
-    /** @enum {string} */
-    MeetingStatus: "ACTIVE" | "COMPLETE" | "ADJOURNED";
-    /** @enum {string} */
-    PhaseStatus: "IN_PROGRESS" | "COMPLETE";
-    /** @enum {string} */
-    TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW" | "AWAITING_REVIEW";
-    /** @enum {string} */
-    DocumentStatus: "DRAFT" | "AWAITING_DRAFT" | "AWAITING_REVIEW" | "APPROVED" | "UPLOADED" | "IN_PROGRESS" | "SIGNED" | "AUTHORIZED" | "COMPLETED";
-    Account: {
-      /** Format: uuid */
-      id?: string;
-      name?: string;
-      primaryContact?: string;
-      /**
-       * Format: uuid
-       * @description The client this account belongs to
-       */
-      clientId?: string;
-      /** Format: date-time */
-      createdAt?: string;
-      /** @description The client this account belongs to (relationship) */
-      client?: components["schemas"]["Clients"];
-    };
-    Clients: {
-      /**
-       * Format: uuid
-       * @example 291cdbe5-192b-50ec-b3ae-3197c9c5103c
-       */
-      id?: string;
-      /**
-       * @description Unique ticker symbol for the client
-       * @example WEN
-       */
-      ticker?: string;
-      /**
-       * @description Full legal name of the company
-       * @example The Wendy's Company
-       */
-      companyName?: string;
-      /**
-       * @description Short display name for the company
-       * @example Wendy's
-       */
-      shortName?: string;
-      /**
-       * @description Industry sector
-       * @example Restaurants
-       */
-      industry?: string | null;
-      /**
-       * @description Company description
-       * @example Leading fast food hamburger chain
-       */
-      description?: string | null;
-      /**
-       * @description Company website URL
-       * @example https://www.wendys.com
-       */
-      website?: string | null;
-      /**
-       * @description Primary contact person
-       * @example Mike Chen
-       */
-      primaryContact?: string | null;
-      /**
-       * Format: email
-       * @description Primary contact email
-       * @example mike.chen@wendys.com
-       */
-      primaryContactEmail?: string | null;
-      /**
-       * @description Whether the client is active
-       * @default true
-       * @example true
-       */
-      isActive?: boolean;
-      /**
-       * @description Unique branding identifier for document hosting site URLs
-       * @example 966152
-       */
-      brandingId?: number | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    User: {
-      /**
-       * Format: uuid
-       * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
-       */
-      id?: string;
-      /** @example lisa.rodriguez */
-      username?: string;
-      /** @example Lisa */
-      firstName?: string;
-      /** @example Rodriguez */
-      lastName?: string;
-      /**
-       * Format: email
-       * @example lisa.rodriguez@paycom.com
-       */
-      email?: string;
-      /** @description Legacy password field for seed data - not used with NextAuth */
-      password?: string | null;
-      /** @example ISSUER */
-      type?: components["schemas"]["UserType"];
-      /**
-       * Format: uuid
-       * @example fe3ad07a-80a7-59a0-a253-9083d6d4c02c
-       */
-      accountId?: string | null;
-      account?: components["schemas"]["Account"];
-      /**
-       * Format: uri
-       * @description URL of the user's profile photo stored in Supabase Storage
-       * @example https://example.supabase.co/storage/v1/object/public/user-avatars/b1f5062a-09b6-5dc1-b18c-3800c5930eab.jpg
-       */
-      avatar_url?: string | null;
-    };
-    Meeting: {
-      /** @example wen-annual-meeting-2026 */
-      id?: string;
-      /** @example Annual Meeting */
-      title?: string;
-      /** @example 95058W100 */
-      cusip?: string;
-      /** @example WEN */
-      ticker?: string;
-      /**
-       * Format: date
-       * @example 2025-02-15
-       */
-      preFilingDate?: string | null;
-      /**
-       * Format: date
-       * @example 2025-03-01
-       */
-      filingDate?: string | null;
-      /**
-       * Format: date
-       * @example 2025-03-15
-       */
-      brokerSearchDate?: string | null;
-      /**
-       * Format: date
-       * @example 2025-04-01
-       */
-      recordDate?: string;
-      /**
-       * Format: date
-       * @example 2025-04-15
-       */
-      mailingDate?: string;
-      /**
-       * Format: date
-       * @example 2025-05-15
-       */
-      meetingDate?: string;
-      /**
-       * Format: date
-       * @description Voting cutoff date (previous business day before meeting)
-       */
-      cutoffDate?: string | null;
-      meetingType?: string;
-      /** @example 2025 */
-      meetingYear?: number;
-      status?: components["schemas"]["MeetingStatus"];
-      /** @example Notice & Access */
-      currentPhase?: string;
-      /** @example 75 */
-      overallCompletion?: number;
-      /** @example Notice & Access */
-      distributionType?: string;
-      /** @example Computershare Trust Company */
-      transferAgent?: string;
-      /**
-       * @description Whether the transfer agent has been confirmed (demo feature)
-       * @default false
-       */
-      transferAgentConfirmed?: boolean | null;
-      employeeStockPlans?: string | null;
-      planAdministrator?: string | null;
-      planAdministratorContact?: string | null;
-      /** Format: email */
-      planAdministratorContactEmail?: string | null;
-      solicitor?: string | null;
-      /** Format: email */
-      solicitorEmail?: string | null;
-      inspector?: string | null;
-      /** @description IVR dial-in voting number (e.g., "1-800-555-VOTE") */
-      ivrDialInNumber?: string | null;
-      /** Format: int64 */
-      totalSharesOutstanding?: string;
-      /** Format: decimal */
-      quorumRequirement?: number;
-      /**
-       * Format: uuid
-       * @description The client this meeting belongs to
-       */
-      clientId?: string;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-      /** @description The client this meeting belongs to (relationship) */
-      client?: components["schemas"]["Clients"];
-    };
-    Phase: {
-      /**
-       * Format: uuid
-       * @example 11111111-2222-3333-4444-555555555555
-       */
-      id?: string;
-      /**
-       * Format: uuid
-       * @example 01234567-89ab-cdef-0123-456789abcdef
-       */
-      meetingId?: string;
-      /** @example Notice & Access */
-      name?: string;
-      /** @example 1 */
-      orderIndex?: number;
-      status?: components["schemas"]["PhaseStatus"];
-      keyDates?: ({
-        /**
-         * Format: date
-         * @example 2025-03-01
-         */
-        startDate?: string | null;
-        /**
-         * Format: date
-         * @example 2025-03-31
-         */
-        endDate?: string | null;
-        /**
-         * Format: date
-         * @example 2025-03-25
-         */
-        dueDate?: string | null;
-        /**
-         * Format: date
-         * @example 2025-03-20
-         */
-        completionDate?: string | null;
-      }) | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    Task: {
-      /**
-       * Format: uuid
-       * @example 81c351e9-36cd-5528-b5a4-f48b2fe05bd6
-       */
-      id?: string;
-      /** @example wen-annual-meeting-2026-P1-1 */
-      taskId?: string;
-      /**
-       * Format: uuid
-       * @example 11111111-2222-3333-4444-555555555555
-       */
-      phaseId?: string;
-      /** @example wen-annual-meeting-2026 */
-      meetingId?: string;
-      /** @example 1 */
-      phaseNumber?: number;
-      /** @example DTCC (SPR) Authorization Status */
-      title?: string;
-      /** @example Check and confirm authorization status with DTCC for shareholder proxy record access. */
-      description?: string | null;
-      /** @example Authorization */
-      type?: string;
-      /** @example NEEDS_AUTHORIZATION */
-      status?: components["schemas"]["TaskStatus"];
-      /**
-       * Format: date
-       * @example 2025-12-22
-       */
-      dueDate?: string | null;
-      /** @example The Wendy's Company */
-      owner?: string;
-      /**
-       * Format: uuid
-       * @example 33333333-4444-5555-6666-777777777777
-       */
-      documentId?: string | null;
-      links?: {
-        [key: string]: unknown;
-      } | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    Document: {
-      /** Format: uuid */
-      id?: string;
-      meetingId?: string;
-      /** Format: uuid */
-      taskId?: string | null;
-      /**
-       * Format: uuid
-       * @description ID of the DSM participant this document is assigned to
-       */
-      participantId?: string | null;
-      title?: string;
-      description?: string | null;
-      type?: string;
-      filePath?: string;
-      fileType?: string;
-      fileSize?: number;
-      status?: components["schemas"]["DocumentStatus"];
-      /** Format: date-time */
-      uploadDate?: string | null;
-      /** Format: date-time */
-      uploadedDate?: string | null;
-      /** Format: date-time */
-      signedDate?: string | null;
-      /** Format: date-time */
-      authorizedDate?: string | null;
-      /** Format: date-time */
-      completedDate?: string | null;
-      /** Format: date-time */
-      inProgressDate?: string | null;
-      /** Format: date-time */
-      deadline?: string | null;
-      history?: Record<string, unknown> | null;
-      /** @description User who approved the document */
-      approvedBy?: string | null;
-      /**
-       * Format: date-time
-       * @description When the document was approved
-       */
-      approvedAt?: string | null;
-      /**
-       * Format: uuid
-       * @description User ID who created the document
-       */
-      createdBy?: string | null;
-      /** @description First name of user who created the document */
-      createdByFirstName?: string | null;
-      /** @description Last name of user who created the document */
-      createdByLastName?: string | null;
-      /**
-       * Format: uuid
-       * @description User ID who last updated the document
-       */
-      updatedBy?: string | null;
-      /** @description First name of user who last updated the document */
-      updatedByFirstName?: string | null;
-      /** @description Last name of user who last updated the document */
-      updatedByLastName?: string | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-      /**
-       * @description Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
-       * @enum {string|null}
-       */
-      displayCategory?: "general" | "dsm" | "proxy-materials" | "meeting-materials" | "post-meeting" | "internal" | null;
-      meeting?: components["schemas"]["Meeting"];
-      comments?: components["schemas"]["Comment"][];
-      signatures?: components["schemas"]["Signature"][];
-    };
-    Position: {
-      /**
-       * Format: uuid
-       * @example 90953927-6e41-5c55-be8b-a690299746ad
-       */
-      id?: string;
-      /**
-       * Format: uuid
-       * @example wen-annual-meeting-2026
-       */
-      meetingId?: string;
-      /** @example 95058W100 */
-      cusip?: string;
-      /** @example DTC/CDS */
-      accountType?: string;
-      /** @example WEN12026 */
-      setKey?: string;
-      /** @example CEDE & CO M C/O DTCC */
-      name?: string;
-      /** @example null */
-      accountNumber?: string | null;
-      /** @example null */
-      controlNumber?: string | null;
-      /**
-       * @example Unvoted
-       * @enum {string}
-       */
-      voteStatus?: "Voted" | "Unvoted";
-      /**
-       * Format: double
-       * @example 132463881
-       */
-      shares?: number;
-      /**
-       * Format: double
-       * @example 0
-       */
-      sharesVoted?: number;
-      /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
-      dateVoted?: string | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    Proposal: {
-      /**
-       * Format: uuid
-       * @example be601464-c593-5d74-b6f6-c14152132103
-       */
-      id?: string;
-      /**
-       * Format: uuid
-       * @example wen-annual-meeting-2026
-       */
-      meetingId?: string;
-      /**
-       * Format: double
-       * @example 1.01
-       */
-      proposalNumber?: number;
-      /** @example Arthur B. Winkleblack */
-      proposalTitle?: string;
-      /** @example Director Election */
-      proposalType?: string;
-      /** @example null */
-      proposalSubtype?: string | null;
-      /** @example Arthur B. Winkleblack */
-      directorName?: string | null;
-      /** @example 3 */
-      directorTermYears?: number | null;
-      directorClass?: string | null;
-      termExpirationYear?: number | null;
-      frequencyOptions?: Record<string, unknown> | null;
-      recommendation?: string;
-      /**
-       * @description Final result of the proposal voting
-       * @example PASSED
-       * @enum {string|null}
-       */
-      finalResult?: "PASSED" | "FAILED" | "PENDING" | null;
-      /**
-       * @description Total number of votes in favor
-       * @example 150000000
-       */
-      totalVotesFor?: number | null;
-      /**
-       * @description Total number of votes against
-       * @example 25000000
-       */
-      totalVotesAgainst?: number | null;
-      /**
-       * @description Total number of abstained votes
-       * @example 5000000
-       */
-      totalVotesAbstain?: number | null;
-      /**
-       * @description Total number of shares eligible to vote
-       * @example 200000000
-       */
-      totalSharesEligible?: number | null;
-      /**
-       * Format: float
-       * @description Percentage of votes in favor
-       * @example 85.7
-       */
-      forPercentage?: number | null;
-      /**
-       * Format: float
-       * @description Percentage of votes against
-       * @example 12.5
-       */
-      againstPercentage?: number | null;
-      /**
-       * Format: float
-       * @description Percentage of abstained votes
-       * @example 2.5
-       */
-      abstainPercentage?: number | null;
-      /**
-       * Format: float
-       * @description Overall participation rate
-       * @example 90
-       */
-      participationRate?: number | null;
-      /**
-       * @description Whether voting on this proposal has been completed
-       * @default false
-       */
-      votingCompleted?: boolean;
-      /**
-       * Format: date-time
-       * @description When voting was completed
-       */
-      votingCompletedAt?: string | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    PositionVote: {
-      /**
-       * Format: uuid
-       * @example 55555555-6666-7777-8888-999999999999
-       */
-      id?: string;
-      /**
-       * Format: uuid
-       * @example 44444444-5555-6666-7777-888888888888
-       */
-      positionId?: string;
-      /**
-       * Format: uuid
-       * @example 66666666-7777-8888-9999-aaaaaaaaaaaa
-       */
-      proposalId?: string;
-      /** @example FOR */
-      vote?: string;
-      /**
-       * Format: int64
-       * @example 1000000
-       */
-      sharesVoting?: string;
-      /** Format: date-time */
-      createdAt?: string;
-    };
-    Comment: {
-      /** Format: int64 */
-      id?: number;
-      /** Format: uuid */
-      documentId?: string;
-      /** Format: uuid */
-      userId?: string;
-      comment?: string;
-      firstName?: string;
-      lastName?: string;
-      /** Format: date-time */
-      createdAt?: string;
-      document?: components["schemas"]["Document"];
-      user?: components["schemas"]["User"];
-    };
-    Signature: {
-      /** Format: uuid */
-      id?: string;
-      /** Format: uuid */
-      documentId?: string;
-      pageNumber?: number;
-      /** Format: float */
-      xPosition?: number;
-      /** Format: float */
-      yPosition?: number;
-      /** Format: float */
-      width?: number;
-      /** Format: float */
-      height?: number;
-      signatureType?: string;
-      required?: boolean;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-      document?: components["schemas"]["Document"];
-    };
-    DocumentHistory: {
-      /** Format: uuid */
-      id?: string;
-      /** Format: uuid */
-      documentId?: string;
-      /** @enum {string} */
-      eventType?: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
-      /** Format: uuid */
-      userId?: string;
-      userName?: string;
-      metadata?: {
-        [key: string]: unknown;
-      };
-      /** Format: date-time */
-      createdAt?: string;
-      document?: components["schemas"]["Document"];
-      user?: components["schemas"]["User"];
-    };
-    CreateAccountRequest: {
-      name: string;
-      primaryContact: string;
-      /**
-       * Format: uuid
-       * @description The client this account belongs to
-       */
-      clientId: string;
-    };
-    UpdateAccountRequest: {
-      name?: string;
-      primaryContact?: string;
-      /**
-       * Format: uuid
-       * @description The client this account belongs to
-       */
-      clientId?: string;
-    };
-    CreateClientRequest: {
-      /** @description Unique ticker symbol for the client */
-      ticker: string;
-      /** @description Full legal name of the company */
-      companyName: string;
-      /** @description Short display name for the company */
-      shortName: string;
-      /** @description Industry sector */
-      industry?: string;
-      /** @description Company description */
-      description?: string;
-      /**
-       * Format: uri
-       * @description Company website URL
-       */
-      website?: string;
-      /** @description Primary contact person */
-      primaryContact?: string;
-      /**
-       * Format: email
-       * @description Primary contact email
-       */
-      primaryContactEmail?: string;
-      /**
-       * @description Whether the client is active
-       * @default true
-       */
-      isActive?: boolean;
-      /**
-       * @description Unique branding identifier for document hosting site URLs
-       * @example 966152
-       */
-      brandingId?: number | null;
-    };
-    UpdateClientRequest: {
-      /** @description Full legal name of the company */
-      companyName?: string;
-      /** @description Short display name for the company */
-      shortName?: string;
-      /** @description Industry sector */
-      industry?: string;
-      /** @description Company description */
-      description?: string;
-      /**
-       * Format: uri
-       * @description Company website URL
-       */
-      website?: string;
-      /** @description Primary contact person */
-      primaryContact?: string;
-      /**
-       * Format: email
-       * @description Primary contact email
-       */
-      primaryContactEmail?: string;
-      /** @description Whether the client is active */
-      isActive?: boolean;
-      /**
-       * @description Unique branding identifier for document hosting site URLs
-       * @example 966152
-       */
-      brandingId?: number | null;
-    };
-    CreateUserRequest: {
-      username: string;
-      firstName: string;
-      lastName: string;
-      /** Format: email */
-      email: string;
-      password: string;
-      type: components["schemas"]["UserType"];
-      /** Format: uuid */
-      accountId?: string;
-    };
-    CreateAccountUserRequest: {
-      username: string;
-      firstName: string;
-      lastName: string;
-      /** Format: email */
-      email: string;
-      password: string;
-      type: components["schemas"]["UserType"];
-    };
-    UpdateUserRequest: {
-      firstName?: string;
-      lastName?: string;
-      /** Format: email */
-      email?: string;
-      type?: components["schemas"]["UserType"];
-      /** Format: uuid */
-      accountId?: string;
-      /**
-       * Format: uri
-       * @description URL of the user's profile photo stored in Supabase Storage
-       * @example https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
-       */
-      avatar_url?: string | null;
-    };
-    CreateMeetingRequest: {
-      id: string;
-      title: string;
-      cusip: string;
-      ticker: string;
-      /** Format: date */
-      recordDate: string;
-      /** Format: date */
-      mailingDate: string;
-      /** Format: date */
-      meetingDate: string;
-      /** Format: date */
-      cutoffDate?: string;
-      meetingType: string;
-      meetingYear: number;
-      distributionType: string;
-      transferAgent: string;
-      employeeStockPlans?: string;
-      planAdministrator?: string;
-      planAdministratorContact?: string;
-      /** Format: email */
-      planAdministratorContactEmail?: string;
-      solicitor?: string;
-      /** Format: email */
-      solicitorEmail?: string;
-      /** @description IVR dial-in voting number */
-      ivrDialInNumber?: string;
-      /** Format: int64 */
-      totalSharesOutstanding: string;
-      /** Format: decimal */
-      quorumRequirement: number;
-      /**
-       * Format: uuid
-       * @description The client this meeting belongs to
-       */
-      clientId: string;
-    };
-    UpdateMeetingRequest: {
-      title?: string;
-      /** Format: date */
-      recordDate?: string;
-      /** Format: date */
-      mailingDate?: string;
-      /** Format: date */
-      meetingDate?: string;
-      /** Format: date */
-      cutoffDate?: string;
-      meetingType?: string;
-      status?: components["schemas"]["MeetingStatus"];
-      currentPhase?: string;
-      overallCompletion?: number;
-      distributionType?: string;
-      transferAgent?: string;
-      transferAgentConfirmed?: boolean | null;
-      employeeStockPlans?: string;
-      planAdministrator?: string;
-      planAdministratorContact?: string;
-      /** Format: email */
-      planAdministratorContactEmail?: string;
-      solicitor?: string;
-      /** Format: email */
-      solicitorEmail?: string;
-      /** @description IVR dial-in voting number */
-      ivrDialInNumber?: string;
-      /** Format: int64 */
-      totalSharesOutstanding?: string;
-      /** Format: decimal */
-      quorumRequirement?: number;
-    };
-    CreatePhaseRequest: {
-      name: string;
-      orderIndex: number;
-      keyDates?: {
-        /** Format: date */
-        startDate?: string;
-        /** Format: date */
-        endDate?: string;
-        /** Format: date */
-        dueDate?: string;
-      };
-    };
-    UpdatePhaseRequest: {
-      name?: string;
-      orderIndex?: number;
-      status?: components["schemas"]["PhaseStatus"];
-      keyDates?: {
-        /** Format: date */
-        startDate?: string;
-        /** Format: date */
-        endDate?: string;
-        /** Format: date */
-        dueDate?: string;
-        /** Format: date */
-        completionDate?: string;
-      };
-    };
-    CreateTaskRequest: {
-      taskId: string;
-      /** Format: uuid */
-      phaseId: string;
-      phaseNumber: number;
-      title: string;
-      description?: string;
-      type: string;
-      /** Format: date */
-      dueDate?: string;
-      owner: string;
-      /** Format: uuid */
-      documentId?: string;
-      links?: Record<string, never>;
-    };
-    UpdateTaskRequest: {
-      title?: string;
-      description?: string;
-      type?: string;
-      status?: components["schemas"]["TaskStatus"];
-      phaseNumber?: number;
-      /** Format: date */
-      dueDate?: string;
-      owner?: string;
-      /** Format: uuid */
-      documentId?: string;
-      links?: {
-        [key: string]: unknown;
-      };
-    };
-    CreateDocumentRequest: {
-      title: string;
-      /** @description Optional human readable description for the document */
-      description?: string | null;
-      /** @description Canonical document type (proxy material or supporting) */
-      type: string;
-      /**
-       * Format: uuid
-       * @description Optional task linkage identifier
-       */
-      taskId?: string | null;
-      /**
-       * Format: uuid
-       * @description Optional participant ID for DSM document assignments
-       */
-      participantId?: string | null;
-      /**
-       * Format: binary
-       * @description Document file content upload
-       */
-      file: string;
-    };
-    UpdateDocumentRequest: {
-      title?: string;
-      description?: string;
-      status?: components["schemas"]["DocumentStatus"];
-    };
-    CreatePositionRequest: {
-      meetingId: string;
-      cusip: string;
-      accountType: string;
-      setKey: string;
-      name: string;
-      accountNumber?: string | null;
-      controlNumber?: string | null;
-      /** @enum {string} */
-      voteStatus: "Voted" | "Unvoted";
-      /** Format: double */
-      shares: number;
-      /**
-       * Format: double
-       * @default 0
-       */
-      sharesVoted?: number;
-      /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
-      dateVoted?: string | null;
-    };
-    UpdatePositionRequest: {
-      name?: string;
-      accountNumber?: string | null;
-      controlNumber?: string | null;
-      /** @enum {string} */
-      voteStatus?: "Voted" | "Unvoted";
-      /** Format: double */
-      shares?: number;
-      /** Format: double */
-      sharesVoted?: number;
-      /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
-      dateVoted?: string | null;
-    };
-    CreateProposalRequest: {
-      /** Format: double */
-      proposalNumber: number;
-      proposalTitle: string;
-      proposalType: string;
-      proposalSubtype?: string | null;
-      directorName?: string;
-      directorTermYears?: number;
-      directorClass?: string;
-      termExpirationYear?: number;
-      frequencyOptions?: Record<string, never>;
-      recommendation: string;
-    };
-    UpdateProposalRequest: {
-      proposalTitle?: string;
-      proposalType?: string;
-      proposalSubtype?: string | null;
-      directorName?: string;
-      directorTermYears?: number;
-      directorClass?: string;
-      termExpirationYear?: number;
-      frequencyOptions?: Record<string, never>;
-      recommendation?: string;
-    };
-    CastVoteRequest: {
-      /** Format: uuid */
-      proposalId: string;
-      /** @enum {string} */
-      vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
-      /** Format: int64 */
-      sharesVoting: string;
-    };
-    CreateCommentRequest: {
-      comment: string;
-    };
-    Notification: {
-      /**
-       * Format: uuid
-       * @example 389e5e4b-10e5-5eed-8047-3da0e36f051b
-       */
-      id?: string;
-      /** @example Your Event Has Been Created */
-      title?: string;
-      /** @example Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started. */
-      message?: string;
-      /**
-       * @example success
-       * @enum {string}
-       */
-      type?: "info" | "warning" | "error" | "success";
-      /**
-       * @example high
-       * @enum {string}
-       */
-      priority?: "low" | "medium" | "high" | "critical";
-      /**
-       * @default false
-       * @example false
-       */
-      read?: boolean;
-      /**
-       * Format: uuid
-       * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
-       */
-      userId?: string;
-      /**
-       * Format: uuid
-       * @example wen-annual-meeting-2026
-       */
-      meetingId?: string | null;
-      /**
-       * Format: uuid
-       * @example null
-       */
-      taskId?: string | null;
-      /** @example /WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201 */
-      actionUrl?: string | null;
-      /**
-       * Format: date-time
-       * @example 2025-10-01T21:48:48.724Z
-       */
-      createdAt?: string;
-      /**
-       * Format: date-time
-       * @example null
-       */
-      readAt?: string | null;
-      /**
-       * Format: date-time
-       * @example null
-       */
-      expiresAt?: string | null;
-    };
-    Mailing: {
-      /** Format: uuid */
-      id?: string;
-      /** @example 01234567-89ab-cdef-0123-456789abcdef */
-      meetingId?: string;
-      /** @example PAYC */
-      ticker?: string;
-      /** @description Total number of accounts */
-      totalAccounts?: number;
-      /** @description Total number of positions */
-      totalPositions?: number;
-      /** @description Number of retransmissions */
-      totalRetransmissions?: number | null;
-      /** @description Number of rollups */
-      totalRollups?: number | null;
-      /** @description Number of fullset mail positions */
-      fullsetMailPositions?: number;
-      /** @description Number of NAA mail positions */
-      naaMailPositions?: number;
-      /** @description Number of courtesy/other mail positions */
-      courtesyOtherMailPositions?: number | null;
-      /** @description Number of electronic suppressed positions */
-      electronicSuppressedPositions?: number;
-      /** @description Number of household suppressed positions */
-      householdSuppressedPositions?: number;
-      /** @description Number of managed suppressed positions */
-      managedSuppressedPositions?: number | null;
-      /** @description Number of consolidated suppressed positions */
-      consolidatedSuppressedPositions?: number | null;
-      /** @description Number of canceled suppressed positions */
-      canceledSuppressedPositions?: number;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    DigitalShareholderMeeting: {
-      /** Format: uuid */
-      id?: string;
-      meetingId?: string;
-      /** @enum {string} */
-      registrantType?: "Shareholder" | "Guest" | "Proxy" | "Other";
-      firstName?: string;
-      lastName?: string;
-      /** Format: email */
-      emailAddress?: string;
-      /** @description Pre-meeting questions submitted during registration */
-      registrationQuestions?: string | null;
-      /** @description Minutes attended in the meeting */
-      minutesAttendedMeeting?: number | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    DSMConfig: {
-      /** Format: uuid */
-      id?: string;
-      meetingId?: string;
-      /** @default false */
-      liveQa?: boolean;
-      /** @default false */
-      audioOnly?: boolean;
-      /** @default false */
-      meetingRecording?: boolean;
-      staticSlideDocId?: string | null;
-      displayDocsDocId?: string | null;
-      /** @default false */
-      isConfirmed?: boolean;
-      /** Format: date-time */
-      logisticsCallDate?: string | null;
-      logisticsCallNotes?: string | null;
-      /** @default false */
-      logisticsCallScheduled?: boolean;
-      /** Format: date-time */
-      dryRunDate?: string | null;
-      dryRunNotes?: string | null;
-      /** @default false */
-      dryRunScheduled?: boolean;
-      /** @default true */
-      dsmEnabled?: boolean;
-      /** @default true */
-      ioeEnabled?: boolean;
-      dsmProducerName?: string | null;
-      /** Format: email */
-      dsmProducerEmail?: string | null;
-      inspectorName?: string | null;
-      /** Format: email */
-      inspectorEmail?: string | null;
-      speakerListDocId?: string | null;
-      guestLinkRegistrationDocId?: string | null;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    CreateDigitalShareholderMeetingRequest: {
-      /** @enum {string} */
-      registrantType: "Shareholder" | "Guest" | "Proxy" | "Other";
-      firstName: string;
-      lastName: string;
-      /** Format: email */
-      emailAddress: string;
-      registrationQuestions?: string | null;
-      minutesAttendedMeeting?: number | null;
-    };
-    TabulationReport: {
-      /**
-       * Format: uuid
-       * @description Primary key
-       */
-      id: string;
-      /** @description Foreign key to meeting table */
-      meetingId: string;
-      /** @description Unique set keys from position records */
-      setKeys?: string[];
-      /** @description Top 6 brokers by total shares */
-      brokerVoting?: {
-          broker?: string;
-          sharesFor?: number;
-          sharesAgainst?: number;
-          sharesAbstain?: number;
-        }[];
-      /** @description Performance metrics across 18 share ranges */
-      shareRangePerformance?: {
-          rangeLabel?: string;
-          positionCount?: number;
-          totalShares?: number;
-          percentVoted?: number;
-        }[];
-      /** @description Non-DTC shareholder vote status breakdown */
-      nonDtcVoteStatus?: {
-        unvotedShareholders?: number;
-        unvotedShares?: number;
-        printShareholders?: number;
-        printShares?: number;
-        ivrShareholders?: number;
-        ivrShares?: number;
-        webShareholders?: number;
-        webShares?: number;
-        votedSubtotalShareholders?: number;
-        votedSubtotalShares?: number;
-        grandTotalShareholders?: number;
-        grandTotalShares?: number;
-      };
-      /** @description DTC/CDS shareholder vote status breakdown */
-      dtcVoteStatus?: {
-        unvotedShareholders?: number;
-        unvotedShares?: number;
-        votedShareholders?: number;
-        votedShares?: number;
-        grandTotalShareholders?: number;
-        grandTotalShares?: number;
-      };
-      /** @description Overall vote distribution by account type */
-      voteDistribution?: {
-        dtcVotedShares?: number;
-        dtcUnvotedShares?: number;
-        nonDtcVotedShares?: number;
-        nonDtcUnvotedShares?: number;
-      };
-      /** @description Positions voted by shareholder type */
-      positionsVoted?: {
-        voted?: number;
-        unvoted?: number;
-        totalShares?: number;
-        votedShares?: number;
-      };
-      /**
-       * Format: date-time
-       * @description Timestamp of last statistics calculation
-       */
-      lastCalculatedAt?: string;
-      /** Format: date-time */
-      createdAt?: string;
-      /** Format: date-time */
-      updatedAt?: string;
-    };
-    Pagination: {
-      page?: number;
-      limit?: number;
-      total?: number;
-      pages?: number;
-    };
-    Error: {
-      message?: string;
-      code?: string;
-      details?: Record<string, never>;
-    };
-  };
-  responses: {
-    /** @description Bad request */
-    BadRequest: {
-      content: {
-        "application/json": components["schemas"]["Error"];
-      };
-    };
-    /** @description Unauthorized */
-    Unauthorized: {
-      content: {
-        "application/json": components["schemas"]["Error"];
-      };
-    };
-    /** @description Forbidden */
-    Forbidden: {
-      content: {
-        "application/json": components["schemas"]["Error"];
-      };
-    };
-    /** @description Not found */
-    NotFound: {
-      content: {
-        "application/json": components["schemas"]["Error"];
-      };
-    };
-  };
-  parameters: {
-    PageParam?: number;
-    LimitParam?: number;
-  };
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
-}
-
-export type $defs = Record<string, never>;
-
-export type external = Record<string, never>;
-
-export interface operations {
-
-  /** User login */
-  loginUser: {
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @example john.doe */
-          username: string;
-          /** @example SecurePass123 */
-          password: string;
+    schemas: {
+        /** @enum {string} */
+        UserType: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER";
+        /** @enum {string} */
+        MeetingStatus: "ACTIVE" | "COMPLETE" | "ADJOURNED";
+        /** @enum {string} */
+        PhaseStatus: "IN_PROGRESS" | "COMPLETE";
+        /** @enum {string} */
+        TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW" | "AWAITING_REVIEW";
+        /** @enum {string} */
+        DocumentStatus: "DRAFT" | "AWAITING_DRAFT" | "AWAITING_REVIEW" | "APPROVED" | "UPLOADED" | "IN_PROGRESS" | "SIGNED" | "AUTHORIZED" | "COMPLETED";
+        Account: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            primaryContact?: string;
+            /**
+             * Format: uuid
+             * @description The client this account belongs to
+             */
+            clientId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description The client this account belongs to (relationship) */
+            client?: components["schemas"]["Clients"];
         };
-      };
-    };
-    responses: {
-      /** @description Login successful */
-      200: {
-        content: {
-          "application/json": {
+        Clients: {
+            /**
+             * Format: uuid
+             * @example 291cdbe5-192b-50ec-b3ae-3197c9c5103c
+             */
+            id?: string;
+            /**
+             * @description Unique ticker symbol for the client
+             * @example WEN
+             */
+            ticker?: string;
+            /**
+             * @description Full legal name of the company
+             * @example The Wendy's Company
+             */
+            companyName?: string;
+            /**
+             * @description Short display name for the company
+             * @example Wendy's
+             */
+            shortName?: string;
+            /**
+             * @description Industry sector
+             * @example Restaurants
+             */
+            industry?: string | null;
+            /**
+             * @description Company description
+             * @example Leading fast food hamburger chain
+             */
+            description?: string | null;
+            /**
+             * @description Company website URL
+             * @example https://www.wendys.com
+             */
+            website?: string | null;
+            /**
+             * @description Primary contact person
+             * @example Mike Chen
+             */
+            primaryContact?: string | null;
+            /**
+             * Format: email
+             * @description Primary contact email
+             * @example mike.chen@wendys.com
+             */
+            primaryContactEmail?: string | null;
+            /**
+             * @description Whether the client is active
+             * @default true
+             * @example true
+             */
+            isActive: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        User: {
+            /**
+             * Format: uuid
+             * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
+             */
+            id?: string;
+            /** @example lisa.rodriguez */
+            username?: string;
+            /** @example Lisa */
+            firstName?: string;
+            /** @example Rodriguez */
+            lastName?: string;
+            /**
+             * Format: email
+             * @example lisa.rodriguez@paycom.com
+             */
+            email?: string;
+            /** @description Legacy password field for seed data - not used with NextAuth */
+            password?: string | null;
+            /** @example ISSUER */
+            type?: components["schemas"]["UserType"];
+            /**
+             * Format: uuid
+             * @example fe3ad07a-80a7-59a0-a253-9083d6d4c02c
+             */
+            accountId?: string | null;
+            account?: components["schemas"]["Account"];
+            /**
+             * Format: uri
+             * @description URL of the user's profile photo stored in Supabase Storage
+             * @example https://example.supabase.co/storage/v1/object/public/user-avatars/b1f5062a-09b6-5dc1-b18c-3800c5930eab.jpg
+             */
+            avatar_url?: string | null;
+        };
+        Meeting: {
+            /** @example wen-annual-meeting-2026 */
+            id?: string;
+            /** @example Annual Meeting */
+            title?: string;
+            /** @example 95058W100 */
+            cusip?: string;
+            /** @example WEN */
+            ticker?: string;
+            /**
+             * Format: date
+             * @example 2025-02-15
+             */
+            preFilingDate?: string | null;
+            /**
+             * Format: date
+             * @example 2025-03-01
+             */
+            filingDate?: string | null;
+            /**
+             * Format: date
+             * @example 2025-03-15
+             */
+            brokerSearchDate?: string | null;
+            /**
+             * Format: date
+             * @example 2025-04-01
+             */
+            recordDate?: string;
+            /**
+             * Format: date
+             * @example 2025-04-15
+             */
+            mailingDate?: string;
+            /**
+             * Format: date
+             * @example 2025-05-15
+             */
+            meetingDate?: string;
+            /**
+             * Format: date
+             * @description Voting cutoff date (previous business day before meeting)
+             */
+            cutoffDate?: string | null;
+            meetingType?: string;
+            /** @example 2025 */
+            meetingYear?: number;
+            status?: components["schemas"]["MeetingStatus"];
+            /** @example Notice & Access */
+            currentPhase?: string;
+            /** @example 75 */
+            overallCompletion?: number;
+            /** @example Notice & Access */
+            distributionType?: string;
+            /** @example Computershare Trust Company */
+            transferAgent?: string;
+            /**
+             * @description Whether the transfer agent has been confirmed (demo feature)
+             * @default false
+             */
+            transferAgentConfirmed: boolean | null;
+            employeeStockPlans?: string | null;
+            planAdministrator?: string | null;
+            planAdministratorContact?: string | null;
+            /** Format: email */
+            planAdministratorContactEmail?: string | null;
+            solicitor?: string | null;
+            /** Format: email */
+            solicitorEmail?: string | null;
+            inspector?: string | null;
+            /** @description IVR dial-in voting number (e.g., "1-800-555-VOTE") */
+            ivrDialInNumber?: string | null;
+            /** Format: int64 */
+            totalSharesOutstanding?: string;
+            /** Format: decimal */
+            quorumRequirement?: number;
+            /**
+             * @description Total broker non-votes for this meeting
+             * @example 22480600
+             */
+            brokerNonVote?: number | null;
+            /**
+             * Format: uuid
+             * @description The client this meeting belongs to
+             */
+            clientId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** @description The client this meeting belongs to (relationship) */
+            client?: components["schemas"]["Clients"];
+        };
+        Phase: {
+            /**
+             * Format: uuid
+             * @example 11111111-2222-3333-4444-555555555555
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example 01234567-89ab-cdef-0123-456789abcdef
+             */
+            meetingId?: string;
+            /** @example Notice & Access */
+            name?: string;
+            /** @example 1 */
+            orderIndex?: number;
+            status?: components["schemas"]["PhaseStatus"];
+            keyDates?: {
+                /**
+                 * Format: date
+                 * @example 2025-03-01
+                 */
+                startDate?: string | null;
+                /**
+                 * Format: date
+                 * @example 2025-03-31
+                 */
+                endDate?: string | null;
+                /**
+                 * Format: date
+                 * @example 2025-03-25
+                 */
+                dueDate?: string | null;
+                /**
+                 * Format: date
+                 * @example 2025-03-20
+                 */
+                completionDate?: string | null;
+            } | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        Task: {
+            /**
+             * Format: uuid
+             * @example 81c351e9-36cd-5528-b5a4-f48b2fe05bd6
+             */
+            id?: string;
+            /** @example wen-annual-meeting-2026-P1-1 */
+            taskId?: string;
+            /**
+             * Format: uuid
+             * @example 11111111-2222-3333-4444-555555555555
+             */
+            phaseId?: string;
+            /** @example wen-annual-meeting-2026 */
+            meetingId?: string;
+            /** @example 1 */
+            phaseNumber?: number;
+            /** @example DTCC (SPR) Authorization Status */
+            title?: string;
+            /** @example Check and confirm authorization status with DTCC for shareholder proxy record access. */
+            description?: string | null;
+            /** @example Authorization */
+            type?: string;
+            /** @example NEEDS_AUTHORIZATION */
+            status?: components["schemas"]["TaskStatus"];
+            /**
+             * Format: date
+             * @example 2025-12-22
+             */
+            dueDate?: string | null;
+            /** @example The Wendy's Company */
+            owner?: string;
+            /**
+             * Format: uuid
+             * @example 33333333-4444-5555-6666-777777777777
+             */
+            documentId?: string | null;
+            links?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        Document: {
+            /** Format: uuid */
+            id?: string;
+            meetingId?: string;
+            /** Format: uuid */
+            taskId?: string | null;
+            /**
+             * Format: uuid
+             * @description ID of the DSM participant this document is assigned to
+             */
+            participantId?: string | null;
+            title?: string;
+            description?: string | null;
+            type?: string;
+            filePath?: string;
+            fileType?: string;
+            fileSize?: number;
+            status?: components["schemas"]["DocumentStatus"];
+            /** Format: date-time */
+            uploadDate?: string | null;
+            /** Format: date-time */
+            uploadedDate?: string | null;
+            /** Format: date-time */
+            signedDate?: string | null;
+            /** Format: date-time */
+            authorizedDate?: string | null;
+            /** Format: date-time */
+            completedDate?: string | null;
+            /** Format: date-time */
+            inProgressDate?: string | null;
+            /** Format: date-time */
+            deadline?: string | null;
+            history?: Record<string, never> | null;
+            /** @description User who approved the document */
+            approvedBy?: string | null;
+            /**
+             * Format: date-time
+             * @description When the document was approved
+             */
+            approvedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description User ID who created the document
+             */
+            createdBy?: string | null;
+            /** @description First name of user who created the document */
+            createdByFirstName?: string | null;
+            /** @description Last name of user who created the document */
+            createdByLastName?: string | null;
+            /**
+             * Format: uuid
+             * @description User ID who last updated the document
+             */
+            updatedBy?: string | null;
+            /** @description First name of user who last updated the document */
+            updatedByFirstName?: string | null;
+            /** @description Last name of user who last updated the document */
+            updatedByLastName?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /**
+             * @description Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
+             * @enum {string|null}
+             */
+            displayCategory?: "general" | "dsm" | "proxy-materials" | "meeting-materials" | "post-meeting" | "internal" | null;
+            meeting?: components["schemas"]["Meeting"];
+            comments?: components["schemas"]["Comment"][];
+            signatures?: components["schemas"]["Signature"][];
+        };
+        Position: {
+            /**
+             * Format: uuid
+             * @example 90953927-6e41-5c55-be8b-a690299746ad
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example wen-annual-meeting-2026
+             */
+            meetingId?: string;
+            /** @example 95058W100 */
+            cusip?: string;
+            /** @example DTC/CDS */
+            accountType?: string;
+            /** @example WEN12026 */
+            setKey?: string;
+            /** @example CEDE & CO M C/O DTCC */
+            name?: string;
+            /** @example null */
+            accountNumber?: string | null;
+            /** @example null */
+            controlNumber?: string | null;
+            /**
+             * @example Unvoted
+             * @enum {string}
+             */
+            voteStatus?: "Voted" | "Unvoted";
+            /**
+             * Format: double
+             * @example 132463881
+             */
+            shares?: number;
+            /**
+             * Format: double
+             * @example 0
+             */
+            sharesVoted?: number;
+            /** @enum {string|null} */
+            source?: "WEB" | "PRINT" | "IVR" | null;
+            dateVoted?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        Proposal: {
+            /**
+             * Format: uuid
+             * @example be601464-c593-5d74-b6f6-c14152132103
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example wen-annual-meeting-2026
+             */
+            meetingId?: string;
+            /**
+             * Format: double
+             * @example 1.01
+             */
+            proposalNumber?: number;
+            /** @example Arthur B. Winkleblack */
+            proposalTitle?: string;
+            /** @example Director Election */
+            proposalType?: string;
+            /** @example null */
+            proposalSubtype?: string | null;
+            /** @example Arthur B. Winkleblack */
+            directorName?: string | null;
+            /** @example 3 */
+            directorTermYears?: number | null;
+            directorClass?: string | null;
+            termExpirationYear?: number | null;
+            frequencyOptions?: Record<string, never> | null;
+            recommendation?: string;
+            /**
+             * @description Final result of the proposal voting
+             * @example PASSED
+             * @enum {string|null}
+             */
+            finalResult?: "PASSED" | "FAILED" | "PENDING" | null;
+            /**
+             * @description Total number of votes in favor
+             * @example 150000000.19
+             */
+            totalVotesFor?: number | null;
+            /**
+             * @description Total number of votes against
+             * @example 25000000.39
+             */
+            totalVotesAgainst?: number | null;
+            /**
+             * @description Total number of abstained votes
+             * @example 5000000.21
+             */
+            totalVotesAbstain?: number | null;
+            /**
+             * @description Total number of shares eligible to vote
+             * @example 200000000
+             */
+            totalSharesEligible?: number | null;
+            /**
+             * Format: float
+             * @description Percentage of votes in favor
+             * @example 85.7
+             */
+            forPercentage?: number | null;
+            /**
+             * Format: float
+             * @description Percentage of votes against
+             * @example 12.5
+             */
+            againstPercentage?: number | null;
+            /**
+             * Format: float
+             * @description Percentage of abstained votes
+             * @example 2.5
+             */
+            abstainPercentage?: number | null;
+            /**
+             * Format: float
+             * @description Overall participation rate
+             * @example 90
+             */
+            participationRate?: number | null;
+            /**
+             * @description Whether voting on this proposal has been completed
+             * @default false
+             */
+            votingCompleted: boolean;
+            /**
+             * Format: date-time
+             * @description When voting was completed
+             */
+            votingCompletedAt?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        PositionVote: {
+            /**
+             * Format: uuid
+             * @example 55555555-6666-7777-8888-999999999999
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example 44444444-5555-6666-7777-888888888888
+             */
+            positionId?: string;
+            /**
+             * Format: uuid
+             * @example 66666666-7777-8888-9999-aaaaaaaaaaaa
+             */
+            proposalId?: string;
+            /** @example FOR */
+            vote?: string;
+            /**
+             * Format: int64
+             * @example 1000000
+             */
+            sharesVoting?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        Comment: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: uuid */
+            documentId?: string;
+            /** Format: uuid */
+            userId?: string;
+            comment?: string;
+            firstName?: string;
+            lastName?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            document?: components["schemas"]["Document"];
             user?: components["schemas"]["User"];
-            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-            token?: string;
-          };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /** User logout */
-  logoutUser: {
-    responses: {
-      /** @description Logout successful */
-      200: {
-        content: {
-          "application/json": {
-            /** @example Logged out successfully */
+        Signature: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            documentId?: string;
+            pageNumber?: number;
+            /** Format: float */
+            xPosition?: number;
+            /** Format: float */
+            yPosition?: number;
+            /** Format: float */
+            width?: number;
+            /** Format: float */
+            height?: number;
+            signatureType?: string;
+            required?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            document?: components["schemas"]["Document"];
+        };
+        DocumentHistory: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            documentId?: string;
+            /** @enum {string} */
+            eventType?: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+            /** Format: uuid */
+            userId?: string;
+            userName?: string;
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt?: string;
+            document?: components["schemas"]["Document"];
+            user?: components["schemas"]["User"];
+        };
+        CreateAccountRequest: {
+            name: string;
+            primaryContact: string;
+            /**
+             * Format: uuid
+             * @description The client this account belongs to
+             */
+            clientId: string;
+        };
+        UpdateAccountRequest: {
+            name?: string;
+            primaryContact?: string;
+            /**
+             * Format: uuid
+             * @description The client this account belongs to
+             */
+            clientId?: string;
+        };
+        CreateClientRequest: {
+            /** @description Unique ticker symbol for the client */
+            ticker: string;
+            /** @description Full legal name of the company */
+            companyName: string;
+            /** @description Short display name for the company */
+            shortName: string;
+            /** @description Industry sector */
+            industry?: string;
+            /** @description Company description */
+            description?: string;
+            /**
+             * Format: uri
+             * @description Company website URL
+             */
+            website?: string;
+            /** @description Primary contact person */
+            primaryContact?: string;
+            /**
+             * Format: email
+             * @description Primary contact email
+             */
+            primaryContactEmail?: string;
+            /**
+             * @description Whether the client is active
+             * @default true
+             */
+            isActive: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
+        };
+        UpdateClientRequest: {
+            /** @description Full legal name of the company */
+            companyName?: string;
+            /** @description Short display name for the company */
+            shortName?: string;
+            /** @description Industry sector */
+            industry?: string;
+            /** @description Company description */
+            description?: string;
+            /**
+             * Format: uri
+             * @description Company website URL
+             */
+            website?: string;
+            /** @description Primary contact person */
+            primaryContact?: string;
+            /**
+             * Format: email
+             * @description Primary contact email
+             */
+            primaryContactEmail?: string;
+            /** @description Whether the client is active */
+            isActive?: boolean;
+            /**
+             * @description Unique branding identifier for document hosting site URLs
+             * @example 966152
+             */
+            brandingId?: number | null;
+        };
+        CreateUserRequest: {
+            username: string;
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            email: string;
+            password: string;
+            type: components["schemas"]["UserType"];
+            /** Format: uuid */
+            accountId?: string;
+        };
+        CreateAccountUserRequest: {
+            username: string;
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            email: string;
+            password: string;
+            type: components["schemas"]["UserType"];
+        };
+        UpdateUserRequest: {
+            firstName?: string;
+            lastName?: string;
+            /** Format: email */
+            email?: string;
+            type?: components["schemas"]["UserType"];
+            /** Format: uuid */
+            accountId?: string;
+            /**
+             * Format: uri
+             * @description URL of the user's profile photo stored in Supabase Storage
+             * @example https://example.supabase.co/storage/v1/object/public/user-avatars/123e4567-e89b-12d3-a456-426614174000.jpg
+             */
+            avatar_url?: string | null;
+        };
+        CreateMeetingRequest: {
+            id: string;
+            title: string;
+            cusip: string;
+            ticker: string;
+            /** Format: date */
+            recordDate: string;
+            /** Format: date */
+            mailingDate: string;
+            /** Format: date */
+            meetingDate: string;
+            /** Format: date */
+            cutoffDate?: string;
+            meetingType: string;
+            meetingYear: number;
+            distributionType: string;
+            transferAgent: string;
+            employeeStockPlans?: string;
+            planAdministrator?: string;
+            planAdministratorContact?: string;
+            /** Format: email */
+            planAdministratorContactEmail?: string;
+            solicitor?: string;
+            /** Format: email */
+            solicitorEmail?: string;
+            /** @description IVR dial-in voting number */
+            ivrDialInNumber?: string;
+            /** Format: int64 */
+            totalSharesOutstanding: string;
+            /** Format: decimal */
+            quorumRequirement: number;
+            /**
+             * Format: uuid
+             * @description The client this meeting belongs to
+             */
+            clientId: string;
+        };
+        UpdateMeetingRequest: {
+            title?: string;
+            /** Format: date */
+            recordDate?: string;
+            /** Format: date */
+            mailingDate?: string;
+            /** Format: date */
+            meetingDate?: string;
+            /** Format: date */
+            cutoffDate?: string;
+            meetingType?: string;
+            status?: components["schemas"]["MeetingStatus"];
+            currentPhase?: string;
+            overallCompletion?: number;
+            distributionType?: string;
+            transferAgent?: string;
+            transferAgentConfirmed?: boolean | null;
+            employeeStockPlans?: string;
+            planAdministrator?: string;
+            planAdministratorContact?: string;
+            /** Format: email */
+            planAdministratorContactEmail?: string;
+            solicitor?: string;
+            /** Format: email */
+            solicitorEmail?: string;
+            /** @description IVR dial-in voting number */
+            ivrDialInNumber?: string;
+            /** Format: int64 */
+            totalSharesOutstanding?: string;
+            /** Format: decimal */
+            quorumRequirement?: number;
+            /**
+             * @description Total broker non-votes for this meeting
+             * @example 22480600
+             */
+            brokerNonVote?: number | null;
+        };
+        CreatePhaseRequest: {
+            name: string;
+            orderIndex: number;
+            keyDates?: {
+                /** Format: date */
+                startDate?: string;
+                /** Format: date */
+                endDate?: string;
+                /** Format: date */
+                dueDate?: string;
+            };
+        };
+        UpdatePhaseRequest: {
+            name?: string;
+            orderIndex?: number;
+            status?: components["schemas"]["PhaseStatus"];
+            keyDates?: {
+                /** Format: date */
+                startDate?: string;
+                /** Format: date */
+                endDate?: string;
+                /** Format: date */
+                dueDate?: string;
+                /** Format: date */
+                completionDate?: string;
+            };
+        };
+        CreateTaskRequest: {
+            taskId: string;
+            /** Format: uuid */
+            phaseId: string;
+            phaseNumber: number;
+            title: string;
+            description?: string;
+            type: string;
+            /** Format: date */
+            dueDate?: string;
+            owner: string;
+            /** Format: uuid */
+            documentId?: string;
+            links?: Record<string, never>;
+        };
+        UpdateTaskRequest: {
+            title?: string;
+            description?: string;
+            type?: string;
+            status?: components["schemas"]["TaskStatus"];
+            phaseNumber?: number;
+            /** Format: date */
+            dueDate?: string;
+            owner?: string;
+            /** Format: uuid */
+            documentId?: string;
+            links?: {
+                [key: string]: unknown;
+            };
+        };
+        CreateDocumentRequest: {
+            title: string;
+            /** @description Optional human readable description for the document */
+            description?: string | null;
+            /** @description Canonical document type (proxy material or supporting) */
+            type: string;
+            /**
+             * Format: uuid
+             * @description Optional task linkage identifier
+             */
+            taskId?: string | null;
+            /**
+             * Format: uuid
+             * @description Optional participant ID for DSM document assignments
+             */
+            participantId?: string | null;
+            /**
+             * Format: binary
+             * @description Document file content upload
+             */
+            file: string;
+        };
+        UpdateDocumentRequest: {
+            title?: string;
+            description?: string;
+            status?: components["schemas"]["DocumentStatus"];
+        };
+        CreatePositionRequest: {
+            meetingId: string;
+            cusip: string;
+            accountType: string;
+            setKey: string;
+            name: string;
+            accountNumber?: string | null;
+            controlNumber?: string | null;
+            /** @enum {string} */
+            voteStatus: "Voted" | "Unvoted";
+            /** Format: double */
+            shares: number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            sharesVoted: number;
+            /** @enum {string|null} */
+            source?: "WEB" | "PRINT" | "IVR" | null;
+            dateVoted?: string | null;
+        };
+        UpdatePositionRequest: {
+            name?: string;
+            accountNumber?: string | null;
+            controlNumber?: string | null;
+            /** @enum {string} */
+            voteStatus?: "Voted" | "Unvoted";
+            /** Format: double */
+            shares?: number;
+            /** Format: double */
+            sharesVoted?: number;
+            /** @enum {string|null} */
+            source?: "WEB" | "PRINT" | "IVR" | null;
+            dateVoted?: string | null;
+        };
+        CreateProposalRequest: {
+            /** Format: double */
+            proposalNumber: number;
+            proposalTitle: string;
+            proposalType: string;
+            proposalSubtype?: string | null;
+            directorName?: string;
+            directorTermYears?: number;
+            directorClass?: string;
+            termExpirationYear?: number;
+            frequencyOptions?: Record<string, never>;
+            recommendation: string;
+        };
+        UpdateProposalRequest: {
+            proposalTitle?: string;
+            proposalType?: string;
+            proposalSubtype?: string | null;
+            directorName?: string;
+            directorTermYears?: number;
+            directorClass?: string;
+            termExpirationYear?: number;
+            frequencyOptions?: Record<string, never>;
+            recommendation?: string;
+        };
+        CastVoteRequest: {
+            /** Format: uuid */
+            proposalId: string;
+            /** @enum {string} */
+            vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
+            /** Format: int64 */
+            sharesVoting: string;
+        };
+        CreateCommentRequest: {
+            comment: string;
+        };
+        Notification: {
+            /**
+             * Format: uuid
+             * @example 389e5e4b-10e5-5eed-8047-3da0e36f051b
+             */
+            id?: string;
+            /** @example Your Event Has Been Created */
+            title?: string;
+            /** @example Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started. */
             message?: string;
-          };
+            /**
+             * @example success
+             * @enum {string}
+             */
+            type?: "info" | "warning" | "error" | "success";
+            /**
+             * @example high
+             * @enum {string}
+             */
+            priority?: "low" | "medium" | "high" | "critical";
+            /**
+             * @default false
+             * @example false
+             */
+            read: boolean;
+            /**
+             * Format: uuid
+             * @example b1f5062a-09b6-5dc1-b18c-3800c5930eab
+             */
+            userId?: string;
+            /**
+             * Format: uuid
+             * @example wen-annual-meeting-2026
+             */
+            meetingId?: string | null;
+            /**
+             * Format: uuid
+             * @example null
+             */
+            taskId?: string | null;
+            /** @example /WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201 */
+            actionUrl?: string | null;
+            /**
+             * Format: date-time
+             * @example 2025-10-01T21:48:48.724Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            readAt?: string | null;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            expiresAt?: string | null;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /** Get current user profile */
-  getCurrentUser: {
-    responses: {
-      /** @description User profile retrieved */
-      200: {
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /** List accounts */
-  listAccounts: {
-    parameters: {
-      query?: {
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-      };
-    };
-    responses: {
-      /** @description Accounts retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            accounts?: components["schemas"]["Account"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Create new account */
-  createAccount: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateAccountRequest"];
-      };
-    };
-    responses: {
-      /** @description Account created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Account"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get account by ID */
-  getAccountById: {
-    parameters: {
-      path: {
-        accountId: string;
-      };
-    };
-    responses: {
-      /** @description Account retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Account"];
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update account */
-  updateAccount: {
-    parameters: {
-      path: {
-        accountId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateAccountRequest"];
-      };
-    };
-    responses: {
-      /** @description Account updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Account"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Delete account */
-  deleteAccount: {
-    parameters: {
-      path: {
-        accountId: string;
-      };
-    };
-    responses: {
-      /** @description Account deleted successfully */
-      204: {
-        content: never;
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List users for an account */
-  listAccountUsers: {
-    parameters: {
-      query?: {
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-        type?: components["schemas"]["UserType"];
-      };
-      path: {
-        accountId: string;
-      };
-    };
-    responses: {
-      /** @description Account users retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            users?: components["schemas"]["User"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Create new user for an account */
-  createAccountUser: {
-    parameters: {
-      path: {
-        accountId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateAccountUserRequest"];
-      };
-    };
-    responses: {
-      /** @description User created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List clients */
-  listClients: {
-    parameters: {
-      query?: {
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-        /** @description Filter by client ticker */
-        ticker?: string;
-      };
-    };
-    responses: {
-      /** @description Clients retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            clients?: components["schemas"]["Clients"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Create new client */
-  createClient: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateClientRequest"];
-      };
-    };
-    responses: {
-      /** @description Client created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Clients"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get client by ticker */
-  getClientByTicker: {
-    parameters: {
-      path: {
-        /** @description The client ticker symbol */
-        ticker: string;
-      };
-    };
-    responses: {
-      /** @description Client retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Clients"];
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update client */
-  updateClient: {
-    parameters: {
-      path: {
-        /** @description The client ticker symbol */
-        ticker: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateClientRequest"];
-      };
-    };
-    responses: {
-      /** @description Client updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Clients"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Delete client */
-  deleteClient: {
-    parameters: {
-      path: {
-        /** @description The client ticker symbol */
-        ticker: string;
-      };
-    };
-    responses: {
-      /** @description Client deleted successfully */
-      204: {
-        content: never;
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List accounts for a client */
-  listClientAccounts: {
-    parameters: {
-      query?: {
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-      };
-      path: {
-        /** @description The client ticker symbol */
-        ticker: string;
-      };
-    };
-    responses: {
-      /** @description Client accounts retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            accounts?: components["schemas"]["Account"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List users */
-  listUsers: {
-    parameters: {
-      query?: {
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-        type?: components["schemas"]["UserType"];
-        accountId?: string;
-      };
-    };
-    responses: {
-      /** @description Users retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            users?: components["schemas"]["User"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Create new user */
-  createUser: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateUserRequest"];
-      };
-    };
-    responses: {
-      /** @description User created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get user by ID */
-  getUserById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description User retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update user */
-  updateUser: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateUserRequest"];
-      };
-    };
-    responses: {
-      /** @description User updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Delete user */
-  deleteUser: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description User deleted successfully */
-      204: {
-        content: never;
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /**
-   * Get accounts accessible by user
-   * @description Returns accounts that a user has access to based on their role and relationships
-   */
-  listUserAccounts: {
-    parameters: {
-      path: {
-        /** @description The ID of the user */
-        id: string;
-      };
-    };
-    responses: {
-      /** @description User accounts retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            accounts: components["schemas"]["Account"][];
+        Mailing: {
+            /** Format: uuid */
+            id?: string;
+            /** @example 01234567-89ab-cdef-0123-456789abcdef */
+            meetingId?: string;
+            /** @example PAYC */
+            ticker?: string;
             /** @description Total number of accounts */
-            total: number;
-          };
+            totalAccounts?: number;
+            /** @description Total number of positions */
+            totalPositions?: number;
+            /** @description Number of retransmissions */
+            totalRetransmissions?: number | null;
+            /** @description Number of rollups */
+            totalRollups?: number | null;
+            /** @description Number of fullset mail positions */
+            fullsetMailPositions?: number;
+            /** @description Number of NAA mail positions */
+            naaMailPositions?: number;
+            /** @description Number of courtesy/other mail positions */
+            courtesyOtherMailPositions?: number | null;
+            /** @description Number of electronic suppressed positions */
+            electronicSuppressedPositions?: number;
+            /** @description Number of household suppressed positions */
+            householdSuppressedPositions?: number;
+            /** @description Number of managed suppressed positions */
+            managedSuppressedPositions?: number | null;
+            /** @description Number of consolidated suppressed positions */
+            consolidatedSuppressedPositions?: number | null;
+            /** @description Number of canceled suppressed positions */
+            canceledSuppressedPositions?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Upload user profile photo */
-  uploadUserAvatar: {
-    parameters: {
-      path: {
-        /** @description The ID of the user */
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          /**
-           * Format: binary
-           * @description The profile photo file (JPEG, PNG, WebP)
-           */
-          avatar: string;
-          /**
-           * Format: float
-           * @description Scale factor for cropping (0.5x to 2x zoom)
-           * @default 1
-           */
-          scale?: number;
+        DigitalShareholderMeeting: {
+            /** Format: uuid */
+            id?: string;
+            meetingId?: string;
+            /** @enum {string} */
+            registrantType?: "Shareholder" | "Guest" | "Proxy" | "Other";
+            firstName?: string;
+            lastName?: string;
+            /** Format: email */
+            emailAddress?: string;
+            /** @description Pre-meeting questions submitted during registration */
+            registrationQuestions?: string | null;
+            /** @description Minutes attended in the meeting */
+            minutesAttendedMeeting?: number | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
-      };
-    };
-    responses: {
-      /** @description Avatar uploaded successfully */
-      201: {
-        content: {
-          "application/json": {
+        DSMConfig: {
+            /** Format: uuid */
+            id?: string;
+            meetingId?: string;
+            /** @default false */
+            liveQa: boolean;
+            /** @default false */
+            audioOnly: boolean;
+            /** @default false */
+            meetingRecording: boolean;
+            staticSlideDocId?: string | null;
+            displayDocsDocId?: string | null;
+            /** @default false */
+            isConfirmed: boolean;
+            /** Format: date-time */
+            logisticsCallDate?: string | null;
+            logisticsCallNotes?: string | null;
+            /** @default false */
+            logisticsCallScheduled: boolean;
+            /** Format: date-time */
+            dryRunDate?: string | null;
+            dryRunNotes?: string | null;
+            /** @default false */
+            dryRunScheduled: boolean;
+            /** @default true */
+            dsmEnabled: boolean;
+            /** @default true */
+            ioeEnabled: boolean;
+            dsmProducerName?: string | null;
+            /** Format: email */
+            dsmProducerEmail?: string | null;
+            inspectorName?: string | null;
+            /** Format: email */
+            inspectorEmail?: string | null;
+            speakerListDocId?: string | null;
+            guestLinkRegistrationDocId?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CreateDigitalShareholderMeetingRequest: {
+            /** @enum {string} */
+            registrantType: "Shareholder" | "Guest" | "Proxy" | "Other";
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            emailAddress: string;
+            registrationQuestions?: string | null;
+            minutesAttendedMeeting?: number | null;
+        };
+        TabulationReport: {
             /**
-             * Format: uri
-             * @description Public URL of the uploaded avatar
+             * Format: uuid
+             * @description Primary key
              */
-            avatarUrl?: string;
-            /** @example Avatar uploaded successfully */
-            message?: string;
-          };
-        };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      /** @description File too large */
-      413: {
-        content: {
-          "application/json": components["schemas"]["Error"];
-        };
-      };
-      /** @description Unsupported media type */
-      415: {
-        content: {
-          "application/json": components["schemas"]["Error"];
-        };
-      };
-    };
-  };
-  /** Remove user profile photo */
-  deleteUserAvatar: {
-    parameters: {
-      path: {
-        /** @description The ID of the user */
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Avatar removed successfully */
-      200: {
-        content: {
-          "application/json": {
-            /** @example Avatar removed successfully */
-            message?: string;
-          };
-        };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Get user profile photo URL */
-  getUserAvatarUrl: {
-    parameters: {
-      path: {
-        /** @description The ID of the user */
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Avatar URL retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
+            id: string;
+            /** @description Foreign key to meeting table */
+            meetingId: string;
+            /** @description Unique set keys from position records */
+            setKeys?: string[];
+            /** @description Top 6 brokers by total shares */
+            brokerVoting?: {
+                broker?: string;
+                sharesFor?: number;
+                sharesAgainst?: number;
+                sharesAbstain?: number;
+            }[];
+            /** @description Performance metrics across 18 share ranges */
+            shareRangePerformance?: {
+                rangeLabel?: string;
+                positionCount?: number;
+                totalShares?: number;
+                percentVoted?: number;
+            }[];
+            /** @description Non-DTC shareholder vote status breakdown */
+            nonDtcVoteStatus?: {
+                unvotedShareholders?: number;
+                unvotedShares?: number;
+                printShareholders?: number;
+                printShares?: number;
+                ivrShareholders?: number;
+                ivrShares?: number;
+                webShareholders?: number;
+                webShares?: number;
+                votedSubtotalShareholders?: number;
+                votedSubtotalShares?: number;
+                grandTotalShareholders?: number;
+                grandTotalShares?: number;
+            };
+            /** @description DTC/CDS shareholder vote status breakdown */
+            dtcVoteStatus?: {
+                unvotedShareholders?: number;
+                unvotedShares?: number;
+                votedShareholders?: number;
+                votedShares?: number;
+                grandTotalShareholders?: number;
+                grandTotalShares?: number;
+            };
+            /** @description Overall vote distribution by account type */
+            voteDistribution?: {
+                dtcVotedShares?: number;
+                dtcUnvotedShares?: number;
+                nonDtcVotedShares?: number;
+                nonDtcUnvotedShares?: number;
+            };
+            /** @description Positions voted by shareholder type */
+            positionsVoted?: {
+                voted?: number;
+                unvoted?: number;
+                totalShares?: number;
+                votedShares?: number;
+            };
             /**
-             * Format: uri
-             * @description Public URL of the user's avatar, null if no avatar set
+             * Format: date-time
+             * @description Timestamp of last statistics calculation
              */
-            avatarUrl?: string | null;
-          };
+            lastCalculatedAt?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
+        Pagination: {
+            page?: number;
+            limit?: number;
+            total?: number;
+            pages?: number;
+        };
+        Error: {
+            message?: string;
+            code?: string;
+            details?: Record<string, never>;
+        };
     };
-  };
-  /** List meetings */
-  listMeetings: {
+    responses: {
+        /** @description Bad request */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Unauthorized */
+        Unauthorized: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Forbidden */
+        Forbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Not found */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+    };
     parameters: {
-      query?: {
-        page?: number;
-        limit?: number;
-        status?: components["schemas"]["MeetingStatus"];
-        /** @description Filter by client ID */
-        clientId?: string;
-        meetingYear?: number;
-        cusip?: string;
-        ticker?: string;
-      };
+        PageParam: number;
+        LimitParam: number;
     };
-    responses: {
-      /** @description Meetings retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            meetings?: components["schemas"]["Meeting"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
+}
+export type $defs = Record<string, never>;
+export interface operations {
+    loginUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /** Create new meeting */
-  createMeeting: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateMeetingRequest"];
-      };
-    };
-    responses: {
-      /** @description Meeting created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Meeting"];
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example john.doe */
+                    username: string;
+                    /** @example SecurePass123 */
+                    password: string;
+                };
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get meeting by ID */
-  getMeetingById: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Meeting retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Meeting"];
+        responses: {
+            /** @description Login successful */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user?: components["schemas"]["User"];
+                        /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+                        token?: string;
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Update meeting */
-  updateMeeting: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateMeetingRequest"];
-      };
-    };
-    responses: {
-      /** @description Meeting updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Meeting"];
+    logoutUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Delete meeting */
-  deleteMeeting: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Meeting deleted successfully */
-      204: {
-        content: never;
-      };
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List phases for a meeting */
-  listPhases: {
-    parameters: {
-      query?: {
-        status?: components["schemas"]["PhaseStatus"];
-      };
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Phases retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Phase"][];
+        requestBody?: never;
+        responses: {
+            /** @description Logout successful */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Logged out successfully */
+                        message?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Create new phase */
-  createPhase: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreatePhaseRequest"];
-      };
-    };
-    responses: {
-      /** @description Phase created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Phase"];
+    getCurrentUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get phase by ID */
-  getPhaseById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Phase retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Phase"];
+        requestBody?: never;
+        responses: {
+            /** @description User profile retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Update phase */
-  updatePhase: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdatePhaseRequest"];
-      };
-    };
-    responses: {
-      /** @description Phase updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Phase"];
+    listAccounts: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** List tasks for a meeting */
-  listTasks: {
-    parameters: {
-      query?: {
-        phaseId?: string;
-        status?: components["schemas"]["TaskStatus"];
-        owner?: string;
-      };
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Tasks retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Task"][];
+        requestBody?: never;
+        responses: {
+            /** @description Accounts retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accounts?: components["schemas"]["Account"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Create new task */
-  createTask: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateTaskRequest"];
-      };
-    };
-    responses: {
-      /** @description Task created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Task"];
+    createAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get task by ID */
-  getTaskById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Task retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Task"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAccountRequest"];
+            };
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update task */
-  updateTask: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateTaskRequest"];
-      };
-    };
-    responses: {
-      /** @description Task updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Task"];
+        responses: {
+            /** @description Account created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** List documents for a meeting */
-  listDocuments: {
-    parameters: {
-      query?: {
-        status?: components["schemas"]["DocumentStatus"];
-        type?: string;
-      };
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Documents retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"][];
+    getAccountById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Create new document */
-  createDocument: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["CreateDocumentRequest"];
-      };
-    };
-    responses: {
-      /** @description Document created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+        requestBody?: never;
+        responses: {
+            /** @description Account retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
     };
-  };
-  /** Get document by ID */
-  getDocumentById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Document retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+    updateAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update document */
-  updateDocument: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateDocumentRequest"];
-      };
-    };
-    responses: {
-      /** @description Document updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAccountRequest"];
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Download document file */
-  downloadDocument: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Document file */
-      200: {
-        content: {
-          "application/octet-stream": string;
+        responses: {
+            /** @description Account updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Digitally sign a generated form */
-  signFormDigital: {
-    parameters: {
-      path: {
-        formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          meetingId: string;
-          /** @description User performing the digital signature */
-          signerUserId: string;
-          /** @description Optional reason or context for the signature */
-          signatureReason?: string;
-          /** @description If true, replaces any existing signature artifact */
-          replaceExisting?: boolean;
+    deleteAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      /** @description Form executed */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+        requestBody?: never;
+        responses: {
+            /** @description Account deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Upload executed (wet-signed) form PDF */
-  uploadExecutedForm: {
-    parameters: {
-      path: {
-        formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
-      };
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          meetingId: string;
-          /**
-           * Format: binary
-           * @description Executed (signed) form PDF
-           */
-          file: string;
-          /** @description If provided, links the upload to a previously generated draft form */
-          originalGeneratedId?: string;
+    listAccountUsers: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+                type?: components["schemas"]["UserType"];
+            };
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      /** @description Form executed via upload */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+        requestBody?: never;
+        responses: {
+            /** @description Account users retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        users?: components["schemas"]["User"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      /** @description File too large */
-      413: {
-        content: never;
-      };
     };
-  };
-  /** Upload or create a new document version (proxy or supporting) */
-  uploadDocumentVersion: {
-    parameters: {
-      path: {
-        documentType: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          meetingId: string;
-          /**
-           * Format: binary
-           * @description Document file content
-           */
-          file: string;
-          /** @description Optional notes describing the changes or purpose of this version */
-          versionNotes?: string;
+    createAccountUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      /** @description Version uploaded */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAccountUserRequest"];
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      /** @description File too large */
-      413: {
-        content: never;
-      };
-    };
-  };
-  /** Approve a pending proxy material version */
-  approveDocumentVersion: {
-    parameters: {
-      path: {
-        documentType: string;
-        versionId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          meetingId: string;
-          /** @description Optional approval comment */
-          comment?: string;
+        responses: {
+            /** @description User created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
     };
-    responses: {
-      /** @description Version approved */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+    listClients: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+                /** @description Filter by client ticker */
+                ticker?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      /** @description Invalid state transition */
-      409: {
-        content: never;
-      };
-    };
-  };
-  /** Replace an approved proxy material (creates new pending version) */
-  replaceApprovedVersion: {
-    parameters: {
-      path: {
-        documentType: string;
-        versionId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          meetingId: string;
-          /** @description Business justification for replacement */
-          reason: string;
-          /**
-           * Format: binary
-           * @description Replacement document file content
-           */
-          file: string;
+        requestBody?: never;
+        responses: {
+            /** @description Clients retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        clients?: components["schemas"]["Clients"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
     };
-    responses: {
-      /** @description Replacement version uploaded (previous approved retained) */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Document"];
+    createClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      /** @description Invalid state transition */
-      409: {
-        content: never;
-      };
-    };
-  };
-  /** Get readiness aggregation for a meeting */
-  getDocumentsReadiness: {
-    parameters: {
-      query: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Readiness status */
-      200: {
-        content: {
-          "application/json": {
-            phase1Ready?: boolean;
-            phase2Ready?: boolean;
-            overallReady?: boolean;
-            outstandingPhase1?: Record<string, never>[];
-            outstandingPhase2?: Record<string, never>[];
-          };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientRequest"];
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-    };
-  };
-  /** Get version history for a document type within a meeting */
-  getDocumentHistory: {
-    parameters: {
-      query: {
-        meetingId: string;
-      };
-      path: {
-        documentType: string;
-      };
-    };
-    responses: {
-      /** @description Version history */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Document"][];
+        responses: {
+            /** @description Client created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Clients"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Get DSM configuration for a meeting */
-  getDSMConfig: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description DSM configuration retrieved */
-      200: {
-        content: {
-          "application/json": components["schemas"]["DSMConfig"];
+    getClientByTicker: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The client ticker symbol */
+                ticker: string;
+            };
+            cookie?: never;
         };
-      };
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update DSM configuration */
-  updateDSMConfig: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DSMConfig"];
-      };
-    };
-    responses: {
-      /** @description DSM configuration updated */
-      200: {
-        content: {
-          "application/json": components["schemas"]["DSMConfig"];
+        requestBody?: never;
+        responses: {
+            /** @description Client retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Clients"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Create or update DSM configuration */
-  createOrUpdateDSMConfig: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DSMConfig"];
-      };
-    };
-    responses: {
-      /** @description DSM configuration saved */
-      200: {
-        content: {
-          "application/json": components["schemas"]["DSMConfig"];
+    updateClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The client ticker symbol */
+                ticker: string;
+            };
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-    };
-  };
-  /**
-   * List positions
-   * @description List positions with Supabase PostgREST filters.
-   *
-   * Common usage:
-   * - Filter by meeting: `?meetingId=eq.wen-annual-meeting-2025`
-   * - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
-   * - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
-   * - Include meeting data: `?select=*,meetings(*)`
-   * - Include position votes: `?select=*,position_votes(*)`
-   * - Order by shares: `?order=shares.desc`
-   * - Pagination: `?limit=20&offset=40`
-   */
-  listPositions: {
-    parameters: {
-      query?: {
-        /** @description Filter by meeting ID (e.g., `eq.WEN-2024-AGM`) */
-        meetingId?: string;
-        /** @description Filter by vote status (e.g., `eq.Voted`, `eq.Unvoted`) */
-        voteStatus?: string;
-        /** @description Filter by account type (e.g., `eq.Registered Account`) */
-        accountType?: string;
-        /** @description Specify columns to return and embed related resources */
-        select?: string;
-        /** @description Order results (e.g., `shares.desc`, `name.asc`) */
-        order?: string;
-        /** @description Limit number of results */
-        limit?: number;
-        /** @description Number of results to skip for pagination */
-        offset?: number;
-      };
-    };
-    responses: {
-      /** @description Positions retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Position"][];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClientRequest"];
+            };
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Create new position */
-  createPosition: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreatePositionRequest"];
-      };
-    };
-    responses: {
-      /** @description Position created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Position"];
+        responses: {
+            /** @description Client updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Clients"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
     };
-  };
-  /** Get position by ID */
-  getPositionById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Position retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Position"];
+    deleteClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The client ticker symbol */
+                ticker: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Update position */
-  updatePosition: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdatePositionRequest"];
-      };
-    };
-    responses: {
-      /** @description Position updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Position"];
+        requestBody?: never;
+        responses: {
+            /** @description Client deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Get pre-calculated tabulation report for a meeting */
-  getTabulationReport: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Tabulation report retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["TabulationReport"];
+    listClientAccounts: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+            };
+            header?: never;
+            path: {
+                /** @description The client ticker symbol */
+                ticker: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Get mailing statistics for a meeting */
-  getMailingStatistics: {
-    parameters: {
-      path: {
-        /** @description Meeting ID to get mailing statistics for */
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Mailing statistics retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Mailing"];
+        requestBody?: never;
+        responses: {
+            /** @description Client accounts retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accounts?: components["schemas"]["Account"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Get digital shareholder meeting attendees */
-  getDigitalShareholderMeeting: {
-    parameters: {
-      path: {
-        /** @description Meeting ID */
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Digital shareholder meeting data retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+    listUsers: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+                type?: components["schemas"]["UserType"];
+                accountId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Bulk create digital shareholder meeting attendees */
-  createDigitalShareholderMeetingAttendees: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateDigitalShareholderMeetingRequest"][];
-      };
-    };
-    responses: {
-      /** @description Attendees created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+        requestBody?: never;
+        responses: {
+            /** @description Users retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        users?: components["schemas"]["User"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
     };
-  };
-  /** List proposals for a meeting */
-  listProposals: {
-    parameters: {
-      query?: {
-        proposalType?: string;
-      };
-      path: {
-        meetingId: string;
-      };
-    };
-    responses: {
-      /** @description Proposals retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Proposal"][];
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /** Create new proposal */
-  createProposal: {
-    parameters: {
-      path: {
-        meetingId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateProposalRequest"];
-      };
-    };
-    responses: {
-      /** @description Proposal created successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Proposal"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserRequest"];
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get proposal by ID */
-  getProposalById: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Proposal retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Proposal"];
+        responses: {
+            /** @description User created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Update proposal */
-  updateProposal: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateProposalRequest"];
-      };
-    };
-    responses: {
-      /** @description Proposal updated successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Proposal"];
+    getUserById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-      404: components["responses"]["NotFound"];
-    };
-  };
-  /**
-   * Get position votes
-   * @description Get position votes using Supabase PostgREST filters.
-   *
-   * Common usage examples:
-   * - Get votes for a position: `?positionId=eq.{uuid}`
-   * - Get votes for a proposal: `?proposalId=eq.{uuid}`
-   * - Include related data: `?select=*,positions(*),proposals(*)`
-   * - Order by date: `?order=createdAt.desc`
-   *
-   * Supabase operators:
-   * - `eq` - equals
-   * - `neq` - not equals
-   * - `gt` - greater than
-   * - `gte` - greater than or equal
-   * - `lt` - less than
-   * - `lte` - less than or equal
-   * - `like` - LIKE operator
-   * - `ilike` - ILIKE operator
-   * - `in` - one of a list of values
-   * - `is` - checking for null/not null
-   */
-  getPositionVotes: {
-    parameters: {
-      query?: {
-        /** @description Filter by position ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
-        positionId?: string;
-        /** @description Filter by proposal ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
-        proposalId?: string;
-        /** @description Filter by vote type (e.g., `eq.FOR`, `eq.AGAINST`, `eq.ABSTAIN`) */
-        vote?: string;
-        /** @description Specify columns and embed related resources (e.g., `*,positions(name,cusip)`) */
-        select?: string;
-        /** @description Order results (e.g., `createdAt.desc`, `sharesVoting.asc`) */
-        order?: string;
-        /** @description Limit number of results */
-        limit?: number;
-        /** @description Number of results to skip for pagination */
-        offset?: number;
-      };
-    };
-    responses: {
-      /** @description Position votes retrieved successfully */
-      200: {
-        headers: {
-          /** @description Pagination info (e.g., `0-9/100`) */
-          "Content-Range"?: string;
+        requestBody?: never;
+        responses: {
+            /** @description User retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
-        content: {
-          "application/json": components["schemas"]["PositionVote"][];
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /**
-   * Create a position vote
-   * @description Create a new position vote record.
-   *
-   * Note: In Supabase PostgREST, you POST directly to the table endpoint.
-   * The positionId should be included in the request body, not the URL path.
-   */
-  createPositionVote: {
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CastVoteRequest"];
-      };
-    };
-    responses: {
-      /** @description Vote cast successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["PositionVote"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRequest"];
+            };
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get comments for a document */
-  getDocumentComments: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Comments retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Comment"][];
+        responses: {
+            /** @description User updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Add comment to a document */
-  addComment: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateCommentRequest"];
-      };
-    };
-    responses: {
-      /** @description Comment added successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["Comment"];
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      403: components["responses"]["Forbidden"];
-    };
-  };
-  /** Get event history for a specific document */
-  getDocumentEvents: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    responses: {
-      /** @description Event history retrieved successfully */
-      200: {
-        content: {
-          "application/json": components["schemas"]["DocumentHistory"][];
+        requestBody?: never;
+        responses: {
+            /** @description User deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
     };
-  };
-  /** Add event to document history */
-  addDocumentEvent: {
-    parameters: {
-      path: {
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @enum {string} */
-          eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "NOT_UPLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
-          metadata?: {
-            [key: string]: unknown;
-          };
+    listUserAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user */
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      /** @description Event added successfully */
-      201: {
-        content: {
-          "application/json": components["schemas"]["DocumentHistory"];
+        requestBody?: never;
+        responses: {
+            /** @description User accounts retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accounts: components["schemas"]["Account"][];
+                        /** @description Total number of accounts */
+                        total: number;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
-      };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
     };
-  };
-  /** List user notifications */
-  listNotifications: {
-    parameters: {
-      query?: {
-        /** @description Filter notifications by client ticker */
-        ticker?: string;
-        /** @description Filter notifications by meeting ID */
-        meetingId?: string;
-        /** @description Filter by read status */
-        read?: boolean;
-        /** @description Filter by notification type */
-        type?: "info" | "warning" | "error" | "success" | "unread" | "read";
-        /** @description Filter by priority level */
-        priority?: "low" | "medium" | "high" | "critical";
-        page?: components["parameters"]["PageParam"];
-        limit?: components["parameters"]["LimitParam"];
-      };
-    };
-    responses: {
-      /** @description Notifications retrieved successfully */
-      200: {
-        content: {
-          "application/json": {
-            data?: components["schemas"]["Notification"][];
-            pagination?: components["schemas"]["Pagination"];
-          };
+    uploadUserAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user */
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-      401: components["responses"]["Unauthorized"];
-    };
-  };
-  /** Mark notification as read */
-  markNotificationRead: {
-    parameters: {
-      path: {
-        notificationId: string;
-      };
-    };
-    responses: {
-      /** @description Notification marked as read */
-      200: {
-        content: {
-          "application/json": components["schemas"]["Notification"];
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description The profile photo file (JPEG, PNG, WebP)
+                     */
+                    avatar: string;
+                    /**
+                     * Format: float
+                     * @description Scale factor for cropping (0.5x to 2x zoom)
+                     * @default 1
+                     */
+                    scale?: number;
+                };
+            };
         };
-      };
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
+        responses: {
+            /** @description Avatar uploaded successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uri
+                         * @description Public URL of the uploaded avatar
+                         */
+                        avatarUrl?: string;
+                        /** @example Avatar uploaded successfully */
+                        message?: string;
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description File too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
     };
-  };
+    deleteUserAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avatar removed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Avatar removed successfully */
+                        message?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getUserAvatarUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avatar URL retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uri
+                         * @description Public URL of the user's avatar, null if no avatar set
+                         */
+                        avatarUrl?: string | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listMeetings: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                status?: components["schemas"]["MeetingStatus"];
+                /** @description Filter by client ID */
+                clientId?: string;
+                meetingYear?: number;
+                cusip?: string;
+                ticker?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Meetings retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        meetings?: components["schemas"]["Meeting"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createMeeting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMeetingRequest"];
+            };
+        };
+        responses: {
+            /** @description Meeting created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Meeting"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getMeetingById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Meeting retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Meeting"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateMeeting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMeetingRequest"];
+            };
+        };
+        responses: {
+            /** @description Meeting updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Meeting"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteMeeting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Meeting deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listPhases: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PhaseStatus"];
+            };
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Phases retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Phase"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createPhase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePhaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Phase created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Phase"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getPhaseById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Phase retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Phase"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updatePhase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePhaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Phase updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Phase"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listTasks: {
+        parameters: {
+            query?: {
+                phaseId?: string;
+                status?: components["schemas"]["TaskStatus"];
+                owner?: string;
+            };
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tasks retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Task created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getTaskById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Task updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listDocuments: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["DocumentStatus"];
+                type?: string;
+            };
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documents retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["CreateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Document created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getDocumentById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Document retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Document updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    downloadDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Document file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    signFormDigital: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    meetingId: string;
+                    /** @description User performing the digital signature */
+                    signerUserId: string;
+                    /** @description Optional reason or context for the signature */
+                    signatureReason?: string;
+                    /** @description If true, replaces any existing signature artifact */
+                    replaceExisting?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Form executed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    uploadExecutedForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    meetingId: string;
+                    /**
+                     * Format: binary
+                     * @description Executed (signed) form PDF
+                     */
+                    file: string;
+                    /** @description If provided, links the upload to a previously generated draft form */
+                    originalGeneratedId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Form executed via upload */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description File too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    uploadDocumentVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                documentType: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    meetingId: string;
+                    /**
+                     * Format: binary
+                     * @description Document file content
+                     */
+                    file: string;
+                    /** @description Optional notes describing the changes or purpose of this version */
+                    versionNotes?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Version uploaded */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description File too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    approveDocumentVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                documentType: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    meetingId: string;
+                    /** @description Optional approval comment */
+                    comment?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Version approved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Invalid state transition */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replaceApprovedVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                documentType: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    meetingId: string;
+                    /** @description Business justification for replacement */
+                    reason: string;
+                    /**
+                     * Format: binary
+                     * @description Replacement document file content
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Replacement version uploaded (previous approved retained) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Invalid state transition */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getDocumentsReadiness: {
+        parameters: {
+            query: {
+                meetingId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Readiness status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        phase1Ready?: boolean;
+                        phase2Ready?: boolean;
+                        overallReady?: boolean;
+                        outstandingPhase1?: Record<string, never>[];
+                        outstandingPhase2?: Record<string, never>[];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getDocumentHistory: {
+        parameters: {
+            query: {
+                meetingId: string;
+            };
+            header?: never;
+            path: {
+                documentType: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Version history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"][];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description DSM configuration retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DSMConfig"];
+            };
+        };
+        responses: {
+            /** @description DSM configuration updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createOrUpdateDSMConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DSMConfig"];
+            };
+        };
+        responses: {
+            /** @description DSM configuration saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DSMConfig"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    listPositions: {
+        parameters: {
+            query?: {
+                /** @description Filter by meeting ID (e.g., `eq.WEN-2024-AGM`) */
+                meetingId?: string;
+                /** @description Filter by vote status (e.g., `eq.Voted`, `eq.Unvoted`) */
+                voteStatus?: string;
+                /** @description Filter by account type (e.g., `eq.Registered Account`) */
+                accountType?: string;
+                /** @description Specify columns to return and embed related resources */
+                select?: string;
+                /** @description Order results (e.g., `shares.desc`, `name.asc`) */
+                order?: string;
+                /** @description Limit number of results */
+                limit?: number;
+                /** @description Number of results to skip for pagination */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Positions retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Position"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePositionRequest"];
+            };
+        };
+        responses: {
+            /** @description Position created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Position"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getPositionById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Position retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Position"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updatePosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePositionRequest"];
+            };
+        };
+        responses: {
+            /** @description Position updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Position"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getTabulationReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tabulation report retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TabulationReport"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getMailingStatistics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Meeting ID to get mailing statistics for */
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mailing statistics retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mailing"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDigitalShareholderMeeting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Meeting ID */
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Digital shareholder meeting data retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createDigitalShareholderMeetingAttendees: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDigitalShareholderMeetingRequest"][];
+            };
+        };
+        responses: {
+            /** @description Attendees created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalShareholderMeeting"][];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listProposals: {
+        parameters: {
+            query?: {
+                proposalType?: string;
+            };
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Proposals retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meetingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description Proposal created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getProposalById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Proposal retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description Proposal updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getPositionVotes: {
+        parameters: {
+            query?: {
+                /** @description Filter by position ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
+                positionId?: string;
+                /** @description Filter by proposal ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
+                proposalId?: string;
+                /** @description Filter by vote type (e.g., `eq.FOR`, `eq.AGAINST`, `eq.ABSTAIN`) */
+                vote?: string;
+                /** @description Specify columns and embed related resources (e.g., `*,positions(name,cusip)`) */
+                select?: string;
+                /** @description Order results (e.g., `createdAt.desc`, `sharesVoting.asc`) */
+                order?: string;
+                /** @description Limit number of results */
+                limit?: number;
+                /** @description Number of results to skip for pagination */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Position votes retrieved successfully */
+            200: {
+                headers: {
+                    /** @description Pagination info (e.g., `0-9/100`) */
+                    "Content-Range"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PositionVote"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createPositionVote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CastVoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Vote cast successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PositionVote"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getDocumentComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comments retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description Comment added successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getDocumentEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event history retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentHistory"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addDocumentEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "NOT_UPLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+                    metadata?: {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Event added successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentHistory"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: {
+                /** @description Filter notifications by client ticker */
+                ticker?: string;
+                /** @description Filter notifications by meeting ID */
+                meetingId?: string;
+                /** @description Filter by read status */
+                read?: boolean;
+                /** @description Filter by notification type */
+                type?: "info" | "warning" | "error" | "success" | "unread" | "read";
+                /** @description Filter by priority level */
+                priority?: "low" | "medium" | "high" | "critical";
+                page?: components["parameters"]["PageParam"];
+                limit?: components["parameters"]["LimitParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notifications retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data?: components["schemas"]["Notification"][];
+                        pagination?: components["schemas"]["Pagination"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notification marked as read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
 }
