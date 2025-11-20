@@ -124,7 +124,7 @@ export function MeetingProvider({
 
   // Extract meeting ID from URL
   const getMeetingIdFromURL = useCallback((): string | undefined => {
-    const meetingMatch = /\/meeting\/([^/]+)/.exec(pathname)
+    const meetingMatch = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
     return meetingMatch?.[1]
   }, [pathname])
 
@@ -334,6 +334,27 @@ export function MeetingProvider({
           }
           return prev
         })
+      } else {
+        // Meeting not in active list - fetch it from API (likely a past meeting)
+        const fetchPastMeeting = async () => {
+          try {
+            const api = await buildApiClient()
+            const { data } = await api.GET('/meetings/{meetingId}', {
+              params: { path: { meetingId: meetingIdFromURL } },
+            })
+            if (data) {
+              setCurrentMeeting((prev) => {
+                if (!prev || prev.id !== data.id) {
+                  return normalizeMeeting(data)
+                }
+                return prev
+              })
+            }
+          } catch (error) {
+            console.error('Error fetching past meeting:', error)
+          }
+        }
+        void fetchPastMeeting()
       }
     }
   }, [meetings, getMeetingIdFromURL])

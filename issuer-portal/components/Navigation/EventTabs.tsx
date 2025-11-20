@@ -141,7 +141,7 @@ export function EventTabs() {
   const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
   const [drawerPhase, setDrawerPhase] = useState(1)
   const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
-  const meetingIdFromUrl = /\/meeting\/([^/]+)/.exec(pathname)?.[1]
+  const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -194,7 +194,7 @@ export function EventTabs() {
 
   // Get active tab from current pathname (memoized to prevent re-renders)
   const currentRoute = useMemo(
-    () => pathname.replace(/^\/[^/]+\/meeting\/[^/]+/, ''),
+    () => pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, ''),
     [pathname]
   )
   const activeTab = useMemo(
@@ -207,7 +207,7 @@ export function EventTabs() {
   // Handle URL-based meeting selection for past meetings
   useEffect(() => {
     const handleMeetingFromURL = () => {
-      const pathMatch = /^\/[^/]+\/meeting\/([^/]+)/.exec(pathname)
+      const pathMatch = /^\/[^/]+\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
       if (pathMatch) {
         const meetingIdFromURL = pathMatch[1]
 
@@ -639,7 +639,7 @@ export function EventTabs() {
 
   const MeetingTab = React.memo(function MeetingTab({
     meeting,
-    src: _src,
+    src,
     index,
   }: {
     meeting: MeetingTab
@@ -649,19 +649,23 @@ export function EventTabs() {
     const isActive = currentMeeting?.id === meeting.id
     const ticker = currentClient?.ticker
     const meetingId = meeting.id
-    const currentPath = pathname.replace(/\/[^/]+\/meeting\/[^/]+/, '')
+    const isPastMeeting = src.status === 'COMPLETE'
+    const meetingType = isPastMeeting ? 'past-meeting' : 'meeting'
+
+    // Remove both /meeting/ and /past-meeting/ from current path
+    const currentPath = pathname.replace(/\/[^/]+\/(?:past-)?meeting\/[^/]+/, '')
 
     // If on dashboard with phase, navigate to the target meeting's phase
     const targetPath = useMemo(() => {
       if (/^\/dashboard(\/\d+)?$/.exec(currentPath)) {
         const targetPhase = parsePhaseNumber(meeting.currentPhase)
-        return `/${ticker}/meeting/${meetingId}/dashboard/${targetPhase}`
+        return `/${ticker}/${meetingType}/${meetingId}/dashboard/${targetPhase}`
       } else if (currentPath === '') {
-        return `/${ticker}/meeting/${meetingId}`
+        return `/${ticker}/${meetingType}/${meetingId}`
       } else {
-        return `/${ticker}/meeting/${meetingId}${currentPath}`
+        return `/${ticker}/${meetingType}/${meetingId}${currentPath}`
       }
-    }, [currentPath, ticker, meetingId, meeting.currentPhase])
+    }, [currentPath, ticker, meetingId, meetingType, meeting.currentPhase])
 
     return (
       <Stack>
@@ -873,9 +877,12 @@ export function EventTabs() {
               const isActive = activeTab === tab.label
               // Use ticker from currentMeeting if available, fallback to currentClient
               const ticker = currentMeeting?.ticker || currentClient?.ticker
+              // Detect if we're on a past-meeting route from the current pathname
+              const isPastMeetingRoute = pathname.includes('/past-meeting/')
+              const meetingType = isPastMeetingRoute ? 'past-meeting' : 'meeting'
               const tabHref =
                 currentMeeting && ticker
-                  ? `/${ticker}/meeting/${currentMeeting.id}${tab.route}`
+                  ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`
                   : '#'
 
               return (

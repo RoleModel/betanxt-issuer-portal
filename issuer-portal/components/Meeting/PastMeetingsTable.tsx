@@ -162,7 +162,7 @@ export default function PastMeetingsTable({
                         variant="text"
                         color="info"
                         component={NextLink}
-                        href={`/${clientTicker}/meeting/${meeting.id}/tabulation`}
+                        href={`/${clientTicker}/past-meeting/${meeting.id}/tabulation`}
                       >
                         {meeting.title}
                       </Button>
@@ -221,7 +221,7 @@ export default function PastMeetingsTable({
                         variant="text"
                         color="info"
                         component={NextLink}
-                        href={`/${clientTicker}/meeting/${meeting.id}/reports`}
+                        href={`/${clientTicker}/past-meeting/${meeting.id}/reports`}
                       >
                         View Reports
                       </Button>
