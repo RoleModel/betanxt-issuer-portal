@@ -658,19 +658,34 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 }
 
 // Helper function to convert image URL to base64
-async function imageUrlToBase64(url: string): Promise<string> {
+async function imageUrlToBase64(url: string): Promise<string | undefined> {
   try {
     const response = await fetch(url)
+    if (!response.ok) {
+      console.error(`Failed to fetch image: ${url} - Status: ${response.status}`)
+      return undefined
+    }
     const blob = await response.blob()
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.onerror = reject
+      reader.onloadend = () => {
+        const result = reader.result as string
+        if (result && result.startsWith('data:')) {
+          resolve(result)
+        } else {
+          console.error('Invalid base64 result for:', url)
+          resolve(undefined)
+        }
+      }
+      reader.onerror = () => {
+        console.error('FileReader error for:', url)
+        reject(new Error('Failed to read file'))
+      }
       reader.readAsDataURL(blob)
     })
   } catch (error) {
-    console.error('Failed to convert image to base64:', error)
-    return ''
+    console.error('Failed to convert image to base64:', url, error)
+    return undefined
   }
 }
 
@@ -687,7 +702,7 @@ export async function exportTabulationPdf(options: ExportOptions) {
 
     // Convert images to base64 for PDF generation
     const clientLogoUrl = clientTicker
-      ? await imageUrlToBase64(`${baseUrl}/logos/${clientTicker.toLowerCase()}_logo.png`)
+      ? await imageUrlToBase64(`${baseUrl}/logos/${clientTicker.toUpperCase()}_logo.png`)
       : undefined
     const betanxtLogoUrl = await imageUrlToBase64(`${baseUrl}/images/betanxt-logo.png`)
 
