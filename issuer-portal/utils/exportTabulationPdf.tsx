@@ -662,11 +662,15 @@ export async function exportTabulationPdf(options: ExportOptions) {
   const { tabulationData, clientTicker } = options
 
   try {
-    // Use direct image URLs (no base64 conversion needed)
+    // Use absolute URLs for production compatibility
+    const baseUrl =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const clientLogoUrl = clientTicker
-      ? `/logos/${clientTicker.toLowerCase()}_logo.png`
+      ? `${baseUrl}/logos/${clientTicker.toLowerCase()}_logo.png`
       : undefined
-    const betanxtLogoUrl = '/images/betanxt-logo.png'
+    const betanxtLogoUrl = `${baseUrl}/images/betanxt-logo.png`
 
     // Generate the PDF
     const pdfBlob = await pdf(
