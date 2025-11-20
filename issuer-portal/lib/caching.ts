@@ -41,5 +41,5 @@ export function cacheFn<TArgs extends unknown[], TReturn>(
  * Invalidate a set of cache tags.
  */
 export function invalidateTags(tags: string[]) {
-  for (const tag of tags) revalidateTag(tag)
+  for (const tag of tags) revalidateTag(tag, 'default')
 }

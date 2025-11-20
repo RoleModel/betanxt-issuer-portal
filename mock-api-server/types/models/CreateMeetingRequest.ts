@@ -62,6 +62,12 @@ export interface CreateMeetingRequest {
   meetingDate: Date
   /**
    *
+   * @type {Date}
+   * @memberof CreateMeetingRequest
+   */
+  cutoffDate?: Date
+  /**
+   *
    * @type {string}
    * @memberof CreateMeetingRequest
    */
@@ -194,6 +200,7 @@ export function CreateMeetingRequestFromJSONTyped(
     recordDate: new Date(json['recordDate']),
     mailingDate: new Date(json['mailingDate']),
     meetingDate: new Date(json['meetingDate']),
+    cutoffDate: json['cutoffDate'] == null ? undefined : new Date(json['cutoffDate']),
     meetingType: json['meetingType'],
     meetingYear: json['meetingYear'],
     distributionType: json['distributionType'],
@@ -240,6 +247,10 @@ export function CreateMeetingRequestToJSONTyped(
     recordDate: value['recordDate'].toISOString().substring(0, 10),
     mailingDate: value['mailingDate'].toISOString().substring(0, 10),
     meetingDate: value['meetingDate'].toISOString().substring(0, 10),
+    cutoffDate:
+      value['cutoffDate'] == null
+        ? undefined
+        : value['cutoffDate'].toISOString().substring(0, 10),
     meetingType: value['meetingType'],
     meetingYear: value['meetingYear'],
     distributionType: value['distributionType'],

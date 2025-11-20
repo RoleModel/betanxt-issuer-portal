@@ -3,7 +3,9 @@
   "display": "Mock API Server",
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020"],
+    "lib": [
+      "ES2020"
+    ],
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
@@ -16,7 +18,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -25,9 +27,13 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "noErrorTruncation": true,
     "outDir": "./dist",
     "rootDir": ".."
@@ -40,7 +46,8 @@
     "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "../supabase/**/*.ts"
+    "../supabase/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "dist",
