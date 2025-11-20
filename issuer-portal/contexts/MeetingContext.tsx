@@ -171,6 +171,7 @@ export function MeetingProvider({
             status: asString(record.status) as Meeting['status'],
             meetingDate: asString(record.meetingDate) || undefined,
             recordDate: asString(record.recordDate) || undefined,
+            cutoffDate: asString(record.cutoffDate) || undefined,
             currentPhase: asString(record.currentPhase) || undefined,
             overallCompletion: typeof record.overallCompletion === 'number' ? record.overallCompletion : undefined,
             preFilingDate: asString(record.preFilingDate) || undefined,

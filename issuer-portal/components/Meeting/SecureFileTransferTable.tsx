@@ -2,8 +2,9 @@
 
 import React from 'react'
 
-import { Button, Card, CardContent, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Button, Card, CardContent, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
+import SearchIcon from '@mui/icons-material/Search'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import SkeletonTable from '@/components/ui/SkeletonTable'
@@ -32,6 +33,7 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
   const [uploadOpen, setUploadOpen] = React.useState(false)
   const [measuredSizes, setMeasuredSizes] = React.useState<Record<string, number>>({})
   const [deleteDoc, setDeleteDoc] = React.useState<Document | null>(null)
+  const [searchQuery, setSearchQuery] = React.useState<string>('')
 
   const fetchMeetingAndDocuments = React.useCallback(async () => {
     try {
@@ -126,6 +128,20 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
     return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
+  // Filter documents based on search query
+  const filteredDocuments = React.useMemo(() => {
+    if (!searchQuery.trim()) return documents
+
+    const query = searchQuery.toLowerCase().trim()
+    return documents.filter((doc) => {
+      const title = (doc.title || '').toLowerCase()
+      const type = (doc.type || '').toLowerCase()
+      const fileName = doc.filePath ? (doc.filePath.split('/').pop() || '').toLowerCase() : ''
+
+      return title.includes(query) || type.includes(query) || fileName.includes(query)
+    })
+  }, [documents, searchQuery])
+
   if (loading) {
     return (
       <Card>
@@ -142,11 +158,22 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
       {showHeader && (
         <CardHeader
           title="Secure File Transfer"
-          action={
-            <Button variant="outlined" onClick={() => setUploadOpen(true)}>Upload</Button>
-          }
         />
       )}
+      <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ px: 2, pt: showHeader ? 0 : 3, pb: 2 }}>
+        <TextField
+          size="small"
+          placeholder="Search files..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            },
+          }}
+        />
+        <Button variant="contained" onClick={() => setUploadOpen(true)}>Upload</Button>
+      </Stack>
       <CardContent sx={{ p: 0 }}>
         <TableContainer sx={{ maxHeight }}>
           <Table stickyHeader>
@@ -160,14 +187,14 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
               </TableRow>
             </TableHead>
             <TableBody>
-              {documents.length === 0 ? (
+              {filteredDocuments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">No documents found.</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                documents.map((doc) => {
+                filteredDocuments.map((doc) => {
                   const href = doc.filePath ? getStoragePublicUrl(doc.filePath) : ''
                   const name = doc.title || (doc.filePath ? (doc.filePath.split('/').pop() ?? '') : '')
                   return (

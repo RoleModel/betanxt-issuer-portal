@@ -198,8 +198,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
 
           setNextPhaseDate(selectedDate)
 
-          // Vote cutoff is typically 2 days before meeting date
-          if (currentMeeting?.meetingDate) {
+          // Use cutoffDate from meeting if available, otherwise calculate as 2 days before meeting date
+          if (currentMeeting?.cutoffDate) {
+            setVoteCutoffDate(toLocalMidnight(currentMeeting.cutoffDate))
+          } else if (currentMeeting?.meetingDate) {
             const meetingLocal = toLocalMidnight(currentMeeting.meetingDate)
             if (meetingLocal) {
               const cutoffDate = new Date(meetingLocal)
@@ -214,7 +216,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
     }
 
     void fetchPhases()
-  }, [currentMeetingId, currentMeeting?.meetingDate])
+  }, [currentMeetingId, currentMeeting?.meetingDate, currentMeeting?.cutoffDate])
 
   // Fetch previous year's meeting data
   useEffect(() => {
