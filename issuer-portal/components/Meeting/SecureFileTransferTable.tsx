@@ -5,6 +5,8 @@ import React from 'react'
 import { Button, Card, CardContent, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import SearchIcon from '@mui/icons-material/Search'
+import EmptyState from '@/components/EmptyState'
+import FileSearchIcon from '@rolemodel/betanxt-design-system/components/icons/brand/FileSearchIcon'
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import SkeletonTable from '@/components/ui/SkeletonTable'
@@ -175,26 +177,22 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
         <Button variant="contained" onClick={() => setUploadOpen(true)}>Upload</Button>
       </Stack>
       <CardContent sx={{ p: 0 }}>
-        <TableContainer sx={{ maxHeight }}>
-          <Table stickyHeader>
-            <SROnlyTableCaption>Secure file transfer</SROnlyTableCaption>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600, py: 2 }}>File Downloads</TableCell>
-                <TableCell sx={{ fontWeight: 600, py: 2 }}>File Size</TableCell>
-                <TableCell sx={{ fontWeight: 600, py: 2 }}>Modified Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, py: 2 }}>Delete</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredDocuments.length === 0 ? (
+        {filteredDocuments.length === 0 ? (
+          <EmptyState title="No files have been uploaded." icon={<FileSearchIcon />} />
+        ) : (
+          <TableContainer sx={{ maxHeight }}>
+            <Table stickyHeader>
+              <SROnlyTableCaption>Secure file transfer</SROnlyTableCaption>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">No documents found.</Typography>
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>File Downloads</TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>File Size</TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>Modified Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>Delete</TableCell>
                 </TableRow>
-              ) : (
-                filteredDocuments.map((doc) => {
+              </TableHead>
+              <TableBody>
+                {filteredDocuments.map((doc) => {
                   const href = doc.filePath ? getStoragePublicUrl(doc.filePath) : ''
                   const name = doc.title || (doc.filePath ? (doc.filePath.split('/').pop() ?? '') : '')
                   return (
@@ -225,11 +223,11 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
                       </TableCell>
                     </TableRow>
                   )
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </CardContent>
 
       <FileUploadDialog
