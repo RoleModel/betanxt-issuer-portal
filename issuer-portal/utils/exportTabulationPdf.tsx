@@ -1,3 +1,4 @@
+'use client'
 import {
   Document,
   Font,
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 8,
     alignItems: 'center',
     paddingBottom: 12,
     borderBottomWidth: 2,
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   titleSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 4,
     alignItems: 'flex-start',
   },
   titleLeft: {
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     color: '#1f1e1c',
   },
   proposalSection: {
-    marginTop: 16,
+    marginTop: 4,
   },
   tableContainer: {
     borderWidth: 0.5,
@@ -172,8 +173,6 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    paddingVertical: 4,
-    paddingHorizontal: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: '#333333',
   },
@@ -191,6 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 2,
+    paddingVertical: 4,
   },
   proposalSubheader: {
     flexDirection: 'row',
@@ -203,16 +203,16 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 3,
-    paddingHorizontal: 4,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     backgroundColor: '#A3E1EA',
     borderBottomWidth: 0.5,
     borderBottomColor: '#333333',
   },
   tableRowAlt: {
     flexDirection: 'row',
-    paddingVertical: 3,
-    paddingHorizontal: 4,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     backgroundColor: '#ffffff',
     borderBottomWidth: 0.5,
     borderBottomColor: '#333333',
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'left',
     paddingHorizontal: 4,
+    paddingVertical: 4,
     whiteSpace: 'nowrap',
   },
   cellBold: {
@@ -231,13 +232,16 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     fontFamily: 'Roboto',
     paddingHorizontal: 4,
+    paddingVertical: 4,
     whiteSpace: 'nowrap',
   },
   cell: {
+    flex: '1 0 auto',
     fontSize: 7,
     fontWeight: 400,
     fontFamily: 'Roboto',
     paddingHorizontal: 4,
+    paddingVertical: 4,
     whiteSpace: 'nowrap',
   },
   cellRight: {
@@ -247,13 +251,14 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   // Column widths - updated to match image layout with borders
-  colEmpty: { width: '8%', minWidth: 50 },
-  colVoteSubmitted: { width: '16%', minWidth: 95 },
-  colAsPercentOS: { width: '13%', minWidth: 75, textAlign: 'right' },
-  colAsPercentTotal: { width: '13%', minWidth: 80, textAlign: 'right' },
-  colAsPercentProposal: { width: '13%', minWidth: 90, textAlign: 'right' },
-  colAsPercentExcluding: { width: '20%', minWidth: 110, textAlign: 'right' },
-  colBrokerNonVote: { width: '17%', minWidth: 90, textAlign: 'right' },
+  firstCol: { width: '14.5%', minWidth: 100 },
+  colVoteSubmitted: { width: '14.5%', minWidth: 95 },
+  colAsPercentOS: { width: '14.5%', minWidth: 75, textAlign: 'right' },
+  colAsPercentTotal: { width: '14.5%', minWidth: 80, textAlign: 'right' },
+  colAsPercentProposal: { width: '14.5%', minWidth: 90, textAlign: 'right' },
+  colAsPercentExcluding: { width: '14.5%', minWidth: 110, textAlign: 'right' },
+  colBrokerNonVote: { width: '14.5%', minWidth: 90, textAlign: 'right' },
+  emptyCell: { backgroundColor: 'rgba(0, 0, 0, 0.05)' },
   fallbackLogo: {
     fontSize: 12,
     fontWeight: 700,
@@ -306,7 +311,7 @@ interface TabulationPDFDocumentProps {
 }
 
 // Tabulation PDF Document Component
-const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
+export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
   tabulationData,
   clientTicker,
   clientLogoUrl,
@@ -366,7 +371,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
 
         {/* Meeting Information Table - 5 rows, 4 columns */}
-        <View style={{ marginBottom: 8, fontSize: 8 }}>
+        <View style={{ fontSize: 8 }}>
           {/* Row 1 */}
           <View style={{ flexDirection: 'row', marginBottom: 2 }}>
             <Text style={[styles.infoLabel, { width: '15%' }]}>Company Name:</Text>
@@ -440,7 +445,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                               </Text>
                             </View>
                             <View style={styles.tableHeader}>
-                              <View style={styles.colEmpty} />
+                              <View style={styles.firstCol} />
                               <Text style={[styles.headerCell, styles.colVoteSubmitted, styles.cellRight]}>VOTES Submitted</Text>
                               <Text style={[styles.headerCell, styles.colAsPercentOS, styles.cellRight]}>As % of O/S</Text>
                               <Text style={[styles.headerCell, styles.colAsPercentTotal, styles.cellRight]}>As % TOTAL Voted</Text>
@@ -449,7 +454,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                               <Text style={[styles.headerCell, styles.colBrokerNonVote, styles.cellRight]}>Broker Non Vote</Text>
                             </View>
                             <View style={styles.tableRow}>
-                              <Text style={[styles.cellBold, { width: '10%' }]}>For</Text>
+                              <Text style={[styles.cellBold, styles.firstCol]}>For</Text>
                               <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                                 {formatNumber(proposal.voteFor)}
                               </Text>
@@ -469,8 +474,8 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                 {formatNumber(brokerNonVote)}
                               </Text>
                             </View>
-                            <View style={styles.tableRowAlt}>
-                              <Text style={[styles.cellBold, { width: '10%' }]}>Against</Text>
+                            <View style={styles.tableRowAlt} >
+                              <Text style={[styles.cellBold, styles.firstCol]}>Against</Text>
                               <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                                 {formatNumber(proposal.voteAgainst)}
                               </Text>
@@ -486,10 +491,10 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                               <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
                                 {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
                               </Text>
-                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight, styles.emptyCell]} />
                             </View>
                             <View style={styles.tableRow}>
-                              <Text style={[styles.cellBold, { width: '10%' }]}>Withhold/Abstain</Text>
+                              <Text style={[styles.cellBold, styles.firstCol]}>Withhold/Abstain</Text>
                               <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                                 {formatNumber(proposal.voteAbstain)}
                               </Text>
@@ -502,19 +507,19 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                               <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
                                 {formatPercent(proposal.percentAbstain)}
                               </Text>
-                              <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]} />
-                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                              <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight, styles.emptyCell]} />
+                              <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight, styles.emptyCell]} />
                             </View>
                             <View style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}>
-                              <Text style={[styles.cellBold, { width: '10%' }]} />
-                              <Text style={[styles.cellBold, styles.colVoteSubmitted]}>
+                              <Text style={[styles.cellBold, styles.firstCol, styles.emptyCell]} />
+                              <Text style={[styles.cellBold, styles.cellRight, styles.colVoteSubmitted]}>
                                 {formatNumber(totalVotes)}
                               </Text>
-                              <Text style={[styles.cellBold, styles.colAsPercentOS]} />
-                              <Text style={[styles.cellBold, styles.colAsPercentTotal]} />
-                              <Text style={[styles.cellBold, styles.colAsPercentProposal]} />
-                              <Text style={[styles.cellBold, styles.colAsPercentExcluding]} />
-                              <Text style={[styles.cellBold, styles.colBrokerNonVote]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentOS, styles.emptyCell]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentTotal, styles.emptyCell]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentProposal, styles.emptyCell]} />
+                              <Text style={[styles.cellBold, styles.colAsPercentExcluding, styles.emptyCell]} />
+                              <Text style={[styles.cellBold, styles.colBrokerNonVote, styles.emptyCell]} />
                             </View>
                           </View>
                         )
@@ -541,7 +546,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
                         {/* Table Header */}
                         <View style={styles.tableHeader}>
-                          <View style={styles.colEmpty} />
+                          <View style={styles.firstCol} />
                           <Text style={[styles.headerCell, styles.colVoteSubmitted, styles.cellRight]}>
                             VOTES Submitted
                           </Text>
@@ -564,7 +569,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
                         {/* For Row */}
                         <View style={styles.tableRow}>
-                          <Text style={[styles.cellBold, { width: '10%' }]}>For</Text>
+                          <Text style={[styles.cellBold, { width: '15%' }]}>For</Text>
                           <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteFor)}
                           </Text>
@@ -587,7 +592,7 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
                         {/* Against Row */}
                         <View style={styles.tableRowAlt}>
-                          <Text style={[styles.cellBold, { width: '10%' }]}>Against</Text>
+                          <Text style={[styles.cellBold, { width: '15%' }]}>Against</Text>
                           <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteAgainst)}
                           </Text>
@@ -603,12 +608,12 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                           <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}>
                             {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
                           </Text>
-                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.emptyCell, styles.cellRight]} />
                         </View>
 
                         {/* Abstain Row */}
                         <View style={styles.tableRow}>
-                          <Text style={[styles.cellBold, { width: '10%' }]}>Abstain</Text>
+                          <Text style={[styles.cellBold, styles.firstCol]}>Abstain</Text>
                           <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteAbstain)}
                           </Text>
@@ -621,21 +626,19 @@ const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                           <Text style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}>
                             {formatPercent(proposal.percentAbstain)}
                           </Text>
-                          <Text style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]} />
-                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]} />
+                          <Text style={[styles.cell, styles.colAsPercentExcluding, styles.emptyCell, styles.cellRight]} />
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.emptyCell, styles.cellRight]} />
                         </View>
-
-                        {/* Total Row */}
                         <View style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}>
-                          <Text style={[styles.cellBold, { width: '10%' }]} />
-                          <Text style={[styles.cellBold, styles.colVoteSubmitted]}>
+                          <Text style={[styles.cellBold, styles.firstCol, styles.emptyCell]} />
+                          <Text style={[styles.cellBold, styles.cellRight, styles.colVoteSubmitted]}>
                             {formatNumber(totalVotes)}
                           </Text>
-                          <Text style={[styles.cellBold, styles.colAsPercentOS]} />
-                          <Text style={[styles.cellBold, styles.colAsPercentTotal]} />
-                          <Text style={[styles.cellBold, styles.colAsPercentProposal]} />
-                          <Text style={[styles.cellBold, styles.colAsPercentExcluding]} />
-                          <Text style={[styles.cellBold, styles.colBrokerNonVote]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentOS, styles.emptyCell]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentTotal, styles.emptyCell]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentProposal, styles.emptyCell]} />
+                          <Text style={[styles.cellBold, styles.colAsPercentExcluding, styles.emptyCell]} />
+                          <Text style={[styles.cellBold, styles.colBrokerNonVote, styles.emptyCell]} />
                         </View>
                       </View>
                     )
@@ -670,7 +673,7 @@ async function imageUrlToBase64(url: string): Promise<string | undefined> {
       const reader = new FileReader()
       reader.onloadend = () => {
         const result = reader.result as string
-        if (result && result.startsWith('data:')) {
+        if (result?.startsWith('data:')) {
           resolve(result)
         } else {
           console.error('Invalid base64 result for:', url)

@@ -216,6 +216,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const currentTab = useMemo(() => {
     // Check for specific page routes that don't have tabs first
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return null
+    if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
 
     // Check if we're on a past-meeting route (singular - viewing a specific past meeting)
     if (PAST_MEETING_REGEX.test(pathname)) return 'past-meetings'
@@ -365,7 +366,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   }, [props.user])
 
   // Hide tabs for specific pages that shouldn't have navigation tabs
-  const shouldHideTabs = false // Show tabs on all pages including profile
+  const shouldHideTabs = currentTab === null // Hide tabs on pages without tabs (profile, pdf-preview, etc.)
 
   const endSlot = useCallback(
     () => (
