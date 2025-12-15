@@ -41,7 +41,7 @@
     "framer-motion": "^12.23.22",
     "mammoth": "^1.11.0",
     "motion": "^12.23.12",
-    "next": "^16.0.3",
+    "next": "16.0.10",
     "next-auth": "^5.0.0-beta.30",
     "number-abbreviate": "^2.0.0",
     "pdf-lib": "^1.17.1",
