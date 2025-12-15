@@ -10,7 +10,7 @@ import {
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
-import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -26,7 +26,7 @@ import {
 import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
 import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
-import type { } from '@mui/x-date-pickers/themeAugmentation'
+import type {} from '@mui/x-date-pickers/themeAugmentation'
 
 import { clientBranding } from '@/utils/clientBranding'
 
@@ -249,6 +249,7 @@ export const createClientTheme = (ticker?: string) => {
             dark: darken(branding.tertiaryColor, 0.2),
             contrastText: branding.tertiaryContrastText,
           },
+
           appSwitcher: {
             background: '#171717',
             hover: '#363636',
@@ -317,16 +318,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-            ],
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+          ],
           complete: grey[500],
         },
       },
@@ -339,6 +340,7 @@ export const createClientTheme = (ticker?: string) => {
             dark: nxtBlue[600],
             contrastText: nxtBlue[100],
           },
+
           appSwitcher: {
             background: '#080808',
             hover: '#363636',
@@ -400,16 +402,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-            ],
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+          ],
           complete: grey[600],
         },
       },
@@ -485,9 +487,9 @@ export const createClientTheme = (ticker?: string) => {
             '& .MuiTabs-flexContainer': {
               height: theme.layout?.navbarHeight,
             },
-            '&.MuiAppBar-root.MuiAppBar-colorSecondary': {
-              backgroundColor: theme.vars?.palette.appBarSecondary?.defaultFill,
-              color: theme.vars?.palette.appBarSecondary?.defaultContrast,
+            '&.MuiAppBar-root': {
+              backgroundColor: theme.vars?.palette.common.white,
+              color: theme.vars?.palette.appBar?.defaultContrast,
               borderBottom: `1px solid ${theme.vars?.palette.divider}`,
               '& .MuiPaper-root': {
                 boxShadow: 'none',
@@ -497,7 +499,7 @@ export const createClientTheme = (ticker?: string) => {
                 height: 4,
               },
               '& .MuiTab-root ': {
-                color: theme.vars?.palette.appBarSecondary?.defaultContrast,
+                color: theme.vars?.palette.appBar?.defaultContrast,
                 transition: theme.transitions.create(['color']),
               },
               '& .MuiTab-root:hover ': {
@@ -508,6 +510,12 @@ export const createClientTheme = (ticker?: string) => {
                 color: theme.vars?.palette.primary.main,
               },
             },
+            ...theme.applyStyles('dark', {
+              '&.MuiAppBar-root': {
+                backgroundColor: theme.vars?.palette.footer.background,
+                color: theme.vars?.palette.common.white,
+              },
+            }),
           }),
         },
       },

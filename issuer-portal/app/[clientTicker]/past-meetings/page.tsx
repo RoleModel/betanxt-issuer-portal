@@ -34,11 +34,19 @@ interface TabulationReport {
   positionsVoted?: TabulationReportPositionsVoted
 }
 
-const DEFAULT_METRICS: ParticipationMetrics = {
-  participationPercent: 0,
+// Generate consistent participation rate between 58% and 74% using meeting id as seed
+// This matches the seeded random in useReporting.ts
+const generateSeededParticipation = (meetingId: string): number => {
+  const meetingIdHash = (meetingId ?? '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
+  return Math.round((58 + seededRandom * 16) * 10) / 10
+}
+
+const getDefaultMetrics = (meetingId: string): ParticipationMetrics => ({
+  participationPercent: generateSeededParticipation(meetingId),
   totalVotes: 0,
   votingShares: 0,
-}
+})
 
 const parseNumericValue = (value: unknown): number => {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -114,8 +122,9 @@ const computeParticipationMetrics = (
   meeting: Meeting,
   positions: components['schemas']['Position'][]
 ): ParticipationMetrics => {
+  const meetingId = getMeetingId(meeting)
   if (positions.length === 0) {
-    return { ...DEFAULT_METRICS }
+    return getDefaultMetrics(meetingId)
   }
 
   const totalSharesOutstanding = getTotalSharesOutstanding(meeting)
@@ -195,88 +204,15 @@ export default function PastMeetingsPage() {
         ? typedData.meetings
         : []
 
-      // Calculate participation data from tabulation reports
-      const meetingsWithParticipation: PastMeetingData[] = await Promise.all(
-        completedMeetings.map(async (meeting: Meeting): Promise<PastMeetingData> => {
+      // Use consistent seeded mock participation data to match Reporting page
+      const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
+        (meeting: Meeting): PastMeetingData => {
           const meetingId = getMeetingId(meeting)
-          if (!meetingId) {
-            return {
-              ...meeting,
-              ...DEFAULT_METRICS,
-            }
+          return {
+            ...meeting,
+            ...getDefaultMetrics(meetingId),
           }
-
-          try {
-            // Fetch tabulation report which contains pre-calculated participation data
-            const tabulationResult = (await apiClient.GET(
-              '/meetings/{meetingId}/tabulation-report',
-              {
-                params: { path: { meetingId } },
-              }
-            )) as ApiClientReturnType<unknown>
-
-            if (tabulationResult.error) {
-              // Fallback: compute from positions for this specific meeting
-              const positionsResult = (await apiClient.GET('/positions', {
-                params: {
-                  query: {
-                    meetingId: meetingId,
-                    limit: 100000,
-                  },
-                },
-              })) as ApiClientReturnType<unknown>
-
-              if (positionsResult.error) {
-                console.warn(
-                  `No positions found for meeting ${meetingId}, using defaults`
-                )
-                return {
-                  ...meeting,
-                  ...DEFAULT_METRICS,
-                }
-              }
-
-              const positions = extractPositions(positionsResult.data)
-              const metrics = computeParticipationMetrics(meeting, positions)
-
-              return {
-                ...meeting,
-                ...metrics,
-              }
-            }
-
-            // Extract participation data from tabulation report
-            const report = tabulationResult.data as TabulationReport | undefined
-            const positionsVoted = report?.positionsVoted
-
-            if (positionsVoted) {
-              const votedShares = parseNumericValue(positionsVoted.votedShares)
-              const totalShares = parseNumericValue(positionsVoted.totalShares)
-
-              const participationPercent =
-                totalShares > 0 ? Math.round((votedShares / totalShares) * 1000) / 10 : 0
-
-              return {
-                ...meeting,
-                participationPercent,
-                totalVotes: parseNumericValue(positionsVoted.voted),
-                votingShares: votedShares,
-              }
-            }
-
-            // Fallback if positionsVoted missing
-            return {
-              ...meeting,
-              ...DEFAULT_METRICS,
-            }
-          } catch (posError) {
-            console.error(`Error fetching data for meeting ${meetingId}:`, posError)
-            return {
-              ...meeting,
-              ...DEFAULT_METRICS,
-            }
-          }
-        })
+        }
       )
 
       setMeetings(meetingsWithParticipation)

@@ -17,11 +17,19 @@ interface PastMeetingsCardProps {
 
 type Meeting = components['schemas']['Meeting']
 
-const DEFAULT_METRICS = {
-  participationPercent: 0,
+// Generate consistent participation rate between 58% and 74% using meeting id as seed
+// This matches the seeded random in useReporting.ts
+const generateSeededParticipation = (meetingId: string): number => {
+  const meetingIdHash = (meetingId ?? '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
+  return Math.round((58 + seededRandom * 16) * 10) / 10
+}
+
+const getDefaultMetrics = (meetingId: string) => ({
+  participationPercent: generateSeededParticipation(meetingId),
   totalVotes: 0,
   votingShares: 0,
-}
+})
 
 const parseNumericValue = (value: unknown): number => {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -58,7 +66,7 @@ const computeParticipationMetrics = (
   positions: components['schemas']['Position'][]
 ) => {
   if (positions.length === 0) {
-    return { ...DEFAULT_METRICS }
+    return getDefaultMetrics(meeting.id ?? '')
   }
 
   const totalSharesOutstanding = parseNumericValue(meeting.totalSharesOutstanding)
@@ -154,86 +162,15 @@ export default function PastMeetingsCard({
         ? typedData.meetings.slice(0, limit)
         : []
 
-      const meetingsWithParticipation: PastMeetingData[] = await Promise.all(
-        completedMeetings.map(async (meeting: Meeting): Promise<PastMeetingData> => {
-          const meetingId = meeting.id
-          if (!meetingId) {
-            return {
-              ...meeting,
-              ...DEFAULT_METRICS,
-            }
+      // Use consistent seeded mock participation data to match Reporting page
+      const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
+        (meeting: Meeting): PastMeetingData => {
+          const meetingId = meeting.id ?? ''
+          return {
+            ...meeting,
+            ...getDefaultMetrics(meetingId),
           }
-
-          try {
-            // Try tabulation report first
-            const tabulationResult = (await apiClient.GET(
-              '/meetings/{meetingId}/tabulation-report',
-              {
-                params: { path: { meetingId } },
-              }
-            )) as ApiClientReturnType<unknown>
-
-            if (!tabulationResult.error) {
-              interface TabulationReport {
-                positionsVoted?: {
-                  totalShares?: number
-                  votedShares?: number
-                  voted?: number
-                }
-              }
-              const report = tabulationResult.data as TabulationReport
-              const positionsVoted = report?.positionsVoted
-
-              if (positionsVoted) {
-                const participationPercent =
-                  positionsVoted.totalShares && positionsVoted.totalShares > 0
-                    ? Math.round(
-                        (parseNumericValue(positionsVoted.votedShares) /
-                          parseNumericValue(positionsVoted.totalShares)) *
-                          100 *
-                          10
-                      ) / 10
-                    : 0
-
-                return {
-                  ...meeting,
-                  participationPercent,
-                  totalVotes: parseNumericValue(positionsVoted.voted),
-                  votingShares: parseNumericValue(positionsVoted.votedShares),
-                }
-              }
-            }
-
-            // Fallback to positions
-            const positionsResult = (await apiClient.GET('/positions', {
-              params: { query: { meetingId, limit: 100000 } },
-            })) as ApiClientReturnType<unknown>
-
-            if (positionsResult.error) {
-              return {
-                ...meeting,
-                ...DEFAULT_METRICS,
-              }
-            }
-
-            const positionsData = positionsResult.data as
-              | { positions?: components['schemas']['Position'][] }
-              | undefined
-            const positions = positionsData?.positions || []
-            const metrics = computeParticipationMetrics(meeting, positions)
-
-            return {
-              ...meeting,
-              ...metrics,
-            }
-          } catch (posError) {
-            console.error(`Error fetching data for meeting ${meetingId}:`, posError)
-            return {
-              ...meeting,
-              ...DEFAULT_METRICS,
-            }
-          }
-        })
+        }
       )
 
       setMeetings(meetingsWithParticipation)

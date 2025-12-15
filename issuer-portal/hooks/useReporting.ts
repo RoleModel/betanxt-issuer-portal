@@ -430,62 +430,44 @@ function calculateParticipationData(positions: Position[]): ParticipationData {
 
 function calculateYearOverYearData(
   meetings: Meeting[],
-  proposals: Proposal[],
-  positions: Position[]
+  _proposals: Proposal[],
+  _positions: Position[]
 ): YearOverYearData[] {
-  const yearMap = new Map<
-    number,
-    YearOverYearData & { participationSum: number; participationCount: number }
-  >()
+  const yearMap = new Map<number, YearOverYearData>()
 
-  meetings.forEach((meeting) => {
+  // Only use Annual meetings for Year-over-Year chart (max 8 proposals each)
+  const annualMeetings = meetings.filter(
+    (m) => !(m.meetingType ?? 'Annual').toLowerCase().includes('special')
+  )
+
+  annualMeetings.forEach((meeting) => {
     if (!meeting.meetingDate) return
 
     const year = new Date(meeting.meetingDate).getFullYear()
-    const meetingProposals = proposals.filter((p) => p.meetingId === meeting.id)
-    const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
 
-    const existing = yearMap.get(year) || {
+    // Skip if we already have data for this year (take first annual meeting)
+    if (yearMap.has(year)) return
+
+    // 8 proposals per annual meeting, only 2024 shows 7/8 passed
+    const proposalsCount = 8
+    const passedCount = year === 2024 ? 7 : 8
+    const failedCount = year === 2024 ? 1 : 0
+
+    // Generate consistent participation rate between 58% and 74% using meeting id as seed
+    // This matches the seeded random in transformEventSummaryData
+    const meetingIdHash = (meeting.id ?? '')
+      .split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
+    const participationRate = 58 + seededRandom * 16
+
+    yearMap.set(year, {
       year,
-      participationRate: 0,
-      proposalsCount: 0,
-      passedCount: 0,
-      failedCount: 0,
-      participationSum: 0,
-      participationCount: 0,
-    }
-
-    existing.proposalsCount += meetingProposals.length
-    existing.passedCount += meetingProposals.filter((p) => {
-      const fr =
-        (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
-        (p as unknown as { final_result?: string }).final_result
-      return fr === 'PASSED'
-    }).length
-    existing.failedCount += meetingProposals.filter((p) => {
-      const fr =
-        (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
-        (p as unknown as { final_result?: string }).final_result
-      return fr === 'FAILED'
-    }).length
-
-    const totalSharesOutstandingNum = Number.parseInt(
-      meeting.totalSharesOutstanding ?? '0',
-      10
-    )
-    if (meetingPositions.length > 0 && totalSharesOutstandingNum > 0) {
-      const actualShares = meetingPositions.reduce(
-        (sum, pos) => sum + (pos.sharesVoted ?? 0),
-        0
-      )
-      const participationRate = (actualShares / totalSharesOutstandingNum) * 100
-      // Average participation across all meetings in the year
-      existing.participationSum += participationRate
-      existing.participationCount += 1
-      existing.participationRate = existing.participationSum / existing.participationCount
-    }
-
-    yearMap.set(year, existing)
+      participationRate,
+      proposalsCount,
+      passedCount,
+      failedCount,
+    })
   })
 
   return Array.from(yearMap.values()).sort((a, b) => a.year - b.year)
@@ -688,7 +670,7 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
 function transformEventSummaryData(
   meetings: Meeting[],
   proposals: Proposal[] = [],
-  positions: Position[] = []
+  _positions: Position[] = []
 ): MappedEventSummary[] {
   if (!meetings || meetings.length === 0) {
     return []
@@ -722,50 +704,47 @@ function transformEventSummaryData(
         : 'Unknown'
       const meetingType = meeting.meetingType ?? 'Annual'
 
-      // Get meeting-specific data
-      const proposalAgg = proposalsByMeeting.get(meeting.id ?? '') || {
+      // Get meeting-specific data (kept for future use with real data)
+      const _proposalAgg = proposalsByMeeting.get(meeting.id ?? '') || {
         total: 0,
         passed: 0,
       }
-      const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
 
-      // Calculate participation rate using shares_voted (not shares)
-      const totalSharesOutstandingNum = Number.parseInt(
-        meeting.totalSharesOutstanding ?? '0',
-        10
-      )
-      const actualShares = meetingPositions.reduce((sum, pos) => {
-        const sharesVoted = Number(pos.sharesVoted) || 0
-        return sum + sharesVoted
-      }, 0)
-      const participationRate =
-        totalSharesOutstandingNum > 0
-          ? (actualShares / totalSharesOutstandingNum) * 100
-          : 0
+      // Generate mock data based on meeting type
+      let numProposals: number
+      let passedProposals: number
+      if (meetingType.toLowerCase().includes('special')) {
+        // Special meetings: 5 proposals, all passed
+        numProposals = 5
+        passedProposals = 5
+      } else {
+        // Annual meetings: 8 proposals, with one specific year showing 7/8
+        numProposals = 8
+        const yearNum = typeof year === 'number' ? year : parseInt(String(year), 10)
+        // Only 2024 shows 7/8 passed, all others 8/8
+        passedProposals = yearNum === 2024 ? 7 : 8
+      }
 
-      // Calculate proposal outcomes
-      const passedProposals = proposalAgg.passed
-      const totalProposals = proposalAgg.total
+      // Generate consistent participation rate between 58% and 74% using meeting id as seed
+      const meetingIdHash = (meeting.id ?? '')
+        .split('')
+        .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
+      const participationRate = 58 + seededRandom * 16
 
-      // Debug: log proposal results for first meeting
-      // Using aggregated counts; raw sample logging not necessary here.
-
-      // Calculate quorum
-      const quorumRequirement = meeting.quorumRequirement || 50
-      const quorumMet = participationRate >= quorumRequirement
+      // Always show quorum as met
+      const quorumMet = true
 
       const result = {
         event: `${meetingType} ${year}`,
         meetingId: meeting.id,
         recordDate: (meeting.recordDate || meeting.meetingDate) ?? '',
         meetingType: meetingType,
-        quorum: quorumMet ? 'Yes' : 'No',
+        quorum: quorumMet ? 'Yes' : 'No', // Always "Yes" as requested
         participation: `${participationRate.toFixed(1)}%`,
-        numProposals: totalProposals,
+        numProposals: numProposals,
         outcome:
-          totalProposals > 0
-            ? `${passedProposals}/${totalProposals} Passed`
-            : 'No Proposals',
+          numProposals > 0 ? `${passedProposals}/${numProposals} Passed` : 'No Proposals',
         meetingYear: typeof year === 'number' ? year : parseInt(year.toString(), 10) || 0,
       }
 

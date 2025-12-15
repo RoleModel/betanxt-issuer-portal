@@ -75,23 +75,50 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   const passedCounts = data.map((item) => item.passedCount)
   const failedCounts = data.map((item) => item.failedCount)
 
+  // Fixed max of 10 proposals for chart display
+  const yAxisMax = 10
+
+  // Background bars fill the remaining space to reach 100% height (yAxisMax)
+  const passedBackgrounds = passedCounts.map((passed) => Math.max(0, yAxisMax - passed))
+  const failedBackgrounds = failedCounts.map((failed) => Math.max(0, yAxisMax - failed))
+
   return (
     <ChartDataProvider
-      // The configuration of the chart
+      // The configuration of the chart - two separate stacks for Passed and Failed columns
       series={[
+        // Passed column with background
         {
           type: 'bar',
           data: passedCounts,
           label: 'Passed',
           color: 'var(--mui-palette-chartSeries-1-main)',
           yAxisId: 'leftAxis',
+          stack: 'passed',
         },
+        {
+          type: 'bar',
+          data: passedBackgrounds,
+          label: 'Passed Background',
+          color: 'rgba(0, 0, 0, 0.1)',
+          yAxisId: 'leftAxis',
+          stack: 'passed',
+        },
+        // Failed column with background
         {
           type: 'bar',
           data: failedCounts,
           label: 'Failed',
           color: 'var(--mui-palette-chartSeries-4-main)',
           yAxisId: 'leftAxis',
+          stack: 'failed',
+        },
+        {
+          type: 'bar',
+          data: failedBackgrounds,
+          label: 'Failed Background',
+          color: 'rgba(0, 0, 0, 0.1)',
+          yAxisId: 'leftAxis',
+          stack: 'failed',
         },
         {
           type: 'line',
@@ -116,6 +143,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           scaleType: 'linear',
           label: 'Proposals',
           min: 0,
+          max: yAxisMax,
         },
         {
           id: 'rightAxis',
