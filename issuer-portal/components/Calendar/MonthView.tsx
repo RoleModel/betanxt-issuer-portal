@@ -278,7 +278,7 @@ const DayCell: React.FC<{
           p: 1,
           aspectRatio: '1/1',
           backgroundColor: (theme) => {
-            if (hasMeetingDate) return theme.vars?.palette?.appBar.defaultFill
+            if (hasMeetingDate) return theme.vars?.palette?.appBar.background
             if (hasKeyDate) return theme.vars?.palette.keydate.main
             if (isWeekend) return theme.vars?.palette?.background.paper
             return theme.vars?.palette?.background?.default

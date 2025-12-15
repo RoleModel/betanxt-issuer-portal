@@ -387,7 +387,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         } else if (!signatureAreas || signatureAreas.length === 0) {
           // If signatureAreas is explicitly an empty array, we're in view-only mode (no signature areas)
           // If signatureAreas is undefined/null, use default signature areas
-          if (signatureAreas && signatureAreas.length === 0) {
+          if (signatureAreas?.length === 0) {
             // View-only mode - no signature areas
             areas = []
           } else {
@@ -1098,16 +1098,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     >
       {/* Top Toolbar */}
       <AppBar
+        className="document-viewer-app-bar"
         position="static"
         elevation={10}
         color="primary"
         sx={(theme) => ({
-          background: theme.vars?.palette.primary.main,
-          color: theme.vars?.palette.primary.contrastText,
+          '&&': {
+            backgroundColor: theme.vars?.palette.primary.main,
+          },
+          color: theme.vars?.palette.common.white,
           boxShadow: theme.shadows[10],
         })}
       >
-        <Toolbar sx={{ px: 3 }}>
+        <Toolbar sx={{ px: 3, color: (theme) => theme.vars?.palette.common.white, }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 2 }}>
             <IconButton
               edge="start"
@@ -1120,7 +1123,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <Typography
               variant="h4"
               whiteSpace="nowrap"
-              sx={{ color: 'var(--mui-palette-appBar-defaultContrast)' }}
+              sx={{ color: (theme) => theme.vars?.palette.common.white, }}
             >
               {actualTitle}
             </Typography>
