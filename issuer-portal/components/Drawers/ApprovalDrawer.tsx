@@ -318,8 +318,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           justifyContent: 'space-between',
           p: 2,
           pl: 3,
-          background: theme.vars.palette.appBarPrimary.defaultFill,
-          color: theme.vars.palette.appBarPrimary.defaultContrast,
+          background: theme.vars.palette.appBar.defaultFill,
+          color: theme.vars.palette.appBar.defaultContrast,
           borderBottom: `1px solid`,
           borderColor: theme.vars.palette.divider,
         })}
@@ -340,7 +340,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           p: 1,
           borderBottom: `1px solid`,
           borderColor: theme.vars.palette.divider,
-          background: theme.vars.palette.appBarPrimary.defaultFill,
+          background: theme.vars.palette.appBar.defaultFill,
         })}
       >
         {/* Page Navigation */}
@@ -349,7 +349,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: 0,
-            color: theme.vars.palette.appBarPrimary.defaultContrast,
+            color: theme.vars.palette.appBar.defaultContrast,
             flexGrow: '1',
           })}
         >
@@ -360,7 +360,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
             disabled={currentPage <= 1}
             sx={{
               '&.Mui-disabled': {
-                color: (theme) => theme.vars.palette.appBarPrimary.defaultContrast,
+                color: (theme) => theme.vars.palette.appBar.defaultContrast,
                 opacity: 0.5,
               },
             }}
@@ -691,8 +691,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           sx={{
             px: 2,
             py: 0.5,
-            background: (theme) => theme.vars.palette.appBarPrimary.defaultFill,
-            color: (theme) => theme.vars.palette.appBarPrimary.defaultContrast,
+            background: (theme) => theme.vars.palette.appBar.defaultFill,
+            color: (theme) => theme.vars.palette.appBar.defaultContrast,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -744,8 +744,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           sx={{
             px: 2,
             py: 0.5,
-            background: (theme) => theme.vars.palette.appBarPrimary.defaultFill,
-            color: (theme) => theme.vars.palette.appBarPrimary.defaultContrast,
+            background: (theme) => theme.vars.palette.appBar.defaultFill,
+            color: (theme) => theme.vars.palette.appBar.defaultContrast,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

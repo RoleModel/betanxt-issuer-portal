@@ -34,8 +34,8 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
   return (
     <Box
       sx={(theme) => ({
-        background: backgroundColor || theme.vars.palette.appBarPrimary.defaultFill,
-        color: color || theme.vars.palette.appBarPrimary.defaultContrast,
+        background: backgroundColor || theme.vars.palette.appBar.defaultFill,
+        color: color || theme.vars.palette.appBar.defaultContrast,
       })}
     >
       {/* Main header with title and close button */}

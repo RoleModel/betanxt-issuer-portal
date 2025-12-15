@@ -123,8 +123,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
       sx={(theme) => ({
         px: 3,
         py: 2,
-        background: theme.vars?.palette?.appBarPrimary?.defaultFill,
-        color: theme.vars?.palette?.appBarPrimary?.defaultContrast,
+        background: theme.vars?.palette?.appSwitcher?.background,
+        color: theme.vars?.palette?.appSwitcher?.contrastText,
         borderRadius: 0,
         position: isFullscreen ? 'relative' : 'sticky',
         borderBottom: (theme) => `1px solid ${theme.vars?.palette?.divider}`,
@@ -162,10 +162,10 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               onClick={handleSearchToggle}
               aria-label={searchExpanded ? 'Close search' : 'Open search'}
               sx={{
-                color: 'white',
+                color: (theme) => theme.vars?.palette?.common.white,
                 p: 1,
                 '&:hover': {
-                  background: 'rgba(255,255,255,0.1)',
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -200,7 +200,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                           fontSize="medium"
                           sx={{
                             color: (theme) =>
-                              theme.vars?.palette?.appBarPrimary?.defaultContrast,
+                              theme.vars?.palette?.common.white,
                           }}
                         />
                       </InputAdornment>
@@ -212,29 +212,23 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                   ml: 1,
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: (theme) =>
-                      theme.vars?.palette?.appBarPrimary?.defaultFill,
-                    color: 'black',
+                      theme.vars?.palette?.appSwitcher?.background,
+                    color: (theme) => theme.vars?.palette?.common.white,
                     fontSize: '0.875rem',
                     height: 40,
                     '& fieldset': {
-                      borderColor: 'white',
+                      borderColor: 'rgba(255,255,255,0.5)',
                       borderWidth: 1,
                     },
                     '&:hover fieldset': {
-                      borderColor: 'white',
+                      borderColor: 'rgba(255,255,255,0.5)'
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: 'white',
+                      borderColor: (theme) => theme.vars?.palette?.primary.light,
                       borderWidth: 2,
                     },
                   },
-                  '& .MuiInputBase-input': {
-                    color: (theme) => theme.vars?.palette?.appBarPrimary?.defaultContrast,
-                    '&::placeholder': {
-                      color: 'rgba(var(--palette-common-white) / 0.6)',
-                      opacity: 1,
-                    },
-                  },
+
                 }}
               />
             </Collapse>
@@ -254,18 +248,17 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               height: 40,
               '& .MuiToggleButton-root': {
                 color: (theme) => theme.vars?.palette?.common.white,
-                borderColor: (theme) => theme.vars?.palette?.common.white,
+                borderColor: (theme) => theme.vars?.palette?.primary.light,
                 '&.Mui-selected': {
-                  background: (theme) => theme.vars?.palette?.common.white,
-                  color: (theme) => theme.vars?.palette?.primary.main,
+                  background: (theme) => theme.vars?.palette?.primary.light,
+                  color: (theme) => theme.vars?.palette?.common.white,
                   '&:hover': {
-                    background: (theme) => theme.vars?.palette?.secondary?.light,
-                    color: (theme) => theme.vars?.palette?.common.white,
+                    background: (theme) => theme.vars?.palette?.primary.light,
                   },
                 },
                 '&:hover': {
                   background: 'rgba(255,255,255,0.1)',
-                  color: (theme) => theme.vars?.palette?.common.white,
+                  color: (theme) => theme.vars?.palette?.primary.light,
                 },
               },
             }}
@@ -289,13 +282,13 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 borderRadius: '50%',
                 background: 'transparent',
                 border: 'none',
-                color: 'white',
+                color: (theme) => theme.vars?.palette?.common.white,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: 'rgba(255,255,255,0.1)',
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -313,13 +306,13 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 borderRadius: '50%',
                 background: 'transparent',
                 border: 'none',
-                color: 'white',
+                color: (theme) => theme.vars?.palette?.common.white,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: 'rgba(255,255,255,0.1)',
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -334,13 +327,13 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 borderRadius: '50%',
                 background: 'transparent',
                 border: 'none',
-                color: 'white',
+                color: (theme) => theme.vars?.palette?.common.white,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: 'rgba(255,255,255,0.1)',
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >

@@ -489,7 +489,7 @@ export const createClientTheme = (ticker?: string) => {
             },
             '&.MuiAppBar-root': {
               backgroundColor: theme.vars?.palette.common.white,
-              color: theme.vars?.palette.appBar?.defaultContrast,
+              color: theme.vars?.palette.text.primary,
               borderBottom: `1px solid ${theme.vars?.palette.divider}`,
               '& .MuiPaper-root': {
                 boxShadow: 'none',
@@ -499,7 +499,7 @@ export const createClientTheme = (ticker?: string) => {
                 height: 4,
               },
               '& .MuiTab-root ': {
-                color: theme.vars?.palette.appBar?.defaultContrast,
+                color: theme.vars?.palette.text.primary,
                 transition: theme.transitions.create(['color']),
               },
               '& .MuiTab-root:hover ': {

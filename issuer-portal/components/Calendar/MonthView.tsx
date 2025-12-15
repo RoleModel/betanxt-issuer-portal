@@ -254,180 +254,180 @@ const DayCell: React.FC<{
   phaseFilter,
   allTasks,
 }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const { date, isCurrentMonth, tasks, keyDates } = calendarDate
-  const dayNumber = date.getDate()
-  const dayOfWeek = date.getDay()
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-  const isCurrentDay = isToday(date)
+    const { date, isCurrentMonth, tasks, keyDates } = calendarDate
+    const dayNumber = date.getDate()
+    const dayOfWeek = date.getDay()
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const isCurrentDay = isToday(date)
 
-  const filteredTasks = filterTasks(tasks, searchQuery, statusFilter, phaseFilter)
+    const filteredTasks = filterTasks(tasks, searchQuery, statusFilter, phaseFilter)
 
-  // Check if this date has special key dates
-  const hasMeetingDate = keyDates.some((kd) =>
-    kd.title.toLowerCase().includes('meeting date')
-  )
-  const hasKeyDate = keyDates.length > 0
+    // Check if this date has special key dates
+    const hasMeetingDate = keyDates.some((kd) =>
+      kd.title.toLowerCase().includes('meeting date')
+    )
+    const hasKeyDate = keyDates.length > 0
 
-  return (
-    <Box
-      sx={{
-        minHeight: isMobile ? 80 : 120,
-        p: 1,
-        aspectRatio: '1/1',
-        backgroundColor: (theme) => {
-          if (hasMeetingDate) return theme.vars?.palette?.appBarPrimary.defaultFill
-          if (hasKeyDate) return theme.vars?.palette.keydate.main
-          if (isWeekend) return theme.vars?.palette?.background.paper
-          return theme.vars?.palette?.background?.default
-        },
-        borderBottom: (theme) =>
-          hasKeyDate ? 'none' : `1px solid ${theme.vars?.palette?.divider}`,
-        borderRight: (theme) =>
-          hasKeyDate
-            ? 'none'
-            : dayOfWeek === 6
-              ? 'none'
-              : `1px solid ${theme.vars?.palette?.divider}`,
-        color: (theme) => {
-          if (hasMeetingDate) return theme.vars?.palette?.common?.white
-          if (hasKeyDate) return theme.vars?.palette.keydate.contrastText
-          return isCurrentDay
-            ? theme.vars?.palette?.primary?.main
-            : isCurrentMonth
-              ? theme.vars?.palette?.text?.primary
-              : theme.vars?.palette?.text?.secondary
-        },
-        opacity:
-          !isCurrentMonth && filteredTasks.length === 0 && keyDates.length === 0
-            ? 0.5
-            : 1,
-        position: 'relative',
-        overflowY: 'auto',
-        borderRadius: hasKeyDate ? 1 : 0,
-        scrollbarWidth: 'none',
-      }}
-    >
-      {/* Day number */}
-      <Typography
-        variant={isMobile ? 'caption' : 'body3'}
-        fontWeight={isCurrentDay ? 600 : 400}
+    return (
+      <Box
         sx={{
-          mb: 0,
-          position: 'absolute',
-          top: 4,
-          right: 8,
-          color: 'inherit',
+          minHeight: isMobile ? 80 : 120,
+          p: 1,
+          aspectRatio: '1/1',
+          backgroundColor: (theme) => {
+            if (hasMeetingDate) return theme.vars?.palette?.appBar.defaultFill
+            if (hasKeyDate) return theme.vars?.palette.keydate.main
+            if (isWeekend) return theme.vars?.palette?.background.paper
+            return theme.vars?.palette?.background?.default
+          },
+          borderBottom: (theme) =>
+            hasKeyDate ? 'none' : `1px solid ${theme.vars?.palette?.divider}`,
+          borderRight: (theme) =>
+            hasKeyDate
+              ? 'none'
+              : dayOfWeek === 6
+                ? 'none'
+                : `1px solid ${theme.vars?.palette?.divider}`,
+          color: (theme) => {
+            if (hasMeetingDate) return theme.vars?.palette?.common?.white
+            if (hasKeyDate) return theme.vars?.palette.keydate.contrastText
+            return isCurrentDay
+              ? theme.vars?.palette?.primary?.main
+              : isCurrentMonth
+                ? theme.vars?.palette?.text?.primary
+                : theme.vars?.palette?.text?.secondary
+          },
+          opacity:
+            !isCurrentMonth && filteredTasks.length === 0 && keyDates.length === 0
+              ? 0.5
+              : 1,
+          position: 'relative',
+          overflowY: 'auto',
+          borderRadius: hasKeyDate ? 1 : 0,
+          scrollbarWidth: 'none',
         }}
       >
-        {dayNumber}
-      </Typography>
+        {/* Day number */}
+        <Typography
+          variant={isMobile ? 'caption' : 'body3'}
+          fontWeight={isCurrentDay ? 600 : 400}
+          sx={{
+            mb: 0,
+            position: 'absolute',
+            top: 4,
+            right: 8,
+            color: 'inherit',
+          }}
+        >
+          {dayNumber}
+        </Typography>
 
-      <Box sx={{ mt: 2, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {keyDates.map((keyDate) => {
-          const isMeetingDate = keyDate.title.toLowerCase().includes('meeting date')
+        <Box sx={{ mt: 2, overflowY: 'auto', scrollbarWidth: 'none' }}>
+          {keyDates.map((keyDate) => {
+            const isMeetingDate = keyDate.title.toLowerCase().includes('meeting date')
 
-          const keyDateTask: Task = {
-            id: keyDate.id,
-            title: keyDate.title,
-            description: null,
-            status: 'INCOMPLETE',
-            owner: '',
-            dueDate: keyDate.date,
-            meetingId: '',
-            phaseId: '',
-            phaseNumber: keyDate.phaseNumber || 1,
-            type: 'external',
-            taskId: keyDate.id,
-            documentId: null,
-            links: null,
-            createdAt: undefined,
-            updatedAt: undefined,
-          }
-
-          return (
-            <TaskCard
-              key={keyDate.id}
-              task={keyDateTask}
-              variant="compact"
-              isKeyDate={!isMeetingDate}
-              isMeetingDate={isMeetingDate}
-              isActualKeyDate={true}
-              showPhaseIndicator={false}
-            />
-          )
-        })}
-
-        {/* Tasks */}
-        <Stack spacing={0.5}>
-          {filteredTasks.slice(0, isMobile ? 2 : 3).map((task) => {
-            // Find the original Task to get phaseNumber
-            const originalTask = allTasks.find(
-              (t) => t.id === task.id || t.taskId === task.id
-            )
-            const taskPhase = originalTask
-              ? getTaskPhase(originalTask)
-              : getTaskPhase(task)
-
-            // Get phase config the same way ListView does
-            const taskPhaseColor = getPhaseColor(taskPhase - 1)
+            const keyDateTask: Task = {
+              id: keyDate.id,
+              title: keyDate.title,
+              description: null,
+              status: 'INCOMPLETE',
+              owner: '',
+              dueDate: keyDate.date,
+              meetingId: '',
+              phaseId: '',
+              phaseNumber: keyDate.phaseNumber || 1,
+              type: 'external',
+              taskId: keyDate.id,
+              documentId: null,
+              links: null,
+              createdAt: undefined,
+              updatedAt: undefined,
+            }
 
             return (
               <TaskCard
-                key={task.id}
-                task={task}
-                phase={taskPhase}
-                phaseColor={taskPhaseColor} // Pass color directly
+                key={keyDate.id}
+                task={keyDateTask}
                 variant="compact"
-                showPhaseIndicator={true} // Always show phase indicator for tasks
-                isKeyDate={hasKeyDate && !hasMeetingDate} // Tasks on key date cells get key date styling
-                isMeetingDate={hasMeetingDate} // Tasks on meeting date cells get meeting date styling
-                onClick={() => task.id && onTaskClick(task.id)}
-                onContextMenu={(e) => task.id && onTaskRightClick(e, task.id)}
+                isKeyDate={!isMeetingDate}
+                isMeetingDate={isMeetingDate}
+                isActualKeyDate={true}
+                showPhaseIndicator={false}
               />
             )
           })}
 
-          {filteredTasks.length > (isMobile ? 2 : 3) && (
-            <Typography
-              variant="caption"
-              sx={{
-                textAlign: 'center',
-                fontStyle: 'italic',
-                cursor: 'pointer',
-                color: (theme) =>
-                  theme.vars?.palette?.text?.secondary || theme.palette.text.secondary,
-                '&:hover': {
-                  color: (theme) =>
-                    theme.vars?.palette?.primary?.main || theme.palette.primary.main,
-                },
-              }}
-            >
-              +{filteredTasks.length - (isMobile ? 2 : 3)} more
-            </Typography>
-          )}
-        </Stack>
-      </Box>
+          {/* Tasks */}
+          <Stack spacing={0.5}>
+            {filteredTasks.slice(0, isMobile ? 2 : 3).map((task) => {
+              // Find the original Task to get phaseNumber
+              const originalTask = allTasks.find(
+                (t) => t.id === task.id || t.taskId === task.id
+              )
+              const taskPhase = originalTask
+                ? getTaskPhase(originalTask)
+                : getTaskPhase(task)
 
-      {/* Current day indicator */}
-      {isCurrentDay && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: (theme) => theme.vars?.palette?.secondary?.light,
-          }}
-        />
-      )}
-    </Box>
-  )
-}
+              // Get phase config the same way ListView does
+              const taskPhaseColor = getPhaseColor(taskPhase - 1)
+
+              return (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  phase={taskPhase}
+                  phaseColor={taskPhaseColor} // Pass color directly
+                  variant="compact"
+                  showPhaseIndicator={true} // Always show phase indicator for tasks
+                  isKeyDate={hasKeyDate && !hasMeetingDate} // Tasks on key date cells get key date styling
+                  isMeetingDate={hasMeetingDate} // Tasks on meeting date cells get meeting date styling
+                  onClick={() => task.id && onTaskClick(task.id)}
+                  onContextMenu={(e) => task.id && onTaskRightClick(e, task.id)}
+                />
+              )
+            })}
+
+            {filteredTasks.length > (isMobile ? 2 : 3) && (
+              <Typography
+                variant="caption"
+                sx={{
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                  cursor: 'pointer',
+                  color: (theme) =>
+                    theme.vars?.palette?.text?.secondary || theme.palette.text.secondary,
+                  '&:hover': {
+                    color: (theme) =>
+                      theme.vars?.palette?.primary?.main || theme.palette.primary.main,
+                  },
+                }}
+              >
+                +{filteredTasks.length - (isMobile ? 2 : 3)} more
+              </Typography>
+            )}
+          </Stack>
+        </Box>
+
+        {/* Current day indicator */}
+        {isCurrentDay && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: (theme) => theme.vars?.palette?.secondary?.light,
+            }}
+          />
+        )}
+      </Box>
+    )
+  }
 
 const MonthGrid: React.FC<{
   month: CalendarMonth
@@ -446,28 +446,28 @@ const MonthGrid: React.FC<{
   phaseFilter,
   allTasks,
 }) => {
-  return (
-    <Box>
-      {/* Calendar grid - no gaps between cells */}
-      {month.weeks.map((week: CalendarWeek, weekIndex: number) => (
-        <Box key={weekIndex} display="grid" gridTemplateColumns="repeat(7, 1fr)">
-          {week.days.map((calendarDate: CalendarDate, dayIndex: number) => (
-            <DayCell
-              key={dayIndex}
-              calendarDate={calendarDate}
-              onTaskClick={onTaskClick}
-              onTaskRightClick={onTaskRightClick}
-              searchQuery={searchQuery}
-              statusFilter={statusFilter}
-              phaseFilter={phaseFilter}
-              allTasks={allTasks}
-            />
-          ))}
-        </Box>
-      ))}
-    </Box>
-  )
-}
+    return (
+      <Box>
+        {/* Calendar grid - no gaps between cells */}
+        {month.weeks.map((week: CalendarWeek, weekIndex: number) => (
+          <Box key={weekIndex} display="grid" gridTemplateColumns="repeat(7, 1fr)">
+            {week.days.map((calendarDate: CalendarDate, dayIndex: number) => (
+              <DayCell
+                key={dayIndex}
+                calendarDate={calendarDate}
+                onTaskClick={onTaskClick}
+                onTaskRightClick={onTaskRightClick}
+                searchQuery={searchQuery}
+                statusFilter={statusFilter}
+                phaseFilter={phaseFilter}
+                allTasks={allTasks}
+              />
+            ))}
+          </Box>
+        ))}
+      </Box>
+    )
+  }
 
 export const MonthView: React.FC<MonthViewProps> = ({
   searchQuery,

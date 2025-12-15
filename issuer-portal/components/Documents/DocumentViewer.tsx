@@ -1102,8 +1102,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         elevation={10}
         color="primary"
         sx={(theme) => ({
-          background: theme.vars?.palette.appBarPrimary?.defaultFill,
-          color: theme.vars?.palette.appBarPrimary?.defaultContrast,
+          background: theme.vars?.palette.primary.main,
+          color: theme.vars?.palette.primary.contrastText,
           boxShadow: theme.shadows[10],
         })}
       >
@@ -1120,7 +1120,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <Typography
               variant="h4"
               whiteSpace="nowrap"
-              sx={{ color: 'var(--mui-palette-appBarPrimary-defaultContrast)' }}
+              sx={{ color: 'var(--mui-palette-appBar-defaultContrast)' }}
             >
               {actualTitle}
             </Typography>
@@ -1547,8 +1547,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 justifyContent: 'start',
                 p: 2,
                 py: 1,
-                background: theme.vars?.palette.appBarPrimary?.defaultFill,
-                color: theme.vars?.palette.appBarPrimary?.defaultContrast,
+                background: theme.vars?.palette.primary.main,
+                color: theme.vars?.palette.primary.contrastText,
               })}
             >
               <Typography variant="caption" sx={{ fontWeight: 500 }}>
