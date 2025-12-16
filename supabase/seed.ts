@@ -570,6 +570,26 @@ const main = async () => {
 
   // Load company positions data for mailing records
   const companyPositions: Record<string, { Active?: any }> = {
+    wendys: {
+      Active: {
+        Totals: {
+          Accounts: 5677,
+          Positions: 5677,
+          Retransmissions: 0,
+        },
+        'Mail Positions': {
+          Fullset: 33,
+          NAA: 164,
+          'Courtesy/Other': 0,
+        },
+        'Suppressed Positions': {
+          Electronic: 5316,
+          Household: 5,
+          Managed: 100,
+          Canceled: 0,
+        },
+      },
+    },
     paycom: {
       Active: {
         Totals: {
@@ -589,62 +609,41 @@ const main = async () => {
         },
       },
     },
-    woodward: {
-      Active: {
-        Totals: {
-          Accounts: 906,
-          Positions: 906,
-          Retransmissions: 0,
-        },
-        'Mail Positions': {
-          Fullset: 2,
-          NAA: 23,
-          'Courtesy/Other': 0,
-        },
-        'Suppressed Positions': {
-          Electronic: 790,
-          Household: 1,
-          Managed: 76,
-          Canceled: 0,
-        },
-      },
-    },
     enliven: {
       Active: {
         Totals: {
-          Accounts: 498,
-          Positions: 498,
-          Retransmissions: 0,
-        },
-        'Mail Positions': {
-          Fullset: 0,
-          NAA: 1,
-          'Courtesy/Other': 0,
-        },
-        'Suppressed Positions': {
-          Electronic: 482,
-          Household: 0,
-          Managed: 7,
-          Canceled: 0,
-        },
-      },
-    },
-    wendys: {
-      Active: {
-        Totals: {
-          Accounts: 17954,
-          Positions: 17954,
+          Accounts: 20,
+          Positions: 20,
           Rollups: 0,
         },
         'Mail Positions': {
-          Fullset: 590,
-          NAA: 17364,
+          Fullset: 0,
+          NAA: 20,
         },
         'Suppressed Positions': {
           Electronic: 0,
           Household: 0,
           Consolidated: 0,
           Canceled: 0,
+        },
+      },
+    },
+    woodward: {
+      Active: {
+        Totals: {
+          Accounts: 7408,
+          Positions: 7408,
+          Rollups: 0,
+        },
+        'Mail Positions': {
+          Fullset: 23,
+          NAA: 2083,
+        },
+        'Suppressed Positions': {
+          Electronic: 5300,
+          Household: 0,
+          Consolidated: 0,
+          Canceled: 2,
         },
       },
     },

@@ -231,8 +231,36 @@ const fetchVotingData = async (meetingId: string) => {
     }
   })
 
+  // Sort proposals: director elections (1.xx) first in order, then other proposals (2, 3, etc.)
+  const sortedProposals = [...votingProposals].sort((a, b) => {
+    const aNum = a.proposalNumber
+    const bNum = b.proposalNumber
+
+    // Both are sub-proposals (e.g., 1.01, 1.02) - sort numerically
+    const aIsSubProposal = aNum % 1 !== 0
+    const bIsSubProposal = bNum % 1 !== 0
+
+    // If both are sub-proposals or both are main proposals, sort numerically
+    if (aIsSubProposal === bIsSubProposal) {
+      return aNum - bNum
+    }
+
+    // Sub-proposals (1.01, 1.02) come before main proposals with same integer part
+    // e.g., 1.01 < 1.02 < 2 < 3
+    const aInt = Math.floor(aNum)
+    const bInt = Math.floor(bNum)
+
+    if (aInt !== bInt) {
+      return aInt - bInt
+    }
+
+    // Same integer part: sub-proposals come after their parent
+    // e.g., for proposal 1: 1.01, 1.02 should come after 1 but before 2
+    return aIsSubProposal ? 1 : -1
+  })
+
   return {
-    proposals: votingProposals,
+    proposals: sortedProposals,
     votingSummary: summary,
   }
 }
