@@ -1104,7 +1104,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         color="primary"
         sx={(theme) => ({
           '&&': {
-            backgroundColor: theme.vars?.palette.primary.main,
+            backgroundColor: theme.vars?.palette.appSwitcher.background,
           },
           color: theme.vars?.palette.common.white,
           boxShadow: theme.shadows[10],
@@ -1550,8 +1550,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 justifyContent: 'start',
                 p: 2,
                 py: 1,
-                background: theme.vars?.palette.primary.main,
-                color: theme.vars?.palette.primary.contrastText,
+                background: theme.vars?.palette.appSwitcher.background,
+                color: theme.vars?.palette.appSwitcher.contrastText,
               })}
             >
               <Typography variant="caption" sx={{ fontWeight: 500 }}>

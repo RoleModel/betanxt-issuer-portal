@@ -19,7 +19,6 @@ interface DrawerHeaderProps {
     onPrevious: () => void
     onNext: () => void
   }
-  backgroundColor?: string
   color?: string
 }
 
@@ -28,14 +27,13 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
   subtitle,
   onClose,
   navigation,
-  backgroundColor,
   color,
 }) => {
   return (
     <Box
       sx={(theme) => ({
-        background: backgroundColor || theme.vars.palette.primary.main,
-        color: color || theme.vars.palette.primary.contrastText,
+        backgroundColor: theme.vars.palette.appSwitcher.background,
+        color: color || theme.vars.palette.appSwitcher.contrastText,
       })}
     >
       {/* Main header with title and close button */}

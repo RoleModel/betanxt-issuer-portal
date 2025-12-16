@@ -1006,6 +1006,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     <Stack sx={{ height: '100%' }}>
       {/* Header */}
       <DrawerHeader
+
         title={`Phase ${currentPhaseNumber} Overview`}
         onClose={handleMainDrawerClose}
         navigation={{
@@ -1078,7 +1079,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     elevation={5}
                     sx={(theme) => ({
                       background: theme.vars.palette.keydate.dark,
-                      color: theme.vars.palette.appBar.defaultContrast,
+                      color: theme.vars.palette.common.white,
                       borderLeft: `6px solid ${theme.vars.palette.keydate.main}`,
                     })}
                   >
