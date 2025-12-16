@@ -60,7 +60,8 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
     }
   })
 
-  const directorNames = chartData.map((item) => item.directorName)
+  // Ensure all director names are strings to prevent chart rendering errors
+  const directorNames = chartData.map((item) => String(item.directorName || 'Unknown'))
   const forPercentageData = chartData.map((item) => item.forPercentage)
   const againstPercentageData = chartData.map((item) => item.againstPercentage)
   const abstainPercentageData = chartData.map((item) => item.abstainPercentage)

@@ -134,8 +134,10 @@ function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
       const againstVotes = toFiniteNumber(brokerRecord.against)
       const abstainVotes = toFiniteNumber(brokerRecord.abstain)
 
+      // Ensure broker is always a string to prevent chart rendering errors
+      const brokerName = asString(brokerRecord.broker)
       acc.push({
-        broker: asString(brokerRecord.broker) ?? 'Unknown',
+        broker: brokerName ?? 'Unknown',
         for: forVotes,
         against: againstVotes,
         abstain: abstainVotes,

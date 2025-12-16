@@ -139,7 +139,8 @@ export default function BrokerVotingChart({
             yAxis={[
               {
                 scaleType: 'band',
-                data: data.map((d) => d.broker),
+                // Ensure all broker names are strings to prevent chart rendering errors
+                data: data.map((d) => String(d.broker || 'Unknown')),
                 width: 100,
               },
             ]}

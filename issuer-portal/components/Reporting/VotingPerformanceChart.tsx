@@ -153,10 +153,14 @@ export default function VotingPerformanceChart({
     )
   }
 
-  const ranges = data.map((item) => item.range)
+  // Ensure all range labels are strings to prevent chart rendering errors
+  const ranges = data.map((item) => String(item.range || ''))
   const positions = data.map((item) => item.positions)
   const shares = data.map((item) => item.shares)
   const percentVoted = data.map((item) => item.percentVoted)
+
+  // Calculate max with safe fallback to prevent -Infinity
+  const maxShares = shares.length > 0 ? Math.max(...shares) : 0
 
   const legendItems = [
     {
@@ -226,7 +230,7 @@ export default function VotingPerformanceChart({
               id: 'leftAxis',
               scaleType: 'linear',
               min: 0,
-              max: Math.max(...shares) * 1.2,
+              max: maxShares * 1.2 || 100, // Safe fallback if no data
               valueFormatter: (value) => abbreviateNumber(value as number),
             },
             {
