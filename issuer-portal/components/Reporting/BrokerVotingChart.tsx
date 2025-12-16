@@ -133,7 +133,10 @@ export default function BrokerVotingChart({
               {
                 scaleType: 'linear',
                 tickMinStep: 6,
-                valueFormatter: (value) => truncateNumber(value),
+                valueFormatter: (value) => {
+                  if (value == null) return '0'
+                  return String(truncateNumber(value))
+                },
               },
             ]}
             yAxis={[

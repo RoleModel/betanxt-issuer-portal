@@ -141,18 +141,16 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         {
           id: 'leftAxis',
           scaleType: 'linear',
-          label: 'Proposals',
           min: 0,
           max: yAxisMax,
         },
         {
           id: 'rightAxis',
           scaleType: 'linear',
-          label: 'Participation %',
           min: 0,
           max: 100,
           width: 100,
-          valueFormatter: (value) => `${value}%`,
+          valueFormatter: (value) => `${value ?? 0}%`,
         },
       ]}
       height={320}
@@ -164,8 +162,8 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <LinePlot />
         <MarkPlot />
         <ChartsXAxis axisId="x-axis-id" />
-        <ChartsYAxis axisId="leftAxis" position="left" />
-        <ChartsYAxis axisId="rightAxis" position="right" />
+        <ChartsYAxis axisId="leftAxis" />
+        <ChartsYAxis axisId="rightAxis" />
         <ChartsTooltip />
       </ChartsSurface>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>

@@ -231,7 +231,11 @@ export default function VotingPerformanceChart({
               scaleType: 'linear',
               min: 0,
               max: maxShares * 1.2 || 100, // Safe fallback if no data
-              valueFormatter: (value) => abbreviateNumber(value as number),
+              valueFormatter: (value) => {
+                const numValue = Number(value)
+                if (!Number.isFinite(numValue)) return '0'
+                return String(abbreviateNumber(numValue))
+              },
             },
             {
               id: 'rightAxis',
@@ -239,7 +243,7 @@ export default function VotingPerformanceChart({
               min: 0,
               max: 100,
               width: 60,
-              valueFormatter: (value) => `${value}%`,
+              valueFormatter: (value) => `${value ?? 0}%`,
             },
           ]}
           height={345}
@@ -251,8 +255,8 @@ export default function VotingPerformanceChart({
             <LinePlot />
             <MarkPlot />
             <ChartsXAxis axisId="x-axis-id" />
-            <ChartsYAxis axisId="leftAxis" position="left" label="Positions" />
-            <ChartsYAxis axisId="rightAxis" position="right" label="Percent %" />
+            <ChartsYAxis axisId="leftAxis" />
+            <ChartsYAxis axisId="rightAxis" />
             <ChartsTooltip />
           </ChartsSurface>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
