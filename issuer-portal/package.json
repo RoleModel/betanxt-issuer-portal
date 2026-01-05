@@ -64,7 +64,7 @@
     "@types/node": "^20.4.2",
     "@types/number-abbreviate": "^2.0.0",
     "@types/react": "^18.2.15",
-    "jspdf": "^3.0.3",
+    "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.2",
     "openapi-fetch": "^0.8.2",
     "openapi-typescript": "^6.7.3",
