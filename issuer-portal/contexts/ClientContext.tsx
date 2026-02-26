@@ -52,8 +52,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return true // Auth bypass allows access to all clients
       }
 
-      // ADMIN users can access all clients
-      if (session?.user?.type === 'ADMIN' || Boolean(session?.user?.roles?.includes('ADMIN'))) {
+      // ADMIN, PARENT_CLIENT, SOLICITOR, and CSM users can access all clients
+      if (
+        session?.user?.type === 'ADMIN' ||
+        session?.user?.type === 'PARENT_CLIENT' ||
+        session?.user?.type === 'SOLICITOR' ||
+        session?.user?.type === 'CSM' ||
+        Boolean(session?.user?.roles?.includes('ADMIN'))
+      ) {
         return true
       }
 
@@ -112,7 +118,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
             try {
               if (typeof window !== 'undefined') {
-                localStorage.setItem('selectedClient', JSON.stringify({ id: targetClient.id }))
+                localStorage.setItem(
+                  'selectedClient',
+                  JSON.stringify({ id: targetClient.id })
+                )
               }
             } catch (error) {
               console.warn('Failed to update selectedClient in localStorage:', error)

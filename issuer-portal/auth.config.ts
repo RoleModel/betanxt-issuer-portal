@@ -19,13 +19,14 @@ export default {
       async authorize(credentials) {
         // Check if auth bypass is enabled
         if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+          const bypassRole = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
           // Return a mock user for development
           return {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            type: bypassRole,
             account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
             client_ticker: null,
           }

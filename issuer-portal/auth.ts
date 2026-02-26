@@ -1,10 +1,16 @@
 import NextAuth from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
 import type { JWT } from 'next-auth/jwt'
+import CredentialsProvider from 'next-auth/providers/credentials'
 
-export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth({
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET ??
+  secret:
+    process.env.NEXTAUTH_SECRET ??
     'fallback-secret-for-development-only-change-in-production',
 
   // Configure caching to reduce API calls
@@ -19,6 +25,22 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
+        // Auth bypass for development - return mock user with configured role
+        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+          const bypassRole = (process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN') as
+            | 'ISSUER'
+            | 'ADMIN'
+            | 'PARENT_CLIENT'
+            | 'SOLICITOR'
+            | 'CSM'
+          return {
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            username: 'dev.user',
+            type: bypassRole,
+            account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
+            client_ticker: null,
+          }
+        }
 
         if (!credentials?.username || !credentials?.password) {
           return null
@@ -26,14 +48,17 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
 
         // Mock authentication for development
         // Mock user data based on username
-        const mockUsers: Record<string, {
-          id: string;
-          username: string;
-          password: string;
-          type: 'ISSUER' | 'ADMIN';
-          account_id?: string;
-          client_ticker?: string | null;
-        }> = {
+        const mockUsers: Record<
+          string,
+          {
+            id: string
+            username: string
+            password: string
+            type: 'ISSUER' | 'ADMIN' | 'PARENT_CLIENT' | 'SOLICITOR' | 'CSM'
+            account_id?: string
+            client_ticker?: string | null
+          }
+        > = {
           'dev.user': {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             username: 'dev.user',
@@ -81,6 +106,30 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
             type: 'ISSUER',
             account_id: 'acc-enliven-001',
             client_ticker: 'ELVN',
+          },
+          'dfin.admin': {
+            id: 'f5a9406e-43fa-9hg5-f52g-7c44g9374ife',
+            username: 'dfin.admin',
+            password: 'DfinP@ss1',
+            type: 'PARENT_CLIENT',
+            account_id: undefined,
+            client_ticker: null,
+          },
+          morrow: {
+            id: 'g6b0517f-54gb-0ih6-g63h-8d55h0485jgf',
+            username: 'morrow',
+            password: 'MrwSdl@1',
+            type: 'SOLICITOR',
+            account_id: undefined,
+            client_ticker: null,
+          },
+          'csm.user': {
+            id: 'h7c1628g-65hc-1ji7-h74i-9e66i1596kgh',
+            username: 'csm.user',
+            password: 'CsmP@ss1',
+            type: 'CSM',
+            account_id: undefined,
+            client_ticker: null,
           },
         }
 

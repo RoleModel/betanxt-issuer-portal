@@ -4,10 +4,7 @@ import { AuthError } from 'next-auth'
 
 import { signIn } from '@/auth'
 
-export async function authenticate(
-  username: string,
-  password: string,
-) {
+export async function authenticate(username: string, password: string) {
   try {
     await signIn('credentials', {
       username,
