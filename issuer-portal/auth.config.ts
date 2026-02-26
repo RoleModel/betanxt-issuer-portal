@@ -174,6 +174,12 @@ export default {
           user.type === 'admin' || user.type === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER']
       }
 
+      // In dev bypass mode, always sync role from env so switching roles
+      // doesn't require clearing cookies
+      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+        token.type = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
+      }
+
       // Handle session updates (like avatar uploads)
       if (trigger === 'update' && updateData) {
         if (updateData.image !== undefined) {

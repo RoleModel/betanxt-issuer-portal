@@ -97,7 +97,7 @@ export default function MailingPage() {
       {phaseIsSevenOrGreater ? (
         <>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 8 }}>
+            <Grid size={{ xs: 12, md: 9 }}>
               <Stack spacing={2}>
                 <Card>
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -146,8 +146,15 @@ export default function MailingPage() {
                 <MailingDataCard meetingId={meetingId} />
               </Stack>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <MailingTimelineCard />
+            <Grid size={{ xs: 12, md: 3 }}>
+              <MailingTimelineCard
+                currentStatus={
+                  currentMeeting?.mailingStatus as
+                    | React.ComponentProps<typeof MailingTimelineCard>['currentStatus']
+                    | undefined
+                }
+                statusDate={currentMeeting?.updatedAt}
+              />
             </Grid>
           </Grid>
         </>

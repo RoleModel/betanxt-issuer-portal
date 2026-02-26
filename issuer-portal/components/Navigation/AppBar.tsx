@@ -6,7 +6,14 @@ import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import React, { Suspense, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import React, {
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton, Typography } from '@mui/material'
@@ -539,7 +546,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     if (!isCSM) return null
     const CSMLogo = () => (
       <Box sx={{ display: 'flex', alignItems: 'center', height: 44 }}>
-        <BNLogo height={28} color="white" />
+        <BNLogo height={28} />
       </Box>
     )
     CSMLogo.displayName = 'CSMLogo'

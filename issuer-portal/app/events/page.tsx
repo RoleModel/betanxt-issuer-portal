@@ -2,15 +2,16 @@
 
 import { useSession } from 'next-auth/react'
 import NextLink from 'next/link'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { SearchOutlined } from '@mui/icons-material'
+import { ArrowDropDownOutlined, SearchOutlined } from '@mui/icons-material'
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
+  Container,
   InputAdornment,
   Link,
   Menu,
@@ -101,7 +102,6 @@ function MailingStatusDropdown({
     <>
       <Button
         variant="text"
-        size="small"
         onClick={handleClick}
         sx={{
           textTransform: 'none',
@@ -110,6 +110,7 @@ function MailingStatusDropdown({
         }}
       >
         {status ?? 'Set Status'}
+        <ArrowDropDownOutlined />
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         {mailingStatuses.map((s) => (
@@ -150,6 +151,47 @@ export default function EventsPage() {
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const config = userTypeConfig[userType] ?? userTypeConfig.PARENT_CLIENT
   const isCSM = userType === 'CSM'
+
+  // Load existing mailing statuses from the API so they persist across navigations
+  useEffect(() => {
+    if (!isCSM) return
+    let active = true
+    const loadStatuses = async () => {
+      try {
+        const api = await buildApiClient()
+        const uniqueMeetingIds = [...new Set(config.events.map((e) => e.meetingId))]
+        const statusEntries: [string, MailingStatus][] = []
+        await Promise.all(
+          uniqueMeetingIds.map(async (meetingId) => {
+            const { data } = await api.GET('/meetings/{meetingId}', {
+              params: { path: { meetingId } },
+            })
+            if (data && typeof data === 'object' && 'mailingStatus' in data) {
+              const status = (data as Record<string, unknown>).mailingStatus
+              if (typeof status === 'string' && status) {
+                // Find all events that map to this meetingId
+                const matchingEvents = config.events.filter(
+                  (e) => e.meetingId === meetingId
+                )
+                for (const ev of matchingEvents) {
+                  statusEntries.push([ev.id, status as MailingStatus])
+                }
+              }
+            }
+          })
+        )
+        if (active && statusEntries.length > 0) {
+          setMailingStatusMap(Object.fromEntries(statusEntries))
+        }
+      } catch {
+        // Silently fail — statuses will show as "Set Status"
+      }
+    }
+    void loadStatuses()
+    return () => {
+      active = false
+    }
+  }, [isCSM, config.events])
 
   const handleMailingStatusChange = useCallback(
     async (eventId: string, meetingId: string, newStatus: MailingStatus) => {
@@ -231,142 +273,146 @@ export default function EventsPage() {
   const totalPages = Math.ceil(filteredAndSortedEvents.length / rowsPerPage)
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      <Typography variant="pageTitle" sx={{ mb: 3, fontWeight: 600 }}>
-        {config.heading}
-      </Typography>
+    <Container component="main" maxWidth="lg" data-testid="events-page">
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="pageTitle" sx={{ mb: 3, fontWeight: 600 }}>
+          {config.heading}
+        </Typography>
 
-      <Card>
-        <CardHeader
-          title="Events"
-          action={
-            <TextField
-              size="small"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setPage(0)
-              }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchOutlined fontSize="small" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{ minWidth: 200 }}
-            />
-          }
-        />
-        <CardContent sx={{ p: 0 }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'event'}
-                      direction={orderBy === 'event' ? order : 'asc'}
-                      onClick={() => handleRequestSort('event')}
-                    >
-                      Event
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'cusip'}
-                      direction={orderBy === 'cusip' ? order : 'asc'}
-                      onClick={() => handleRequestSort('cusip')}
-                    >
-                      CUSIP
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'eventDate'}
-                      direction={orderBy === 'eventDate' ? order : 'asc'}
-                      onClick={() => handleRequestSort('eventDate')}
-                    >
-                      Event Date
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
-                    <TableSortLabel
-                      active={orderBy === 'eventType'}
-                      direction={orderBy === 'eventType' ? order : 'asc'}
-                      onClick={() => handleRequestSort('eventType')}
-                    >
-                      Event Type
-                    </TableSortLabel>
-                  </TableCell>
-                  {isCSM && (
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}>Mailing Status</TableCell>
-                  )}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedEvents.map((row) => (
-                  <TableRow key={row.id} hover>
-                    <TableCell>
-                      <Link
-                        component={NextLink}
-                        href={getMeetingUrl(row)}
-                        underline="hover"
-                        color="primary"
-                        sx={{ fontWeight: 500 }}
+        <Card>
+          <CardHeader
+            title="Events"
+            action={
+              <TextField
+                size="small"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(0)
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchOutlined fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={{ minWidth: 200 }}
+              />
+            }
+          />
+          <CardContent sx={{ p: 0 }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <TableSortLabel
+                        active={orderBy === 'event'}
+                        direction={orderBy === 'event' ? order : 'asc'}
+                        onClick={() => handleRequestSort('event')}
                       >
-                        {row.event}
-                      </Link>
+                        Event
+                      </TableSortLabel>
                     </TableCell>
-                    <TableCell>{row.cusip}</TableCell>
-                    <TableCell>{formatDate(row.eventDate)}</TableCell>
-                    <TableCell>{row.eventType}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <TableSortLabel
+                        active={orderBy === 'cusip'}
+                        direction={orderBy === 'cusip' ? order : 'asc'}
+                        onClick={() => handleRequestSort('cusip')}
+                      >
+                        CUSIP
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <TableSortLabel
+                        active={orderBy === 'eventDate'}
+                        direction={orderBy === 'eventDate' ? order : 'asc'}
+                        onClick={() => handleRequestSort('eventDate')}
+                      >
+                        Event Date
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <TableSortLabel
+                        active={orderBy === 'eventType'}
+                        direction={orderBy === 'eventType' ? order : 'asc'}
+                        onClick={() => handleRequestSort('eventType')}
+                      >
+                        Event Type
+                      </TableSortLabel>
+                    </TableCell>
                     {isCSM && (
-                      <TableCell>
-                        <MailingStatusDropdown
-                          eventId={row.id}
-                          meetingId={row.meetingId}
-                          status={mailingStatusMap[row.id] ?? null}
-                          onStatusChange={handleMailingStatusChange}
-                        />
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        Mailing Status
                       </TableCell>
                     )}
                   </TableRow>
-                ))}
-                {paginatedEvents.length === 0 && (
+                </TableHead>
+                <TableBody>
+                  {paginatedEvents.map((row) => (
+                    <TableRow key={row.id} hover>
+                      <TableCell>
+                        <Link
+                          component={NextLink}
+                          href={getMeetingUrl(row)}
+                          underline="hover"
+                          color="primary"
+                          sx={{ fontWeight: 500 }}
+                        >
+                          {row.event}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{row.cusip}</TableCell>
+                      <TableCell>{formatDate(row.eventDate)}</TableCell>
+                      <TableCell>{row.eventType}</TableCell>
+                      {isCSM && (
+                        <TableCell>
+                          <MailingStatusDropdown
+                            eventId={row.id}
+                            meetingId={row.meetingId}
+                            status={mailingStatusMap[row.id] ?? null}
+                            onStatusChange={handleMailingStatusChange}
+                          />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                  {paginatedEvents.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
+                        <Typography color="text.secondary">
+                          {searchQuery
+                            ? 'No events match your search.'
+                            : 'No events found.'}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+                <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
-                      <Typography color="text.secondary">
-                        {searchQuery
-                          ? 'No events match your search.'
-                          : 'No events found.'}
-                      </Typography>
-                    </TableCell>
+                    <TablePagination
+                      rowsPerPageOptions={[10, 25, 50]}
+                      count={filteredAndSortedEvents.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      labelDisplayedRows={({ from, to }) =>
+                        `${from}-${to} of ${totalPages}`
+                      }
+                    />
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[10, 25, 50]}
-                    count={filteredAndSortedEvents.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelDisplayedRows={({ from, to }) =>
-                      `${from}-${to} of ${totalPages}`
-                    }
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
-    </Box>
+                </TableFooter>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   )
 }
