@@ -108,12 +108,14 @@ class DefaultDocumentRepository implements DocumentRepository {
     }
     try {
       const api = await buildApiClient()
-      const titleOverride = (versionNotes && versionNotes.trim().length > 0)
-        ? versionNotes.trim()
-        : file.name
+      const titleOverride =
+        versionNotes && versionNotes.trim().length > 0 ? versionNotes.trim() : file.name
       const createBody: components['schemas']['CreateDocumentRequest'] = {
         title: titleOverride,
-        description: versionNotes && versionNotes.trim().length > 0 ? versionNotes.trim() : undefined,
+        description:
+          versionNotes && versionNotes.trim().length > 0
+            ? versionNotes.trim()
+            : undefined,
         type: documentType,
         file: upData.path,
       }

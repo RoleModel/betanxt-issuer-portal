@@ -11,7 +11,10 @@ export interface VotingOptions {
 /**
  * Determines if a proposal is a director election based on type and number
  */
-export const isDirectorElection = (proposalType?: string, proposalNumber?: string | number): boolean => {
+export const isDirectorElection = (
+  proposalType?: string,
+  proposalNumber?: string | number
+): boolean => {
   if (!proposalType) return false
 
   const lowerType = proposalType.toLowerCase()
@@ -20,7 +23,9 @@ export const isDirectorElection = (proposalType?: string, proposalNumber?: strin
   return (
     lowerType.includes('election') ||
     lowerType.includes('director') ||
-    (proposalNumber !== undefined && proposalNumber !== null && ['1', '2', '3'].includes(proposalNumber.toString()))
+    (proposalNumber !== undefined &&
+      proposalNumber !== null &&
+      ['1', '2', '3'].includes(proposalNumber.toString()))
   )
 }
 
@@ -28,7 +33,10 @@ export const isDirectorElection = (proposalType?: string, proposalNumber?: strin
  * Gets the appropriate voting options for a proposal
  * Based on real client report documentation: director elections use WITHHOLD instead of AGAINST
  */
-export const getVotingOptions = (proposalType?: string, proposalNumber?: string | number): VotingOptions => {
+export const getVotingOptions = (
+  proposalType?: string,
+  proposalNumber?: string | number
+): VotingOptions => {
   if (isDirectorElection(proposalType, proposalNumber)) {
     return {
       for: 'For',
@@ -48,7 +56,10 @@ export const getVotingOptions = (proposalType?: string, proposalNumber?: string 
  * Gets the voting options display string for agenda display
  * Based on real client report documentation
  */
-export const getVotingOptionsDisplay = (proposalType?: string, proposalNumber?: string | number): string => {
+export const getVotingOptionsDisplay = (
+  proposalType?: string,
+  proposalNumber?: string | number
+): string => {
   if (isDirectorElection(proposalType, proposalNumber)) {
     return 'FOR / WITHHOLD / ABSTAIN'
   }
@@ -59,9 +70,15 @@ export const getVotingOptionsDisplay = (proposalType?: string, proposalNumber?: 
  * Gets table headers for tabulation tables that may contain mixed proposal types
  * Based on real client report documentation
  */
-export const getTabulationHeaders = (proposals: { proposalType?: string; proposalNumber?: string | number }[]): VotingOptions => {
-  const hasDirectorElections = proposals.some(p => isDirectorElection(p.proposalType, p.proposalNumber))
-  const hasNonDirectorProposals = proposals.some(p => !isDirectorElection(p.proposalType, p.proposalNumber))
+export const getTabulationHeaders = (
+  proposals: { proposalType?: string; proposalNumber?: string | number }[]
+): VotingOptions => {
+  const hasDirectorElections = proposals.some((p) =>
+    isDirectorElection(p.proposalType, p.proposalNumber)
+  )
+  const hasNonDirectorProposals = proposals.some(
+    (p) => !isDirectorElection(p.proposalType, p.proposalNumber)
+  )
 
   // If we have mixed types, use generic labels that work for both
   if (hasDirectorElections && hasNonDirectorProposals) {

@@ -155,7 +155,8 @@ export default function DigitalShareholderMeetingsPage() {
 
       <SidebarCard title="Want to Know More?">
         <Typography variant="body3" component="p" sx={{ mb: 2 }}>
-          Our Digital Shareholder Meeting solution provides equal access for all shareholders, enabling seamless registration and effortless participation.
+          Our Digital Shareholder Meeting solution provides equal access for all
+          shareholders, enabling seamless registration and effortless participation.
         </Typography>
         <Box
           aria-label="Play Digital Shareholder Meeting demo video"

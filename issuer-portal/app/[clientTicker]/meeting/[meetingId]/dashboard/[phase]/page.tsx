@@ -1,7 +1,7 @@
 'use client'
 
-import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { useParams } from 'next/navigation'
 import React from 'react'
 
 import { Box, Container } from '@mui/material'
@@ -10,7 +10,10 @@ import { useMeeting } from '@/contexts/MeetingContext'
 
 // Dynamically load layout & tracker to reduce initial JS bundle
 const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'), {})
-const TabulationTracker = dynamic(() => import('@/components/Meeting/TabulationTracker'), {})
+const TabulationTracker = dynamic(
+  () => import('@/components/Meeting/TabulationTracker'),
+  {}
+)
 
 export default function PhasePage() {
   const params = useParams()
@@ -20,14 +23,14 @@ export default function PhasePage() {
 
   const meetingForPhase = meeting
     ? {
-      ...meeting,
-      client: meeting.client
-        ? {
-          ...meeting.client,
-          isActive: meeting.client.isActive ?? true,
-        }
-        : meeting.client,
-    }
+        ...meeting,
+        client: meeting.client
+          ? {
+              ...meeting.client,
+              isActive: meeting.client.isActive ?? true,
+            }
+          : meeting.client,
+      }
     : meeting
 
   return (

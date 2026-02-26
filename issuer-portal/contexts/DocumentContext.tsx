@@ -75,7 +75,11 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       })
 
       console.log('[DocumentContext] Total documents:', allDocuments.length)
-      console.log('[DocumentContext] DSM documents:', dsm.length, dsm.map(d => ({ title: d.title, type: d.type })))
+      console.log(
+        '[DocumentContext] DSM documents:',
+        dsm.length,
+        dsm.map((d) => ({ title: d.title, type: d.type }))
+      )
       console.log('[DocumentContext] Regular documents:', regular.length)
 
       setDocuments(regular)

@@ -74,14 +74,14 @@ const normalizeClient = (raw: unknown): Client | null => {
   const accountsRaw = record.accounts
   const accounts = Array.isArray(accountsRaw)
     ? accountsRaw
-      .map((account) => asRecord(account))
-      .filter((account): account is Record<string, unknown> => Boolean(account))
-      .map((account) => ({
-        id: asString(account.id) ?? '',
-        name: asString(account.name) ?? undefined,
-        primary_contact: asString(account.primary_contact) ?? undefined,
-      }))
-      .filter((account) => account.id)
+        .map((account) => asRecord(account))
+        .filter((account): account is Record<string, unknown> => Boolean(account))
+        .map((account) => ({
+          id: asString(account.id) ?? '',
+          name: asString(account.name) ?? undefined,
+          primary_contact: asString(account.primary_contact) ?? undefined,
+        }))
+        .filter((account) => account.id)
     : undefined
 
   const phaseValue = pickNumber(record, ['phase']) ?? 2
@@ -172,7 +172,7 @@ export const useClients = (): UseClientsResult => {
     }
 
     const apiClient = await buildApiClient()
-    const { data, error} = await apiClient.GET('/clients')
+    const { data, error } = await apiClient.GET('/clients')
 
     if (error) {
       throw new Error(

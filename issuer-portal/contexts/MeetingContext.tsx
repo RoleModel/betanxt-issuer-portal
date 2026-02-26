@@ -1,12 +1,20 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
-import type { KeyDate, Position, Task } from '@/types/api-exports'
+
 import type { components } from '@/types/api'
+import type { KeyDate, Position, Task } from '@/types/api-exports'
+import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 type Meeting = components['schemas']['Meeting']
 
@@ -128,8 +136,6 @@ export function MeetingProvider({
     return meetingMatch?.[1]
   }, [pathname])
 
-
-
   const refreshMeetings = useCallback(
     async (ticker?: string) => {
       try {
@@ -167,24 +173,33 @@ export function MeetingProvider({
             ticker: asString(record.ticker) || '',
             cusip: asString(record.cusip) || undefined,
             meetingType: asString(record.meetingType) || undefined,
-            meetingYear: typeof record.meetingYear === 'number' ? record.meetingYear : undefined,
+            meetingYear:
+              typeof record.meetingYear === 'number' ? record.meetingYear : undefined,
             status: asString(record.status) as Meeting['status'],
             meetingDate: asString(record.meetingDate) || undefined,
             recordDate: asString(record.recordDate) || undefined,
             cutoffDate: asString(record.cutoffDate) || undefined,
             currentPhase: asString(record.currentPhase) || undefined,
-            overallCompletion: typeof record.overallCompletion === 'number' ? record.overallCompletion : undefined,
+            overallCompletion:
+              typeof record.overallCompletion === 'number'
+                ? record.overallCompletion
+                : undefined,
             preFilingDate: asString(record.preFilingDate) || undefined,
             filingDate: asString(record.filingDate) || undefined,
             brokerSearchDate: asString(record.brokerSearchDate) || undefined,
             mailingDate: asString(record.mailingDate) || undefined,
             distributionType: asString(record.distributionType) || undefined,
             transferAgent: asString(record.transferAgent) || undefined,
-            transferAgentConfirmed: typeof record.transferAgentConfirmed === 'boolean' ? record.transferAgentConfirmed : null,
+            transferAgentConfirmed:
+              typeof record.transferAgentConfirmed === 'boolean'
+                ? record.transferAgentConfirmed
+                : null,
             employeeStockPlans: asString(record.employeeStockPlans) || undefined,
             planAdministrator: asString(record.planAdministrator) || undefined,
-            planAdministratorContact: asString(record.planAdministratorContact) || undefined,
-            planAdministratorContactEmail: asString(record.planAdministratorContactEmail) || undefined,
+            planAdministratorContact:
+              asString(record.planAdministratorContact) || undefined,
+            planAdministratorContactEmail:
+              asString(record.planAdministratorContactEmail) || undefined,
             solicitor: asString(record.solicitor) || undefined,
             solicitorEmail: asString(record.solicitorEmail) || undefined,
             inspector: asString(record.inspector) || undefined,
@@ -203,7 +218,10 @@ export function MeetingProvider({
         const meetingIdFromURL = getMeetingIdFromURL()
         if (meetingIdFromURL) {
           const targetMeeting = normalizedMeetings.find((m) => m.id === meetingIdFromURL)
-          if (targetMeeting && (!currentMeeting || currentMeeting.id !== targetMeeting.id)) {
+          if (
+            targetMeeting &&
+            (!currentMeeting || currentMeeting.id !== targetMeeting.id)
+          ) {
             setCurrentMeeting(targetMeeting)
           }
         } else if (!currentMeeting && normalizedMeetings.length > 0) {
@@ -288,7 +306,8 @@ export function MeetingProvider({
             controlNumber: asString(record.controlNumber) || undefined,
             voteStatus: asString(record.voteStatus) as Position['voteStatus'],
             shares: typeof record.shares === 'number' ? record.shares : undefined,
-            sharesVoted: typeof record.sharesVoted === 'number' ? record.sharesVoted : undefined,
+            sharesVoted:
+              typeof record.sharesVoted === 'number' ? record.sharesVoted : undefined,
             source: record.source as Position['source'],
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,

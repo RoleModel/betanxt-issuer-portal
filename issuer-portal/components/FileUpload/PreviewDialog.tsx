@@ -73,7 +73,9 @@ export default function PreviewDialog<T>({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={onClose}>Cancel</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Cancel
+        </Button>
         <Button onClick={onConfirm} variant="contained">
           Confirm Upload
         </Button>

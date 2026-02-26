@@ -24,15 +24,14 @@ import {
   Typography,
 } from '@mui/material'
 
+import { ContentTitle } from '@/components/ContentTitle'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
-import { ContentTitle } from '@/components/ContentTitle'
 
 export default function EngagePage() {
-
   const [open, setOpen] = useState(false)
 
   const benefits = [
@@ -82,9 +81,7 @@ export default function EngagePage() {
 
   const leftColumnContent = (
     <Stack gap={2}>
-      <ContentTitle
-        title="Achieve quorum and proposal passage by generating greater participation"
-      />
+      <ContentTitle title="Achieve quorum and proposal passage by generating greater participation" />
       <Typography variant="body1">
         <strong>Retail shareholder</strong> votes are critical to achieving quorum and
         passing proposals. Large retail brokerage firms continue to adjust their

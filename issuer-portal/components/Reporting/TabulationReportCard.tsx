@@ -20,7 +20,8 @@ export default function TabulationReportCard() {
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
+          companyName:
+            currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
           meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
           meetingDate: currentMeeting.meetingDate ?? '',
           recordDate: currentMeeting.recordDate ?? '',

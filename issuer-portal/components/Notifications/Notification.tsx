@@ -75,8 +75,8 @@ const Notification = ({
         p: 1,
         '&:hover': onClick
           ? {
-            backgroundColor: 'action.hover',
-          }
+              backgroundColor: 'action.hover',
+            }
           : {},
         '&:not(:last-child)': {
           borderBottom: '1px solid',

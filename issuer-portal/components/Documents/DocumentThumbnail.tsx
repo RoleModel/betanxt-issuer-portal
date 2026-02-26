@@ -58,7 +58,12 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
       // Convert relative storage paths to full Supabase URLs
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
       const fullUrl = `${supabaseUrl}${filePath}`
-      console.log('[DocumentThumbnail] Converting relative storage path:', filePath, 'to:', fullUrl)
+      console.log(
+        '[DocumentThumbnail] Converting relative storage path:',
+        filePath,
+        'to:',
+        fullUrl
+      )
       return fullUrl
     }
 
@@ -76,9 +81,11 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     }
 
     // Already-rooted path (but not storage paths)
-    if (filePath.toLowerCase().endsWith('.pdf') &&
+    if (
+      filePath.toLowerCase().endsWith('.pdf') &&
       filePath.startsWith('/documents/') &&
-      !filePath.startsWith('/storage/')) {
+      !filePath.startsWith('/storage/')
+    ) {
       // Map /documents/<key>.pdf to Supabase storage public URL
       const storageKey = filePath.slice('/documents/'.length)
       return getStoragePublicUrl(storageKey)
@@ -168,7 +175,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
 
   const onDocumentLoadError = (error: Error) => {
     // Suppress 400 errors for missing documents in development
-    if (!error.message.includes('400') && !error.message.includes('Unexpected server response')) {
+    if (
+      !error.message.includes('400') &&
+      !error.message.includes('Unexpected server response')
+    ) {
       console.error('PDF thumbnail load error:', error)
     }
     setHasError(true)
@@ -330,10 +340,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         transition: 'all 0.2s ease',
         '&:hover': onClick
           ? {
-            borderColor: 'primary.main',
-            boxShadow: 2,
-            transform: 'scale(1.02)',
-          }
+              borderColor: 'primary.main',
+              boxShadow: 2,
+              transform: 'scale(1.02)',
+            }
           : {},
       }}
       onClick={onClick}
@@ -382,7 +392,9 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
           <Document
             file={fileUrl}
             loading={<CircularProgress size={20} />}
-            error={<ErrorOutlineOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />}
+            error={
+              <ErrorOutlineOutlined sx={{ fontSize: 20, color: 'text.secondary' }} />
+            }
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
           >

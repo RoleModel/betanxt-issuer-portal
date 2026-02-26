@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, CircularProgress } from '@mui/material'
 import dynamic from 'next/dynamic'
+
+import { Box, CircularProgress } from '@mui/material'
 
 // Dynamically import the PDF viewer component with SSR disabled
 const PDFPreview = dynamic(() => import('@/components/PDFPreview'), {

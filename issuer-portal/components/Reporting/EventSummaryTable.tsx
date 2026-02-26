@@ -68,16 +68,16 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   const rows: EventSummaryRow[] = isRowFormat
     ? data
     : [
-      {
-        event: 'Meeting Summary',
-        recordDate: data.materials?.sentDate ?? '',
-        meetingType: 'Annual',
-        quorum: data.quorumAchieved ? 'Yes' : 'No',
-        participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
-        numProposals: data.totalProposals,
-        outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
-      },
-    ]
+        {
+          event: 'Meeting Summary',
+          recordDate: data.materials?.sentDate ?? '',
+          meetingType: 'Annual',
+          quorum: data.quorumAchieved ? 'Yes' : 'No',
+          participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
+          numProposals: data.totalProposals,
+          outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
+        },
+      ]
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage)
@@ -129,10 +129,10 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                   <TableCell size="small">
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell size="small">{row.meetingType}</TableCell>

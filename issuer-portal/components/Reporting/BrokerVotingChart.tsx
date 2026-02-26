@@ -2,13 +2,7 @@
 
 import React, { useState } from 'react'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  MenuItem,
-  TextField,
-} from '@mui/material'
+import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
 
 import { EmptyState } from '@/components/EmptyState'

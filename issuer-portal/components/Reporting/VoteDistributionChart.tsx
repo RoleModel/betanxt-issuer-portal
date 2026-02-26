@@ -2,13 +2,7 @@
 
 import React from 'react'
 
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-} from '@mui/material'
+import { Box, Card, CardContent, CardHeader, Typography } from '@mui/material'
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart'
 
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
@@ -33,7 +27,9 @@ export default function VoteDistributionChart({
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
   if (loading) {
-    return <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />
+    return (
+      <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />
+    )
   }
 
   if (data.length === 0) {

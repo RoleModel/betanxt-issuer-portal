@@ -9,14 +9,13 @@ import TeamMeeting2Icon from '@rolemodel/betanxt-design-system/components/icons/
 import { OpenInNew } from '@mui/icons-material'
 import { Card, CardContent, CardHeader, Stack, Typography } from '@mui/material'
 
+import { ContentTitle } from '@/components/ContentTitle'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
-import { ContentTitle } from '@/components/ContentTitle'
 
 export default function EndToEndProxySolutionsPage() {
-
   const products = [
     {
       title: 'MIC Digital Shareholder Meeting',
@@ -101,9 +100,7 @@ export default function EndToEndProxySolutionsPage() {
 
   const leftColumnContent = (
     <Stack gap={2}>
-      <ContentTitle
-        title="Achieve quorum and proposal passage by generating greater participation"
-      />
+      <ContentTitle title="Achieve quorum and proposal passage by generating greater participation" />
       <Typography variant="body1">
         <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to
         participate in annual meetings remotely with the same level of access as in-person

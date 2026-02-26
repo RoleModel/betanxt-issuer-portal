@@ -1,20 +1,40 @@
 'use client'
 
+import FileSearchIcon from '@rolemodel/betanxt-design-system/components/icons/brand/FileSearchIcon'
 import React from 'react'
 
-import { Button, Card, CardContent, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import SearchIcon from '@mui/icons-material/Search'
-import EmptyState from '@/components/EmptyState'
-import FileSearchIcon from '@rolemodel/betanxt-design-system/components/icons/brand/FileSearchIcon'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material'
 
+import EmptyState from '@/components/EmptyState'
+import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
-import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 import buildApiClient from '@/domain-models/apiClient'
 import { documentRepository } from '@/domain-models/documentRepository'
 import type { components } from '@/domain-models/generated-schema'
+
 import { getBrowserSupabase } from '@/lib/browserSupabase'
 import { getStoragePublicUrl } from '@/utils/documentUtils'
 import { bytesToSize } from '@/utils/numberUtils'
@@ -28,7 +48,11 @@ interface SecureFileTransferTableProps {
   maxHeight?: number | string
 }
 
-export default function SecureFileTransferTable({ clientTicker, showHeader = true, maxHeight }: SecureFileTransferTableProps) {
+export default function SecureFileTransferTable({
+  clientTicker,
+  showHeader = true,
+  maxHeight,
+}: SecureFileTransferTableProps) {
   const [meetingId, setMeetingId] = React.useState<string | null>(null)
   const [documents, setDocuments] = React.useState<Document[]>([])
   const [loading, setLoading] = React.useState<boolean>(true)
@@ -41,7 +65,9 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
     try {
       setLoading(true)
       const api = await buildApiClient()
-      const { data } = await api.GET('/meetings', { params: { query: { ticker: clientTicker.toUpperCase() } } })
+      const { data } = await api.GET('/meetings', {
+        params: { query: { ticker: clientTicker.toUpperCase() } },
+      })
       const meetings = Array.isArray(data)
         ? (data as Meeting[])
         : (data && (data as { meetings?: Meeting[] }).meetings) || []
@@ -54,16 +80,19 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
         const allDocsArrays = await Promise.all(
           meetingIds.map((id) => documentRepository.listByMeeting(id))
         )
-        const combined = allDocsArrays.flat()
-          .filter((d) => {
-            const title = (d.title ?? '').trim().toLowerCase()
-            const isHostingTitle = title === 'document hosting site'
-            const isHostingType = (d.type ?? '') === 'HOSTING_SITE'
-            return !isHostingTitle && !isHostingType
-          })
+        const combined = allDocsArrays.flat().filter((d) => {
+          const title = (d.title ?? '').trim().toLowerCase()
+          const isHostingTitle = title === 'document hosting site'
+          const isHostingType = (d.type ?? '') === 'HOSTING_SITE'
+          return !isHostingTitle && !isHostingType
+        })
         combined.sort((a, b) => {
-          const ad = new Date(a.updatedAt || a.uploadedDate || a.createdAt || '').getTime()
-          const bd = new Date(b.updatedAt || b.uploadedDate || b.createdAt || '').getTime()
+          const ad = new Date(
+            a.updatedAt || a.uploadedDate || a.createdAt || ''
+          ).getTime()
+          const bd = new Date(
+            b.updatedAt || b.uploadedDate || b.createdAt || ''
+          ).getTime()
           return bd - ad
         })
         setDocuments(combined)
@@ -81,12 +110,14 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
 
   React.useEffect(() => {
     const measure = async () => {
-      const targets = documents.filter((d) => (!d.fileSize || d.fileSize === 0) && !!d.filePath)
+      const targets = documents.filter(
+        (d) => (!d.fileSize || d.fileSize === 0) && !!d.filePath
+      )
       if (targets.length === 0) return
       const results = await Promise.all(
         targets.map(async (d) => {
           const url = getStoragePublicUrl(d.filePath!)
-          const key = d.id && d.id.length > 0 ? d.id : (d.filePath || '')
+          const key = d.id && d.id.length > 0 ? d.id : d.filePath || ''
           if (!key) return { key: '', size: 0 }
           try {
             const resp = await fetch(url, { method: 'HEAD' })
@@ -114,10 +145,19 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
     void fetchMeetingAndDocuments()
   }
 
-  const handleUpload = async (files: File[], _associations?: Record<string, string>, description?: string) => {
+  const handleUpload = async (
+    files: File[],
+    _associations?: Record<string, string>,
+    description?: string
+  ) => {
     if (!meetingId) return
     for (const file of files) {
-      await documentRepository.uploadVersion({ meetingId, documentType: 'general-document', file, versionNotes: description })
+      await documentRepository.uploadVersion({
+        meetingId,
+        documentType: 'general-document',
+        file,
+        versionNotes: description,
+      })
     }
     setUploadOpen(false)
     void fetchMeetingAndDocuments()
@@ -138,7 +178,9 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
     return documents.filter((doc) => {
       const title = (doc.title || '').toLowerCase()
       const type = (doc.type || '').toLowerCase()
-      const fileName = doc.filePath ? (doc.filePath.split('/').pop() || '').toLowerCase() : ''
+      const fileName = doc.filePath
+        ? (doc.filePath.split('/').pop() || '').toLowerCase()
+        : ''
 
       return title.includes(query) || type.includes(query) || fileName.includes(query)
     })
@@ -157,12 +199,14 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
 
   return (
     <Card>
-      {showHeader && (
-        <CardHeader
-          title="Secure File Transfer"
-        />
-      )}
-      <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ px: 2, pt: showHeader ? 0 : 3, pb: 2 }}>
+      {showHeader && <CardHeader title="Secure File Transfer" />}
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ px: 2, pt: showHeader ? 0 : 3, pb: 2 }}
+      >
         <TextField
           size="small"
           placeholder="Search files..."
@@ -174,7 +218,9 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
             },
           }}
         />
-        <Button variant="contained" onClick={() => setUploadOpen(true)}>Upload</Button>
+        <Button variant="contained" onClick={() => setUploadOpen(true)}>
+          Upload
+        </Button>
       </Stack>
       <CardContent sx={{ p: 0 }}>
         {filteredDocuments.length === 0 ? (
@@ -194,18 +240,29 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
               <TableBody>
                 {filteredDocuments.map((doc) => {
                   const href = doc.filePath ? getStoragePublicUrl(doc.filePath) : ''
-                  const name = doc.title || (doc.filePath ? (doc.filePath.split('/').pop() ?? '') : '')
+                  const name =
+                    doc.title ||
+                    (doc.filePath ? (doc.filePath.split('/').pop() ?? '') : '')
                   return (
                     <TableRow key={doc.id} hover>
                       <TableCell size="small">
-                        <Button variant="text" color="info" component="a" href={href} target="_blank" disabled={!href}>
+                        <Button
+                          variant="text"
+                          color="info"
+                          component="a"
+                          href={href}
+                          target="_blank"
+                          disabled={!href}
+                        >
                           {name || 'Download'}
                         </Button>
                       </TableCell>
                       <TableCell size="small">
                         <Typography variant="body3" color="text.secondary">
                           {bytesToSize(
-                            (doc.fileSize ?? measuredSizes[doc.id || doc.filePath || ''] ?? 0)
+                            doc.fileSize ??
+                              measuredSizes[doc.id || doc.filePath || ''] ??
+                              0
                           )}
                         </Typography>
                       </TableCell>
@@ -239,15 +296,22 @@ export default function SecureFileTransferTable({ clientTicker, showHeader = tru
         documentType="general-document"
       />
 
-      <Dialog open={Boolean(deleteDoc)} onClose={() => setDeleteDoc(null)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={Boolean(deleteDoc)}
+        onClose={() => setDeleteDoc(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>
-          {`Delete ${(deleteDoc?.title || (deleteDoc?.filePath ? (deleteDoc?.filePath.split('/').pop() ?? '') : '')) || ''}?`}
+          {`Delete ${deleteDoc?.title || (deleteDoc?.filePath ? (deleteDoc?.filePath.split('/').pop() ?? '') : '') || ''}?`}
         </DialogTitle>
         <DialogContent>
           <Typography>You will not be able to undo this action</Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="primary" onClick={() => setDeleteDoc(null)}>Cancel</Button>
+          <Button variant="outlined" color="primary" onClick={() => setDeleteDoc(null)}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             color="primary"

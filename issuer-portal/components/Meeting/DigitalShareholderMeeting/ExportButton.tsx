@@ -83,7 +83,9 @@ export function ExportButton({
         size={size}
         disabled={disabled || isExporting}
         onClick={handleClick}
-        startIcon={isExporting ? <CircularProgress size={16} /> : <FileDownloadOutlined />}
+        startIcon={
+          isExporting ? <CircularProgress size={16} /> : <FileDownloadOutlined />
+        }
         aria-controls={open ? 'export-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}

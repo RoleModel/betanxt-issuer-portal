@@ -45,7 +45,6 @@ export default function VotingTabulationTable({
   // Get appropriate headers based on proposal types in this table
   const votingLabels = getTabulationHeaders(proposals)
 
-
   if (loading) {
     return (
       <TableContainer>
@@ -153,7 +152,6 @@ export default function VotingTabulationTable({
               </TableCell>
             </TableRow>
           ))}
-
         </TableBody>
       </Table>
     </TableContainer>

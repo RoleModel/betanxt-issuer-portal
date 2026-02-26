@@ -1,5 +1,6 @@
 'use client'
 
+import DocumentEditIcon from '@rolemodel/betanxt-design-system/components/icons/brand/DocumentEditIcon'
 import dynamic from 'next/dynamic'
 import React, { Suspense, useEffect, useState } from 'react'
 import * as XLSX from 'xlsx'
@@ -30,7 +31,6 @@ import DocumentSiteCard from '@/components/Documents/DocumentSiteCard'
 import DocumentsTable from '@/components/Documents/DocumentsTable'
 import EmptyState from '@/components/EmptyState'
 import SkeletonTable from '@/components/ui/SkeletonTable'
-import DocumentEditIcon from '@rolemodel/betanxt-design-system/components/icons/brand/DocumentEditIcon'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -38,11 +38,7 @@ import { useDocuments } from '@/contexts/DocumentContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
-import {
-  DOCUMENT_STATUS_VALUES,
-  getDocumentStatusLabel,
-} from '@/utils/documentUtils'
-
+import { DOCUMENT_STATUS_VALUES, getDocumentStatusLabel } from '@/utils/documentUtils'
 
 type Document = Omit<components['schemas']['Document'], 'status'> & {
   status?: ExtendedDocumentStatus
@@ -526,8 +522,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                                 status === 'UNKNOWN'
                                   ? 'Unknown'
                                   : getDocumentStatusLabel(
-                                    (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
-                                  )
+                                      (status as ExtendedDocumentStatus) || 'NOT_UPLOADED'
+                                    )
                               return (
                                 <MenuItem key={status} value={status}>
                                   {label}

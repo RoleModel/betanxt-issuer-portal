@@ -390,8 +390,8 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            © 2021 Broadridge Financial Solutions, Inc 51 Menades Way, Edgewood, NY
-            11717, Phone: 481.254.7057 www.broadridge.com
+            © 2021 Broadridge Financial Solutions, Inc 51 Menades Way, Edgewood, NY 11717,
+            Phone: 481.254.7057 www.broadridge.com
           </Text>
         </View>
       </Page>

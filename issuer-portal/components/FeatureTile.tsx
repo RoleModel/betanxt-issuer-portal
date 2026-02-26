@@ -106,8 +106,8 @@ export function FeatureTile({
           '&:hover':
             href || onClick
               ? {
-                transform: 'translateY(-2px)',
-              }
+                  transform: 'translateY(-2px)',
+                }
               : undefined,
         },
         (theme) =>

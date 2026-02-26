@@ -39,7 +39,7 @@ type OrderBy = keyof ProposalPerformanceData
 
 const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
   data,
-  loading = false
+  loading = false,
 }) => {
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(5)

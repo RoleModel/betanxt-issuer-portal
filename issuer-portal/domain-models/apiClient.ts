@@ -10,16 +10,16 @@ type CombinedPaths = LegacyPaths & ExpandedPaths
 
 export type ApiClientReturnType<T> =
   | {
-    data: T
-    error: undefined
-  }
-  | {
-    data: undefined
-    error: {
-      message: string
-      statusCode?: number
+      data: T
+      error: undefined
     }
-  }
+  | {
+      data: undefined
+      error: {
+        message: string
+        statusCode?: number
+      }
+    }
 
 // Simple cache to prevent duplicate API calls within a short time window
 interface CacheEntry {

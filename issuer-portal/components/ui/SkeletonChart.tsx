@@ -1,10 +1,4 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-} from '@mui/material'
+import { Box, Card, CardContent, CardHeader, Skeleton } from '@mui/material'
 
 interface SkeletonChartProps {
   title?: string
@@ -17,7 +11,7 @@ export default function SkeletonChart({
   title,
   height = 300,
   showLegend = false,
-  noCard = false
+  noCard = false,
 }: SkeletonChartProps) {
   const content = (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -49,9 +43,7 @@ export default function SkeletonChart({
       <CardHeader
         title={title ? <Skeleton variant="text" width="60%" height={32} /> : undefined}
       />
-      <CardContent>
-        {content}
-      </CardContent>
+      <CardContent>{content}</CardContent>
     </Card>
   )
 }

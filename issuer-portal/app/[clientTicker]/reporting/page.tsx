@@ -232,8 +232,8 @@ export default function ReportingPage() {
         // Check if there are actual votes (not just null values)
         const hasVotes =
           (p.totalVotesFor ?? 0) +
-          (p.totalVotesAgainst ?? 0) +
-          (p.totalVotesAbstain ?? 0) >
+            (p.totalVotesAgainst ?? 0) +
+            (p.totalVotesAbstain ?? 0) >
           0
 
         return isDirectorProposal && hasVotes
@@ -281,7 +281,11 @@ export default function ReportingPage() {
         {/* Event Summary and Participation Section */}
         <Grid size={{ xs: 12, lg: 7 }}>
           <Suspense fallback={<ChartSkeleton />}>
-            <EventSummaryTable data={mappedEventSummary} clientTicker={clientTicker} loading={loading} />
+            <EventSummaryTable
+              data={mappedEventSummary}
+              clientTicker={clientTicker}
+              loading={loading}
+            />
           </Suspense>
         </Grid>
 
@@ -400,7 +404,10 @@ export default function ReportingPage() {
         {/* Proposal Performance Table */}
         <Grid size={{ xs: 12 }}>
           <Suspense fallback={<ChartSkeleton />}>
-            <ProposalPerformanceTable data={mappedProposalPerformanceData} loading={loading} />
+            <ProposalPerformanceTable
+              data={mappedProposalPerformanceData}
+              loading={loading}
+            />
           </Suspense>
         </Grid>
 

@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Box } from '@mui/material'
 import { PDFViewer } from '@react-pdf/renderer'
+import { useEffect, useState } from 'react'
+
+import { Box } from '@mui/material'
+
 import { TabulationPDFDocument } from '@/utils/exportTabulationPdf'
 
 export default function PDFPreview() {

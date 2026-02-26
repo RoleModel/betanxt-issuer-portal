@@ -13,4 +13,3 @@ export default function RootLayoutClient({ children }: PropsWithChildren) {
 
   return <Layout navBar={showNavBar}>{children}</Layout>
 }
-

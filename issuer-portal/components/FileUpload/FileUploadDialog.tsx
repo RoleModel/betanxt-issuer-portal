@@ -1,7 +1,18 @@
 import React, { useState } from 'react'
 
 import CloseIcon from '@mui/icons-material/Close'
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  TextField,
+} from '@mui/material'
 
 import BNFileUpload from './BNFileUpload'
 import type { DSMDocumentOption, UploadFile } from './types'
@@ -123,11 +134,7 @@ const FileUploadDialog = ({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-        >
+        <Box display="flex" alignItems="center" justifyContent="space-between">
           Upload Document
           <IconButton
             aria-label="Close dialog"

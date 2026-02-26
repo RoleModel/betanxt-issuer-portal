@@ -37,7 +37,9 @@ interface TabulationReport {
 // Generate consistent participation rate between 58% and 74% using meeting id as seed
 // This matches the seeded random in useReporting.ts
 const generateSeededParticipation = (meetingId: string): number => {
-  const meetingIdHash = (meetingId ?? '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const meetingIdHash = (meetingId ?? '')
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
   return Math.round((58 + seededRandom * 16) * 10) / 10
 }
