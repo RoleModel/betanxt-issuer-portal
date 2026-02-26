@@ -61,7 +61,7 @@
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.36.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/node": "^20.4.2",
+    "@types/node": "^24.0.0",
     "@types/number-abbreviate": "^2.0.0",
     "@types/react": "^18.2.15",
     "jspdf": "^3.0.3",
@@ -71,6 +71,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": "^22.0.0"
+    "node": "^24.0.0"
   }
 }

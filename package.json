@@ -27,6 +27,7 @@
     "@next/eslint-plugin-next": "^15.5.4",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.5.4",
     "eslint-plugin-react": "^7.37.3",
@@ -37,7 +38,7 @@
     "typescript-eslint": "^8.21.0"
   },
   "engines": {
-    "node": "^22.0.0"
+    "node": "^24.0.0"
   },
   "packageManager": "npm@10.9.3",
   "dependencies": {
