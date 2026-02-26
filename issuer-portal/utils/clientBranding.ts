@@ -25,6 +25,18 @@ export const clientBranding = [
     secondaryColor: '#F8EF76',
     tertiaryColor: '#1A1C45',
   },
+  {
+    ticker: 'DFIN',
+    primaryColor: '#8700FF',
+    secondaryColor: '#2d235a',
+    tertiaryColor: '#00FFBC',
+  },
+  {
+    ticker: 'MRSO',
+    primaryColor: '#ff6400',
+    secondaryColor: '#0b232d',
+    tertiaryColor: '#98b9e4',
+  },
 ]
 
 // Compute a logo base path (without extension) from client name/ticker
