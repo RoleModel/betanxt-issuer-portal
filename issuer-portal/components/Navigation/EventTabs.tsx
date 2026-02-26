@@ -29,11 +29,6 @@ import {
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
-import {
-  getPhaseColor,
-  getPhaseContrastText,
-  getPhaseNumber,
-} from '@/components/mui-styling/theme'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -58,13 +53,10 @@ interface MeetingTab {
 
 const getNavigationTabs = (currentPhase: number) => [
   { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
-  { label: 'Calendar', route: '/calendar' },
-  { label: 'Documents', route: '/documents' },
   { label: 'Mailing', route: '/mailing' },
   { label: 'Tabulation', route: '/tabulation' },
-  { label: 'Performance/Reports', route: '/reports' },
+  { label: 'Reports', route: '/reports' },
   { label: 'Agenda', route: '/agenda' },
-  { label: 'Digital Shareholder Meeting', route: '/digital-shareholder-meeting' },
 ]
 
 const ScrollButton = styled(IconButton, {
@@ -149,15 +141,6 @@ export function EventTabs() {
     () => parsePhaseNumber(currentMeeting?.currentPhase),
     [currentMeeting?.currentPhase]
   )
-
-  // Extract phase from URL if on a dashboard route
-  const phaseFromUrl = useMemo(() => {
-    const match = /\/dashboard\/(\d+)/.exec(pathname)
-    return match ? parseInt(match[1], 10) : null
-  }, [pathname])
-
-  // Use URL phase for display if available, otherwise use meeting's current phase
-  const displayPhase = phaseFromUrl ?? currentPhase
 
   // Memoize navigation tabs with current phase
   const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
@@ -438,17 +421,7 @@ export function EventTabs() {
   }, [checkScrollButtons])
 
   // Subcomponents for active/inactive meeting detail sections
-  const ActiveMeetingDetails = ({
-    meeting,
-    currentPhase,
-    onOpenPhaseDrawer,
-  }: {
-    meeting: MeetingTab
-    currentPhase: number
-    onOpenPhaseDrawer: () => void
-  }) => {
-    const phaseLabel = meeting.currentPhase ?? `Phase ${currentPhase}`
-
+  const ActiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
     return (
       <Box sx={{ display: 'flex', color: 'text.primary' }}>
         <Stack direction="row" spacing={2} alignItems="start">
@@ -504,84 +477,6 @@ export function EventTabs() {
               text: `${meeting.meetingDate} 11:00 AM Local Time`,
             }}
           />
-          <Stack>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              sx={{ fontWeight: 500 }}
-            >
-              Current Phase
-            </Typography>
-            <Typography
-              component="span"
-              variant="body3"
-              aria-label={`Open ${phaseLabel} phase details`}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onOpenPhaseDrawer()
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onOpenPhaseDrawer()
-                }
-              }}
-              sx={(theme) => {
-                return {
-                  fontSize: theme.typography.body3.fontSize,
-                  fontWeight: 500,
-                  color: getPhaseColor(displayPhase),
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  alignSelf: 'start',
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' },
-                  '&:focus': {
-                    outline: `2px solid ${theme.vars?.palette?.primary?.main}`,
-                    outlineOffset: 2,
-                  },
-                  ...theme.applyStyles('dark', {
-                    paddingY: 0.25,
-                    paddingX: 0.5,
-                    borderRadius: 1,
-                    background: getPhaseColor(displayPhase),
-                    color: getPhaseContrastText(displayPhase),
-                  }),
-                }
-              }}
-            >
-              {phaseLabel}
-            </Typography>
-          </Stack>
-          <Stack sx={{ minWidth: 120 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              sx={{ fontWeight: 500 }}
-            >
-              Overall Completion
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
-              <LinearProgress
-                variant="determinate"
-                color={getPhaseNumber(currentPhase) as 'primary'}
-                value={meeting.overallCompletion ?? 0}
-                aria-label={`Overall completion progress: ${meeting.overallCompletion ?? 0}%`}
-                sx={{ flex: 1, height: 6, borderRadius: 12 }}
-              />
-              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                {meeting.overallCompletion ?? 0}%
-              </Typography>
-            </Box>
-          </Stack>
-
         </Stack>
       </Box>
     )
@@ -615,11 +510,6 @@ export function EventTabs() {
       </Box>
     )
   }
-
-  const handleOpenPhaseDrawer = useCallback((phase: number) => {
-    setDrawerPhase(phase)
-    setPhaseDrawerOpen(true)
-  }, [])
 
   const MeetingTab = React.memo(function MeetingTab({
     meeting,
@@ -695,7 +585,8 @@ export function EventTabs() {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                    fontFamily:
+                      'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
                     fontWeight: 500,
                     fontSize: '2rem',
                     lineHeight: 1.125,
@@ -710,11 +601,7 @@ export function EventTabs() {
                 </Typography>
 
                 {isActive && !isMobile ? (
-                  <ActiveMeetingDetails
-                    meeting={meeting}
-                    currentPhase={currentPhase}
-                    onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
-                  />
+                  <ActiveMeetingDetails meeting={meeting} />
                 ) : (
                   !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
                 )}
