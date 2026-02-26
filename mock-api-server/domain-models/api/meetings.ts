@@ -68,6 +68,7 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     totalSharesOutstanding: nullToUndefined(dbMeeting.total_shares_outstanding),
     quorumRequirement: nullToUndefined(dbMeeting.quorum_requirement),
     brokerNonVote: nullToUndefined(dbMeeting.broker_non_vote),
+    mailingStatus: nullToUndefined(dbMeeting.mailing_status),
     clientId: nullToUndefined(dbMeeting.client_id),
     createdAt: nullToUndefined(dbMeeting.created_at),
     updatedAt: nullToUndefined(dbMeeting.updated_at),
@@ -304,6 +305,8 @@ export async function updateMeeting(
       dbUpdate.quorum_requirement = meetingData.quorumRequirement
     if (meetingData.brokerNonVote !== undefined)
       dbUpdate.broker_non_vote = meetingData.brokerNonVote
+    if (meetingData.mailingStatus !== undefined)
+      dbUpdate.mailing_status = meetingData.mailingStatus
 
     const { data, error } = await supabase
       .from('meeting')

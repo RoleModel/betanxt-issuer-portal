@@ -2697,6 +2697,10 @@ components:
           nullable: true
           description: 'Total broker non-votes for this meeting'
           example: 22480600.00
+        mailingStatus:
+          type: string
+          nullable: true
+          description: Current status of the mailing process for this meeting
         clientId:
           type: string
           format: uuid
@@ -3524,6 +3528,10 @@ components:
           type: string
           format: uuid
           description: The client this meeting belongs to
+        mailingStatus:
+          type: string
+          nullable: true
+          description: Current status of the mailing process
 
     UpdateMeetingRequest:
       type: object
@@ -3591,6 +3599,10 @@ components:
           nullable: true
           description: 'Total broker non-votes for this meeting'
           example: 22480600.00
+        mailingStatus:
+          type: string
+          nullable: true
+          description: Current status of the mailing process
 
     CreatePhaseRequest:
       type: object

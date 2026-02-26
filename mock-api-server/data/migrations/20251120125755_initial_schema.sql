@@ -154,12 +154,15 @@ CREATE TABLE public.meeting (
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
+    broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
+    mailing_status TEXT DEFAULT NULL,
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
     client TEXT DEFAULT NULL
 );
 COMMENT ON TABLE meeting IS 'Original model name - Meeting.';
+COMMENT ON COLUMN meeting.mailing_status IS 'Current status of the mailing process for this meeting. Original param name - mailingStatus.';
 COMMENT ON COLUMN meeting.pre_filing_date IS 'Original param name - preFilingDate.';
 COMMENT ON COLUMN meeting.filing_date IS 'Original param name - filingDate.';
 COMMENT ON COLUMN meeting.broker_search_date IS 'Original param name - brokerSearchDate.';

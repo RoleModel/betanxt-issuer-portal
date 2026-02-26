@@ -178,7 +178,7 @@ export async function createDocument(
       } catch (uploadErr) {
         return {
           error: {
-            message: `Failed to process file data: ${uploadErr instanceof Error ? uploadErr.message : 'Unknown error'}`
+            message: `Failed to process file data: ${uploadErr instanceof Error ? uploadErr.message : 'Unknown error'}`,
           },
         }
       }

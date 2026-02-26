@@ -63,7 +63,7 @@ export const seedConfig = {
       cusip: '95058W100',
       totalSharesOutstanding: 196234142,
       quorumRequirement: 50.0,
-      brokerNonVote: 22480600.00,
+      brokerNonVote: 22480600.0,
     },
     {
       clientTicker: 'PAYC',
@@ -90,7 +90,7 @@ export const seedConfig = {
       cusip: '29337E102',
       totalSharesOutstanding: 49066008,
       quorumRequirement: 50.0,
-      brokerNonVote: 3635711.00,
+      brokerNonVote: 3635711.0,
     },
   ],
 
