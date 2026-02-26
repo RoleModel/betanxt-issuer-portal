@@ -33,7 +33,8 @@ export default React.memo(function Phase8Layout({
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
+          companyName:
+            currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
           meetingType: meeting.meetingType ?? 'Annual Meeting',
           meetingDate: meeting.meetingDate ?? '',
           recordDate: meeting.recordDate ?? '',
