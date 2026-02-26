@@ -1,7 +1,6 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { usePathname } from 'next/navigation'
 import React, { useMemo } from 'react'
 
 import CssBaseline from '@mui/material/CssBaseline'
@@ -40,18 +39,16 @@ const themeOptionsMap: Record<string, ReturnType<typeof createClientTheme>> = {
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
   const { data: session } = useSession()
-  const pathname = usePathname()
 
   const ticker = currentClient?.ticker
 
   const theme = useMemo(() => {
     const userType = session?.user?.type
     const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false
-    // Check if the URL contains a specific client ticker
-    const urlHasTicker = /^\/[A-Z]{2,5}\//.test(pathname)
 
-    // Multi-client users on non-ticker routes (e.g. /events) use their brand theme
-    if (isMultiClientUser && !urlHasTicker && userType) {
+    // Multi-client users (PARENT_CLIENT/SOLICITOR) always use their brand theme,
+    // even when viewing a specific client's meeting page
+    if (isMultiClientUser && userType) {
       const brandTicker = userTypeBrandTicker[userType]
       if (brandTicker) {
         const themeOptions = themeOptionsMap[brandTicker] ?? wendysThemeOptions
@@ -69,7 +66,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
 
     const themeOptions = themeOptionsMap[effectiveTicker] ?? wendysThemeOptions
     return createTheme(themeOptions)
-  }, [ticker, session?.user?.type, pathname])
+  }, [ticker, session?.user?.type])
 
   // Wait for theme to be determined before rendering
   if (!theme) {

@@ -138,7 +138,7 @@ async function searchBrandfetch(companyName: string): Promise<string | null> {
       { headers: { Authorization: `Bearer ${API_KEY}` } }
     )
     if (!response.ok) return null
-    const results = (await response.json()) as Array<{ domain: string; name: string }>
+    const results = (await response.json()) as { domain: string; name: string }[]
     return results[0]?.domain ?? null
   } catch {
     return null

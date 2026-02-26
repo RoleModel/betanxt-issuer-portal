@@ -34,24 +34,6 @@ const ChartSkeleton = () => (
   <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 2 }} />
 )
 
-// Helper function to extract director name from proposal title
-function extractDirectorName(title: string): string | null {
-  // Common patterns for director election proposals
-  const patterns = [
-    /Election of Director[:\s]+(.+?)(?:\s*$|\s*\()/i,
-    /Election of (.+?) as Director/i,
-    /Elect (.+?) as Director/i,
-    /Director[:\s]+(.+?)(?:\s*$|\s*\()/i,
-  ]
-
-  for (const pattern of patterns) {
-    const match = title.match(pattern)
-    if (match) return match[1].trim()
-  }
-
-  return null
-}
-
 export default function ReportingPage() {
   const params = useParams()
   const clientTicker = params.clientTicker as string
@@ -62,12 +44,7 @@ export default function ReportingPage() {
 
   // Client-side state for interactive features - MUST be called before any early returns
   const [selectedMeeting, setSelectedMeeting] = useState<string>('')
-  const [chartView, setChartView] = useState<ChartView>('aggregate')
   const [selectedDirector, setSelectedDirector] = useState<string>('')
-
-  // Loading states
-  const isDirectorLoading = loading
-  const isIndividualLoading = loading
 
   // Set default values when reportingData becomes available
   React.useEffect(() => {
@@ -147,60 +124,7 @@ export default function ReportingPage() {
       .sort((a, b) => a.year - b.year)
   }, [reportingData, selectedDirector])
 
-  // Filter director performance data by selected meeting
-  const directorPerformanceData = useMemo(() => {
-    if (!reportingData || !selectedMeeting) {
-      return []
-    }
-
-    // Get director proposals for the selected meeting only
-    const meetingProposals = (reportingData.proposals ?? []).filter(
-      (p) =>
-        p.meetingId === selectedMeeting &&
-        (p.proposalType === 'Director Election' ||
-          Boolean(p.directorName) ||
-          /director/i.test(p.proposalTitle ?? ''))
-    )
-
-    // Group by director and calculate percentages
-    const directorMap = new Map<
-      string,
-      {
-        directorName: string
-        forVotes: number
-        againstVotes: number
-        abstainVotes: number
-        totalVotes: number
-      }
-    >()
-
-    meetingProposals.forEach((proposal) => {
-      const directorName =
-        proposal.directorName ?? extractDirectorName(proposal.proposalTitle ?? '')
-
-      if (!directorName) return
-
-      const totalVotes =
-        (proposal.totalVotesFor ?? 0) +
-        (proposal.totalVotesAgainst ?? 0) +
-        (proposal.totalVotesAbstain ?? 0)
-
-      if (totalVotes > 0) {
-        directorMap.set(directorName, {
-          directorName,
-          forVotes: proposal.totalVotesFor ?? 0,
-          againstVotes: proposal.totalVotesAgainst ?? 0,
-          abstainVotes: proposal.totalVotesAbstain ?? 0,
-          totalVotes,
-        })
-      }
-    })
-
-    return Array.from(directorMap.values())
-  }, [reportingData, selectedMeeting])
-
   // Use pre-transformed data from the hook
-  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? []
   const mappedAuditComplianceData = reportingData?.mappedAuditComplianceData ?? []
   const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? []
 
@@ -279,41 +203,13 @@ export default function ReportingPage() {
     >
       <Grid container spacing={3}>
         {/* Event Summary and Participation Section */}
-        <Grid size={{ xs: 12, lg: 7 }}>
+        <Grid size={12}>
           <Suspense fallback={<ChartSkeleton />}>
             <EventSummaryTable
               data={mappedEventSummary}
               clientTicker={clientTicker}
               loading={loading}
             />
-          </Suspense>
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 5 }}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <Card sx={{ height: '100%' }}>
-              <CardHeader title="Participation" />
-              <CardContent
-                sx={{
-                  display: 'flex',
-                  flexGrow: 1,
-                  alignItems: 'center',
-                  justifyItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ParticipationChart
-                  data={{
-                    meetings: mappedEventSummary.map((event) => ({
-                      event: event.event,
-                      participationRate: parseFloat(event.participation.replace('%', '')),
-                      meetingYear: event.meetingYear,
-                    })),
-                  }}
-                  loading={loading}
-                />
-              </CardContent>
-            </Card>
           </Suspense>
         </Grid>
 
@@ -329,79 +225,7 @@ export default function ReportingPage() {
           </Suspense>
         </Grid>
 
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <Card
-            sx={{
-              height: 'auto',
-              opacity: isDirectorLoading || isIndividualLoading ? 0.7 : 1,
-            }}
-          >
-            <CardHeader
-              title="Director Performance"
-              action={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <ChartToggle value={chartView} onChange={setChartView} />
-                  {chartView === 'aggregate' ? (
-                    <TextField
-                      select
-                      size="small"
-                      label="Event"
-                      value={selectedMeeting}
-                      onChange={(e) => handleMeetingChange(e.target.value)}
-                      sx={{ minWidth: 200 }}
-                      disabled={isDirectorLoading}
-                    >
-                      {meetingsWithDirectors.map((meeting) => {
-                        // Extract year from meetingId (format: ticker-type-year)
-                        const yearMatch = /(\d{4})$/.exec(meeting.id)
-                        const year = yearMatch ? yearMatch[1] : ''
-                        const displayTitle = year
-                          ? `${meeting.title} ${year}`
-                          : meeting.title
-                        return (
-                          <MenuItem key={meeting.id} value={meeting.id}>
-                            {displayTitle}
-                          </MenuItem>
-                        )
-                      })}
-                    </TextField>
-                  ) : (
-                    <TextField
-                      select
-                      size="small"
-                      value={selectedDirector}
-                      label="Director"
-                      onChange={(e) => handleDirectorChange(e.target.value)}
-                      sx={{ minWidth: 200 }}
-                      disabled={isIndividualLoading}
-                    >
-                      {availableDirectors.map((director) => (
-                        <MenuItem key={director} value={director}>
-                          {director}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
-                </Box>
-              }
-            />
-            <CardContent>
-              {chartView === 'aggregate' ? (
-                <DirectorPerformanceChart
-                  data={directorPerformanceData ?? []}
-                  loading={loading}
-                />
-              ) : (
-                <IndividualDirectorChart
-                  directorName={selectedDirector ?? ''}
-                  data={mappedIndividualDirectorData}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Proposal Performance Table */}
+        {/* Proposal Performance Table 
         <Grid size={{ xs: 12 }}>
           <Suspense fallback={<ChartSkeleton />}>
             <ProposalPerformanceTable
@@ -410,8 +234,9 @@ export default function ReportingPage() {
             />
           </Suspense>
         </Grid>
+        */}
 
-        {/* Third Row - Audit & Compliance and Quorum Performance Tables */}
+        {/* Third Row - Audit & Compliance and Quorum Performance Tables 
         <Grid size={{ xs: 12, lg: 6.5 }}>
           <Suspense fallback={<ChartSkeleton />}>
             <AuditComplianceTable
@@ -421,8 +246,9 @@ export default function ReportingPage() {
             />
           </Suspense>
         </Grid>
+        */}
 
-        <Grid size={{ xs: 12, lg: 5.5 }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Suspense fallback={<ChartSkeleton />}>
             <QuorumPerformanceTable
               data={mappedQuorumPerformanceData}

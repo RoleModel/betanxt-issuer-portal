@@ -5,8 +5,8 @@ import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BN
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import React, { Suspense, useCallback, useContext, useMemo, useRef, useState } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton, Typography } from '@mui/material'
@@ -22,6 +22,7 @@ import buildApiClient from '@/domain-models/apiClient'
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
 import { useNotifications } from '@/contexts/NotificationContext'
+import { getBrandLogoPath } from '@/utils/brandConfig'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
 import { formatMeetingDate } from '@/utils/meetingUtils'
 
@@ -86,7 +87,11 @@ interface BNAppBarWrapperProps {
 }
 
 export function BNAppBarClient(props: BNAppBarWrapperProps) {
-  return <BNAppBarClientMemo {...props} />
+  return (
+    <Suspense fallback={null}>
+      <BNAppBarClientMemo {...props} />
+    </Suspense>
+  )
 }
 
 const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
@@ -94,6 +99,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 ) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(
     null
@@ -335,6 +341,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     }
   }, []) // localStorage access is safe with window check, no dependencies needed
 
+  // Read the ?issuer= query param for brand logo override
+  const issuerParam = searchParams.get('issuer')
+  const issuerName = issuerParam ? decodeURIComponent(issuerParam) : null
+
   // Determine logo source - memoize expensive logo computation
   const logoTicker = useMemo(() => {
     // For PARENT_CLIENT/SOLICITOR users on /events, use their brand ticker
@@ -355,6 +365,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // If we have a custom logoSrc prop, use it immediately
     if (props.logoSrc) return props.logoSrc
 
+    // If ?issuer= param is present, use the brand logo from brandConfig
+    if (issuerName) {
+      return getBrandLogoPath(issuerName)
+    }
+
     // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
@@ -364,6 +379,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       : '/images/logo.svg'
   }, [
     props.logoSrc,
+    issuerName,
     logoTicker,
     getClientLogo,
     currentClient?.company_name,
@@ -375,7 +391,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     return {
       logoImg: {
         src: logoSrc,
-        alt: `${logoTicker ?? 'BetaNXT'} logo`,
+        alt: `${issuerName ?? logoTicker ?? 'BetaNXT'} logo`,
         width: 'auto',
         height: 44,
         style: {
@@ -387,7 +403,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         },
       },
     }
-  }, [logoSrc, logoTicker])
+  }, [logoSrc, logoTicker, issuerName])
 
   const avatar = useMemo(() => {
     if (!props.user) {

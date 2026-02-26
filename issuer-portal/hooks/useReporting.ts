@@ -89,12 +89,14 @@ interface QuorumData {
 interface MappedEventSummary {
   event: string
   meetingId?: string
-  recordDate: string
   meetingType: string
-  quorum: string
-  participation: string
-  numProposals: number
-  outcome: string
+  inspector: string
+  brokerSearchDate: string
+  recordDate: string
+  filingDate: string
+  mailingDate: string
+  mailingMethod: string
+  votingCutoff: string
   meetingYear: number
 }
 
@@ -669,29 +671,12 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
 // UI Transformation functions
 function transformEventSummaryData(
   meetings: Meeting[],
-  proposals: Proposal[] = [],
+  _proposals: Proposal[] = [],
   _positions: Position[] = []
 ): MappedEventSummary[] {
   if (!meetings || meetings.length === 0) {
     return []
   }
-
-  // Pre-aggregate proposals by meeting id (support camelCase and snake_case)
-  const proposalsByMeeting = proposals.reduce((acc, p) => {
-    const key =
-      ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
-        (p as unknown as { meeting_id?: string }).meeting_id) ||
-      ''
-    if (!key) return acc
-    const fr =
-      (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
-      (p as unknown as { final_result?: string }).final_result
-    const bucket = acc.get(key) || { total: 0, passed: 0 }
-    bucket.total += 1
-    if (fr === 'PASSED') bucket.passed += 1
-    acc.set(key, bucket)
-    return acc
-  }, new Map<string, { total: number; passed: number }>())
 
   const results: MappedEventSummary[] = []
 
@@ -704,47 +689,19 @@ function transformEventSummaryData(
         : 'Unknown'
       const meetingType = meeting.meetingType ?? 'Annual'
 
-      // Get meeting-specific data (kept for future use with real data)
-      const _proposalAgg = proposalsByMeeting.get(meeting.id ?? '') || {
-        total: 0,
-        passed: 0,
-      }
+      const meetingRecord = meeting as Record<string, unknown>
 
-      // Generate mock data based on meeting type
-      let numProposals: number
-      let passedProposals: number
-      if (meetingType.toLowerCase().includes('special')) {
-        // Special meetings: 5 proposals, all passed
-        numProposals = 5
-        passedProposals = 5
-      } else {
-        // Annual meetings: 8 proposals, with one specific year showing 7/8
-        numProposals = 8
-        const yearNum = typeof year === 'number' ? year : parseInt(String(year), 10)
-        // Only 2024 shows 7/8 passed, all others 8/8
-        passedProposals = yearNum === 2024 ? 7 : 8
-      }
-
-      // Generate consistent participation rate between 58% and 74% using meeting id as seed
-      const meetingIdHash = (meeting.id ?? '')
-        .split('')
-        .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-      const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-      const participationRate = 58 + seededRandom * 16
-
-      // Always show quorum as met
-      const quorumMet = true
-
-      const result = {
+      const result: MappedEventSummary = {
         event: `${meetingType} ${year}`,
         meetingId: meeting.id,
+        meetingType,
+        inspector: (meetingRecord.inspector as string) ?? '',
+        brokerSearchDate: (meetingRecord.brokerSearchDate as string) ?? '',
         recordDate: (meeting.recordDate || meeting.meetingDate) ?? '',
-        meetingType: meetingType,
-        quorum: quorumMet ? 'Yes' : 'No', // Always "Yes" as requested
-        participation: `${participationRate.toFixed(1)}%`,
-        numProposals: numProposals,
-        outcome:
-          numProposals > 0 ? `${passedProposals}/${numProposals} Passed` : 'No Proposals',
+        filingDate: (meetingRecord.filingDate as string) ?? '',
+        mailingDate: (meetingRecord.mailingDate as string) ?? '',
+        mailingMethod: (meetingRecord.mailingMethod as string) ?? '',
+        votingCutoff: (meetingRecord.votingCutoff as string) ?? '',
         meetingYear: typeof year === 'number' ? year : parseInt(year.toString(), 10) || 0,
       }
 
