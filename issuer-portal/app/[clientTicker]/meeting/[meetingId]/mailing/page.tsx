@@ -2,12 +2,20 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { Card, CardContent, Container, LinearProgress, Skeleton } from '@mui/material'
+import {
+  Card,
+  CardContent,
+  Container,
+  LinearProgress,
+  Skeleton,
+  Stack,
+} from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import EmptyState from '@/components/EmptyState'
 import FeatureTile from '@/components/FeatureTile'
 import MailingDataCard from '@/components/Meeting/MailingDataCard'
+import MailingTimelineCard from '@/components/Meeting/MailingTimelineCard'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -88,49 +96,60 @@ export default function MailingPage() {
     >
       {phaseIsSevenOrGreater ? (
         <>
-          <Card>
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  {mailingLoading ? (
-                    <Skeleton variant="rounded" height={80} />
-                  ) : (
-                    <FeatureTile
-                      height="auto"
-                      variant="base"
-                      title={formatNumber(mailingData?.fullsetMailPositions)}
-                      subtitle="Full Set"
-                    />
-                  )}
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  {mailingLoading ? (
-                    <Skeleton variant="rounded" height={80} />
-                  ) : (
-                    <FeatureTile
-                      height="auto"
-                      variant="base"
-                      title={formatNumber(mailingData?.naaMailPositions)}
-                      subtitle="NAA"
-                    />
-                  )}
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  {mailingLoading ? (
-                    <Skeleton variant="rounded" height={80} />
-                  ) : (
-                    <FeatureTile
-                      height="auto"
-                      variant="base"
-                      title={formatNumber(mailingData?.electronicSuppressedPositions)}
-                      subtitle="Electronic"
-                    />
-                  )}
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-          <MailingDataCard meetingId={meetingId} />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Stack spacing={2}>
+                <Card>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        {mailingLoading ? (
+                          <Skeleton variant="rounded" height={80} />
+                        ) : (
+                          <FeatureTile
+                            height="auto"
+                            variant="base"
+                            title={formatNumber(mailingData?.fullsetMailPositions)}
+                            subtitle="Full Set"
+                          />
+                        )}
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        {mailingLoading ? (
+                          <Skeleton variant="rounded" height={80} />
+                        ) : (
+                          <FeatureTile
+                            height="auto"
+                            variant="base"
+                            title={formatNumber(mailingData?.naaMailPositions)}
+                            subtitle="NAA"
+                          />
+                        )}
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        {mailingLoading ? (
+                          <Skeleton variant="rounded" height={80} />
+                        ) : (
+                          <FeatureTile
+                            height="auto"
+                            variant="base"
+                            title={formatNumber(
+                              mailingData?.electronicSuppressedPositions
+                            )}
+                            subtitle="Electronic"
+                          />
+                        )}
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+                <MailingDataCard meetingId={meetingId} />
+              </Stack>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <MailingTimelineCard />
+            </Grid>
+          </Grid>
         </>
       ) : (
         <EmptyState

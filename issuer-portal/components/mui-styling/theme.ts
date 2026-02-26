@@ -7,9 +7,19 @@ import {
   basePaletteDark,
   basePaletteLight,
 } from '@rolemodel/betanxt-design-system/themes/base/palette'
+import {
+  bnblue,
+  bnteal,
+  celery,
+  gold,
+  orangered,
+  persimmon,
+  seagrass,
+} from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
+import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
 import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
@@ -30,6 +40,128 @@ import type {} from '@mui/x-date-pickers/themeAugmentation'
 
 import { clientBranding } from '@/utils/clientBranding'
 
+const jobStatusColorsLight = {
+  statusProofing: {
+    main: bnblue[600],
+    dark: bnblue[700],
+    light: bnblue[400],
+    contrastText: '#ffffff',
+  },
+  statusPulls: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusProduction: {
+    main: celery[500],
+    dark: celery[900],
+    light: celery[400],
+    contrastText: '#000000',
+  },
+  statusDoNotDistribute: {
+    contrastText: '#ffffff',
+    main: persimmon[800],
+    dark: persimmon[900],
+    light: persimmon[500],
+  },
+  statusFlagged: {
+    main: orangered[500],
+    dark: orangered[700],
+    light: orangered[400],
+    contrastText: '#ffffff',
+  },
+  statusPending: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusApproved: {
+    main: seagrass[600],
+    dark: seagrass[700],
+    light: seagrass[400],
+    contrastText: '#ffffff',
+  },
+  statusUnapproved: {
+    main: bnteal[500],
+    dark: bnteal[700],
+    light: bnteal[300],
+    contrastText: '#ffffff',
+  },
+  statusRejected: {
+    main: betanxtTheme.palette.error.main,
+    dark: betanxtTheme.palette.error.dark,
+    light: betanxtTheme.palette.error.light,
+    contrastText: betanxtTheme.palette.error.contrastText,
+  },
+  statusComplete: {
+    main: betanxtTheme.palette.success.main,
+    dark: betanxtTheme.palette.success.dark,
+    light: betanxtTheme.palette.success.light,
+    contrastText: betanxtTheme.palette.success.contrastText,
+  },
+  statusReceived: {
+    main: betanxtTheme.vars.palette.action.selected,
+    contrastText: betanxtTheme.vars.palette.text.primary,
+  },
+}
+
+const jobStatusColorsDark = {
+  statusPulls: {
+    main: gold[400],
+    dark: gold[500],
+    light: gold[300],
+    contrastText: '#000000',
+  },
+  statusProduction: {
+    main: celery[500],
+    dark: celery[600],
+    light: celery[300],
+    contrastText: '#000000',
+  },
+  statusProofing: {
+    main: bnblue[400],
+    dark: bnblue[600],
+    light: bnblue[500],
+    contrastText: '#000000',
+  },
+  statusDoNotDistribute: {
+    main: persimmon[500],
+    dark: persimmon[700],
+    light: persimmon[400],
+    contrastText: '#000000',
+  },
+  statusFlagged: {
+    main: orangered[500],
+    dark: orangered[700],
+    light: orangered[400],
+    contrastText: '#ffffff',
+  },
+  statusPending: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusApproved: {
+    main: seagrass[400],
+    dark: seagrass[900],
+    light: seagrass[700],
+    contrastText: '#ffffff',
+  },
+  statusUnapproved: {
+    main: bnteal[300],
+    dark: bnteal[400],
+    light: bnteal[500],
+    contrastText: '#ffffff',
+  },
+  statusReceived: {
+    main: betanxtTheme.vars.palette.action.selected,
+    contrastText: betanxtTheme.vars.palette.text.primary,
+  },
+}
+
 // Manually reconstruct baseThemeOptions to avoid duplicate CSS variable injection
 const baseThemeOptions = {
   cssVariables: {
@@ -37,10 +169,16 @@ const baseThemeOptions = {
   },
   colorSchemes: {
     light: {
-      palette: basePaletteLight,
+      palette: {
+        ...basePaletteLight,
+        ...jobStatusColorsLight,
+      },
     },
     dark: {
-      palette: basePaletteDark,
+      palette: {
+        ...basePaletteDark,
+        ...jobStatusColorsDark,
+      },
       overlays: createBaseDarkOverlays(),
     },
   },
@@ -672,3 +810,5 @@ export const wendysThemeOptions = createClientTheme('WEN')
 export const paycomThemeOptions = createClientTheme('PAYC')
 export const woodwardThemeOptions = createClientTheme('WWD')
 export const elevenThemeOptions = createClientTheme('ELVN')
+export const dfinThemeOptions = createClientTheme('DFIN')
+export const morrowSodaliThemeOptions = createClientTheme('MRSO')
