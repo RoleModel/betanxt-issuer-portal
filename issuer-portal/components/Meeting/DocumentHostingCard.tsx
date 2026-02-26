@@ -99,15 +99,8 @@ export default function DocumentHostingCard({
     hasUrl: true,
   }
 
-  const ivrNumber = {
-    label: `IVR Dial-In`,
-    url: meeting?.ivrDialInNumber ?? '',
-    status: meeting?.status,
-    hasUrl: false,
-  }
-
   // Always show all sites; disable click when URL is missing
-  const sites = [hostingSite, eVoteSite, ivrNumber]
+  const sites = [hostingSite, eVoteSite]
 
   return (
     <Card className={className} sx={{ height: 'auto', gridArea: 'documentLinks' }}>

@@ -19,10 +19,8 @@ interface MeetingInformationCardProps {
   className?: string
   meeting?: {
     meetingType?: string
-    inspector?: string
     cusip?: string
     ticker?: string
-    employeeStockPlans?: string
   }
 }
 
@@ -32,10 +30,8 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
 }) => {
   const meetingInfo = [
     { label: 'Meeting Type', value: meeting?.meetingType },
-    { label: 'BetaNXT Inspector', value: meeting?.inspector },
     { label: 'Company CUSIP(s)', value: meeting?.cusip },
     { label: 'Ticker', value: meeting?.ticker },
-    { label: 'Company Plans', value: meeting?.employeeStockPlans },
   ]
 
   return (
