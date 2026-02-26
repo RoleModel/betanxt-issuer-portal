@@ -110,7 +110,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
 
   return (
     <Card variant="outlined" elevation={0}>
-      <CardContent sx={{ '&:last-child': { pb: 0 } }}>
+      <CardContent sx={{ '&:last-child': { p: 0, overflowX: 'auto' } }}>
         <Table size="small" sx={{ width: '100%', border: 'none' }}>
           <SROnlyTableCaption>
             Mailing job status and breakdown metrics.
