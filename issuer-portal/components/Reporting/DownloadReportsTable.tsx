@@ -25,6 +25,8 @@ interface ReportItem {
   name: string
   path?: string
   isMock?: boolean
+  isHeader?: boolean
+  indent?: boolean
 }
 
 interface StorageFile {
@@ -37,16 +39,22 @@ interface StorageFile {
 }
 
 const MOCK_REPORTS: ReportItem[] = [
-  { name: 'Broker Analysis Report', isMock: true },
-  { name: 'Institutional Ownership Report', isMock: true },
-  { name: 'Vote Reconciliation Report', isMock: true },
-  { name: 'Top Shareholders Report', isMock: true },
-  { name: 'Voting Timeline Report', isMock: true },
-  { name: 'Non-Vote Analysis', isMock: true },
-  { name: 'Regional Distribution Report', isMock: true },
-  { name: 'Vote Method Breakdown', isMock: true },
-  { name: 'Proxy Statement Metrics', isMock: true },
-  { name: 'Final Tabulation Summary', isMock: true },
+  { name: 'Ballot Comments', isMock: true },
+  { name: 'Change of Address Report', isMock: true },
+  { name: 'Meeting Attendance', isMock: true },
+  { name: 'Vote Report by Source and Day', isMock: true },
+  { name: 'Paper Election Statistics by Source and Day', isMock: true },
+  { name: 'Paper Elections Detailed Report', isMock: true },
+  { name: 'DTC/CDS Participant Vote Report', isMock: true },
+  { name: 'Registered Accounts Voted Report', isMock: true },
+  { name: 'Account Report', isHeader: true },
+  { name: 'Voted', isMock: true, indent: true },
+  { name: 'Unvoted', isMock: true, indent: true },
+  { name: 'All Accounts', isMock: true, indent: true },
+  { name: 'DTC/CDS Participant Account Report', isHeader: true },
+  { name: 'Voted', isMock: true, indent: true },
+  { name: 'Unvoted', isMock: true, indent: true },
+  { name: 'All Accounts', isMock: true, indent: true },
 ]
 
 export default function DownloadReportsTable({ meetingId }: { meetingId: string }) {
@@ -119,7 +127,7 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
       <CardHeader title="Download Meeting Reports" />
       <CardContent sx={{ p: 0 }}>
         <TableContainer>
-          <Table>
+          <Table size="small" stickyHeader>
             <SROnlyTableCaption>
               List of available meeting reports for download
             </SROnlyTableCaption>
@@ -132,24 +140,42 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
             <TableBody>
               {reports.map((report, index) => (
                 <TableRow key={index}>
-                  <TableCell>{report.name}</TableCell>
+                  <TableCell sx={report.indent ? { pl: 4 } : undefined}>
+                    {report.indent ? `- ${report.name}` : report.name}
+                  </TableCell>
                   <TableCell align="right">
-                    <Box component="span" sx={{ display: 'inline-flex', gap: 1 }}>
-                      <IconButton
-                        aria-label={`Download ${report.name} as XLS`}
-                        title={`Download ${report.name} as XLS`}
-                        disabled={report.isMock}
-                        onClick={() =>
-                          handleDownload(
-                            report.path,
-                            `${report.name}.xls`,
-                            report.isMock ?? false
-                          )
-                        }
-                      >
-                        <IconForFileType fileType="XLS" />
-                      </IconButton>
-                    </Box>
+                    {!report.isHeader && (
+                      <Box component="span" sx={{ display: 'inline-flex', gap: 1 }}>
+                        <IconButton
+                          aria-label={`Download ${report.name} as PDF`}
+                          title={`Download ${report.name} as PDF`}
+                          disabled={report.isMock}
+                          onClick={() =>
+                            handleDownload(
+                              report.path?.replace('.xls', '.pdf'),
+                              `${report.name}.pdf`,
+                              report.isMock ?? false
+                            )
+                          }
+                        >
+                          <IconForFileType fileType="PDF" />
+                        </IconButton>
+                        <IconButton
+                          aria-label={`Download ${report.name} as XLS`}
+                          title={`Download ${report.name} as XLS`}
+                          disabled={report.isMock}
+                          onClick={() =>
+                            handleDownload(
+                              report.path,
+                              `${report.name}.xls`,
+                              report.isMock ?? false
+                            )
+                          }
+                        >
+                          <IconForFileType fileType="XLS" />
+                        </IconButton>
+                      </Box>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
