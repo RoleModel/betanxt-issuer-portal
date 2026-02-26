@@ -1,12 +1,12 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.937Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
 import { listAccountUsers } from '@/domain-models/api/users'
+
+import { handleCors, withCors } from '@/utils/cors'
 
 interface RouteParams {
   accountId: string
@@ -26,10 +26,7 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -37,10 +34,10 @@ export async function GET(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listAccountUsers'
+          operationId: 'listAccountUsers',
         },
         { status: 500 }
       )
@@ -53,7 +50,7 @@ export async function POST(): Promise<NextResponse> {
     // TODO: Implement createAccountUser
     // Operation: createAccountUser
     // This route was auto-generated from OpenAPI spec
-    
+
     // Parse request body
     // const body = await request.json()
 
@@ -67,10 +64,10 @@ export async function POST(): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createAccountUser'
+          operationId: 'createAccountUser',
         },
         { status: 500 }
       )
