@@ -1,33 +1,39 @@
 'use client'
 
+import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
 import type { User } from 'next-auth'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton, Typography } from '@mui/material'
-import { useColorScheme } from '@mui/material/styles'
 import { Box } from '@mui/material'
+import { useColorScheme } from '@mui/material/styles'
 
+import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
 // Preload NotificationPopper for better performance - no dynamic import delay
 import NotificationPopper from '@/components/Notifications/NotificationPopper'
-import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
+
+import buildApiClient from '@/domain-models/apiClient'
 
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
-import buildApiClient from '@/domain-models/apiClient'
-
 import { formatMeetingDate } from '@/utils/meetingUtils'
 
 // Custom hook to safely use meeting context when it might not be available
 const useMeetingSafe = () => {
   const context = useContext(MeetingContext)
   return useMemo(
-    () => context || { meetings: [] as { id?: string; status?: string }[], currentMeeting: null },
+    () =>
+      context || {
+        meetings: [] as { id?: string; status?: string }[],
+        currentMeeting: null,
+      },
     [context]
   )
 }
@@ -40,7 +46,6 @@ const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
 const SECURE_FILE_TRANSFER_REGEX = /^\/[A-Z]+\/secure-file-transfer$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
-
 
 // Next.js Image component wrapper for BNAppBar logo
 const NextImageComponent = React.memo(
@@ -96,10 +101,19 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
-
-
   // Get current client for logo and branding
   const { currentClient } = useClient()
+  const { data: session } = useSession()
+
+  // Map user types to their brand tickers for logo display
+  const userTypeBrandTicker: Record<string, string> = useMemo(
+    () => ({ PARENT_CLIENT: 'DFIN', SOLICITOR: 'MRSO' }),
+    []
+  )
+  const userType = session?.user?.type
+  const isMultiClientUser =
+    userType === 'PARENT_CLIENT' || userType === 'SOLICITOR' || userType === 'CSM'
+  const isCSM = userType === 'CSM'
 
   // Get theme context for toggle functionality
   const { mode, setMode } = useColorScheme()
@@ -143,7 +157,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
         // Immediately check if meeting is in the active meetings list
         // If not, we can assume it's a past meeting before the API call completes
-        const meetingInActiveList = meetings.some((m: { id?: string }) => m.id === currentMeetingId)
+        const meetingInActiveList = meetings.some(
+          (m: { id?: string }) => m.id === currentMeetingId
+        )
         if (!meetingInActiveList && meetings.length > 0) {
           // Meeting not in active list, likely a past meeting
           setRouteMeetingStatus('COMPLETE')
@@ -151,7 +167,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         }
 
         const api = await buildApiClient()
-        const { data } = await api.GET('/meetings/{meetingId}', { params: { path: { meetingId: currentMeetingId } } })
+        const { data } = await api.GET('/meetings/{meetingId}', {
+          params: { path: { meetingId: currentMeetingId } },
+        })
         if (active) {
           const status = (data && (data as { status?: string }).status) || null
           setRouteMeetingStatus(status)
@@ -171,9 +189,12 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     }
   }, [currentMeetingId, meetings])
 
-
   // Use the current client's ticker for dashboard path, fallback to '/' if no client
   const dashboardPath = useMemo(() => {
+    // PARENT_CLIENT/SOLICITOR users go to events overview
+    if (isMultiClientUser) {
+      return '/events'
+    }
     if (currentClient?.ticker) {
       const activeMeeting = meetings.find(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
@@ -183,7 +204,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       }
     }
     return '/'
-  }, [currentClient, meetings])
+  }, [currentClient, meetings, isMultiClientUser])
 
   // Extract ticker once per render - memoize regex execution
   const urlTicker = useMemo(() => {
@@ -207,9 +228,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         href: `${tickerPrefix}/past-meetings`,
       },
       { label: 'Reporting', value: 'reporting', href: `${tickerPrefix}/reporting` },
-      { label: 'File Transfer', value: 'secure-file-transfer', href: `${tickerPrefix}/secure-file-transfer` },
-      { label: 'Education', value: 'education', href: '/education' },
-      { label: 'Products', value: 'products', href: '/products' },
+      {
+        label: 'File Transfer',
+        value: 'secure-file-transfer',
+        href: `${tickerPrefix}/secure-file-transfer`,
+      },
     ]
   }, [dashboardPath, urlTicker, currentClient?.ticker])
 
@@ -217,6 +240,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Check for specific page routes that don't have tabs first
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return null
     if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
+
+    // Events overview page for PARENT_CLIENT/SOLICITOR
+    if (pathname === '/events') return 'meeting'
 
     // Check if we're on a past-meeting route (singular - viewing a specific past meeting)
     if (PAST_MEETING_REGEX.test(pathname)) return 'past-meetings'
@@ -229,9 +255,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     if (MEETING_REPORTS_REGEX.test(pathname)) return 'meeting'
     if (REPORTING_REGEX.test(pathname)) return 'reporting'
     if (SECURE_FILE_TRANSFER_REGEX.test(pathname)) return 'secure-file-transfer'
-    if (pathname === '/education' || pathname.startsWith('/education/'))
-      return 'education'
-    if (pathname === '/products' || pathname.startsWith('/products/')) return 'products'
 
     // For active meeting routes
     if (
@@ -257,16 +280,29 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     const meeting = meetings.find((m) => m.id === currentMeetingId)
     const raw = meeting?.status ?? routeMeetingStatus
     const normalized = typeof raw === 'string' ? raw.toUpperCase() : raw
-    return (normalized === 'ACTIVE' || normalized === 'COMPLETE' || normalized === 'ADJOURNED')
-      ? (normalized)
+    return normalized === 'ACTIVE' ||
+      normalized === 'COMPLETE' ||
+      normalized === 'ADJOURNED'
+      ? normalized
       : null
   }, [currentMeetingId, meetings, routeMeetingStatus, pathname])
 
   const meetingDateRaw = useMemo(() => {
     if (!currentMeetingId) return null
-    const meeting = meetings.find((m) => m.id === currentMeetingId) as { meetingDate?: string } | undefined
-    return meeting?.meetingDate ?? meetingContext?.currentMeeting?.meetingDate ?? routeMeetingDate
-  }, [currentMeetingId, meetings, meetingContext?.currentMeeting?.meetingDate, routeMeetingDate])
+    const meeting = meetings.find((m) => m.id === currentMeetingId) as
+      | { meetingDate?: string }
+      | undefined
+    return (
+      meeting?.meetingDate ??
+      meetingContext?.currentMeeting?.meetingDate ??
+      routeMeetingDate
+    )
+  }, [
+    currentMeetingId,
+    meetings,
+    meetingContext?.currentMeeting?.meetingDate,
+    routeMeetingDate,
+  ])
 
   const meetingDateLabel = useMemo(() => {
     return meetingDateRaw ? formatMeetingDate(meetingDateRaw) : null
@@ -300,10 +336,20 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   }, []) // localStorage access is safe with window check, no dependencies needed
 
   // Determine logo source - memoize expensive logo computation
-  const logoTicker = useMemo(
-    () => urlTicker || currentClient?.ticker || storedClient?.ticker,
-    [urlTicker, currentClient?.ticker, storedClient?.ticker]
-  )
+  const logoTicker = useMemo(() => {
+    // For PARENT_CLIENT/SOLICITOR users on /events, use their brand ticker
+    if (isMultiClientUser && !urlTicker) {
+      return userType ? (userTypeBrandTicker[userType] ?? null) : null
+    }
+    return urlTicker || currentClient?.ticker || storedClient?.ticker
+  }, [
+    urlTicker,
+    currentClient?.ticker,
+    storedClient?.ticker,
+    isMultiClientUser,
+    userType,
+    userTypeBrandTicker,
+  ])
 
   const logoSrc = useMemo(() => {
     // If we have a custom logoSrc prop, use it immediately
@@ -312,9 +358,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // Determine the appropriate logo directly - no hydration checks needed
     return logoTicker
       ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
+          currentClient?.company_name || currentClient?.short_name,
+          logoTicker
+        )
       : '/images/logo.svg'
   }, [
     props.logoSrc,
@@ -350,11 +396,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
     const initials = props.user.name
       ? props.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2) // Take only first 2 initials like EditAvatarButton
       : props.user.username?.substring(0, 2).toUpperCase() || 'U'
 
     // Use uploaded image if available, otherwise show initials
@@ -404,7 +450,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       // NextAuth v5 beta requires CSRF token for signout
       // Get CSRF token first
       const csrfResponse = await fetch('/api/auth/csrf')
-      const { csrfToken } = await csrfResponse.json() as { csrfToken: string }
+      const { csrfToken } = (await csrfResponse.json()) as { csrfToken: string }
 
       // Then call signout with CSRF token
       await fetch('/api/auth/signout', {
@@ -455,24 +501,42 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   )
 
   // Intercept all clicks on the AppBar to prevent default navigation
-  const handleWrapperClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement
+  const handleWrapperClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement
 
-    // Find the closest anchor tag
-    const anchor = target.closest('a')
-    const href = anchor?.getAttribute('href')
-    // Only intercept internal navigation (not external links)
-    if (href?.startsWith('/')) {
-      event.preventDefault()
-      event.stopPropagation()
-      router.push(href)
-    }
-  }, [router])
+      // Find the closest anchor tag
+      const anchor = target.closest('a')
+      const href = anchor?.getAttribute('href')
+      // Only intercept internal navigation (not external links)
+      if (href?.startsWith('/')) {
+        event.preventDefault()
+        event.stopPropagation()
+        router.push(href)
+      }
+    },
+    [router]
+  )
+
+  // CSM logo component wrapper that renders BNLogo instead of a client image
+  const CSMLogoComponent = useMemo(() => {
+    if (!isCSM) return null
+    const CSMLogo = () => (
+      <Box sx={{ display: 'flex', alignItems: 'center', height: 44 }}>
+        <BNLogo height={28} color="white" />
+      </Box>
+    )
+    CSMLogo.displayName = 'CSMLogo'
+    return CSMLogo
+  }, [isCSM])
 
   // Prepare props object
   const appBarProps = {
-    slots: { logoImg: NextImageComponent, end: endSlot },
-    slotProps,
+    slots: {
+      logoImg: isCSM && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
+      end: endSlot,
+    },
+    slotProps: isCSM ? undefined : slotProps,
     color: 'secondary' as const,
     tabs: shouldHideTabs ? [] : exampleTabs,
     avatar,
@@ -489,12 +553,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   return (
     <Box onClick={handleWrapperClick}>
-      <BNAppBar {...appBarProps} >
+      <BNAppBar {...appBarProps}>
         {props.appSwitcher && (
-          <Box
-            aria-label="Client and Application Switcher"
-            role="complementary"
-          >
+          <Box aria-label="Client and Application Switcher" role="complementary">
             <ClientAppSwitcher currentAppTitle="Issuer Portal" />
           </Box>
         )}
@@ -503,7 +564,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         <Box
           sx={{
             paddingInline: 3,
-            paddingBlock: .5,
+            paddingBlock: 0.5,
             borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
             backgroundColor: (theme) =>
               !meetingStatus || meetingStatus === 'ACTIVE'
@@ -514,17 +575,21 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
             transition: 'background-color 120ms ease',
           }}
         >
-          <Typography variant="body3" fontWeight={500} sx={{
-            color: (theme) =>
-              !meetingStatus || meetingStatus === 'ACTIVE'
-                ? 'text.primary'
-                : meetingStatus === 'COMPLETE'
-                  ? theme.vars.palette.warning.contrastText
-                  : theme.vars.palette.warning.contrastText,
-          }}>
+          <Typography
+            variant="body3"
+            fontWeight={500}
+            sx={{
+              color: (theme) =>
+                !meetingStatus || meetingStatus === 'ACTIVE'
+                  ? 'text.primary'
+                  : meetingStatus === 'COMPLETE'
+                    ? theme.vars.palette.warning.contrastText
+                    : theme.vars.palette.warning.contrastText,
+            }}
+          >
             {meetingStatus === 'COMPLETE' && meetingDateLabel
               ? `You are viewing a past meeting from ${meetingDateLabel}.`
-              : (!meetingStatus || meetingStatus === 'ACTIVE')
+              : !meetingStatus || meetingStatus === 'ACTIVE'
                 ? 'You are viewing an active meeting.'
                 : 'You are viewing a meeting with unknown status.'}
           </Typography>
