@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { LinearProgress } from '@mui/material'
@@ -9,14 +9,16 @@ import { LinearProgress } from '@mui/material'
 export default function PastMeetingPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
 
   useEffect(() => {
     // Redirect to tabulation for past meetings
-    const targetPath = `/${clientTicker}/past-meeting/${meetingId}/tabulation`
+    const search = searchParams.toString()
+    const targetPath = `/${clientTicker}/past-meeting/${meetingId}/tabulation${search ? `?${search}` : ''}`
     router.replace(targetPath)
-  }, [clientTicker, meetingId, router])
+  }, [clientTicker, meetingId, router, searchParams])
 
   return <LinearProgress />
 }

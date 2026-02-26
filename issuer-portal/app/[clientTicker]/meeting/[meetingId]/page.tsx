@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { LinearProgress } from '@mui/material'
@@ -9,14 +9,16 @@ import { LinearProgress } from '@mui/material'
 export default function MeetingPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
 
   useEffect(() => {
     // Redirect to dashboard which will then redirect to the active phase
-    const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard`
+    const search = searchParams.toString()
+    const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard${search ? `?${search}` : ''}`
     router.replace(targetPath)
-  }, [clientTicker, meetingId, router])
+  }, [clientTicker, meetingId, router, searchParams])
 
   return <LinearProgress />
 }

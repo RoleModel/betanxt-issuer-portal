@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { Box, Typography } from '@mui/material'
@@ -11,6 +11,7 @@ import { useMeeting } from '@/contexts/MeetingContext'
 export default function MeetingDashboardPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
   const { error, currentMeeting: meeting, isLoading } = useMeeting()
@@ -43,10 +44,11 @@ export default function MeetingDashboardPage() {
     if (meeting?.id === meetingId && meeting?.currentPhase) {
       // Use the meeting's current phase instead of looking for active phase in phases array
       const currentPhase = parsePhaseNumber(meeting.currentPhase)
-      const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}`
+      const search = searchParams.toString()
+      const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}${search ? `?${search}` : ''}`
       router.replace(targetPath)
     }
-  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId, isLoading])
+  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId, isLoading, searchParams])
 
   if (error) {
     return (
