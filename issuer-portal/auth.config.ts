@@ -138,26 +138,9 @@ export default {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ request, auth }) {
-      const { nextUrl } = request
-      const isAuthenticated = !!auth?.user
-
-      // Allow access to login page
-      if (nextUrl.pathname.includes('/login')) {
-        return true
-      }
-
-      // Require authentication for all other pages
-      if (!isAuthenticated) {
-        return false
-      }
-
-      // Check admin routes
-      if (nextUrl.pathname.startsWith('/user')) {
-        const roles = Array.isArray(auth?.user?.roles) ? auth.user.roles : []
-        return roles.includes('ADMIN')
-      }
-
+    authorized() {
+      // Auth redirects are handled server-side by proxy.ts (cookie check).
+      // Always return true here to avoid double-redirect conflicts.
       return true
     },
     async jwt({ token, user, trigger, session: updateData }) {
