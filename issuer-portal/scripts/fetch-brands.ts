@@ -16,7 +16,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { parentClientEvents, solicitorEvents } from '../utils/eventData'
+import { brandConfigs } from '../utils/brandConfig'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,9 +34,8 @@ if (!API_KEY) {
 const LOGOS_DIR = path.resolve(__dirname, '../public/logos/brands')
 const CONFIG_PATH = path.resolve(__dirname, '../utils/brandConfig.ts')
 
-// Deduplicate company names
-const allEvents = [...parentClientEvents, ...solicitorEvents]
-const uniqueCompanies = [...new Set(allEvents.map((e) => e.event))]
+// Get all company names from brandConfig
+const uniqueCompanies = Object.keys(brandConfigs)
 
 // Known domain mappings for companies that are hard to search
 const KNOWN_DOMAINS: Record<string, string> = {

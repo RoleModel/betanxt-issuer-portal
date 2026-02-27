@@ -2,7 +2,7 @@
 
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import type React from 'react'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
@@ -13,9 +13,10 @@ import buildApiClient from '@/domain-models/apiClient'
 import { useClient } from '@/contexts/ClientContext'
 import MeetingContext from '@/contexts/MeetingContext'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { getBrandLogoPath } from '@/utils/brandConfig'
+import { useClients } from '@/hooks/useClients'
+import { useEvents } from '@/hooks/useEvents'
+import { getBrandConfigByTicker, getBrandLogoPath } from '@/utils/brandConfig'
 import { computeClientLogoSrc } from '@/utils/clientBranding'
-import { parentClientEvents, solicitorEvents } from '@/utils/eventData'
 import { formatMeetingDate } from '@/utils/meetingUtils'
 
 // --- Hoisted regex constants ---
@@ -90,10 +91,10 @@ interface UseAppBarResult {
 export function useAppBar(params: UseAppBarParams): UseAppBarResult {
   const pathname = usePathname()
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   // --- Context ---
   const { currentClient, availableClients } = useClient()
+  const { clients } = useClients()
   const { data: session, status: sessionStatus } = useSession()
   const { mode, setMode } = useColorScheme()
   const meetingContext = useMeetingSafe()
@@ -215,13 +216,46 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
   }, [meetingDateRaw])
 
   // --- Navigation ---
+  const { events } = useEvents()
+
   const urlTicker = useMemo(() => {
     const match = TICKER_PREFIX_REGEX.exec(pathname)
     return match ? match[1] : null
   }, [pathname])
 
+  // A "real client context" means the URL has a ticker that is NOT the brand's own ticker.
+  // e.g. /ETWO/meeting/... → true; /DFIN/secure-file-transfer → false; /events → false
+  const brandTicker = isMultiClientUser && userType ? USER_TYPE_BRAND_TICKER[userType] : null
+  const isInClientContext = Boolean(urlTicker) && urlTicker !== brandTicker
+
+  // Resolve the meeting dashboard path for the active/viewed client.
+  // When on a meeting URL we use that meeting ID directly; otherwise we look up the
+  // most recent active meeting from the events list for the current URL ticker.
+  const clientMeetingPath = useMemo(() => {
+    if (!isInClientContext || !urlTicker) return null
+
+    if (currentMeetingId) {
+      const routePrefix = PAST_MEETING_REGEX.test(pathname) ? 'past-meeting' : 'meeting'
+      return `/${urlTicker}/${routePrefix}/${currentMeetingId}/dashboard`
+    }
+
+    const clientEvent = [...events]
+      .filter((e) => e.clientTicker === urlTicker)
+      .sort((a, b) => {
+        if (a.meetingStatus === 'ACTIVE' && b.meetingStatus !== 'ACTIVE') return -1
+        if (a.meetingStatus !== 'ACTIVE' && b.meetingStatus === 'ACTIVE') return 1
+        return b.eventDate.localeCompare(a.eventDate)
+      })[0]
+
+    if (!clientEvent) return null
+    const routePrefix = clientEvent.meetingStatus === 'ACTIVE' ? 'meeting' : 'past-meeting'
+    return `/${urlTicker}/${routePrefix}/${clientEvent.meetingId}/dashboard`
+  }, [isInClientContext, urlTicker, currentMeetingId, pathname, events])
+
   const dashboardPath = useMemo(() => {
-    if (isMultiClientUser) return '/events'
+    if (isMultiClientUser) {
+      return isInClientContext && clientMeetingPath ? clientMeetingPath : '/events'
+    }
     if (currentClient?.ticker) {
       const activeMeeting = meetings.find(
         (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
@@ -231,32 +265,58 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
       }
     }
     return '/'
-  }, [currentClient, meetings, isMultiClientUser])
+  }, [currentClient, meetings, isMultiClientUser, isInClientContext, clientMeetingPath])
 
   const tabs = useMemo(() => {
     const navTicker =
       urlTicker || currentClient?.ticker || availableClients[0]?.ticker || 'WEN'
     const tickerPrefix = `/${navTicker}`
-    return [
-      { label: 'Dashboard', value: 'meeting', href: dashboardPath },
-      {
-        label: 'Past Meetings',
-        value: 'past-meetings',
-        href: `${tickerPrefix}/past-meetings`,
-      },
-      { label: 'Reporting', value: 'reporting', href: `${tickerPrefix}/reporting` },
-      {
-        label: 'File Transfer',
-        value: 'secure-file-transfer',
-        href: `${tickerPrefix}/secure-file-transfer`,
-      },
-    ]
-  }, [dashboardPath, urlTicker, currentClient?.ticker, availableClients])
+
+    const fileTransferTicker =
+      isMultiClientUser && userType && !isInClientContext
+        ? (USER_TYPE_BRAND_TICKER[userType] ?? navTicker)
+        : navTicker
+    const fileTransferHref = `/${fileTransferTicker}/secure-file-transfer`
+
+    const eventsTab = { label: 'Events', value: 'events', href: '/events' }
+    const dashboardTab = { label: 'Dashboard', value: 'meeting', href: dashboardPath }
+    const pastMeetingsTab = {
+      label: 'Past Meetings',
+      value: 'past-meetings',
+      href: `${tickerPrefix}/past-meetings`,
+    }
+    const reportingTab = {
+      label: 'Reporting',
+      value: 'reporting',
+      href: `${tickerPrefix}/reporting`,
+    }
+    const fileTransferTab = {
+      label: 'File Transfer',
+      value: 'secure-file-transfer',
+      href: fileTransferHref,
+    }
+
+    // Multi-client (PARENT_CLIENT / SOLICITOR / CSM) users always see Events tab.
+    // Dashboard + client tabs only appear once inside a specific client context.
+    if (isMultiClientUser) {
+      if (isInClientContext) {
+        return [eventsTab, dashboardTab, pastMeetingsTab, reportingTab, fileTransferTab]
+      }
+      return [eventsTab, fileTransferTab]
+    }
+
+    // Single-client users: no Events tab, full client tabs when a ticker is in the URL.
+    if (!urlTicker) {
+      return [dashboardTab, fileTransferTab]
+    }
+
+    return [dashboardTab, pastMeetingsTab, reportingTab, fileTransferTab]
+  }, [dashboardPath, urlTicker, currentClient?.ticker, availableClients, isMultiClientUser, userType, isInClientContext])
 
   const currentTab = useMemo(() => {
     if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return ''
-    if (pathname === '/events') return 'meeting'
+    if (pathname === '/events') return 'events'
     if (PAST_MEETING_REGEX.test(pathname)) return 'past-meetings'
     if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
       return 'past-meetings'
@@ -320,30 +380,16 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     }
   }, [])
 
-  const issuerParam = searchParams.get('issuer')
-  const issuerName = issuerParam ? decodeURIComponent(issuerParam) : null
-
-  const matchedEventName = useMemo(() => {
-    if (!isMultiClientUser || !urlTicker) return null
-    const meetingMatch = /\/([^/]+)\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
-    if (!meetingMatch) return null
-    const [, ticker, meetingId] = meetingMatch
-    const events =
-      userType === 'PARENT_CLIENT'
-        ? parentClientEvents
-        : userType === 'SOLICITOR'
-          ? solicitorEvents
-          : []
-    const event = events.find(
-      (e) => e.clientTicker === ticker && e.meetingId === meetingId
-    )
-    return event?.event ?? null
-  }, [isMultiClientUser, urlTicker, pathname, userType])
+  // Look up the company name for the URL ticker from the clients list
+  const urlClientCompanyName = useMemo(() => {
+    if (!urlTicker) return null
+    const client = clients.find((c) => c.ticker === urlTicker)
+    return client?.company_name ?? client?.name ?? null
+  }, [urlTicker, clients])
 
   const logoTicker = useMemo(() => {
     if (isMultiClientUser) {
-      if (matchedEventName) return null
-      // On pages with a client ticker in the URL (e.g. /WEN/past-meetings), use that client's logo
+      // On pages with a client ticker in the URL (e.g. /JPMR/past-meetings), use that client's logo
       if (urlTicker) return urlTicker
       // Fallback to brand logo only on truly top-level pages like /events or /profile
       return userType ? (USER_TYPE_BRAND_TICKER[userType] ?? null) : null
@@ -354,15 +400,33 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     currentClient?.ticker,
     storedClient?.ticker,
     isMultiClientUser,
-    matchedEventName,
     userType,
   ])
 
   const logoSrc = useMemo(() => {
     if (params.logoSrc) return params.logoSrc
     if (sessionStatus === 'loading') return null
-    if (issuerName) return getBrandLogoPath(issuerName)
-    if (matchedEventName) return getBrandLogoPath(matchedEventName)
+
+    // Ticker-based lookup is most reliable — not affected by company name typos/mismatches
+    if (logoTicker) {
+      const brandByTicker = getBrandConfigByTicker(logoTicker)
+      if (brandByTicker?.logoPath) return brandByTicker.logoPath
+    }
+
+    // Fall back to company name lookup (for companies not yet in brandConfigsByTicker)
+    if (urlClientCompanyName) {
+      const brandLogo = getBrandLogoPath(urlClientCompanyName, '')
+      if (brandLogo) return brandLogo
+    }
+
+    // Final fallback for multi-client users: show the brand (DFIN / MRSO) logo rather than
+    // generating a ticker-based path that won't exist for most new clients.
+    if (isMultiClientUser && userType) {
+      const brandTicker = USER_TYPE_BRAND_TICKER[userType]
+      if (brandTicker) return getClientLogo(undefined, brandTicker)
+    }
+
+    // Single-client ISSUER users: try the ticker-based file (WEN, PAYC, WWD, ELVN have these).
     return logoTicker
       ? getClientLogo(
           currentClient?.company_name || currentClient?.short_name,
@@ -372,8 +436,7 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
   }, [
     params.logoSrc,
     sessionStatus,
-    issuerName,
-    matchedEventName,
+    urlClientCompanyName,
     logoTicker,
     getClientLogo,
     currentClient?.company_name,
@@ -385,7 +448,7 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     return {
       logoImg: {
         src: logoSrc,
-        alt: `${issuerName ?? logoTicker ?? 'BetaNXT'} logo`,
+        alt: `${urlClientCompanyName ?? logoTicker ?? 'BetaNXT'} logo`,
         width: 'auto',
         height: 44,
         style: {
@@ -397,7 +460,7 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
         },
       },
     }
-  }, [logoSrc, logoTicker, issuerName])
+  }, [logoSrc, logoTicker, urlClientCompanyName])
 
   // --- Avatar ---
   const avatar = useMemo(() => {

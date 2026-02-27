@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { copycat } from '@snaplet/copycat'
+import { existsSync } from 'fs'
 import { DateTime } from 'luxon'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -672,123 +673,177 @@ const main = async () => {
     voteStatusSummary: VoteStatusSummary | null
   } | null = null
 
+  const csvFileExists = (relativePath: string): boolean =>
+    existsSync(path.join(__dirname, relativePath))
+
   try {
-    // Load Wendy's data if available
-    if (seedConfig.csvFiles.wendysMeetingInfo) {
+    // Load Wendy's data if available and all required files exist
+    const wendysMeetingFile = seedConfig.csvFiles.wendysMeetingInfo
+    const wendysProposalsFile = seedConfig.csvFiles.wendysProposals
+    const wendysPositionsFile = seedConfig.csvFiles.wendysPositions
+    if (
+      wendysMeetingFile &&
+      wendysProposalsFile &&
+      wendysPositionsFile &&
+      csvFileExists(wendysMeetingFile) &&
+      csvFileExists(wendysProposalsFile) &&
+      csvFileExists(wendysPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.wendysMeetingInfo)
+        path.join(__dirname, wendysMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.wendysProposals)
+        path.join(__dirname, wendysProposalsFile)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.wendysPositions),
+        path.join(__dirname, wendysPositionsFile),
         '95058W100',
-        65000 // Load all Wendy's positions
+        65000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.wendysDTC && seedConfig.csvFiles.wendysNonDTC) {
+      const dtcFile = seedConfig.csvFiles.wendysDTC
+      const nonDtcFile = seedConfig.csvFiles.wendysNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.wendysDTC),
-          path.join(__dirname, seedConfig.csvFiles.wendysNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       wendysData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Wendy's CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Enliven data if available
-    if (seedConfig.csvFiles.enlivenMeetingInfo) {
+    // Load Enliven data if available and all required files exist
+    const enlivenMeetingFile = seedConfig.csvFiles.enlivenMeetingInfo
+    const enlivenProposalsFile = seedConfig.csvFiles.enlivenProposals
+    const enlivenPositionsFile = seedConfig.csvFiles.enlivenPositions
+    if (
+      enlivenMeetingFile &&
+      enlivenProposalsFile &&
+      enlivenPositionsFile &&
+      csvFileExists(enlivenMeetingFile) &&
+      csvFileExists(enlivenProposalsFile) &&
+      csvFileExists(enlivenPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.enlivenMeetingInfo)
+        path.join(__dirname, enlivenMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.enlivenProposals)
+        path.join(__dirname, enlivenProposalsFile)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.enlivenPositions),
+        path.join(__dirname, enlivenPositionsFile),
         '29337E102',
-        5000 // Load all Enliven positions
+        5000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.enlivenDTC && seedConfig.csvFiles.enlivenNonDTC) {
+      const dtcFile = seedConfig.csvFiles.enlivenDTC
+      const nonDtcFile = seedConfig.csvFiles.enlivenNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.enlivenDTC),
-          path.join(__dirname, seedConfig.csvFiles.enlivenNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       enlivenData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Enliven CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Paycom data if available
-    if (seedConfig.csvFiles.paycomMeetingInfo) {
+    // Load Paycom data if available and all required files exist
+    const paycomMeetingFile = seedConfig.csvFiles.paycomMeetingInfo
+    const paycomProposalsFile = seedConfig.csvFiles.paycomProposals
+    const paycomPositionsFile = seedConfig.csvFiles.paycomPositions
+    if (
+      paycomMeetingFile &&
+      paycomProposalsFile &&
+      paycomPositionsFile &&
+      csvFileExists(paycomMeetingFile) &&
+      csvFileExists(paycomProposalsFile) &&
+      csvFileExists(paycomPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.paycomMeetingInfo)
+        path.join(__dirname, paycomMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.paycomProposals)
+        path.join(__dirname, paycomProposalsFile)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.paycomPositions),
+        path.join(__dirname, paycomPositionsFile),
         '70432V102',
-        100000 // Load all Paycom positions
+        100000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.paycomDTC && seedConfig.csvFiles.paycomNonDTC) {
+      const dtcFile = seedConfig.csvFiles.paycomDTC
+      const nonDtcFile = seedConfig.csvFiles.paycomNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.paycomDTC),
-          path.join(__dirname, seedConfig.csvFiles.paycomNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       paycomData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Paycom CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Woodward data if available
-    if (seedConfig.csvFiles.woodwardMeetingInfo) {
+    // Load Woodward data if available and all required files exist
+    const woodwardMeetingFile = seedConfig.csvFiles.woodwardMeetingInfo
+    const woodwardPositionsFile = seedConfig.csvFiles.woodwardPositions
+    if (
+      woodwardMeetingFile &&
+      woodwardPositionsFile &&
+      csvFileExists(woodwardMeetingFile) &&
+      csvFileExists(woodwardPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.woodwardMeetingInfo)
+        path.join(__dirname, woodwardMeetingFile)
       )
-      const proposals = seedConfig.csvFiles.woodwardProposals
-        ? await CSVProcessor.processCompanyProposals(
-            path.join(__dirname, seedConfig.csvFiles.woodwardProposals)
-          )
-        : []
+      const woodwardProposalsFile = seedConfig.csvFiles.woodwardProposals
+      const proposals =
+        woodwardProposalsFile && csvFileExists(woodwardProposalsFile)
+          ? await CSVProcessor.processCompanyProposals(
+              path.join(__dirname, woodwardProposalsFile)
+            )
+          : []
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.woodwardPositions),
+        path.join(__dirname, woodwardPositionsFile),
         '980745103',
-        100000 // Load all Woodward positions
+        100000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.woodwardDTC && seedConfig.csvFiles.woodwardNonDTC) {
+      const dtcFile = seedConfig.csvFiles.woodwardDTC
+      const nonDtcFile = seedConfig.csvFiles.woodwardNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.woodwardDTC),
-          path.join(__dirname, seedConfig.csvFiles.woodwardNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       woodwardData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Woodward CSV data (files not found) — using synthetic data`)
     }
   } catch (error) {
     console.error('Error loading company CSV data:', error)
@@ -961,19 +1016,121 @@ const main = async () => {
   const meetingPhaseMap: Record<string, number> = {}
 
   // Real 2025 Annual Meeting data from CSV files
-  const real2025Meetings = {
+  const real2025Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
     WEN: { meetingDate: '2025-05-21', recordDate: '2025-03-24' },
     PAYC: { meetingDate: '2025-05-05', recordDate: '2025-03-12' },
     WWD: { meetingDate: '2025-01-29', recordDate: '2024-12-02' },
     ELVN: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
+    JPMR: { meetingDate: '2025-04-15', recordDate: '2025-02-14' },
+    WAL: { meetingDate: '2025-04-17', recordDate: '2025-02-16' },
+    ILG: { meetingDate: '2025-04-22', recordDate: '2025-02-21' },
+    PHX: { meetingDate: '2025-04-24', recordDate: '2025-02-23' },
+    ETWO: { meetingDate: '2025-04-29', recordDate: '2025-02-28' },
+    ARTV: { meetingDate: '2025-04-30', recordDate: '2025-03-01' },
+    BCSF: { meetingDate: '2025-05-06', recordDate: '2025-03-07' },
+    FREQ: { meetingDate: '2025-05-07', recordDate: '2025-03-08' },
+    TBIO: { meetingDate: '2025-05-08', recordDate: '2025-03-09' },
+    CHH: { meetingDate: '2025-05-13', recordDate: '2025-03-14' },
+    AMTB: { meetingDate: '2025-05-14', recordDate: '2025-03-15' },
+    AMAM: { meetingDate: '2025-05-15', recordDate: '2025-03-16' },
+    STTK: { meetingDate: '2025-05-19', recordDate: '2025-03-20' },
+    HLVX: { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    MDLZ: { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    INAB: { meetingDate: '2025-05-21', recordDate: '2025-03-22' },
+    QRHC: { meetingDate: '2025-05-22', recordDate: '2025-03-23' },
+    SLGC: { meetingDate: '2025-05-27', recordDate: '2025-03-28' },
+    ICU: { meetingDate: '2025-05-28', recordDate: '2025-03-29' },
+    NOMD: { meetingDate: '2025-05-28', recordDate: '2025-03-29' },
+    BBIO: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    SONM: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    CTNM: { meetingDate: '2025-06-04', recordDate: '2025-04-05' },
+    AZTR: { meetingDate: '2025-06-04', recordDate: '2025-04-05' },
+    FULC: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    PTLO: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    LAC: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
+    LCTX: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
+    CALC: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    PCOR: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    SPRY: { meetingDate: '2025-06-12', recordDate: '2025-04-13' },
+    INZY: { meetingDate: '2025-06-12', recordDate: '2025-04-13' },
+    AFRM: { meetingDate: '2025-06-17', recordDate: '2025-04-18' },
+    TOI: { meetingDate: '2025-06-17', recordDate: '2025-04-18' },
+    GOSS: { meetingDate: '2025-06-18', recordDate: '2025-04-19' },
+    ALGS: { meetingDate: '2025-06-19', recordDate: '2025-04-20' },
+    ERAS: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
+    IDYA: { meetingDate: '2025-06-25', recordDate: '2025-04-26' },
+    CD: { meetingDate: '2025-06-26', recordDate: '2025-04-27' },
+    ENRS: { meetingDate: '2025-04-22', recordDate: '2025-02-21' },
+    EHAB: { meetingDate: '2025-05-08', recordDate: '2025-03-09' },
+    VANI: { meetingDate: '2025-05-15', recordDate: '2025-03-16' },
+    MDGL: { meetingDate: '2025-05-22', recordDate: '2025-03-23' },
+    CBNA: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    INTT: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    DFIN: { meetingDate: '2025-04-24', recordDate: '2025-02-23' },
+    VAPO: { meetingDate: '2025-05-01', recordDate: '2025-03-02' },
+    SQZ:  { meetingDate: '2025-05-13', recordDate: '2025-03-14' },
+    NEX:  { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    MNMD: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    ADPT: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
   }
 
-  // 2026 Annual Meeting dates (mid-April to mid-June 2026 for realistic planning timeline)
-  const real2026Meetings = {
+  // 2026 Annual Meeting dates (mid-April to late-June 2026 for realistic planning timeline)
+  const real2026Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
     WEN: { meetingDate: '2026-05-20', recordDate: '2026-03-23' },
     PAYC: { meetingDate: '2026-05-04', recordDate: '2026-03-11' },
     WWD: { meetingDate: '2026-04-15', recordDate: '2026-02-16' },
     ELVN: { meetingDate: '2026-06-10', recordDate: '2026-04-13' },
+    JPMR: { meetingDate: '2026-04-14', recordDate: '2026-02-13' },
+    WAL: { meetingDate: '2026-04-16', recordDate: '2026-02-15' },
+    ILG: { meetingDate: '2026-04-21', recordDate: '2026-02-20' },
+    PHX: { meetingDate: '2026-04-23', recordDate: '2026-02-22' },
+    ETWO: { meetingDate: '2026-04-28', recordDate: '2026-02-27' },
+    ARTV: { meetingDate: '2026-04-29', recordDate: '2026-02-28' },
+    BCSF: { meetingDate: '2026-05-05', recordDate: '2026-03-06' },
+    FREQ: { meetingDate: '2026-05-06', recordDate: '2026-03-07' },
+    TBIO: { meetingDate: '2026-05-07', recordDate: '2026-03-08' },
+    CHH: { meetingDate: '2026-05-12', recordDate: '2026-03-13' },
+    AMTB: { meetingDate: '2026-05-13', recordDate: '2026-03-14' },
+    AMAM: { meetingDate: '2026-05-14', recordDate: '2026-03-15' },
+    STTK: { meetingDate: '2026-05-18', recordDate: '2026-03-19' },
+    HLVX: { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    MDLZ: { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    INAB: { meetingDate: '2026-05-20', recordDate: '2026-03-21' },
+    QRHC: { meetingDate: '2026-05-21', recordDate: '2026-03-22' },
+    SLGC: { meetingDate: '2026-05-26', recordDate: '2026-03-27' },
+    ICU: { meetingDate: '2026-05-27', recordDate: '2026-03-28' },
+    NOMD: { meetingDate: '2026-05-27', recordDate: '2026-03-28' },
+    BBIO: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    SONM: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    CTNM: { meetingDate: '2026-06-03', recordDate: '2026-04-04' },
+    AZTR: { meetingDate: '2026-06-03', recordDate: '2026-04-04' },
+    FULC: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    PTLO: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    LAC: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
+    LCTX: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
+    CALC: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    PCOR: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    SPRY: { meetingDate: '2026-06-11', recordDate: '2026-04-12' },
+    INZY: { meetingDate: '2026-06-11', recordDate: '2026-04-12' },
+    AFRM: { meetingDate: '2026-06-16', recordDate: '2026-04-17' },
+    TOI: { meetingDate: '2026-06-16', recordDate: '2026-04-17' },
+    GOSS: { meetingDate: '2026-06-17', recordDate: '2026-04-18' },
+    ALGS: { meetingDate: '2026-06-18', recordDate: '2026-04-19' },
+    ERAS: { meetingDate: '2026-06-23', recordDate: '2026-04-24' },
+    IDYA: { meetingDate: '2026-06-24', recordDate: '2026-04-25' },
+    CD: { meetingDate: '2026-06-25', recordDate: '2026-04-26' },
+    ENRS: { meetingDate: '2026-04-21', recordDate: '2026-02-20' },
+    EHAB: { meetingDate: '2026-05-07', recordDate: '2026-03-08' },
+    VANI: { meetingDate: '2026-05-14', recordDate: '2026-03-15' },
+    MDGL: { meetingDate: '2026-05-21', recordDate: '2026-03-22' },
+    CBNA: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    INTT: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    DFIN: { meetingDate: '2026-04-23', recordDate: '2026-02-22' },
+    VAPO: { meetingDate: '2026-04-30', recordDate: '2026-03-01' },
+    SQZ:  { meetingDate: '2026-05-12', recordDate: '2026-03-13' },
+    NEX:  { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    MNMD: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    ADPT: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
   }
 
   // 2 meetings per year: Annual + Special for 2022-2026
@@ -1025,7 +1182,7 @@ const main = async () => {
           // Use real CSV-based dates for 2025 and 2026
           const realDataSource =
             yearConfig.year === 2026 ? real2026Meetings : real2025Meetings
-          const realData = realDataSource[client.ticker as keyof typeof realDataSource]
+          const realData = realDataSource[client.ticker]
 
           if (realData) {
             meetingDateTime = DateTime.fromISO(realData.meetingDate)

@@ -2,15 +2,16 @@
 
 import { BNAppSwitcher } from '@rolemodel/betanxt-design-system/components/BNAppSwitcher'
 import { useSession } from 'next-auth/react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import React, { Suspense, useMemo, useState } from 'react'
 
 import { ArrowDropDownOutlined } from '@mui/icons-material'
 import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
+import { useEvents } from '@/hooks/useEvents'
 import type { Client } from '@/hooks/useClients'
-import { type EventRow, parentClientEvents, solicitorEvents } from '@/utils/eventData'
+import type { EventRow } from '@/utils/eventData'
 
 /** Brand labels for multi-client user types when no event is selected */
 const USER_TYPE_BRAND_LABELS: Record<string, string> = {
@@ -31,38 +32,72 @@ interface ClientAppSwitcherProps {
 function EventSwitchButton({ userType }: { userType: string }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const open = Boolean(anchorEl)
+  const { events } = useEvents()
 
-  const issuerParam = searchParams.get('issuer')
   const isOnEventsPage = pathname === '/events'
   const isOnMeetingPage = /\/[^/]+\/(?:past-)?meeting\//.test(pathname)
 
-  const events: EventRow[] = useMemo(() => {
-    if (userType === 'PARENT_CLIENT') return parentClientEvents
-    if (userType === 'SOLICITOR') return solicitorEvents
-    return []
-  }, [userType])
+  // Extract the ticker from the current URL (e.g. /BCSF/reporting → BCSF)
+  const urlTicker = useMemo(() => {
+    const match = /^\/([A-Z][^/]*)\//.exec(pathname)
+    return match ? match[1] : null
+  }, [pathname])
+
+  // Deduplicate to one entry per client — prefer the most recent ACTIVE meeting,
+  // then fall back to the most recent COMPLETE meeting.
+  const clientOptions = useMemo(() => {
+    const byTicker = new Map<string, EventRow>()
+
+    for (const row of events) {
+      const existing = byTicker.get(row.clientTicker)
+      if (!existing) {
+        byTicker.set(row.clientTicker, row)
+        continue
+      }
+      // Prefer ACTIVE over COMPLETE
+      if (existing.meetingStatus !== 'ACTIVE' && row.meetingStatus === 'ACTIVE') {
+        byTicker.set(row.clientTicker, row)
+        continue
+      }
+      if (existing.meetingStatus === row.meetingStatus) {
+        // Both same status — prefer the later date
+        if (row.eventDate > existing.eventDate) {
+          byTicker.set(row.clientTicker, row)
+        }
+      }
+    }
+
+    return [...byTicker.values()].sort((a, b) => a.event.localeCompare(b.event))
+  }, [events])
 
   // Try to match the current meeting from the URL path
   const currentEvent = useMemo(() => {
     if (!isOnMeetingPage) return null
     const match = /\/([^/]+)\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
     if (!match) return null
-    const [, urlTicker, urlMeetingId] = match
+    const [, matchedTicker, urlMeetingId] = match
     return (
-      events.find((e) => e.clientTicker === urlTicker && e.meetingId === urlMeetingId) ??
-      null
+      events.find(
+        (e) => e.clientTicker === matchedTicker && e.meetingId === urlMeetingId
+      ) ?? null
     )
   }, [isOnMeetingPage, pathname, events])
 
+  // The "current" client is whichever the URL is showing — either a specific meeting
+  // or a top-level client page like /BCSF/reporting or /BCSF/past-meetings.
+  const currentClientOption = useMemo(() => {
+    if (currentEvent) return currentEvent
+    if (!urlTicker) return null
+    return clientOptions.find((o) => o.clientTicker === urlTicker) ?? null
+  }, [currentEvent, urlTicker, clientOptions])
+
   // Determine display name and whether dropdown is active
   const displayName = useMemo(() => {
-    if (issuerParam) return decodeURIComponent(issuerParam)
-    if (currentEvent) return currentEvent.event
+    if (currentClientOption) return currentClientOption.event
     return USER_TYPE_BRAND_LABELS[userType] ?? 'Select Client'
-  }, [issuerParam, currentEvent, userType])
+  }, [currentClientOption, userType])
 
   // Dropdown is active on all pages except /events
   const hasDropdown = !isOnEventsPage
@@ -79,13 +114,29 @@ function EventSwitchButton({ userType }: { userType: string }) {
 
   const handleEventSelect = (row: EventRow) => {
     const routePrefix = row.meetingStatus === 'ACTIVE' ? 'meeting' : 'past-meeting'
-    const issuer = encodeURIComponent(row.event)
+    const meetingRoot = `/${row.clientTicker}/${routePrefix}/${row.meetingId}`
 
-    // Extract the current sub-page (e.g. /tabulation, /mailing, /dashboard/1)
-    const subPage = pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, '')
+    // Case 1: Currently on a meeting sub-page (/TICKER/(past-)meeting/ID/subpage).
+    // Preserve the sub-page for the new client's meeting.
+    const meetingMatch = /^\/[^/]+\/(?:past-)?meeting\/[^/]+(.*)$/.exec(pathname)
+    if (meetingMatch) {
+      const subPage = meetingMatch[1] ?? ''
+      router.push(`${meetingRoot}${subPage}`)
+      handleClose()
+      return
+    }
 
-    const url = `/${row.clientTicker}/${routePrefix}/${row.meetingId}${subPage}?issuer=${issuer}`
-    router.push(url)
+    // Case 2: Currently on a top-level client page (/TICKER/reporting, /TICKER/past-meetings, etc.).
+    // Navigate to the equivalent page for the new client so the user stays in context.
+    const topLevelMatch = /^\/[A-Z][^/]*\/([^/]+)$/.exec(pathname)
+    if (topLevelMatch) {
+      router.push(`/${row.clientTicker}/${topLevelMatch[1]}`)
+      handleClose()
+      return
+    }
+
+    // Default: navigate to the meeting dashboard for the selected client.
+    router.push(meetingRoot)
     handleClose()
   }
 
@@ -139,11 +190,11 @@ function EventSwitchButton({ userType }: { userType: string }) {
           },
         }}
       >
-        {events.map((row) => (
+        {clientOptions.map((row) => (
           <MenuItem
-            key={row.id}
+            key={row.clientTicker}
             onClick={() => handleEventSelect(row)}
-            selected={row.event === displayName}
+            selected={row.clientTicker === currentClientOption?.clientTicker}
             sx={{
               '&:hover': {
                 backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,

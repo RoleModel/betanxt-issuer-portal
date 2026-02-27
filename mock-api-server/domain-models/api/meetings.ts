@@ -93,7 +93,7 @@ export async function listMeetings(
   ApiResponse<{ meetings?: Meeting[]; pagination?: components['schemas']['Pagination'] }>
 > {
   try {
-    let query = supabase.from('meeting').select('*')
+    let query = supabase.from('meeting').select('*', { count: 'exact' })
 
     // Apply filters
     if (filters?.clientId) {
@@ -121,7 +121,7 @@ export async function listMeetings(
       query = query.range(from, to)
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
 
     if (error) {
       return {
@@ -129,14 +129,37 @@ export async function listMeetings(
       }
     }
 
-    const meetings = (data ?? []).map(transformMeeting)
+    const rows = data ?? []
+
+    // Fetch client data for all unique client_ids and attach manually.
+    // A direct FK join is not available because the schema has no FK constraints.
+    const uniqueClientIds = [...new Set(rows.map((r) => r.client_id).filter(Boolean))]
+    const clientMap = new Map<string, { id: string; ticker: string | null; company_name: string | null; short_name: string | null }>()
+
+    if (uniqueClientIds.length > 0) {
+      const { data: clientsData } = await supabase
+        .from('clients')
+        .select('id, ticker, company_name, short_name')
+        .in('id', uniqueClientIds as string[])
+
+      for (const c of clientsData ?? []) {
+        clientMap.set(c.id, c)
+      }
+    }
+
+    const meetings = rows.map((row) => {
+      const client = row.client_id ? clientMap.get(row.client_id) : undefined
+      return transformMeeting({ ...row, client: client ?? null })
+    })
+
     return {
       data: {
         meetings,
         pagination: {
           page: page || 1,
           limit: limit || meetings.length,
-          total: meetings.length,
+          // Use the exact count from Supabase so pagination loops fetch all pages correctly
+          total: count ?? meetings.length,
         },
       },
     }

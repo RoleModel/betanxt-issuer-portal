@@ -6,6 +6,7 @@
 
 export interface BrandConfig {
   companyName: string
+  ticker?: string
   domain: string
   logoPath: string
   iconPath: string
@@ -16,6 +17,7 @@ export interface BrandConfig {
 export const brandConfigs: Record<string, BrandConfig> = {
   'J.P. Morgan Real Estate Income Trust, Inc.': {
     companyName: 'J.P. Morgan',
+    ticker: 'JPMR',
     domain: 'jpmorgan.com',
     logoPath: '/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg',
     iconPath: '/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon.png',
@@ -24,6 +26,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'E2open Parent Holdings Inc.': {
     companyName: 'e2open',
+    ticker: 'ETWO',
     domain: 'e2open.com',
     logoPath: '/logos/brands/e2open-parent-holdings-inc_logo.svg',
     iconPath: '/logos/brands/e2open-parent-holdings-inc_icon.png',
@@ -32,14 +35,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Champion Homes, Inc.': {
     companyName: 'Champion Homes',
+    ticker: 'CHH',
     domain: 'championhomes.com',
     logoPath: '/logos/brands/champion-homes-inc_logo.png',
     iconPath: '/logos/brands/champion-homes-inc_icon.png',
     primaryColor: '#19516c',
     secondaryColor: '#02426e',
   },
-  'Bain Capital Specialty Finance, Inc': {
+  'Bain Capital Specialty Finance, Inc.': {
     companyName: 'Bain Capital',
+    ticker: 'BCSF',
     domain: 'baincapital.com',
     logoPath: '/logos/brands/bain-capital-specialty-finance-inc_logo.svg',
     iconPath: '/logos/brands/bain-capital-specialty-finance-inc_icon.png',
@@ -48,6 +53,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Shattuck Labs, Inc.': {
     companyName: 'Shattuck Labs',
+    ticker: 'STTK',
     domain: 'shattucklabs.com',
     logoPath: '/logos/brands/shattuck-labs-inc_logo.svg',
     iconPath: '/logos/brands/shattuck-labs-inc_icon.png',
@@ -56,6 +62,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Nomad Foods Limited': {
     companyName: 'Nomad Foods',
+    ticker: 'NOMD',
     domain: 'nomadfoods.com',
     logoPath: '/logos/brands/nomad-foods-limited_logo.png',
     iconPath: '/logos/brands/nomad-foods-limited_icon.png',
@@ -64,6 +71,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Quest Resource Holding Corporation': {
     companyName: 'Quest Resource Management Group',
+    ticker: 'QRHC',
     domain: 'questrmg.com',
     logoPath: '/logos/brands/quest-resource-holding-corporation_logo.png',
     iconPath: '/logos/brands/quest-resource-holding-corporation_icon.png',
@@ -72,6 +80,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'SeaStar Medical Holding Corporation': {
     companyName: 'SeaStarMedical',
+    ticker: 'ICU',
     domain: 'seastarmedical.com',
     logoPath: '/logos/brands/seastar-medical-holding-corporation_logo.png',
     iconPath: '/logos/brands/seastar-medical-holding-corporation_icon.png',
@@ -79,15 +88,17 @@ export const brandConfigs: Record<string, BrandConfig> = {
     secondaryColor: '#035c67',
   },
   'Contineum Therapeutics, Inc.': {
-    companyName: 'Contineum Therapeutics, Inc.',
+    companyName: 'Contineum Therapeutics',
+    ticker: 'CTNM',
     domain: 'contineum.com',
-    logoPath: '',
-    iconPath: '',
-    primaryColor: '#333333',
-    secondaryColor: '#333333',
+    logoPath: '/logos/brands/contineum-therapeutics-inc_logo.png',
+    iconPath: '/logos/brands/contineum-therapeutics-inc_icon.png',
+    primaryColor: '#2c5282',
+    secondaryColor: '#1a365d',
   },
-  'Fulcrum Therapeutics, InG.': {
+  'Fulcrum Therapeutics, Inc.': {
     companyName: 'FulcrumTx',
+    ticker: 'FULC',
     domain: 'fulcrumtx.com',
     logoPath: '/logos/brands/fulcrum-therapeutics-ing_logo.svg',
     iconPath: '/logos/brands/fulcrum-therapeutics-ing_icon.png',
@@ -96,14 +107,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Lineage Cell Therapeutics, Inc.': {
     companyName: 'Lineage Cell Therapeutics',
+    ticker: 'LCTX',
     domain: 'lineagecell.com',
     logoPath: '/logos/brands/lineage-cell-therapeutics-inc_logo.svg',
     iconPath: '/logos/brands/lineage-cell-therapeutics-inc_icon.png',
     primaryColor: '#339ef0',
     secondaryColor: '#000a2b',
   },
-  'Inozyme Pharma, Ins.': {
+  'Inozyme Pharma, Inc.': {
     companyName: 'Inozyme Pharma',
+    ticker: 'INZY',
     domain: 'inozyme.com',
     logoPath: '/logos/brands/inozyme-pharma-ins_logo.png',
     iconPath: '/logos/brands/inozyme-pharma-ins_icon.png',
@@ -112,6 +125,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'ARS Pharmaceuticals, Inc.': {
     companyName: 'ARS Pharmaceuticals',
+    ticker: 'SPRY',
     domain: 'ars-pharma.com',
     logoPath: '/logos/brands/ars-pharmaceuticals-inc_logo.png',
     iconPath: '/logos/brands/ars-pharmaceuticals-inc_icon.png',
@@ -120,6 +134,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Gossamer Bio, Inc.': {
     companyName: 'Gossamer Bio',
+    ticker: 'GOSS',
     domain: 'gossamerbio.com',
     logoPath: '/logos/brands/gossamer-bio-inc_logo.png',
     iconPath: '/logos/brands/gossamer-bio-inc_icon.png',
@@ -128,6 +143,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Affirm Holdings Inc.': {
     companyName: 'Affirm',
+    ticker: 'AFRM',
     domain: 'affirm.com',
     logoPath: '/logos/brands/affirm-holdings-inc_logo.svg',
     iconPath: '/logos/brands/affirm-holdings-inc_icon.png',
@@ -136,6 +152,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Aligos Therapeutics, Inc.': {
     companyName: 'Aligos Therapeutics',
+    ticker: 'ALGS',
     domain: 'aligos.com',
     logoPath: '/logos/brands/aligos-therapeutics-inc_logo.png',
     iconPath: '/logos/brands/aligos-therapeutics-inc_icon.png',
@@ -144,6 +161,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Enliven Therapeutics, Inc.': {
     companyName: 'Enliven TX',
+    ticker: 'ELVN',
     domain: 'enliventx.com',
     logoPath: '/logos/brands/enliven-therapeutics-inc_logo.png',
     iconPath: '/logos/brands/enliven-therapeutics-inc_icon.png',
@@ -152,14 +170,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Erasca, Inc.': {
     companyName: 'Erasca',
+    ticker: 'ERAS',
     domain: 'erasca.com',
     logoPath: '/logos/brands/erasca-inc_logo.svg',
     iconPath: '/logos/brands/erasca-inc_icon.png',
     primaryColor: '#33a7b5',
     secondaryColor: '#004a59',
   },
-  'IDEAYA Biosciences, Inc': {
+  'IDEAYA Biosciences, Inc.': {
     companyName: 'IDEAYA Biosciences',
+    ticker: 'IDYA',
     domain: 'ideayabio.com',
     logoPath: '/logos/brands/ideaya-biosciences-inc_logo.svg',
     iconPath: '/logos/brands/ideaya-biosciences-inc_icon.png',
@@ -168,6 +188,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'CalciMedica, Inc.': {
     companyName: 'CalciMedica',
+    ticker: 'CALC',
     domain: 'calcimedica.com',
     logoPath: '/logos/brands/calcimedica-inc_logo.png',
     iconPath: '/logos/brands/calcimedica-inc_icon.png',
@@ -176,6 +197,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Artiva Biotherapeutics, Inc.': {
     companyName: 'ArtivaBio',
+    ticker: 'ARTV',
     domain: 'artivabio.com',
     logoPath: '/logos/brands/artiva-biotherapeutics-inc_logo.png',
     iconPath: '/logos/brands/artiva-biotherapeutics-inc_icon.png',
@@ -184,6 +206,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'HilleVax, Inc.': {
     companyName: 'HilleVax',
+    ticker: 'HLVX',
     domain: 'hillevax.com',
     logoPath: '/logos/brands/hillevax-inc_logo.png',
     iconPath: '/logos/brands/hillevax-inc_icon.png',
@@ -192,6 +215,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Telesis Bio Inc.': {
     companyName: 'Telesis Bio',
+    ticker: 'TBIO',
     domain: 'telesisbio.com',
     logoPath: '/logos/brands/telesis-bio-inc_logo.svg',
     iconPath: '/logos/brands/telesis-bio-inc_icon.png',
@@ -200,6 +224,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Boundless Big Inc.': {
     companyName: 'Boundless Bio',
+    ticker: 'BBIO',
     domain: 'boundlessbio.com',
     logoPath: '/logos/brands/boundless-big-inc_logo.png',
     iconPath: '/logos/brands/boundless-big-inc_icon.png',
@@ -208,6 +233,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Lithium Americas Corp.': {
     companyName: 'Lithium Americas',
+    ticker: 'LAC',
     domain: 'lithiumamericas.com',
     logoPath: '/logos/brands/lithium-americas-corp_logo.svg',
     iconPath: '/logos/brands/lithium-americas-corp_icon.png',
@@ -216,6 +242,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Western Alliance Bancorporation': {
     companyName: 'Western Alliance Bank',
+    ticker: 'WAL',
     domain: 'westernalliancebank.com',
     logoPath: '/logos/brands/western-alliance-bancorporation_logo.svg',
     iconPath: '/logos/brands/western-alliance-bancorporation_icon.png',
@@ -224,6 +251,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   "Portillo's Inc.": {
     companyName: "Portillo's",
+    ticker: 'PTLO',
     domain: 'portillos.com',
     logoPath: '/logos/brands/portillo-s-inc_logo.svg',
     iconPath: '/logos/brands/portillo-s-inc_icon.png',
@@ -232,22 +260,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Mondelez International, Inc.': {
     companyName: 'Mondelēz International',
+    ticker: 'MDLZ',
     domain: 'mondelezinternational.com',
     logoPath: '/logos/brands/mondelez-international-inc_logo.svg',
     iconPath: '/logos/brands/mondelez-international-inc_icon.png',
     primaryColor: '#287819',
     secondaryColor: '#4F2170',
   },
-  'Donnelley Financial Solutions, Inc.': {
-    companyName: 'Donnelley Financial Solutions (DFIN)',
-    domain: 'dfinsolutions.com',
-    logoPath: '/logos/brands/donnelley-financial-solutions-inc_logo.svg',
-    iconPath: '/logos/brands/donnelley-financial-solutions-inc_icon.png',
-    primaryColor: '#00FFBC',
-    secondaryColor: '#2d235a',
-  },
   'IN8bio, Inc.': {
     companyName: 'IN8bio',
+    ticker: 'INAB',
     domain: 'in8bio.com',
     logoPath: '/logos/brands/in8bio-inc_logo.png',
     iconPath: '/logos/brands/in8bio-inc_icon.png',
@@ -256,6 +278,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'The Oncology Institute, Inc.': {
     companyName: 'Oncology Institute',
+    ticker: 'TOI',
     domain: 'theoncologyinstitute.com',
     logoPath: '/logos/brands/the-oncology-institute-inc_logo.png',
     iconPath: '/logos/brands/the-oncology-institute-inc_icon.png',
@@ -264,6 +287,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Azitra, Inc.': {
     companyName: 'Azitra',
+    ticker: 'AZTR',
     domain: 'azitra.com',
     logoPath: '/logos/brands/azitra-inc_logo.png',
     iconPath: '/logos/brands/azitra-inc_icon.png',
@@ -272,6 +296,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Woodward, Inc.': {
     companyName: 'Woodward',
+    ticker: 'WWD',
     domain: 'woodward.com',
     logoPath: '/logos/brands/woodward-inc_logo.svg',
     iconPath: '/logos/brands/woodward-inc_icon.png',
@@ -280,14 +305,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Sonim Technologies, Inc.': {
     companyName: 'Sonim Technologies',
+    ticker: 'SONM',
     domain: 'sonimtech.com',
     logoPath: '/logos/brands/sonim-technologies-inc_logo.png',
     iconPath: '/logos/brands/sonim-technologies-inc_icon.png',
     primaryColor: '#d12030',
     secondaryColor: '#000000',
   },
-  'PROCORE TECHNOLOGIES, INC': {
+  'Procore Technologies, Inc.': {
     companyName: 'Procore',
+    ticker: 'PCOR',
     domain: 'procore.com',
     logoPath: '/logos/brands/procore-technologies-inc_logo.svg',
     iconPath: '/logos/brands/procore-technologies-inc_icon.png',
@@ -296,14 +323,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'PHX Minerals Inc.': {
     companyName: 'PHX Minerals Inc.',
+    ticker: 'PHX',
     domain: 'phxmin.com',
     logoPath: '/logos/brands/phx-minerals-inc_logo.svg',
     iconPath: '/logos/brands/phx-minerals-inc_icon.svg',
     primaryColor: '#67737a',
     secondaryColor: '#111921',
   },
-  'Donnelley Financial Solutions Inc.': {
+  'Donnelley Financial Solutions, Inc.': {
     companyName: 'Donnelley Financial Solutions (DFIN)',
+    ticker: 'DFIN',
     domain: 'dfinsolutions.com',
     logoPath: '/logos/brands/donnelley-financial-solutions-inc_logo.svg',
     iconPath: '/logos/brands/donnelley-financial-solutions-inc_icon.png',
@@ -312,6 +341,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Amerant Bancorp Inc.': {
     companyName: 'Amerant Bank',
+    ticker: 'AMTB',
     domain: 'amerantbank.com',
     logoPath: '/logos/brands/amerant-bancorp-inc_logo.png',
     iconPath: '/logos/brands/amerant-bancorp-inc_icon.png',
@@ -320,14 +350,16 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'SomaLogic, Inc.': {
     companyName: 'SomaLogic',
+    ticker: 'SLGC',
     domain: 'somalogic.com',
     logoPath: '/logos/brands/somalogic-inc_logo.png',
     iconPath: '/logos/brands/somalogic-inc_icon.png',
     primaryColor: '#3f3479',
     secondaryColor: '#24135f',
   },
-  'Chindata Group Holdings Ltd': {
+  'Chindata Group Holdings Ltd.': {
     companyName: 'Chindata Group',
+    ticker: 'CD',
     domain: 'chindatagroup.com',
     logoPath: '/logos/brands/chindata-group-holdings-ltd_logo.png',
     iconPath: '/logos/brands/chindata-group-holdings-ltd_icon.png',
@@ -336,6 +368,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Frequency Therapeutics Inc.': {
     companyName: 'Korro Bio',
+    ticker: 'FREQ',
     domain: 'frequencytx.com',
     logoPath: '/logos/brands/frequency-therapeutics-inc_logo.png',
     iconPath: '/logos/brands/frequency-therapeutics-inc_icon.png',
@@ -344,6 +377,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'Ambrx Biopharma, Inc.': {
     companyName: 'Ambrx',
+    ticker: 'AMAM',
     domain: 'ambrx.com',
     logoPath: '/logos/brands/ambrx-biopharma-inc_logo.png',
     iconPath: '/logos/brands/ambrx-biopharma-inc_icon.png',
@@ -352,17 +386,178 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   'ILG Acquisition One Corp.': {
     companyName: 'ILG Acquisition One Corp.',
+    ticker: 'ILG',
     domain: 'ilg.com',
     logoPath: '/logos/brands/ilg-acquisition-one-corp_logo.png',
     iconPath: '/logos/brands/ilg-acquisition-one-corp_icon.png',
     primaryColor: '#017dc7',
     secondaryColor: '#017dc7',
   },
+  // Original portal clients — use files in /logos/ root
+  'The Wendy\'s Company': {
+    companyName: "Wendy's",
+    ticker: 'WEN',
+    domain: 'wendys.com',
+    logoPath: '/logos/WEN_logo-full.svg',
+    iconPath: '/logos/WEN_logo.png',
+    primaryColor: '#0078A3',
+    secondaryColor: '#DAD55E',
+  },
+  'Paycom Software, Inc.': {
+    companyName: 'Paycom',
+    ticker: 'PAYC',
+    domain: 'paycom.com',
+    logoPath: '/logos/PAYC_logo-full.svg',
+    iconPath: '/logos/PAYC_logo.png',
+    primaryColor: '#005C2B',
+    secondaryColor: '#193E2D',
+  },
+  'Enliven Therapeutics Inc.': {
+    companyName: 'Enliven Therapeutics',
+    ticker: 'ELVN',
+    domain: 'enliventx.com',
+    logoPath: '/logos/ELVN_logo-full.svg',
+    iconPath: '/logos/ELVN_logo.png',
+    primaryColor: '#243E89',
+    secondaryColor: '#1A1C45',
+  },
+  // Brand / platform accounts
+  'Morrow Sodali': {
+    companyName: 'Morrow Sodali',
+    ticker: 'MRSO',
+    domain: 'morrowsodali.com',
+    logoPath: '/logos/MRSO_logo-full.svg',
+    iconPath: '/logos/MRSO_icon.png',
+    primaryColor: '#ff6400',
+    secondaryColor: '#0b232d',
+  },
+  // DFIN clients without a dedicated logo file — logoPath intentionally empty,
+  // the AppBar will fall back to the DFIN brand logo for these.
+  'EnerSa': {
+    companyName: 'EnerSa',
+    ticker: 'ENRS',
+    domain: 'enersa.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#1a6b3c',
+    secondaryColor: '#0d4025',
+  },
+  'Enhabit, Inc.': {
+    companyName: 'Enhabit',
+    ticker: 'EHAB',
+    domain: 'enhabit.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#005eb8',
+    secondaryColor: '#003d7a',
+  },
+  'Vivani Medical, Inc.': {
+    companyName: 'Vivani Medical',
+    ticker: 'VANI',
+    domain: 'vivani.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#00a3e0',
+    secondaryColor: '#005f8e',
+  },
+  'Madrigal Pharmaceuticals, Inc.': {
+    companyName: 'Madrigal Pharmaceuticals',
+    ticker: 'MDGL',
+    domain: 'madrigalpharma.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#7b2d8b',
+    secondaryColor: '#4a1a54',
+  },
+  'Chain Bridge Bancorp, Inc.': {
+    companyName: 'Chain Bridge Bancorp',
+    ticker: 'CBNA',
+    domain: 'chainbridgebank.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#1a3a6b',
+    secondaryColor: '#0d2045',
+  },
+  'InTest Corporation': {
+    companyName: 'inTEST',
+    ticker: 'INTT',
+    domain: 'intest.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#c8102e',
+    secondaryColor: '#1a1a1a',
+  },
+  // Morrow Sodali clients without a dedicated logo file
+  'Vapotherm, Inc.': {
+    companyName: 'Vapotherm',
+    ticker: 'VAPO',
+    domain: 'vapotherm.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#0085c3',
+    secondaryColor: '#005a87',
+  },
+  'SQZ Biotechnologies Company': {
+    companyName: 'SQZ Biotech',
+    ticker: 'SQZ',
+    domain: 'sqzbiotech.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#00b5ad',
+    secondaryColor: '#007b7a',
+  },
+  'NexTier Oilfield Solutions Inc.': {
+    companyName: 'NexTier',
+    ticker: 'NEX',
+    domain: 'nextieroilfield.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#f7941d',
+    secondaryColor: '#1a1a1a',
+  },
+  'Mind Medicine (MindMed) Inc.': {
+    companyName: 'MindMed',
+    ticker: 'MNMD',
+    domain: 'mindmed.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#7c3aed',
+    secondaryColor: '#4c1d95',
+  },
+  'Adaptive Biotechnologies Corporation': {
+    companyName: 'Adaptive Biotechnologies',
+    ticker: 'ADPT',
+    domain: 'adaptivebiotech.com',
+    logoPath: '',
+    iconPath: '',
+    primaryColor: '#e53e3e',
+    secondaryColor: '#742a2a',
+  },
 }
+
+/**
+ * Secondary index keyed by ticker for reliable logo lookup.
+ * Use this when you have a ticker but not a company name — avoids
+ * brittle exact-string key matching on company names.
+ */
+export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
+  brandConfigs
+).reduce(
+  (acc, config) => {
+    if (config.ticker) acc[config.ticker] = config
+    return acc
+  },
+  {} as Record<string, BrandConfig>
+)
 
 /** Look up brand config by event/company name */
 export function getBrandConfig(companyName: string): BrandConfig | null {
   return brandConfigs[companyName] ?? null
+}
+
+/** Look up brand config by stock ticker (more reliable than company name) */
+export function getBrandConfigByTicker(ticker: string): BrandConfig | null {
+  return brandConfigsByTicker[ticker] ?? null
 }
 
 /** Get the logo path for a company, with fallback */
@@ -380,3 +575,4 @@ export function getBrandIconPath(
 ): string {
   return brandConfigs[companyName]?.iconPath || fallback
 }
+

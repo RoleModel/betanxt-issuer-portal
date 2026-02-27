@@ -61,6 +61,7 @@ export const {
             type: 'ISSUER' | 'ADMIN' | 'PARENT_CLIENT' | 'SOLICITOR' | 'CSM'
             account_id?: string
             client_ticker?: string | null
+            clientTickers?: string[]
           }
         > = {
           'dev.user': {
@@ -118,6 +119,38 @@ export const {
             type: 'PARENT_CLIENT',
             account_id: undefined,
             client_ticker: null,
+            clientTickers: [
+              'JPMR', // J.P. Morgan Real Estate Income Trust, Inc.
+              'ENRS', // EnerSa
+              'ETWO', // E2open Parent Holdings Inc.
+              'CHH',  // Champion Homes, Inc.
+              'BCSF', // Bain Capital Specialty Finance, Inc.
+              'STTK', // Shattuck Labs, Inc.
+              'NOMD', // Nomad Foods Limited
+              'QRHC', // Quest Resource Holding Corporation
+              'ICU',  // SeaStar Medical Holding Corporation
+              'CTNM', // Contineum Therapeutics, Inc.
+              'EHAB', // Enhabit, Inc.
+              'FULC', // Fulcrum Therapeutics, Inc.
+              'LCTX', // Lineage Cell Therapeutics, Inc.
+              'INZY', // Inozyme Pharma, Inc.
+              'SPRY', // ARS Pharmaceuticals Inc.
+              'GOSS', // Gossamer Bio, Inc.
+              'AFRM', // Affirm Holdings, Inc.
+              'ALGS', // Aligos Therapeutics, Inc.
+              'ELVN', // Enliven Therapeutics, Inc.
+              'ERAS', // Erasca, Inc.
+              'IDYA', // IDEAYA Biosciences, Inc.
+              'VANI', // Vivani Medical, Inc.
+              'CALC', // CalciMedica, Inc.
+              'ARTV', // Artiva Biotherapeutics, Inc.
+              'HLVX', // HilleVax, Inc.
+              'TBIO', // Telesis Bio Inc.
+              'BBIO', // Boundless Bio, Inc.
+              'MDGL', // Madrigal Pharmaceuticals, Inc.
+              'CBNA', // Chain Bridge Bancorp, Inc.
+              'INTT', // InTest Corporation
+            ],
           },
           morrow: {
             id: 'g6b0517f-54gb-0ih6-g63h-8d55h0485jgf',
@@ -126,6 +159,31 @@ export const {
             type: 'SOLICITOR',
             account_id: undefined,
             client_ticker: null,
+            clientTickers: [
+              'LAC',   // Lithium Americas Corp.
+              'WAL',   // Western Alliance Bancorporation
+              'PTLO',  // Portillo's Inc.
+              'MDLZ',  // Mondelez International, Inc.
+              'DFIN',  // Donnelley Financial Solutions, Inc.
+              'INAB',  // IN8bio, Inc.
+              'TOI',   // The Oncology Institute, Inc.
+              'AZTR',  // Azitra, Inc.
+              'WWD',   // Woodward, Inc.
+              'VAPO',  // Vapotherm, Inc.
+              'SONM',  // Sonim Technologies, Inc.
+              'PCOR',  // Procore Technologies, Inc.
+              'PHX',   // PHX Minerals Inc.
+              'AMTB',  // Amerant Bancorp Inc.
+              'SQZ',   // SQZ Biotechnologies Company
+              'SLGC',  // SomaLogic, Inc.
+              'CD',    // Chindata Group Holdings Ltd.
+              'FREQ',  // Frequency Therapeutics, Inc.
+              'AMAM',  // Ambrx Biopharma, Inc.
+              'NEX',   // NexTier Oilfield Solutions Inc.
+              'ILG',   // ILG Acquisition One Corp.
+              'MNMD',  // Mind Medicine (MindMed) Inc.
+              'ADPT',  // Adaptive Biotechnologies Corporation
+            ],
           },
           'csm.user': {
             id: 'h7c1628g-65hc-1ji7-h74i-9e66i1596kgh',
@@ -147,6 +205,7 @@ export const {
               type: user.type,
               account_id: user.account_id,
               client_ticker: user.client_ticker,
+              clientTickers: user.clientTickers,
             }
           }
         }
@@ -174,12 +233,14 @@ export const {
             account_id?: string
             client_ticker?: string | null
             username?: string
+            clientTickers?: string[]
           }
           token.id = customUser.id // Store the actual user ID
           token.type = customUser.type
           token.account_id = customUser.account_id
           token.client_ticker = customUser.client_ticker
           token.username = customUser.username
+          token.clientTickers = customUser.clientTickers
           token.image = undefined // Reset avatar on new sign-in
         }
 
@@ -208,6 +269,7 @@ export const {
         username?: string
         name?: string
         email?: string
+        clientTickers?: string[]
       }
       // Type assertion for custom session user properties
       const user = session.user as typeof session.user & {
@@ -215,6 +277,7 @@ export const {
         account_id?: string
         client_ticker?: string | null
         username?: string
+        clientTickers?: string[]
       }
       user.id = t.id ?? t.sub ?? '' // Use the stored user ID, fallback to sub
       user.type = t.type ?? undefined
@@ -222,6 +285,7 @@ export const {
       user.client_ticker = t.client_ticker ?? null
       user.username = t.username ?? undefined
       user.image = t.image ?? null // Include the image field
+      user.clientTickers = t.clientTickers ?? undefined
       // Populate name and email for profile page - use token values or fallback to username
       user.name = t.name ?? t.username ?? session.user.name ?? 'User'
       user.email = t.email ?? session.user.email ?? `${t.username ?? 'user'}@example.com`

@@ -19,6 +19,8 @@ declare module 'next-auth' {
       client_ticker?: string | null
       client?: Client | null
       roles?: string[]
+      /** Tickers of clients this user is allowed to access (PARENT_CLIENT users) */
+      clientTickers?: string[]
     }
   }
 
@@ -31,6 +33,7 @@ declare module 'next-auth' {
     client_ticker?: string | null
     client?: Client | null
     roles?: string[]
+    clientTickers?: string[]
   }
 }
 
@@ -44,5 +47,6 @@ declare module 'next-auth/jwt' {
     client?: Client | null
     roles?: string[]
     image?: string | null
+    clientTickers?: string[]
   }
 }

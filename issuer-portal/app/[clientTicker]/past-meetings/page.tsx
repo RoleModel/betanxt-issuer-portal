@@ -193,7 +193,12 @@ export default function PastMeetingsPage() {
       })) as ApiClientReturnType<unknown>
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message ?? 'Failed to fetch meetings')
+        const errBody = meetingsResponse.error as Record<string, unknown>
+        const msg =
+          (typeof errBody.message === 'string' ? errBody.message : null) ??
+          (typeof errBody.error === 'string' ? errBody.error : null) ??
+          'Failed to fetch meetings'
+        throw new Error(msg)
       }
 
       // Get meetings array from the paginated response - already filtered by API
@@ -217,7 +222,6 @@ export default function PastMeetingsPage() {
         }
       )
 
-      setMeetings(meetingsWithParticipation)
       setMeetings(meetingsWithParticipation)
     } catch (error) {
       console.error('Error fetching past meetings:', error)

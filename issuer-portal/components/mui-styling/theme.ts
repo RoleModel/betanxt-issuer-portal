@@ -738,6 +738,18 @@ export const createClientTheme = (ticker?: string) => {
             '& .MuiTableHead-root': {
               backgroundColor: theme.vars?.palette.tableHeaderRow.restingFill,
               borderRadius: 0,
+              '& :has(.MuiTableSortLabel-root):hover': {
+                backgroundColor: theme.vars?.palette.action.hover,
+              },
+              '& .MuiTableCell-root:has(.MuiTableSortLabel-root)': {
+                padding: 0,
+              },
+              '&:has(.MuiTableSortLabel-root) .MuiTableSortLabel-root ': {
+                padding: theme.spacing(2),
+                justifyContent: 'space-between',
+                inlineSize: '100%',
+                whiteSpace: 'nowrap',
+              },
             },
             '& .MuiTableCell-root': {
               fontSize: theme.typography.dataCell.fontSize,
