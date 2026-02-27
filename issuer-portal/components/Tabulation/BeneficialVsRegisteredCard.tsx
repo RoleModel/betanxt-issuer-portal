@@ -169,12 +169,12 @@ export default function BeneficialVsRegisteredCard({
               series={[
                 {
                   data: [chartData.beneficial, chartData.registered],
+                  barLabel: 'value',
                 },
               ]}
               height={300}
-              margin={{ left: 0, right: 0, top: 30, bottom: 0 }}
+              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
               hideLegend={true}
-              barLabel="value"
               slots={{ barLabel: CustomBarLabel }}
               yAxis={[
                 {

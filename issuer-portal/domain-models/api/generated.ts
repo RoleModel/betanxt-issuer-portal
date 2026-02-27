@@ -256,19 +256,19 @@ export interface components {
     PhaseStatus: 'IN_PROGRESS' | 'COMPLETE'
     /** @enum {string} */
     TaskStatus:
-      | 'INCOMPLETE'
-      | 'COMPLETE'
-      | 'CANCELLED'
-      | 'NEEDS_AUTHORIZATION'
-      | 'AUTHORIZED'
+    | 'INCOMPLETE'
+    | 'COMPLETE'
+    | 'CANCELLED'
+    | 'NEEDS_AUTHORIZATION'
+    | 'AUTHORIZED'
     /** @enum {string} */
     DocumentStatus:
-      | 'DRAFT'
-      | 'UPLOADED'
-      | 'IN_PROGRESS'
-      | 'SIGNED'
-      | 'AUTHORIZED'
-      | 'COMPLETED'
+    | 'DRAFT'
+    | 'UPLOADED'
+    | 'IN_PROGRESS'
+    | 'SIGNED'
+    | 'AUTHORIZED'
+    | 'COMPLETED'
     Account: {
       /** Format: uuid */
       id?: string

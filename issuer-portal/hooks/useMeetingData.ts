@@ -35,7 +35,7 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
   return {
     id: asString(record.id) || '',
-    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
+    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'unvoted',
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
     votingSource:

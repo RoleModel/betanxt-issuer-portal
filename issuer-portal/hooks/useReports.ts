@@ -191,7 +191,7 @@ function _transformNonDtcVoteStatus(nonDtcVoteStatus: unknown): VoteStatusData[]
 
   return [
     {
-      category: 'Unvoted',
+      category: 'Not Voted',
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
       percentage:
@@ -250,7 +250,7 @@ function _transformDtcVoteStatus(dtcVoteStatus: unknown): VoteStatusData[] {
 
   return [
     {
-      category: 'Unvoted',
+      category: 'Not Voted',
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
       percentage:
@@ -298,7 +298,7 @@ function _transformVoteDistribution(voteDistribution: unknown): VoteDistribution
     },
     {
       id: 'dtc-unvoted',
-      label: 'DTC/CDS Unvoted',
+      label: 'DTC/CDS Not Voted',
       value: toFiniteNumber(data.dtcUnvotedShares),
       color: colors[1],
     },
@@ -310,7 +310,7 @@ function _transformVoteDistribution(voteDistribution: unknown): VoteDistribution
     },
     {
       id: 'non-dtc-unvoted',
-      label: 'Non-DTC Unvoted',
+      label: 'Non-DTC Not Voted',
       value: toFiniteNumber(data.nonDtcUnvotedShares),
       color: colors[3],
     },

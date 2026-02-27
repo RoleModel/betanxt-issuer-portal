@@ -221,7 +221,7 @@ export default function TabulationPage() {
         <EmptyState
           title="Tabulation"
           icon={<ChecklistDocumentIcon />}
-          description={`Tabulation data will be available starting on ${friendlyMeetingDate}. Check back then to review voting results and participation metrics.`}
+          description={`Tabulation results will appear once voting activity starts.`}
         />
       </Container>
     )

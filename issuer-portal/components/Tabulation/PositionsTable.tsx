@@ -404,7 +404,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
           >
             <MenuItem value="All">All</MenuItem>
             <MenuItem value="Voted">Voted</MenuItem>
-            <MenuItem value="Unvoted">Unvoted</MenuItem>
+            <MenuItem value="Unvoted">Not Voted</MenuItem>
           </Select>
           <Button
             variant="text"
@@ -660,7 +660,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
               >
                 <MenuItem value="All">All</MenuItem>
                 <MenuItem value="Voted">Voted</MenuItem>
-                <MenuItem value="Unvoted">Unvoted</MenuItem>
+                <MenuItem value="Unvoted">Not Voted</MenuItem>
               </TextField>
             </Grid>
 
