@@ -115,8 +115,8 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
   // Get current client for logo and branding
-  const { currentClient } = useClient()
-  const { data: session } = useSession()
+  const { currentClient, availableClients } = useClient()
+  const { data: session, status: sessionStatus } = useSession()
 
   // Map user types to their brand tickers for logo display
   const userTypeBrandTicker: Record<string, string> = useMemo(
@@ -230,7 +230,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   // Memoize tabs array to prevent recreation
   const exampleTabs = useMemo(() => {
-    const navTicker = urlTicker || currentClient?.ticker
+    const navTicker = urlTicker || currentClient?.ticker || availableClients[0]?.ticker
     const tickerPrefix = navTicker ? `/${navTicker}` : ''
 
     return [
@@ -247,7 +247,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         href: `${tickerPrefix}/secure-file-transfer`,
       },
     ]
-  }, [dashboardPath, urlTicker, currentClient?.ticker])
+  }, [dashboardPath, urlTicker, currentClient?.ticker, availableClients])
 
   const currentTab = useMemo(() => {
     // Check for specific page routes that don't have tabs first
@@ -372,6 +372,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     // If we have a custom logoSrc prop, use it immediately
     if (props.logoSrc) return props.logoSrc
 
+    // Don't resolve a logo until the session has loaded to prevent
+    // flashing the fallback BetaNXT logo before the user-type logo appears
+    if (sessionStatus === 'loading') return null
+
     // If ?issuer= param is present, use the brand logo from brandConfig
     if (issuerName) {
       return getBrandLogoPath(issuerName)
@@ -386,6 +390,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       : '/images/logo.svg'
   }, [
     props.logoSrc,
+    sessionStatus,
     issuerName,
     logoTicker,
     getClientLogo,
@@ -393,8 +398,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     currentClient?.short_name,
   ])
 
-  // Memoize only the final slotProps object
+  // Memoize only the final slotProps object — undefined when logo hasn't resolved yet
   const slotProps = useMemo(() => {
+    if (!logoSrc) return undefined
     return {
       logoImg: {
         src: logoSrc,

@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import React, { Suspense, useMemo, useState } from 'react'
 
 import { ArrowDropDownOutlined } from '@mui/icons-material'
-import { Box, Button, Menu, MenuItem } from '@mui/material'
+import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
 import type { Client } from '@/hooks/useClients'
@@ -56,9 +56,10 @@ function EventSwitchButton({ userType }: { userType: string }) {
     const match = /\/([^/]+)\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
     if (!match) return null
     const [, urlTicker, urlMeetingId] = match
-    return events.find(
-      (e) => e.clientTicker === urlTicker && e.meetingId === urlMeetingId
-    ) ?? null
+    return (
+      events.find((e) => e.clientTicker === urlTicker && e.meetingId === urlMeetingId) ??
+      null
+    )
   }, [isOnMeetingPage, pathname, events])
 
   // Determine display name and whether dropdown is active
@@ -87,7 +88,11 @@ function EventSwitchButton({ userType }: { userType: string }) {
   }
 
   if (!hasDropdown) {
-    return <span style={{ padding: '6px 8px' }}>{displayName}</span>
+    return (
+      <Typography variant="body3" fontWeight={500} sx={{ p: 1.5 }}>
+        {displayName}
+      </Typography>
+    )
   }
 
   return (
