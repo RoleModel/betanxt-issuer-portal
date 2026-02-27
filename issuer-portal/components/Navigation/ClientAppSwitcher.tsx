@@ -30,7 +30,7 @@ interface ClientAppSwitcherProps {
 /**
  * Switch button for PARENT_CLIENT / SOLICITOR users.
  * - On /events: shows the brand name (DFIN / Morrow Sodali) with no dropdown.
- * - On a meeting page with ?issuer= param: shows the issuer name with a dropdown
+ * - On a meeting page: shows the issuer name with a dropdown
  *   listing all event companies for that user type.
  */
 function EventSwitchButton({ userType }: { userType: string }) {
@@ -42,12 +42,7 @@ function EventSwitchButton({ userType }: { userType: string }) {
 
   const issuerParam = searchParams.get('issuer')
   const isOnEventsPage = pathname === '/events'
-
-  // Determine display name and whether dropdown is active
-  const displayName = useMemo(() => {
-    if (issuerParam) return decodeURIComponent(issuerParam)
-    return USER_TYPE_BRAND_LABELS[userType] ?? 'Select Client'
-  }, [issuerParam, userType])
+  const isOnMeetingPage = /\/[^/]+\/(?:past-)?meeting\//.test(pathname)
 
   const events: EventRow[] = useMemo(() => {
     if (userType === 'PARENT_CLIENT') return parentClientEvents
@@ -55,8 +50,26 @@ function EventSwitchButton({ userType }: { userType: string }) {
     return []
   }, [userType])
 
-  // Dropdown is only active when viewing a specific meeting (issuer param present)
-  const hasDropdown = !isOnEventsPage && Boolean(issuerParam)
+  // Try to match the current meeting from the URL path
+  const currentEvent = useMemo(() => {
+    if (!isOnMeetingPage) return null
+    const match = /\/([^/]+)\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
+    if (!match) return null
+    const [, urlTicker, urlMeetingId] = match
+    return events.find(
+      (e) => e.clientTicker === urlTicker && e.meetingId === urlMeetingId
+    ) ?? null
+  }, [isOnMeetingPage, pathname, events])
+
+  // Determine display name and whether dropdown is active
+  const displayName = useMemo(() => {
+    if (issuerParam) return decodeURIComponent(issuerParam)
+    if (currentEvent) return currentEvent.event
+    return USER_TYPE_BRAND_LABELS[userType] ?? 'Select Client'
+  }, [issuerParam, currentEvent, userType])
+
+  // Dropdown is active on all pages except /events
+  const hasDropdown = !isOnEventsPage
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     if (hasDropdown) {

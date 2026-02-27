@@ -275,7 +275,7 @@ export default function EventsPage() {
   return (
     <Container component="main" maxWidth="lg" data-testid="events-page">
       <Box sx={{ p: { xs: 2, sm: 3 } }}>
-        <Typography variant="pageTitle" sx={{ mb: 3, fontWeight: 600 }}>
+        <Typography variant="pageTitle" sx={{ mb: 3 }}>
           {config.heading}
         </Typography>
 
@@ -306,7 +306,7 @@ export default function EventsPage() {
           />
           <CardContent sx={{ p: 0 }}>
             <TableContainer>
-              <Table size="small">
+              <Table size={isCSM ? 'small' : undefined}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600, py: 2 }}>
