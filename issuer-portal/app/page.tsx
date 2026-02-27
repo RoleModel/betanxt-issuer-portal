@@ -86,7 +86,8 @@ export default function HomePage() {
     availableClients,
     clientLoading,
     hasRedirected,
-    session,
+    session?.user?.type,
+    session?.user?.client_ticker,
     status,
   ])
 
