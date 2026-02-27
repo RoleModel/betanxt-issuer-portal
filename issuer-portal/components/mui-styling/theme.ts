@@ -574,7 +574,7 @@ export const createClientTheme = (ticker?: string) => {
       MuiLink: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
-            // ...theme.typography.body3,
+            '--Link-underlineColor': theme.vars.palette.link,
             color: theme.vars.palette.link,
             fontWeight: 500,
           }),
