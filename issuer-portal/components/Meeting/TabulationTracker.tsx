@@ -53,7 +53,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const [nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
+  const [_nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
   const [phases, setPhases] = useState<Phase[]>([])
 
@@ -98,7 +98,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
     return d
   }
 
-  const daysUntilDate = (d: Date): number => {
+  const _daysUntilDate = (d: Date): number => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const target = new Date(d)

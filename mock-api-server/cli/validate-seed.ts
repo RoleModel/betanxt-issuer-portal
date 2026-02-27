@@ -1041,7 +1041,7 @@ async function validateSeedData() {
       const tasksWithValidPhaseId = tasks.filter((t) => phaseById[t.phase_id]).length
       const tasksWithMatchingMeetingId = tasks.filter((t) => {
         const phase = phaseById[t.phase_id]
-        return phase && t.meeting_id === phase.meeting_id
+        return phase?.meeting_id === t.meeting_id
       }).length
 
       console.log(

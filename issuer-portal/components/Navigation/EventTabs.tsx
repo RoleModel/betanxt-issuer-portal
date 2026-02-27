@@ -194,7 +194,7 @@ export function EventTabs() {
         const meetingIdFromURL = pathMatch[1]
 
         // Check if the current active meeting matches the URL
-        if (!activeMeeting || activeMeeting.id !== meetingIdFromURL) {
+        if (activeMeeting?.id !== meetingIdFromURL) {
           // If we have meetings loaded and none match the URL ID, it might be a past meeting
           const meetingsArray = meetings || []
           const existingMeeting = meetingsArray.find((m) => m.id === meetingIdFromURL)
@@ -233,11 +233,12 @@ export function EventTabs() {
     src: components['schemas']['Meeting']
   }[] = useMemo(() => {
     const meetingsArray = meetings || []
-    if (currentMeeting && currentMeeting.status === 'COMPLETE') {
+    const completedMeeting = currentMeeting?.status === 'COMPLETE' ? currentMeeting : null
+    if (completedMeeting) {
       return [
         {
-          tab: mapToMeetingTab(currentMeeting),
-          src: currentMeeting,
+          tab: mapToMeetingTab(completedMeeting),
+          src: completedMeeting,
         },
       ]
     }

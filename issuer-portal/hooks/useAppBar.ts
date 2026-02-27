@@ -446,6 +446,8 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     getClientLogo,
     currentClient?.company_name,
     currentClient?.short_name,
+    isMultiClientUser,
+    userType,
   ])
 
   const logoSlotProps = useMemo(() => {

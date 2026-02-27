@@ -129,7 +129,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
     // Override unobserve to catch and suppress the specific error
     IntersectionObserver.prototype.unobserve = function (target: Element) {
       try {
-        if (target && target.nodeType === 1) {
+        if (target.nodeType === 1) {
           // Only call if target is a valid Element
           return originalUnobserve.call(this, target)
         }
