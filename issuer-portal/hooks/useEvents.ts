@@ -10,6 +10,7 @@ import buildApiClient from '@/domain-models/apiClient'
 import { clientsSWRConfig } from '@/lib/swr-config'
 import type { EventRow } from '@/utils/eventData'
 import { asRecord, asString } from '@/utils/typeUtils'
+import { getBrandConfigByTicker } from '@/utils/brandConfig'
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client)
@@ -34,7 +35,11 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
 
   if (!id || !ticker || !meetingDate || !meetingType) return null
 
-  const companyName = extractClientCompanyName(meeting.client) ?? ticker
+  // Prefer joined client object → brand config lookup → ticker as last resort
+  const companyName =
+    extractClientCompanyName(meeting.client) ??
+    getBrandConfigByTicker(ticker)?.companyName ??
+    ticker
 
   const eventDate = new Date(meetingDate).toLocaleDateString('en-US', {
     month: '2-digit',

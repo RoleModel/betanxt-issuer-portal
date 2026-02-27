@@ -29,6 +29,20 @@ function nullToUndefined<T>(value: T | null): T | undefined {
   return value === null ? undefined : value
 }
 
+// Transform raw Supabase client row (snake_case) to the camelCase OpenAPI shape.
+// The `clients` secondary query returns snake_case keys; this ensures the API
+// response always matches the `Clients` schema regardless of how the data arrived.
+function transformClientSummary(raw: unknown): Meeting['client'] {
+  if (typeof raw !== 'object' || raw === null) return undefined
+  const c = raw as Record<string, string | null | undefined>
+  return {
+    id: c.id ?? undefined,
+    ticker: c.ticker ?? undefined,
+    companyName: c.companyName ?? c.company_name ?? undefined,
+    shortName: c.shortName ?? c.short_name ?? undefined,
+  }
+}
+
 // Transform snake_case database fields to camelCase API fields
 function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
   return {
@@ -72,10 +86,7 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     clientId: nullToUndefined(dbMeeting.client_id),
     createdAt: nullToUndefined(dbMeeting.created_at),
     updatedAt: nullToUndefined(dbMeeting.updated_at),
-    client:
-      typeof dbMeeting.client === 'object' && dbMeeting.client !== null
-        ? (dbMeeting.client as Meeting['client'])
-        : undefined,
+    client: transformClientSummary(dbMeeting.client),
   }
 }
 
