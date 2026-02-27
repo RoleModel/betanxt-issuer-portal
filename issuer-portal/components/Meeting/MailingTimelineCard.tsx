@@ -79,10 +79,10 @@ export default function MailingTimelineCard({
 
   const formattedDate = statusDate
     ? new Date(statusDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
     : null
 
   return (
@@ -110,7 +110,7 @@ export default function MailingTimelineCard({
                   <TimelineDot
                     variant={isCompleted ? 'filled' : 'outlined'}
                     sx={{
-                      mt: 0.85,
+                      mt: 1.1,
                       bgcolor: isCompleted ? step.paletteVar : 'transparent',
                       borderColor: step.paletteVar,
                     }}
