@@ -25,8 +25,12 @@ export const {
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       async authorize(credentials) {
-        // Auth bypass for development - return mock user with configured role
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+        // Auth bypass for development - only for auto-sign-in (bypass/bypass credentials)
+        if (
+          process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' &&
+          credentials?.username === 'bypass' &&
+          credentials?.password === 'bypass'
+        ) {
           const bypassRole = (process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN') as
             | 'ISSUER'
             | 'ADMIN'
@@ -176,12 +180,7 @@ export const {
           token.account_id = customUser.account_id
           token.client_ticker = customUser.client_ticker
           token.username = customUser.username
-        }
-
-        // In dev bypass mode, always sync role from env so switching roles
-        // doesn't require clearing cookies
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-          token.type = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
+          token.image = undefined // Reset avatar on new sign-in
         }
 
         // Handle session updates (like avatar uploads)

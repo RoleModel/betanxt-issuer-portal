@@ -161,7 +161,13 @@ function SwitchButton() {
   // PARENT_CLIENT / SOLICITOR users get a special event-based switcher
   if (isEventUser && userType) {
     return (
-      <Suspense fallback={<span style={{ padding: '6px 8px' }}>{USER_TYPE_BRAND_LABELS[userType] ?? 'Loading...'}</span>}>
+      <Suspense
+        fallback={
+          <span style={{ padding: '6px 8px' }}>
+            {USER_TYPE_BRAND_LABELS[userType] ?? 'Loading...'}
+          </span>
+        }
+      >
         <EventSwitchButton userType={userType} />
       </Suspense>
     )

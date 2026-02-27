@@ -63,8 +63,17 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return true
       }
 
+      // ISSUER users can access the client matching their client_ticker
+      const userTicker = session?.user?.client_ticker
+      if (userTicker) {
+        const tickerMatch = clients.find((c) => c.ticker === userTicker)
+        if (tickerMatch && (tickerMatch.id === clientId || tickerMatch.ticker === clientId)) {
+          return true
+        }
+      }
+
       // In normal auth mode, check user's relationships or account access
-      const userAccountId = session?.user?.accountId
+      const userAccountId = session?.user?.account_id
       if (!userAccountId) return false
 
       // Find client that matches the clientId
@@ -83,7 +92,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         session?.user?.type === 'RELATIONSHIP_MANAGER'
       )
     },
-    [session?.user?.accountId, session?.user?.type, session?.user?.roles, clients]
+    [session?.user?.account_id, session?.user?.client_ticker, session?.user?.type, session?.user?.roles, clients]
   )
 
   // Determine current client based on URL and user context

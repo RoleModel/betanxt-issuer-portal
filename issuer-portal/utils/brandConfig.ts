@@ -223,7 +223,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     secondaryColor: '#05233d',
   },
   "Portillo's Inc.": {
-    companyName: 'Portillo\'s',
+    companyName: "Portillo's",
     domain: 'portillos.com',
     logoPath: '/logos/brands/portillo-s-inc_logo.svg',
     iconPath: '/logos/brands/portillo-s-inc_icon.png',
@@ -357,7 +357,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     iconPath: '/logos/brands/ilg-acquisition-one-corp_icon.png',
     primaryColor: '#017dc7',
     secondaryColor: '#017dc7',
-  }
+  },
 }
 
 /** Look up brand config by event/company name */
@@ -366,11 +366,17 @@ export function getBrandConfig(companyName: string): BrandConfig | null {
 }
 
 /** Get the logo path for a company, with fallback */
-export function getBrandLogoPath(companyName: string, fallback = '/images/logo.svg'): string {
+export function getBrandLogoPath(
+  companyName: string,
+  fallback = '/images/logo.svg'
+): string {
   return brandConfigs[companyName]?.logoPath || fallback
 }
 
 /** Get the icon path for a company, with fallback */
-export function getBrandIconPath(companyName: string, fallback = '/images/logo.svg'): string {
+export function getBrandIconPath(
+  companyName: string,
+  fallback = '/images/logo.svg'
+): string {
   return brandConfigs[companyName]?.iconPath || fallback
 }

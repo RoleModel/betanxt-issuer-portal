@@ -48,7 +48,15 @@ export default function MeetingDashboardPage() {
       const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}${search ? `?${search}` : ''}`
       router.replace(targetPath)
     }
-  }, [meeting?.id, meeting?.currentPhase, router, clientTicker, meetingId, isLoading, searchParams])
+  }, [
+    meeting?.id,
+    meeting?.currentPhase,
+    router,
+    clientTicker,
+    meetingId,
+    isLoading,
+    searchParams,
+  ])
 
   if (error) {
     return (

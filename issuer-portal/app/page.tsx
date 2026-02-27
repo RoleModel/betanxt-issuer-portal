@@ -1,8 +1,8 @@
 'use client'
 
-import { signIn, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Box, LinearProgress, Typography } from '@mui/material'
 
@@ -14,25 +14,10 @@ export default function HomePage() {
   const router = useRouter()
   const [showError, setShowError] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
-  const bypassSignInAttempted = useRef(false)
 
-  // Auto sign-in when bypass auth is enabled but no session exists
+  // Always redirect unauthenticated users to login
   useEffect(() => {
-    const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-    if (bypassAuth && status === 'unauthenticated' && !bypassSignInAttempted.current) {
-      bypassSignInAttempted.current = true
-      void signIn('credentials', {
-        redirect: false,
-        username: 'bypass',
-        password: 'bypass',
-      })
-    }
-  }, [status])
-
-  // Redirect unauthenticated users to login when bypass is off
-  useEffect(() => {
-    const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-    if (!bypassAuth && status === 'unauthenticated') {
+    if (status === 'unauthenticated') {
       router.push('/login')
     }
   }, [status, router])

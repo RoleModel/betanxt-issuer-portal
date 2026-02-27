@@ -60,18 +60,11 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const effectiveTicker =
       ticker ?? (userType ? userTypeBrandTicker[userType] : undefined)
 
-    if (!effectiveTicker) {
-      return null
-    }
-
-    const themeOptions = themeOptionsMap[effectiveTicker] ?? wendysThemeOptions
+    const themeOptions = effectiveTicker
+      ? (themeOptionsMap[effectiveTicker] ?? wendysThemeOptions)
+      : wendysThemeOptions
     return createTheme(themeOptions)
   }, [ticker, session?.user?.type])
-
-  // Wait for theme to be determined before rendering
-  if (!theme) {
-    return null
-  }
 
   return (
     <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>

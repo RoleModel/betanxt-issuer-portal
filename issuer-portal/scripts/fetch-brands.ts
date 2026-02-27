@@ -11,7 +11,6 @@
  * 3. Downloads SVG/PNG logos to public/logos/brands/
  * 4. Writes a utils/brandConfig.ts mapping file
  */
-
 import { config } from 'dotenv'
 import * as fs from 'node:fs'
 import * as path from 'node:path'

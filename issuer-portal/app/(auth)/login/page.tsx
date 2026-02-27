@@ -71,6 +71,7 @@ const LoginPage = () => {
             </Typography>
             <CardContent>
               <TextField
+                id="login-username"
                 fullWidth
                 label="Username"
                 value={username}
@@ -80,6 +81,7 @@ const LoginPage = () => {
                 autoFocus
               />
               <TextField
+                id="login-password"
                 fullWidth
                 label="Password"
                 type="password"

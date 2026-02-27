@@ -17,10 +17,13 @@ export default {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Check if auth bypass is enabled
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
+        // Auth bypass for development - only for auto-sign-in (bypass/bypass credentials)
+        if (
+          process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' &&
+          credentials?.username === 'bypass' &&
+          credentials?.password === 'bypass'
+        ) {
           const bypassRole = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
-          // Return a mock user for development
           return {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
@@ -137,12 +140,6 @@ export default {
   callbacks: {
     authorized({ request, auth }) {
       const { nextUrl } = request
-      const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-
-      if (bypassAuth) {
-        return true
-      }
-
       const isAuthenticated = !!auth?.user
 
       // Allow access to login page
@@ -170,14 +167,9 @@ export default {
         token.account_id = user.account_id
         token.client_ticker = user.client_ticker
         token.username = user.username
+        token.image = undefined // Reset avatar on new sign-in
         token.roles =
           user.type === 'admin' || user.type === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER']
-      }
-
-      // In dev bypass mode, always sync role from env so switching roles
-      // doesn't require clearing cookies
-      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-        token.type = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
       }
 
       // Handle session updates (like avatar uploads)
