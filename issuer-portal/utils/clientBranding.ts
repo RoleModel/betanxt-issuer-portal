@@ -27,7 +27,7 @@ export const clientBranding = [
   },
   {
     ticker: 'DFIN',
-    primaryColor: '#8700FF',
+    primaryColor: '#7600E1',
     secondaryColor: '#2d235a',
     tertiaryColor: '#00FFBC',
   },

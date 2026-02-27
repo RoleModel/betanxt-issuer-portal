@@ -58,6 +58,9 @@ export default function HomePage() {
     // Wait for client context to finish loading before attempting fallback
     if (clientLoading) return
 
+    // Don't attempt fallback routing until user type is known
+    if (!userType) return
+
     if (currentClient) {
       const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2026`
       setHasRedirected(true)

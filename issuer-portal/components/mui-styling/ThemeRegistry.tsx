@@ -8,7 +8,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 import { useClient } from '@/contexts/ClientContext'
 
-import { NextAppDirEmotionCacheProvider } from './EmotionCache'
 import type { createClientTheme } from './theme'
 import {
   dfinThemeOptions,
@@ -38,21 +37,20 @@ const themeOptionsMap: Record<string, ReturnType<typeof createClientTheme>> = {
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   const ticker = currentClient?.ticker
+  const userType = session?.user?.type
 
   const theme = useMemo(() => {
-    const userType = session?.user?.type
     const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false
 
-    // Multi-client users (PARENT_CLIENT/SOLICITOR) always use their brand theme,
+    // Multi-client users (PARENT_CLIENT/SOLICITOR/CSM) always use their brand theme,
     // even when viewing a specific client's meeting page
     if (isMultiClientUser && userType) {
       const brandTicker = userTypeBrandTicker[userType]
       if (brandTicker) {
-        const themeOptions = themeOptionsMap[brandTicker] ?? wendysThemeOptions
-        return createTheme(themeOptions)
+        return createTheme(themeOptionsMap[brandTicker] ?? wendysThemeOptions)
       }
     }
 
@@ -64,15 +62,13 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
       ? (themeOptionsMap[effectiveTicker] ?? wendysThemeOptions)
       : wendysThemeOptions
     return createTheme(themeOptions)
-  }, [ticker, session?.user?.type])
+  }, [ticker, userType, status])
 
   return (
-    <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline enableColorScheme />
-        {children}
-      </ThemeProvider>
-    </NextAppDirEmotionCacheProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline enableColorScheme />
+      {children}
+    </ThemeProvider>
   )
 }
 

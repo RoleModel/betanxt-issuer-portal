@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <InitColorSchemeScript attribute="class" />
-        <AppRouterCacheProvider>
+        <AppRouterCacheProvider options={{ key: 'mui' }}>
           <SessionProvider>
             <ClientProvider>
               <NotificationProvider>

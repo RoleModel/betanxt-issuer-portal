@@ -154,7 +154,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         },
       ]}
       height={320}
-      margin={{ left: 10, right: 60, top: 10, bottom: 0 }}
+      margin={{ left: 0, right: 10, top: 10, bottom: 0 }}
     >
       <ChartsSurface>
         <ChartsGrid vertical horizontal />
