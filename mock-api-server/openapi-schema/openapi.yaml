@@ -2960,7 +2960,7 @@ components:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: 'wen-annual-meeting-2026'
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         cusip:
           type: string
           example: '95058W100'
@@ -3018,7 +3018,7 @@ components:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: 'wen-annual-meeting-2026'
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         proposalNumber:
           type: number
           format: double
@@ -3936,7 +3936,7 @@ components:
           type: string
           format: uuid
           nullable: true
-          example: 'wen-annual-meeting-2026'
+          example: '01234567-89ab-cdef-0123-456789abcdef'
         taskId:
           type: string
           format: uuid

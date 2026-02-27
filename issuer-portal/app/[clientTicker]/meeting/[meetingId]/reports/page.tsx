@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { Container } from '@mui/material'
 import Grid from '@mui/material/Grid'
@@ -16,7 +16,6 @@ import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { useReports } from '@/hooks/useReports'
 import { friendlyDate } from '@/utils/dateUtils'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
 const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   if (!phaseLabel) return null
@@ -26,11 +25,6 @@ const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   return Number.isFinite(num) ? num : null
 }
 
-interface Proposal {
-  id: string
-  proposalNumber: string
-  proposalTitle: string
-}
 
 export default function ReportsPage() {
   const { currentMeeting } = useMeeting()
@@ -42,57 +36,20 @@ export default function ReportsPage() {
   } = useReports(meetingId)
 
 
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [proposalsLoading, setProposalsLoading] = useState(false)
-
-  // Fetch proposals for the meeting
+  // Fetch proposals for the meeting (reserved for future use)
   useEffect(() => {
     if (!meetingId) {
-      setProposals([])
-      setProposalsLoading(false)
       return
     }
-
-    // Reset state when meetingId changes
-    setProposals([])
-    setProposalsLoading(true)
 
     const fetchProposals = async () => {
       try {
         const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/meetings/{meetingId}/proposals', {
+        await apiClient.GET('/meetings/{meetingId}/proposals', {
           params: { path: { meetingId } },
         })
-
-        if (!error && data) {
-          const proposalsRaw = Array.isArray(data)
-            ? data
-            : asArray(asRecord(data)?.proposals) || []
-
-          const proposalsList = proposalsRaw.reduce<Proposal[]>((acc, item) => {
-            const record = asRecord(item)
-            if (!record) return acc
-
-            const id = asString(record.id)
-            if (!id) return acc
-
-            acc.push({
-              id,
-              proposalNumber:
-                asString(record.proposalNumber) || asString(record.proposal_number) || '',
-              proposalTitle:
-                asString(record.proposalTitle) || asString(record.proposal_title) || '',
-            })
-
-            return acc
-          }, [])
-
-          setProposals(proposalsList)
-        }
       } catch (error) {
         console.error('Failed to fetch proposals:', error)
-      } finally {
-        setProposalsLoading(false)
       }
     }
 

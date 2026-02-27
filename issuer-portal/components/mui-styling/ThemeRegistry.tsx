@@ -11,12 +11,10 @@ import { useClient } from '@/contexts/ClientContext'
 
 import type { createClientTheme } from './theme'
 import {
+  createClientTheme as createThemeOptions,
   dfinThemeOptions,
-  elevenThemeOptions,
   morrowSodaliThemeOptions,
-  paycomThemeOptions,
   wendysThemeOptions,
-  woodwardThemeOptions,
 } from './theme'
 
 const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
@@ -24,23 +22,31 @@ const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
 const userTypeBrandTicker: Record<string, string> = {
   PARENT_CLIENT: 'DFIN',
   SOLICITOR: 'MRSO',
-  CSM: 'WEN', // CSM uses default BetaNXT theme (WEN as base)
+  CSM: 'WEN',
 }
 
 const multiClientUserTypes = new Set(['PARENT_CLIENT', 'SOLICITOR', 'CSM'])
 
-const themeOptionsMap: Record<string, ReturnType<typeof createClientTheme>> = {
-  WEN: wendysThemeOptions,
-  PAYC: paycomThemeOptions,
-  WWD: woodwardThemeOptions,
-  ELVN: elevenThemeOptions,
-  DFIN: dfinThemeOptions,
-  MRSO: morrowSodaliThemeOptions,
+/** Cache dynamically-created theme options so we don't rebuild every render */
+const themeCache = new Map<string, ReturnType<typeof createClientTheme>>()
+
+function getThemeOptions(tick: string): ReturnType<typeof createClientTheme> {
+  const existing = themeCache.get(tick)
+  if (existing) return existing
+  const opts = createThemeOptions(tick)
+  themeCache.set(tick, opts)
+  return opts
+}
+
+const brandThemeForUserType: Record<string, ReturnType<typeof createClientTheme>> = {
+  PARENT_CLIENT: dfinThemeOptions,
+  SOLICITOR: morrowSodaliThemeOptions,
+  CSM: wendysThemeOptions,
 }
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
   const pathname = usePathname()
 
   const ticker = currentClient?.ticker
@@ -56,15 +62,15 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false
 
     if (isMultiClientUser && userType) {
-      // When on a client-specific page, use that client's theme or default
+      // When on a client-specific page, use that client's brand theme
       if (urlTicker) {
-        return createTheme(themeOptionsMap[urlTicker] ?? wendysThemeOptions)
+        return createTheme(getThemeOptions(urlTicker))
       }
 
-      // Fall back to the user's brand theme on top-level pages (events, profile, etc.)
-      const brandTicker = userTypeBrandTicker[userType]
-      if (brandTicker) {
-        return createTheme(themeOptionsMap[brandTicker] ?? wendysThemeOptions)
+      // Fall back to the user's org brand on top-level pages (events, profile, etc.)
+      const orgTheme = brandThemeForUserType[userType]
+      if (orgTheme) {
+        return createTheme(orgTheme)
       }
     }
 
@@ -72,11 +78,8 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const effectiveTicker =
       ticker ?? (userType ? userTypeBrandTicker[userType] : undefined)
 
-    const themeOptions = effectiveTicker
-      ? (themeOptionsMap[effectiveTicker] ?? wendysThemeOptions)
-      : wendysThemeOptions
-    return createTheme(themeOptions)
-  }, [ticker, userType, status, urlTicker])
+    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions)
+  }, [ticker, userType, urlTicker])
 
   return (
     <ThemeProvider theme={theme}>
