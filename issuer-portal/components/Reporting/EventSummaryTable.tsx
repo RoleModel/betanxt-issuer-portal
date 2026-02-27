@@ -88,7 +88,12 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
             <TableBody>
               {paginatedRows.map((row, index) => (
                 <TableRow key={`${row.meetingId ?? 'row'}-${index}`}>
-                  <TableCell component="th" scope="row" sx={{ whiteSpace: 'nowrap' }}>
+                  <TableCell
+                    size="small"
+                    component="th"
+                    scope="row"
+                    sx={{ whiteSpace: 'nowrap' }}
+                  >
                     {row.meetingId ? (
                       <Button
                         variant="text"

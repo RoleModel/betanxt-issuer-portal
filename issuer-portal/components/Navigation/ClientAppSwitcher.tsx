@@ -10,12 +10,7 @@ import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
 import type { Client } from '@/hooks/useClients'
-import {
-  type EventRow,
-  getMeetingUrl,
-  parentClientEvents,
-  solicitorEvents,
-} from '@/utils/eventData'
+import { type EventRow, parentClientEvents, solicitorEvents } from '@/utils/eventData'
 
 /** Brand labels for multi-client user types when no event is selected */
 const USER_TYPE_BRAND_LABELS: Record<string, string> = {
@@ -83,13 +78,20 @@ function EventSwitchButton({ userType }: { userType: string }) {
   }
 
   const handleEventSelect = (row: EventRow) => {
-    router.push(getMeetingUrl(row))
+    const routePrefix = row.meetingStatus === 'ACTIVE' ? 'meeting' : 'past-meeting'
+    const issuer = encodeURIComponent(row.event)
+
+    // Extract the current sub-page (e.g. /tabulation, /mailing, /dashboard/1)
+    const subPage = pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, '')
+
+    const url = `/${row.clientTicker}/${routePrefix}/${row.meetingId}${subPage}?issuer=${issuer}`
+    router.push(url)
     handleClose()
   }
 
   if (!hasDropdown) {
     return (
-      <Typography variant="body3" fontWeight={500} sx={{ p: 1.5 }}>
+      <Typography variant="button" sx={{ px: 1.375 }}>
         {displayName}
       </Typography>
     )
