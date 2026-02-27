@@ -17,6 +17,7 @@ import type { EventRow } from '@/utils/eventData'
 const USER_TYPE_BRAND_LABELS: Record<string, string> = {
   PARENT_CLIENT: 'Donnelley Financial Solutions',
   SOLICITOR: 'Morrow Sodali',
+  CSM: 'BetaNXT',
 }
 
 interface ClientAppSwitcherProps {
@@ -221,7 +222,7 @@ function SwitchButton() {
   // Check if user has permission to switch clients
   const userType = session?.user?.type
   const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-  const isEventUser = userType === 'PARENT_CLIENT' || userType === 'SOLICITOR'
+  const isEventUser = userType === 'PARENT_CLIENT' || userType === 'SOLICITOR' || userType === 'CSM'
   const canSwitchClients =
     isAuthBypassed ||
     userType === 'ADMIN' ||
