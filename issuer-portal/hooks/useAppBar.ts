@@ -64,7 +64,7 @@ interface UseAppBarResult {
 
   // Navigation
   tabs: { label: string; value: string; href: string }[]
-  selectedTabValue: string | undefined
+  selectedTabValue: string | false
   shouldHideTabs: boolean
   handleTabChange: (event: React.SyntheticEvent, newValue: string) => void
   handleWrapperClick: (event: React.MouseEvent<HTMLDivElement>) => void
@@ -338,9 +338,11 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
   const shouldHideTabs = currentTab === null
   // Guard against tab value mismatches during session loading (e.g. multi-client user
   // on /events before session resolves — tabs don't include 'events' yet).
+  // Use `false` instead of `undefined` so MUI Tabs treats it as "no selection"
+  // rather than switching to uncontrolled mode and logging a console warning.
   const tabValues = useMemo(() => new Set(tabs.map((t) => t.value)), [tabs])
-  const selectedTabValue =
-    currentTab === null || !tabValues.has(currentTab) ? undefined : currentTab
+  const selectedTabValue: string | false =
+    currentTab === null || !tabValues.has(currentTab) ? false : currentTab
 
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {

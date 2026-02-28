@@ -55,6 +55,8 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const meetingStatus: 'ACTIVE' | 'COMPLETE' =
     status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETE'
 
+  const mailingStatus = asString(meeting.mailingStatus) ?? null
+
   return {
     id,
     event: companyName,
@@ -64,6 +66,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     meetingId: id,
     clientTicker: ticker,
     meetingStatus,
+    mailingStatus,
   }
 }
 
@@ -71,6 +74,8 @@ interface UseEventsResult {
   events: EventRow[]
   loading: boolean
   error: string | null
+  /** Revalidate the events list from the server */
+  revalidate: () => Promise<EventRow[] | undefined>
 }
 
 export function useEvents(): UseEventsResult {
@@ -117,7 +122,7 @@ export function useEvents(): UseEventsResult {
     return allEvents
   }
 
-  const { data: rawData, error, isLoading } = useSWR(
+  const { data: rawData, error, isLoading, mutate } = useSWR(
     session || bypassAuth ? ['/events-list', session?.user?.id] : null,
     eventsFetcher,
     {
@@ -139,5 +144,6 @@ export function useEvents(): UseEventsResult {
     events,
     loading: isLoading,
     error: error instanceof Error ? error.message : null,
+    revalidate: mutate,
   }
 }

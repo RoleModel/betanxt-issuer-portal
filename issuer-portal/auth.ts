@@ -194,7 +194,8 @@ export const {
         if (!credentials?.username || !credentials?.password) return null
 
         const user = mockUsers[credentials.username as string]
-        if (!user || credentials.password !== user.password) return null
+        if (!user) return null
+        if (credentials.password !== user.password) return null
         return {
           id: user.id,
           username: user.username,

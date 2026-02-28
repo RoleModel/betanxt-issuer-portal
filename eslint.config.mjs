@@ -144,4 +144,12 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+
+  // Mock API server route stubs — handlers are async by convention even without await
+  {
+    files: ['mock-api-server/app/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
 ]

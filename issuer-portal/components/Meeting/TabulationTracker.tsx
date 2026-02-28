@@ -662,7 +662,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                       month: 'long',
                       day: 'numeric',
                       year: 'numeric',
-                    })} 11:59 PM Eastern Time`
+                    })} 11:59 PM ET`
                     : '0',
                   sx: { whiteSpace: 'nowrap' },
                 }}

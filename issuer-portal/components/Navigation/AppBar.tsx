@@ -144,7 +144,9 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     tabs: shouldHideTabs ? [] : tabs,
     avatar,
     menuItems,
-    selectedTabValue,
+    // Cast: MUI Tabs accepts `false` for "no selection" but BNAppBar types it as `string`.
+    // At runtime `false` passes through correctly and suppresses the MUI console warning.
+    selectedTabValue: selectedTabValue as string | undefined,
     meetingStatus,
     onTabChange: handleTabChange,
   }

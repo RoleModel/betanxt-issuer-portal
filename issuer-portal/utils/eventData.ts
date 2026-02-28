@@ -12,6 +12,7 @@ export interface EventRow {
   meetingId: string
   clientTicker: string
   meetingStatus: 'ACTIVE' | 'COMPLETE'
+  mailingStatus: string | null
 }
 
 /** Build a meeting URL for an event row */

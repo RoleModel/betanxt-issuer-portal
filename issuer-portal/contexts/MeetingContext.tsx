@@ -204,6 +204,7 @@ export function MeetingProvider({
             solicitorEmail: asString(record.solicitorEmail) || undefined,
             inspector: asString(record.inspector) || undefined,
             ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
+            mailingStatus: asString(record.mailingStatus) || undefined,
             clientId: asString(record.clientId) || undefined,
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,

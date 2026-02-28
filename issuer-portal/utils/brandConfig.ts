@@ -138,8 +138,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: 'gossamerbio.com',
     logoPath: '/logos/brands/gossamer-bio-inc_logo.png',
     iconPath: '/logos/brands/gossamer-bio-inc_icon.png',
-    primaryColor: '#b6e3d4',
-    secondaryColor: '#2b5563',
+    primaryColor: '#2B5563',
+    secondaryColor: '#B6E3D4',
   },
   'Affirm Holdings Inc.': {
     companyName: 'Affirm',
