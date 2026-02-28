@@ -2700,6 +2700,7 @@ components:
         mailingStatus:
           type: string
           nullable: true
+          default: 'Pending Positions'
           description: Current status of the mailing process for this meeting
         clientId:
           type: string

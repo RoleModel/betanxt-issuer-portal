@@ -155,7 +155,7 @@ CREATE TABLE public.meeting (
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
     broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
-    mailing_status TEXT DEFAULT NULL,
+    mailing_status TEXT DEFAULT 'Pending Positions',
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,

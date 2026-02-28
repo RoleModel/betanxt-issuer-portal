@@ -1433,7 +1433,7 @@ const main = async () => {
         const transferAgent = transferAgents[transferAgentIndex]
 
         // Determine mailing status based on meeting status
-        const mailingStatus = status === 'COMPLETE' ? 'Mailing Complete' : null
+        const mailingStatus = status === 'COMPLETE' ? 'Mailing Complete' : 'Pending Positions'
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
@@ -1475,7 +1475,7 @@ const main = async () => {
           `${account.totalSharesOutstanding}, ` +
           `${account.quorumRequirement}, ` +
           `${account.brokerNonVote || 'NULL'}, ` +
-          `${mailingStatus ? sqlValue(mailingStatus) : 'NULL'}, ` +
+          `${sqlValue(mailingStatus)}, ` +
           `${sqlValue(clientIds[client.ticker])}, ` +
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(createdAt)});`
