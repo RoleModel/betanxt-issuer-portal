@@ -194,17 +194,16 @@ export const {
         if (!credentials?.username || !credentials?.password) return null
 
         const user = mockUsers[credentials.username as string]
-        if (user && credentials.password === user.password) {
-          return {
-            id: user.id,
-            username: user.username,
-            type: user.type,
-            account_id: user.account_id,
-            client_ticker: user.client_ticker,
-            clientTickers: user.clientTickers,
-          }
+        if (!user) return null
+        if (credentials.password !== user.password) return null
+        return {
+          id: user.id,
+          username: user.username,
+          type: user.type,
+          account_id: user.account_id,
+          client_ticker: user.client_ticker,
+          clientTickers: user.clientTickers,
         }
-        return null
       },
     }),
   ],
@@ -238,7 +237,7 @@ export const {
 
         // Always re-read clientTickers from the live mockUsers config so stale
         // sessions pick up ticker list changes without requiring a re-login.
-        const username = token.username as string | undefined
+        const username = token.username
         if (username && mockUsers[username]) {
           token.clientTickers = mockUsers[username].clientTickers
         }

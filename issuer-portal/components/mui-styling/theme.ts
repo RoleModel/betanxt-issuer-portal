@@ -20,7 +20,7 @@ import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-to
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
 import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -36,8 +36,9 @@ import {
 import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
 import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
-import type {} from '@mui/x-date-pickers/themeAugmentation'
+import type { } from '@mui/x-date-pickers/themeAugmentation'
 
+import { brandConfigsByTicker } from '@/utils/brandConfig'
 import { clientBranding } from '@/utils/clientBranding'
 
 const jobStatusColorsLight = {
@@ -348,6 +349,28 @@ const getClientBranding = (ticker?: string) => {
     }) => b.ticker.toLowerCase() === ticker.toLowerCase()
   )
 
+  // Fall back to brandConfig colors for the 50+ companies not in the hardcoded list
+  if (!branding) {
+    const brand = brandConfigsByTicker[ticker.toUpperCase()]
+    if (brand) {
+      const fallbackBranding = {
+        ticker: brand.ticker ?? ticker.toUpperCase(),
+        primaryColor: brand.primaryColor,
+        secondaryColor: brand.secondaryColor,
+        tertiaryColor: brand.secondaryColor, // use secondary as tertiary
+      }
+      return {
+        ...fallbackBranding,
+        primaryContrastText:
+          getContrastRatio(fallbackBranding.primaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+        secondaryContrastText:
+          getContrastRatio(fallbackBranding.secondaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+        tertiaryContrastText:
+          getContrastRatio(fallbackBranding.tertiaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+      }
+    }
+  }
+
   const selectedBranding = branding ?? clientBranding[0]
 
   return {
@@ -456,16 +479,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-          ],
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[500],
         },
       },
@@ -540,16 +563,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-          ],
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[600],
         },
       },

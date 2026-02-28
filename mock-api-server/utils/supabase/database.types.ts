@@ -130,8 +130,8 @@ export type Database = {
           meeting_id: string | null
           minutes_attended_meeting: number | null
           registrant_type:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
-            | null
+          | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+          | null
           registration_questions: string | null
           updated_at: string | null
         }
@@ -144,8 +144,8 @@ export type Database = {
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
-            | null
+          | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+          | null
           registration_questions?: string | null
           updated_at?: string | null
         }
@@ -158,8 +158,8 @@ export type Database = {
           meeting_id?: string | null
           minutes_attended_meeting?: number | null
           registrant_type?:
-            | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
-            | null
+          | Database['public']['Enums']['digital_shareholder_meeting_registrant_type']
+          | null
           registration_questions?: string | null
           updated_at?: string | null
         }
@@ -179,8 +179,8 @@ export type Database = {
           deadline: string | null
           description: string | null
           display_category:
-            | Database['public']['Enums']['document_display_category']
-            | null
+          | Database['public']['Enums']['document_display_category']
+          | null
           file_path: string | null
           file_size: number | null
           file_type: string | null
@@ -216,8 +216,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database['public']['Enums']['document_display_category']
-            | null
+          | Database['public']['Enums']['document_display_category']
+          | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
@@ -253,8 +253,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           display_category?:
-            | Database['public']['Enums']['document_display_category']
-            | null
+          | Database['public']['Enums']['document_display_category']
+          | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
@@ -1008,48 +1008,48 @@ export type Database = {
     }
     Enums: {
       add_document_event_request_event_type:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'NOT_UPLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
+      | 'CREATED'
+      | 'UPLOADED'
+      | 'VIEWED'
+      | 'DOWNLOADED'
+      | 'NOT_UPLOADED'
+      | 'SIGNED'
+      | 'APPROVED'
+      | 'REJECTED'
+      | 'COMMENTED'
+      | 'UPDATED'
+      | 'DELETED'
       cast_vote_request_vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
       create_digital_shareholder_meeting_request_registrant_type:
-        | 'Shareholder'
-        | 'Guest'
-        | 'Proxy'
-        | 'Other'
+      | 'Shareholder'
+      | 'Guest'
+      | 'Proxy'
+      | 'Other'
       create_position_request_source: 'WEB' | 'PRINT' | 'IVR'
       create_position_request_vote_status: 'Voted' | 'Unvoted'
       digital_shareholder_meeting_registrant_type:
-        | 'Shareholder'
-        | 'Guest'
-        | 'Proxy'
-        | 'Other'
+      | 'Shareholder'
+      | 'Guest'
+      | 'Proxy'
+      | 'Other'
       document_display_category:
-        | 'general'
-        | 'dsm'
-        | 'proxy-materials'
-        | 'meeting-materials'
-        | 'post-meeting'
-        | 'internal'
+      | 'general'
+      | 'dsm'
+      | 'proxy-materials'
+      | 'meeting-materials'
+      | 'post-meeting'
+      | 'internal'
       document_history_event_type:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
+      | 'CREATED'
+      | 'UPLOADED'
+      | 'VIEWED'
+      | 'DOWNLOADED'
+      | 'SIGNED'
+      | 'APPROVED'
+      | 'REJECTED'
+      | 'COMMENTED'
+      | 'UPDATED'
+      | 'DELETED'
       notification_priority: 'low' | 'medium' | 'high' | 'critical'
       notification_type: 'info' | 'warning' | 'error' | 'success'
       position_source: 'WEB' | 'PRINT' | 'IVR'
@@ -1070,116 +1070,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema['Views'])
+  ? (DefaultSchema['Tables'] &
+    DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Tables']
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Tables']
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['Enums']
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema['CompositeTypes']
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

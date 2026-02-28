@@ -819,28 +819,28 @@ export interface components {
     PhaseStatus: 'IN_PROGRESS' | 'COMPLETE'
     /** @enum {string} */
     TaskStatus:
-      | 'INCOMPLETE'
-      | 'COMPLETE'
-      | 'CANCELLED'
-      | 'NEEDS_AUTHORIZATION'
-      | 'AUTHORIZED'
-      | 'PENDING_AUTHORIZATION'
-      | 'WAITING_FOR_FORM_RETURN'
-      | 'AUTHORIZATION_NEEDED'
-      | 'SUBMITTED_AWAITING_RECORD_DATE'
-      | 'REQUEST_FORM_TO_FOLLOW'
-      | 'AWAITING_REVIEW'
+    | 'INCOMPLETE'
+    | 'COMPLETE'
+    | 'CANCELLED'
+    | 'NEEDS_AUTHORIZATION'
+    | 'AUTHORIZED'
+    | 'PENDING_AUTHORIZATION'
+    | 'WAITING_FOR_FORM_RETURN'
+    | 'AUTHORIZATION_NEEDED'
+    | 'SUBMITTED_AWAITING_RECORD_DATE'
+    | 'REQUEST_FORM_TO_FOLLOW'
+    | 'AWAITING_REVIEW'
     /** @enum {string} */
     DocumentStatus:
-      | 'DRAFT'
-      | 'AWAITING_DRAFT'
-      | 'AWAITING_REVIEW'
-      | 'APPROVED'
-      | 'UPLOADED'
-      | 'IN_PROGRESS'
-      | 'SIGNED'
-      | 'AUTHORIZED'
-      | 'COMPLETED'
+    | 'DRAFT'
+    | 'AWAITING_DRAFT'
+    | 'AWAITING_REVIEW'
+    | 'APPROVED'
+    | 'UPLOADED'
+    | 'IN_PROGRESS'
+    | 'SIGNED'
+    | 'AUTHORIZED'
+    | 'COMPLETED'
     Account: {
       /** Format: uuid */
       id?: string
@@ -1203,13 +1203,13 @@ export interface components {
        * @enum {string|null}
        */
       displayCategory?:
-        | 'general'
-        | 'dsm'
-        | 'proxy-materials'
-        | 'meeting-materials'
-        | 'post-meeting'
-        | 'internal'
-        | null
+      | 'general'
+      | 'dsm'
+      | 'proxy-materials'
+      | 'meeting-materials'
+      | 'post-meeting'
+      | 'internal'
+      | null
       meeting?: components['schemas']['Meeting']
       comments?: components['schemas']['Comment'][]
       signatures?: components['schemas']['Signature'][]
@@ -1425,16 +1425,16 @@ export interface components {
       documentId?: string
       /** @enum {string} */
       eventType?:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
+      | 'CREATED'
+      | 'UPLOADED'
+      | 'VIEWED'
+      | 'DOWNLOADED'
+      | 'SIGNED'
+      | 'APPROVED'
+      | 'REJECTED'
+      | 'COMMENTED'
+      | 'UPDATED'
+      | 'DELETED'
       /** Format: uuid */
       userId?: string
       userName?: string
@@ -4139,17 +4139,17 @@ export interface operations {
         'application/json': {
           /** @enum {string} */
           eventType:
-            | 'CREATED'
-            | 'UPLOADED'
-            | 'VIEWED'
-            | 'DOWNLOADED'
-            | 'NOT_UPLOADED'
-            | 'SIGNED'
-            | 'APPROVED'
-            | 'REJECTED'
-            | 'COMMENTED'
-            | 'UPDATED'
-            | 'DELETED'
+          | 'CREATED'
+          | 'UPLOADED'
+          | 'VIEWED'
+          | 'DOWNLOADED'
+          | 'NOT_UPLOADED'
+          | 'SIGNED'
+          | 'APPROVED'
+          | 'REJECTED'
+          | 'COMMENTED'
+          | 'UPDATED'
+          | 'DELETED'
           metadata?: {
             [key: string]: unknown
           }

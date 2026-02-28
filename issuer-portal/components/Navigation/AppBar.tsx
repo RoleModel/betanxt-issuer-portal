@@ -68,6 +68,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const {
     logoSlotProps,
     isCSM,
+    isInClientContext,
     tabs,
     selectedTabValue,
     shouldHideTabs,
@@ -117,8 +118,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   )
 
   // CSM logo component wrapper that renders BNLogo instead of a client image
+  // Only used when CSM is NOT in a client context
+  const showCSMBrandLogo = isCSM && !isInClientContext
   const CSMLogoComponent = useMemo(() => {
-    if (!isCSM) return null
+    if (!showCSMBrandLogo) return null
     const CSMLogo = () => (
       <Box sx={{ display: 'flex', alignItems: 'center', height: 44 }}>
         <BNLogo height={28} />
@@ -126,19 +129,24 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     )
     CSMLogo.displayName = 'CSMLogo'
     return CSMLogo
-  }, [isCSM])
+  }, [showCSMBrandLogo])
 
   const appBarProps = {
     slots: {
-      logoImg: isCSM && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
+      logoImg:
+        showCSMBrandLogo && CSMLogoComponent
+          ? CSMLogoComponent
+          : NextImageComponent,
       end: endSlot,
     },
-    slotProps: isCSM ? undefined : logoSlotProps,
+    slotProps: showCSMBrandLogo ? undefined : logoSlotProps,
     color: 'secondary' as const,
     tabs: shouldHideTabs ? [] : tabs,
     avatar,
     menuItems,
-    selectedTabValue,
+    // Cast: MUI Tabs accepts `false` for "no selection" but BNAppBar types it as `string`.
+    // At runtime `false` passes through correctly and suppresses the MUI console warning.
+    selectedTabValue: selectedTabValue as string | undefined,
     meetingStatus,
     onTabChange: handleTabChange,
   }

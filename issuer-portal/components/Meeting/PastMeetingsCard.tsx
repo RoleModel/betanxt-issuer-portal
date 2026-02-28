@@ -63,7 +63,7 @@ const isPositionVoted = (position: components['schemas']['Position']): boolean =
   return status === 'voted'
 }
 
-const computeParticipationMetrics = (
+const _computeParticipationMetrics = (
   meeting: Meeting,
   positions: components['schemas']['Position'][]
 ) => {

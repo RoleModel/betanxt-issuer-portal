@@ -53,7 +53,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const [nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
+  const [_nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
   const [phases, setPhases] = useState<Phase[]>([])
 
@@ -98,7 +98,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
     return d
   }
 
-  const daysUntilDate = (d: Date): number => {
+  const _daysUntilDate = (d: Date): number => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const target = new Date(d)
@@ -516,10 +516,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
   const progress =
     currentData && isVotingPhase
       ? {
-          voted: Math.round(currentVotePercentage),
-          unvoted: 100 - Math.round(currentVotePercentage),
-          toQuorum: Math.round(currentVotePercentage),
-        }
+        voted: Math.round(currentVotePercentage),
+        unvoted: 100 - Math.round(currentVotePercentage),
+        toQuorum: Math.round(currentVotePercentage),
+      }
       : { voted: 0, unvoted: 0, toQuorum: 0 }
 
   // Meeting status determines what data to show
@@ -597,10 +597,10 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                 text:
                   isCompleted && meetingDate
                     ? meetingDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
                     : meetingDate
                       ? calculateDaysUntil(meetingDate.toISOString())
                       : '--',
@@ -658,10 +658,11 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                   variant: 'h2',
                   fontWeight: 600,
                   text: voteCutoffDate
-                    ? voteCutoffDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })
+                    ? `${voteCutoffDate.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })} 11:59 PM ET`
                     : '0',
                   sx: { whiteSpace: 'nowrap' },
                 }}
@@ -712,7 +713,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                 variant="body2"
               >
                 {Number(currentData?.shares_voted ?? 0) >
-                Number(previousYearData.shares_voted) ? (
+                  Number(previousYearData.shares_voted) ? (
                   <ArrowUpwardSharp fontSize="inherit" />
                 ) : (
                   <ArrowDownward fontSize="inherit" />
@@ -728,7 +729,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
               primary={{
                 variant: 'body2',
                 fontWeight: 500,
-                text: 'Shares Unvoted',
+                text: 'Shares Not Voted',
                 sx: { whiteSpace: 'nowrap' },
               }}
               secondary={{
@@ -752,7 +753,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                 variant="body2"
               >
                 {Number(currentData?.shares_unvoted ?? 0) <
-                Number(previousYearData.shares_unvoted) ? (
+                  Number(previousYearData.shares_unvoted) ? (
                   <ArrowDownward fontSize="inherit" />
                 ) : (
                   <ArrowUpwardSharp fontSize="inherit" />
@@ -860,7 +861,7 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
                 color: theme.vars?.palette.keydate.contrastText,
               })}
             >
-              {progress.unvoted}% Unvoted
+              {progress.unvoted}% Not Voted
             </Typography>
           </Box>
         </Box>

@@ -20,7 +20,6 @@ import type { components } from '@/domain-models/generated-schema'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { usePhases } from '@/hooks/usePhases'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import { friendlyDate } from '@/utils/dateUtils'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
 const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
@@ -55,9 +54,6 @@ export default function TabulationPage() {
   }, [currentPhaseLabel, phases])
 
   const phaseIsSevenOrGreater = (currentPhaseNumber ?? 0) >= 7
-
-  const meetingDateStr = currentMeeting?.meetingDate
-  const friendlyMeetingDate = meetingDateStr ? friendlyDate(meetingDateStr) : 'TBD'
 
   // Call hooks before any conditional returns
   const { proposals: votingProposals, votingSummary } = useVotingTabulation(
@@ -221,7 +217,7 @@ export default function TabulationPage() {
         <EmptyState
           title="Tabulation"
           icon={<ChecklistDocumentIcon />}
-          description={`Tabulation data will be available starting on ${friendlyMeetingDate}. Check back then to review voting results and participation metrics.`}
+          description={`Tabulation results will appear once voting activity starts.`}
         />
       </Container>
     )

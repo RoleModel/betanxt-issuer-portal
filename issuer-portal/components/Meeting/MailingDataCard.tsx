@@ -40,26 +40,44 @@ const formatNumber = (num: number | null | undefined): string => {
 }
 
 const buildMetricsFromMailing = (mailing: MailingType | null): MailingMetric[] => {
-  if (!mailing) return []
+  if (!mailing) return [
+    { label: 'Totals', group: 'section' },
+    { label: 'Accounts', value: 0 },
+    { label: 'Positions', value: 0 },
+    { label: 'Retransmissions', value: 0 },
+    { label: 'Rollups', value: 0 },
+    { label: 'Mail Positions', group: 'section' },
+    { label: 'Full Set', value: 0 },
+    { label: 'NAA', value: 0 },
+    { label: 'Courtesy/Other', value: 0 },
+    { label: 'Electronic', value: 0 },
+    { label: 'Suppressed Positions', group: 'section' },
+    { label: 'Household', value: 0 },
+    {
+      label: 'Consolidated',
+      value: 0,
+    },
+    { label: 'Canceled', value: 0 },
+  ]
 
   return [
     { label: 'Totals', group: 'section' },
-    { label: 'Accounts', value: formatNumber(mailing.totalAccounts) },
-    { label: 'Positions', value: formatNumber(mailing.totalPositions) },
-    { label: 'Retransmissions', value: formatNumber(mailing.totalRetransmissions) },
-    { label: 'Rollups', value: formatNumber(mailing.totalRollups) },
+    { label: 'Accounts', value: formatNumber(mailing.totalAccounts) || '0' },
+    { label: 'Positions', value: formatNumber(mailing.totalPositions) || '0' },
+    { label: 'Retransmissions', value: formatNumber(mailing.totalRetransmissions) || '0' },
+    { label: 'Rollups', value: formatNumber(mailing.totalRollups) || '0' },
     { label: 'Mail Positions', group: 'section' },
-    { label: 'Full Set', value: formatNumber(mailing.fullsetMailPositions) },
-    { label: 'NAA', value: formatNumber(mailing.naaMailPositions) },
-    { label: 'Courtesy/Other', value: formatNumber(mailing.courtesyOtherMailPositions) },
-    { label: 'Electronic', value: formatNumber(mailing.electronicSuppressedPositions) },
+    { label: 'Full Set', value: formatNumber(mailing.fullsetMailPositions) || '0' },
+    { label: 'NAA', value: formatNumber(mailing.naaMailPositions) || '0' },
+    { label: 'Courtesy/Other', value: formatNumber(mailing.courtesyOtherMailPositions) || '0' },
+    { label: 'Electronic', value: formatNumber(mailing.electronicSuppressedPositions) || '0' },
     { label: 'Suppressed Positions', group: 'section' },
-    { label: 'Household', value: formatNumber(mailing.householdSuppressedPositions) },
+    { label: 'Household', value: formatNumber(mailing.householdSuppressedPositions) || '0' },
     {
       label: 'Consolidated',
-      value: formatNumber(mailing.consolidatedSuppressedPositions),
+      value: formatNumber(mailing.consolidatedSuppressedPositions) || '0',
     },
-    { label: 'Canceled', value: formatNumber(mailing.canceledSuppressedPositions) },
+    { label: 'Canceled', value: formatNumber(mailing.canceledSuppressedPositions) || '0' },
   ]
 }
 

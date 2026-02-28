@@ -48,7 +48,7 @@ export default function SharesVotedChart({
           },
           {
             id: 'unvoted',
-            label: 'Unvoted',
+            label: 'Not Voted',
             value: totalUnvoted,
             color: 'var(--mui-palette-chartSeries-4-main)',
           },

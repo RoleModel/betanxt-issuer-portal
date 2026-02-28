@@ -23,17 +23,6 @@ type ParticipationMetrics = Pick<
   'participationPercent' | 'totalVotes' | 'votingShares'
 >
 
-// Minimal shape of the tabulation report we rely on (extend if OpenAPI adds more fields)
-interface TabulationReportPositionsVoted {
-  totalShares?: number
-  votedShares?: number
-  voted?: number
-}
-
-interface TabulationReport {
-  positionsVoted?: TabulationReportPositionsVoted
-}
-
 // Generate consistent participation rate between 58% and 74% using meeting id as seed
 // This matches the seeded random in useReporting.ts
 const generateSeededParticipation = (meetingId: string): number => {
@@ -80,7 +69,7 @@ const isPositionVoted = (position: components['schemas']['Position']): boolean =
   return status === 'voted'
 }
 
-const extractPositions = (data: unknown): components['schemas']['Position'][] => {
+const _extractPositions = (data: unknown): components['schemas']['Position'][] => {
   if (Array.isArray(data)) {
     return data as components['schemas']['Position'][]
   }
@@ -120,7 +109,7 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
   return parseNumericValue(meetingRecord.total_shares_outstanding)
 }
 
-const computeParticipationMetrics = (
+const _computeParticipationMetrics = (
   meeting: Meeting,
   positions: components['schemas']['Position'][]
 ): ParticipationMetrics => {

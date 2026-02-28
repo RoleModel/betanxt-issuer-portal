@@ -39,6 +39,7 @@ type Order = 'asc' | 'desc'
 type OrderBy = keyof EventRow
 
 const mailingStatuses = [
+  'Pending Positions',
   'Positions Received',
   'Positions Loaded',
   'Proof Delivered',
@@ -120,31 +121,38 @@ function formatDate(dateStr: string): string {
 
 export default function EventsPage() {
   const { data: session } = useSession()
-  const { events, loading } = useEvents()
+  const { events, loading, revalidate } = useEvents()
   const [order, setOrder] = useState<Order>('desc')
   const [orderBy, setOrderBy] = useState<OrderBy>('eventDate')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
-  const [mailingStatusMap, setMailingStatusMap] = useState<Record<string, MailingStatus>>({})
+  const [mailingStatusOverrides, setMailingStatusOverrides] = useState<Record<string, MailingStatus>>({})
 
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const isCSM = userType === 'CSM'
 
   const handleMailingStatusChange = useCallback(
     async (eventId: string, meetingId: string, newStatus: MailingStatus) => {
-      setMailingStatusMap((prev) => ({ ...prev, [eventId]: newStatus }))
+      setMailingStatusOverrides((prev) => ({ ...prev, [eventId]: newStatus }))
       try {
         const api = await buildApiClient()
         await api.PUT('/meetings/{meetingId}', {
           params: { path: { meetingId } },
           body: { mailingStatus: newStatus },
         })
+        // Revalidate the SWR cache so the persisted value is in sync
+        void revalidate()
       } catch {
-        // Optimistic update — status is already set in local state
+        // Revert optimistic update on failure
+        setMailingStatusOverrides((prev) => {
+          const next = { ...prev }
+          delete next[eventId]
+          return next
+        })
       }
     },
-    []
+    [revalidate]
   )
 
   const handleRequestSort = (property: OrderBy) => {
@@ -168,8 +176,8 @@ export default function EventsPage() {
     }
 
     return [...filtered].sort((a, b) => {
-      let compareA: string | number = a[orderBy]
-      let compareB: string | number = b[orderBy]
+      let compareA: string | number | null = a[orderBy]
+      let compareB: string | number | null = b[orderBy]
 
       if (orderBy === 'eventDate') {
         compareA = parseEventDate(a.eventDate).getTime()
@@ -317,7 +325,10 @@ export default function EventsPage() {
                             <MailingStatusDropdown
                               eventId={row.id}
                               meetingId={row.meetingId}
-                              status={mailingStatusMap[row.id] ?? null}
+                              status={
+                                (mailingStatusOverrides[row.id] ??
+                                  row.mailingStatus) as MailingStatus | null
+                              }
                               onStatusChange={handleMailingStatusChange}
                             />
                           </TableCell>

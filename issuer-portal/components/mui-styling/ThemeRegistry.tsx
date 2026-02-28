@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import React, { useMemo } from 'react'
 
 import CssBaseline from '@mui/material/CssBaseline'
@@ -10,47 +11,66 @@ import { useClient } from '@/contexts/ClientContext'
 
 import type { createClientTheme } from './theme'
 import {
+  createClientTheme as createThemeOptions,
   dfinThemeOptions,
-  elevenThemeOptions,
   morrowSodaliThemeOptions,
-  paycomThemeOptions,
   wendysThemeOptions,
-  woodwardThemeOptions,
 } from './theme'
+
+const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
 
 const userTypeBrandTicker: Record<string, string> = {
   PARENT_CLIENT: 'DFIN',
   SOLICITOR: 'MRSO',
-  CSM: 'WEN', // CSM uses default BetaNXT theme (WEN as base)
+  CSM: 'WEN',
 }
 
 const multiClientUserTypes = new Set(['PARENT_CLIENT', 'SOLICITOR', 'CSM'])
 
-const themeOptionsMap: Record<string, ReturnType<typeof createClientTheme>> = {
-  WEN: wendysThemeOptions,
-  PAYC: paycomThemeOptions,
-  WWD: woodwardThemeOptions,
-  ELVN: elevenThemeOptions,
-  DFIN: dfinThemeOptions,
-  MRSO: morrowSodaliThemeOptions,
+/** Cache dynamically-created theme options so we don't rebuild every render */
+const themeCache = new Map<string, ReturnType<typeof createClientTheme>>()
+
+function getThemeOptions(tick: string): ReturnType<typeof createClientTheme> {
+  const existing = themeCache.get(tick)
+  if (existing) return existing
+  const opts = createThemeOptions(tick)
+  themeCache.set(tick, opts)
+  return opts
+}
+
+const brandThemeForUserType: Record<string, ReturnType<typeof createClientTheme>> = {
+  PARENT_CLIENT: dfinThemeOptions,
+  SOLICITOR: morrowSodaliThemeOptions,
+  CSM: wendysThemeOptions,
 }
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
+  const pathname = usePathname()
 
   const ticker = currentClient?.ticker
   const userType = session?.user?.type
 
+  // Extract client ticker from URL to detect client context
+  const urlTicker = useMemo(() => {
+    const match = TICKER_PREFIX_REGEX.exec(pathname)
+    return match ? match[1] : null
+  }, [pathname])
+
   const theme = useMemo(() => {
     const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false
 
-    // Multi-client users (PARENT_CLIENT/SOLICITOR/CSM) always use their brand theme,
-    // even when viewing a specific client's meeting page
     if (isMultiClientUser && userType) {
-      const brandTicker = userTypeBrandTicker[userType]
-      if (brandTicker) {
-        return createTheme(themeOptionsMap[brandTicker] ?? wendysThemeOptions)
+      // When on a client-specific page, use that client's brand theme
+      if (urlTicker) {
+        return createTheme(getThemeOptions(urlTicker))
+      }
+
+      // Fall back to the user's org brand on top-level pages (events, profile, etc.)
+      const orgTheme = brandThemeForUserType[userType]
+      if (orgTheme) {
+        return createTheme(orgTheme)
       }
     }
 
@@ -58,11 +78,8 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const effectiveTicker =
       ticker ?? (userType ? userTypeBrandTicker[userType] : undefined)
 
-    const themeOptions = effectiveTicker
-      ? (themeOptionsMap[effectiveTicker] ?? wendysThemeOptions)
-      : wendysThemeOptions
-    return createTheme(themeOptions)
-  }, [ticker, userType, status])
+    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions)
+  }, [ticker, userType, urlTicker])
 
   return (
     <ThemeProvider theme={theme}>

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import React from 'react'
 
-import { Box, Container } from '@mui/material'
+import { Container } from '@mui/material'
 
 import SecureFileTransferTable from '@/components/Meeting/SecureFileTransferTable'
 
