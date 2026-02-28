@@ -27,6 +27,7 @@ export type MailingStatus =
 interface WorkflowStep {
   label: MailingStatus
   paletteVar: string
+  color?: string
 }
 
 interface MailingTimelineCardProps {
@@ -39,10 +40,12 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     label: 'Pending Positions',
     paletteVar: 'var(--mui-palette-statusPending-main)',
+    color: 'var(--mui-palette-statusPending-contrastText)',
   },
   {
     label: 'Positions Received',
     paletteVar: 'var(--mui-palette-statusReceived-main)',
+    color: 'var(--mui-palette-statusReceived-contrastText)',
   },
   {
     label: 'Positions Loaded',
@@ -51,26 +54,32 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     label: 'Proof Delivered',
     paletteVar: 'var(--mui-palette-statusProofing-main)',
+    color: 'var(--mui-palette-statusProofing-contrastText)',
   },
   {
     label: 'Proof Approved',
     paletteVar: 'var(--mui-palette-statusApproved-main)',
+    color: 'var(--mui-palette-statusApproved-contrastText)',
   },
   {
     label: 'Materials Printed',
     paletteVar: 'var(--mui-palette-statusProduction-main)',
+    color: 'var(--mui-palette-statusProduction-contrastText)',
   },
   {
     label: 'Mailing In Progress',
     paletteVar: 'var(--mui-palette-statusPulls-main)',
+    color: 'var(--mui-palette-statusPulls-contrastText)',
   },
   {
     label: 'Affidavit Delivered',
     paletteVar: 'var(--mui-palette-statusPending-main)',
+    color: 'var(--mui-palette-statusPending-contrastText)',
   },
   {
     label: 'Mailing Complete',
     paletteVar: 'var(--mui-palette-statusComplete-main)',
+    color: 'var(--mui-palette-statusComplete-contrastText)',
   },
 ]
 
@@ -147,7 +156,7 @@ export default function MailingTimelineCard({
                         size="small"
                         sx={{
                           bgcolor: step.paletteVar,
-                          color: '#fff',
+                          color: step.color,
                           fontWeight: 600,
                           fontSize: '0.75rem',
                         }}

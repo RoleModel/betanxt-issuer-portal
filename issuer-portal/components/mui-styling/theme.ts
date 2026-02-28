@@ -603,6 +603,13 @@ export const createClientTheme = (ticker?: string) => {
           }),
         },
       },
+      MuiTimelineItem: {
+        styleOverrides: {
+          root: {
+            minHeight: 40,
+          },
+        },
+      },
       MuiCardContent: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({

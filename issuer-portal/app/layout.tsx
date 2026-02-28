@@ -9,7 +9,7 @@ import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type {} from '@mui/material/themeCssVarsAugmentation'
+import type { } from '@mui/material/themeCssVarsAugmentation'
 
 import '@/components/Documents/react-pdf.css'
 import RootLayoutClient from '@/components/Layout/RootLayoutClient'
@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <InitColorSchemeScript attribute="class" />
-        <AppRouterCacheProvider options={{ key: 'mui' }}>
+        <AppRouterCacheProvider options={{ key: 'mui', enableCssLayer: true }}>
           <SessionProvider>
             <ClientProvider>
               <NotificationProvider>

@@ -62,7 +62,7 @@ export default function MailingPage() {
       sx={{ my: { xs: 2, md: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}
     >
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 9 }}>
+        <Grid size={{ xs: 12, md: 12, lg: 9 }}>
           <Stack spacing={2}>
             <Card>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -111,7 +111,7 @@ export default function MailingPage() {
             <MailingDataCard meetingId={meetingId} />
           </Stack>
         </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 12, lg: 3 }}>
           <MailingTimelineCard
             currentStatus={
               currentMeeting?.mailingStatus as
