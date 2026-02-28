@@ -144,12 +144,13 @@ export default function EventsPage() {
         // Revalidate the SWR cache so the persisted value is in sync
         void revalidate()
       } catch {
-        // Revert optimistic update on failure
+        // Revert optimistic update on failure and then revalidate to avoid stale data
         setMailingStatusOverrides((prev) => {
           const next = { ...prev }
           delete next[eventId]
           return next
         })
+        void revalidate()
       }
     },
     [revalidate]
