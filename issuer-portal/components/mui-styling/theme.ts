@@ -33,9 +33,18 @@ import {
   purple,
   teal,
 } from '@mui/material/colors'
-import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
+import type {
+  PaletteColor,
+  PaletteColorOptions,
+  SimplePaletteColorOptions,
+  Theme,
+} from '@mui/material/styles'
 import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
+
+/** Safely extract `main` from a PaletteColorOptions value. */
+const paletteMain = (color: PaletteColorOptions): string =>
+  (color as SimplePaletteColorOptions).main
 import type { } from '@mui/x-date-pickers/themeAugmentation'
 
 import { brandConfigsByTicker } from '@/utils/brandConfig'
@@ -103,7 +112,7 @@ const jobStatusColorsLight = {
     contrastText: betanxtTheme.palette.success.contrastText,
   },
   statusReceived: {
-    main: betanxtTheme.vars.palette.action.selected,
+    main: paletteMain(betanxtTheme.vars.palette.neutral),
     contrastText: betanxtTheme.vars.palette.text.primary,
   },
 }
