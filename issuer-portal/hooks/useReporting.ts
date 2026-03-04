@@ -700,8 +700,8 @@ function transformEventSummaryData(
         recordDate: (meeting.recordDate || meeting.meetingDate) ?? '',
         filingDate: (meetingRecord.filingDate as string) ?? '',
         mailingDate: (meetingRecord.mailingDate as string) ?? '',
-        mailingMethod: (meetingRecord.mailingMethod as string) ?? '',
-        votingCutoff: (meetingRecord.votingCutoff as string) ?? '',
+        mailingMethod: (meetingRecord.distributionType as string) ?? '',
+        votingCutoff: (meetingRecord.cutoffDate as string) ?? '',
         meetingYear: typeof year === 'number' ? year : parseInt(year.toString(), 10) || 0,
       }
 

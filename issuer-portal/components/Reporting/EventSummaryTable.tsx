@@ -19,6 +19,18 @@ import {
 
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
+function formatVotingCutoff(dateStr: string): string {
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '--'
+  const datePart = date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  })
+  // Default cutoff time when only a date is stored
+  return `${datePart} 11:59 PM ET`
+}
+
 interface EventSummaryRow {
   event: string
   meetingId?: string
@@ -109,54 +121,51 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                     )}
                   </TableCell>
                   <TableCell size="small">{row.meetingType}</TableCell>
-
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.inspector || '--'}
+                  </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.brokerSearchDate
                       ? new Date(row.brokerSearchDate).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.filingDate
                       ? new Date(row.filingDate).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.mailingDate
                       ? new Date(row.mailingDate).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })
                       : '--'}
                   </TableCell>
                   <TableCell size="small">{row.mailingMethod || 'NAA'}</TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.votingCutoff
-                      ? new Date(row.votingCutoff).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })
-                      : '10:00 AM ET'}
+                      ? formatVotingCutoff(row.votingCutoff)
+                      : '--'}
                   </TableCell>
-                  <TableCell size="small">{row.inspector || 'John Smith'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
