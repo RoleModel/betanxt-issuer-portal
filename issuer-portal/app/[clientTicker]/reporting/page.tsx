@@ -35,11 +35,7 @@ export default function ReportingPage() {
   }
 
   return (
-    <Container
-      component="main"
-      maxWidth="xl"
-      sx={{ p: { xs: 1, md: 3 } }}
-    >
+    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
       <Grid container spacing={3}>
         <Grid size={12}>
           <Suspense fallback={<ChartSkeleton />}>
@@ -54,7 +50,10 @@ export default function ReportingPage() {
         <Grid size={{ xs: 12, lg: 6 }}>
           <Suspense fallback={<ChartSkeleton />}>
             <Card>
-              <CardHeader title="Year-Over-Year Registered vs Beneficial Performance" subheader="Participation broken down by registered vs beneficial YOY by shares" />
+              <CardHeader
+                title="Year-Over-Year Registered vs Beneficial Performance"
+                subheader="Participation broken down by registered vs beneficial YOY by shares"
+              />
               <CardContent>
                 <YearOverYearChart data={mappedYearOverYear} loading={loading} />
               </CardContent>

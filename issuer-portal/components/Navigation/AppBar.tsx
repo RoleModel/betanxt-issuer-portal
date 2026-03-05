@@ -134,9 +134,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   const appBarProps = {
     slots: {
       logoImg:
-        showCSMBrandLogo && CSMLogoComponent
-          ? CSMLogoComponent
-          : NextImageComponent,
+        showCSMBrandLogo && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
       end: endSlot,
     },
     slotProps: showCSMBrandLogo ? undefined : logoSlotProps,

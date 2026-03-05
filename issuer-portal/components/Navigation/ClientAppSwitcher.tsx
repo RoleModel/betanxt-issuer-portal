@@ -9,8 +9,8 @@ import { ArrowDropDownOutlined } from '@mui/icons-material'
 import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
-import { useEvents } from '@/hooks/useEvents'
 import type { Client } from '@/hooks/useClients'
+import { useEvents } from '@/hooks/useEvents'
 import type { EventRow } from '@/utils/eventData'
 
 /** Brand labels for multi-client user types when no event is selected */
@@ -222,7 +222,8 @@ function SwitchButton() {
   // Check if user has permission to switch clients
   const userType = session?.user?.type
   const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-  const isEventUser = userType === 'PARENT_CLIENT' || userType === 'SOLICITOR' || userType === 'CSM'
+  const isEventUser =
+    userType === 'PARENT_CLIENT' || userType === 'SOLICITOR' || userType === 'CSM'
   const canSwitchClients =
     isAuthBypassed ||
     userType === 'ADMIN' ||

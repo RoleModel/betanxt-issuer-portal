@@ -67,7 +67,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const userTicker = session?.user?.client_ticker
       if (userTicker) {
         const tickerMatch = clients.find((c) => c.ticker === userTicker)
-        if (tickerMatch && (tickerMatch.id === clientId || tickerMatch.ticker === clientId)) {
+        if (
+          tickerMatch &&
+          (tickerMatch.id === clientId || tickerMatch.ticker === clientId)
+        ) {
           return true
         }
       }
@@ -92,7 +95,13 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         session?.user?.type === 'RELATIONSHIP_MANAGER'
       )
     },
-    [session?.user?.account_id, session?.user?.client_ticker, session?.user?.type, session?.user?.roles, clients]
+    [
+      session?.user?.account_id,
+      session?.user?.client_ticker,
+      session?.user?.type,
+      session?.user?.roles,
+      clients,
+    ]
   )
 
   // Determine current client based on URL and user context

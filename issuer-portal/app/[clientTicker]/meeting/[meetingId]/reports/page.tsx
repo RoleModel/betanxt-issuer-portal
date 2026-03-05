@@ -25,16 +25,11 @@ const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
   return Number.isFinite(num) ? num : null
 }
 
-
 export default function ReportsPage() {
   const { currentMeeting } = useMeeting()
   const meetingId = currentMeeting?.id ?? ''
   const { phases } = usePhases(meetingId)
-  const {
-    voteDistribution,
-    loading: reportsLoading,
-  } = useReports(meetingId)
-
+  const { voteDistribution, loading: reportsLoading } = useReports(meetingId)
 
   // Fetch proposals for the meeting (reserved for future use)
   useEffect(() => {

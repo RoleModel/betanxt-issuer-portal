@@ -42,9 +42,6 @@ export default function MailingPage() {
     }
   }, [meetingId, getMailingByMeetingId])
 
-
-
-
   // Show loading state while data is being fetched
   if (meetingLoading || (meetingId && !currentMeeting)) {
     return (
@@ -98,9 +95,7 @@ export default function MailingPage() {
                       <FeatureTile
                         height="auto"
                         variant="base"
-                        title={formatNumber(
-                          mailingData?.electronicSuppressedPositions
-                        )}
+                        title={formatNumber(mailingData?.electronicSuppressedPositions)}
                         subtitle="Electronic"
                       />
                     )}
@@ -115,8 +110,8 @@ export default function MailingPage() {
           <MailingTimelineCard
             currentStatus={
               currentMeeting?.mailingStatus as
-              | React.ComponentProps<typeof MailingTimelineCard>['currentStatus']
-              | undefined
+                | React.ComponentProps<typeof MailingTimelineCard>['currentStatus']
+                | undefined
             }
             statusDate={currentMeeting?.updatedAt}
           />

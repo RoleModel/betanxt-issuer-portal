@@ -76,12 +76,12 @@ const mockUsers: Record<
       'JPMR', // J.P. Morgan Real Estate Income Trust, Inc.
       'ENRS', // EnerSa
       'ETWO', // E2open Parent Holdings Inc.
-      'CHH',  // Champion Homes, Inc.
+      'CHH', // Champion Homes, Inc.
       'BCSF', // Bain Capital Specialty Finance, Inc.
       'STTK', // Shattuck Labs, Inc.
       'NOMD', // Nomad Foods Limited
       'QRHC', // Quest Resource Holding Corporation
-      'ICU',  // SeaStar Medical Holding Corporation
+      'ICU', // SeaStar Medical Holding Corporation
       'CTNM', // Contineum Therapeutics, Inc.
       'EHAB', // Enhabit, Inc.
       'FULC', // Fulcrum Therapeutics, Inc.
@@ -113,27 +113,27 @@ const mockUsers: Record<
     account_id: undefined,
     client_ticker: null,
     clientTickers: [
-      'LAC',  // Lithium Americas Corp.
-      'WAL',  // Western Alliance Bancorporation
+      'LAC', // Lithium Americas Corp.
+      'WAL', // Western Alliance Bancorporation
       'PTLO', // Portillo's Inc.
       'MDLZ', // Mondelez International, Inc.
       'DFIN', // Donnelley Financial Solutions, Inc.
       'INAB', // IN8bio, Inc.
-      'TOI',  // The Oncology Institute, Inc.
+      'TOI', // The Oncology Institute, Inc.
       'AZTR', // Azitra, Inc.
-      'WWD',  // Woodward, Inc.
+      'WWD', // Woodward, Inc.
       'VAPO', // Vapotherm, Inc.
       'SONM', // Sonim Technologies, Inc.
       'PCOR', // Procore Technologies, Inc.
-      'PHX',  // PHX Minerals Inc.
+      'PHX', // PHX Minerals Inc.
       'AMTB', // Amerant Bancorp Inc.
-      'SQZ',  // SQZ Biotechnologies Company
+      'SQZ', // SQZ Biotechnologies Company
       'SLGC', // SomaLogic, Inc.
-      'CD',   // Chindata Group Holdings Ltd.
+      'CD', // Chindata Group Holdings Ltd.
       'FREQ', // Frequency Therapeutics, Inc.
       'AMAM', // Ambrx Biopharma, Inc.
-      'NEX',  // NexTier Oilfield Solutions Inc.
-      'ILG',  // ILG Acquisition One Corp.
+      'NEX', // NexTier Oilfield Solutions Inc.
+      'ILG', // ILG Acquisition One Corp.
       'MNMD', // Mind Medicine (MindMed) Inc.
       'ADPT', // Adaptive Biotechnologies Corporation
     ],

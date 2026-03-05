@@ -78,7 +78,9 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     const effectiveTicker =
       ticker ?? (userType ? userTypeBrandTicker[userType] : undefined)
 
-    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions)
+    return createTheme(
+      effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions
+    )
   }, [ticker, userType, urlTicker])
 
   return (

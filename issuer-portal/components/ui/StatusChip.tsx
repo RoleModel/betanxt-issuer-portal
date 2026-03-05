@@ -93,9 +93,9 @@ const getStatusDisplayText = (
     default:
       return typeof status === 'string'
         ? status
-          .split('_')
-          .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-          .join(' ')
+            .split('_')
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(' ')
         : 'Unknown'
   }
 }

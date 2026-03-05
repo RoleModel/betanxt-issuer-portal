@@ -1,16 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import { useSession } from 'next-auth/react'
+import { useMemo } from 'react'
 import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
 
 import { clientsSWRConfig } from '@/lib/swr-config'
+import { getBrandConfigByTicker } from '@/utils/brandConfig'
 import type { EventRow } from '@/utils/eventData'
 import { asRecord, asString } from '@/utils/typeUtils'
-import { getBrandConfigByTicker } from '@/utils/brandConfig'
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client)
@@ -52,8 +51,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     ? 'Annual Meeting'
     : 'Special Meeting'
 
-  const meetingStatus: 'ACTIVE' | 'COMPLETE' =
-    status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETE'
+  const meetingStatus: 'ACTIVE' | 'COMPLETE' = status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETE'
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null
 
@@ -113,7 +111,8 @@ export function useEvents(): UseEventsResult {
       }
 
       const paginationRecord = asRecord(dataRecord.pagination)
-      const totalCount = typeof paginationRecord?.total === 'number' ? paginationRecord.total : 0
+      const totalCount =
+        typeof paginationRecord?.total === 'number' ? paginationRecord.total : 0
 
       if (meetings.length < 100 || allEvents.length >= totalCount) break
       page++
@@ -122,7 +121,12 @@ export function useEvents(): UseEventsResult {
     return allEvents
   }
 
-  const { data: rawData, error, isLoading, mutate } = useSWR(
+  const {
+    data: rawData,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
     session || bypassAuth ? ['/events-list', session?.user?.id] : null,
     eventsFetcher,
     {

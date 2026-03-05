@@ -394,7 +394,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     secondaryColor: '#017dc7',
   },
   // Original portal clients — use files in /logos/ root
-  'The Wendy\'s Company': {
+  "The Wendy's Company": {
     companyName: "Wendy's",
     ticker: 'WEN',
     domain: 'wendys.com',
@@ -433,7 +433,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
   },
   // DFIN clients without a dedicated logo file — logoPath intentionally empty,
   // the AppBar will fall back to the DFIN brand logo for these.
-  'EnerSa': {
+  EnerSa: {
     companyName: 'EnerSa',
     ticker: 'ENRS',
     domain: 'enersa.com',
@@ -575,4 +575,3 @@ export function getBrandIconPath(
 ): string {
   return brandConfigs[companyName]?.iconPath || fallback
 }
-

@@ -55,10 +55,10 @@ interface UseAppBarParams {
 interface UseAppBarResult {
   // Logo
   logoSlotProps:
-  | {
-    logoImg: React.ImgHTMLAttributes<HTMLImageElement>
-  }
-  | undefined
+    | {
+        logoImg: React.ImgHTMLAttributes<HTMLImageElement>
+      }
+    | undefined
   isCSM: boolean
   isInClientContext: boolean
 
@@ -226,7 +226,8 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
 
   // A "real client context" means the URL has a ticker that is NOT the brand's own ticker.
   // e.g. /ETWO/meeting/... → true; /DFIN/secure-file-transfer → false; /events → false
-  const brandTicker = isMultiClientUser && userType ? USER_TYPE_BRAND_TICKER[userType] : null
+  const brandTicker =
+    isMultiClientUser && userType ? USER_TYPE_BRAND_TICKER[userType] : null
   const isInClientContext = Boolean(urlTicker) && urlTicker !== brandTicker
 
   // Resolve the meeting dashboard path for the active/viewed client.
@@ -249,7 +250,8 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
       })[0]
 
     if (!clientEvent) return null
-    const routePrefix = clientEvent.meetingStatus === 'ACTIVE' ? 'meeting' : 'past-meeting'
+    const routePrefix =
+      clientEvent.meetingStatus === 'ACTIVE' ? 'meeting' : 'past-meeting'
     return `/${urlTicker}/${routePrefix}/${clientEvent.meetingId}/dashboard`
   }, [isInClientContext, urlTicker, currentMeetingId, pathname, events])
 
@@ -312,7 +314,15 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     }
 
     return [dashboardTab, pastMeetingsTab, reportingTab, fileTransferTab]
-  }, [dashboardPath, urlTicker, currentClient?.ticker, availableClients, isMultiClientUser, userType, isInClientContext])
+  }, [
+    dashboardPath,
+    urlTicker,
+    currentClient?.ticker,
+    availableClients,
+    isMultiClientUser,
+    userType,
+    isInClientContext,
+  ])
 
   const currentTab = useMemo(() => {
     if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
@@ -436,9 +446,9 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     // Single-client ISSUER users: try the ticker-based file (WEN, PAYC, WWD, ELVN have these).
     return logoTicker
       ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
+          currentClient?.company_name || currentClient?.short_name,
+          logoTicker
+        )
       : '/images/logo.svg'
   }, [
     params.logoSrc,
@@ -478,11 +488,11 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     }
     const initials = params.user.name
       ? params.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
       : params.user.username?.substring(0, 2).toUpperCase() || 'U'
     return {
       src: params.user.image || undefined,

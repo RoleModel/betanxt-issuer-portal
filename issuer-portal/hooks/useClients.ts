@@ -1,8 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import { useSession } from 'next-auth/react'
+import { useMemo } from 'react'
 import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -191,7 +190,12 @@ export const useClients = (): UseClientsResult => {
   }
 
   // Use SWR for data fetching with deduplication
-  const { data: rawData, error, isLoading, mutate } = useSWR(
+  const {
+    data: rawData,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
     // Key includes session info to refetch when user changes
     session || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
     clientsFetcher,

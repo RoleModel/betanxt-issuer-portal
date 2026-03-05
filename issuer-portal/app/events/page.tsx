@@ -127,7 +127,9 @@ export default function EventsPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
-  const [mailingStatusOverrides, setMailingStatusOverrides] = useState<Record<string, MailingStatus>>({})
+  const [mailingStatusOverrides, setMailingStatusOverrides] = useState<
+    Record<string, MailingStatus>
+  >({})
 
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const isCSM = userType === 'CSM'
@@ -320,7 +322,9 @@ export default function EventsPage() {
                         </TableCell>
                         <TableCell>{row.cusip}</TableCell>
                         <TableCell>{formatDate(row.eventDate)}</TableCell>
-                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.eventType}</TableCell>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                          {row.eventType}
+                        </TableCell>
                         {isCSM && (
                           <TableCell>
                             <MailingStatusDropdown
@@ -340,7 +344,9 @@ export default function EventsPage() {
                       <TableRow>
                         <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
                           <Typography color="text.secondary">
-                            {searchQuery ? 'No events match your search.' : 'No events found.'}
+                            {searchQuery
+                              ? 'No events match your search.'
+                              : 'No events found.'}
                           </Typography>
                         </TableCell>
                       </TableRow>

@@ -576,8 +576,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                             <IconButton
                               aria-label="expand row"
                               size="small"
-                              color='primary'
-
+                              color="primary"
                             >
                               {isExpanded ? (
                                 <KeyboardArrowUpIcon />
@@ -607,7 +606,9 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                           {formatNumber(position.sharesVoted)}
                         </NoWrapTableCell>
                         <NoWrapTableCell>{position.source}</NoWrapTableCell>
-                        <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
+                        <NoWrapTableCell>
+                          {formatDate(position.dateVoted)}
+                        </NoWrapTableCell>
                         <TableCell align="right">
                           {position.sentBy ? (
                             <MailOutlineIcon fontSize="small" />
@@ -626,10 +627,14 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                             colSpan={12}
                           >
                             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                              <Card variant="outlined" sx={{
-                                my: 2,
-                                backgroundColor: 'var(--mui-palette-Datagrid-defaultFill)',
-                              }}>
+                              <Card
+                                variant="outlined"
+                                sx={{
+                                  my: 2,
+                                  backgroundColor:
+                                    'var(--mui-palette-Datagrid-defaultFill)',
+                                }}
+                              >
                                 <CardContent>
                                   <Grid container spacing={2}>
                                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -704,7 +709,6 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                                         {formatDate(position.dateVoted)}
                                       </Typography>
                                     </Grid>
-
                                   </Grid>
                                 </CardContent>
                               </Card>

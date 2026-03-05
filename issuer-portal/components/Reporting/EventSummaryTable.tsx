@@ -127,44 +127,42 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.brokerSearchDate
                       ? new Date(row.brokerSearchDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.recordDate
                       ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.filingDate
                       ? new Date(row.filingDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
                     {row.mailingDate
                       ? new Date(row.mailingDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
                   <TableCell size="small">{row.mailingMethod || 'NAA'}</TableCell>
                   <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
-                    {row.votingCutoff
-                      ? formatVotingCutoff(row.votingCutoff)
-                      : '--'}
+                    {row.votingCutoff ? formatVotingCutoff(row.votingCutoff) : '--'}
                   </TableCell>
                 </TableRow>
               ))}

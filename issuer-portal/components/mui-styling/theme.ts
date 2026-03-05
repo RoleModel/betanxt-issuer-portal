@@ -20,7 +20,7 @@ import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-to
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
 import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -41,14 +41,14 @@ import type {
 } from '@mui/material/styles'
 import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
+import type {} from '@mui/x-date-pickers/themeAugmentation'
+
+import { brandConfigsByTicker } from '@/utils/brandConfig'
+import { clientBranding } from '@/utils/clientBranding'
 
 /** Safely extract `main` from a PaletteColorOptions value. */
 const paletteMain = (color: PaletteColorOptions): string =>
   (color as SimplePaletteColorOptions).main
-import type { } from '@mui/x-date-pickers/themeAugmentation'
-
-import { brandConfigsByTicker } from '@/utils/brandConfig'
-import { clientBranding } from '@/utils/clientBranding'
 
 const jobStatusColorsLight = {
   statusProofing: {
@@ -373,9 +373,13 @@ const getClientBranding = (ticker?: string) => {
         primaryContrastText:
           getContrastRatio(fallbackBranding.primaryColor, '#fff') > 4.5 ? '#fff' : '#111',
         secondaryContrastText:
-          getContrastRatio(fallbackBranding.secondaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+          getContrastRatio(fallbackBranding.secondaryColor, '#fff') > 4.5
+            ? '#fff'
+            : '#111',
         tertiaryContrastText:
-          getContrastRatio(fallbackBranding.tertiaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+          getContrastRatio(fallbackBranding.tertiaryColor, '#fff') > 4.5
+            ? '#fff'
+            : '#111',
       }
     }
   }
@@ -488,16 +492,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-            ],
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+          ],
           complete: grey[500],
         },
       },
@@ -572,16 +576,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-              PaletteColor,
-            ],
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+            PaletteColor,
+          ],
           complete: grey[600],
         },
       },

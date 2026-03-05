@@ -93,10 +93,10 @@ export default function MailingTimelineCard({
 
   const formattedDate = statusDate
     ? new Date(statusDate).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
     : null
 
   return (

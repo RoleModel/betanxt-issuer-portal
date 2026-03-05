@@ -77,7 +77,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
 
   // Find the maximum total shares to set the y-axis scale
   const maxTotalShares = Math.max(...data.map((item) => item.totalShares), 1)
-  
+
   // Round up to a nice number for the y-axis max
   const yAxisMax = Math.ceil(maxTotalShares / 1000000) * 1000000
 
