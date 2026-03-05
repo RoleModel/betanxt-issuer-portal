@@ -47,9 +47,9 @@ interface ParticipationData {
 interface YearOverYearData {
   year: number
   participationRate: number
-  proposalsCount: number
-  passedCount: number
-  failedCount: number
+  registeredShares: number
+  beneficialShares: number
+  totalShares: number
 }
 
 interface EventSummaryData {
@@ -103,9 +103,9 @@ interface MappedEventSummary {
 interface MappedYearOverYear {
   year: number
   participationRate: number
-  proposalsCount: number
-  passedCount: number
-  failedCount: number
+  registeredShares: number
+  beneficialShares: number
+  totalShares: number
 }
 
 interface MappedProposalPerformanceData {
@@ -433,11 +433,11 @@ function calculateParticipationData(positions: Position[]): ParticipationData {
 function calculateYearOverYearData(
   meetings: Meeting[],
   _proposals: Proposal[],
-  _positions: Position[]
+  positions: Position[]
 ): YearOverYearData[] {
   const yearMap = new Map<number, YearOverYearData>()
 
-  // Only use Annual meetings for Year-over-Year chart (max 8 proposals each)
+  // Only use Annual meetings for Year-over-Year chart
   const annualMeetings = meetings.filter(
     (m) => !(m.meetingType ?? 'Annual').toLowerCase().includes('special')
   )
@@ -450,25 +450,35 @@ function calculateYearOverYearData(
     // Skip if we already have data for this year (take first annual meeting)
     if (yearMap.has(year)) return
 
-    // 8 proposals per annual meeting, only 2024 shows 7/8 passed
-    const proposalsCount = 8
-    const passedCount = year === 2024 ? 7 : 8
-    const failedCount = year === 2024 ? 1 : 0
+    // Get positions for this meeting
+    const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
 
-    // Generate consistent participation rate between 58% and 74% using meeting id as seed
-    // This matches the seeded random in transformEventSummaryData
-    const meetingIdHash = (meeting.id ?? '')
-      .split('')
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-    const participationRate = 58 + seededRandom * 16
+    // Calculate registered vs beneficial shares
+    // accountType: 'Non-DTC' = Registered (directly held)
+    // accountType: 'DTC/CDS' = Beneficial (street name, held through brokers)
+    const registeredShares = meetingPositions
+      .filter((p) => p.accountType === 'Non-DTC')
+      .reduce((sum, p) => sum + (p.sharesVoted ?? 0), 0)
+
+    const beneficialShares = meetingPositions
+      .filter((p) => p.accountType === 'DTC/CDS')
+      .reduce((sum, p) => sum + (p.sharesVoted ?? 0), 0)
+
+    const totalShares = registeredShares + beneficialShares
+
+    const totalSharesOutstandingNum = Number.parseInt(
+      meeting.totalSharesOutstanding ?? '0',
+      10
+    )
+    const participationRate =
+      totalSharesOutstandingNum > 0 ? (totalShares / totalSharesOutstandingNum) * 100 : 0
 
     yearMap.set(year, {
       year,
       participationRate,
-      proposalsCount,
-      passedCount,
-      failedCount,
+      registeredShares,
+      beneficialShares,
+      totalShares,
     })
   })
 
@@ -721,9 +731,9 @@ function transformYearOverYearData(
     year:
       typeof y.year === 'string' ? parseInt(y.year, 10) : (y.year as unknown as number),
     participationRate: y.participationRate,
-    proposalsCount: y.proposalsCount,
-    passedCount: y.passedCount,
-    failedCount: y.failedCount,
+    registeredShares: y.registeredShares,
+    beneficialShares: y.beneficialShares,
+    totalShares: y.totalShares,
   }))
 }
 
