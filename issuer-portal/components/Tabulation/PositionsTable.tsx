@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 
 import FilterListIcon from '@mui/icons-material/FilterList'
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import MailOutlineIcon from '@mui/icons-material/MailOutline'
 import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import {
@@ -12,11 +14,13 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   MenuItem,
   Select,
   Skeleton,
@@ -47,6 +51,7 @@ interface Position {
   setKey: string
   name: string
   accountNumber: string
+  accountEmail: string | null
   voteStatus: string
   controlNumber: string
   shares: number
@@ -110,6 +115,7 @@ const normalizePosition = (value: unknown): Position | null => {
     setKey: toStringValue(record.set_key ?? record.setKey),
     name: toStringValue(record.name),
     accountNumber: toStringValue(record.account_number ?? record.accountNumber),
+    accountEmail: toNullableString(record.account_email ?? record.accountEmail),
     voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
     controlNumber: toStringValue(record.control_number ?? record.controlNumber),
     shares: toFiniteNumber(record.shares),
@@ -141,6 +147,9 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
   const [filterName, setFilterName] = useState('')
   const [filterShareLow, setFilterShareLow] = useState('')
   const [filterShareHigh, setFilterShareHigh] = useState('')
+
+  // Expanded rows state
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
 
   const { sortColumn, sortDirection, handleSort, sortData } = useSortableTable<Position>()
 
@@ -235,6 +244,16 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
 
   const handleCloseFilterDialog = () => {
     setFilterDialogOpen(false)
+  }
+
+  const toggleRowExpansion = (index: number) => {
+    const newExpanded = new Set(expandedRows)
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index)
+    } else {
+      newExpanded.add(index)
+    }
+    setExpandedRows(newExpanded)
   }
 
   const handleClearFilters = () => {
@@ -416,7 +435,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
         </Box>
 
         <TableContainer>
-          <Table sx={{ tableLayout: 'fixed' }}>
+          <Table sx={{ tableLayout: 'auto' }}>
             <SROnlyTableCaption>Positions Table</SROnlyTableCaption>
             <TableHead>
               <TableRow>
@@ -449,6 +468,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                   onSort={handleSort}
+                  width={250}
                 >
                   Name
                 </SortableHeaderCell>
@@ -533,34 +553,165 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedPositions.map((position, index) => (
-                  <TableRow key={index}>
-                    <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
-                    <NoWrapTableCell>
-                      {formatAccountType(position.accountType)}
-                    </NoWrapTableCell>
-                    <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
-                    <NoWrapTableCell>{position.name}</NoWrapTableCell>
-                    <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
-                    <NoWrapTableCell>{position.voteStatus}</NoWrapTableCell>
-                    <NoWrapTableCell>{position.controlNumber}</NoWrapTableCell>
-                    <NoWrapTableCell align="right">
-                      {formatNumber(position.shares)}
-                    </NoWrapTableCell>
-                    <NoWrapTableCell align="right">
-                      {formatNumber(position.sharesVoted)}
-                    </NoWrapTableCell>
-                    <NoWrapTableCell>{position.source}</NoWrapTableCell>
-                    <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
-                    <TableCell align="right">
-                      {position.sentBy ? (
-                        <MailOutlineIcon fontSize="small" />
-                      ) : (
-                        <InsertDriveFileOutlinedIcon fontSize="small" />
+                paginatedPositions.map((position, index) => {
+                  const isExpanded = expandedRows.has(index)
+                  return (
+                    <React.Fragment key={index}>
+                      <TableRow sx={{ '&:hover': { backgroundColor: 'action.hover' } }}>
+                        <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
+                        <NoWrapTableCell>
+                          {formatAccountType(position.accountType)}
+                        </NoWrapTableCell>
+                        <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
+                        <TableCell
+                          onClick={() => toggleRowExpansion(index)}
+                          sx={{
+                            minWidth: 250,
+                            whiteSpace: 'nowrap',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <IconButton
+                              aria-label="expand row"
+                              size="small"
+
+                            >
+                              {isExpanded ? (
+                                <KeyboardArrowUpIcon />
+                              ) : (
+                                <KeyboardArrowDownIcon />
+                              )}
+                            </IconButton>
+                            <Box
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {position.name}
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
+                        <NoWrapTableCell>{position.voteStatus}</NoWrapTableCell>
+                        <NoWrapTableCell>{position.controlNumber}</NoWrapTableCell>
+                        <NoWrapTableCell align="right">
+                          {formatNumber(position.shares)}
+                        </NoWrapTableCell>
+                        <NoWrapTableCell align="right">
+                          {formatNumber(position.sharesVoted)}
+                        </NoWrapTableCell>
+                        <NoWrapTableCell>{position.source}</NoWrapTableCell>
+                        <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
+                        <TableCell align="right">
+                          {position.sentBy ? (
+                            <MailOutlineIcon fontSize="small" />
+                          ) : (
+                            <InsertDriveFileOutlinedIcon fontSize="small" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell
+                            sx={{
+                              paddingBottom: 0,
+                              paddingTop: 0,
+                            }}
+                            colSpan={12}
+                          >
+                            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                              <Card variant="outlined" sx={{
+                                my: 2,
+                                backgroundColor: 'var(--mui-palette-Datagrid-defaultFill)',
+                              }}>
+                                <CardContent>
+                                  <Grid container spacing={2}>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        CUSIP:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.cusip}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Account Name:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.name}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Set Key:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.setKey}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Account Number:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.accountNumber}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Account Type:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {formatAccountType(position.accountType)}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Account Email:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.accountEmail || ''}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Shares:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {formatNumber(position.shares)}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Last Vote Method:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {position.source || ''}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Last Voted Date/Time:
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {formatDate(position.dateVoted)}
+                                      </Typography>
+                                    </Grid>
+
+                                  </Grid>
+                                </CardContent>
+                              </Card>
+                            </Collapse>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                    </React.Fragment>
+                  )
+                })
               )}
             </TableBody>
           </Table>

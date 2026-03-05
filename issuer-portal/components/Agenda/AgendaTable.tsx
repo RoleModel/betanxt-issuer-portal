@@ -50,6 +50,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                 Proposals
               </TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '120px' }}>
+                MRV
+              </TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '300px' }}>
                 Vote Options
               </TableCell>
@@ -71,7 +74,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                       {hasDirectorElections && (
                         <TableRow>
                           <TableCell
-                            colSpan={2}
+                            colSpan={3}
                             sx={{
                               backgroundColor: 'action.hover',
                               py: 1.5,
@@ -129,6 +132,11 @@ export default function AgendaTable(_props: AgendaTableProps) {
                               </Box>
                             </TableCell>
                             <TableCell>
+                              <Typography color="text.primary">
+                                {proposal.recommendation || 'N/A'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
                               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                 {getVoteOptions(
                                   proposal.proposalType,
@@ -153,7 +161,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
               </>
             ) : (
               <TableRow>
-                <TableCell colSpan={2} align="center">
+                <TableCell colSpan={3} align="center">
                   <Typography color="text.secondary" sx={{ py: 4 }}>
                     No proposals available
                   </Typography>

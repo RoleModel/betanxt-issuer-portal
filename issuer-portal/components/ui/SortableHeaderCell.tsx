@@ -12,6 +12,7 @@ export interface SortableHeaderCellProps<T> {
   align?: 'left' | 'center' | 'right'
   sortColumn: keyof T | null
   sortDirection: 'asc' | 'desc'
+  width?: number | string
   onSort: (column: keyof T) => void
 }
 
@@ -19,12 +20,14 @@ const SortableHeaderCell = <T,>({
   column,
   children,
   align,
+  width,
   sortColumn,
   sortDirection,
   onSort,
 }: SortableHeaderCellProps<T>) => (
   <NoWrapTableCell
     align={align}
+    style={width ? { width } : undefined}
     sx={{
       cursor: 'pointer',
       userSelect: 'none',

@@ -60,6 +60,7 @@ export default function VotingTabulationTable({
         <TableHead>
           <TableRow>
             <TableCell>Proposals</TableCell>
+            <TableCell sx={{ width: '100px' }}>MRV</TableCell>
             <TableCell align="right">{votingLabels.for}</TableCell>
             <TableCell align="right">{votingLabels.against}</TableCell>
             <TableCell align="right">{votingLabels.abstain}</TableCell>
@@ -77,6 +78,12 @@ export default function VotingTabulationTable({
                     {proposal.proposalNumber} {proposal.description}
                   </Typography>
                 </Box>
+              </TableCell>
+
+              <TableCell>
+                <Typography variant="body3">
+                  {proposal.recommendation || 'N/A'}
+                </Typography>
               </TableCell>
 
               <TableCell align="right">

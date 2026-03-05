@@ -2981,9 +2981,15 @@ const main = async () => {
           dateVoted = null
         }
 
+        // Generate email for account (30% have emails)
+        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+        const accountEmail = hasEmail
+          ? copycat.email(`email-${positionId}`)
+          : null
+
         sqlStatements.push(
           `INSERT INTO "position"(` +
-          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
           `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(positionId)}, ` +
@@ -2992,7 +2998,8 @@ const main = async () => {
           `${sqlValue(normalizeAccountType(position.accountType))}, ` +
           `${sqlValue(position.setKey)}, ` +
           `${sqlValue(position.name)}, ` +
-          `${position.accountNumber ? sqlValue(position.accountNumber) : 'NULL'}, ` +
+          `${position.accountNumber ? sqlValue(position.accountNumber) : sqlValue('CSV' + String(index + 1).padStart(6, '0'))}, ` +
+          `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
           `${sqlValue(voteStatus)}, ` +
           `${sqlValue(position.controlNumber ?? 'CTRL' + String(index + 1).padStart(6, '0'))}, ` +
           `${sqlValue(position.shares)}, ` +
@@ -3052,6 +3059,13 @@ const main = async () => {
                   .fullName(`nondtc-${meetingId}-${method.source}-${i}`)
                   .toUpperCase()
                 const controlNumber = `N${method.source}${String(i + 1).padStart(5, '0')}`
+                const accountNumber = `NDTC${String(i + 1).padStart(6, '0')}`
+
+                // Generate email for account (30% have emails)
+                const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+                const accountEmail = hasEmail
+                  ? copycat.email(`email-${positionId}`)
+                  : null
 
                 const meetingDateString = meetingToDate[meetingId]
                 const meetingDate = meetingDateString
@@ -3071,7 +3085,7 @@ const main = async () => {
 
                 sqlStatements.push(
                   `INSERT INTO "position"(` +
-                  `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+                  `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
                   `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
                   `created_at, updated_at) VALUES (` +
                   `${sqlValue(positionId)}, ` +
@@ -3080,7 +3094,8 @@ const main = async () => {
                   `${sqlValue('Non-DTC')}, ` +
                   `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
                   `${sqlValue(holderName)}, ` +
-                  `NULL, ` +
+                  `${sqlValue(accountNumber)}, ` +
+                  `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
                   `${sqlValue('Voted')}, ` +
                   `${sqlValue(controlNumber)}, ` +
                   `${shares.toFixed(6)}, ` +
@@ -3149,9 +3164,15 @@ const main = async () => {
             .toUpperCase()
           : null
 
+      // Generate email for CEDE account (30% have emails)
+      const cedeHasEmail = copycat.bool(`has-email-${cedePositionId}`, { likelihood: 0.3 })
+      const cedeAccountEmail = cedeHasEmail
+        ? copycat.email(`email-${cedePositionId}`)
+        : null
+
       sqlStatements.push(
         `INSERT INTO "position"(` +
-        `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+        `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
         `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
         `created_at, updated_at) VALUES (` +
         `${sqlValue(cedePositionId)}, ` +
@@ -3161,6 +3182,7 @@ const main = async () => {
         `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
         `${sqlValue('CEDE & CO')}, ` +
         `NULL, ` +
+        `${cedeAccountEmail ? sqlValue(cedeAccountEmail) : 'NULL'}, ` +
         `${sqlValue(cedeVoteStatus)}, ` +
         `${sqlValue('CEDE001')}, ` +
         `${cedeShares.toFixed(6)}, ` +
@@ -3360,16 +3382,16 @@ const main = async () => {
           holderName = `${firstName.toUpperCase()} ${lastName.toUpperCase()}${suffixes[p % suffixes.length]}`
         }
 
-        const hasAccountNumber = copycat.bool(`account-${meetingId}-${p}`)
-        const accountNumberSql = hasAccountNumber
-          ? sqlValue('ACC' + String(p).padStart(6, '0'))
-          : 'NULL'
-
+        const accountNumber = 'ACC' + String(p).padStart(6, '0')
         const controlNumber = String(p + 1).padStart(8, '0')
+
+        // Generate email for registered account (30% have emails)
+        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+        const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
-          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
           `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(positionId)}, ` +
@@ -3378,7 +3400,8 @@ const main = async () => {
           `${sqlValue(normalizeAccountType('Registered Account'))}, ` +
           `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
           `${sqlValue(holderName)}, ` +
-          `${accountNumberSql}, ` +
+          `${sqlValue(accountNumber)}, ` +
+          `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
           `${sqlValue(voteStatus)}, ` +
           `${sqlValue(controlNumber)}, ` +
           `${shares.toFixed(6)}, ` +

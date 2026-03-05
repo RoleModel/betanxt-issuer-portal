@@ -300,6 +300,7 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
           proposalNumber: parseInt(proposal.proposalNumber, 10) || 0,
           description: proposal.proposalType,
           directorName: proposal.directorName,
+          recommendation: proposal.recommendation,
           votingResults: mockVotingResults,
           totalShares: totalVoted,
           status: 'active' as const,
