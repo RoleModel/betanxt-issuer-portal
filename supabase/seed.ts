@@ -3170,6 +3170,9 @@ const main = async () => {
         ? copycat.email(`email-${cedePositionId}`)
         : null
 
+      // Generate account number for CEDE & CO position
+      const cedeAccountNumber = `CEDE${String(meetingIndex).padStart(6, '0')}`
+
       sqlStatements.push(
         `INSERT INTO "position"(` +
         `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
@@ -3181,7 +3184,7 @@ const main = async () => {
         `${sqlValue(normalizeAccountType('CEDE & CO / CTC & CO'))}, ` +
         `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
         `${sqlValue('CEDE & CO')}, ` +
-        `NULL, ` +
+        `${sqlValue(cedeAccountNumber)}, ` +
         `${cedeAccountEmail ? sqlValue(cedeAccountEmail) : 'NULL'}, ` +
         `${sqlValue(cedeVoteStatus)}, ` +
         `${sqlValue('CEDE001')}, ` +

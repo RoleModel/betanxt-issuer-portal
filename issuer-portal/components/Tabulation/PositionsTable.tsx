@@ -563,6 +563,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                           {formatAccountType(position.accountType)}
                         </NoWrapTableCell>
                         <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
+                        <NoWrapTableCell>{position.name}</NoWrapTableCell>
                         <TableCell
                           onClick={() => toggleRowExpansion(index)}
                           sx={{
@@ -575,6 +576,7 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                             <IconButton
                               aria-label="expand row"
                               size="small"
+                              color='primary'
 
                             >
                               {isExpanded ? (
@@ -588,13 +590,14 @@ export default function PositionsTable({ meetingId }: PositionsTableProps) {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
+                                color: 'primary.main',
                               }}
                             >
-                              {position.name}
+                              {position.accountNumber}
                             </Box>
                           </Box>
                         </TableCell>
-                        <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
+
                         <NoWrapTableCell>{position.voteStatus}</NoWrapTableCell>
                         <NoWrapTableCell>{position.controlNumber}</NoWrapTableCell>
                         <NoWrapTableCell align="right">
