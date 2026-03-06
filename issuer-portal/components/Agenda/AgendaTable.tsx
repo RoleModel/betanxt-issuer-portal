@@ -51,7 +51,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                 Proposals
               </TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '120px' }}>
-                MRV
+                Management Recommendation
               </TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '300px' }}>
                 Vote Options
@@ -123,7 +123,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                                   }}
                                 >
                                   <Typography fontWeight={600}>
-                                    {proposal.proposalNumber}
+                                    {proposal.proposalNumber}.
                                   </Typography>
                                   <Typography color="text.primary">
                                     {proposal.directorName || proposal.proposalTitle}
