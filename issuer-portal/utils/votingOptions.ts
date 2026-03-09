@@ -8,25 +8,28 @@ export interface VotingOptions {
   abstain: string
 }
 
+const MAJORITY_VOTING_TICKERS = new Set(['WEN', 'PAYC', 'ELVN', 'WWD'])
+
+export const usesMajorityVotingOptions = (ticker?: string): boolean => {
+  if (!ticker) return false
+
+  return MAJORITY_VOTING_TICKERS.has(ticker.toUpperCase())
+}
+
 /**
  * Determines if a proposal is a director election based on type and number
  */
 export const isDirectorElection = (
   proposalType?: string,
-  proposalNumber?: string | number
+  _proposalNumber?: string | number,
+  directorName?: string
 ): boolean => {
+  if (directorName) return true
   if (!proposalType) return false
 
   const lowerType = proposalType.toLowerCase()
 
-  // Check if it's a director election (typically proposals 1-3 or contains "Election" in type)
-  return (
-    lowerType.includes('election') ||
-    lowerType.includes('director') ||
-    (proposalNumber !== undefined &&
-      proposalNumber !== null &&
-      ['1', '2', '3'].includes(proposalNumber.toString()))
-  )
+  return lowerType.includes('election') || lowerType.includes('director')
 }
 
 /**
@@ -35,35 +38,51 @@ export const isDirectorElection = (
  */
 export const getVotingOptions = (
   proposalType?: string,
-  proposalNumber?: string | number
+  proposalNumber?: string | number,
+  ticker?: string,
+  directorName?: string
 ): VotingOptions => {
-  if (isDirectorElection(proposalType, proposalNumber)) {
+  const isDirectorProposal = isDirectorElection(
+    proposalType,
+    proposalNumber,
+    directorName
+  )
+
+  if (isDirectorProposal && !usesMajorityVotingOptions(ticker)) {
     return {
       for: 'For',
       against: 'Withhold', // Director elections: "Against" field contains WITHHOLD votes
-      abstain: 'Abstain',
+      abstain: 'Withhold/Abstain',
     }
   }
 
   return {
     for: 'For',
     against: 'Against',
-    abstain: 'Abstain',
+    abstain: 'Withhold/Abstain',
   }
 }
 
 /**
- * Gets the voting options display string for agenda display
- * Based on real client report documentation
+ * Gets the visible voting options for agenda display
  */
 export const getVotingOptionsDisplay = (
   proposalType?: string,
-  proposalNumber?: string | number
-): string => {
-  if (isDirectorElection(proposalType, proposalNumber)) {
-    return 'FOR / WITHHOLD / ABSTAIN'
+  proposalNumber?: string | number,
+  ticker?: string,
+  directorName?: string
+): string[] => {
+  const isDirectorProposal = isDirectorElection(
+    proposalType,
+    proposalNumber,
+    directorName
+  )
+
+  if (isDirectorProposal && !usesMajorityVotingOptions(ticker)) {
+    return ['FOR', 'WITHHOLD/ABSTAIN']
   }
-  return 'FOR / AGAINST / ABSTAIN'
+
+  return ['FOR', 'AGAINST', 'WITHHOLD/ABSTAIN']
 }
 
 /**
@@ -71,21 +90,34 @@ export const getVotingOptionsDisplay = (
  * Based on real client report documentation
  */
 export const getTabulationHeaders = (
-  proposals: { proposalType?: string; proposalNumber?: string | number }[]
+  proposals: {
+    proposalType?: string
+    proposalNumber?: string | number
+    directorName?: string
+  }[],
+  ticker?: string
 ): VotingOptions => {
+  if (usesMajorityVotingOptions(ticker)) {
+    return {
+      for: 'For',
+      against: 'Against',
+      abstain: 'Withhold/Abstain',
+    }
+  }
+
   const hasDirectorElections = proposals.some((p) =>
-    isDirectorElection(p.proposalType, p.proposalNumber)
+    isDirectorElection(p.proposalType, p.proposalNumber, p.directorName)
   )
   const hasNonDirectorProposals = proposals.some(
-    (p) => !isDirectorElection(p.proposalType, p.proposalNumber)
+    (p) => !isDirectorElection(p.proposalType, p.proposalNumber, p.directorName)
   )
 
-  // If we have mixed types, use generic labels that work for both
+  // Mixed tables still use the standard three-column header set.
   if (hasDirectorElections && hasNonDirectorProposals) {
     return {
       for: 'For',
-      against: 'Against/Withhold',
-      abstain: 'Abstain',
+      against: 'Against',
+      abstain: 'Withhold/Abstain',
     }
   }
 
@@ -94,7 +126,7 @@ export const getTabulationHeaders = (
     return {
       for: 'For',
       against: 'Withhold',
-      abstain: 'Abstain',
+      abstain: 'Withhold/Abstain',
     }
   }
 
@@ -102,6 +134,6 @@ export const getTabulationHeaders = (
   return {
     for: 'For',
     against: 'Against',
-    abstain: 'Abstain',
+    abstain: 'Withhold/Abstain',
   }
 }

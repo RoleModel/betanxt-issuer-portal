@@ -17,6 +17,7 @@ import {
 
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 
+import { useMeeting } from '@/contexts/MeetingContext'
 import type { ProposalVoting } from '@/types/phases'
 import { getTabulationHeaders } from '@/utils/votingOptions'
 
@@ -31,6 +32,8 @@ export default function VotingTabulationTable({
   proposals,
   loading = false,
 }: VotingTabulationTableProps) {
+  const { currentMeeting } = useMeeting()
+
   const formatShares = (shares: number) => {
     return shares.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -43,7 +46,7 @@ export default function VotingTabulationTable({
   }
 
   // Get appropriate headers based on proposal types in this table
-  const votingLabels = getTabulationHeaders(proposals)
+  const votingLabels = getTabulationHeaders(proposals, currentMeeting?.ticker)
 
   if (loading) {
     return (

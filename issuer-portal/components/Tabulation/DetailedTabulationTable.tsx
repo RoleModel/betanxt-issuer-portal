@@ -15,6 +15,7 @@ import {
   styled,
 } from '@mui/material'
 
+import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { formatNumber } from '@/utils/numberUtils'
 import { getVotingOptions } from '@/utils/votingOptions'
@@ -91,6 +92,7 @@ const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
 export default function DetailedTabulationTable({
   meetingId,
 }: DetailedTabulationTableProps) {
+  const { currentMeeting } = useMeeting()
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId)
 
   if (loading) {
@@ -138,7 +140,9 @@ export default function DetailedTabulationTable({
           {proposals.map((proposal) => {
             const votingLabels = getVotingOptions(
               proposal.proposalType,
-              proposal.proposalNumber
+              proposal.proposalNumber,
+              currentMeeting?.ticker,
+              proposal.directorName
             )
 
             // Calculate total votes for this proposal

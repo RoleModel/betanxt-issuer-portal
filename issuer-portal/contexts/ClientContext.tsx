@@ -255,19 +255,35 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return
         }
 
-        // For ticker-based routes, replace the old ticker with the new ticker
+        const pastMeetingMatch = /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(pathname)
+        const activeMeetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(\/.*)?$/.exec(pathname)
+
+        // Past meetings are client-specific records, so do not carry a different client's
+        // meeting id across the switch. Land on the target client's past-meetings index.
+        if (pastMeetingMatch) {
+          router.replace(`/${client.ticker}/past-meetings`)
+          return
+        }
+
+        // Active meeting pages can preserve the sub-page, but they must use the target
+        // client's own default meeting id rather than the previous client's meeting id.
+        if (activeMeetingMatch) {
+          if (!client.meeting_id) {
+            router.replace(`/${client.ticker}/past-meetings`)
+            return
+          }
+
+          const subPage = activeMeetingMatch[1] ?? ''
+          router.replace(`/${client.ticker}/meeting/${client.meeting_id}${subPage}`)
+          return
+        }
+
+        // For other ticker-based routes, replace the old ticker with the new ticker
         const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
         if (tickerMatch) {
           const oldTicker = tickerMatch[1]
           const newPath = pathname.replace(`/${oldTicker}/`, `/${client.ticker}/`)
-
-          // If on a meeting route, verify the new client has a meeting_id
-          if (pathname.includes('/meeting/') && !client.meeting_id) {
-            // Redirect to past-meetings if switching to a client without an active meeting
-            router.replace(`/${client.ticker}/past-meetings`)
-          } else {
-            router.replace(newPath)
-          }
+          router.replace(newPath)
         } else {
           // Not on a ticker-based route - navigate to client's default meeting if available
           const defaultMeetingId = client.meeting_id

@@ -29,8 +29,17 @@ export default function AgendaTable(_props: AgendaTableProps) {
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
   // Use shared utility for vote options
-  const getVoteOptions = (proposalType?: string, proposalNumber?: string) => {
-    return getVotingOptionsDisplay(proposalType, proposalNumber)
+  const getVoteOptions = (
+    proposalType?: string,
+    proposalNumber?: string,
+    directorName?: string
+  ) => {
+    return getVotingOptionsDisplay(
+      proposalType,
+      proposalNumber,
+      currentMeeting?.ticker,
+      directorName
+    )
   }
 
   return (
@@ -137,12 +146,12 @@ export default function AgendaTable(_props: AgendaTableProps) {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
                                 {getVoteOptions(
                                   proposal.proposalType,
-                                  proposal.proposalNumber.toString()
+                                  proposal.proposalNumber.toString(),
+                                  proposal.directorName
                                 )
-                                  .split(' / ')
                                   .map((option) => (
                                     <Chip
                                       key={option}

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   createContext,
   useCallback,
@@ -46,6 +46,7 @@ export function MeetingProvider({
   initialMeeting = null,
 }: MeetingProviderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(initialMeeting)
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [positions, setPositions] = useState<Position[]>([])
@@ -136,6 +137,20 @@ export function MeetingProvider({
     return meetingMatch?.[1]
   }, [pathname])
 
+  const redirectToMeetingTicker = useCallback(
+    (meeting: Meeting): boolean => {
+      const urlTicker = getTickerFromURL()
+      const meetingTicker = meeting.ticker
+
+      if (!urlTicker || !meetingTicker) return false
+      if (urlTicker.toUpperCase() === meetingTicker.toUpperCase()) return false
+
+      router.replace(pathname.replace(/^\/[^/]+/, `/${meetingTicker}`))
+      return true
+    },
+    [getTickerFromURL, pathname, router]
+  )
+
   const refreshMeetings = useCallback(
     async (ticker?: string) => {
       try {
@@ -223,6 +238,9 @@ export function MeetingProvider({
             targetMeeting &&
             (!currentMeeting || currentMeeting.id !== targetMeeting.id)
           ) {
+            if (redirectToMeetingTicker(targetMeeting)) {
+              return
+            }
             setCurrentMeeting(targetMeeting)
           }
         } else if (!currentMeeting && normalizedMeetings.length > 0) {
@@ -235,7 +253,7 @@ export function MeetingProvider({
         setIsLoading(false)
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL, currentMeeting]
+    [getTickerFromURL, getMeetingIdFromURL, currentMeeting, redirectToMeetingTicker]
   )
 
   const getMeetingById = useCallback(
@@ -347,6 +365,9 @@ export function MeetingProvider({
       const targetMeeting = meetings.find((m) => m.id === meetingIdFromURL)
       // Only update if we found a target meeting and it's different from current
       if (targetMeeting) {
+        if (redirectToMeetingTicker(targetMeeting)) {
+          return
+        }
         setCurrentMeeting((prev) => {
           // Only update if different to avoid unnecessary re-renders
           if (!prev || prev.id !== targetMeeting.id) {
@@ -364,6 +385,9 @@ export function MeetingProvider({
             })
             if (data) {
               const meetingData = data as Meeting
+              if (redirectToMeetingTicker(meetingData)) {
+                return
+              }
               setCurrentMeeting((prev) => {
                 if (!prev || prev.id !== meetingData.id) {
                   return meetingData
@@ -378,7 +402,7 @@ export function MeetingProvider({
         void fetchPastMeeting()
       }
     }
-  }, [meetings, getMeetingIdFromURL])
+  }, [meetings, getMeetingIdFromURL, redirectToMeetingTicker])
 
   // Fetch meeting data when current meeting changes
   useEffect(() => {
