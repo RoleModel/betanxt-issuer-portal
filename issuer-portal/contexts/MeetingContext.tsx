@@ -309,27 +309,44 @@ export function MeetingProvider({
       // Handle positions
       const positionData: Position[] = []
       if (!positionsResult.error) {
-        const rawPositions = asArray(positionsResult.data)
+        const positionsResponse = asRecord(positionsResult.data)
+        const rawPositions = positionsResponse
+          ? asArray(positionsResponse.positions)
+          : asArray(positionsResult.data)
         for (const item of rawPositions) {
           const record = asRecord(item)
           if (!record) continue
 
           const position: Position = {
             id: asString(record.id) || '',
-            meetingId: asString(record.meetingId) || '',
+            meetingId:
+              asString(record.meetingId) || asString(record.meeting_id) || '',
             cusip: asString(record.cusip) || undefined,
-            accountType: asString(record.accountType) || undefined,
-            setKey: asString(record.setKey) || undefined,
+            accountType:
+              asString(record.accountType) || asString(record.account_type) || undefined,
+            setKey: asString(record.setKey) || asString(record.set_key) || undefined,
             name: asString(record.name) || undefined,
-            accountNumber: asString(record.accountNumber) || undefined,
-            controlNumber: asString(record.controlNumber) || undefined,
-            voteStatus: asString(record.voteStatus) as Position['voteStatus'],
+            accountNumber:
+              asString(record.accountNumber) ||
+              asString(record.account_number) ||
+              undefined,
+            controlNumber:
+              asString(record.controlNumber) ||
+              asString(record.control_number) ||
+              undefined,
+            voteStatus: (
+              asString(record.voteStatus) || asString(record.vote_status)
+            ) as Position['voteStatus'],
             shares: typeof record.shares === 'number' ? record.shares : undefined,
             sharesVoted:
-              typeof record.sharesVoted === 'number' ? record.sharesVoted : undefined,
+              typeof record.sharesVoted === 'number'
+                ? record.sharesVoted
+                : typeof record.shares_voted === 'number'
+                  ? record.shares_voted
+                  : undefined,
             source: record.source as Position['source'],
-            createdAt: asString(record.createdAt) || undefined,
-            updatedAt: asString(record.updatedAt) || undefined,
+            createdAt: asString(record.createdAt) || asString(record.created_at) || undefined,
+            updatedAt: asString(record.updatedAt) || asString(record.updated_at) || undefined,
           }
 
           positionData.push(position)
