@@ -8,53 +8,66 @@ import { PieChart } from '@mui/x-charts/PieChart'
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import type { VotingSummary } from '@/types/phases'
 
 interface VotingActivityCardProps {
   meetingId: string
+  votingSummaryOverride?: VotingSummary | null
+  loadingOverride?: boolean
 }
 
-export default function VotingActivityCard({ meetingId }: VotingActivityCardProps) {
+export default function VotingActivityCard({
+  meetingId,
+  votingSummaryOverride,
+  loadingOverride = false,
+}: VotingActivityCardProps) {
   const { votingSummary, loading } = useVotingTabulation(meetingId)
+  const resolvedSummary = votingSummaryOverride ?? votingSummary
 
   const votingMethodsData = useMemo(() => {
-    if (!votingSummary) return []
+    if (!resolvedSummary) return []
 
     // Build array of voting methods from actual API data
-    const methods = []
+    const methods: {
+      id: string
+      label: string
+      value: number
+      color: string
+    }[] = []
 
     // Add web votes if present
-    if (votingSummary.votingMethods.web > 0) {
+    if (resolvedSummary.votingMethods.web > 0) {
       methods.push({
         id: 'web',
         label: 'Web',
-        value: votingSummary.votingMethods.web,
+        value: resolvedSummary.votingMethods.web,
         color: 'var(--mui-palette-chartSeries-0-main)',
       })
     }
 
     // Add print votes if present (labeled as "Print" to match CSV data)
-    if (votingSummary.votingMethods.paper > 0) {
+    if (resolvedSummary.votingMethods.paper > 0) {
       methods.push({
         id: 'print',
         label: 'Print',
-        value: votingSummary.votingMethods.paper,
+        value: resolvedSummary.votingMethods.paper,
         color: 'var(--mui-palette-chartSeries-1-main)',
       })
     }
 
     // Add IVR votes if present (labeled as "IVR" to match CSV data)
-    if (votingSummary.votingMethods.phone > 0) {
+    if (resolvedSummary.votingMethods.phone > 0) {
       methods.push({
         id: 'ivr',
         label: 'IVR',
-        value: votingSummary.votingMethods.phone,
+        value: resolvedSummary.votingMethods.phone,
         color: 'var(--mui-palette-chartSeries-2-main)',
       })
     }
 
     // Return the methods array (already filtered for values > 0)
     return methods
-  }, [votingSummary])
+  }, [resolvedSummary])
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0)
 
@@ -67,7 +80,7 @@ export default function VotingActivityCard({ meetingId }: VotingActivityCardProp
     <Card sx={{ flex: 1 }}>
       <CardHeader title="Voting Activity" />
       <CardContent>
-        {loading ? (
+        {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={250} />
         ) : votingMethodsData.length === 0 ? (
           <Box

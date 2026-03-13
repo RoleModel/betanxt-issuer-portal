@@ -282,7 +282,7 @@ export default function DocumentSiteCard() {
         <CardContent>
           <Box
             sx={{
-              p: 2,
+              p: 3,
               backgroundColor: 'background.default',
               borderRadius: 1,
               border: '1px solid',
@@ -294,7 +294,7 @@ export default function DocumentSiteCard() {
             }}
           >
             <WebOutlined sx={{ fontSize: 40 }} />
-            <Typography variant="h4" component="p">
+            <Typography variant="h3" component="p">
               Document Hosting Site
             </Typography>
             <Typography variant="body3" color="text.secondary">

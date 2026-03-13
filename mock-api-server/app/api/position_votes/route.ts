@@ -4,24 +4,43 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { createPositionVote } from '@/domain-models/api/votes'
+import { createPositionVote, listPositionVotes } from '@/domain-models/api/votes'
 
 import type { components } from '@/types/api'
 import { handleCors, withCors } from '@/utils/cors'
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // TODO: Implement getPositionVotes
-    // Operation: getPositionVotes
-    // This route was auto-generated from OpenAPI spec
+    const { searchParams } = new URL(request.url)
+    const meetingId = searchParams.get('meetingId') || undefined
+    const positionId = searchParams.get('positionId') || undefined
+    const proposalId = searchParams.get('proposalId') || undefined
+    const vote = searchParams.get('vote') || undefined
+    const order = searchParams.get('order') || undefined
+    const limit = searchParams.get('limit')
+      ? Number.parseInt(searchParams.get('limit') || '', 10)
+      : undefined
+    const offset = searchParams.get('offset')
+      ? Number.parseInt(searchParams.get('offset') || '', 10)
+      : undefined
 
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .limit(20)
+    const { data, error } = await listPositionVotes({
+      meetingId,
+      positionId,
+      proposalId,
+      vote,
+      order,
+      limit,
+      offset,
+    })
 
-    return withCors(NextResponse.json([]))
+    if (error) {
+      return withCors(
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
+      )
+    }
+
+    return withCors(NextResponse.json(data || []))
   } catch (error) {
     return withCors(
       NextResponse.json(

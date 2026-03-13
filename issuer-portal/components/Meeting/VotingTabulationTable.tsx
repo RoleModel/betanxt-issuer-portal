@@ -45,13 +45,21 @@ export default function VotingTabulationTable({
     return `${percentage.toFixed(2)}%`
   }
 
+  const formatCount = (count?: number) => {
+    if (typeof count !== 'number' || !Number.isFinite(count)) {
+      return '—'
+    }
+
+    return count.toLocaleString('en-US')
+  }
+
   // Get appropriate headers based on proposal types in this table
   const votingLabels = getTabulationHeaders(proposals, currentMeeting?.ticker)
 
   if (loading) {
     return (
       <TableContainer>
-        <SkeletonTable rows={4} columns={4} />
+        <SkeletonTable rows={4} columns={6} />
       </TableContainer>
     )
   }
@@ -67,6 +75,7 @@ export default function VotingTabulationTable({
             <TableCell align="right">{votingLabels.for}</TableCell>
             <TableCell align="right">{votingLabels.against}</TableCell>
             <TableCell align="right">{votingLabels.abstain}</TableCell>
+            <TableCell align="right">Total Votes</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -159,6 +168,12 @@ export default function VotingTabulationTable({
                     value={proposal.votingResults.abstain.percentage}
                   />
                 </Box>
+              </TableCell>
+
+              <TableCell align="right">
+                <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
+                  {formatCount(proposal.voteCounts?.total)}
+                </Typography>
               </TableCell>
             </TableRow>
           ))}

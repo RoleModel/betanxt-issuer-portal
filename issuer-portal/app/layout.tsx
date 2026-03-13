@@ -16,6 +16,7 @@ import RootLayoutClient from '@/components/Layout/RootLayoutClient'
 import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
+import { ChatbotProvider } from '@/contexts/ChatbotContext'
 import { ClientProvider } from '@/contexts/ClientContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 
@@ -72,10 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SessionProvider>
             <ClientProvider>
               <NotificationProvider>
-                <ThemeRegistry>
-                  <GlobalStyle />
-                  <RootLayoutClient>{children}</RootLayoutClient>
-                </ThemeRegistry>
+                <ChatbotProvider>
+                  <ThemeRegistry>
+                    <GlobalStyle />
+                    <RootLayoutClient>{children}</RootLayoutClient>
+                  </ThemeRegistry>
+                </ChatbotProvider>
               </NotificationProvider>
             </ClientProvider>
           </SessionProvider>

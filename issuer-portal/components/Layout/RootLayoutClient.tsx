@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import type { PropsWithChildren } from 'react'
 
+import IssuerChatbot from '@/components/chat-bot/IssuerChatbot'
+
 import Layout from './Layout'
 
 export default function RootLayoutClient({ children }: PropsWithChildren) {
@@ -11,5 +13,10 @@ export default function RootLayoutClient({ children }: PropsWithChildren) {
   // Don't show navbar on login page
   const showNavBar = !pathname.startsWith('/login')
 
-  return <Layout navBar={showNavBar}>{children}</Layout>
+  return (
+    <>
+      <Layout navBar={showNavBar}>{children}</Layout>
+      {showNavBar ? <IssuerChatbot /> : null}
+    </>
+  )
 }

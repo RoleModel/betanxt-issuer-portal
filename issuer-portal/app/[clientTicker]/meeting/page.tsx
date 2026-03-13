@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import CusipValue from '@/components/ui/CusipValue'
 import StatusChip from '@/components/ui/StatusChip'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -198,9 +199,7 @@ export default function MeetingsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body3" color="text.secondary">
-                        {meeting.cusip ?? 'N/A'}
-                      </Typography>
+                      <CusipValue value={meeting.cusip} />
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3">

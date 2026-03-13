@@ -12,7 +12,11 @@ import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
 
-export default function TabulationReportCard() {
+interface TabulationReportCardProps {
+  variant?: 'default' | 'primary' | 'secondary' | 'tertiary' | 'base'
+}
+
+export default function TabulationReportCard({ variant = 'tertiary' }: TabulationReportCardProps) {
   const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
   const { proposals: votingProposals, votingSummary } = useVotingTabulation(
@@ -77,8 +81,8 @@ export default function TabulationReportCard() {
     const firstProposal = rawProposals[0]
     const votesRepresented = firstProposal
       ? (firstProposal.totalVotesFor ?? 0) +
-        (firstProposal.totalVotesAgainst ?? 0) +
-        (firstProposal.totalVotesAbstain ?? 0)
+      (firstProposal.totalVotesAgainst ?? 0) +
+      (firstProposal.totalVotesAbstain ?? 0)
       : 0
 
     const quorumPercentage =
@@ -159,7 +163,7 @@ export default function TabulationReportCard() {
   return (
     <FeatureTile
       title={reportTitle}
-      variant="tertiary"
+      variant={variant}
       flex={true}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."
       actionText={isDataReady ? 'Download' : 'Loading...'}

@@ -8,37 +8,41 @@ import { PieChart } from '@mui/x-charts/PieChart'
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import type { VotingSummary } from '@/types/phases'
 
 interface SharesVotedChartProps {
   meetingId?: string
   loading?: boolean
+  votingSummaryOverride?: VotingSummary | null
 }
 
 export default function SharesVotedChart({
   meetingId,
   loading = false,
+  votingSummaryOverride,
 }: SharesVotedChartProps) {
   const { votingSummary, loading: votingLoading } = useVotingTabulation(meetingId)
+  const resolvedSummary = votingSummaryOverride ?? votingSummary
 
   const { percentage, votingBreakdownData } = useMemo(() => {
-    if (!votingSummary) {
+    if (!resolvedSummary) {
       return { percentage: 0, votingBreakdownData: [] }
     }
 
     // Check if we have actual voting breakdown data
     const hasVotingData =
-      votingSummary.votingBreakdown.for.shares > 0 ||
-      votingSummary.votingBreakdown.against.shares > 0 ||
-      votingSummary.votingBreakdown.abstain.shares > 0
+      resolvedSummary.votingBreakdown.for.shares > 0 ||
+      resolvedSummary.votingBreakdown.against.shares > 0 ||
+      resolvedSummary.votingBreakdown.abstain.shares > 0
 
     if (!hasVotingData) {
       // If no voting breakdown data, show just the voted vs unvoted
-      const totalVoted = votingSummary.totalSharesVoted
+      const totalVoted = resolvedSummary.totalSharesVoted
       const totalUnvoted =
-        votingSummary.totalSharesOutstanding - votingSummary.totalSharesVoted
+        resolvedSummary.totalSharesOutstanding - resolvedSummary.totalSharesVoted
 
       return {
-        percentage: votingSummary.percentageVoted,
+        percentage: resolvedSummary.percentageVoted,
         votingBreakdownData: [
           {
             id: 'voted',
@@ -57,29 +61,29 @@ export default function SharesVotedChart({
     }
 
     return {
-      percentage: votingSummary.percentageVoted,
+      percentage: resolvedSummary.percentageVoted,
       votingBreakdownData: [
         {
           id: 'for',
           label: 'For',
-          value: votingSummary.votingBreakdown.for.shares,
+          value: resolvedSummary.votingBreakdown.for.shares,
           color: 'var(--mui-palette-chartSeries-0-main)',
         },
         {
           id: 'against',
           label: 'Against',
-          value: votingSummary.votingBreakdown.against.shares,
+          value: resolvedSummary.votingBreakdown.against.shares,
           color: 'var(--mui-palette-chartSeries-1-main)',
         },
         {
           id: 'abstain',
           label: 'Abstain',
-          value: votingSummary.votingBreakdown.abstain.shares,
+          value: resolvedSummary.votingBreakdown.abstain.shares,
           color: 'var(--mui-palette-chartSeries-2-main)',
         },
       ].filter((item) => item.value > 0),
     }
-  }, [votingSummary])
+  }, [resolvedSummary])
 
   if (loading || votingLoading) {
     return (

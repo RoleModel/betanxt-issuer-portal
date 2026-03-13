@@ -302,6 +302,15 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
           directorName: proposal.directorName,
           recommendation: proposal.recommendation,
           votingResults: mockVotingResults,
+          voteCounts: {
+            for: mockVotingResults.for.shares > 0 ? 1 : 0,
+            against: mockVotingResults.against.shares > 0 ? 1 : 0,
+            abstain: mockVotingResults.abstain.shares > 0 ? 1 : 0,
+            total:
+              (mockVotingResults.for.shares > 0 ? 1 : 0) +
+              (mockVotingResults.against.shares > 0 ? 1 : 0) +
+              (mockVotingResults.abstain.shares > 0 ? 1 : 0),
+          },
           totalShares: totalVoted,
           status: 'active' as const,
         }

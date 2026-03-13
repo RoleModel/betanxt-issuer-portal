@@ -29,6 +29,33 @@ export interface NormalizedProposal {
   totalVotesAbstain: number
 }
 
+interface NormalizedPositionVote {
+  positionId: string
+  proposalId: string
+  vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
+}
+
+interface ProposalVoteCounts {
+  for: number
+  against: number
+  abstain: number
+  total: number
+}
+
+async function fetchPositionVotesForMeeting(meetingId: string): Promise<unknown[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+  const response = await fetch(
+    `${baseUrl}/position_votes?meetingId=${encodeURIComponent(meetingId)}&limit=10000`
+  )
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch position votes')
+  }
+
+  const data: unknown = await response.json()
+  return asArray(data)
+}
+
 // Normalize position data to ensure consistent fields
 function normalizePosition(position: unknown): NormalizedPosition | null {
   if (!position) return null
@@ -77,6 +104,25 @@ function normalizeProposal(proposal: unknown): NormalizedProposal | null {
   }
 }
 
+function normalizePositionVote(positionVote: unknown): NormalizedPositionVote | null {
+  if (!positionVote) return null
+
+  const record = asRecord(positionVote)
+  if (!record) return null
+
+  const vote = (asString(record.vote) || '').toUpperCase()
+
+  if (!['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'].includes(vote)) {
+    return null
+  }
+
+  return {
+    positionId: asString(record.positionId) || asString(record.position_id) || '',
+    proposalId: asString(record.proposalId) || asString(record.proposal_id) || '',
+    vote: vote as NormalizedPositionVote['vote'],
+  }
+}
+
 export interface UseVotingTabulationResult {
   proposals: ProposalVoting[]
   votingSummary: VotingSummary | null
@@ -84,10 +130,46 @@ export interface UseVotingTabulationResult {
   error: string | null
   refetch: () => void
   uploadProposals: (proposals: unknown[]) => Promise<void>
+  previousYearsPercentages: number[]
 }
 
 const fetchVotingData = async (meetingId: string) => {
   const apiClient = await buildApiClient()
+  const previousYearsPercentages: number[] = []
+
+  if (meetingId) {
+    const idParts = meetingId.split('-')
+
+    if (idParts.length >= 4) {
+      const currentYear = Number.parseInt(idParts[idParts.length - 1], 10)
+      const baseId = idParts.slice(0, -1).join('-')
+
+      for (let yearOffset = 1; yearOffset <= 5; yearOffset += 1) {
+        const previousMeetingId = `${baseId}-${currentYear - yearOffset}`
+        const prevPositionsResult = await apiClient.GET('/positions', {
+          params: { query: { meetingId: previousMeetingId } },
+        })
+        const prevPositionsRaw = Array.isArray(prevPositionsResult.data)
+          ? prevPositionsResult.data
+          : asArray(asRecord(prevPositionsResult.data)?.positions)
+        const prevPositions = prevPositionsRaw
+          .map((position) => normalizePosition(position))
+          .filter((position): position is NormalizedPosition => position !== null)
+        const prevTotalShares = prevPositions.reduce((sum, position) => sum + position.shares, 0)
+        const prevVotedShares = prevPositions
+          .filter((position) => position.voteStatus === 'Voted')
+          .reduce((sum, position) => sum + position.sharesVoted, 0)
+        const prevPercentage =
+          prevTotalShares > 0 ? (prevVotedShares / prevTotalShares) * 100 : 0
+
+        if (prevTotalShares > 0) {
+          previousYearsPercentages.push(Number(prevPercentage.toFixed(2)))
+        }
+      }
+
+      previousYearsPercentages.reverse()
+    }
+  }
 
   // Fetch proposals and positions in parallel
   const [proposalsResult, positionsResult] = await Promise.all([
@@ -95,7 +177,7 @@ const fetchVotingData = async (meetingId: string) => {
       params: { path: { meetingId } },
     }),
     apiClient.GET('/positions', {
-      params: { query: { meetingId } },
+      params: { query: { meetingId, limit: 5000 } },
     }),
   ])
 
@@ -116,6 +198,38 @@ const fetchVotingData = async (meetingId: string) => {
   const positions = positionsRaw
     .map((position) => normalizePosition(position))
     .filter((position): position is NormalizedPosition => position !== null)
+  const proposalIds = new Set(proposals.map((proposal) => proposal.id))
+  const positionIdSet = new Set(positions.map((position) => position.id))
+  const positionVotesRaw = positionIdSet.size > 0 ? await fetchPositionVotesForMeeting(meetingId) : []
+
+  const proposalVoteCounts = new Map<string, ProposalVoteCounts>()
+  const normalizedVotes = positionVotesRaw
+    .map((positionVote) => normalizePositionVote(positionVote))
+    .filter((positionVote): positionVote is NormalizedPositionVote => positionVote !== null)
+
+  normalizedVotes.forEach((vote) => {
+    if (!proposalIds.has(vote.proposalId) || !positionIdSet.has(vote.positionId)) {
+      return
+    }
+
+    const currentCounts = proposalVoteCounts.get(vote.proposalId) ?? {
+      for: 0,
+      against: 0,
+      abstain: 0,
+      total: 0,
+    }
+
+    if (vote.vote === 'FOR') {
+      currentCounts.for += 1
+    } else if (vote.vote === 'ABSTAIN') {
+      currentCounts.abstain += 1
+    } else {
+      currentCounts.against += 1
+    }
+
+    currentCounts.total += 1
+    proposalVoteCounts.set(vote.proposalId, currentCounts)
+  })
 
   // Calculate voting summary
   const totalPositions = positions.length
@@ -227,6 +341,7 @@ const fetchVotingData = async (meetingId: string) => {
       directorName: proposal.directorName,
       recommendation: proposal.recommendation,
       votingResults: realVotingResults,
+      voteCounts: proposalVoteCounts.get(proposal.id),
       totalShares: proposalTotalVoted,
       status: 'active' as const,
     }
@@ -263,6 +378,7 @@ const fetchVotingData = async (meetingId: string) => {
   return {
     proposals: sortedProposals,
     votingSummary: summary,
+    previousYearsPercentages,
   }
 }
 
@@ -271,13 +387,9 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
     meetingId ? `/voting/${meetingId}` : null,
     () => fetchVotingData(meetingId!),
     {
-      // Cache for 30 seconds
       refreshInterval: 30000,
-      // Don't revalidate on focus
       revalidateOnFocus: false,
-      // Keep previous data while revalidating
       keepPreviousData: true,
-      // Dedupe multiple requests in 2 second window
       dedupingInterval: 2000,
     }
   )
@@ -318,5 +430,6 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
     error: error ? error.message : null,
     refetch: () => void mutate(),
     uploadProposals,
+    previousYearsPercentages: data?.previousYearsPercentages || [],
   }
 }

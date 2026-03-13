@@ -30,20 +30,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isUserSwitching, setIsUserSwitching] = useState(false)
 
   // Extract client from ticker-based URL structure
-  const extractClientFromURL = useCallback(
-    (pathname: string): string | null => {
-      // New format: /[TICKER]/meeting/meeting-id
-      const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
-      if (tickerMatch) {
-        const ticker = tickerMatch[1]
-        // Find client by ticker from available clients data
-        const matchingClient = clients.find((client) => client.ticker === ticker)
-        return matchingClient?.company_name ?? matchingClient?.short_name ?? null
-      }
-      return null
-    },
-    [clients]
-  )
+  const extractTickerFromURL = useCallback((currentPathname: string): string | null => {
+    const tickerMatch = /^\/([A-Z]{2,5})\//.exec(currentPathname)
+    return tickerMatch?.[1] ?? null
+  }, [])
 
   // Check if user can access a specific client
   const canAccessClient = useCallback(
@@ -125,12 +115,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         let targetClient: Client | null = null
 
         // 1. First check if URL implies a specific client (takes priority for client access control)
-        const clientFromURL = extractClientFromURL(pathname)
-        if (clientFromURL) {
-          targetClient =
-            clients.find(
-              (c) => c.company_name === clientFromURL || c.short_name === clientFromURL
-            ) ?? null
+        const tickerFromURL = extractTickerFromURL(pathname)
+        if (tickerFromURL) {
+          targetClient = clients.find((client) => client.ticker === tickerFromURL) ?? null
 
           // If URL specifies a client, use it and update localStorage
           if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
@@ -175,7 +162,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // 3. Fallback to first available client
-        if (!targetClient && clients.length > 0) {
+        if (!targetClient && !tickerFromURL && clients.length > 0) {
           targetClient = clients[0]
         }
 
@@ -210,7 +197,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     clientsLoading,
     session?.user?.accountId,
     isUserSwitching,
-    extractClientFromURL,
+    extractTickerFromURL,
     canAccessClient,
   ])
 

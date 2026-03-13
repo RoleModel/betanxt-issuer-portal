@@ -44,6 +44,12 @@ export interface ProposalVoting {
     against: { shares: number; percentage: number }
     abstain: { shares: number; percentage: number }
   }
+  voteCounts?: {
+    for: number
+    against: number
+    abstain: number
+    total: number
+  }
   totalShares: number
   status: 'active' | 'completed' | 'pending'
 }

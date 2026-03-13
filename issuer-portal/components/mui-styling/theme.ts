@@ -773,7 +773,6 @@ export const createClientTheme = (ticker?: string) => {
             contain: 'paint',
             '& .MuiTableCell-head': {
               borderRadius: 0,
-              whiteSpace: 'nowrap',
               backgroundColor: theme.vars?.palette.tableHeaderRow.restingFill,
               fontSize: theme.typography.dataHeader.fontSize,
               fontWeight: 600,
@@ -792,7 +791,6 @@ export const createClientTheme = (ticker?: string) => {
                 padding: theme.spacing(2),
                 justifyContent: 'space-between',
                 inlineSize: '100%',
-                whiteSpace: 'nowrap',
               },
             },
             '& .MuiTableCell-root': {

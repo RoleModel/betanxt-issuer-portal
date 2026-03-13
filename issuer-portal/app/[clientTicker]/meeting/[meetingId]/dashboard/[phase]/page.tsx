@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic'
 import { useParams } from 'next/navigation'
-import React from 'react'
 
 import { Box, Container } from '@mui/material'
 
@@ -18,19 +17,20 @@ const TabulationTracker = dynamic(
 export default function PhasePage() {
   const params = useParams()
   const meetingId = params.meetingId as string
+  const phase = params.phase as string
   const { getMeetingById } = useMeeting()
   const meeting = getMeetingById(meetingId)
 
   const meetingForPhase = meeting
     ? {
-        ...meeting,
-        client: meeting.client
-          ? {
-              ...meeting.client,
-              isActive: meeting.client.isActive ?? true,
-            }
-          : meeting.client,
-      }
+      ...meeting,
+      client: meeting.client
+        ? {
+          ...meeting.client,
+          isActive: meeting.client.isActive ?? true,
+        }
+        : meeting.client,
+    }
     : meeting
 
   return (
@@ -42,7 +42,7 @@ export default function PhasePage() {
         paddingY={{ xs: 2, sm: 3 }}
         gap={{ xs: 2, md: 3 }}
       >
-        <TabulationTracker meetingId={meetingId} />
+        <TabulationTracker meetingId={meetingId} phase={phase} />
 
         <Phase1Layout meeting={meetingForPhase} />
       </Box>

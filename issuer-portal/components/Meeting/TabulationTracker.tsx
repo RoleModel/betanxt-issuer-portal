@@ -1,23 +1,20 @@
 'use client'
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import { motion } from 'motion/react'
-import React, { useEffect, useState } from 'react'
-
 import {
-  ArrowDownward,
-  ArrowUpwardSharp,
   CalendarTodayOutlined as CalendarIcon,
 } from '@mui/icons-material'
-import { Paper, useMediaQuery, useTheme } from '@mui/material'
-import { Box, Fade, Stack, Typography } from '@mui/material'
-
+import { Box, Fade, Grid, Paper, Skeleton, Stack, Typography, useTheme } from '@mui/material'
+import type { SparkLineChartProps } from '@mui/x-charts/SparkLineChart';
+import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
-
 import { useMeeting } from '@/contexts/MeetingContext'
 import { calculateDaysUntil } from '@/utils/dateUtils'
+import { motion } from 'motion/react'
+import React from 'react'
 
+type ApiClient = Awaited<ReturnType<typeof buildApiClient>>
 type Phase = components['schemas']['Phase']
 type Meeting = components['schemas']['Meeting']
 type Position = components['schemas']['Position']
@@ -39,175 +36,354 @@ interface TabulationData {
   status: string
 }
 
-interface TabulationTrackerProps {
-  meetingId?: string
+interface HistoricalTabulationPoint {
+  meetingId: string
+  yearLabel: string
+  votedShares: number
+  unvotedShares: number
+  isCurrentMeeting: boolean
 }
 
-const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
-  // Get data from shared MeetingContext
+type HistoricalDataStatus = 'idle' | 'loading' | 'loaded'
+
+interface TabulationTrackerProps {
+  meetingId?: string
+  phase?: string
+}
+
+interface MeetingSummarySource {
+  id?: string | null
+  title?: string | null
+  meetingDate?: string | null
+  status?: string | null
+}
+
+const createEmptySummary = (meeting: MeetingSummarySource): TabulationData => ({
+  meeting_id: meeting.id ?? '',
+  meeting_title: meeting.title ?? '',
+  meeting_date: meeting.meetingDate ?? '',
+  total_positions: 0,
+  positions_voted: 0,
+  total_shares: '0',
+  shares_voted: '0',
+  shares_unvoted: '0',
+  vote_percentage: '0.00',
+  web_votes: 0,
+  paper_votes: 0,
+  phone_votes: 0,
+  status: meeting.status ?? '',
+})
+
+const buildSummaryFromReport = (
+  meeting: MeetingSummarySource,
+  report: TabulationReport
+): TabulationData => {
+  const positionsVoted = report.positionsVoted
+  const totalPositions = (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0)
+  const votedPositions = positionsVoted?.voted ?? 0
+  const totalShares = positionsVoted?.totalShares ?? 0
+  const votedShares = positionsVoted?.votedShares ?? 0
+  const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+  const nonDtc = report.nonDtcVoteStatus
+
+  return {
+    meeting_id: meeting.id ?? '',
+    meeting_title: meeting.title ?? '',
+    meeting_date: meeting.meetingDate ?? '',
+    total_positions: totalPositions,
+    positions_voted: votedPositions,
+    total_shares: totalShares.toString(),
+    shares_voted: votedShares.toString(),
+    shares_unvoted: Math.max(totalShares - votedShares, 0).toString(),
+    vote_percentage: votePercentage.toFixed(2),
+    web_votes: nonDtc?.webShareholders ?? 0,
+    paper_votes: nonDtc?.printShareholders ?? 0,
+    phone_votes: nonDtc?.ivrShareholders ?? 0,
+    status: meeting.status ?? '',
+  }
+}
+
+const buildSummaryFromPositions = (
+  meeting: MeetingSummarySource,
+  positions: Position[]
+): TabulationData => {
+  const totalPositions = positions.length
+  const votedPositions = positions.filter((position) => position.voteStatus === 'Voted').length
+  const totalShares = positions.reduce((sum, position) => sum + (position.shares ?? 0), 0)
+  const votedShares = positions
+    .filter((position) => position.voteStatus === 'Voted')
+    .reduce((sum, position) => sum + (position.sharesVoted ?? position.shares ?? 0), 0)
+  const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
+
+  return {
+    meeting_id: meeting.id ?? '',
+    meeting_title: meeting.title ?? '',
+    meeting_date: meeting.meetingDate ?? '',
+    total_positions: totalPositions,
+    positions_voted: votedPositions,
+    total_shares: totalShares.toString(),
+    shares_voted: votedShares.toString(),
+    shares_unvoted: Math.max(totalShares - votedShares, 0).toString(),
+    vote_percentage: votePercentage.toFixed(2),
+    web_votes: positions.filter((position) => position.source === 'WEB').length,
+    paper_votes: positions.filter((position) => position.source === 'PRINT').length,
+    phone_votes: positions.filter((position) => position.source === 'IVR').length,
+    status: meeting.status ?? '',
+  }
+}
+
+const fetchMeetingSummary = async (
+  apiClient: ApiClient,
+  meeting: MeetingSummarySource
+): Promise<TabulationData> => {
+  if (!meeting.id) {
+    return createEmptySummary(meeting)
+  }
+
+  const tabulationResult = (await apiClient.GET('/meetings/{meetingId}/tabulation-report', {
+    params: {
+      path: { meetingId: meeting.id },
+    },
+  })) as { data?: TabulationReport; error?: unknown }
+
+  if (!tabulationResult.error && tabulationResult.data) {
+    return buildSummaryFromReport(meeting, tabulationResult.data)
+  }
+
+  const positionsResult = (await apiClient.GET('/positions', {
+    params: { query: { meetingId: meeting.id } },
+  })) as { data?: { positions?: Position[] }; error?: unknown }
+
+  const positions = positionsResult.data?.positions
+
+  if (!positionsResult.error && positions && Array.isArray(positions)) {
+    return buildSummaryFromPositions(meeting, positions)
+  }
+
+  return createEmptySummary(meeting)
+}
+
+const parseMeetingYearInfo = (
+  meetingId: string
+): { baseId: string; currentYear: number } | null => {
+  const idParts = meetingId.split('-')
+
+  if (idParts.length < 4) {
+    return null
+  }
+
+  const currentYear = Number.parseInt(idParts[idParts.length - 1], 10)
+
+  if (Number.isNaN(currentYear)) {
+    return null
+  }
+
+  return {
+    baseId: idParts.slice(0, -1).join('-'),
+    currentYear,
+  }
+}
+
+const buildSparklineDomain = (
+  series: number[]
+): NonNullable<SparkLineChartProps['yAxis']>['domainLimit'] => {
+  const finiteValues = series.filter((value) => Number.isFinite(value))
+
+  if (finiteValues.length === 0) {
+    return () => ({ min: 0, max: 1 })
+  }
+
+  const minValue = Math.min(...finiteValues)
+  const maxValue = Math.max(...finiteValues)
+  const range = maxValue - minValue
+
+  if (range === 0) {
+    const padding = Math.max(Math.abs(maxValue) * 0.05, 1)
+    return () => ({
+      min: Math.max(0, minValue - padding),
+      max: maxValue + padding,
+    })
+  }
+
+  const padding = Math.max(range * 0.35, maxValue * 0.01)
+
+  return () => ({
+    min: Math.max(0, minValue - padding),
+    max: maxValue + padding,
+  })
+}
+
+const formatSparklineAxisValue = (value: unknown): string => {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value)
+  }
+
+  if (value instanceof Date) {
+    return value.toLocaleDateString('en-US', { year: 'numeric' })
+  }
+
+  return ''
+}
+
+const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting): number => {
+  const firstYear = firstMeeting.meetingYear ?? 0
+  const secondYear = secondMeeting.meetingYear ?? 0
+
+  if (firstYear !== secondYear) {
+    return firstYear - secondYear
+  }
+
+  const firstDate = firstMeeting.meetingDate ? new Date(firstMeeting.meetingDate).getTime() : 0
+  const secondDate = secondMeeting.meetingDate
+    ? new Date(secondMeeting.meetingDate).getTime()
+    : 0
+
+  return firstDate - secondDate
+}
+
+function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const { currentMeeting } = useMeeting()
-  const [data, setData] = useState<TabulationData | null>(null)
-  const [previousYearData, setPreviousYearData] = useState<TabulationData | null>(null)
-  const [loading, setLoading] = useState(false) // Don't start as loading to prevent double LinearProgress
-  const [loadingProgress, setLoadingProgress] = useState(0)
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [data, setData] = React.useState<TabulationData | null>(null)
+  const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>([])
+  const [historicalDataStatus, setHistoricalDataStatus] =
+    React.useState<HistoricalDataStatus>('idle')
 
-  const [_nextPhaseDate, setNextPhaseDate] = useState<Date | null>(null)
-  const [voteCutoffDate, setVoteCutoffDate] = useState<Date | null>(null)
-  const [phases, setPhases] = useState<Phase[]>([])
 
-  // Use meetingId from props (URL) as source of truth instead of context
-  // Context might lag behind during navigation
+  const [_nextPhaseDate, setNextPhaseDate] = React.useState<Date | null>(null)
+  const [voteCutoffDate, setVoteCutoffDate] = React.useState<Date | null>(null)
+  const [phases, setPhases] = React.useState<Phase[]>([])
+
   const currentMeetingId = meetingId ?? currentMeeting?.id
 
-  // Animate loading progress
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-
-    if (loading) {
-      setLoadingProgress(0)
-      let currentProgress = 0
-
-      interval = setInterval(() => {
-        currentProgress += 2 // Increment by 2% each time for smooth progression
-        if (currentProgress >= 95) {
-          setLoadingProgress(95) // Stop at 95% until data loads
-          if (interval) clearInterval(interval)
-        } else {
-          setLoadingProgress(currentProgress)
-        }
-      }, 50) // Update every 50ms for smoother animation
-    } else if (!loading && loadingProgress > 0) {
-      // Complete the progress when loading finishes
-      setLoadingProgress(100)
-      setTimeout(() => setLoadingProgress(0), 300) // Reset after completion
+  const toLocalMidnight = React.useCallback((dateString?: string | null): Date | null => {
+    if (!dateString) {
+      return null
     }
 
-    return () => {
-      if (interval) clearInterval(interval)
+    const date = new Date(dateString)
+
+    if (Number.isNaN(date.getTime())) {
+      return null
     }
-  }, [loading, loadingProgress])
 
-  // Helpers for timezone-safe local day math
-  const toLocalMidnight = (dateString?: string | null): Date | null => {
-    if (!dateString) return null
-    const d = new Date(dateString)
-    if (isNaN(d.getTime())) return null
-    d.setHours(0, 0, 0, 0)
-    return d
-  }
+    date.setHours(0, 0, 0, 0)
+    return date
+  }, [])
 
-  const _daysUntilDate = (d: Date): number => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const target = new Date(d)
-    target.setHours(0, 0, 0, 0)
-    return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  }
-
-  // Fetch phases to get next phase date and vote cutoff
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchPhases = async () => {
-      if (!currentMeetingId) return
+      if (!currentMeetingId) {
+        return
+      }
 
       try {
         const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
+        const { data: phaseData, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
           params: {
             path: { meetingId: currentMeetingId },
           },
         })
-        if (!error && data) {
-          const phasesData = data || []
-          setPhases(phasesData)
 
-          // Support both camelCase and snake_case fields from API
-          interface PhaseSnake {
-            order_index?: number
-            key_dates?: string | Record<string, unknown>
+        if (error || !phaseData) {
+          return
+        }
+
+        const phasesData = phaseData || []
+        setPhases(phasesData)
+
+        interface PhaseSnake {
+          order_index?: number
+        }
+
+        interface KeyDatesShape {
+          keyDates?: string | Record<string, unknown>
+        }
+
+        const sortedPhases = [...phasesData].sort(
+          (firstPhase: Phase, secondPhase: Phase) =>
+            (firstPhase.orderIndex ?? (firstPhase as PhaseSnake).order_index ?? 0) -
+            (secondPhase.orderIndex ?? (secondPhase as PhaseSnake).order_index ?? 0)
+        )
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const candidateDates: Date[] = []
+
+        for (const phase of sortedPhases) {
+          const rawKeyDates = (phase as KeyDatesShape).keyDates
+
+          if (!rawKeyDates) {
+            continue
           }
 
-          // Sort phases by order index for processing
-          const sortedPhases = [...phasesData].sort(
-            (a: Phase, b: Phase) =>
-              (a.orderIndex ?? (a as unknown as PhaseSnake).order_index ?? 0) -
-              (b.orderIndex ?? (b as unknown as PhaseSnake).order_index ?? 0)
-          )
+          try {
+            const keyDates =
+              typeof rawKeyDates === 'string'
+                ? (JSON.parse(rawKeyDates) as Record<string, unknown>)
+                : rawKeyDates
 
-          // Find the earliest upcoming date across ALL phases (simplified approach)
-          let selectedDate: Date | null = null
-          const nowStart = new Date()
-          nowStart.setHours(0, 0, 0, 0)
-          const candidateDates: Date[] = []
-
-          for (const ph of sortedPhases) {
-            const raw = (ph as { keyDates?: string | Record<string, unknown> }).keyDates
-            if (!raw) continue
-            try {
-              const kdObj =
-                typeof raw === 'string'
-                  ? (JSON.parse(raw) as Record<string, unknown>)
-                  : raw
-              const kd2 = kdObj as {
-                preFilingDate?: string
-                pre_filing_date?: string
-                brokerSearchDate?: string
-                broker_search_date?: string
-                recordDate?: string
-                record_date?: string
-                filingDate?: string
-                filing_date?: string
-                mailingDate?: string
-                mailing_date?: string
-                meetingDate?: string
-                meeting_date?: string
-              }
-              const values = [
-                kd2.preFilingDate,
-                kd2.pre_filing_date,
-                kd2.brokerSearchDate,
-                kd2.broker_search_date,
-                kd2.recordDate,
-                kd2.record_date,
-                kd2.filingDate,
-                kd2.filing_date,
-                kd2.mailingDate,
-                kd2.mailing_date,
-                kd2.meetingDate,
-                kd2.meeting_date,
-              ].filter(Boolean) as string[]
-              for (const v of values) {
-                const d = toLocalMidnight(v)
-                if (d && d.getTime() > nowStart.getTime()) candidateDates.push(d)
-              }
-            } catch {
-              // Ignore date parsing errors
+            const normalizedKeyDates = keyDates as {
+              preFilingDate?: string
+              pre_filing_date?: string
+              brokerSearchDate?: string
+              broker_search_date?: string
+              recordDate?: string
+              record_date?: string
+              filingDate?: string
+              filing_date?: string
+              mailingDate?: string
+              mailing_date?: string
+              meetingDate?: string
+              meeting_date?: string
             }
+
+            const values = [
+              normalizedKeyDates.preFilingDate,
+              normalizedKeyDates.pre_filing_date,
+              normalizedKeyDates.brokerSearchDate,
+              normalizedKeyDates.broker_search_date,
+              normalizedKeyDates.recordDate,
+              normalizedKeyDates.record_date,
+              normalizedKeyDates.filingDate,
+              normalizedKeyDates.filing_date,
+              normalizedKeyDates.mailingDate,
+              normalizedKeyDates.mailing_date,
+              normalizedKeyDates.meetingDate,
+              normalizedKeyDates.meeting_date,
+            ].filter(Boolean) as string[]
+
+            values.forEach((value) => {
+              const candidate = toLocalMidnight(value)
+
+              if (candidate && candidate.getTime() > today.getTime()) {
+                candidateDates.push(candidate)
+              }
+            })
+          } catch {
+            // Ignore malformed date blobs from the mock API
           }
+        }
 
-          if (candidateDates.length > 0) {
-            candidateDates.sort((a, b) => a.getTime() - b.getTime())
-            selectedDate = candidateDates[0]
-          }
+        if (candidateDates.length > 0) {
+          candidateDates.sort((firstDate, secondDate) => firstDate.getTime() - secondDate.getTime())
+          setNextPhaseDate(candidateDates[0])
+        } else if (currentMeeting?.meetingDate) {
+          setNextPhaseDate(toLocalMidnight(currentMeeting.meetingDate))
+        }
 
-          // Final fallback: if no reasonable phase date found, use meeting date
-          if (!selectedDate && currentMeeting?.meetingDate) {
-            selectedDate = toLocalMidnight(currentMeeting.meetingDate)
-          }
+        if (currentMeeting?.cutoffDate) {
+          setVoteCutoffDate(toLocalMidnight(currentMeeting.cutoffDate))
+          return
+        }
 
-          setNextPhaseDate(selectedDate)
+        if (currentMeeting?.meetingDate) {
+          const meetingLocal = toLocalMidnight(currentMeeting.meetingDate)
 
-          // Use cutoffDate from meeting if available, otherwise calculate as 2 days before meeting date
-          if (currentMeeting?.cutoffDate) {
-            setVoteCutoffDate(toLocalMidnight(currentMeeting.cutoffDate))
-          } else if (currentMeeting?.meetingDate) {
-            const meetingLocal = toLocalMidnight(currentMeeting.meetingDate)
-            if (meetingLocal) {
-              const cutoffDate = new Date(meetingLocal)
-              cutoffDate.setDate(cutoffDate.getDate() - 2)
-              setVoteCutoffDate(cutoffDate)
-            }
+          if (meetingLocal) {
+            const cutoffDate = new Date(meetingLocal)
+            cutoffDate.setDate(cutoffDate.getDate() - 2)
+            setVoteCutoffDate(cutoffDate)
           }
         }
       } catch (error) {
@@ -216,657 +392,530 @@ const TabulationTracker: React.FC<TabulationTrackerProps> = ({ meetingId }) => {
     }
 
     void fetchPhases()
-  }, [currentMeetingId, currentMeeting?.meetingDate, currentMeeting?.cutoffDate])
+  }, [currentMeetingId, currentMeeting?.cutoffDate, currentMeeting?.meetingDate, toLocalMidnight])
 
-  // Fetch previous year's meeting data
-  useEffect(() => {
-    const fetchPreviousYearData = async () => {
-      if (!currentMeetingId) return
-
-      try {
-        // Extract meeting type and year from current meeting ID
-        // Format: ticker-meetingType-year (e.g., "wen-special-meeting-2026")
-        const idParts = currentMeetingId.split('-')
-        if (idParts.length < 4) return // ticker-meeting-type-year
-
-        const currentYear = parseInt(idParts[idParts.length - 1])
-        const baseId = idParts.slice(0, -1).join('-') // e.g., "wen-special-meeting"
-
-        const apiClient = await buildApiClient()
-
-        // Try to find the most recent previous year meeting (search up to 3 years back)
-        let prevMeeting: Meeting | null = null
-
-        for (let yearOffset = 1; yearOffset <= 3; yearOffset++) {
-          const previousMeetingId = `${baseId}-${currentYear - yearOffset}`
-          const result = (await apiClient.GET('/meetings/{meetingId}', {
-            params: { path: { meetingId: previousMeetingId } },
-          })) as { data?: Meeting; error?: unknown }
-
-          if (!result.error && result.data) {
-            prevMeeting = result.data
-            break
-          }
-        }
-
-        // Only fetch tabulation data if meeting exists
-        if (prevMeeting?.id) {
-          // Try to get tabulation report first
-          const tabulationResult = (await apiClient.GET(
-            '/meetings/{meetingId}/tabulation-report',
-            {
-              params: {
-                path: { meetingId: prevMeeting.id },
-              },
-            }
-          )) as { data?: TabulationReport; error?: unknown }
-
-          if (!tabulationResult.error && tabulationResult.data) {
-            // Use tabulation report data
-            const report = tabulationResult.data
-            const positionsVoted = report.positionsVoted
-            const totalPositions =
-              (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0)
-            const votedPositions = positionsVoted?.voted ?? 0
-            const totalShares = positionsVoted?.totalShares ?? 0
-            const votedShares = positionsVoted?.votedShares ?? 0
-            const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
-
-            const nonDtc = report.nonDtcVoteStatus
-            const webVotes = nonDtc?.webShareholders ?? 0
-            const paperVotes = nonDtc?.printShareholders ?? 0
-            const phoneVotes = nonDtc?.ivrShareholders ?? 0
-
-            setPreviousYearData({
-              meeting_id: prevMeeting.id ?? '',
-              meeting_title: prevMeeting.title ?? '',
-              meeting_date: prevMeeting.meetingDate ?? '',
-              total_positions: totalPositions,
-              positions_voted: votedPositions,
-              total_shares: totalShares.toString(),
-              shares_voted: votedShares.toString(),
-              shares_unvoted: (totalShares - votedShares).toString(),
-              vote_percentage: votePercentage.toFixed(2),
-              web_votes: webVotes,
-              paper_votes: paperVotes,
-              phone_votes: phoneVotes,
-              status: prevMeeting.status ?? '',
-            })
-          } else {
-            // Fallback to positions data if tabulation report not available
-            const positionsResult = (await apiClient.GET('/positions', {
-              params: { query: { meetingId: prevMeeting.id } },
-            })) as { data?: { positions?: Position[] }; error?: unknown }
-
-            const positions = positionsResult.data?.positions
-            if (
-              !positionsResult.error &&
-              positions &&
-              Array.isArray(positions) &&
-              positions.length > 0
-            ) {
-              // Calculate tabulation data for previous year as fallback
-              const totalPositions = positions.length
-              const votedPositions = positions.filter(
-                (p) => p.voteStatus === 'Voted'
-              ).length
-              const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
-              const votedShares = positions
-                .filter((p) => p.voteStatus === 'Voted')
-                .reduce((sum, p) => sum + (p.sharesVoted ?? p.shares ?? 0), 0)
-              const votePercentage =
-                totalShares > 0 ? (votedShares / totalShares) * 100 : 0
-
-              setPreviousYearData({
-                meeting_id: prevMeeting.id ?? '',
-                meeting_title: prevMeeting.title ?? '',
-                meeting_date: prevMeeting.meetingDate ?? '',
-                total_positions: totalPositions,
-                positions_voted: votedPositions,
-                total_shares: totalShares.toString(),
-                shares_voted: votedShares.toString(),
-                shares_unvoted: (totalShares - votedShares).toString(),
-                vote_percentage: votePercentage.toFixed(2),
-                web_votes: 0,
-                paper_votes: 0,
-                phone_votes: 0,
-                status: prevMeeting.status ?? '',
-              })
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching previous year data:', error)
-      }
-    }
-
-    void fetchPreviousYearData()
-  }, [currentMeetingId])
-
-  // Fetch tabulation data from API instead of calculating locally
-  useEffect(() => {
-    const fetchTabulationData = async () => {
+  React.useEffect(() => {
+    const fetchCurrentTabulation = async () => {
       if (!currentMeetingId) {
-        setLoading(false) // No meeting data, stop loading
+        setData(null)
         return
       }
 
-      setLoading(true)
       try {
-        const meetingTitle = currentMeeting?.title ?? ''
-        const meetingDate = currentMeeting?.meetingDate ?? ''
-        const meetingStatus = currentMeeting?.status ?? ''
-
         const apiClient = await buildApiClient()
-        const { data: tabulationReport, error } = (await apiClient.GET(
-          '/meetings/{meetingId}/tabulation-report',
-          {
-            params: {
-              path: { meetingId: currentMeetingId },
-            },
-          }
-        )) as { data?: TabulationReport; error?: unknown }
+        const summary = await fetchMeetingSummary(apiClient, {
+          id: currentMeetingId,
+          title: currentMeeting?.title,
+          meetingDate: currentMeeting?.meetingDate,
+          status: currentMeeting?.status,
+        })
 
-        if (!error && tabulationReport) {
-          // Transform API response to match component's expected format
-          const positionsVoted = tabulationReport.positionsVoted
-          const totalPositions =
-            (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0)
-          const votedPositions = positionsVoted?.voted ?? 0
-          const totalShares = positionsVoted?.totalShares ?? 0
-          const votedShares = positionsVoted?.votedShares ?? 0
-          const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0
-
-          // Extract vote counts from non-DTC data
-          const nonDtc = tabulationReport.nonDtcVoteStatus
-          const webVotes = nonDtc?.webShareholders ?? 0
-          const paperVotes = nonDtc?.printShareholders ?? 0
-          const phoneVotes = nonDtc?.ivrShareholders ?? 0
-
-          setData({
-            meeting_id: currentMeetingId,
-            meeting_title: meetingTitle,
-            meeting_date: meetingDate,
-            total_positions: totalPositions,
-            positions_voted: votedPositions,
-            total_shares: totalShares.toString(),
-            shares_voted: votedShares.toString(),
-            shares_unvoted: (totalShares - votedShares).toString(),
-            vote_percentage: votePercentage.toFixed(2),
-            web_votes: webVotes,
-            paper_votes: paperVotes,
-            phone_votes: phoneVotes,
-            status: meetingStatus,
-          })
-        } else {
-          // Fallback to positions-based calculation when tabulation report doesn't exist
-          try {
-            const positionsResult = (await apiClient.GET('/positions', {
-              params: { query: { meetingId: currentMeetingId } },
-            })) as { data?: { positions?: Position[] }; error?: unknown }
-
-            const positions = positionsResult.data?.positions
-            if (!positionsResult.error && positions && Array.isArray(positions)) {
-              // Calculate tabulation data from positions as fallback
-              const totalPositions = positions.length
-              const votedPositions = positions.filter(
-                (p) => p.voteStatus === 'Voted'
-              ).length
-              const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
-              const votedShares = positions
-                .filter((p) => p.voteStatus === 'Voted')
-                .reduce((sum, p) => sum + (p.sharesVoted ?? p.shares ?? 0), 0)
-              const votePercentage =
-                totalShares > 0 ? (votedShares / totalShares) * 100 : 0
-
-              // Count by vote source
-              const webVotes = positions.filter((p) => p.source === 'WEB').length
-              const paperVotes = positions.filter((p) => p.source === 'PRINT').length
-              const phoneVotes = positions.filter((p) => p.source === 'IVR').length
-
-              // Using fallback calculation based on positions data
-
-              setData({
-                meeting_id: currentMeetingId,
-                meeting_title: meetingTitle,
-                meeting_date: meetingDate,
-                total_positions: totalPositions,
-                positions_voted: votedPositions,
-                total_shares: totalShares.toString(),
-                shares_voted: votedShares.toString(),
-                shares_unvoted: (totalShares - votedShares).toString(),
-                vote_percentage: votePercentage.toFixed(2),
-                web_votes: webVotes,
-                paper_votes: paperVotes,
-                phone_votes: phoneVotes,
-                status: meetingStatus,
-              })
-            } else {
-              // Empty data if no positions available either
-              setData({
-                meeting_id: currentMeetingId,
-                meeting_title: meetingTitle,
-                meeting_date: meetingDate,
-                total_positions: 0,
-                positions_voted: 0,
-                total_shares: '0',
-                shares_voted: '0',
-                shares_unvoted: '0',
-                vote_percentage: '0.00',
-                web_votes: 0,
-                paper_votes: 0,
-                phone_votes: 0,
-                status: meetingStatus,
-              })
-            }
-          } catch (fallbackError) {
-            console.error('Fallback positions calculation failed:', fallbackError)
-            // Final fallback to empty data
-            setData({
-              meeting_id: currentMeetingId,
-              meeting_title: meetingTitle,
-              meeting_date: meetingDate,
-              total_positions: 0,
-              positions_voted: 0,
-              total_shares: '0',
-              shares_voted: '0',
-              shares_unvoted: '0',
-              vote_percentage: '0.00',
-              web_votes: 0,
-              paper_votes: 0,
-              phone_votes: 0,
-              status: meetingStatus,
-            })
-          }
-        }
+        setData(summary)
       } catch (error) {
         console.error('Error fetching tabulation data:', error)
-      } finally {
-        setLoading(false)
+        setData(
+          createEmptySummary({
+            id: currentMeetingId,
+            title: currentMeeting?.title,
+            meetingDate: currentMeeting?.meetingDate,
+            status: currentMeeting?.status,
+          })
+        )
       }
     }
 
-    void fetchTabulationData()
-    // Only depend on meeting ID - extract other values inside effect to avoid re-renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentMeetingId])
+    void fetchCurrentTabulation()
+  }, [currentMeeting?.meetingDate, currentMeeting?.status, currentMeeting?.title, currentMeetingId])
 
-  // Calculate progress data - only show actual voting data in phase 6+
-  // Check both phase data and meeting.currentPhase (which should be "Phase 6" for the WEN special meeting)
-  const currentPhaseNumber = currentMeeting?.currentPhase
-    ? parseInt(currentMeeting.currentPhase.replace('Phase ', '') || '0')
-    : 0
+  React.useEffect(() => {
+    const fetchHistoricalTabulation = async () => {
+      if (!currentMeetingId) {
+        setHistoricalDataStatus('idle')
+        setHistoricalData([])
+        return
+      }
+
+      if (!currentMeeting?.ticker || !currentMeeting?.meetingType) {
+        setHistoricalDataStatus('idle')
+        setHistoricalData([])
+        return
+      }
+
+      try {
+        setHistoricalDataStatus('loading')
+        const apiClient = await buildApiClient()
+        const comparableMeetingsResult = (await apiClient.GET('/meetings', {
+          params: {
+            query: {
+              ticker: currentMeeting.ticker,
+              limit: 250,
+            },
+          },
+        })) as {
+          data?: { meetings?: Meeting[] } | Meeting[]
+          error?: unknown
+        }
+
+        if (comparableMeetingsResult.error) {
+          throw new Error('Failed to fetch comparable meetings')
+        }
+
+        const rawMeetings = Array.isArray(comparableMeetingsResult.data)
+          ? comparableMeetingsResult.data
+          : comparableMeetingsResult.data?.meetings ?? []
+        const comparableMeetings = rawMeetings
+          .filter((meeting) => meeting.id)
+          .filter((meeting) => meeting.meetingType === currentMeeting.meetingType)
+          .filter((meeting) =>
+            currentMeeting.cusip ? meeting.cusip === currentMeeting.cusip : true
+          )
+          .filter(
+            (meeting) => meeting.id === currentMeetingId || meeting.status === 'COMPLETE'
+          )
+          .sort(sortMeetingsBySeriesOrder)
+
+        const nextHistoricalData: HistoricalTabulationPoint[] = []
+
+        for (const comparableMeeting of comparableMeetings) {
+          if (!comparableMeeting.id) {
+            continue
+          }
+
+          const summary = await fetchMeetingSummary(apiClient, comparableMeeting)
+
+          nextHistoricalData.push({
+            meetingId: summary.meeting_id,
+            yearLabel:
+              comparableMeeting.meetingYear?.toString() ||
+              parseMeetingYearInfo(summary.meeting_id)?.currentYear?.toString() ||
+              'Unknown',
+            votedShares: Number(summary.shares_voted),
+            unvotedShares: Number(summary.shares_unvoted),
+            isCurrentMeeting: comparableMeeting.id === currentMeetingId,
+          })
+        }
+
+        setHistoricalData(nextHistoricalData)
+        setHistoricalDataStatus('loaded')
+      } catch (error) {
+        console.error('Error fetching previous year data:', error)
+        setHistoricalData([])
+        setHistoricalDataStatus('loaded')
+      }
+    }
+
+    void fetchHistoricalTabulation()
+  }, [currentMeeting?.cusip, currentMeeting?.meetingType, currentMeeting?.ticker, currentMeetingId])
+
+  const routePhaseNumber =
+    typeof phase === 'string' ? Number.parseInt(phase.trim(), 10) : Number.NaN
+  const meetingPhaseNumber = currentMeeting?.currentPhase
+    ? Number.parseInt(currentMeeting.currentPhase.replace('Phase ', '') || '0', 10)
+    : Number.NaN
+  const currentPhaseNumber = Number.isFinite(routePhaseNumber)
+    ? routePhaseNumber
+    : Number.isFinite(meetingPhaseNumber)
+      ? meetingPhaseNumber
+      : 0
+
   const isVotingPhaseFromMeeting = currentPhaseNumber >= 6
   const isVotingPhaseFromPhases = phases.some(
-    (p) =>
-      (p.orderIndex ?? 0) >= 6 &&
-      ((p.status as string) === 'ACTIVE' ||
-        p.status === 'COMPLETE' ||
-        p.status === 'IN_PROGRESS')
+    (phase) =>
+      (phase.orderIndex ?? 0) >= 6 &&
+      ((phase.status as string) === 'ACTIVE' ||
+        phase.status === 'COMPLETE' ||
+        phase.status === 'IN_PROGRESS')
   )
   const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
-
-  // Only use data if it matches the current meeting - otherwise show loading/empty state
-  // If no data yet, also return null
   const currentData = data?.meeting_id === currentMeetingId ? data : null
-
-  // Get quorum requirement from meeting (percentage)
-  const currentVotePercentage = currentData ? parseFloat(currentData.vote_percentage) : 0
+  const currentVotePercentage = currentData ? Number.parseFloat(currentData.vote_percentage) : 0
 
   const progress =
     currentData && isVotingPhase
       ? {
-          voted: Math.round(currentVotePercentage),
-          unvoted: 100 - Math.round(currentVotePercentage),
-          toQuorum: Math.round(currentVotePercentage),
-        }
-      : { voted: 0, unvoted: 0, toQuorum: 0 }
+        voted: Math.round(currentVotePercentage),
+        unvoted: 100 - Math.round(currentVotePercentage),
+      }
+      : { voted: 0, unvoted: 0 }
 
-  // Meeting status determines what data to show
-  const isCompleted =
-    currentData?.status === 'COMPLETE' ||
-    currentData?.status === 'completed' ||
-    currentMeeting?.status === 'COMPLETE'
-  const meetingDate = currentData?.meeting_date
-    ? new Date(currentData.meeting_date)
-    : null
+  const meetingStatus = currentData?.status || currentMeeting?.status || ''
+  const isCompleted = meetingStatus === 'COMPLETE' || meetingStatus === 'completed'
+  const meetingDateValue = currentData?.meeting_date || currentMeeting?.meetingDate || ''
+  const meetingDate = meetingDateValue ? new Date(meetingDateValue) : null
+  const showHistoricalComparison = currentPhaseNumber >= 7
+  const isHistoricalComparisonPending =
+    showHistoricalComparison && historicalDataStatus === 'loading'
+  const previousComparableMeetings = historicalData.filter((point) => !point.isCurrentMeeting)
+  const hasHistoricalComparison = showHistoricalComparison && historicalData.length >= 2
+  const currentMeetingSeriesIndex = historicalData.findIndex((point) => point.isCurrentMeeting)
+  const previousComparablePoint =
+    currentMeetingSeriesIndex > 0 ? historicalData[currentMeetingSeriesIndex - 1] : null
+  const hasHistoricalSparkline =
+    showHistoricalComparison &&
+    historicalDataStatus === 'loaded' &&
+    previousComparableMeetings.length >= 2
+  const shouldReserveHistoricalLayout =
+    showHistoricalComparison && (hasHistoricalComparison || isHistoricalComparisonPending)
+  const summaryMetrics = [
+    {
+      label: isCompleted ? 'Meeting Date' : 'Days to Meeting',
+      value:
+        isCompleted && meetingDate
+          ? meetingDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          : meetingDate
+            ? calculateDaysUntil(meetingDate.toISOString())
+            : '--',
+      secondarySx: undefined as Record<string, unknown> | undefined,
+    },
+    ...(isCompleted
+      ? [
+        {
+          label: 'Total Positions',
+          value: currentData ? currentData.total_positions.toLocaleString() : '--',
+          secondarySx: undefined as Record<string, unknown> | undefined,
+        },
+        {
+          label: 'Positions Voted',
+          value: currentData ? currentData.positions_voted.toLocaleString() : '--',
+          secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
+        },
+      ]
+      : [
+        {
+          label: 'Vote Cutoff',
+          value: voteCutoffDate
+            ? `${voteCutoffDate.toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })} 11:59 PM ET`
+            : '0',
+          secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
+        },
+      ]),
+    ...(!shouldReserveHistoricalLayout
+      ? [
+        {
+          label: 'Shares Voted',
+          value:
+            currentData && isVotingPhase
+              ? Number(currentData.shares_voted).toLocaleString()
+              : '0',
+          secondarySx: undefined as Record<string, unknown> | undefined,
+        },
+        {
+          label: 'Shares Unvoted',
+          value:
+            currentData && isVotingPhase
+              ? Number(currentData.shares_unvoted).toLocaleString()
+              : '0',
+          secondarySx: undefined as Record<string, unknown> | undefined,
+        },
+      ]
+      : []),
+  ]
+  const desktopMetricColumns = summaryMetrics.length
+  const summaryGridTemplateColumns = {
+    xs: 'repeat(2, minmax(0, 1fr))',
+    sm: 'repeat(3, minmax(0, 1fr))',
+    md: `48px repeat(${desktopMetricColumns}, minmax(0, 1fr))`,
+  }
 
-  const isPhase7 = (currentPhaseNumber ?? 0) < 7
+  const historicalVotedSeries = historicalData.map((point) => point.votedShares)
+  const historicalUnvotedSeries = historicalData.map((point) => point.unvotedShares)
+  const historicalYearLabels = historicalData.map((point) => point.yearLabel)
+  const theme = useTheme()
+  const sparklineStrokeColor = theme.vars?.palette.keydate.dark || '#004d73'
+  const votedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
+  const unvotedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
+
+
+  const votedSettings: SparkLineChartProps = {
+    data: historicalVotedSeries,
+    area: true,
+    baseline: 'min',
+    color: sparklineStrokeColor,
+    yAxis: {
+      domainLimit: buildSparklineDomain(historicalVotedSeries),
+    },
+    slotProps: {
+      area: { style: { opacity: 1, fill: votedAreaColor } },
+      line: { style: { strokeWidth: 2, stroke: sparklineStrokeColor } },
+      lineHighlight: { r: 4 },
+    },
+    clipAreaOffset: { top: 2, bottom: 2 },
+    axisHighlight: { x: 'line' },
+    margin: { top: 0, bottom: 0, left: 0, right: 0 },
+  }
+
+  const unvotedSettings: SparkLineChartProps = {
+    data: historicalUnvotedSeries,
+    area: true,
+    baseline: 'min',
+    color: sparklineStrokeColor,
+    yAxis: {
+      domainLimit: buildSparklineDomain(historicalUnvotedSeries),
+    },
+    slotProps: {
+      area: { style: { opacity: 1, fill: unvotedAreaColor } },
+      line: { style: { strokeWidth: 2, stroke: sparklineStrokeColor } },
+      lineHighlight: { r: 4 },
+    },
+    clipAreaOffset: { top: 2, bottom: 2 },
+    axisHighlight: { x: 'line' },
+    margin: { top: 0, bottom: 0, left: 0, right: 0 },
+  }
+
+  const sparklineCardSx = {
+    backgroundColor: theme.vars?.palette.keydate.main,
+    color: theme.vars?.palette.keydate.contrastText,
+    borderRadius: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    justifyContent: 'space-between',
+    minHeight: 128,
+    '& > div ': {
+      pt: 1,
+      px: 1,
+    }
+  }
 
   return (
-    <Paper
-      sx={{
-        backgroundColor: (theme) => theme.vars?.palette.keydate.main,
-        color: (theme) => theme.vars?.palette.keydate.contrastText,
-        contain: 'paint',
-        borderRadius: 1,
-        p: 1,
-        pb: 0,
-        position: 'relative',
-        px: 2,
-        minHeight: !isPhase7 && !isMobile ? '105.6px' : '86px',
-      }}
-    >
-      <Fade in={true} timeout={1000} appear>
-        <Stack
-          direction={'row'}
-          flexWrap={'wrap'}
-          display={'grid'}
-          gridTemplateAreas={{
-            xs: `
-              "1 2"
-            `,
-            sm: `
-              "1 2 3",
-              "1 2 3"
-            `,
-          }}
-          gridTemplateColumns={{
-            xs: '1fr 1fr',
-            sm: '1fr 1fr 1fr',
-            md:
-              isPhase7 && previousYearData
-                ? 'min-content repeat(5, auto)'
-                : 'min-content repeat(6, auto)',
-          }}
+    <Grid container spacing={2} sx={{ mt: 1, alignItems: 'stretch' }}>
+      <Grid size={{ xs: 12, lg: shouldReserveHistoricalLayout ? 6 : 12 }}>
+        <Paper
           sx={{
-            gap: 1,
-            paddingBottom: { xs: 4, sm: 4, md: 3 },
-            transition: 'grid-template-areas 0.3s ease, grid-template-columns 0.3s ease',
+            backgroundColor: (muiTheme) => muiTheme.vars?.palette.keydate.main,
+            color: (muiTheme) => muiTheme.vars?.palette.keydate.contrastText,
+            contain: 'paint',
+            borderRadius: 1,
+            p: 1,
+            pb: 0,
+            position: 'relative',
+            px: 2,
+            height: "100%",
+            minHeight: {
+              xs: '105.6px',
+              lg: shouldReserveHistoricalLayout ? '128.6px' : '105.6px'
+            },
           }}
         >
-          <CalendarIcon
-            sx={{
-              mr: 2,
-              fontSize: 40,
-              color: 'inherit',
-              display: { xs: 'none', md: 'block' },
-            }}
-          />
-          <Box>
-            <BNTypographyPair
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: isCompleted ? 'Meeting Date' : 'Days to Meeting',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  isCompleted && meetingDate
-                    ? meetingDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })
-                    : meetingDate
-                      ? calculateDaysUntil(meetingDate.toISOString())
-                      : '--',
-              }}
-              sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-            />
-          </Box>
-
-          {isCompleted && (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Total Positions',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: currentData ? currentData.total_positions.toLocaleString() : '--',
-                }}
-                sx={{ flex: { xs: 1, md: 0 }, whiteSpace: 'nowrap' }}
-              />
-            </Box>
-          )}
-          {isCompleted ? (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Positions Voted',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: currentData ? currentData.positions_voted.toLocaleString() : '--',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                sx={{ flex: 1 }}
-              />
-            </Box>
-          ) : (
-            <Box>
-              <BNTypographyPair
-                primary={{
-                  variant: 'body2',
-                  fontWeight: 500,
-                  text: 'Vote Cutoff',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                secondary={{
-                  variant: 'h2',
-                  fontWeight: 600,
-                  text: voteCutoffDate
-                    ? `${voteCutoffDate.toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })} 11:59 PM ET`
-                    : '0',
-                  sx: { whiteSpace: 'nowrap' },
-                }}
-                sx={{ flex: 1 }}
-              />
-            </Box>
-          )}
-          {!isPhase7 && previousYearData && !isMobile && (
+          <Fade in timeout={1000} appear>
             <Box
-              display="flex"
-              flexGrow={1}
-              alignItems="flex-end"
-              justifyContent="flex-end"
+              display="grid"
+              gridTemplateColumns={{
+                ...summaryGridTemplateColumns,
+              }}
+              sx={{
+                alignItems: 'start',
+                gap: 1,
+                paddingBottom: { xs: 4, sm: 4, md: 3 },
+                transition: 'grid-template-columns 0.3s ease',
+              }}
             >
-              <Typography noWrap variant="body2" fontWeight={500}>
-                Last Year
-              </Typography>
+              <CalendarIcon
+                sx={{
+                  fontSize: 40,
+                  color: 'inherit',
+                  display: { xs: 'none', md: 'block' },
+                  alignSelf: 'center',
+                }}
+              />
+              {summaryMetrics.map((metric) => (
+                <Box key={metric.label} sx={{ minWidth: 0 }}>
+                  <BNTypographyPair
+                    alignItems={{ sx: 'start', md: 'end' }}
+                    fullWidth
+                    primary={{
+                      variant: 'body2',
+                      fontWeight: 500,
+                      text: metric.label,
+                      sx: { whiteSpace: 'nowrap' },
+                    }}
+                    secondary={{
+                      variant: 'h2',
+                      fontWeight: 600,
+                      text: metric.value,
+                      sx: metric.secondarySx,
+                    }}
+                    sx={{ flex: 1, minWidth: 0 }}
+                  />
+                </Box>
+              ))}
             </Box>
-          )}
-          <Box>
-            <BNTypographyPair
-              alignItems={{ sx: 'start', md: 'end' }}
-              fullWidth
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'Shares Voted',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  currentData && isVotingPhase
-                    ? Number(currentData.shares_voted).toLocaleString()
-                    : '0',
-              }}
-              sx={{ flex: 1 }}
-            />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Number(currentData?.shares_voted ?? 0) >
-                Number(previousYearData.shares_voted) ? (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                ) : (
-                  <ArrowDownward fontSize="inherit" />
-                )}
-                {Number(previousYearData.shares_voted).toLocaleString()}
-              </Typography>
-            )}
-          </Box>
-          <Box>
-            <BNTypographyPair
-              alignItems={{ sx: 'start', md: 'end' }}
-              fullWidth
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'Shares Not Voted',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text:
-                  currentData && isVotingPhase
-                    ? Number(currentData.shares_unvoted).toLocaleString()
-                    : '0',
-              }}
-              sx={{ flex: 1 }}
-            />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Number(currentData?.shares_unvoted ?? 0) <
-                Number(previousYearData.shares_unvoted) ? (
-                  <ArrowDownward fontSize="inherit" />
-                ) : (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                )}
-                {Number(previousYearData.shares_unvoted).toLocaleString()}
-              </Typography>
-            )}
-          </Box>
-          {/* <Box>
-            <BNTypographyPair
-              fullWidth
-              alignItems={{ sx: 'start', md: 'end' }}
-              primary={{
-                variant: 'body2',
-                fontWeight: 500,
-                text: 'To Quorum',
-                sx: { whiteSpace: 'nowrap' },
-              }}
-              secondary={{
-                variant: 'h2',
-                fontWeight: 600,
-                text: `${Math.round(progress.toQuorum)} %`,
-              }}
-              sx={{
-                flex: 1,
-              }}
-            />
-            {!isPhase7 && previousYearData && !isMobile && (
-              <Typography
-                sx={{
-                  justifyContent: { xs: 'start', md: 'end' },
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                fontWeight={500}
-                variant="body2"
-              >
-                {Math.round(progress.toQuorum) >
-                  parseFloat(previousYearData.vote_percentage) ? (
-                  <ArrowUpwardSharp fontSize="inherit" />
-                ) : (
-                  <ArrowDownward fontSize="inherit" />
-                )}
-                {Math.round(parseFloat(previousYearData.vote_percentage))}%
-              </Typography>
-            )}
-          </Box> */}
-        </Stack>
-      </Fade>
+          </Fade>
 
-      {/* Progress Bar at Bottom */}
-      <Fade in={true} timeout={500}>
-        <Box
-          sx={{
-            display: 'flex',
-            width: '100%',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            // borderRadius: '0 0 4px 4px',
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            component={motion.div}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress.voted}%` }}
-            transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
-            sx={{
-              background: (theme) => theme.vars?.palette.keydate.dark,
-              px: 1,
-              py: 0,
-              minWidth: '70px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'end',
-            }}
-          >
-            <Typography
-              noWrap
-              variant="caption"
-              fontWeight={600}
+          <Fade in timeout={500}>
+            <Box
               sx={{
-                color: (theme) => theme.palette.common.white,
+                display: 'flex',
+                width: '100%',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                overflow: 'hidden',
               }}
             >
-              {progress.voted}% Voted
-            </Typography>
-          </Box>
-          <Box
-            sx={(theme) => ({
-              background: `rgba(${theme.vars?.palette.keydate.darkChannel} / 0.1)`,
-              px: 1,
-              py: 0.25,
-              flexGrow: 1,
-              display: 'flex',
-              alignItems: 'center',
-            })}
-          >
-            <Typography
-              noWrap
-              variant="caption"
-              fontWeight={600}
-              sx={(theme) => ({
-                color: theme.vars?.palette.keydate.contrastText,
-              })}
-            >
-              {progress.unvoted}% Not Voted
-            </Typography>
-          </Box>
-        </Box>
-      </Fade>
-    </Paper>
+              <Box
+                component={motion.div}
+                initial={{ width: 0 }}
+                animate={{ width: `${progress.voted}%` }}
+                transition={{ duration: 1.5, type: 'tween', ease: 'easeInOut' }}
+                sx={{
+                  background: (muiTheme) => muiTheme.vars?.palette.keydate.dark,
+                  px: 1,
+                  py: 0,
+                  minWidth: '70px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'end',
+                }}
+              >
+                <Typography
+                  noWrap
+                  variant="body3"
+                  fontWeight={600}
+                  sx={{
+                    color: (muiTheme) => muiTheme.palette.common.white,
+                  }}
+                >
+                  {progress.voted}% Voted
+                </Typography>
+              </Box>
+              <Box
+                sx={(muiTheme) => ({
+                  background: `rgba(${muiTheme.vars?.palette.keydate.darkChannel} / 0.1)`,
+                  px: 1,
+                  py: 0.25,
+                  flexGrow: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                })}
+              >
+                <Typography
+                  noWrap
+                  variant="body3"
+                  fontWeight={600}
+                  sx={(muiTheme) => ({
+                    color: muiTheme.vars?.palette.keydate.contrastText,
+                  })}
+                >
+                  {progress.unvoted}% Not Voted
+                </Typography>
+              </Box>
+            </Box>
+          </Fade>
+        </Paper>
+      </Grid>
+      {shouldReserveHistoricalLayout && (
+        <>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Paper sx={sparklineCardSx}>
+              <BNTypographyPair
+                alignItems={{ sx: 'start', md: 'end' }}
+                fullWidth
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Shares Voted',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text:
+                    currentData && isVotingPhase
+                      ? Number(currentData.shares_voted).toLocaleString()
+                      : '0',
+                }}
+                sx={{ flex: 1 }}
+              />
+
+              <Stack direction="row" alignItems="center" gap={1} justifyContent="end">
+                <Typography variant="body3" >
+                  Previous year:
+                </Typography>
+                {previousComparablePoint ? (
+                  <Typography variant="body3" fontWeight={600} color="inherit">
+                    {previousComparablePoint.votedShares.toLocaleString()}
+                  </Typography>
+                ) : (
+                  <Skeleton variant="text" width={48} />
+                )}
+              </Stack>
+              {hasHistoricalSparkline ? (
+                <SparkLineChart
+                  height={42}
+                  showTooltip
+                  showHighlight
+                  xAxis={{
+                    data: historicalYearLabels,
+                    valueFormatter: formatSparklineAxisValue,
+                  }}
+                  valueFormatter={(value) => value?.toLocaleString() ?? ''}
+                  margin={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                  {...votedSettings}
+                />
+              ) : null}
+            </Paper>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Paper sx={sparklineCardSx}>
+              <BNTypographyPair
+                alignItems={{ sx: 'start', md: 'end' }}
+                fullWidth
+                primary={{
+                  variant: 'body2',
+                  fontWeight: 500,
+                  text: 'Shares Not Voted',
+                  sx: { whiteSpace: 'nowrap' },
+                }}
+                secondary={{
+                  variant: 'h2',
+                  fontWeight: 600,
+                  text:
+                    currentData && isVotingPhase
+                      ? Number(currentData.shares_unvoted).toLocaleString()
+                      : '0',
+                }}
+                sx={{ flex: 1 }}
+              />
+              <Stack direction="row" alignItems="center" justifyContent="end" gap={1}>
+                <Typography variant="body3" >
+                  Previous year:
+                </Typography>
+                {previousComparablePoint ? (
+                  <Typography variant="body3" fontWeight={600} color="inherit">
+                    {previousComparablePoint.unvotedShares.toLocaleString()}
+                  </Typography>
+                ) : (
+                  <Skeleton variant="text" width={48} />
+                )}
+              </Stack>
+              {hasHistoricalSparkline ? (
+                <SparkLineChart
+                  height={42}
+                  showTooltip
+                  showHighlight
+                  xAxis={{
+                    data: historicalYearLabels,
+                    valueFormatter: formatSparklineAxisValue,
+                  }}
+                  valueFormatter={(value) => value?.toLocaleString() ?? ''}
+                  margin={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                  {...unvotedSettings}
+                />
+              ) : null}
+            </Paper>
+          </Grid>
+        </>
+      )}
+    </Grid>
   )
 }
 

@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material'
 
+import CusipValue from '@/components/ui/CusipValue'
 import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
@@ -162,14 +163,14 @@ export default function PastMeetingsTable({
                         variant="text"
                         color="info"
                         component={NextLink}
-                        href={`/${clientTicker}/past-meeting/${meeting.id}/tabulation`}
+                        href={`/${clientTicker}/past-meeting/${meeting.id}/dashboard`}
                       >
                         {meeting.title}
                       </Button>
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3" color="text.secondary">
-                        {meeting.cusip ?? 'N/A'}
+                        <CusipValue value={meeting.cusip} />
                       </Typography>
                     </TableCell>
                     <TableCell size="small">

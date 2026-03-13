@@ -45,8 +45,13 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
     >
       <CardActionArea disabled={isDisabled}>
         <CardContent>
-          <Typography variant="h5" fontWeight="medium" gutterBottom>
+          <Typography variant="h3" fontWeight="medium" gutterBottom>
             {label}
+          </Typography>
+          <Typography variant="body3" fontWeight="medium" gutterBottom>
+            {label === 'Document Hosting Site'
+              ? 'Your important documents are fully enhanced to open quickly and are enabled for optimal mobile device performance.'
+              : 'Shareholders can vote quickly and securely online through your eVote portal.'}
           </Typography>
           {!isPhoneNumber && !!url && (
             <Link

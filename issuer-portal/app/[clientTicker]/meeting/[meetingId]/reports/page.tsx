@@ -26,7 +26,7 @@ const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
 }
 
 export default function ReportsPage() {
-  const { currentMeeting } = useMeeting()
+  const { currentMeeting, positions, positionsLoading } = useMeeting()
   const meetingId = currentMeeting?.id ?? ''
   const { phases } = usePhases(meetingId)
   const { voteDistribution, loading: reportsLoading } = useReports(meetingId)
@@ -74,6 +74,74 @@ export default function ReportsPage() {
   const meetingDateStr = currentMeeting?.meetingDate
   const friendlyMeetingDate = meetingDateStr ? friendlyDate(meetingDateStr) : 'TBD'
 
+  const resolvedVoteDistribution = useMemo(() => {
+    if (voteDistribution.length > 0) {
+      return voteDistribution
+    }
+
+    const colors = [
+      'var(--mui-palette-chartSeries-1-main)',
+      'var(--mui-palette-chartSeries-2-main)',
+      'var(--mui-palette-chartSeries-3-main)',
+      'var(--mui-palette-chartSeries-4-main)',
+    ]
+
+    const dtcVotedShares = positions
+      .filter(
+        (position) =>
+          position.accountType === 'DTC/CDS' && position.voteStatus === 'Voted'
+      )
+      .reduce((sum, position) => sum + (position.sharesVoted ?? 0), 0)
+
+    const dtcUnvotedShares = positions
+      .filter(
+        (position) =>
+          position.accountType === 'DTC/CDS' && position.voteStatus === 'Unvoted'
+      )
+      .reduce((sum, position) => sum + (position.shares ?? 0), 0)
+
+    const nonDtcVotedShares = positions
+      .filter(
+        (position) =>
+          position.accountType === 'Non-DTC' && position.voteStatus === 'Voted'
+      )
+      .reduce((sum, position) => sum + (position.sharesVoted ?? 0), 0)
+
+    const nonDtcUnvotedShares = positions
+      .filter(
+        (position) =>
+          position.accountType === 'Non-DTC' && position.voteStatus === 'Unvoted'
+      )
+      .reduce((sum, position) => sum + (position.shares ?? 0), 0)
+
+    return [
+      {
+        id: 'dtc-voted',
+        label: 'DTC/CDS Voted',
+        value: dtcVotedShares,
+        color: colors[0],
+      },
+      {
+        id: 'dtc-unvoted',
+        label: 'DTC/CDS Not Voted',
+        value: dtcUnvotedShares,
+        color: colors[1],
+      },
+      {
+        id: 'non-dtc-voted',
+        label: 'Non-DTC Voted',
+        value: nonDtcVotedShares,
+        color: colors[2],
+      },
+      {
+        id: 'non-dtc-unvoted',
+        label: 'Non-DTC Not Voted',
+        value: nonDtcUnvotedShares,
+        color: colors[3],
+      },
+    ].filter((item) => item.value > 0)
+  }, [positions, voteDistribution])
+
   // Show empty state only if phase is determined to be less than 7
   // Don't show it while loading (phases.length === 0 could mean loading or no phases)
   if (currentPhaseNumber !== null && !phaseIsSevenOrGreater) {
@@ -103,7 +171,10 @@ export default function ReportsPage() {
           size={{ xs: 12, lg: 4 }}
           sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
         >
-          <VoteDistributionChart data={voteDistribution} loading={reportsLoading} />
+          <VoteDistributionChart
+            data={resolvedVoteDistribution}
+            loading={reportsLoading || positionsLoading}
+          />
           <TabulationReportCard />
         </Grid>
       </Grid>

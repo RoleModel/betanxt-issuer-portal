@@ -36,6 +36,7 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
 import { formatDateWithYear } from '@/lib/formats'
+import { getCusipLabel, normalizeCusips } from '@/utils/cusipDisplay'
 
 interface MeetingTab {
   id: string
@@ -53,10 +54,10 @@ interface MeetingTab {
 
 const getNavigationTabs = (currentPhase: number) => [
   { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
+  { label: 'Agenda', route: '/agenda' },
   { label: 'Mailing', route: '/mailing' },
   { label: 'Tabulation', route: '/tabulation' },
   { label: 'Reports', route: '/reports' },
-  { label: 'Agenda', route: '/agenda' },
 ]
 
 const ScrollButton = styled(IconButton, {
@@ -100,6 +101,16 @@ const parsePhaseNumber = (phase: string | number | null | undefined): number => 
   }
 
   return 1
+}
+
+const getCusipDisplayValue = (value: string): string => {
+  const cusips = normalizeCusips(value)
+
+  if (cusips.length <= 1) {
+    return cusips[0] ?? value
+  }
+
+  return `${cusips[0]} +${cusips.length - 1}`
 }
 
 export function EventTabs() {
@@ -432,9 +443,13 @@ export function EventTabs() {
               color: 'text.secondary',
               variant: 'caption',
               fontWeight: 500,
-              text: 'CUSIP',
+              text: getCusipLabel(meeting.cusip),
             }}
-            secondary={{ variant: 'body3', fontWeight: 500, text: meeting.cusip }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: getCusipDisplayValue(meeting.cusip),
+            }}
           />
           <BNTypographyPair
             sx={{ whiteSpace: 'nowrap' }}

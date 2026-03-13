@@ -17,6 +17,7 @@ import { EventTabs } from '@/components/Navigation/EventTabs'
 import IssuerSpeedDial from '@/components/SpeedDial'
 import SupportContactsPopover from '@/components/SupportContactsPopover'
 
+import { useChatbotContext } from '@/contexts/ChatbotContext'
 import { useClient } from '@/contexts/ClientContext'
 
 import Loading from '../../app/loading'
@@ -42,6 +43,7 @@ function Layout({
     open: false,
     message: '',
   })
+  const { openChatbot } = useChatbotContext()
 
   // Expose snackbar handler globally for phase completion
   React.useEffect(() => {
@@ -64,6 +66,29 @@ function Layout({
       )
     }
   }, [])
+
+  React.useEffect(() => {
+    const handleOpenSupportContacts = () => {
+      const speedDialElement = document.querySelector('[aria-label="Support Contacts"]')
+      if (speedDialElement instanceof HTMLElement) {
+        setAnchorEl(speedDialElement)
+      }
+      setOpen(true)
+    }
+
+    window.addEventListener('chatbot:open-support-contacts', handleOpenSupportContacts)
+
+    return () => {
+      window.removeEventListener(
+        'chatbot:open-support-contacts',
+        handleOpenSupportContacts
+      )
+    }
+  }, [])
+
+  const handleAssistantClick = () => {
+    openChatbot()
+  }
 
   const handleGlossaryClick = () => {
     setInfoDialogOpen(true)
@@ -169,6 +194,7 @@ function Layout({
             closeIcon={<CloseOutlined />}
             tooltipTitle="Support Contacts"
             placement="top"
+            onAssistantClick={handleAssistantClick}
             onGlossaryClick={handleGlossaryClick}
             onContactsClick={handleContactsClick}
           />
