@@ -1,7 +1,7 @@
 'use client'
 
 import ChecklistDocumentIcon from '@rolemodel/betanxt-design-system/components/icons/brand/ChecklistDocumentIcon'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { Container, Stack } from '@mui/material'
 import Grid from '@mui/material/Grid'
@@ -75,36 +75,36 @@ export default function TabulationPage() {
     return (
       <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
         <Grid container spacing={{ xs: 2, md: 3 }}>
-
-
           <Grid size={12}>
-            <Stack
-              useFlexGap
-              spacing={{ xs: 2, md: 3 }}
-              direction={{ xs: 'column', sm: 'row' }}
-              alignItems="stretch"
-              justifyContent="stretch"
-            >
-
-              <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
-
-              <VotingActivityCard
-                meetingId={meetingId}
-                votingSummaryOverride={summary}
-                loadingOverride={tabulationLoading}
-              />
-              <BeneficialVsRegisteredCard
-                meetingId={meetingId}
-                chartOverride={beneficialVsRegistered}
-                loadingOverride={tabulationLoading}
-              />
-              <SharesVotedCard
-                meetingId={meetingId}
-                votingSummaryOverride={summary}
-                loading={tabulationLoading}
-              />
-              <TabulationReportCard variant="primary" />
-            </Stack>
+            <Grid container columns={{ sm: 5, md: 6, lg: 5 }} spacing={{ xs: 2, md: 3 }}>
+              <Grid size={{ sm: 5, md: 2, lg: 1 }}>
+                <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
+              </Grid>
+              <Grid size={{ sm: 5, md: 2, lg: 1 }}>
+                <VotingActivityCard
+                  meetingId={meetingId}
+                  votingSummaryOverride={summary}
+                  loadingOverride={tabulationLoading}
+                />
+              </Grid>
+              <Grid size={{ sm: 5, md: 2, lg: 1 }}>
+                <BeneficialVsRegisteredCard
+                  meetingId={meetingId}
+                  chartOverride={beneficialVsRegistered}
+                  loadingOverride={tabulationLoading}
+                />
+              </Grid>
+              <Grid size={{ sm: 5, md: 3, lg: 1 }}>
+                <SharesVotedCard
+                  meetingId={meetingId}
+                  votingSummaryOverride={summary}
+                  loading={tabulationLoading}
+                />
+              </Grid>
+              <Grid size={{ sm: 5, md: 3, lg: 1 }}>
+                <TabulationReportCard variant="primary" />
+              </Grid>
+            </Grid>
           </Grid>
           <Grid size={12}>
             <ProposalDetailsCard

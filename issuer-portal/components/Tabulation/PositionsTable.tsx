@@ -81,7 +81,9 @@ export default function PositionsTable({
     if (!date) return ''
 
     try {
-      const sanitizedDate = date.includes(' 12:00AM') ? date.replace(' 12:00AM', '') : date
+      const sanitizedDate = date.includes(' 12:00AM')
+        ? date.replace(' 12:00AM', '')
+        : date
       const parsedDate = new Date(sanitizedDate)
 
       if (Number.isNaN(parsedDate.getTime())) {
@@ -101,7 +103,7 @@ export default function PositionsTable({
   return (
     <Box>
       <TableContainer>
-        <Table sx={{ tableLayout: 'fixed' }}>
+        <Table sx={{ tableLayout: 'auto' }}>
           <SROnlyTableCaption>Positions Table</SROnlyTableCaption>
           <TableHead>
             <TableRow>
@@ -110,7 +112,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={100}
               >
                 CUSIP
               </SortableHeaderCell>
@@ -127,7 +128,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={100}
               >
                 Set Key
               </SortableHeaderCell>
@@ -136,7 +136,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={180}
               >
                 Name
               </SortableHeaderCell>
@@ -145,7 +144,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={180}
               >
                 Account #
               </SortableHeaderCell>
@@ -154,7 +152,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={90}
               >
                 Vote Status
               </SortableHeaderCell>
@@ -164,7 +161,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={100}
               >
                 Shares
               </SortableHeaderCell>
@@ -174,7 +170,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={110}
               >
                 Shares Voted
               </SortableHeaderCell>
@@ -183,7 +178,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={86}
               >
                 Source
               </SortableHeaderCell>
@@ -192,7 +186,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={110}
               >
                 Date Voted
               </SortableHeaderCell>
@@ -201,7 +194,6 @@ export default function PositionsTable({
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                width={80}
               >
                 Sent By
               </SortableHeaderCell>
@@ -239,14 +231,24 @@ export default function PositionsTable({
                         {formatAccountType(position.accountType)}
                       </NoWrapTableCell>
                       <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
-                      <NoWrapTableCell>{position.name}</NoWrapTableCell>
+                      <NoWrapTableCell sx={{ width: 180 }}>
+                        {position.name}
+                      </NoWrapTableCell>
                       <TableCell
                         onClick={() => toggleRowExpansion(rowKey)}
                         sx={{ cursor: 'pointer', minWidth: 220 }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <IconButton aria-label="expand row" size="small" color="primary">
-                            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                          <IconButton
+                            aria-label="expand row"
+                            size="small"
+                            color="primary"
+                          >
+                            {isExpanded ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon />
+                            )}
                           </IconButton>
                           <Box
                             sx={{
@@ -289,7 +291,8 @@ export default function PositionsTable({
                                 border: 1,
                                 borderColor: 'divider',
                                 borderRadius: 1,
-                                backgroundColor: 'var(--mui-palette-Datagrid-defaultFill)',
+                                backgroundColor:
+                                  'var(--mui-palette-Datagrid-defaultFill)',
                               }}
                             >
                               <Grid container spacing={2}>
@@ -297,7 +300,9 @@ export default function PositionsTable({
                                   <Typography variant="body2" color="text.secondary">
                                     CUSIP:
                                   </Typography>
-                                  <Typography variant="body2">{position.cusip}</Typography>
+                                  <Typography variant="body2">
+                                    {position.cusip}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
@@ -309,7 +314,9 @@ export default function PositionsTable({
                                   <Typography variant="body2" color="text.secondary">
                                     Set Key:
                                   </Typography>
-                                  <Typography variant="body2">{position.setKey}</Typography>
+                                  <Typography variant="body2">
+                                    {position.setKey}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">

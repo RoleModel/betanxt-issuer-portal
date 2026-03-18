@@ -155,7 +155,7 @@ export default function BeneficialVsRegisteredCard({
   }, [chartOverride, positions])
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader title="Beneficial vs. Registered" />
       <CardContent>
         {loading || loadingOverride ? (

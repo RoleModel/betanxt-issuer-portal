@@ -30,8 +30,11 @@ export default function QuorumGaugeCard({
   const displayTitle = title ?? 'Quorum tracker'
 
   return (
-    <Card elevation={3} sx={{ flex: 1 }}>
-      <CardHeader title={displayTitle} subheader={`Quorum requirement: ${model?.quorumRequirementPercent}%`} />
+    <Card elevation={3} sx={{ flex: 1, height: '100%' }}>
+      <CardHeader
+        title={displayTitle}
+        subheader={`Quorum requirement: ${model?.quorumRequirementPercent}%`}
+      />
       <CardContent>
         {loading || !model ? (
           <Typography color="text.secondary">Loading quorum data...</Typography>
@@ -66,7 +69,6 @@ export default function QuorumGaugeCard({
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Chip color={statusColor} label={statusLabel} size="small" />
             </Box>
-
           </Stack>
         )}
       </CardContent>

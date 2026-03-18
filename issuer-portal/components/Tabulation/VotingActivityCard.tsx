@@ -77,7 +77,7 @@ export default function VotingActivityCard({
   }))
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader title="Voting Activity" />
       <CardContent>
         {loading || loadingOverride ? (
@@ -95,7 +95,15 @@ export default function VotingActivityCard({
             No voting activity data available
           </Box>
         ) : (
-          <Box>
+          <Box
+            sx={{
+              minHeight: 250,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'text.secondary',
+            }}
+          >
             <PieChart
               series={[
                 {
@@ -105,7 +113,7 @@ export default function VotingActivityCard({
                   highlightScope: { fade: 'global', highlight: 'item' },
                 },
               ]}
-              width={330}
+              width={250}
               height={250}
               margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
               slotProps={{

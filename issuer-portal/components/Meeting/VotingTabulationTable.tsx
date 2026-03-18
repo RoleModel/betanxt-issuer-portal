@@ -1,7 +1,6 @@
 'use client'
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import React from 'react'
 
 import {
   Box,
@@ -51,6 +50,24 @@ export default function VotingTabulationTable({
     }
 
     return count.toLocaleString('en-US')
+  }
+
+  const getTotalVotes = (proposal: ProposalVoting): number | undefined => {
+    const totalFromCounts = proposal.voteCounts?.total
+    if (typeof totalFromCounts === 'number' && Number.isFinite(totalFromCounts)) {
+      return totalFromCounts
+    }
+
+    const totalFromShareBuckets =
+      proposal.votingResults.for.shares +
+      proposal.votingResults.against.shares +
+      proposal.votingResults.abstain.shares
+
+    if (!Number.isFinite(totalFromShareBuckets)) {
+      return undefined
+    }
+
+    return Math.round(totalFromShareBuckets)
   }
 
   // Get appropriate headers based on proposal types in this table
@@ -172,7 +189,7 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
-                  {formatCount(proposal.voteCounts?.total)}
+                  {formatCount(getTotalVotes(proposal))}
                 </Typography>
               </TableCell>
             </TableRow>

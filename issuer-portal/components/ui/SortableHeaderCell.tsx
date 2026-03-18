@@ -13,6 +13,7 @@ export interface SortableHeaderCellProps<T> {
   sortColumn: keyof T | null
   sortDirection: 'asc' | 'desc'
   width?: number | string
+  minWidth?: number | string
   onSort: (column: keyof T) => void
 }
 
@@ -21,13 +22,14 @@ const SortableHeaderCell = <T,>({
   children,
   align,
   width,
+  minWidth,
   sortColumn,
   sortDirection,
   onSort,
 }: SortableHeaderCellProps<T>) => (
   <NoWrapTableCell
     align={align}
-    style={width ? { width } : undefined}
+    style={width ? { width } : minWidth ? { minWidth } : undefined}
     sx={{
       cursor: 'pointer',
       userSelect: 'none',

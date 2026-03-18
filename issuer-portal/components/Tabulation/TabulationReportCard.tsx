@@ -16,7 +16,9 @@ interface TabulationReportCardProps {
   variant?: 'default' | 'primary' | 'secondary' | 'tertiary' | 'base'
 }
 
-export default function TabulationReportCard({ variant = 'tertiary' }: TabulationReportCardProps) {
+export default function TabulationReportCard({
+  variant = 'tertiary',
+}: TabulationReportCardProps) {
   const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
   const { proposals: votingProposals, votingSummary } = useVotingTabulation(
@@ -81,8 +83,8 @@ export default function TabulationReportCard({ variant = 'tertiary' }: Tabulatio
     const firstProposal = rawProposals[0]
     const votesRepresented = firstProposal
       ? (firstProposal.totalVotesFor ?? 0) +
-      (firstProposal.totalVotesAgainst ?? 0) +
-      (firstProposal.totalVotesAbstain ?? 0)
+        (firstProposal.totalVotesAgainst ?? 0) +
+        (firstProposal.totalVotesAbstain ?? 0)
       : 0
 
     const quorumPercentage =
@@ -162,6 +164,7 @@ export default function TabulationReportCard({ variant = 'tertiary' }: Tabulatio
 
   return (
     <FeatureTile
+      height="100%"
       title={reportTitle}
       variant={variant}
       flex={true}

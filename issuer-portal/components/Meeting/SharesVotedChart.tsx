@@ -99,55 +99,53 @@ export default function SharesVotedChart({
   // Use the voting breakdown data
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader title="Shares Voted" />
       <CardContent>
         <Box
           sx={{
+            minHeight: 250,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: 3,
+            justifyContent: 'center',
+            color: 'text.secondary',
           }}
         >
-          {/* MUI X Charts Pie Chart */}
-          <Box sx={{ position: 'relative' }}>
-            <PieChart
-              series={[
-                {
-                  data: votingBreakdownData,
-                  innerRadius: 75,
+          <PieChart
+            series={[
+              {
+                data: votingBreakdownData,
+                innerRadius: 75,
 
-                  outerRadius: 100,
-                  highlightScope: { fade: 'global', highlight: 'item' },
-                },
-              ]}
-              width={250}
-              height={250}
-              margin={{ top: 20, bottom: 20, left: 20, right: 20 }}
-              hideLegend={false}
-              slotProps={{
-                legend: {
-                  direction: 'horizontal',
-                  position: { vertical: 'bottom', horizontal: 'center' },
-                },
+                outerRadius: 100,
+                highlightScope: { fade: 'global', highlight: 'item' },
+              },
+            ]}
+            width={250}
+            height={250}
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            hideLegend={false}
+            slotProps={{
+              legend: {
+                direction: 'horizontal',
+                position: { vertical: 'bottom', horizontal: 'center' },
+              },
+            }}
+          >
+            <PieCenterLabel
+              data={{
+                total: percentage,
+                label: 'Voted',
+                centerPercentage: `${percentage}%`,
+                sliceData: votingBreakdownData.map((item, index) => ({
+                  id: index,
+                  value: item.value,
+                  label: item.label,
+                  color: item.color,
+                })),
               }}
-            >
-              <PieCenterLabel
-                data={{
-                  total: percentage,
-                  label: 'Voted',
-                  centerPercentage: `${percentage}%`,
-                  sliceData: votingBreakdownData.map((item, index) => ({
-                    id: index,
-                    value: item.value,
-                    label: item.label,
-                    color: item.color,
-                  })),
-                }}
-              />
-            </PieChart>
-          </Box>
+            />
+          </PieChart>
         </Box>
       </CardContent>
     </Card>
