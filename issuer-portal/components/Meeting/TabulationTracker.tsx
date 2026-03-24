@@ -1,18 +1,28 @@
 'use client'
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import {
-  CalendarTodayOutlined as CalendarIcon,
-} from '@mui/icons-material'
-import { Box, Fade, Grid, Paper, Skeleton, Stack, Typography, useTheme } from '@mui/material'
-import type { SparkLineChartProps } from '@mui/x-charts/SparkLineChart';
-import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
-import { useMeeting } from '@/contexts/MeetingContext'
-import { calculateDaysUntil } from '@/utils/dateUtils'
 import { motion } from 'motion/react'
 import React from 'react'
+
+import { CalendarTodayOutlined as CalendarIcon } from '@mui/icons-material'
+import {
+  Box,
+  Fade,
+  Grid,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material'
+import type { SparkLineChartProps } from '@mui/x-charts/SparkLineChart'
+import { SparkLineChart } from '@mui/x-charts/SparkLineChart'
+
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
+
+import { useMeeting } from '@/contexts/MeetingContext'
+import { calculateDaysUntil } from '@/utils/dateUtils'
 
 type ApiClient = Awaited<ReturnType<typeof buildApiClient>>
 type Phase = components['schemas']['Phase']
@@ -56,6 +66,11 @@ interface MeetingSummarySource {
   title?: string | null
   meetingDate?: string | null
   status?: string | null
+}
+
+function isSpecialMeeting(meetingType?: string | null): boolean {
+  if (!meetingType) return false
+  return meetingType.toLowerCase().includes('special')
 }
 
 const createEmptySummary = (meeting: MeetingSummarySource): TabulationData => ({
@@ -109,7 +124,9 @@ const buildSummaryFromPositions = (
   positions: Position[]
 ): TabulationData => {
   const totalPositions = positions.length
-  const votedPositions = positions.filter((position) => position.voteStatus === 'Voted').length
+  const votedPositions = positions.filter(
+    (position) => position.voteStatus === 'Voted'
+  ).length
   const totalShares = positions.reduce((sum, position) => sum + (position.shares ?? 0), 0)
   const votedShares = positions
     .filter((position) => position.voteStatus === 'Voted')
@@ -141,11 +158,14 @@ const fetchMeetingSummary = async (
     return createEmptySummary(meeting)
   }
 
-  const tabulationResult = (await apiClient.GET('/meetings/{meetingId}/tabulation-report', {
-    params: {
-      path: { meetingId: meeting.id },
-    },
-  })) as { data?: TabulationReport; error?: unknown }
+  const tabulationResult = (await apiClient.GET(
+    '/meetings/{meetingId}/tabulation-report',
+    {
+      params: {
+        path: { meetingId: meeting.id },
+      },
+    }
+  )) as { data?: TabulationReport; error?: unknown }
 
   if (!tabulationResult.error && tabulationResult.data) {
     return buildSummaryFromReport(meeting, tabulationResult.data)
@@ -226,7 +246,10 @@ const formatSparklineAxisValue = (value: unknown): string => {
   return ''
 }
 
-const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting): number => {
+const sortMeetingsBySeriesOrder = (
+  firstMeeting: Meeting,
+  secondMeeting: Meeting
+): number => {
   const firstYear = firstMeeting.meetingYear ?? 0
   const secondYear = secondMeeting.meetingYear ?? 0
 
@@ -234,7 +257,9 @@ const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting
     return firstYear - secondYear
   }
 
-  const firstDate = firstMeeting.meetingDate ? new Date(firstMeeting.meetingDate).getTime() : 0
+  const firstDate = firstMeeting.meetingDate
+    ? new Date(firstMeeting.meetingDate).getTime()
+    : 0
   const secondDate = secondMeeting.meetingDate
     ? new Date(secondMeeting.meetingDate).getTime()
     : 0
@@ -245,10 +270,11 @@ const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting
 function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const { currentMeeting } = useMeeting()
   const [data, setData] = React.useState<TabulationData | null>(null)
-  const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>([])
+  const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>(
+    []
+  )
   const [historicalDataStatus, setHistoricalDataStatus] =
     React.useState<HistoricalDataStatus>('idle')
-
 
   const [_nextPhaseDate, setNextPhaseDate] = React.useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = React.useState<Date | null>(null)
@@ -279,11 +305,14 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
 
       try {
         const apiClient = await buildApiClient()
-        const { data: phaseData, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
-          params: {
-            path: { meetingId: currentMeetingId },
-          },
-        })
+        const { data: phaseData, error } = await apiClient.GET(
+          '/meetings/{meetingId}/phases',
+          {
+            params: {
+              path: { meetingId: currentMeetingId },
+            },
+          }
+        )
 
         if (error || !phaseData) {
           return
@@ -366,7 +395,9 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
         }
 
         if (candidateDates.length > 0) {
-          candidateDates.sort((firstDate, secondDate) => firstDate.getTime() - secondDate.getTime())
+          candidateDates.sort(
+            (firstDate, secondDate) => firstDate.getTime() - secondDate.getTime()
+          )
           setNextPhaseDate(candidateDates[0])
         } else if (currentMeeting?.meetingDate) {
           setNextPhaseDate(toLocalMidnight(currentMeeting.meetingDate))
@@ -392,7 +423,12 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     }
 
     void fetchPhases()
-  }, [currentMeetingId, currentMeeting?.cutoffDate, currentMeeting?.meetingDate, toLocalMidnight])
+  }, [
+    currentMeetingId,
+    currentMeeting?.cutoffDate,
+    currentMeeting?.meetingDate,
+    toLocalMidnight,
+  ])
 
   React.useEffect(() => {
     const fetchCurrentTabulation = async () => {
@@ -425,7 +461,12 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     }
 
     void fetchCurrentTabulation()
-  }, [currentMeeting?.meetingDate, currentMeeting?.status, currentMeeting?.title, currentMeetingId])
+  }, [
+    currentMeeting?.meetingDate,
+    currentMeeting?.status,
+    currentMeeting?.title,
+    currentMeetingId,
+  ])
 
   React.useEffect(() => {
     const fetchHistoricalTabulation = async () => {
@@ -436,6 +477,12 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
       }
 
       if (!currentMeeting?.ticker || !currentMeeting?.meetingType) {
+        setHistoricalDataStatus('idle')
+        setHistoricalData([])
+        return
+      }
+
+      if (isSpecialMeeting(currentMeeting.meetingType)) {
         setHistoricalDataStatus('idle')
         setHistoricalData([])
         return
@@ -462,7 +509,7 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
 
         const rawMeetings = Array.isArray(comparableMeetingsResult.data)
           ? comparableMeetingsResult.data
-          : comparableMeetingsResult.data?.meetings ?? []
+          : (comparableMeetingsResult.data?.meetings ?? [])
         const comparableMeetings = rawMeetings
           .filter((meeting) => meeting.id)
           .filter((meeting) => meeting.meetingType === currentMeeting.meetingType)
@@ -505,7 +552,12 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     }
 
     void fetchHistoricalTabulation()
-  }, [currentMeeting?.cusip, currentMeeting?.meetingType, currentMeeting?.ticker, currentMeetingId])
+  }, [
+    currentMeeting?.cusip,
+    currentMeeting?.meetingType,
+    currentMeeting?.ticker,
+    currentMeetingId,
+  ])
 
   const routePhaseNumber =
     typeof phase === 'string' ? Number.parseInt(phase.trim(), 10) : Number.NaN
@@ -528,14 +580,16 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   )
   const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
   const currentData = data?.meeting_id === currentMeetingId ? data : null
-  const currentVotePercentage = currentData ? Number.parseFloat(currentData.vote_percentage) : 0
+  const currentVotePercentage = currentData
+    ? Number.parseFloat(currentData.vote_percentage)
+    : 0
 
   const progress =
     currentData && isVotingPhase
       ? {
-        voted: Math.round(currentVotePercentage),
-        unvoted: 100 - Math.round(currentVotePercentage),
-      }
+          voted: Math.round(currentVotePercentage),
+          unvoted: 100 - Math.round(currentVotePercentage),
+        }
       : { voted: 0, unvoted: 0 }
 
   const meetingStatus = currentData?.status || currentMeeting?.status || ''
@@ -543,29 +597,31 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const meetingDateValue = currentData?.meeting_date || currentMeeting?.meetingDate || ''
   const meetingDate = meetingDateValue ? new Date(meetingDateValue) : null
   const showHistoricalComparison = currentPhaseNumber >= 7
-  const isHistoricalComparisonPending =
-    showHistoricalComparison && historicalDataStatus === 'loading'
-  const previousComparableMeetings = historicalData.filter((point) => !point.isCurrentMeeting)
-  const hasHistoricalComparison = showHistoricalComparison && historicalData.length >= 2
-  const currentMeetingSeriesIndex = historicalData.findIndex((point) => point.isCurrentMeeting)
+  const shouldShowPreviousYearInfo =
+    showHistoricalComparison && !isSpecialMeeting(currentMeeting?.meetingType)
+  const previousComparableMeetings = historicalData.filter(
+    (point) => !point.isCurrentMeeting
+  )
+  const currentMeetingSeriesIndex = historicalData.findIndex(
+    (point) => point.isCurrentMeeting
+  )
   const previousComparablePoint =
     currentMeetingSeriesIndex > 0 ? historicalData[currentMeetingSeriesIndex - 1] : null
   const hasHistoricalSparkline =
-    showHistoricalComparison &&
+    shouldShowPreviousYearInfo &&
     historicalDataStatus === 'loaded' &&
     previousComparableMeetings.length >= 2
-  const shouldReserveHistoricalLayout =
-    showHistoricalComparison && (hasHistoricalComparison || isHistoricalComparisonPending)
+  const shouldReserveHistoricalLayout = true
   const summaryMetrics = [
     {
       label: isCompleted ? 'Meeting Date' : 'Days to Meeting',
       value:
         isCompleted && meetingDate
           ? meetingDate.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })
           : meetingDate
             ? calculateDaysUntil(meetingDate.toISOString())
             : '--',
@@ -573,56 +629,56 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     },
     ...(isCompleted
       ? [
-        {
-          label: 'Total Positions',
-          value: currentData ? currentData.total_positions.toLocaleString() : '--',
-          secondarySx: undefined as Record<string, unknown> | undefined,
-        },
-        {
-          label: 'Positions Voted',
-          value: currentData ? currentData.positions_voted.toLocaleString() : '--',
-          secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
-        },
-      ]
+          {
+            label: 'Total Positions',
+            value: currentData ? currentData.total_positions.toLocaleString() : '--',
+            secondarySx: undefined as Record<string, unknown> | undefined,
+          },
+          {
+            label: 'Positions Voted',
+            value: currentData ? currentData.positions_voted.toLocaleString() : '--',
+            secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
+          },
+        ]
       : [
-        {
-          label: 'Vote Cutoff',
-          value: voteCutoffDate
-            ? `${voteCutoffDate.toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })} 11:59 PM ET`
-            : '0',
-          secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
-        },
-      ]),
+          {
+            label: 'Vote Cutoff',
+            value: voteCutoffDate
+              ? `${voteCutoffDate.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })} 11:59 PM ET`
+              : '0',
+            secondarySx: { whiteSpace: 'nowrap' } as Record<string, unknown>,
+          },
+        ]),
     ...(!shouldReserveHistoricalLayout
       ? [
-        {
-          label: 'Shares Voted',
-          value:
-            currentData && isVotingPhase
-              ? Number(currentData.shares_voted).toLocaleString()
-              : '0',
-          secondarySx: undefined as Record<string, unknown> | undefined,
-        },
-        {
-          label: 'Shares Unvoted',
-          value:
-            currentData && isVotingPhase
-              ? Number(currentData.shares_unvoted).toLocaleString()
-              : '0',
-          secondarySx: undefined as Record<string, unknown> | undefined,
-        },
-      ]
+          {
+            label: 'Shares Voted',
+            value:
+              currentData && isVotingPhase
+                ? Number(currentData.shares_voted).toLocaleString()
+                : '0',
+            secondarySx: undefined as Record<string, unknown> | undefined,
+          },
+          {
+            label: 'Shares Unvoted',
+            value:
+              currentData && isVotingPhase
+                ? Number(currentData.shares_unvoted).toLocaleString()
+                : '0',
+            secondarySx: undefined as Record<string, unknown> | undefined,
+          },
+        ]
       : []),
   ]
   const desktopMetricColumns = summaryMetrics.length
   const summaryGridTemplateColumns = {
     xs: 'repeat(2, minmax(0, 1fr))',
     sm: 'repeat(3, minmax(0, 1fr))',
-    md: `48px repeat(${desktopMetricColumns}, minmax(0, 1fr))`,
+    md: `48px repeat(${desktopMetricColumns}, minmax(0, auto))`,
   }
 
   const historicalVotedSeries = historicalData.map((point) => point.votedShares)
@@ -632,7 +688,6 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const sparklineStrokeColor = theme.vars?.palette.keydate.dark || '#004d73'
   const votedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
   const unvotedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
-
 
   const votedSettings: SparkLineChartProps = {
     data: historicalVotedSeries,
@@ -678,11 +733,12 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     flexDirection: 'column',
     height: '100%',
     justifyContent: 'space-between',
-    minHeight: 128,
+    minHeight: shouldShowPreviousYearInfo ? 110 : 105,
     '& > div ': {
       pt: 1,
+      pb: shouldShowPreviousYearInfo ? 0 : 1,
       px: 1,
-    }
+    },
   }
 
   return (
@@ -698,10 +754,10 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
             pb: 0,
             position: 'relative',
             px: 2,
-            height: "100%",
+            height: '100%',
             minHeight: {
               xs: '105.6px',
-              lg: shouldReserveHistoricalLayout ? '128.6px' : '105.6px'
+              lg: shouldReserveHistoricalLayout ? '110.6px' : '105.6px',
             },
           }}
         >
@@ -836,18 +892,18 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                 sx={{ flex: 1 }}
               />
 
-              <Stack direction="row" alignItems="center" gap={1} justifyContent="end">
-                <Typography variant="body3" >
-                  Previous year:
-                </Typography>
-                {previousComparablePoint ? (
-                  <Typography variant="body3" fontWeight={600} color="inherit">
-                    {previousComparablePoint.votedShares.toLocaleString()}
-                  </Typography>
-                ) : (
-                  <Skeleton variant="text" width={48} />
-                )}
-              </Stack>
+              {shouldShowPreviousYearInfo ? (
+                <Stack direction="row" alignItems="center" gap={1} justifyContent="end">
+                  <Typography variant="body3">Previous year:</Typography>
+                  {previousComparablePoint ? (
+                    <Typography variant="body3" fontWeight={600} color="inherit">
+                      {previousComparablePoint.votedShares.toLocaleString()}
+                    </Typography>
+                  ) : (
+                    <Skeleton variant="text" width={48} />
+                  )}
+                </Stack>
+              ) : null}
               {hasHistoricalSparkline ? (
                 <SparkLineChart
                   height={42}
@@ -885,18 +941,18 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                 }}
                 sx={{ flex: 1 }}
               />
-              <Stack direction="row" alignItems="center" justifyContent="end" gap={1}>
-                <Typography variant="body3" >
-                  Previous year:
-                </Typography>
-                {previousComparablePoint ? (
-                  <Typography variant="body3" fontWeight={600} color="inherit">
-                    {previousComparablePoint.unvotedShares.toLocaleString()}
-                  </Typography>
-                ) : (
-                  <Skeleton variant="text" width={48} />
-                )}
-              </Stack>
+              {shouldShowPreviousYearInfo ? (
+                <Stack direction="row" alignItems="center" justifyContent="end" gap={1}>
+                  <Typography variant="body3">Previous year:</Typography>
+                  {previousComparablePoint ? (
+                    <Typography variant="body3" fontWeight={600} color="inherit">
+                      {previousComparablePoint.unvotedShares.toLocaleString()}
+                    </Typography>
+                  ) : (
+                    <Skeleton variant="text" width={48} />
+                  )}
+                </Stack>
+              ) : null}
               {hasHistoricalSparkline ? (
                 <SparkLineChart
                   height={42}

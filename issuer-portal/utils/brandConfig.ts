@@ -426,7 +426,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: 'Morrow Sodali',
     ticker: 'MRSO',
     domain: 'morrowsodali.com',
-    logoPath: '/logos/MRSO_logo-full.svg',
+    logoPath: '/logos/MRSO_logo.png',
     iconPath: '/logos/MRSO_icon.png',
     primaryColor: '#ff6400',
     secondaryColor: '#0b232d',
