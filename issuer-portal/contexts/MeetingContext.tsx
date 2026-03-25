@@ -14,7 +14,7 @@ import buildApiClient from '@/domain-models/apiClient'
 
 import type { components } from '@/types/api'
 import type { KeyDate, Position, Task } from '@/types/api-exports'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+import { asArray, asNumber, asRecord, asString } from '@/utils/typeUtils'
 
 type Meeting = components['schemas']['Meeting']
 
@@ -220,6 +220,10 @@ export function MeetingProvider({
             inspector: asString(record.inspector) || undefined,
             ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
             mailingStatus: asString(record.mailingStatus) || undefined,
+            quorumRequirement:
+              asNumber(record.quorumRequirement) ??
+              asNumber(record.quorum_requirement) ??
+              undefined,
             clientId: asString(record.clientId) || undefined,
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,

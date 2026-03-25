@@ -785,7 +785,7 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
               {summaryMetrics.map((metric) => (
                 <Box key={metric.label} sx={{ minWidth: 0 }}>
                   <BNTypographyPair
-                    alignItems={{ sx: 'start', md: 'end' }}
+                    alignItems={{ sx: 'start', md: 'start' }}
                     fullWidth
                     primary={{
                       variant: 'body2',
@@ -799,7 +799,13 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                       text: metric.value,
                       sx: metric.secondarySx,
                     }}
-                    sx={{ flex: 1, minWidth: 0 }}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      alignItems: 'flex-start',
+                      justifyContent: 'center',
+                      textAlign: 'left',
+                    }}
                   />
                 </Box>
               ))}
