@@ -30,7 +30,8 @@
         "POSTGRES_PASSWORD",
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
-        "VERCEL_DEPLOY_HOOK_URL"
+        "VERCEL_DEPLOY_HOOK_URL",
+        "AI_GATEWAY_API_KEY"
       ]
     },
     "build:test": {
