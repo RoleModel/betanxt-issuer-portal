@@ -53,6 +53,27 @@ const mailingStatuses = [
 
 type MailingStatus = (typeof mailingStatuses)[number]
 
+const quorumOptions = [
+  { label: '50%', value: 50 },
+  { label: '33.3%', value: 33.3 },
+  { label: '66.6%', value: 66.6 },
+  { label: '80%+', value: 80 },
+] as const
+
+type QuorumOptionValue = (typeof quorumOptions)[number]['value']
+
+function getQuorumLabel(quorumValue: number | null): string {
+  if (typeof quorumValue !== 'number' || !Number.isFinite(quorumValue)) {
+    return '50%'
+  }
+
+  const matchingOption = quorumOptions.find(
+    (option) => Math.abs(option.value - quorumValue) < 0.01
+  )
+
+  return matchingOption?.label ?? `${quorumValue}%`
+}
+
 function MailingStatusDropdown({
   eventId,
   meetingId,
@@ -105,6 +126,66 @@ function MailingStatusDropdown({
   )
 }
 
+function QuorumDropdown({
+  eventId,
+  meetingId,
+  quorumValue,
+  onQuorumChange,
+}: {
+  eventId: string
+  meetingId: string
+  quorumValue: number | null
+  onQuorumChange: (
+    eventId: string,
+    meetingId: string,
+    nextQuorumValue: QuorumOptionValue
+  ) => void
+}) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleSelect = (nextQuorumValue: QuorumOptionValue) => {
+    onQuorumChange(eventId, meetingId, nextQuorumValue)
+    handleClose()
+  }
+
+  return (
+    <>
+      <Button
+        variant="text"
+        onClick={handleClick}
+        sx={{
+          textTransform: 'none',
+          fontWeight: 400,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {getQuorumLabel(quorumValue)}
+        <ArrowDropDownOutlined />
+      </Button>
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+        {quorumOptions.map((option) => (
+          <MenuItem
+            key={option.label}
+            onClick={() => handleSelect(option.value)}
+            selected={Math.abs(option.value - (quorumValue ?? 50)) < 0.01}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  )
+}
+
 function parseEventDate(dateStr: string): Date {
   const [month, day, year] = dateStr.split('/')
   return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
@@ -130,6 +211,7 @@ export default function EventsPage() {
   const [mailingStatusOverrides, setMailingStatusOverrides] = useState<
     Record<string, MailingStatus>
   >({})
+  const [quorumOverrides, setQuorumOverrides] = useState<Record<string, QuorumOptionValue>>({})
 
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const isCSM = userType === 'CSM'
@@ -148,6 +230,29 @@ export default function EventsPage() {
       } catch {
         // Revert optimistic update on failure and then revalidate to avoid stale data
         setMailingStatusOverrides((prev) => {
+          const next = { ...prev }
+          delete next[eventId]
+          return next
+        })
+        void revalidate()
+      }
+    },
+    [revalidate]
+  )
+
+  const handleQuorumChange = useCallback(
+    async (eventId: string, meetingId: string, nextQuorumValue: QuorumOptionValue) => {
+      setQuorumOverrides((prev) => ({ ...prev, [eventId]: nextQuorumValue }))
+
+      try {
+        const api = await buildApiClient()
+        await api.PUT('/meetings/{meetingId}', {
+          params: { path: { meetingId } },
+          body: { quorumRequirement: nextQuorumValue },
+        })
+        void revalidate()
+      } catch {
+        setQuorumOverrides((prev) => {
           const next = { ...prev }
           delete next[eventId]
           return next
@@ -290,12 +395,13 @@ export default function EventsPage() {
                     </TableSortLabel>
                   </TableCell>
                   {isCSM && <TableCell>Mailing Status</TableCell>}
+                  {isCSM && <TableCell>Quorum %</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={isCSM ? 6 : 4} align="center" sx={{ py: 4 }}>
                       <CircularProgress size={24} />
                     </TableCell>
                   </TableRow>
@@ -338,11 +444,21 @@ export default function EventsPage() {
                             />
                           </TableCell>
                         )}
+                        {isCSM && (
+                          <TableCell>
+                            <QuorumDropdown
+                              eventId={row.id}
+                              meetingId={row.meetingId}
+                              quorumValue={quorumOverrides[row.id] ?? row.quorumRequirement ?? 50}
+                              onQuorumChange={handleQuorumChange}
+                            />
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                     {paginatedEvents.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
+                        <TableCell colSpan={isCSM ? 6 : 4} align="center" sx={{ py: 4 }}>
                           <Typography color="text.secondary">
                             {searchQuery
                               ? 'No events match your search.'

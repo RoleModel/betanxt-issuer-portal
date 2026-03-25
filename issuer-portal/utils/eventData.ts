@@ -13,6 +13,7 @@ export interface EventRow {
   clientTicker: string
   meetingStatus: 'ACTIVE' | 'COMPLETE'
   mailingStatus: string | null
+  quorumRequirement: number | null
 }
 
 /** Build a meeting URL for an event row */

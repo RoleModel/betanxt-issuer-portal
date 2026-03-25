@@ -9,7 +9,7 @@ import buildApiClient from '@/domain-models/apiClient'
 import { clientsSWRConfig } from '@/lib/swr-config'
 import { getBrandConfigByTicker } from '@/utils/brandConfig'
 import type { EventRow } from '@/utils/eventData'
-import { asRecord, asString } from '@/utils/typeUtils'
+import { asNumber, asRecord, asString } from '@/utils/typeUtils'
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client)
@@ -54,6 +54,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const meetingStatus: 'ACTIVE' | 'COMPLETE' = status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETE'
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null
+  const quorumRequirement = asNumber(meeting.quorumRequirement ?? meeting.quorum_requirement)
 
   return {
     id,
@@ -65,6 +66,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     clientTicker: ticker,
     meetingStatus,
     mailingStatus,
+    quorumRequirement,
   }
 }
 
