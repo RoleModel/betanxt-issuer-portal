@@ -2,11 +2,10 @@
 
 import { useSession } from 'next-auth/react'
 import NextLink from 'next/link'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
-import { ArrowDropDownOutlined, SearchOutlined } from '@mui/icons-material'
+import { SearchOutlined } from '@mui/icons-material'
 import {
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -14,8 +13,6 @@ import {
   Container,
   InputAdornment,
   Link,
-  Menu,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -29,162 +26,12 @@ import {
   Typography,
 } from '@mui/material'
 
-import buildApiClient from '@/domain-models/apiClient'
-
 import { useEvents } from '@/hooks/useEvents'
 import type { EventRow } from '@/utils/eventData'
 import { getMeetingUrl } from '@/utils/eventData'
 
 type Order = 'asc' | 'desc'
 type OrderBy = keyof EventRow
-
-const mailingStatuses = [
-  'Pending Positions',
-  'Positions Received',
-  'Positions Loaded',
-  'Proof Delivered',
-  'Proof Approved',
-  'Materials Printed',
-  'Mailing In Progress',
-  'Affidavit Delivered',
-  'Mailing Complete',
-  'Mailing Canceled',
-] as const
-
-type MailingStatus = (typeof mailingStatuses)[number]
-
-const quorumOptions = [
-  { label: '50%', value: 50 },
-  { label: '33.3%', value: 33.3 },
-  { label: '66.6%', value: 66.6 },
-  { label: '80%+', value: 80 },
-] as const
-
-type QuorumOptionValue = (typeof quorumOptions)[number]['value']
-
-function getQuorumLabel(quorumValue: number | null): string {
-  if (typeof quorumValue !== 'number' || !Number.isFinite(quorumValue)) {
-    return '50%'
-  }
-
-  const matchingOption = quorumOptions.find(
-    (option) => Math.abs(option.value - quorumValue) < 0.01
-  )
-
-  return matchingOption?.label ?? `${quorumValue}%`
-}
-
-function MailingStatusDropdown({
-  eventId,
-  meetingId,
-  status,
-  onStatusChange,
-}: {
-  eventId: string
-  meetingId: string
-  status: MailingStatus | null
-  onStatusChange: (eventId: string, meetingId: string, status: MailingStatus) => void
-}) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const open = Boolean(anchorEl)
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleSelect = (selectedStatus: MailingStatus) => {
-    onStatusChange(eventId, meetingId, selectedStatus)
-    handleClose()
-  }
-
-  return (
-    <>
-      <Button
-        variant="text"
-        onClick={handleClick}
-        sx={{
-          textTransform: 'none',
-          fontWeight: 400,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {status ?? 'Set Status'}
-        <ArrowDropDownOutlined />
-      </Button>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {mailingStatuses.map((s) => (
-          <MenuItem key={s} onClick={() => handleSelect(s)} selected={s === status}>
-            {s}
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
-  )
-}
-
-function QuorumDropdown({
-  eventId,
-  meetingId,
-  quorumValue,
-  onQuorumChange,
-}: {
-  eventId: string
-  meetingId: string
-  quorumValue: number | null
-  onQuorumChange: (
-    eventId: string,
-    meetingId: string,
-    nextQuorumValue: QuorumOptionValue
-  ) => void
-}) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const open = Boolean(anchorEl)
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleSelect = (nextQuorumValue: QuorumOptionValue) => {
-    onQuorumChange(eventId, meetingId, nextQuorumValue)
-    handleClose()
-  }
-
-  return (
-    <>
-      <Button
-        variant="text"
-        onClick={handleClick}
-        sx={{
-          textTransform: 'none',
-          fontWeight: 400,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {getQuorumLabel(quorumValue)}
-        <ArrowDropDownOutlined />
-      </Button>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {quorumOptions.map((option) => (
-          <MenuItem
-            key={option.label}
-            onClick={() => handleSelect(option.value)}
-            selected={Math.abs(option.value - (quorumValue ?? 50)) < 0.01}
-          >
-            {option.label}
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
-  )
-}
 
 function parseEventDate(dateStr: string): Date {
   const [month, day, year] = dateStr.split('/')
@@ -202,66 +49,15 @@ function formatDate(dateStr: string): string {
 
 export default function EventsPage() {
   const { data: session } = useSession()
-  const { events, loading, revalidate } = useEvents()
+  const { events, loading } = useEvents()
   const [order, setOrder] = useState<Order>('desc')
   const [orderBy, setOrderBy] = useState<OrderBy>('eventDate')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
-  const [mailingStatusOverrides, setMailingStatusOverrides] = useState<
-    Record<string, MailingStatus>
-  >({})
-  const [quorumOverrides, setQuorumOverrides] = useState<Record<string, QuorumOptionValue>>({})
 
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const isCSM = userType === 'CSM'
-
-  const handleMailingStatusChange = useCallback(
-    async (eventId: string, meetingId: string, newStatus: MailingStatus) => {
-      setMailingStatusOverrides((prev) => ({ ...prev, [eventId]: newStatus }))
-      try {
-        const api = await buildApiClient()
-        await api.PUT('/meetings/{meetingId}', {
-          params: { path: { meetingId } },
-          body: { mailingStatus: newStatus },
-        })
-        // Revalidate the SWR cache so the persisted value is in sync
-        void revalidate()
-      } catch {
-        // Revert optimistic update on failure and then revalidate to avoid stale data
-        setMailingStatusOverrides((prev) => {
-          const next = { ...prev }
-          delete next[eventId]
-          return next
-        })
-        void revalidate()
-      }
-    },
-    [revalidate]
-  )
-
-  const handleQuorumChange = useCallback(
-    async (eventId: string, meetingId: string, nextQuorumValue: QuorumOptionValue) => {
-      setQuorumOverrides((prev) => ({ ...prev, [eventId]: nextQuorumValue }))
-
-      try {
-        const api = await buildApiClient()
-        await api.PUT('/meetings/{meetingId}', {
-          params: { path: { meetingId } },
-          body: { quorumRequirement: nextQuorumValue },
-        })
-        void revalidate()
-      } catch {
-        setQuorumOverrides((prev) => {
-          const next = { ...prev }
-          delete next[eventId]
-          return next
-        })
-        void revalidate()
-      }
-    },
-    [revalidate]
-  )
 
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -355,7 +151,7 @@ export default function EventsPage() {
         />
         <CardContent sx={{ p: 0 }}>
           <TableContainer>
-            <Table size={isCSM ? 'small' : undefined}>
+            <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>
@@ -394,8 +190,6 @@ export default function EventsPage() {
                       Event Type
                     </TableSortLabel>
                   </TableCell>
-                  {isCSM && <TableCell>Mailing Status</TableCell>}
-                  {isCSM && <TableCell>Quorum %</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -431,29 +225,6 @@ export default function EventsPage() {
                         <TableCell sx={{ whiteSpace: 'nowrap' }}>
                           {row.eventType}
                         </TableCell>
-                        {isCSM && (
-                          <TableCell>
-                            <MailingStatusDropdown
-                              eventId={row.id}
-                              meetingId={row.meetingId}
-                              status={
-                                (mailingStatusOverrides[row.id] ??
-                                  row.mailingStatus) as MailingStatus | null
-                              }
-                              onStatusChange={handleMailingStatusChange}
-                            />
-                          </TableCell>
-                        )}
-                        {isCSM && (
-                          <TableCell>
-                            <QuorumDropdown
-                              eventId={row.id}
-                              meetingId={row.meetingId}
-                              quorumValue={quorumOverrides[row.id] ?? row.quorumRequirement ?? 50}
-                              onQuorumChange={handleQuorumChange}
-                            />
-                          </TableCell>
-                        )}
                       </TableRow>
                     ))}
                     {paginatedEvents.length === 0 && (
