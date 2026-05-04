@@ -108,9 +108,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
-                    {formatPercentage(proposal.votingResults.for.percentage)}
-                  </Typography>
+                  {proposal.votingResults.for.percentage > 0 && (
+                    <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                      {formatPercentage(proposal.votingResults.for.percentage)}
+                    </Typography>
+                  )}
                   <LinearProgress
                     color="chartSeries[0].main"
                     variant="determinate"
@@ -121,9 +123,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
-                    {formatPercentage(proposal.votingResults.against.percentage)}
-                  </Typography>
+                  {proposal.votingResults.against.percentage > 0 && (
+                    <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                      {formatPercentage(proposal.votingResults.against.percentage)}
+                    </Typography>
+                  )}
                   <LinearProgress
                     color="chartSeries[3].main"
                     variant="determinate"
@@ -134,9 +138,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
-                    {formatPercentage(proposal.votingResults.abstain.percentage)}
-                  </Typography>
+                  {proposal.votingResults.abstain.percentage > 0 && (
+                    <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                      {formatPercentage(proposal.votingResults.abstain.percentage)}
+                    </Typography>
+                  )}
                   <LinearProgress
                     color="chartSeries[2].main"
                     variant="determinate"

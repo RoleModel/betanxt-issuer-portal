@@ -3,7 +3,15 @@
 import React, { useRef } from 'react'
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { Box, Card, CardContent, CardHeader, Typography, styled, useTheme } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  styled,
+  useTheme,
+} from '@mui/material'
 
 import { getPhaseColor } from '@/components/mui-styling/theme'
 
@@ -62,10 +70,10 @@ const KeyDateBox = styled(Box, {
   boxSizing: 'content-box',
   paddingInline: theme.spacing(1.5),
   paddingBlock: theme.spacing(1),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
+  display: 'grid',
+  gridTemplateColumns: isPast ? 'auto 1fr auto' : '1fr 1fr',
+  gap: isPast ? theme.spacing(1) : 0,
+  placeItems: 'start end',
 }))
 
 const KeyDateTypography = styled(Typography, {
@@ -166,64 +174,67 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
         >
           {loading
             ? // Skeleton loading for key dates
-            Array.from({ length: 4 }, (_, index) => <LoadingBox key={index} />)
+              Array.from({ length: 4 }, (_, index) => <LoadingBox key={index} />)
             : displayKeyDates.map((phaseItem, index) => {
-              const daysUntil = calculateDaysUntil(phaseItem.dateString)
-              const isPast = daysUntil < 0
-              return (
-                <KeyDateBox
-                  key={index}
-                  isMeeting={phaseItem.isMeeting}
-                  isPast={isPast}
-                  phaseColor={phaseItem.phaseColor}
-                >
-                  <KeyDateTypography
-                    variant="body3"
+                const daysUntil = calculateDaysUntil(phaseItem.dateString)
+                const isPast = daysUntil < 0
+                return (
+                  <KeyDateBox
+                    key={index}
+                    isMeeting={phaseItem.isMeeting}
                     isPast={isPast}
-                    sx={(theme) => {
-                      return {
-                        color: phaseItem.isMeeting
-                          ? theme.vars.palette.keydate.light
-                          : theme.vars.palette.text.primary,
-                      }
-                    }}
+                    phaseColor={phaseItem.phaseColor}
                   >
-                    {phaseItem.title}
-                  </KeyDateTypography>
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    gap={1}
-                    width="100%"
-                  >
-                    <Box display="flex" alignItems="center" gap={0.5}>
                     {isPast && (
                       <CheckCircleIcon
-                        sx={{ fontSize: 14, color: theme.vars.palette.success.main }}
+                        sx={{ fontSize: 20, color: theme.vars.palette.success.main }}
                       />
                     )}
-                    <KeyDateTypography
-                      isPast={isPast}
-                      variant="body3"
-                      fontWeight={500}
-                      sx={(theme) => {
-                        return {
-                          color: phaseItem.isMeeting
-                            ? theme.vars.palette.keydate.light
-                            : theme.vars.palette.text.primary,
-                        }
-                      }}
+                    <Box
+                      display="flex"
+                      alignItems="start"
+                      flexDirection="column"
+                      justifyContent="space-between"
+                      width="100%"
                     >
-                      {phaseItem.date}
-                    </KeyDateTypography>
+                      <KeyDateTypography
+                        variant="body3"
+                        isPast={isPast}
+                        sx={(theme) => {
+                          return {
+                            color: phaseItem.isMeeting
+                              ? theme.vars.palette.keydate.light
+                              : theme.vars.palette.text.primary,
+                          }
+                        }}
+                      >
+                        {phaseItem.title}
+                      </KeyDateTypography>
+
+                      <KeyDateTypography
+                        isPast={isPast}
+                        variant="body3"
+                        fontWeight={500}
+                        sx={(theme) => {
+                          return {
+                            color: phaseItem.isMeeting
+                              ? theme.vars.palette.keydate.light
+                              : theme.vars.palette.text.primary,
+                          }
+                        }}
+                      >
+                        {phaseItem.date}
+                      </KeyDateTypography>
                     </Box>
 
                     <Typography
                       variant="body3"
                       fontWeight={600}
+                      noWrap
                       sx={(theme) => {
                         return {
+                          flexGrow: 1,
+                          alignSelf: 'end',
                           color: phaseItem.isMeeting
                             ? theme.vars.palette.keydate.light
                             : theme.vars.palette.text.secondary,
@@ -232,10 +243,9 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                     >
                       {formatDaysUntil(daysUntil)}
                     </Typography>
-                  </Box>
-                </KeyDateBox>
-              )
-            })}
+                  </KeyDateBox>
+                )
+              })}
         </Box>
       </CardContent>
     </Card>
