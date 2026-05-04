@@ -1,7 +1,5 @@
 'use client'
 
-import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-
 import {
   Box,
   LinearProgress,
@@ -32,13 +30,6 @@ export default function VotingTabulationTable({
   loading = false,
 }: VotingTabulationTableProps) {
   const { currentMeeting } = useMeeting()
-
-  const formatShares = (shares: number) => {
-    return shares.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  }
 
   const formatPercentage = (percentage: number) => {
     return `${percentage.toFixed(2)}%`
@@ -117,20 +108,9 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(proposal.votingResults.for.percentage),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(proposal.votingResults.for.shares),
-                    }}
-                  />
+                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                    {formatPercentage(proposal.votingResults.for.percentage)}
+                  </Typography>
                   <LinearProgress
                     color="chartSeries[0].main"
                     variant="determinate"
@@ -141,20 +121,9 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(proposal.votingResults.against.percentage),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(proposal.votingResults.against.shares),
-                    }}
-                  />
+                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                    {formatPercentage(proposal.votingResults.against.percentage)}
+                  </Typography>
                   <LinearProgress
                     color="chartSeries[3].main"
                     variant="determinate"
@@ -165,20 +134,9 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <BNTypographyPair
-                    fullWidth={true}
-                    split={true}
-                    primary={{
-                      variant: 'body3',
-                      fontWeight: 'medium',
-                      sx: { textAlign: 'left' },
-                      text: formatPercentage(proposal.votingResults.abstain.percentage),
-                    }}
-                    secondary={{
-                      variant: 'body3',
-                      text: formatShares(proposal.votingResults.abstain.shares),
-                    }}
-                  />
+                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                    {formatPercentage(proposal.votingResults.abstain.percentage)}
+                  </Typography>
                   <LinearProgress
                     color="chartSeries[2].main"
                     variant="determinate"

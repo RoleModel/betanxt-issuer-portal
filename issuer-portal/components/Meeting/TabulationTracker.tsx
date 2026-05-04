@@ -15,9 +15,6 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import type { SparkLineChartProps } from '@mui/x-charts/SparkLineChart'
-import { SparkLineChart } from '@mui/x-charts/SparkLineChart'
-
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
@@ -54,7 +51,6 @@ interface HistoricalTabulationPoint {
   isCurrentMeeting: boolean
 }
 
-type HistoricalDataStatus = 'idle' | 'loading' | 'loaded'
 
 interface TabulationTrackerProps {
   meetingId?: string
@@ -205,47 +201,6 @@ const parseMeetingYearInfo = (
   }
 }
 
-const buildSparklineDomain = (
-  series: number[]
-): NonNullable<SparkLineChartProps['yAxis']>['domainLimit'] => {
-  const finiteValues = series.filter((value) => Number.isFinite(value))
-
-  if (finiteValues.length === 0) {
-    return () => ({ min: 0, max: 1 })
-  }
-
-  const minValue = Math.min(...finiteValues)
-  const maxValue = Math.max(...finiteValues)
-  const range = maxValue - minValue
-
-  if (range === 0) {
-    const padding = Math.max(Math.abs(maxValue) * 0.05, 1)
-    return () => ({
-      min: Math.max(0, minValue - padding),
-      max: maxValue + padding,
-    })
-  }
-
-  const padding = Math.max(range * 0.35, maxValue * 0.01)
-
-  return () => ({
-    min: Math.max(0, minValue - padding),
-    max: maxValue + padding,
-  })
-}
-
-const formatSparklineAxisValue = (value: unknown): string => {
-  if (typeof value === 'string' || typeof value === 'number') {
-    return String(value)
-  }
-
-  if (value instanceof Date) {
-    return value.toLocaleDateString('en-US', { year: 'numeric' })
-  }
-
-  return ''
-}
-
 const sortMeetingsBySeriesOrder = (
   firstMeeting: Meeting,
   secondMeeting: Meeting
@@ -273,9 +228,6 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>(
     []
   )
-  const [historicalDataStatus, setHistoricalDataStatus] =
-    React.useState<HistoricalDataStatus>('idle')
-
   const [_nextPhaseDate, setNextPhaseDate] = React.useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = React.useState<Date | null>(null)
   const [phases, setPhases] = React.useState<Phase[]>([])
@@ -471,25 +423,21 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   React.useEffect(() => {
     const fetchHistoricalTabulation = async () => {
       if (!currentMeetingId) {
-        setHistoricalDataStatus('idle')
         setHistoricalData([])
         return
       }
 
       if (!currentMeeting?.ticker || !currentMeeting?.meetingType) {
-        setHistoricalDataStatus('idle')
         setHistoricalData([])
         return
       }
 
       if (isSpecialMeeting(currentMeeting.meetingType)) {
-        setHistoricalDataStatus('idle')
         setHistoricalData([])
         return
       }
 
       try {
-        setHistoricalDataStatus('loading')
         const apiClient = await buildApiClient()
         const comparableMeetingsResult = (await apiClient.GET('/meetings', {
           params: {
@@ -543,11 +491,9 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
         }
 
         setHistoricalData(nextHistoricalData)
-        setHistoricalDataStatus('loaded')
       } catch (error) {
         console.error('Error fetching previous year data:', error)
         setHistoricalData([])
-        setHistoricalDataStatus('loaded')
       }
     }
 
@@ -596,21 +542,13 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   const isCompleted = meetingStatus === 'COMPLETE' || meetingStatus === 'completed'
   const meetingDateValue = currentData?.meeting_date || currentMeeting?.meetingDate || ''
   const meetingDate = meetingDateValue ? new Date(meetingDateValue) : null
-  const showHistoricalComparison = currentPhaseNumber >= 7
-  const shouldShowPreviousYearInfo =
-    showHistoricalComparison && !isSpecialMeeting(currentMeeting?.meetingType)
-  const previousComparableMeetings = historicalData.filter(
-    (point) => !point.isCurrentMeeting
-  )
+  // Show previous-year cards for all annual/EGM meetings regardless of phase
+  const shouldShowPreviousYearInfo = !isSpecialMeeting(currentMeeting?.meetingType)
   const currentMeetingSeriesIndex = historicalData.findIndex(
     (point) => point.isCurrentMeeting
   )
   const previousComparablePoint =
     currentMeetingSeriesIndex > 0 ? historicalData[currentMeetingSeriesIndex - 1] : null
-  const hasHistoricalSparkline =
-    shouldShowPreviousYearInfo &&
-    historicalDataStatus === 'loaded' &&
-    previousComparableMeetings.length >= 2
   const shouldReserveHistoricalLayout = true
   const summaryMetrics = [
     {
@@ -681,49 +619,7 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     md: `48px repeat(${desktopMetricColumns}, minmax(0, auto))`,
   }
 
-  const historicalVotedSeries = historicalData.map((point) => point.votedShares)
-  const historicalUnvotedSeries = historicalData.map((point) => point.unvotedShares)
-  const historicalYearLabels = historicalData.map((point) => point.yearLabel)
   const theme = useTheme()
-  const sparklineStrokeColor = theme.vars?.palette.keydate.dark || '#004d73'
-  const votedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
-  const unvotedAreaColor = `rgba(${theme.vars?.palette.keydate.darkChannel || '0 77 115'} / 0.1)`
-
-  const votedSettings: SparkLineChartProps = {
-    data: historicalVotedSeries,
-    area: true,
-    baseline: 'min',
-    color: sparklineStrokeColor,
-    yAxis: {
-      domainLimit: buildSparklineDomain(historicalVotedSeries),
-    },
-    slotProps: {
-      area: { style: { opacity: 1, fill: votedAreaColor } },
-      line: { style: { strokeWidth: 2, stroke: sparklineStrokeColor } },
-      lineHighlight: { r: 4 },
-    },
-    clipAreaOffset: { top: 2, bottom: 2 },
-    axisHighlight: { x: 'line' },
-    margin: { top: 0, bottom: 0, left: 0, right: 0 },
-  }
-
-  const unvotedSettings: SparkLineChartProps = {
-    data: historicalUnvotedSeries,
-    area: true,
-    baseline: 'min',
-    color: sparklineStrokeColor,
-    yAxis: {
-      domainLimit: buildSparklineDomain(historicalUnvotedSeries),
-    },
-    slotProps: {
-      area: { style: { opacity: 1, fill: unvotedAreaColor } },
-      line: { style: { strokeWidth: 2, stroke: sparklineStrokeColor } },
-      lineHighlight: { r: 4 },
-    },
-    clipAreaOffset: { top: 2, bottom: 2 },
-    axisHighlight: { x: 'line' },
-    margin: { top: 0, bottom: 0, left: 0, right: 0 },
-  }
 
   const sparklineCardSx = {
     backgroundColor: theme.vars?.palette.keydate.main,
@@ -910,20 +806,6 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                   )}
                 </Stack>
               ) : null}
-              {hasHistoricalSparkline ? (
-                <SparkLineChart
-                  height={42}
-                  showTooltip
-                  showHighlight
-                  xAxis={{
-                    data: historicalYearLabels,
-                    valueFormatter: formatSparklineAxisValue,
-                  }}
-                  valueFormatter={(value) => value?.toLocaleString() ?? ''}
-                  margin={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                  {...votedSettings}
-                />
-              ) : null}
             </Paper>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -958,20 +840,6 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                     <Skeleton variant="text" width={48} />
                   )}
                 </Stack>
-              ) : null}
-              {hasHistoricalSparkline ? (
-                <SparkLineChart
-                  height={42}
-                  showTooltip
-                  showHighlight
-                  xAxis={{
-                    data: historicalYearLabels,
-                    valueFormatter: formatSparklineAxisValue,
-                  }}
-                  valueFormatter={(value) => value?.toLocaleString() ?? ''}
-                  margin={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                  {...unvotedSettings}
-                />
               ) : null}
             </Paper>
           </Grid>

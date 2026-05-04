@@ -2,7 +2,8 @@
 
 import React, { useRef } from 'react'
 
-import { Box, Card, CardContent, CardHeader, Typography, styled } from '@mui/material'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { Box, Card, CardContent, CardHeader, Typography, styled, useTheme } from '@mui/material'
 
 import { getPhaseColor } from '@/components/mui-styling/theme'
 
@@ -72,9 +73,6 @@ const KeyDateTypography = styled(Typography, {
 })<{ isPast?: boolean }>(({ isPast }) => ({
   fontWeight: 500,
   opacity: isPast ? 0.5 : 1,
-  textDecoration: isPast ? 'line-through' : 'none',
-  textDecorationColor: 'inherit',
-  textDecorationThickness: '2px',
 }))
 
 const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
@@ -83,6 +81,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   meeting,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const theme = useTheme()
 
   // Use meeting dates directly
   const meetingKeyDates = []
@@ -193,11 +192,17 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                   </KeyDateTypography>
                   <Box
                     display="flex"
-                    alignItems="baseline"
+                    alignItems="center"
                     justifyContent="space-between"
                     gap={1}
                     width="100%"
                   >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                    {isPast && (
+                      <CheckCircleIcon
+                        sx={{ fontSize: 14, color: theme.vars.palette.success.main }}
+                      />
+                    )}
                     <KeyDateTypography
                       isPast={isPast}
                       variant="body3"
@@ -212,6 +217,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                     >
                       {phaseItem.date}
                     </KeyDateTypography>
+                    </Box>
 
                     <Typography
                       variant="body3"
