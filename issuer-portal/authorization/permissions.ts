@@ -18,8 +18,17 @@ async function allowedTo(permission: Permission): Promise<boolean> {
   const { roles, type } = session.user
 
   // Admin has all permissions
-  if (roles?.includes('ADMIN') || type === 'admin') {
+  if (roles?.includes('ADMIN') || type === 'ADMIN' || type === 'admin') {
     return true
+  }
+
+  // PARENT_CLIENT, SOLICITOR, and CSM have read access to meetings, reports, and tabulation
+  if (type === 'PARENT_CLIENT' || type === 'SOLICITOR' || type === 'CSM') {
+    return (
+      permission === 'viewMeeting' ||
+      permission === 'viewReports' ||
+      permission === 'viewTabulation'
+    )
   }
 
   // Map permissions to roles

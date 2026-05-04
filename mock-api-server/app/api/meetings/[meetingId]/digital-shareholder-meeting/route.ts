@@ -1,7 +1,6 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.942Z
 // Source: openapi-schema/openapi.yaml
-
 import { NextResponse } from 'next/server'
 
 import { handleCors, withCors } from '@/utils/cors'
@@ -11,7 +10,7 @@ export async function GET(): Promise<NextResponse> {
     // TODO: Implement getDigitalShareholderMeeting
     // Operation: getDigitalShareholderMeeting
     // This route was auto-generated from OpenAPI spec
-    
+
     // Example: Fetch data from Supabase
     // const { data, error } = await supabase
     //   .from('table_name')
@@ -22,10 +21,10 @@ export async function GET(): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getDigitalShareholderMeeting'
+          operationId: 'getDigitalShareholderMeeting',
         },
         { status: 500 }
       )
@@ -38,7 +37,7 @@ export async function POST(): Promise<NextResponse> {
     // TODO: Implement createDigitalShareholderMeetingAttendees
     // Operation: createDigitalShareholderMeetingAttendees
     // This route was auto-generated from OpenAPI spec
-    
+
     // Parse request body
     // const body = await request.json()
 
@@ -52,10 +51,10 @@ export async function POST(): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createDigitalShareholderMeetingAttendees'
+          operationId: 'createDigitalShareholderMeetingAttendees',
         },
         { status: 500 }
       )

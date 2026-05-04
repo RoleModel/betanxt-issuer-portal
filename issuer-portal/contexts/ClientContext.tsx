@@ -30,20 +30,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isUserSwitching, setIsUserSwitching] = useState(false)
 
   // Extract client from ticker-based URL structure
-  const extractClientFromURL = useCallback(
-    (pathname: string): string | null => {
-      // New format: /[TICKER]/meeting/meeting-id
-      const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
-      if (tickerMatch) {
-        const ticker = tickerMatch[1]
-        // Find client by ticker from available clients data
-        const matchingClient = clients.find((client) => client.ticker === ticker)
-        return matchingClient?.company_name ?? matchingClient?.short_name ?? null
-      }
-      return null
-    },
-    [clients]
-  )
+  const extractTickerFromURL = useCallback((currentPathname: string): string | null => {
+    const tickerMatch = /^\/([A-Z]{2,5})\//.exec(currentPathname)
+    return tickerMatch?.[1] ?? null
+  }, [])
 
   // Check if user can access a specific client
   const canAccessClient = useCallback(
@@ -52,13 +42,31 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return true // Auth bypass allows access to all clients
       }
 
-      // ADMIN users can access all clients
-      if (session?.user?.type === 'ADMIN' || Boolean(session?.user?.roles?.includes('ADMIN'))) {
+      // ADMIN, PARENT_CLIENT, SOLICITOR, and CSM users can access all clients
+      if (
+        session?.user?.type === 'ADMIN' ||
+        session?.user?.type === 'PARENT_CLIENT' ||
+        session?.user?.type === 'SOLICITOR' ||
+        session?.user?.type === 'CSM' ||
+        Boolean(session?.user?.roles?.includes('ADMIN'))
+      ) {
         return true
       }
 
+      // ISSUER users can access the client matching their client_ticker
+      const userTicker = session?.user?.client_ticker
+      if (userTicker) {
+        const tickerMatch = clients.find((c) => c.ticker === userTicker)
+        if (
+          tickerMatch &&
+          (tickerMatch.id === clientId || tickerMatch.ticker === clientId)
+        ) {
+          return true
+        }
+      }
+
       // In normal auth mode, check user's relationships or account access
-      const userAccountId = session?.user?.accountId
+      const userAccountId = session?.user?.account_id
       if (!userAccountId) return false
 
       // Find client that matches the clientId
@@ -77,7 +85,13 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         session?.user?.type === 'RELATIONSHIP_MANAGER'
       )
     },
-    [session?.user?.accountId, session?.user?.type, session?.user?.roles, clients]
+    [
+      session?.user?.account_id,
+      session?.user?.client_ticker,
+      session?.user?.type,
+      session?.user?.roles,
+      clients,
+    ]
   )
 
   // Determine current client based on URL and user context
@@ -101,18 +115,18 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         let targetClient: Client | null = null
 
         // 1. First check if URL implies a specific client (takes priority for client access control)
-        const clientFromURL = extractClientFromURL(pathname)
-        if (clientFromURL) {
-          targetClient =
-            clients.find(
-              (c) => c.company_name === clientFromURL || c.short_name === clientFromURL
-            ) ?? null
+        const tickerFromURL = extractTickerFromURL(pathname)
+        if (tickerFromURL) {
+          targetClient = clients.find((client) => client.ticker === tickerFromURL) ?? null
 
           // If URL specifies a client, use it and update localStorage
           if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
             try {
               if (typeof window !== 'undefined') {
-                localStorage.setItem('selectedClient', JSON.stringify({ id: targetClient.id }))
+                localStorage.setItem(
+                  'selectedClient',
+                  JSON.stringify({ id: targetClient.id })
+                )
               }
             } catch (error) {
               console.warn('Failed to update selectedClient in localStorage:', error)
@@ -148,7 +162,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // 3. Fallback to first available client
-        if (!targetClient && clients.length > 0) {
+        if (!targetClient && !tickerFromURL && clients.length > 0) {
           targetClient = clients[0]
         }
 
@@ -183,7 +197,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     clientsLoading,
     session?.user?.accountId,
     isUserSwitching,
-    extractClientFromURL,
+    extractTickerFromURL,
     canAccessClient,
   ])
 
@@ -228,19 +242,35 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return
         }
 
-        // For ticker-based routes, replace the old ticker with the new ticker
+        const pastMeetingMatch = /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(pathname)
+        const activeMeetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(\/.*)?$/.exec(pathname)
+
+        // Past meetings are client-specific records, so do not carry a different client's
+        // meeting id across the switch. Land on the target client's past-meetings index.
+        if (pastMeetingMatch) {
+          router.replace(`/${client.ticker}/past-meetings`)
+          return
+        }
+
+        // Active meeting pages can preserve the sub-page, but they must use the target
+        // client's own default meeting id rather than the previous client's meeting id.
+        if (activeMeetingMatch) {
+          if (!client.meeting_id) {
+            router.replace(`/${client.ticker}/past-meetings`)
+            return
+          }
+
+          const subPage = activeMeetingMatch[1] ?? ''
+          router.replace(`/${client.ticker}/meeting/${client.meeting_id}${subPage}`)
+          return
+        }
+
+        // For other ticker-based routes, replace the old ticker with the new ticker
         const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname)
         if (tickerMatch) {
           const oldTicker = tickerMatch[1]
           const newPath = pathname.replace(`/${oldTicker}/`, `/${client.ticker}/`)
-
-          // If on a meeting route, verify the new client has a meeting_id
-          if (pathname.includes('/meeting/') && !client.meeting_id) {
-            // Redirect to past-meetings if switching to a client without an active meeting
-            router.replace(`/${client.ticker}/past-meetings`)
-          } else {
-            router.replace(newPath)
-          }
+          router.replace(newPath)
         } else {
           // Not on a ticker-based route - navigate to client's default meeting if available
           const defaultMeetingId = client.meeting_id

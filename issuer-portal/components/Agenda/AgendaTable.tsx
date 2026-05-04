@@ -29,8 +29,17 @@ export default function AgendaTable(_props: AgendaTableProps) {
   const { proposals } = useVotingTabulation(currentMeeting?.id)
 
   // Use shared utility for vote options
-  const getVoteOptions = (proposalType?: string, proposalNumber?: string) => {
-    return getVotingOptionsDisplay(proposalType, proposalNumber)
+  const getVoteOptions = (
+    proposalType?: string,
+    proposalNumber?: string,
+    directorName?: string
+  ) => {
+    return getVotingOptionsDisplay(
+      proposalType,
+      proposalNumber,
+      currentMeeting?.ticker,
+      directorName
+    )
   }
 
   return (
@@ -49,6 +58,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
             <TableRow sx={{ backgroundColor: 'background.default' }}>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                 Proposals
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '120px' }}>
+                Management Recommendation
               </TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', width: '300px' }}>
                 Vote Options
@@ -71,7 +83,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                       {hasDirectorElections && (
                         <TableRow>
                           <TableCell
-                            colSpan={2}
+                            colSpan={3}
                             sx={{
                               backgroundColor: 'action.hover',
                               py: 1.5,
@@ -120,7 +132,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                                   }}
                                 >
                                   <Typography fontWeight={600}>
-                                    {proposal.proposalNumber}
+                                    {proposal.proposalNumber}.
                                   </Typography>
                                   <Typography color="text.primary">
                                     {proposal.directorName || proposal.proposalTitle}
@@ -129,12 +141,17 @@ export default function AgendaTable(_props: AgendaTableProps) {
                               </Box>
                             </TableCell>
                             <TableCell>
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              <Typography color="text.primary">
+                                {proposal.recommendation || 'N/A'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
                                 {getVoteOptions(
                                   proposal.proposalType,
-                                  proposal.proposalNumber.toString()
+                                  proposal.proposalNumber.toString(),
+                                  proposal.directorName
                                 )
-                                  .split(' / ')
                                   .map((option) => (
                                     <Chip
                                       key={option}
@@ -153,7 +170,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
               </>
             ) : (
               <TableRow>
-                <TableCell colSpan={2} align="center">
+                <TableCell colSpan={3} align="center">
                   <Typography color="text.secondary" sx={{ py: 4 }}>
                     No proposals available
                   </Typography>

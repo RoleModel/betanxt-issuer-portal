@@ -19,32 +19,33 @@ import {
 
 import SkeletonTable from '@/components/ui/SkeletonTable'
 
+function formatVotingCutoff(dateStr: string): string {
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '--'
+  const datePart = date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  })
+  // Default cutoff time when only a date is stored
+  return `${datePart} 11:59 PM ET`
+}
+
 interface EventSummaryRow {
   event: string
   meetingId?: string
-  recordDate: string
   meetingType: string
-  quorum: string
-  participation: string
-  numProposals: number
-  outcome: string
-}
-
-interface EventSummaryData {
-  totalProposals: number
-  passedProposals: number
-  failedProposals: number
-  participationRate: number
-  quorumAchieved: boolean
-  materials: {
-    sent: number
-    total: number
-    sentDate: string
-  }
+  inspector: string
+  brokerSearchDate: string
+  recordDate: string
+  filingDate: string
+  mailingDate: string
+  mailingMethod: string
+  votingCutoff: string
 }
 
 interface EventSummaryTableProps {
-  data: EventSummaryData | EventSummaryRow[]
+  data: EventSummaryRow[]
   loading?: boolean
   title?: string
   clientTicker?: string
@@ -60,24 +61,10 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(5)
 
   if (loading) {
-    return <SkeletonTable rows={5} columns={7} />
+    return <SkeletonTable rows={5} columns={9} />
   }
 
-  // Handle both old and new data formats
-  const isRowFormat = Array.isArray(data)
-  const rows: EventSummaryRow[] = isRowFormat
-    ? data
-    : [
-      {
-        event: 'Meeting Summary',
-        recordDate: data.materials?.sentDate ?? '',
-        meetingType: 'Annual',
-        quorum: data.quorumAchieved ? 'Yes' : 'No',
-        participation: `${(data.participationRate ?? 0).toFixed(1)}%`,
-        numProposals: data.totalProposals,
-        outcome: `${data.passedProposals}/${data.totalProposals} Passed`,
-      },
-    ]
+  const rows: EventSummaryRow[] = data
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage)
@@ -100,18 +87,25 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>Record Date</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>Meeting Type</TableCell>
-                <TableCell>Quorum</TableCell>
-                <TableCell>Participation</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}># Proposals</TableCell>
-                <TableCell>Outcome</TableCell>
+                <TableCell>Inspector</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Broker Search Date</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Record Date</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Filing Date</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Mailing Date</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Mailing Method</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>Voting Cutoff</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedRows.map((row, index) => (
                 <TableRow key={`${row.meetingId ?? 'row'}-${index}`}>
-                  <TableCell component="th" scope="row">
+                  <TableCell
+                    size="small"
+                    component="th"
+                    scope="row"
+                    sx={{ whiteSpace: 'nowrap' }}
+                  >
                     {row.meetingId ? (
                       <Button
                         variant="text"
@@ -126,20 +120,50 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                       row.event
                     )}
                   </TableCell>
-                  <TableCell size="small">
-                    {row.recordDate
-                      ? new Date(row.recordDate).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })
+                  <TableCell size="small">{row.meetingType}</TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.inspector || '--'}
+                  </TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.brokerSearchDate
+                      ? new Date(row.brokerSearchDate).toLocaleDateString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
                       : '--'}
                   </TableCell>
-                  <TableCell size="small">{row.meetingType}</TableCell>
-                  <TableCell size="small">{row.quorum}</TableCell>
-                  <TableCell size="small">{row.participation}</TableCell>
-                  <TableCell size="small">{row.numProposals}</TableCell>
-                  <TableCell size="small">{row.outcome}</TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.recordDate
+                      ? new Date(row.recordDate).toLocaleDateString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : '--'}
+                  </TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.filingDate
+                      ? new Date(row.filingDate).toLocaleDateString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : '--'}
+                  </TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.mailingDate
+                      ? new Date(row.mailingDate).toLocaleDateString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : '--'}
+                  </TableCell>
+                  <TableCell size="small">{row.mailingMethod || 'NAA'}</TableCell>
+                  <TableCell size="small" sx={{ whiteSpace: 'nowrap' }}>
+                    {row.votingCutoff ? formatVotingCutoff(row.votingCutoff) : '--'}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

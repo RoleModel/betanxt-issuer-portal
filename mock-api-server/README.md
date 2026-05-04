@@ -1,5 +1,19 @@
 # BetaNXT Issuer Portal Mock API Server
 
+## Test User Credentials
+
+| Username     | Password       | Type          | Description                                                  |
+| ------------ | -------------- | ------------- | ------------------------------------------------------------ |
+| `dev.user`   | `ju$Ky8Ad1#%g` | ADMIN         | Development admin - access to all clients                    |
+| `test.user`  | `9yUDDftg@Lh!` | ADMIN         | Test admin                                                   |
+| `mike`       | `password`     | ISSUER        | Wendy's (WEN) issuer user                                    |
+| `lisa`       | `password`     | ISSUER        | Paycom (PAYC) issuer user                                    |
+| `david`      | `password`     | ISSUER        | Woodward (WWD) issuer user                                   |
+| `jenny`      | `password`     | ISSUER        | Enliven (ELVN) issuer user                                   |
+| `dfin.admin` | `DfinP@ss1`    | PARENT_CLIENT | DFIN parent client - events overview dashboard               |
+| `morrow`     | `MrwSdl@1`     | SOLICITOR     | Morrow & Co. solicitor - events overview dashboard           |
+| `csm.user`   | `CsmP@ss1`     | CSM           | Client Service Manager - events overview with mailing status |
+
 ## Overview
 
 The **BetaNXT Issuer Portal Mock API Server** is a fully-functional API implementation that serves as both a development backend for the [Issuer Portal](../issuer-portal/README.md) frontend application and a testing foundation for end-to-end tests.

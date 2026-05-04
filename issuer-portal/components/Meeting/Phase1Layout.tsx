@@ -1,61 +1,44 @@
 'use client'
 
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 
 import { Grid } from '@mui/material'
 
 import DocumentHostingCard from '@/components/Meeting/DocumentHostingCard'
-import EventContactsCard from '@/components/Meeting/EventContactsCard'
 import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
-import MeetingInformationCard from '@/components/Meeting/MeetingInformationCard'
-import TaskCard from '@/components/Meeting/TaskCard'
+import QuorumGaugeCard from '@/components/Meeting/QuorumGaugeCard'
 
+import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
+import { buildQuorumGaugeModel } from '@/utils/quorum'
 
 interface Phase1LayoutProps {
   meetingId?: string
   meeting?: Meeting
-  phase?: number
-  onUpdate?: () => void
 }
 
-function Phase1Layout({ meetingId, meeting, phase = 1, onUpdate }: Phase1LayoutProps) {
+function Phase1Layout({ meeting }: Phase1LayoutProps) {
+  const { votingSummary, loading } = useVotingTabulation(meeting?.id)
+  const quorumGaugeModel = buildQuorumGaugeModel({
+    totalOutstandingShares: votingSummary?.totalSharesOutstanding ?? meeting?.totalSharesOutstanding,
+    representedShares: votingSummary?.totalSharesVoted ?? 0,
+    quorumRequirementPercent: meeting?.quorumRequirement ?? 50,
+  })
+
   return (
     <Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={{ xs: 12, md: 12 }}>
+        <Grid size={{ xs: 12, md: 6, }}>
           <KeyDatesCard meeting={meeting} />
         </Grid>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <TaskCard meetingId={meetingId} currentPhase={phase} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 3, }}>
           <DocumentHostingCard meeting={meeting} />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <EventContactsCard
-            meeting={{
-              id: meeting?.id ?? undefined,
-              transferAgent: meeting?.transferAgent ?? undefined,
-              transferAgentConfirmed: meeting?.transferAgentConfirmed ?? undefined,
-              planAdministrator: meeting?.planAdministrator ?? undefined,
-              planAdministratorContactEmail:
-                meeting?.planAdministratorContactEmail ?? undefined,
-              solicitor: meeting?.solicitor ?? undefined,
-              solicitorEmail: meeting?.solicitorEmail ?? undefined,
-            }}
-            onUpdate={onUpdate}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <MeetingInformationCard
-            meeting={{
-              meetingType: meeting?.meetingType ?? undefined,
-              inspector: meeting?.inspector ?? undefined,
-              cusip: meeting?.cusip ?? undefined,
-              ticker: meeting?.ticker ?? undefined,
-              employeeStockPlans: meeting?.employeeStockPlans ?? undefined,
-            }}
+        <Grid size={{ xs: 12, md: 3 }}>
+          <QuorumGaugeCard
+            title="Percentage to Quorum"
+            model={quorumGaugeModel}
+            loading={loading}
           />
         </Grid>
       </Grid>

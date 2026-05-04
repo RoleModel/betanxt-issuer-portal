@@ -2,11 +2,14 @@
 
 import baseTheme from '@rolemodel/betanxt-design-system/themes/baseTheme'
 import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
+import { useTheme } from '@mui/material/styles';
 import Link from 'next/link'
 import React from 'react'
 
 import type { PaletteColor, SxProps } from '@mui/material'
 import { Box, Card, Typography } from '@mui/material'
+
+
 
 interface FeatureTileProps {
   title: string
@@ -42,21 +45,22 @@ export function FeatureTile({
   brandFont = false,
 }: FeatureTileProps) {
   // Get colors from betanxt theme
+  const theme = useTheme();
   const getVariantColors = (variant: string) => {
     switch (variant) {
       case 'primary':
         return {
-          background: betanxtTheme.palette.primary.main,
-          backgroundDark: betanxtTheme.palette.primary.main,
-          color: betanxtTheme.palette.primary.contrastText,
-          colorDark: betanxtTheme.palette.primary.contrastText,
+          background: theme.palette.primary.main,
+          backgroundDark: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          colorDark: theme.palette.primary.contrastText,
         }
       case 'secondary':
         return {
-          background: betanxtTheme.palette.secondary.main,
-          backgroundDark: betanxtTheme.palette.secondary.main,
-          color: betanxtTheme.palette.secondary.contrastText,
-          colorDark: betanxtTheme.palette.secondary.contrastText,
+          background: theme.palette.secondary.main,
+          backgroundDark: theme.palette.secondary.main,
+          color: theme.palette.secondary.contrastText,
+          colorDark: theme.palette.secondary.contrastText,
         }
       case 'tertiary': {
         const tertiary = betanxtTheme.palette.tertiary as PaletteColor
@@ -69,17 +73,17 @@ export function FeatureTile({
       }
       case 'base':
         return {
-          background: baseTheme.vars.palette.background.default,
-          backgroundDark: baseTheme.vars.palette.background.default,
-          color: baseTheme.vars.palette.text.primary,
-          colorDark: baseTheme.vars.palette.text.primary,
+          background: theme.vars.palette.background.default,
+          backgroundDark: theme.vars.palette.background.default,
+          color: theme.vars.palette.text.primary,
+          colorDark: theme.vars.palette.text.primary,
         }
       default:
         return {
-          background: baseTheme.vars.palette.background.paper,
-          backgroundDark: baseTheme.vars.palette.background.paper,
-          color: baseTheme.vars.palette.text.primary,
-          colorDark: baseTheme.vars.palette.text.primary,
+          background: theme.vars.palette.background.paper,
+          backgroundDark: theme.vars.palette.background.paper,
+          color: theme.vars.palette.text.primary,
+          colorDark: theme.vars.palette.text.primary,
         }
     }
   }

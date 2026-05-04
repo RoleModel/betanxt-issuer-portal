@@ -46,7 +46,7 @@ export const termsDefinitions = {
     category: 'Meetings & Events',
     term: 'Virtual Annual Meeting',
     definition:
-      'An annual meeting conducted by the board of directors of a public company via an electronic communication format, allowing shareholders to participate remotely. A company\'s state of incorporation authorizes the format(s) by which a company can conduct its annual meeting.',
+      "An annual meeting conducted by the board of directors of a public company via an electronic communication format, allowing shareholders to participate remotely. A company's state of incorporation authorizes the format(s) by which a company can conduct its annual meeting.",
   },
 
   // Proxy & Voting (Mechanics & Materials)
@@ -59,7 +59,7 @@ export const termsDefinitions = {
     category: 'Proxy & Voting',
     term: 'Broker Non-vote',
     definition:
-      'A broker non-vote occurs when routine and non-routine matters need to be voted on in the same agenda during a proxy solicitation. A broker non-vote is the difference between the number of shares voting on a routine proposal (including the broker\'s discretionary voting) and a non-routine proposal (NOT including the broker\'s discretionary voting when a beneficial owner has not provided proxy instructions for non-routine matters).',
+      "A broker non-vote occurs when routine and non-routine matters need to be voted on in the same agenda during a proxy solicitation. A broker non-vote is the difference between the number of shares voting on a routine proposal (including the broker's discretionary voting) and a non-routine proposal (NOT including the broker's discretionary voting when a beneficial owner has not provided proxy instructions for non-routine matters).",
   },
   certificateoftabulation: {
     category: 'Proxy & Voting',
@@ -435,7 +435,7 @@ export const termsDefinitions = {
     category: 'Communications & Delivery',
     term: 'e-Consent',
     definition:
-      'A shareholder\'s request to receive shareholder communications electronically or online.',
+      "A shareholder's request to receive shareholder communications electronically or online.",
   },
   householding: {
     category: 'Communications & Delivery',

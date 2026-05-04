@@ -1,7 +1,7 @@
 'use client'
 
 import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 
 import {
   Alert,
@@ -24,18 +24,25 @@ const LoginPage = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsPending(true)
 
-    startTransition(async () => {
+    try {
       const result = await authenticate(username, password)
-      if (result?.error) {
+      if (result && 'error' in result) {
         setError(result.error)
+      } else if (result && 'success' in result) {
+        // Force a full page reload so all client-side caches (session, SWR, router)
+        // are reinitialized with the new session cookie instead of stale state.
+        window.location.href = '/'
       }
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -71,6 +78,7 @@ const LoginPage = () => {
             </Typography>
             <CardContent>
               <TextField
+                id="login-username"
                 fullWidth
                 label="Username"
                 value={username}
@@ -80,6 +88,7 @@ const LoginPage = () => {
                 autoFocus
               />
               <TextField
+                id="login-password"
                 fullWidth
                 label="Password"
                 type="password"

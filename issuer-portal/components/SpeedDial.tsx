@@ -3,6 +3,7 @@ import * as React from 'react'
 import {
   Close as CloseIcon,
   ContactSupportOutlined,
+  SmartToyOutlined,
   TopicOutlined,
 } from '@mui/icons-material'
 import { Typography, styled } from '@mui/material'
@@ -21,32 +22,8 @@ interface IssuerSpeedDialProps {
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   onGlossaryClick?: () => void
   onContactsClick?: () => void
+  onAssistantClick?: () => void
 }
-
-const actions = [
-  {
-    icon: (
-      <Box display="flex" gap={1}>
-        <TopicOutlined />
-        <Typography noWrap variant="button">
-          Glossary of Terms
-        </Typography>
-      </Box>
-    ),
-    name: 'Glossary of Terms',
-  },
-  {
-    icon: (
-      <Box display="flex" gap={1}>
-        <ContactSupportOutlined />
-        <Typography noWrap variant="button">
-          Contacts
-        </Typography>
-      </Box>
-    ),
-    name: 'Contacts',
-  },
-]
 
 export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => ({
   position: 'absolute',
@@ -79,9 +56,49 @@ export default function IssuerSpeedDial({
   onClick,
   onGlossaryClick,
   onContactsClick,
+  onAssistantClick,
 }: IssuerSpeedDialProps) {
+  const actions = [
+    {
+      icon: (
+        <Box display="flex" gap={1}>
+          <SmartToyOutlined />
+          <Typography noWrap variant="button">
+            AI Assistant
+          </Typography>
+        </Box>
+      ),
+      name: 'AI Assistant',
+    },
+    {
+      icon: (
+        <Box display="flex" gap={1}>
+          <TopicOutlined />
+          <Typography noWrap variant="button">
+            Glossary of Terms
+          </Typography>
+        </Box>
+      ),
+      name: 'Glossary of Terms',
+    },
+    {
+      icon: (
+        <Box display="flex" gap={1}>
+          <ContactSupportOutlined />
+          <Typography noWrap variant="button">
+            Contacts
+          </Typography>
+        </Box>
+      ),
+      name: 'Contacts',
+    },
+  ]
+
   const handleActionClick = (actionName: string) => {
     switch (actionName) {
+      case 'AI Assistant':
+        onAssistantClick?.()
+        break
       case 'Glossary of Terms':
         onGlossaryClick?.()
         break

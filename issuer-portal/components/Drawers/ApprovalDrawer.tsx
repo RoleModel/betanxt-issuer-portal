@@ -1,11 +1,9 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
+import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
 import ReactAudioPlayer from 'react-audio-player'
-
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false })
 
 import {
   ChevronLeftOutlined as ChevronLeftIcon,
@@ -40,6 +38,8 @@ import {
   type DocumentHistoryEvent,
   useDocuments,
 } from '@/hooks/useDocuments'
+
+const ReactPlayer = dynamic(() => import('react-player'), { ssr: false })
 
 interface DocumentHistoryEntryUI {
   action: string
@@ -491,7 +491,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 // Convert relative storage paths to full Supabase URLs
                 let pdfUrl = fileUrl
                 if (fileUrl?.startsWith('/storage/v1/object/public/')) {
-                  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+                  const supabaseUrl =
+                    process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
                   pdfUrl = `${supabaseUrl}${fileUrl}`
                 }
 

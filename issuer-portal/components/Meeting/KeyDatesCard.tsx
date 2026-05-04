@@ -1,22 +1,19 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef } from 'react'
 
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
   Typography,
   styled,
+  useTheme,
 } from '@mui/material'
 
-import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
 import { getPhaseColor } from '@/components/mui-styling/theme'
-
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
 
 import { calculateDaysUntil, formatDaysUntil } from '@/utils/dateUtils'
 
@@ -38,10 +35,7 @@ interface KeyDatesCardProps {
     recordDate?: string | null
     mailingDate?: string | null
     meetingDate?: string | null
-    currentPhase?: string
-    preFilingDate?: string | null
     brokerSearchDate?: string | null
-    filingDate?: string | null
   }
 }
 
@@ -76,10 +70,10 @@ const KeyDateBox = styled(Box, {
   boxSizing: 'content-box',
   paddingInline: theme.spacing(1.5),
   paddingBlock: theme.spacing(1),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
+  display: 'grid',
+  gridTemplateColumns: isPast ? 'auto 1fr auto' : '1fr 1fr',
+  gap: isPast ? theme.spacing(1) : 0,
+  placeItems: 'start end',
 }))
 
 const KeyDateTypography = styled(Typography, {
@@ -87,9 +81,6 @@ const KeyDateTypography = styled(Typography, {
 })<{ isPast?: boolean }>(({ isPast }) => ({
   fontWeight: 500,
   opacity: isPast ? 0.5 : 1,
-  textDecoration: isPast ? 'line-through' : 'none',
-  textDecorationColor: 'inherit',
-  textDecorationThickness: '2px',
 }))
 
 const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
@@ -98,67 +89,11 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   meeting,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [open, setOpen] = React.useState(false)
-  const [phases, setPhases] = useState<components['schemas']['Phase'][]>([])
-  const [phasesLoading, setPhasesLoading] = useState(true)
+  const theme = useTheme()
 
-  // Fetch phases for the meeting
-  useEffect(() => {
-    const fetchPhases = async () => {
-      if (!meeting?.id) {
-        setPhasesLoading(false)
-        return
-      }
-
-      try {
-        const apiClient = await buildApiClient()
-        const { data, error } = await apiClient.GET('/meetings/{meetingId}/phases', {
-          params: { path: { meetingId: meeting.id } },
-        })
-        if (data) {
-          setPhases(data)
-        } else if (error) {
-          console.error('API error fetching phases:', error)
-        }
-      } catch (error) {
-        console.error('Error fetching phases:', error)
-      } finally {
-        setPhasesLoading(false)
-      }
-    }
-
-    void fetchPhases()
-  }, [meeting?.id])
-
-  // Use meeting dates directly (phases only provide color mapping)
+  // Use meeting dates directly
   const meetingKeyDates = []
 
-  if (meeting?.preFilingDate) {
-    meetingKeyDates.push({
-      title: 'Pre-Filing',
-      date: new Date(meeting.preFilingDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-      dateString: meeting.preFilingDate,
-      phase: 1,
-      phaseColor: getPhaseColor(1),
-      isMeeting: false,
-    })
-  }
-  if (meeting?.filingDate) {
-    meetingKeyDates.push({
-      title: 'Filing Date',
-      date: new Date(meeting.filingDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-      dateString: meeting.filingDate,
-      phase: 1,
-      phaseColor: getPhaseColor(1),
-      isMeeting: false,
-    })
-  }
   if (meeting?.brokerSearchDate) {
     meetingKeyDates.push({
       title: 'Broker Search',
@@ -214,22 +149,10 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
 
   const displayKeyDates =
     transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates
-  const currentPhase = phases.find((p) => p.status === undefined)?.orderIndex ?? 1
-
-  const toggleDrawer = (newOpen: boolean) => () => {
-    setOpen(newOpen)
-  }
 
   return (
     <Card>
-      <CardHeader
-        title={<Typography variant="h3">Key Dates</Typography>}
-        action={
-          <Button variant="text" onClick={toggleDrawer(true)}>
-            Phase Overview
-          </Button>
-        }
-      />
+      <CardHeader title={<Typography variant="h3">Key Dates</Typography>} />
       <CardContent sx={{ pt: 0 }}>
         <Box
           component="ul"
@@ -243,67 +166,75 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
             transition: 'grid-template-columns 0.3s ease, gap 0.3s ease',
             gridTemplateColumns: {
               xs: '1fr',
-              sm: '1fr 1fr',
-              md: 'repeat(6, minmax(130px, 1fr))',
             },
             gap: 1,
             p: 0,
             m: 0,
           }}
         >
-          {loading || phasesLoading
+          {loading
             ? // Skeleton loading for key dates
-            Array.from({ length: 6 }, (_, index) => <LoadingBox key={index} />)
+              Array.from({ length: 4 }, (_, index) => <LoadingBox key={index} />)
             : displayKeyDates.map((phaseItem, index) => {
-              const daysUntil = calculateDaysUntil(phaseItem.dateString)
-              const isPast = daysUntil < 0
-              return (
-                <KeyDateBox
-                  key={index}
-                  isMeeting={phaseItem.isMeeting}
-                  isPast={isPast}
-                  phaseColor={phaseItem.phaseColor}
-                >
-                  <KeyDateTypography
-                    variant="body3"
+                const daysUntil = calculateDaysUntil(phaseItem.dateString)
+                const isPast = daysUntil < 0
+                return (
+                  <KeyDateBox
+                    key={index}
+                    isMeeting={phaseItem.isMeeting}
                     isPast={isPast}
-                    sx={(theme) => {
-                      return {
-                        color: phaseItem.isMeeting
-                          ? theme.vars.palette.keydate.light
-                          : theme.vars.palette.text.primary,
-                      }
-                    }}
+                    phaseColor={phaseItem.phaseColor}
                   >
-                    {phaseItem.title}
-                  </KeyDateTypography>
-                  <Box
-                    display="flex"
-                    alignItems="baseline"
-                    justifyContent="space-between"
-                    gap={1}
-                    width="100%"
-                  >
-                    <KeyDateTypography
-                      isPast={isPast}
-                      variant="body3"
-                      fontWeight={500}
-                      sx={(theme) => {
-                        return {
-                          color: phaseItem.isMeeting
-                            ? theme.vars.palette.keydate.light
-                            : theme.vars.palette.text.primary,
-                        }
-                      }}
+                    {isPast && (
+                      <CheckCircleIcon
+                        sx={{ fontSize: 20, color: theme.vars.palette.success.main }}
+                      />
+                    )}
+                    <Box
+                      display="flex"
+                      alignItems="start"
+                      flexDirection="column"
+                      justifyContent="space-between"
+                      width="100%"
                     >
-                      {phaseItem.date}
-                    </KeyDateTypography>
+                      <KeyDateTypography
+                        variant="body3"
+                        isPast={isPast}
+                        sx={(theme) => {
+                          return {
+                            color: phaseItem.isMeeting
+                              ? theme.vars.palette.keydate.light
+                              : theme.vars.palette.text.primary,
+                          }
+                        }}
+                      >
+                        {phaseItem.title}
+                      </KeyDateTypography>
+
+                      <KeyDateTypography
+                        isPast={isPast}
+                        variant="body3"
+                        fontWeight={500}
+                        sx={(theme) => {
+                          return {
+                            color: phaseItem.isMeeting
+                              ? theme.vars.palette.keydate.light
+                              : theme.vars.palette.text.primary,
+                          }
+                        }}
+                      >
+                        {phaseItem.date}
+                      </KeyDateTypography>
+                    </Box>
 
                     <Typography
                       variant="body3"
                       fontWeight={600}
+                      noWrap
                       sx={(theme) => {
                         return {
+                          flexGrow: 1,
+                          alignSelf: 'end',
                           color: phaseItem.isMeeting
                             ? theme.vars.palette.keydate.light
                             : theme.vars.palette.text.secondary,
@@ -312,13 +243,11 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                     >
                       {formatDaysUntil(daysUntil)}
                     </Typography>
-                  </Box>
-                </KeyDateBox>
-              )
-            })}
+                  </KeyDateBox>
+                )
+              })}
         </Box>
       </CardContent>
-      <PhaseDrawer phase={currentPhase} open={open} onClose={toggleDrawer(false)} />
     </Card>
   )
 }

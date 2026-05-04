@@ -23,21 +23,12 @@ type ParticipationMetrics = Pick<
   'participationPercent' | 'totalVotes' | 'votingShares'
 >
 
-// Minimal shape of the tabulation report we rely on (extend if OpenAPI adds more fields)
-interface TabulationReportPositionsVoted {
-  totalShares?: number
-  votedShares?: number
-  voted?: number
-}
-
-interface TabulationReport {
-  positionsVoted?: TabulationReportPositionsVoted
-}
-
 // Generate consistent participation rate between 58% and 74% using meeting id as seed
 // This matches the seeded random in useReporting.ts
 const generateSeededParticipation = (meetingId: string): number => {
-  const meetingIdHash = (meetingId ?? '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const meetingIdHash = (meetingId ?? '')
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
   return Math.round((58 + seededRandom * 16) * 10) / 10
 }
@@ -78,7 +69,7 @@ const isPositionVoted = (position: components['schemas']['Position']): boolean =
   return status === 'voted'
 }
 
-const extractPositions = (data: unknown): components['schemas']['Position'][] => {
+const _extractPositions = (data: unknown): components['schemas']['Position'][] => {
   if (Array.isArray(data)) {
     return data as components['schemas']['Position'][]
   }
@@ -118,7 +109,7 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
   return parseNumericValue(meetingRecord.total_shares_outstanding)
 }
 
-const computeParticipationMetrics = (
+const _computeParticipationMetrics = (
   meeting: Meeting,
   positions: components['schemas']['Position'][]
 ): ParticipationMetrics => {
@@ -191,7 +182,12 @@ export default function PastMeetingsPage() {
       })) as ApiClientReturnType<unknown>
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message ?? 'Failed to fetch meetings')
+        const errBody = meetingsResponse.error as Record<string, unknown>
+        const msg =
+          (typeof errBody.message === 'string' ? errBody.message : null) ??
+          (typeof errBody.error === 'string' ? errBody.error : null) ??
+          'Failed to fetch meetings'
+        throw new Error(msg)
       }
 
       // Get meetings array from the paginated response - already filtered by API
@@ -215,7 +211,6 @@ export default function PastMeetingsPage() {
         }
       )
 
-      setMeetings(meetingsWithParticipation)
       setMeetings(meetingsWithParticipation)
     } catch (error) {
       console.error('Error fetching past meetings:', error)

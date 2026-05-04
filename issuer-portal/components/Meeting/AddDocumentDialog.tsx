@@ -75,7 +75,7 @@ export function AddDocumentDialog({
       if (response.ok) {
         const documents = await response.json()
         // Filter for DSM-related documents
-         
+
         const dsmDocs = documents.filter(
           (_doc: DSMDocument) =>
             _doc.title?.includes('DSM') ||

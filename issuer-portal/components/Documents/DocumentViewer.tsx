@@ -163,7 +163,11 @@ const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingPro
             if (iframeDoc) {
               const title = iframeDoc.title.toLowerCase()
               // Check for common 404 page indicators
-              if (title.includes('404') || title.includes('not found') || title.includes('error')) {
+              if (
+                title.includes('404') ||
+                title.includes('not found') ||
+                title.includes('error')
+              ) {
                 setHasError(true)
               }
             }
@@ -200,7 +204,8 @@ const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingPro
           Document Hosting Site Unavailable
         </Typography>
         <Typography variant="body3" color="text.secondary" textAlign="center">
-          The document hosting site could not be loaded. This may be because the site has not been set up yet or is temporarily unavailable.
+          The document hosting site could not be loaded. This may be because the site has
+          not been set up yet or is temporarily unavailable.
         </Typography>
         <Typography variant="body3" color="text.secondary" textAlign="center">
           Please contact your administrator if this issue persists.
@@ -436,15 +441,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Construct the proper URL for the document
         let documentUrl =
           (document &&
-            typeof document === 'object' &&
-            'url' in document &&
-            typeof document.url === 'string'
+          typeof document === 'object' &&
+          'url' in document &&
+          typeof document.url === 'string'
             ? document.url
             : undefined) ??
           (document &&
-            typeof document === 'object' &&
-            'file_path' in document &&
-            typeof document.file_path === 'string'
+          typeof document === 'object' &&
+          'file_path' in document &&
+          typeof document.file_path === 'string'
             ? document.file_path
             : undefined)
 
@@ -470,9 +475,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           const docId =
             documentId ??
             (document &&
-              typeof document === 'object' &&
-              'id' in document &&
-              typeof document.id === 'string'
+            typeof document === 'object' &&
+            'id' in document &&
+            typeof document.id === 'string'
               ? document.id
               : `doc-${task.id ?? Date.now()}`)
           setCurrentDocumentId(docId)
@@ -481,9 +486,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             title:
               task.title ??
               (document &&
-                typeof document === 'object' &&
-                'title' in document &&
-                typeof document.title === 'string'
+              typeof document === 'object' &&
+              'title' in document &&
+              typeof document.title === 'string'
                 ? document.title
                 : 'Document'),
             signatureAreas: areas,
@@ -509,8 +514,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       legacyOnClose ??
       (task
         ? () => {
-          setOpen(false)
-        }
+            setOpen(false)
+          }
         : undefined),
     [legacyOnClose, task]
   )
@@ -1110,7 +1115,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           boxShadow: theme.shadows[10],
         })}
       >
-        <Toolbar sx={{ px: 3, color: (theme) => theme.vars?.palette.common.white, }}>
+        <Toolbar sx={{ px: 3, color: (theme) => theme.vars?.palette.common.white }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 2 }}>
             <IconButton
               edge="start"
@@ -1123,7 +1128,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <Typography
               variant="h4"
               whiteSpace="nowrap"
-              sx={{ color: (theme) => theme.vars?.palette.common.white, }}
+              sx={{ color: (theme) => theme.vars?.palette.common.white }}
             >
               {actualTitle}
             </Typography>
@@ -1367,7 +1372,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   Document Hosting Site Not Available
                 </Typography>
                 <Typography variant="body3" color="text.secondary" textAlign="center">
-                  The document hosting site has not been set up yet. Please contact your administrator to configure the hosting site.
+                  The document hosting site has not been set up yet. Please contact your
+                  administrator to configure the hosting site.
                 </Typography>
               </Box>
             )
@@ -1425,7 +1431,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         // Convert relative storage paths to full Supabase URLs
                         let pdfUrl = actualfileUrl
                         if (actualfileUrl.startsWith('/storage/v1/object/public/')) {
-                          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+                          const supabaseUrl =
+                            process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                            'http://127.0.0.1:54321'
                           pdfUrl = `${supabaseUrl}${actualfileUrl}`
                         }
 
@@ -1437,7 +1445,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                               800,
                               typeof window !== 'undefined'
                                 ? window.innerWidth -
-                                (showComments || showHistory ? 500 : 100)
+                                    (showComments || showHistory ? 500 : 100)
                                 : 800
                             )}
                             onLoadSuccess={onDocumentLoadSuccess}
@@ -1489,7 +1497,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         (area.label?.toLowerCase().includes('print name')
                           ? 'text'
                           : area.label?.toLowerCase().includes('name') &&
-                            !area.label?.toLowerCase().includes('signature')
+                              !area.label?.toLowerCase().includes('signature')
                             ? 'text'
                             : area.label?.toLowerCase().includes('date')
                               ? 'date'

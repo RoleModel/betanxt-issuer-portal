@@ -20,6 +20,11 @@ interface Position {
 
 interface BeneficialVsRegisteredCardProps {
   meetingId: string
+  chartOverride?: {
+    beneficial: number
+    registered: number
+  }
+  loadingOverride?: boolean
 }
 
 const toFiniteNumber = (value: unknown): number => {
@@ -79,6 +84,8 @@ function CustomBarLabel(props: BarLabelProps) {
 
 export default function BeneficialVsRegisteredCard({
   meetingId,
+  chartOverride,
+  loadingOverride = false,
 }: BeneficialVsRegisteredCardProps) {
   const [positions, setPositions] = useState<Position[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,6 +132,10 @@ export default function BeneficialVsRegisteredCard({
   }, [meetingId])
 
   const chartData = useMemo(() => {
+    if (chartOverride) {
+      return chartOverride
+    }
+
     // Beneficial = Non-DTC (beneficial shareholders voting through brokers)
     // Based on wendys_non_dtc_vote_status.csv
     const beneficialVoted = positions
@@ -141,13 +152,13 @@ export default function BeneficialVsRegisteredCard({
       beneficial: beneficialVoted,
       registered: registeredVoted,
     }
-  }, [positions])
+  }, [chartOverride, positions])
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader title="Beneficial vs. Registered" />
       <CardContent>
-        {loading ? (
+        {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={300} />
         ) : (
           <Box>
@@ -169,12 +180,12 @@ export default function BeneficialVsRegisteredCard({
               series={[
                 {
                   data: [chartData.beneficial, chartData.registered],
+                  barLabel: 'value',
                 },
               ]}
               height={300}
-              margin={{ left: 0, right: 0, top: 30, bottom: 0 }}
+              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
               hideLegend={true}
-              barLabel="value"
               slots={{ barLabel: CustomBarLabel }}
               yAxis={[
                 {

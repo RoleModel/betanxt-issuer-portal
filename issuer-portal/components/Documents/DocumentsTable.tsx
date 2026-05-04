@@ -15,6 +15,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+
 import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
 import StatusChip from '@/components/ui/StatusChip'
 
@@ -51,7 +52,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
     onOpenDocument,
   } = props
 
-
   return (
     <TableContainer data-testid="documents-table">
       <Table sx={{ minWidth: 500 }} aria-label="Event Documents">
@@ -85,15 +85,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                   <Typography variant="caption" display="block" color="text.secondary">
                     {doc.updatedAt
                       ? new Date(doc.updatedAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true,
-                      })
-                      : doc.createdAt
-                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -101,6 +92,15 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                           minute: '2-digit',
                           hour12: true,
                         })
+                      : doc.createdAt
+                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
                         : '-'}
                   </Typography>
                 </Box>

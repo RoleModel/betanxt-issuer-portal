@@ -1,22 +1,24 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { LinearProgress } from '@mui/material'
 
-// This page handles the base past-meeting route and redirects to tabulation
+// This page handles the base past-meeting route and redirects to the dashboard
 export default function PastMeetingPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const meetingId = params.meetingId as string
   const clientTicker = params.clientTicker as string
 
   useEffect(() => {
-    // Redirect to tabulation for past meetings
-    const targetPath = `/${clientTicker}/past-meeting/${meetingId}/tabulation`
+    // Redirect to dashboard for past meetings
+    const search = searchParams.toString()
+    const targetPath = `/${clientTicker}/past-meeting/${meetingId}/dashboard${search ? `?${search}` : ''}`
     router.replace(targetPath)
-  }, [clientTicker, meetingId, router])
+  }, [clientTicker, meetingId, router, searchParams])
 
   return <LinearProgress />
 }

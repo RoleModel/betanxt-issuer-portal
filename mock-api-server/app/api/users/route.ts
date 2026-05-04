@@ -1,22 +1,22 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.938Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { listUsers, createUser } from '@/domain-models/api/users'
+import { createUser, listUsers } from '@/domain-models/api/users'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url)
     const typeParam = searchParams.get('type') || undefined
-    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined = 
-      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam) 
-        ? typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'
+    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined =
+      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam)
+        ? (typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER')
         : undefined
     const accountId = searchParams.get('accountId') || undefined
 
@@ -25,10 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -36,10 +33,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listUsers'
+          operationId: 'listUsers',
         },
         { status: 500 }
       )
@@ -57,10 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
       )
     }
 
@@ -68,10 +62,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createUser'
+          operationId: 'createUser',
         },
         { status: 500 }
       )

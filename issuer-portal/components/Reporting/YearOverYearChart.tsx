@@ -22,9 +22,9 @@ import { CustomLegend } from './index'
 interface YearOverYearData {
   year: number
   participationRate: number
-  proposalsCount: number
-  passedCount: number
-  failedCount: number
+  registeredShares: number
+  beneficialShares: number
+  totalShares: number
 }
 
 interface YearOverYearChartProps {
@@ -36,7 +36,7 @@ interface YearOverYearChartProps {
 const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   data,
   loading = false,
-  title: _title = 'Year over Year Performance',
+  title: _title = 'Year over Year Registered vs Beneficial Performance',
 }) => {
   if (loading) {
     return <SkeletonChart height={320} showLegend noCard />
@@ -54,12 +54,12 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
 
   const legendItems = [
     {
-      label: 'Passed',
+      label: 'Registered',
       color: 'var(--mui-palette-chartSeries-1-main)',
       type: 'bar' as const,
     },
     {
-      label: 'Failed',
+      label: 'Beneficial',
       color: 'var(--mui-palette-chartSeries-4-main)',
       type: 'bar' as const,
     },
@@ -72,53 +72,36 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
 
   const years = data.map((item) => String(item.year))
   const participationRates = data.map((item) => item.participationRate)
-  const passedCounts = data.map((item) => item.passedCount)
-  const failedCounts = data.map((item) => item.failedCount)
+  const registeredShares = data.map((item) => item.registeredShares)
+  const beneficialShares = data.map((item) => item.beneficialShares)
 
-  // Fixed max of 10 proposals for chart display
-  const yAxisMax = 10
+  // Find the maximum total shares to set the y-axis scale
+  const maxTotalShares = Math.max(...data.map((item) => item.totalShares), 1)
 
-  // Background bars fill the remaining space to reach 100% height (yAxisMax)
-  const passedBackgrounds = passedCounts.map((passed) => Math.max(0, yAxisMax - passed))
-  const failedBackgrounds = failedCounts.map((failed) => Math.max(0, yAxisMax - failed))
+  // Round up to a nice number for the y-axis max
+  const yAxisMax = Math.ceil(maxTotalShares / 1000000) * 1000000
 
   return (
     <ChartDataProvider
-      // The configuration of the chart - two separate stacks for Passed and Failed columns
+      // The configuration of the chart - stacked bars for Registered and Beneficial
       series={[
-        // Passed column with background
+        // Registered shares
         {
           type: 'bar',
-          data: passedCounts,
-          label: 'Passed',
+          data: registeredShares,
+          label: 'Registered',
           color: 'var(--mui-palette-chartSeries-1-main)',
           yAxisId: 'leftAxis',
-          stack: 'passed',
+          stack: 'shares',
         },
+        // Beneficial shares
         {
           type: 'bar',
-          data: passedBackgrounds,
-          label: 'Passed Background',
-          color: 'rgba(0, 0, 0, 0.1)',
-          yAxisId: 'leftAxis',
-          stack: 'passed',
-        },
-        // Failed column with background
-        {
-          type: 'bar',
-          data: failedCounts,
-          label: 'Failed',
+          data: beneficialShares,
+          label: 'Beneficial',
           color: 'var(--mui-palette-chartSeries-4-main)',
           yAxisId: 'leftAxis',
-          stack: 'failed',
-        },
-        {
-          type: 'bar',
-          data: failedBackgrounds,
-          label: 'Failed Background',
-          color: 'rgba(0, 0, 0, 0.1)',
-          yAxisId: 'leftAxis',
-          stack: 'failed',
+          stack: 'shares',
         },
         {
           type: 'line',
@@ -143,6 +126,15 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           scaleType: 'linear',
           min: 0,
           max: yAxisMax,
+          valueFormatter: (value) => {
+            if (value >= 1000000) {
+              return `${(value / 1000000).toFixed(1)}M`
+            }
+            if (value >= 1000) {
+              return `${(value / 1000).toFixed(0)}K`
+            }
+            return value.toFixed(0)
+          },
         },
         {
           id: 'rightAxis',
@@ -154,7 +146,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         },
       ]}
       height={320}
-      margin={{ left: 10, right: 60, top: 10, bottom: 0 }}
+      margin={{ left: 0, right: 10, top: 10, bottom: 0 }}
     >
       <ChartsSurface>
         <ChartsGrid vertical horizontal />

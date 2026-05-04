@@ -79,7 +79,9 @@ export function useDigitalShareholderMeeting(
         statusText: response.statusText,
         error: errorText,
       })
-      throw new Error(`Failed to upload attendees: ${response.status} ${response.statusText}`)
+      throw new Error(
+        `Failed to upload attendees: ${response.status} ${response.statusText}`
+      )
     }
 
     const result = (await response.json()) as unknown

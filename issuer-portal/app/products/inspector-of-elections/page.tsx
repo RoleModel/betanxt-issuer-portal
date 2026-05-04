@@ -10,12 +10,12 @@ import { useState } from 'react'
 
 import { Card, CardContent, CardHeader, Stack, Typography } from '@mui/material'
 
+import { ContentTitle } from '@/components/ContentTitle'
 import DocumentViewer from '@/components/Documents/DocumentViewer'
 import FeatureTile from '@/components/FeatureTile'
 import ProductsLayout from '@/components/Layout/ProductLayout'
 import CTACard from '@/components/Products/CTACard'
 import { SidebarCard } from '@/components/Products/SidebarCard'
-import { ContentTitle } from '@/components/ContentTitle'
 
 export default function InspectorOfElectionsPage() {
   const [open, setOpen] = useState(false)
@@ -78,11 +78,14 @@ export default function InspectorOfElectionsPage() {
 
   const leftColumnContent = (
     <Stack useFlexGap gap={2}>
-      <ContentTitle
-        title="Ensure legal compliance and voting accuracy with certified oversight solutions"
-      />
+      <ContentTitle title="Ensure legal compliance and voting accuracy with certified oversight solutions" />
       <Typography variant="body1">
-        Most states require an Inspector of Election to ensure the propriety of shareholder voting processes. BetaNXT provides certified Inspector of Elections services that tabulate votes with precision, ensure regulatory compliance, and make legally binding declarations of results. Our experienced team manages the entire oversight process, from pre-meeting preparation to final result certification.
+        Most states require an Inspector of Election to ensure the propriety of
+        shareholder voting processes. BetaNXT provides certified Inspector of Elections
+        services that tabulate votes with precision, ensure regulatory compliance, and
+        make legally binding declarations of results. Our experienced team manages the
+        entire oversight process, from pre-meeting preparation to final result
+        certification.
       </Typography>
       <Card>
         <CardHeader title="Benefits" />
@@ -112,7 +115,7 @@ export default function InspectorOfElectionsPage() {
         </CardContent>
       </Card>
       <CTACard />
-    </Stack >
+    </Stack>
   )
 
   const rightColumnContent = (

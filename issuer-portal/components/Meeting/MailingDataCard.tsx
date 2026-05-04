@@ -39,29 +39,36 @@ const formatNumber = (num: number | null | undefined): string => {
   return num.toLocaleString('en-US')
 }
 
-const buildMetricsFromMailing = (mailing: MailingType | null): MailingMetric[] => {
-  if (!mailing) return []
-
-  return [
-    { label: 'Totals', group: 'section' },
-    { label: 'Accounts', value: formatNumber(mailing.totalAccounts) },
-    { label: 'Positions', value: formatNumber(mailing.totalPositions) },
-    { label: 'Retransmissions', value: formatNumber(mailing.totalRetransmissions) },
-    { label: 'Rollups', value: formatNumber(mailing.totalRollups) },
-    { label: 'Mail Positions', group: 'section' },
-    { label: 'Full Set', value: formatNumber(mailing.fullsetMailPositions) },
-    { label: 'NAA', value: formatNumber(mailing.naaMailPositions) },
-    { label: 'Courtesy/Other', value: formatNumber(mailing.courtesyOtherMailPositions) },
-    { label: 'Electronic', value: formatNumber(mailing.electronicSuppressedPositions) },
-    { label: 'Suppressed Positions', group: 'section' },
-    { label: 'Household', value: formatNumber(mailing.householdSuppressedPositions) },
-    {
-      label: 'Consolidated',
-      value: formatNumber(mailing.consolidatedSuppressedPositions),
-    },
-    { label: 'Canceled', value: formatNumber(mailing.canceledSuppressedPositions) },
-  ]
+interface MetricDefinition {
+  label: string
+  group?: string
+  key?: keyof MailingType
 }
+
+const METRIC_DEFINITIONS: MetricDefinition[] = [
+  { label: 'Totals', group: 'section' },
+  { label: 'Accounts', key: 'totalAccounts' },
+  { label: 'Positions', key: 'totalPositions' },
+  { label: 'Retransmissions', key: 'totalRetransmissions' },
+  { label: 'Rollups', key: 'totalRollups' },
+  { label: 'Mail Positions', group: 'section' },
+  { label: 'Full Set', key: 'fullsetMailPositions' },
+  { label: 'NAA', key: 'naaMailPositions' },
+  { label: 'Courtesy/Other', key: 'courtesyOtherMailPositions' },
+  { label: 'Electronic', key: 'electronicSuppressedPositions' },
+  { label: 'Suppressed Positions', group: 'section' },
+  { label: 'Household', key: 'householdSuppressedPositions' },
+  { label: 'Consolidated', key: 'consolidatedSuppressedPositions' },
+  { label: 'Canceled', key: 'canceledSuppressedPositions' },
+]
+
+const buildMetricsFromMailing = (mailing: MailingType | null): MailingMetric[] =>
+  METRIC_DEFINITIONS.map((def) => {
+    if (def.group) return { label: def.label, group: def.group }
+    const raw = def.key && mailing ? mailing[def.key] : null
+    const value = typeof raw === 'number' ? formatNumber(raw) : '0'
+    return { label: def.label, value }
+  })
 
 const MailingDataCard: React.FC<MailingDataCardProps> = ({
   meetingId,
@@ -110,7 +117,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
 
   return (
     <Card variant="outlined" elevation={0}>
-      <CardContent sx={{ '&:last-child': { pb: 0 } }}>
+      <CardContent sx={{ '&:last-child': { p: 0, overflowX: 'auto' } }}>
         <Table size="small" sx={{ width: '100%', border: 'none' }}>
           <SROnlyTableCaption>
             Mailing job status and breakdown metrics.

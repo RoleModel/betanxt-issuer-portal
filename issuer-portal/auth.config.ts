@@ -17,15 +17,19 @@ export default {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Check if auth bypass is enabled
-        if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-          // Return a mock user for development
+        // Auth bypass for development - only for auto-sign-in (bypass/bypass credentials)
+        if (
+          process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' &&
+          credentials?.username === 'bypass' &&
+          credentials?.password === 'bypass'
+        ) {
+          const bypassRole = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || 'ADMIN'
           return {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             name: 'Dev User',
             email: 'dev@example.com',
             username: 'devuser',
-            type: process.env.NEXT_PUBLIC_BYPASS_USER_ROLE?.toLowerCase() || 'admin',
+            type: bypassRole,
             account_id: 'd607d704-0222-5a41-abd8-552ffa17c36c',
             client_ticker: null,
           }
@@ -134,32 +138,9 @@ export default {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ request, auth }) {
-      const { nextUrl } = request
-      const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-
-      if (bypassAuth) {
-        return true
-      }
-
-      const isAuthenticated = !!auth?.user
-
-      // Allow access to login page
-      if (nextUrl.pathname.includes('/login')) {
-        return true
-      }
-
-      // Require authentication for all other pages
-      if (!isAuthenticated) {
-        return false
-      }
-
-      // Check admin routes
-      if (nextUrl.pathname.startsWith('/user')) {
-        const roles = Array.isArray(auth?.user?.roles) ? auth.user.roles : []
-        return roles.includes('ADMIN')
-      }
-
+    authorized() {
+      // Auth redirects are handled server-side by proxy.ts (cookie check).
+      // Always return true here to avoid double-redirect conflicts.
       return true
     },
     async jwt({ token, user, trigger, session: updateData }) {
@@ -169,6 +150,7 @@ export default {
         token.account_id = user.account_id
         token.client_ticker = user.client_ticker
         token.username = user.username
+        token.image = undefined // Reset avatar on new sign-in
         token.roles =
           user.type === 'admin' || user.type === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER']
       }

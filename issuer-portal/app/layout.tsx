@@ -7,15 +7,16 @@ import { Roboto, Roboto_Condensed } from 'next/font/google'
 import localFont from 'next/font/local'
 import React from 'react'
 
-import GlobalStyle from '@/components/mui-styling/GlobalStyles'
-import RootLayoutClient from '@/components/Layout/RootLayoutClient'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type { } from '@mui/material/themeCssVarsAugmentation'
+import type {} from '@mui/material/themeCssVarsAugmentation'
 
 import '@/components/Documents/react-pdf.css'
+import RootLayoutClient from '@/components/Layout/RootLayoutClient'
+import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
 
+import { ChatbotProvider } from '@/contexts/ChatbotContext'
 import { ClientProvider } from '@/contexts/ClientContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 
@@ -68,16 +69,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <InitColorSchemeScript attribute="class" />
-        <AppRouterCacheProvider>
+        <AppRouterCacheProvider options={{ key: 'mui', enableCssLayer: true }}>
           <SessionProvider>
             <ClientProvider>
               <NotificationProvider>
-                <ThemeRegistry>
-                  <GlobalStyle />
-                  <RootLayoutClient>
-                    {children}
-                  </RootLayoutClient>
-                </ThemeRegistry>
+                <ChatbotProvider>
+                  <ThemeRegistry>
+                    <GlobalStyle />
+                    <RootLayoutClient>{children}</RootLayoutClient>
+                  </ThemeRegistry>
+                </ChatbotProvider>
               </NotificationProvider>
             </ClientProvider>
           </SessionProvider>

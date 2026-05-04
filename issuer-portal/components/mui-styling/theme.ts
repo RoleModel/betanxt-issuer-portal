@@ -7,10 +7,20 @@ import {
   basePaletteDark,
   basePaletteLight,
 } from '@rolemodel/betanxt-design-system/themes/base/palette'
+import {
+  bnblue,
+  bnteal,
+  celery,
+  gold,
+  orangered,
+  persimmon,
+  seagrass,
+} from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { nxtBlue } from '@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens'
 import { shadows } from '@rolemodel/betanxt-design-system/themes/base/shadows'
 import { typography as baseTypography } from '@rolemodel/betanxt-design-system/themes/base/typography'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
+import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
+import type { } from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import {
   blue,
@@ -23,12 +33,144 @@ import {
   purple,
   teal,
 } from '@mui/material/colors'
-import type { PaletteColor, PaletteColorOptions, Theme } from '@mui/material/styles'
+import type {
+  PaletteColor,
+  PaletteColorOptions,
+  SimplePaletteColorOptions,
+  Theme,
+} from '@mui/material/styles'
 import { darken, getContrastRatio, lighten } from '@mui/material/styles'
 import { deepmerge } from '@mui/utils'
-import type {} from '@mui/x-date-pickers/themeAugmentation'
+import type { } from '@mui/x-date-pickers/themeAugmentation'
 
+import { brandConfigsByTicker } from '@/utils/brandConfig'
 import { clientBranding } from '@/utils/clientBranding'
+
+/** Safely extract `main` from a PaletteColorOptions value. */
+const paletteMain = (color: PaletteColorOptions): string =>
+  (color as SimplePaletteColorOptions).main
+
+const jobStatusColorsLight = {
+  statusProofing: {
+    main: bnblue[600],
+    dark: bnblue[700],
+    light: bnblue[400],
+    contrastText: '#ffffff',
+  },
+  statusPulls: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusProduction: {
+    main: celery[500],
+    dark: celery[900],
+    light: celery[400],
+    contrastText: '#000000',
+  },
+  statusDoNotDistribute: {
+    contrastText: '#ffffff',
+    main: persimmon[800],
+    dark: persimmon[900],
+    light: persimmon[500],
+  },
+  statusFlagged: {
+    main: orangered[500],
+    dark: orangered[700],
+    light: orangered[400],
+    contrastText: '#ffffff',
+  },
+  statusPending: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusApproved: {
+    main: seagrass[600],
+    dark: seagrass[700],
+    light: seagrass[400],
+    contrastText: '#ffffff',
+  },
+  statusUnapproved: {
+    main: bnteal[500],
+    dark: bnteal[700],
+    light: bnteal[300],
+    contrastText: '#ffffff',
+  },
+  statusRejected: {
+    main: betanxtTheme.palette.error.main,
+    dark: betanxtTheme.palette.error.dark,
+    light: betanxtTheme.palette.error.light,
+    contrastText: betanxtTheme.palette.error.contrastText,
+  },
+  statusComplete: {
+    main: betanxtTheme.palette.success.main,
+    dark: betanxtTheme.palette.success.dark,
+    light: betanxtTheme.palette.success.light,
+    contrastText: betanxtTheme.palette.success.contrastText,
+  },
+  statusReceived: {
+    main: paletteMain(betanxtTheme.vars.palette.neutral),
+    contrastText: betanxtTheme.vars.palette.text.primary,
+  },
+}
+
+const jobStatusColorsDark = {
+  statusPulls: {
+    main: gold[400],
+    dark: gold[500],
+    light: gold[300],
+    contrastText: '#000000',
+  },
+  statusProduction: {
+    main: celery[500],
+    dark: celery[600],
+    light: celery[300],
+    contrastText: '#000000',
+  },
+  statusProofing: {
+    main: bnblue[400],
+    dark: bnblue[600],
+    light: bnblue[500],
+    contrastText: '#000000',
+  },
+  statusDoNotDistribute: {
+    main: persimmon[500],
+    dark: persimmon[700],
+    light: persimmon[400],
+    contrastText: '#000000',
+  },
+  statusFlagged: {
+    main: orangered[500],
+    dark: orangered[700],
+    light: orangered[400],
+    contrastText: '#ffffff',
+  },
+  statusPending: {
+    main: gold[500],
+    dark: gold[800],
+    light: gold[400],
+    contrastText: '#000000',
+  },
+  statusApproved: {
+    main: seagrass[400],
+    dark: seagrass[900],
+    light: seagrass[700],
+    contrastText: '#ffffff',
+  },
+  statusUnapproved: {
+    main: bnteal[300],
+    dark: bnteal[400],
+    light: bnteal[500],
+    contrastText: '#ffffff',
+  },
+  statusReceived: {
+    main: betanxtTheme.vars.palette.action.selected,
+    contrastText: betanxtTheme.vars.palette.text.primary,
+  },
+}
 
 // Manually reconstruct baseThemeOptions to avoid duplicate CSS variable injection
 const baseThemeOptions = {
@@ -37,10 +179,16 @@ const baseThemeOptions = {
   },
   colorSchemes: {
     light: {
-      palette: basePaletteLight,
+      palette: {
+        ...basePaletteLight,
+        ...jobStatusColorsLight,
+      },
     },
     dark: {
-      palette: basePaletteDark,
+      palette: {
+        ...basePaletteDark,
+        ...jobStatusColorsDark,
+      },
       overlays: createBaseDarkOverlays(),
     },
   },
@@ -210,6 +358,32 @@ const getClientBranding = (ticker?: string) => {
     }) => b.ticker.toLowerCase() === ticker.toLowerCase()
   )
 
+  // Fall back to brandConfig colors for the 50+ companies not in the hardcoded list
+  if (!branding) {
+    const brand = brandConfigsByTicker[ticker.toUpperCase()]
+    if (brand) {
+      const fallbackBranding = {
+        ticker: brand.ticker ?? ticker.toUpperCase(),
+        primaryColor: brand.primaryColor,
+        secondaryColor: brand.secondaryColor,
+        tertiaryColor: brand.secondaryColor, // use secondary as tertiary
+      }
+      return {
+        ...fallbackBranding,
+        primaryContrastText:
+          getContrastRatio(fallbackBranding.primaryColor, '#fff') > 4.5 ? '#fff' : '#111',
+        secondaryContrastText:
+          getContrastRatio(fallbackBranding.secondaryColor, '#fff') > 4.5
+            ? '#fff'
+            : '#111',
+        tertiaryContrastText:
+          getContrastRatio(fallbackBranding.tertiaryColor, '#fff') > 4.5
+            ? '#fff'
+            : '#111',
+      }
+    }
+  }
+
   const selectedBranding = branding ?? clientBranding[0]
 
   return {
@@ -318,16 +492,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-          ],
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[500],
         },
       },
@@ -402,16 +576,16 @@ export const createClientTheme = (ticker?: string) => {
               contrastText: grey[50],
             },
           ] as [
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-            PaletteColor,
-          ],
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+              PaletteColor,
+            ],
           complete: grey[600],
         },
       },
@@ -436,10 +610,17 @@ export const createClientTheme = (ticker?: string) => {
       MuiLink: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
-            // ...theme.typography.body3,
+            '--Link-underlineColor': theme.vars.palette.link,
             color: theme.vars.palette.link,
             fontWeight: 500,
           }),
+        },
+      },
+      MuiTimelineItem: {
+        styleOverrides: {
+          root: {
+            minHeight: 40,
+          },
         },
       },
       MuiCardContent: {
@@ -600,6 +781,17 @@ export const createClientTheme = (ticker?: string) => {
             '& .MuiTableHead-root': {
               backgroundColor: theme.vars?.palette.tableHeaderRow.restingFill,
               borderRadius: 0,
+              '& :has(.MuiTableSortLabel-root):hover': {
+                backgroundColor: theme.vars?.palette.action.hover,
+              },
+              '& .MuiTableCell-root:has(.MuiTableSortLabel-root)': {
+                padding: 0,
+              },
+              '&:has(.MuiTableSortLabel-root) .MuiTableSortLabel-root ': {
+                padding: theme.spacing(2),
+                justifyContent: 'space-between',
+                inlineSize: '100%',
+              },
             },
             '& .MuiTableCell-root': {
               fontSize: theme.typography.dataCell.fontSize,
@@ -672,3 +864,5 @@ export const wendysThemeOptions = createClientTheme('WEN')
 export const paycomThemeOptions = createClientTheme('PAYC')
 export const woodwardThemeOptions = createClientTheme('WWD')
 export const elevenThemeOptions = createClientTheme('ELVN')
+export const dfinThemeOptions = createClientTheme('DFIN')
+export const morrowSodaliThemeOptions = createClientTheme('MRSO')

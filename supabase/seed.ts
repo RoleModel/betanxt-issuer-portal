@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { copycat } from '@snaplet/copycat'
+import { existsSync } from 'fs'
 import { DateTime } from 'luxon'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -142,10 +143,7 @@ const buildResultsFromCsvProposal = (
     proposal.votesTotal || totalVotesCalculated
   )
 
-  const totalSharesEligible = Math.max(
-    totalSharesOutstanding || totalVotes,
-    totalVotes
-  )
+  const totalSharesEligible = Math.max(totalSharesOutstanding || totalVotes, totalVotes)
 
   const forPercentage = totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0
   const againstPercentage = totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0
@@ -675,127 +673,245 @@ const main = async () => {
     voteStatusSummary: VoteStatusSummary | null
   } | null = null
 
+  const csvFileExists = (relativePath: string): boolean =>
+    existsSync(path.join(__dirname, relativePath))
+
   try {
-    // Load Wendy's data if available
-    if (seedConfig.csvFiles.wendysMeetingInfo) {
+    // Load Wendy's data if available — proposals and meeting info are loaded independently of positions
+    const wendysMeetingFile = seedConfig.csvFiles.wendysMeetingInfo
+    const wendysProposalsFile = seedConfig.csvFiles.wendysProposals
+    const wendysPositionsFile = seedConfig.csvFiles.wendysPositions
+    const hasWendysMeeting = wendysMeetingFile && csvFileExists(wendysMeetingFile)
+    const hasWendysProposals = wendysProposalsFile && csvFileExists(wendysProposalsFile)
+    const hasWendysPositions = wendysPositionsFile && csvFileExists(wendysPositionsFile)
+    if (hasWendysMeeting && hasWendysProposals) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.wendysMeetingInfo)
+        path.join(__dirname, wendysMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.wendysProposals)
+        path.join(__dirname, wendysProposalsFile)
       )
-      const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.wendysPositions),
-        '95058W100',
-        65000 // Load all Wendy's positions
-      )
+      const positions = hasWendysPositions
+        ? await CSVProcessor.processCompanyPositions(
+          path.join(__dirname, wendysPositionsFile),
+          '95058W100',
+          65000
+        )
+        : []
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.wendysDTC && seedConfig.csvFiles.wendysNonDTC) {
+      const dtcFile = seedConfig.csvFiles.wendysDTC
+      const nonDtcFile = seedConfig.csvFiles.wendysNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.wendysDTC),
-          path.join(__dirname, seedConfig.csvFiles.wendysNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       wendysData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Wendy's CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Enliven data if available
-    if (seedConfig.csvFiles.enlivenMeetingInfo) {
+    // Load Enliven data if available and all required files exist
+    const enlivenMeetingFile = seedConfig.csvFiles.enlivenMeetingInfo
+    const enlivenProposalsFile = seedConfig.csvFiles.enlivenProposals
+    const enlivenPositionsFile = seedConfig.csvFiles.enlivenPositions
+    if (
+      enlivenMeetingFile &&
+      enlivenProposalsFile &&
+      enlivenPositionsFile &&
+      csvFileExists(enlivenMeetingFile) &&
+      csvFileExists(enlivenProposalsFile) &&
+      csvFileExists(enlivenPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.enlivenMeetingInfo)
+        path.join(__dirname, enlivenMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.enlivenProposals)
+        path.join(__dirname, enlivenProposalsFile)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.enlivenPositions),
+        path.join(__dirname, enlivenPositionsFile),
         '29337E102',
-        5000 // Load all Enliven positions
+        5000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.enlivenDTC && seedConfig.csvFiles.enlivenNonDTC) {
+      const dtcFile = seedConfig.csvFiles.enlivenDTC
+      const nonDtcFile = seedConfig.csvFiles.enlivenNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.enlivenDTC),
-          path.join(__dirname, seedConfig.csvFiles.enlivenNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       enlivenData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Enliven CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Paycom data if available
-    if (seedConfig.csvFiles.paycomMeetingInfo) {
+    // Load Paycom data if available and all required files exist
+    const paycomMeetingFile = seedConfig.csvFiles.paycomMeetingInfo
+    const paycomProposalsFile = seedConfig.csvFiles.paycomProposals
+    const paycomPositionsFile = seedConfig.csvFiles.paycomPositions
+    if (
+      paycomMeetingFile &&
+      paycomProposalsFile &&
+      paycomPositionsFile &&
+      csvFileExists(paycomMeetingFile) &&
+      csvFileExists(paycomProposalsFile) &&
+      csvFileExists(paycomPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.paycomMeetingInfo)
+        path.join(__dirname, paycomMeetingFile)
       )
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, seedConfig.csvFiles.paycomProposals)
+        path.join(__dirname, paycomProposalsFile)
       )
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.paycomPositions),
+        path.join(__dirname, paycomPositionsFile),
         '70432V102',
-        100000 // Load all Paycom positions
+        100000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.paycomDTC && seedConfig.csvFiles.paycomNonDTC) {
+      const dtcFile = seedConfig.csvFiles.paycomDTC
+      const nonDtcFile = seedConfig.csvFiles.paycomNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.paycomDTC),
-          path.join(__dirname, seedConfig.csvFiles.paycomNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       paycomData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Paycom CSV data (files not found) — using synthetic data`)
     }
 
-    // Load Woodward data if available
-    if (seedConfig.csvFiles.woodwardMeetingInfo) {
+    // Load Woodward data if available and all required files exist
+    const woodwardMeetingFile = seedConfig.csvFiles.woodwardMeetingInfo
+    const woodwardPositionsFile = seedConfig.csvFiles.woodwardPositions
+    if (
+      woodwardMeetingFile &&
+      woodwardPositionsFile &&
+      csvFileExists(woodwardMeetingFile) &&
+      csvFileExists(woodwardPositionsFile)
+    ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, seedConfig.csvFiles.woodwardMeetingInfo)
+        path.join(__dirname, woodwardMeetingFile)
       )
-      const proposals = seedConfig.csvFiles.woodwardProposals
-        ? await CSVProcessor.processCompanyProposals(
-          path.join(__dirname, seedConfig.csvFiles.woodwardProposals)
-        )
-        : []
+      const woodwardProposalsFile = seedConfig.csvFiles.woodwardProposals
+      const proposals =
+        woodwardProposalsFile && csvFileExists(woodwardProposalsFile)
+          ? await CSVProcessor.processCompanyProposals(
+            path.join(__dirname, woodwardProposalsFile)
+          )
+          : []
       const positions = await CSVProcessor.processCompanyPositions(
-        path.join(__dirname, seedConfig.csvFiles.woodwardPositions),
+        path.join(__dirname, woodwardPositionsFile),
         '980745103',
-        100000 // Load all Woodward positions
+        100000
       )
 
-      // Load vote status summary data
       let voteStatusSummary: VoteStatusSummary | null = null
-      if (seedConfig.csvFiles.woodwardDTC && seedConfig.csvFiles.woodwardNonDTC) {
+      const dtcFile = seedConfig.csvFiles.woodwardDTC
+      const nonDtcFile = seedConfig.csvFiles.woodwardNonDTC
+      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
-          path.join(__dirname, seedConfig.csvFiles.woodwardDTC),
-          path.join(__dirname, seedConfig.csvFiles.woodwardNonDTC)
+          path.join(__dirname, dtcFile),
+          path.join(__dirname, nonDtcFile)
         )
       }
 
       woodwardData = { meetingInfo, proposals, positions, voteStatusSummary }
       console.error(
-        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions, ${voteStatusSummary ? 'with vote status summary' : 'without vote status summary'}`
+        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions`
       )
+    } else {
+      console.error(`Skipping Woodward CSV data (files not found) — using synthetic data`)
     }
   } catch (error) {
     console.error('Error loading company CSV data:', error)
     // Continue with seed generation even if CSV loading fails
+  }
+
+  // Generic CSV data map for ALL companies (keyed by ticker)
+  type CompanyCsvData = {
+    meetingInfo: Awaited<ReturnType<typeof CSVProcessor.processCompanyMeetingInfo>>
+    proposals: Awaited<ReturnType<typeof CSVProcessor.processCompanyProposals>>
+    positions: Awaited<ReturnType<typeof CSVProcessor.processCompanyPositions>>
+    voteStatusSummary: VoteStatusSummary | null
+  }
+  const companyCsvDataMap: Record<string, CompanyCsvData> = {}
+
+  // Store existing loaded data in map
+  if (wendysData) companyCsvDataMap['WEN'] = wendysData
+  if (enlivenData) companyCsvDataMap['ELVN'] = enlivenData
+  if (paycomData) companyCsvDataMap['PAYC'] = paycomData
+  if (woodwardData) companyCsvDataMap['WWD'] = woodwardData
+
+  // Auto-discover and load CSV files for all remaining companies
+  const companyNameToSlug = (name: string): string =>
+    name
+      .replace(/\./g, ' ') // Convert periods to spaces (e.g., "J.P." → "J P ")
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .toLowerCase()
+
+  try {
+    for (const client of seedConfig.clients) {
+      if (companyCsvDataMap[client.ticker]) continue // Already loaded above
+      if (client.ticker === 'DFIN') continue // Service provider — skip
+
+      const slug = companyNameToSlug(client.companyName)
+      const meetingPath = `../data/${slug}_meeting_info.csv`
+      const proposalsPath = `../data/${slug}_proposals.csv`
+
+      const hasMeeting = csvFileExists(meetingPath)
+      const hasProposals = csvFileExists(proposalsPath)
+
+      if (hasMeeting || hasProposals) {
+        const meetingInfo = hasMeeting
+          ? await CSVProcessor.processCompanyMeetingInfo(
+            path.join(__dirname, meetingPath)
+          )
+          : null
+        const proposals = hasProposals
+          ? await CSVProcessor.processCompanyProposals(
+            path.join(__dirname, proposalsPath)
+          )
+          : []
+
+        companyCsvDataMap[client.ticker] = {
+          meetingInfo,
+          proposals,
+          positions: [],
+          voteStatusSummary: null,
+        }
+        console.error(
+          `Loaded ${client.ticker} (${slug}) data: ${proposals.length} proposals`
+        )
+      }
+    }
+    console.error(
+      `Total companies with CSV data: ${Object.keys(companyCsvDataMap).length}`
+    )
+  } catch (error) {
+    console.error('Error loading generic company CSV data:', error)
   }
 
   // Add header comment
@@ -964,19 +1080,121 @@ const main = async () => {
   const meetingPhaseMap: Record<string, number> = {}
 
   // Real 2025 Annual Meeting data from CSV files
-  const real2025Meetings = {
+  const real2025Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
     WEN: { meetingDate: '2025-05-21', recordDate: '2025-03-24' },
     PAYC: { meetingDate: '2025-05-05', recordDate: '2025-03-12' },
     WWD: { meetingDate: '2025-01-29', recordDate: '2024-12-02' },
     ELVN: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
+    JPMR: { meetingDate: '2025-04-15', recordDate: '2025-02-14' },
+    WAL: { meetingDate: '2025-04-17', recordDate: '2025-02-16' },
+    ILG: { meetingDate: '2025-04-22', recordDate: '2025-02-21' },
+    PHX: { meetingDate: '2025-04-24', recordDate: '2025-02-23' },
+    ETWO: { meetingDate: '2025-04-29', recordDate: '2025-02-28' },
+    ARTV: { meetingDate: '2025-04-30', recordDate: '2025-03-01' },
+    BCSF: { meetingDate: '2025-05-06', recordDate: '2025-03-07' },
+    FREQ: { meetingDate: '2025-05-07', recordDate: '2025-03-08' },
+    TBIO: { meetingDate: '2025-05-08', recordDate: '2025-03-09' },
+    CHH: { meetingDate: '2025-05-13', recordDate: '2025-03-14' },
+    AMTB: { meetingDate: '2025-05-14', recordDate: '2025-03-15' },
+    AMAM: { meetingDate: '2025-05-15', recordDate: '2025-03-16' },
+    STTK: { meetingDate: '2025-05-19', recordDate: '2025-03-20' },
+    HLVX: { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    MDLZ: { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    INAB: { meetingDate: '2025-05-21', recordDate: '2025-03-22' },
+    QRHC: { meetingDate: '2025-05-22', recordDate: '2025-03-23' },
+    SLGC: { meetingDate: '2025-05-27', recordDate: '2025-03-28' },
+    ICU: { meetingDate: '2025-05-28', recordDate: '2025-03-29' },
+    NOMD: { meetingDate: '2025-05-28', recordDate: '2025-03-29' },
+    BBIO: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    SONM: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    CTNM: { meetingDate: '2025-06-04', recordDate: '2025-04-05' },
+    AZTR: { meetingDate: '2025-06-04', recordDate: '2025-04-05' },
+    FULC: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    PTLO: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    LAC: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
+    LCTX: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
+    CALC: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    PCOR: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    SPRY: { meetingDate: '2025-06-12', recordDate: '2025-04-13' },
+    INZY: { meetingDate: '2025-06-12', recordDate: '2025-04-13' },
+    AFRM: { meetingDate: '2025-06-17', recordDate: '2025-04-18' },
+    TOI: { meetingDate: '2025-06-17', recordDate: '2025-04-18' },
+    GOSS: { meetingDate: '2025-06-18', recordDate: '2025-04-19' },
+    ALGS: { meetingDate: '2025-06-19', recordDate: '2025-04-20' },
+    ERAS: { meetingDate: '2025-06-24', recordDate: '2025-04-25' },
+    IDYA: { meetingDate: '2025-06-25', recordDate: '2025-04-26' },
+    CD: { meetingDate: '2025-06-26', recordDate: '2025-04-27' },
+    ENRS: { meetingDate: '2025-04-22', recordDate: '2025-02-21' },
+    EHAB: { meetingDate: '2025-05-08', recordDate: '2025-03-09' },
+    VANI: { meetingDate: '2025-05-15', recordDate: '2025-03-16' },
+    MDGL: { meetingDate: '2025-05-22', recordDate: '2025-03-23' },
+    CBNA: { meetingDate: '2025-06-05', recordDate: '2025-04-06' },
+    INTT: { meetingDate: '2025-06-11', recordDate: '2025-04-12' },
+    DFIN: { meetingDate: '2025-04-24', recordDate: '2025-02-23' },
+    VAPO: { meetingDate: '2025-05-01', recordDate: '2025-03-02' },
+    SQZ: { meetingDate: '2025-05-13', recordDate: '2025-03-14' },
+    NEX: { meetingDate: '2025-05-20', recordDate: '2025-03-21' },
+    MNMD: { meetingDate: '2025-06-03', recordDate: '2025-04-04' },
+    ADPT: { meetingDate: '2025-06-10', recordDate: '2025-04-11' },
   }
 
-  // 2026 Annual Meeting dates (mid-April to mid-June 2026 for realistic planning timeline)
-  const real2026Meetings = {
+  // 2026 Annual Meeting dates (mid-April to late-June 2026 for realistic planning timeline)
+  const real2026Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
     WEN: { meetingDate: '2026-05-20', recordDate: '2026-03-23' },
     PAYC: { meetingDate: '2026-05-04', recordDate: '2026-03-11' },
     WWD: { meetingDate: '2026-04-15', recordDate: '2026-02-16' },
     ELVN: { meetingDate: '2026-06-10', recordDate: '2026-04-13' },
+    JPMR: { meetingDate: '2026-04-14', recordDate: '2026-02-13' },
+    WAL: { meetingDate: '2026-04-16', recordDate: '2026-02-15' },
+    ILG: { meetingDate: '2026-04-21', recordDate: '2026-02-20' },
+    PHX: { meetingDate: '2026-04-23', recordDate: '2026-02-22' },
+    ETWO: { meetingDate: '2026-04-28', recordDate: '2026-02-27' },
+    ARTV: { meetingDate: '2026-04-29', recordDate: '2026-02-28' },
+    BCSF: { meetingDate: '2026-05-05', recordDate: '2026-03-06' },
+    FREQ: { meetingDate: '2026-05-06', recordDate: '2026-03-07' },
+    TBIO: { meetingDate: '2026-05-07', recordDate: '2026-03-08' },
+    CHH: { meetingDate: '2026-05-12', recordDate: '2026-03-13' },
+    AMTB: { meetingDate: '2026-05-13', recordDate: '2026-03-14' },
+    AMAM: { meetingDate: '2026-05-14', recordDate: '2026-03-15' },
+    STTK: { meetingDate: '2026-05-18', recordDate: '2026-03-19' },
+    HLVX: { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    MDLZ: { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    INAB: { meetingDate: '2026-05-20', recordDate: '2026-03-21' },
+    QRHC: { meetingDate: '2026-05-21', recordDate: '2026-03-22' },
+    SLGC: { meetingDate: '2026-05-26', recordDate: '2026-03-27' },
+    ICU: { meetingDate: '2026-05-27', recordDate: '2026-03-28' },
+    NOMD: { meetingDate: '2026-05-27', recordDate: '2026-03-28' },
+    BBIO: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    SONM: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    CTNM: { meetingDate: '2026-06-03', recordDate: '2026-04-04' },
+    AZTR: { meetingDate: '2026-06-03', recordDate: '2026-04-04' },
+    FULC: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    PTLO: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    LAC: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
+    LCTX: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
+    CALC: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    PCOR: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    SPRY: { meetingDate: '2026-06-11', recordDate: '2026-04-12' },
+    INZY: { meetingDate: '2026-06-11', recordDate: '2026-04-12' },
+    AFRM: { meetingDate: '2026-06-16', recordDate: '2026-04-17' },
+    TOI: { meetingDate: '2026-06-16', recordDate: '2026-04-17' },
+    GOSS: { meetingDate: '2026-06-17', recordDate: '2026-04-18' },
+    ALGS: { meetingDate: '2026-06-18', recordDate: '2026-04-19' },
+    ERAS: { meetingDate: '2026-06-23', recordDate: '2026-04-24' },
+    IDYA: { meetingDate: '2026-06-24', recordDate: '2026-04-25' },
+    CD: { meetingDate: '2026-06-25', recordDate: '2026-04-26' },
+    ENRS: { meetingDate: '2026-04-21', recordDate: '2026-02-20' },
+    EHAB: { meetingDate: '2026-05-07', recordDate: '2026-03-08' },
+    VANI: { meetingDate: '2026-05-14', recordDate: '2026-03-15' },
+    MDGL: { meetingDate: '2026-05-21', recordDate: '2026-03-22' },
+    CBNA: { meetingDate: '2026-06-04', recordDate: '2026-04-05' },
+    INTT: { meetingDate: '2026-06-10', recordDate: '2026-04-11' },
+    DFIN: { meetingDate: '2026-04-23', recordDate: '2026-02-22' },
+    VAPO: { meetingDate: '2026-04-30', recordDate: '2026-03-01' },
+    SQZ: { meetingDate: '2026-05-12', recordDate: '2026-03-13' },
+    NEX: { meetingDate: '2026-05-19', recordDate: '2026-03-20' },
+    MNMD: { meetingDate: '2026-06-02', recordDate: '2026-04-03' },
+    ADPT: { meetingDate: '2026-06-09', recordDate: '2026-04-10' },
   }
 
   // 2 meetings per year: Annual + Special for 2022-2026
@@ -1028,7 +1246,7 @@ const main = async () => {
           // Use real CSV-based dates for 2025 and 2026
           const realDataSource =
             yearConfig.year === 2026 ? real2026Meetings : real2025Meetings
-          const realData = realDataSource[client.ticker as keyof typeof realDataSource]
+          const realData = realDataSource[client.ticker]
 
           if (realData) {
             meetingDateTime = DateTime.fromISO(realData.meetingDate)
@@ -1121,27 +1339,12 @@ const main = async () => {
         )
 
         if (yearConfig.year === 2025 && meeting.type === 'Annual Meeting') {
+          const tickerData = companyCsvDataMap[client.ticker]
           const csvPositions: CompanyPositionData[] | null | undefined =
-            client.ticker === 'WEN'
-              ? wendysData?.positions
-              : client.ticker === 'ELVN'
-                ? enlivenData?.positions
-                : client.ticker === 'PAYC'
-                  ? paycomData?.positions
-                  : client.ticker === 'WWD'
-                    ? woodwardData?.positions
-                    : null
+            tickerData?.positions ?? null
 
           const voteSummary: VoteStatusSummary | null | undefined =
-            client.ticker === 'WEN'
-              ? wendysData?.voteStatusSummary
-              : client.ticker === 'ELVN'
-                ? enlivenData?.voteStatusSummary
-                : client.ticker === 'PAYC'
-                  ? paycomData?.voteStatusSummary
-                  : client.ticker === 'WWD'
-                    ? woodwardData?.voteStatusSummary
-                    : null
+            tickerData?.voteStatusSummary ?? null
 
           const summaryParticipation = computeParticipationFromVoteSummary(
             voteSummary,
@@ -1229,6 +1432,9 @@ const main = async () => {
         const solicitor = solicitors[solicitorIndex]
         const transferAgent = transferAgents[transferAgentIndex]
 
+        // Determine mailing status based on meeting status
+        const mailingStatus = status === 'COMPLETE' ? 'Mailing Complete' : 'Pending Positions'
+
         sqlStatements.push(
           `INSERT INTO meeting(` +
           `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
@@ -1237,7 +1443,7 @@ const main = async () => {
           `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
           `plan_administrator_contact, plan_administrator_contact_email, solicitor, ` +
           `solicitor_email, inspector, ivr_dial_in_number, ` +
-          `total_shares_outstanding, quorum_requirement, broker_non_vote, client_id, ` +
+          `total_shares_outstanding, quorum_requirement, broker_non_vote, mailing_status, client_id, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(meetingId)}, ` +
           `${sqlValue(meeting.type)}, ` +
@@ -1269,6 +1475,7 @@ const main = async () => {
           `${account.totalSharesOutstanding}, ` +
           `${account.quorumRequirement}, ` +
           `${account.brokerNonVote || 'NULL'}, ` +
+          `${sqlValue(mailingStatus)}, ` +
           `${sqlValue(clientIds[client.ticker])}, ` +
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(createdAt)});`
@@ -2030,9 +2237,10 @@ const main = async () => {
       } else {
         // Issuer users - map to correct account (userIndex - 1 because RM is at index 0)
         const accountIndex = userIndex - 1
-        userAccount = accountIndex < seedConfig.accounts.length
-          ? seedConfig.accounts[accountIndex]
-          : seedConfig.accounts[0] // Fallback to first account
+        userAccount =
+          accountIndex < seedConfig.accounts.length
+            ? seedConfig.accounts[accountIndex]
+            : seedConfig.accounts[0] // Fallback to first account
       }
 
       const userClientTicker = userAccount.clientTicker.toLowerCase()
@@ -2186,10 +2394,7 @@ const main = async () => {
   meetingIds.forEach((meetingId, meetingIndex) => {
     const client = meetingToClient[meetingId]
     const clientTicker = client?.ticker
-    const isWendys = clientTicker === 'WEN'
-    const isEnliven = clientTicker === 'ELVN'
-    const isPaycom = clientTicker === 'PAYC'
-    const isWoodward = clientTicker === 'WWD'
+    const hasCsvData = !!(clientTicker && companyCsvDataMap[clientTicker]?.proposals?.length)
     const meetingDateISO = meetingToDate[meetingId]
 
     // Extract meeting type from meetingId (format: ticker-meeting-type-year)
@@ -2205,33 +2410,27 @@ const main = async () => {
               ? 'Annual General Meeting'
               : 'Other'
 
-    // Skip proposal generation for 2026 annual meetings - they haven't been created yet
     const meetingYear = parseInt(meetingId.split('-').slice(-1)[0]) || 2025
-    if (meetingYear === 2026 && meetingType === 'Annual Meeting') {
-      return
-    }
 
     // Use CSV data for 2025 annual meetings, synthetic for others
     const is2025Annual =
       meetingId.includes('2025') && meetingId.includes('annual-meeting')
+    const is2026Annual =
+      meetingYear === 2026 && meetingType === 'Annual Meeting'
+    const csvData = companyCsvDataMap[clientTicker]
     const hasCsvProposals =
-      is2025Annual &&
-      ((isWendys && wendysData?.proposals) ||
-        (isEnliven && enlivenData?.proposals) ||
-        (isPaycom && paycomData?.proposals) ||
-        (isWoodward && woodwardData?.proposals))
+      (is2025Annual || is2026Annual) && (csvData?.proposals?.length ?? 0) > 0
     let proposals: any[] = []
 
     const participationTarget = meetingParticipationTargets[meetingId]
     const sharesBase = meetingShareBase[meetingId]
 
-    if (isWendys && is2025Annual && wendysData?.proposals) {
-      // Use Wendy's 2025 CSV proposals (with real vote data)
-      proposals = wendysData.proposals
-    } else if (isWendys && wendysData?.proposals) {
-      // For non-2025 Wendy's meetings, use the same directors from 2025 CSV but with synthetic votes
-      // Clear vote data so generateProposalResults will be used instead of buildResultsFromCsvProposal
-      const directorProposals = wendysData.proposals
+    if (csvData?.proposals && csvData.proposals.length > 0 && is2025Annual) {
+      // Use 2025 CSV proposals (with real vote data) for any company that has them
+      proposals = csvData.proposals
+    } else if (csvData?.proposals && csvData.proposals.length > 0 && is2026Annual) {
+      // For 2026 annual meetings, use CSV proposals with zeroed vote data (meeting hasn't happened yet)
+      const directorProposals = csvData.proposals
         .filter((p: any) => p.type === 'Director Election' && p.subtype === 'Individual')
         .map((p: any) => ({
           ...p,
@@ -2240,7 +2439,7 @@ const main = async () => {
           votesAbstain: 0,
           votesTotal: 0,
         }))
-      const nonDirectorProposals = wendysData.proposals
+      const nonDirectorProposals = csvData.proposals
         .filter((p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual')
         .map((p: any) => ({
           ...p,
@@ -2250,41 +2449,27 @@ const main = async () => {
           votesTotal: 0,
         }))
       proposals = [...directorProposals, ...nonDirectorProposals]
-    } else if (isEnliven && is2025Annual && enlivenData?.proposals) {
-      // Use Enliven 2025 CSV proposals (with real vote data)
-      proposals = enlivenData.proposals
-    } else if (isEnliven && enlivenData?.proposals) {
-      // For non-2025 Enliven meetings, use the same directors from 2025 CSV but with synthetic votes
-      const directorProposals = enlivenData.proposals.filter(
-        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
-      )
-      const nonDirectorProposals = enlivenData.proposals.filter(
-        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
-      )
-      proposals = [...directorProposals, ...nonDirectorProposals]
-    } else if (isPaycom && is2025Annual && paycomData?.proposals) {
-      // Use Paycom 2025 CSV proposals (with real vote data)
-      proposals = paycomData.proposals
-    } else if (isPaycom && paycomData?.proposals) {
-      // For non-2025 Paycom meetings, use the same directors from 2025 CSV but with synthetic votes
-      const directorProposals = paycomData.proposals.filter(
-        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
-      )
-      const nonDirectorProposals = paycomData.proposals.filter(
-        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
-      )
-      proposals = [...directorProposals, ...nonDirectorProposals]
-    } else if (isWoodward && is2025Annual && woodwardData?.proposals) {
-      // Use Woodward 2025 CSV proposals (with real vote data)
-      proposals = woodwardData.proposals
-    } else if (isWoodward && woodwardData?.proposals) {
-      // For non-2025 Woodward meetings, use the same directors from 2025 CSV but with synthetic votes
-      const directorProposals = woodwardData.proposals.filter(
-        (p: any) => p.type === 'Director Election' && p.subtype === 'Individual'
-      )
-      const nonDirectorProposals = woodwardData.proposals.filter(
-        (p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual'
-      )
+    } else if (csvData?.proposals && csvData.proposals.length > 0) {
+      // For other non-2025 meetings, use the same proposals from CSV but with zeroed vote data
+      // so generateProposalResults will be used instead of buildResultsFromCsvProposal
+      const directorProposals = csvData.proposals
+        .filter((p: any) => p.type === 'Director Election' && p.subtype === 'Individual')
+        .map((p: any) => ({
+          ...p,
+          votesFor: 0,
+          votesAgainst: 0,
+          votesAbstain: 0,
+          votesTotal: 0,
+        }))
+      const nonDirectorProposals = csvData.proposals
+        .filter((p: any) => p.type !== 'Director Election' || p.subtype !== 'Individual')
+        .map((p: any) => ({
+          ...p,
+          votesFor: 0,
+          votesAgainst: 0,
+          votesAbstain: 0,
+          votesTotal: 0,
+        }))
       proposals = [...directorProposals, ...nonDirectorProposals]
     } else {
       // Use default proposals for non-Wendy's meetings
@@ -2348,9 +2533,9 @@ const main = async () => {
     ]
 
     proposals.forEach((proposal, propIndex) => {
-      // For Wendy's, use the actual proposal data from CSV
+      // For companies with CSV data, use the actual proposal data from CSV
       if (
-        isWendys &&
+        hasCsvData &&
         proposal.type === 'Director Election' &&
         proposal.subtype === 'Individual'
       ) {
@@ -2387,7 +2572,7 @@ const main = async () => {
               meetingYear,
               parseFloat(proposal.number),
               cleanTitle,
-              isWendys,
+              false,
               meetingType,
               participationTarget,
               sharesBase,
@@ -2441,8 +2626,8 @@ const main = async () => {
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(createdAt)});`
         )
-      } else if (isWendys) {
-        // For non-director Wendy's proposals
+      } else if (hasCsvData) {
+        // For non-director CSV proposals (any company with CSV data)
         const proposalId = copycat.uuid(
           `proposal-${meetingId}-${parseFloat(proposal.number)}`
         )
@@ -2469,7 +2654,7 @@ const main = async () => {
               meetingYear,
               parseFloat(proposal.number),
               proposal.title,
-              isWendys,
+              false,
               meetingType,
               participationTarget,
               sharesBase,
@@ -2524,13 +2709,13 @@ const main = async () => {
           `${sqlValue(createdAt)});`
         )
       } else if (
-        !isWendys &&
+        !hasCsvData &&
         !hasCsvProposals &&
         propIndex === 0 &&
         proposal.type === 'Director Election' &&
         meetingType === 'Annual Meeting'
       ) {
-        // For non-Wendy's annual meetings, create individual director proposals for all years
+        // For companies without CSV data, create individual director proposals for annual meetings
         const meetingYear = meetingId.split('-').slice(-1)[0]
 
         directors.forEach((director, dirIndex) => {
@@ -2544,7 +2729,7 @@ const main = async () => {
             meetingYear,
             1 + dirIndex,
             director.name,
-            isWendys,
+            false,
             meetingType,
             participationTarget,
             sharesBase,
@@ -2587,7 +2772,7 @@ const main = async () => {
             `${sqlValue(createdAt)});`
           )
         })
-      } else if (!isWendys && hasCsvProposals) {
+      } else if (!hasCsvData && hasCsvProposals) {
         const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + 1}`)
         proposalIds.push(proposalId)
 
@@ -2648,8 +2833,8 @@ const main = async () => {
           `${sqlValue(createdAt)}, ` +
           `${sqlValue(createdAt)});`
         )
-      } else if (!isWendys) {
-        // For non-Wendy's non-director proposals
+      } else if (!hasCsvData) {
+        // For companies without CSV data — non-director synthetic proposals
         const proposalId = copycat.uuid(
           `proposal-${meetingId}-${propIndex + directors.length}`
         )
@@ -2668,7 +2853,7 @@ const main = async () => {
           meetingYear,
           propIndex + directors.length,
           proposal.title,
-          isWendys,
+          false,
           meetingType,
           participationTarget,
           sharesBase,
@@ -2750,10 +2935,7 @@ const main = async () => {
       return // Skip if client not found
     }
 
-    const isWendys = client.ticker === 'WEN'
-    const isEnliven = client.ticker === 'ELVN'
-    const isPaycom = client.ticker === 'PAYC'
-    const isWoodward = client.ticker === 'WWD'
+    const tickerCsvData = companyCsvDataMap[client.ticker]
 
     // Find corresponding account for this client
     const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker)
@@ -2775,21 +2957,11 @@ const main = async () => {
 
     // Use CSV data for 2025 annual meetings if available
     const useCSVPositions =
-      is2025Annual &&
-      ((isWendys && wendysData?.positions) ||
-        (isEnliven && enlivenData?.positions) ||
-        (isPaycom && paycomData?.positions) ||
-        (isWoodward && woodwardData?.positions))
+      is2025Annual && (tickerCsvData?.positions?.length ?? 0) > 0
 
     if (useCSVPositions) {
       // Get the appropriate CSV position data
-      const csvPositions = isWendys
-        ? wendysData!.positions
-        : isEnliven
-          ? enlivenData!.positions
-          : isPaycom
-            ? paycomData!.positions
-            : woodwardData!.positions
+      const csvPositions = tickerCsvData!.positions
 
       csvPositions.forEach((position: any, index: number) => {
         const positionId = copycat.uuid(`position-${meetingId}-${index}`)
@@ -2809,9 +2981,15 @@ const main = async () => {
           dateVoted = null
         }
 
+        // Generate email for account (30% have emails)
+        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+        const accountEmail = hasEmail
+          ? copycat.email(`email-${positionId}`)
+          : null
+
         sqlStatements.push(
           `INSERT INTO "position"(` +
-          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
           `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(positionId)}, ` +
@@ -2820,7 +2998,8 @@ const main = async () => {
           `${sqlValue(normalizeAccountType(position.accountType))}, ` +
           `${sqlValue(position.setKey)}, ` +
           `${sqlValue(position.name)}, ` +
-          `${position.accountNumber ? sqlValue(position.accountNumber) : 'NULL'}, ` +
+          `${position.accountNumber ? sqlValue(position.accountNumber) : sqlValue('CSV' + String(index + 1).padStart(6, '0'))}, ` +
+          `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
           `${sqlValue(voteStatus)}, ` +
           `${sqlValue(position.controlNumber ?? 'CTRL' + String(index + 1).padStart(6, '0'))}, ` +
           `${sqlValue(position.shares)}, ` +
@@ -2833,15 +3012,7 @@ const main = async () => {
       })
 
       // Generate Non-DTC positions from vote status summary if available
-      const voteStatusSummary = isWendys
-        ? wendysData?.voteStatusSummary
-        : isEnliven
-          ? enlivenData?.voteStatusSummary
-          : isPaycom
-            ? paycomData?.voteStatusSummary
-            : isWoodward
-              ? woodwardData?.voteStatusSummary
-              : null
+      const voteStatusSummary = tickerCsvData?.voteStatusSummary ?? null
 
       if (voteStatusSummary?.nonDtcSummary && meetingPhase >= 6) {
         const summary = voteStatusSummary.nonDtcSummary
@@ -2888,6 +3059,13 @@ const main = async () => {
                   .fullName(`nondtc-${meetingId}-${method.source}-${i}`)
                   .toUpperCase()
                 const controlNumber = `N${method.source}${String(i + 1).padStart(5, '0')}`
+                const accountNumber = `NDTC${String(i + 1).padStart(6, '0')}`
+
+                // Generate email for account (30% have emails)
+                const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+                const accountEmail = hasEmail
+                  ? copycat.email(`email-${positionId}`)
+                  : null
 
                 const meetingDateString = meetingToDate[meetingId]
                 const meetingDate = meetingDateString
@@ -2907,7 +3085,7 @@ const main = async () => {
 
                 sqlStatements.push(
                   `INSERT INTO "position"(` +
-                  `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+                  `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
                   `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
                   `created_at, updated_at) VALUES (` +
                   `${sqlValue(positionId)}, ` +
@@ -2916,7 +3094,8 @@ const main = async () => {
                   `${sqlValue('Non-DTC')}, ` +
                   `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
                   `${sqlValue(holderName)}, ` +
-                  `NULL, ` +
+                  `${sqlValue(accountNumber)}, ` +
+                  `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
                   `${sqlValue('Voted')}, ` +
                   `${sqlValue(controlNumber)}, ` +
                   `${shares.toFixed(6)}, ` +
@@ -2985,9 +3164,18 @@ const main = async () => {
             .toUpperCase()
           : null
 
+      // Generate email for CEDE account (30% have emails)
+      const cedeHasEmail = copycat.bool(`has-email-${cedePositionId}`, { likelihood: 0.3 })
+      const cedeAccountEmail = cedeHasEmail
+        ? copycat.email(`email-${cedePositionId}`)
+        : null
+
+      // Generate account number for CEDE & CO position
+      const cedeAccountNumber = `CEDE${String(meetingIndex).padStart(6, '0')}`
+
       sqlStatements.push(
         `INSERT INTO "position"(` +
-        `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+        `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
         `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
         `created_at, updated_at) VALUES (` +
         `${sqlValue(cedePositionId)}, ` +
@@ -2996,7 +3184,8 @@ const main = async () => {
         `${sqlValue(normalizeAccountType('CEDE & CO / CTC & CO'))}, ` +
         `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
         `${sqlValue('CEDE & CO')}, ` +
-        `NULL, ` +
+        `${sqlValue(cedeAccountNumber)}, ` +
+        `${cedeAccountEmail ? sqlValue(cedeAccountEmail) : 'NULL'}, ` +
         `${sqlValue(cedeVoteStatus)}, ` +
         `${sqlValue('CEDE001')}, ` +
         `${cedeShares.toFixed(6)}, ` +
@@ -3019,7 +3208,7 @@ const main = async () => {
         max: 999999,
       })
       // Reduce positions to make seed file smaller
-      const basePositions = isWendys ? 30 : 20
+      const basePositions = (tickerCsvData?.positions?.length ?? 0) > 0 ? 30 : 20
       const positionVariation = (meetingSeed % 50) + 10
       const numPositions = Math.max(15, basePositions + positionVariation)
 
@@ -3071,15 +3260,7 @@ const main = async () => {
 
       // Use actual account names from CSV data for consistency across all events
       // Get unique account names from CSV data for this client
-      const csvPositions = isWendys
-        ? wendysData?.positions
-        : isEnliven
-          ? enlivenData?.positions
-          : isPaycom
-            ? paycomData?.positions
-            : isWoodward
-              ? woodwardData?.positions
-              : []
+      const csvPositions = tickerCsvData?.positions ?? []
 
       // Extract unique account names from CSV (excluding CEDE)
       const csvAccountNames = csvPositions
@@ -3204,16 +3385,16 @@ const main = async () => {
           holderName = `${firstName.toUpperCase()} ${lastName.toUpperCase()}${suffixes[p % suffixes.length]}`
         }
 
-        const hasAccountNumber = copycat.bool(`account-${meetingId}-${p}`)
-        const accountNumberSql = hasAccountNumber
-          ? sqlValue('ACC' + String(p).padStart(6, '0'))
-          : 'NULL'
-
+        const accountNumber = 'ACC' + String(p).padStart(6, '0')
         const controlNumber = String(p + 1).padStart(8, '0')
+
+        // Generate email for registered account (30% have emails)
+        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 })
+        const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
-          `id, meeting_id, cusip, account_type, set_key, name, account_number, ` +
+          `id, meeting_id, cusip, account_type, set_key, name, account_number, account_email, ` +
           `vote_status, control_number, shares, shares_voted, source, date_voted, ` +
           `created_at, updated_at) VALUES (` +
           `${sqlValue(positionId)}, ` +
@@ -3222,7 +3403,8 @@ const main = async () => {
           `${sqlValue(normalizeAccountType('Registered Account'))}, ` +
           `${sqlValue(client.ticker + 'J' + meetingYear)}, ` +
           `${sqlValue(holderName)}, ` +
-          `${accountNumberSql}, ` +
+          `${sqlValue(accountNumber)}, ` +
+          `${accountEmail ? sqlValue(accountEmail) : 'NULL'}, ` +
           `${sqlValue(voteStatus)}, ` +
           `${sqlValue(controlNumber)}, ` +
           `${shares.toFixed(6)}, ` +
@@ -3356,7 +3538,7 @@ const main = async () => {
     {
       type: 'Static Slide or Presentation',
       displayCategory: 'dsm',
-      storagePath: 'static-slide'
+      storagePath: 'static-slide',
     },
     {
       type: 'Documents to Display',
@@ -3366,7 +3548,7 @@ const main = async () => {
     {
       type: 'Speaker List',
       displayCategory: 'dsm',
-      storagePath: 'speaker-list'
+      storagePath: 'speaker-list',
     },
     {
       type: 'Guest Link Registration',
@@ -3385,9 +3567,7 @@ const main = async () => {
   // Skip generating mock DSM documents - only use actual files from /data directory
   // The actualDocuments array above will handle real files
 
-  sqlStatements.push(
-    `-- Skipped generating mock DSM documents - using actual files only`
-  )
+  sqlStatements.push(`-- Skipped generating mock DSM documents - using actual files only`)
 
   // Skip generating fake proxy documents - seed-documents.ts handles real files
   sqlStatements.push('')
@@ -3478,18 +3658,7 @@ const main = async () => {
 
   // Helper function to get company data by ticker
   const getCompanyDataByTicker = (ticker: string) => {
-    switch (ticker) {
-      case 'WEN':
-        return wendysData
-      case 'ELVN':
-        return enlivenData
-      case 'PAYC':
-        return paycomData
-      case 'WWD':
-        return woodwardData
-      default:
-        return null
-    }
+    return companyCsvDataMap[ticker] ?? null
   }
 
   // Generate tabulation reports for each COMPLETE meeting

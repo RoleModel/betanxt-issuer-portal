@@ -133,7 +133,11 @@ export function AddDocumentDialog({
   const handleUploadNewDocument = async () => {
     if (uploadFiles.length === 0) return
 
-    console.log('[AddDocumentDialog] Uploading for participant:', participantId, participantName)
+    console.log(
+      '[AddDocumentDialog] Uploading for participant:',
+      participantId,
+      participantName
+    )
 
     try {
       const file = uploadFiles[0]
@@ -152,11 +156,19 @@ export function AddDocumentDialog({
       formData.append('participantName', participantName)
       formData.append('participantId', participantId)
 
-      console.log('[AddDocumentDialog] Uploading for participant:', participantId, participantName)
-      console.log('[AddDocumentDialog] FormData participantId:', formData.get('participantId'))
+      console.log(
+        '[AddDocumentDialog] Uploading for participant:',
+        participantId,
+        participantName
+      )
+      console.log(
+        '[AddDocumentDialog] FormData participantId:',
+        formData.get('participantId')
+      )
 
       // Upload via API route
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
       const response = await fetch(
         `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
         {
@@ -170,7 +182,11 @@ export function AddDocumentDialog({
         throw new Error(`Upload failed: ${errorText}`)
       }
 
-      const result = (await response.json()) as { id?: string; storagePath?: string; status?: string }
+      const result = (await response.json()) as {
+        id?: string
+        storagePath?: string
+        status?: string
+      }
 
       setUploadFiles((prev) =>
         prev.map((f) =>
@@ -197,10 +213,10 @@ export function AddDocumentDialog({
         prev.map((f) =>
           f.id === uploadFiles[0].id
             ? {
-              ...f,
-              status: 'error',
-              error: error instanceof Error ? error.message : 'Upload failed',
-            }
+                ...f,
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed',
+              }
             : f
         )
       )

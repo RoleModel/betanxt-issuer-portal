@@ -1,13 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.938Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { listClients, createClient } from '@/domain-models/api/clients'
+import { createClient, listClients } from '@/domain-models/api/clients'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -20,10 +20,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -31,10 +28,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listClients'
+          operationId: 'listClients',
         },
         { status: 500 }
       )
@@ -52,10 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
       )
     }
 
@@ -63,10 +57,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createClient'
+          operationId: 'createClient',
         },
         { status: 500 }
       )

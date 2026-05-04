@@ -15,6 +15,7 @@ import {
   styled,
 } from '@mui/material'
 
+import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { formatNumber } from '@/utils/numberUtils'
 import { getVotingOptions } from '@/utils/votingOptions'
@@ -83,16 +84,15 @@ function TotalsRow({ children }: { children: React.ReactNode }) {
   )
 }
 
-
 const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
   paddingLeft: theme.spacing(2),
 }))
 
-
 export default function DetailedTabulationTable({
   meetingId,
 }: DetailedTabulationTableProps) {
+  const { currentMeeting } = useMeeting()
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId)
 
   if (loading) {
@@ -116,13 +116,11 @@ export default function DetailedTabulationTable({
   // Calculate totals for percentage calculations
   const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
 
-
-
   return (
     <StyledTableContainer>
       <Table stickyHeader aria-label="Tabulation Details">
         <TableHead>
-          <TableRow >
+          <TableRow>
             <TableCell />
             <TableCell align="right">Vote Submitted</TableCell>
             <TableCell align="right">% of Outstanding</TableCell>
@@ -140,10 +138,16 @@ export default function DetailedTabulationTable({
           </TableRow>
 
           {proposals.map((proposal) => {
-            const votingLabels = getVotingOptions(proposal.proposalType, proposal.proposalNumber)
+            const votingLabels = getVotingOptions(
+              proposal.proposalType,
+              proposal.proposalNumber,
+              currentMeeting?.ticker,
+              proposal.directorName
+            )
 
             // Calculate total votes for this proposal
-            const proposalTotal = proposal.votingResults.for.shares +
+            const proposalTotal =
+              proposal.votingResults.for.shares +
               proposal.votingResults.against.shares +
               proposal.votingResults.abstain.shares
 
@@ -230,20 +234,19 @@ export default function DetailedTabulationTable({
                   <TableCell align="right">
                     <Typography variant="dataHeader">
                       {formatPercentage(
-                        totalOutstanding > 0 ? (proposalTotal / totalOutstanding) * 100 : 0
+                        totalOutstanding > 0
+                          ? (proposalTotal / totalOutstanding) * 100
+                          : 0
                       )}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="dataHeader">
-                      100.00%
-                    </Typography>
+                    <Typography variant="dataHeader">100.00%</Typography>
                   </TableCell>
                 </TotalsRow>
               </React.Fragment>
             )
           })}
-
         </TableBody>
       </Table>
     </StyledTableContainer>

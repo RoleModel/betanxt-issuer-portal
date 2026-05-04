@@ -13,14 +13,16 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
   const router = useRouter()
   return (
     <Card>
-      <CardContent sx={{
-        display: 'flex',
-        gap: 2,
-        p: 2,
-        '&:last-child': {
+      <CardContent
+        sx={{
+          display: 'flex',
+          gap: 2,
           p: 2,
-        },
-      }}>
+          '&:last-child': {
+            p: 2,
+          },
+        }}
+      >
         <Paper variant="outlined" sx={{ flex: 1 }}>
           <CardActionArea
             onClick={() => {

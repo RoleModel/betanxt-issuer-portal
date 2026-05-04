@@ -49,6 +49,21 @@ import {
  * Provides controls for switching between month and list views
  */
 
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
 export type CalendarViewType = 'month' | 'list'
 
 interface CalendarHeaderProps {
@@ -165,7 +180,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 color: (theme) => theme.vars?.palette?.common.white,
                 p: 1,
                 '&:hover': {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -199,8 +215,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                         <SearchIcon
                           fontSize="medium"
                           sx={{
-                            color: (theme) =>
-                              theme.vars?.palette?.common.white,
+                            color: (theme) => theme.vars?.palette?.common.white,
                           }}
                         />
                       </InputAdornment>
@@ -221,14 +236,13 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                       borderWidth: 1,
                     },
                     '&:hover fieldset': {
-                      borderColor: 'rgba(255,255,255,0.5)'
+                      borderColor: 'rgba(255,255,255,0.5)',
                     },
                     '&.Mui-focused fieldset': {
                       borderColor: (theme) => theme.vars?.palette?.primary.light,
                       borderWidth: 2,
                     },
                   },
-
                 }}
               />
             </Collapse>
@@ -288,7 +302,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -312,7 +327,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -333,7 +349,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >

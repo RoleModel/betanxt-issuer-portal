@@ -244,7 +244,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <>
-
       <Container
         className="CalendarContainer"
         ref={calendarRef}
@@ -256,8 +255,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           layout: {
             type: 'tween',
             duration: 0.25,
-            ease: [0.2, 0, 0.2, 1] // Material UI standard easing
-          }
+            ease: [0.2, 0, 0.2, 1], // Material UI standard easing
+          },
         }}
         maxWidth={isFullscreen ? false : 'xl'}
         sx={{
@@ -275,8 +274,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           zIndex: isFullscreen ? 5000 : 100,
           padding: isFullscreen ? 1 : 0,
           tranformOrigin: 'center center',
-          paddingLeft: { sm: 1, md: isFullscreen ? 1 : 2, },
-          paddingRight: { sm: 1, md: isFullscreen ? 1 : 2, },
+          paddingLeft: { sm: 1, md: isFullscreen ? 1 : 2 },
+          paddingRight: { sm: 1, md: isFullscreen ? 1 : 2 },
         }}
       >
         <Box

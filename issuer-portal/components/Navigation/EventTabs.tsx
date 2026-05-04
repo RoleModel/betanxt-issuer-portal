@@ -29,11 +29,6 @@ import {
 } from '@mui/material'
 
 import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
-import {
-  getPhaseColor,
-  getPhaseContrastText,
-  getPhaseNumber,
-} from '@/components/mui-styling/theme'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -41,6 +36,7 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
 import { formatDateWithYear } from '@/lib/formats'
+import { getCusipLabel, normalizeCusips } from '@/utils/cusipDisplay'
 
 interface MeetingTab {
   id: string
@@ -58,13 +54,10 @@ interface MeetingTab {
 
 const getNavigationTabs = (currentPhase: number) => [
   { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
-  { label: 'Calendar', route: '/calendar' },
-  { label: 'Documents', route: '/documents' },
+  { label: 'Agenda', route: '/agenda' },
   { label: 'Mailing', route: '/mailing' },
   { label: 'Tabulation', route: '/tabulation' },
-  { label: 'Performance/Reports', route: '/reports' },
-  { label: 'Agenda', route: '/agenda' },
-  { label: 'Digital Shareholder Meeting', route: '/digital-shareholder-meeting' },
+  { label: 'Reports', route: '/reports' },
 ]
 
 const ScrollButton = styled(IconButton, {
@@ -110,6 +103,16 @@ const parsePhaseNumber = (phase: string | number | null | undefined): number => 
   return 1
 }
 
+const getCusipDisplayValue = (value: string): string => {
+  const cusips = normalizeCusips(value)
+
+  if (cusips.length <= 1) {
+    return cusips[0] ?? value
+  }
+
+  return `${cusips[0]} +${cusips.length - 1}`
+}
+
 export function EventTabs() {
   const router = useRouter()
   const pathname = usePathname()
@@ -149,15 +152,6 @@ export function EventTabs() {
     () => parsePhaseNumber(currentMeeting?.currentPhase),
     [currentMeeting?.currentPhase]
   )
-
-  // Extract phase from URL if on a dashboard route
-  const phaseFromUrl = useMemo(() => {
-    const match = /\/dashboard\/(\d+)/.exec(pathname)
-    return match ? parseInt(match[1], 10) : null
-  }, [pathname])
-
-  // Use URL phase for display if available, otherwise use meeting's current phase
-  const displayPhase = phaseFromUrl ?? currentPhase
 
   // Memoize navigation tabs with current phase
   const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
@@ -211,7 +205,7 @@ export function EventTabs() {
         const meetingIdFromURL = pathMatch[1]
 
         // Check if the current active meeting matches the URL
-        if (!activeMeeting || activeMeeting.id !== meetingIdFromURL) {
+        if (activeMeeting?.id !== meetingIdFromURL) {
           // If we have meetings loaded and none match the URL ID, it might be a past meeting
           const meetingsArray = meetings || []
           const existingMeeting = meetingsArray.find((m) => m.id === meetingIdFromURL)
@@ -250,11 +244,12 @@ export function EventTabs() {
     src: components['schemas']['Meeting']
   }[] = useMemo(() => {
     const meetingsArray = meetings || []
-    if (currentMeeting && currentMeeting.status === 'COMPLETE') {
+    const completedMeeting = currentMeeting?.status === 'COMPLETE' ? currentMeeting : null
+    if (completedMeeting) {
       return [
         {
-          tab: mapToMeetingTab(currentMeeting),
-          src: currentMeeting,
+          tab: mapToMeetingTab(completedMeeting),
+          src: completedMeeting,
         },
       ]
     }
@@ -438,17 +433,7 @@ export function EventTabs() {
   }, [checkScrollButtons])
 
   // Subcomponents for active/inactive meeting detail sections
-  const ActiveMeetingDetails = ({
-    meeting,
-    currentPhase,
-    onOpenPhaseDrawer,
-  }: {
-    meeting: MeetingTab
-    currentPhase: number
-    onOpenPhaseDrawer: () => void
-  }) => {
-    const phaseLabel = meeting.currentPhase ?? `Phase ${currentPhase}`
-
+  const ActiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
     return (
       <Box sx={{ display: 'flex', color: 'text.primary' }}>
         <Stack direction="row" spacing={2} alignItems="start">
@@ -458,9 +443,13 @@ export function EventTabs() {
               color: 'text.secondary',
               variant: 'caption',
               fontWeight: 500,
-              text: 'CUSIP',
+              text: getCusipLabel(meeting.cusip),
             }}
-            secondary={{ variant: 'body3', fontWeight: 500, text: meeting.cusip }}
+            secondary={{
+              variant: 'body3',
+              fontWeight: 500,
+              text: getCusipDisplayValue(meeting.cusip),
+            }}
           />
           <BNTypographyPair
             sx={{ whiteSpace: 'nowrap' }}
@@ -504,84 +493,6 @@ export function EventTabs() {
               text: `${meeting.meetingDate} 11:00 AM Local Time`,
             }}
           />
-          <Stack>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              sx={{ fontWeight: 500 }}
-            >
-              Current Phase
-            </Typography>
-            <Typography
-              component="span"
-              variant="body3"
-              aria-label={`Open ${phaseLabel} phase details`}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onOpenPhaseDrawer()
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onOpenPhaseDrawer()
-                }
-              }}
-              sx={(theme) => {
-                return {
-                  fontSize: theme.typography.body3.fontSize,
-                  fontWeight: 500,
-                  color: getPhaseColor(displayPhase),
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  alignSelf: 'start',
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' },
-                  '&:focus': {
-                    outline: `2px solid ${theme.vars?.palette?.primary?.main}`,
-                    outlineOffset: 2,
-                  },
-                  ...theme.applyStyles('dark', {
-                    paddingY: 0.25,
-                    paddingX: 0.5,
-                    borderRadius: 1,
-                    background: getPhaseColor(displayPhase),
-                    color: getPhaseContrastText(displayPhase),
-                  }),
-                }
-              }}
-            >
-              {phaseLabel}
-            </Typography>
-          </Stack>
-          <Stack sx={{ minWidth: 120 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              noWrap
-              sx={{ fontWeight: 500 }}
-            >
-              Overall Completion
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
-              <LinearProgress
-                variant="determinate"
-                color={getPhaseNumber(currentPhase) as 'primary'}
-                value={meeting.overallCompletion ?? 0}
-                aria-label={`Overall completion progress: ${meeting.overallCompletion ?? 0}%`}
-                sx={{ flex: 1, height: 6, borderRadius: 12 }}
-              />
-              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                {meeting.overallCompletion ?? 0}%
-              </Typography>
-            </Box>
-          </Stack>
-
         </Stack>
       </Box>
     )
@@ -615,11 +526,6 @@ export function EventTabs() {
       </Box>
     )
   }
-
-  const handleOpenPhaseDrawer = useCallback((phase: number) => {
-    setDrawerPhase(phase)
-    setPhaseDrawerOpen(true)
-  }, [])
 
   const MeetingTab = React.memo(function MeetingTab({
     meeting,
@@ -695,7 +601,8 @@ export function EventTabs() {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontFamily: 'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
+                    fontFamily:
+                      'var(--font-roboto-condensed), Roboto Condensed, sans-serif',
                     fontWeight: 500,
                     fontSize: '2rem',
                     lineHeight: 1.125,
@@ -710,11 +617,7 @@ export function EventTabs() {
                 </Typography>
 
                 {isActive && !isMobile ? (
-                  <ActiveMeetingDetails
-                    meeting={meeting}
-                    currentPhase={currentPhase}
-                    onOpenPhaseDrawer={() => handleOpenPhaseDrawer(currentPhase)}
-                  />
+                  <ActiveMeetingDetails meeting={meeting} />
                 ) : (
                   !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
                 )}

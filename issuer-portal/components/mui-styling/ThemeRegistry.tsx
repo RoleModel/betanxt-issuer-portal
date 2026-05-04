@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import React, { useMemo } from 'react'
 
 import CssBaseline from '@mui/material/CssBaseline'
@@ -7,49 +9,85 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 import { useClient } from '@/contexts/ClientContext'
 
-import { NextAppDirEmotionCacheProvider } from './EmotionCache'
+import type { createClientTheme } from './theme'
 import {
-  elevenThemeOptions,
-  paycomThemeOptions,
+  createClientTheme as createThemeOptions,
+  dfinThemeOptions,
+  morrowSodaliThemeOptions,
   wendysThemeOptions,
-  woodwardThemeOptions,
 } from './theme'
+
+const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
+
+const userTypeBrandTicker: Record<string, string> = {
+  PARENT_CLIENT: 'DFIN',
+  SOLICITOR: 'MRSO',
+  CSM: 'WEN',
+}
+
+const multiClientUserTypes = new Set(['PARENT_CLIENT', 'SOLICITOR', 'CSM'])
+
+/** Cache dynamically-created theme options so we don't rebuild every render */
+const themeCache = new Map<string, ReturnType<typeof createClientTheme>>()
+
+function getThemeOptions(tick: string): ReturnType<typeof createClientTheme> {
+  const existing = themeCache.get(tick)
+  if (existing) return existing
+  const opts = createThemeOptions(tick)
+  themeCache.set(tick, opts)
+  return opts
+}
+
+const brandThemeForUserType: Record<string, ReturnType<typeof createClientTheme>> = {
+  PARENT_CLIENT: dfinThemeOptions,
+  SOLICITOR: morrowSodaliThemeOptions,
+  CSM: wendysThemeOptions,
+}
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const { currentClient } = useClient()
+  const { data: session } = useSession()
+  const pathname = usePathname()
 
   const ticker = currentClient?.ticker
+  const userType = session?.user?.type
+
+  // Extract client ticker from URL to detect client context
+  const urlTicker = useMemo(() => {
+    const match = TICKER_PREFIX_REGEX.exec(pathname)
+    return match ? match[1] : null
+  }, [pathname])
 
   const theme = useMemo(() => {
-    // Don't create theme until we have actual client ticker
-    if (!ticker) {
-      return null
+    const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false
+
+    if (isMultiClientUser && userType) {
+      // When on a client-specific page, use that client's brand theme
+      if (urlTicker) {
+        return createTheme(getThemeOptions(urlTicker))
+      }
+
+      // Fall back to the user's org brand on top-level pages (events, profile, etc.)
+      const orgTheme = brandThemeForUserType[userType]
+      if (orgTheme) {
+        return createTheme(orgTheme)
+      }
     }
 
-    const themeOptionsMap = {
-      WEN: wendysThemeOptions,
-      PAYC: paycomThemeOptions,
-      WWD: woodwardThemeOptions,
-      ELVN: elevenThemeOptions,
-    }
+    // Use client ticker if available, otherwise fall back to user-type brand
+    const effectiveTicker =
+      ticker ?? (userType ? userTypeBrandTicker[userType] : undefined)
 
-    const themeOptions =
-      themeOptionsMap[ticker as keyof typeof themeOptionsMap] ?? wendysThemeOptions
-    return createTheme(themeOptions)
-  }, [ticker])
-
-  // Wait for client to load before rendering to prevent wrong theme CSS injection
-  if (!theme) {
-    return null
-  }
+    return createTheme(
+      effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions
+    )
+  }, [ticker, userType, urlTicker])
 
   return (
-    <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline enableColorScheme />
-        {children}
-      </ThemeProvider>
-    </NextAppDirEmotionCacheProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline enableColorScheme />
+      {children}
+    </ThemeProvider>
   )
 }
 

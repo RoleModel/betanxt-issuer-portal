@@ -25,10 +25,11 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
     headers.join(','),
     ...attendees.map((attendee) => {
       // Determine the display type
-      const displayType = attendee.registrantType === 'Other' &&
+      const displayType =
+        attendee.registrantType === 'Other' &&
         attendee.registrationQuestions?.includes('Presenter')
-        ? 'Presenter'
-        : (attendee.registrantType ?? '')
+          ? 'Presenter'
+          : (attendee.registrantType ?? '')
 
       return [
         displayType,
@@ -64,10 +65,11 @@ function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string)
     headers.join('\t'),
     ...attendees.map((attendee) => {
       // Determine the display type
-      const displayType = attendee.registrantType === 'Other' &&
+      const displayType =
+        attendee.registrantType === 'Other' &&
         attendee.registrationQuestions?.includes('Presenter')
-        ? 'Presenter'
-        : (attendee.registrantType ?? '')
+          ? 'Presenter'
+          : (attendee.registrantType ?? '')
 
       return [
         displayType,
@@ -155,15 +157,15 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
     </thead>
     <tbody>
             ${attendees
-      .map(
-        (attendee) => {
-          // Determine the display type
-          const displayType = attendee.registrantType === 'Other' &&
-            attendee.registrationQuestions?.includes('Presenter')
-            ? 'Presenter'
-            : (attendee.registrantType ?? '-')
+              .map((attendee) => {
+                // Determine the display type
+                const displayType =
+                  attendee.registrantType === 'Other' &&
+                  attendee.registrationQuestions?.includes('Presenter')
+                    ? 'Presenter'
+                    : (attendee.registrantType ?? '-')
 
-          return `
+                return `
         <tr>
           <td>${displayType}</td>
           <td>${attendee.firstName ?? ''} ${attendee.lastName ?? ''}</td>
@@ -172,9 +174,8 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
           <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '-'}</td>
         </tr>
       `
-        }
-      )
-      .join('')}
+              })
+              .join('')}
     </tbody>
   </table>
   
@@ -272,7 +273,7 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
   const avgMinutesAttended =
     actualAttendees.length > 0
       ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
-      actualAttendees.length
+        actualAttendees.length
       : 0
 
   return {

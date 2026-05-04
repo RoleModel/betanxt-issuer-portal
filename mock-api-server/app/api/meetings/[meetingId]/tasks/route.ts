@@ -1,13 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { listTasks, createTask } from '@/domain-models/api/tasks'
+import { createTask, listTasks } from '@/domain-models/api/tasks'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
 interface RouteParams {
   meetingId: string
@@ -26,9 +26,9 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const phaseId = searchParams.get('phaseId') || undefined
     const statusParam = searchParams.get('status') || undefined
-    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = 
-      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam) 
-        ? statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
+        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
         : undefined
 
     // Use existing domain model function
@@ -36,10 +36,7 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -47,10 +44,10 @@ export async function GET(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listTasks'
+          operationId: 'listTasks',
         },
         { status: 500 }
       )
@@ -75,10 +72,7 @@ export async function POST(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
       )
     }
 
@@ -86,10 +80,10 @@ export async function POST(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createTask'
+          operationId: 'createTask',
         },
         { status: 500 }
       )

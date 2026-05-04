@@ -30,6 +30,7 @@ import SkeletonTable from '@/components/ui/SkeletonTable'
 import StatusChip from '@/components/ui/StatusChip'
 
 import type { components } from '@/domain-models/generated-schema'
+
 import { useDocuments } from '@/contexts/DocumentContext'
 
 import { AddDocumentDialog } from './AddDocumentDialog'
@@ -74,20 +75,24 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       const data = (await response.json()) as DigitalShareholderMeeting[]
 
       console.log('[DSMParticipants] Fetched participants:', data)
-      console.log('[DSMParticipants] DSM documents from context:', dsmDocuments.length, dsmDocuments)
+      console.log(
+        '[DSMParticipants] DSM documents from context:',
+        dsmDocuments.length,
+        dsmDocuments
+      )
 
       // Transform data to include role information
       const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
         const role = participant.registrantType ?? 'Shareholder'
 
         // Find participant-specific documents (documents should be linked to participant ID)
-        const participantDocuments = dsmDocuments.filter(
-          (doc) => {
-            console.log(`[DSMParticipants] Checking doc.participantId: "${doc.participantId}" === participant.id: "${participant.id}"`)
-            // Only match documents that have a participantId and it matches this participant
-            return doc.participantId && doc.participantId === participant.id
-          }
-        )
+        const participantDocuments = dsmDocuments.filter((doc) => {
+          console.log(
+            `[DSMParticipants] Checking doc.participantId: "${doc.participantId}" === participant.id: "${participant.id}"`
+          )
+          // Only match documents that have a participantId and it matches this participant
+          return doc.participantId && doc.participantId === participant.id
+        })
 
         const hasDocuments = participantDocuments.length > 0
         const firstDocument = participantDocuments[0]
@@ -130,14 +135,22 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   }, [fetchParticipants])
 
   const handleAddDocument = (participant: ParticipantWithRole) => {
-    console.log('[DSMParticipants] Adding document for participant:', participant.id, participant.firstName, participant.lastName)
+    console.log(
+      '[DSMParticipants] Adding document for participant:',
+      participant.id,
+      participant.firstName,
+      participant.lastName
+    )
     setSelectedParticipant(participant)
     setAddDocumentDialogOpen(true)
   }
 
   const handleDocumentAdded = async () => {
     if (selectedParticipant) {
-      console.log('[DSMParticipants] Document added for participant:', selectedParticipant)
+      console.log(
+        '[DSMParticipants] Document added for participant:',
+        selectedParticipant
+      )
 
       // Refresh documents from DocumentContext to get latest status
       await refreshDocuments(meetingId)
@@ -168,7 +181,8 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         formData.append('documentType', 'digital-shareholder-meeting')
         formData.append('title', file.name.replace(/\.[^/.]+$/, '')) // Use original filename as title
 
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+        const apiBaseUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
         const response = await fetch(
           `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
           {
@@ -235,7 +249,11 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         subheader={`${participants.length} registered • ${actualAttendees} attended`}
         action={
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<FileUploadOutlined />} onClick={handleUploadClick}>
+            <Button
+              variant="outlined"
+              startIcon={<FileUploadOutlined />}
+              onClick={handleUploadClick}
+            >
               Add Participants
             </Button>
             <ExportButton
@@ -265,8 +283,11 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
                 return (
                   <TableRow
-                    key={participant.id || `participant-${participant.emailAddress}-${index}`}
-                    hover>
+                    key={
+                      participant.id || `participant-${participant.emailAddress}-${index}`
+                    }
+                    hover
+                  >
                     <TableCell>
                       <Typography variant="body3" fontWeight="medium">
                         {participant.firstName} {participant.lastName}
@@ -285,7 +306,10 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                       />
                     </TableCell>
                     <TableCell>
-                      <StatusChip status={participant.documentStatus || null} size="small" />
+                      <StatusChip
+                        status={participant.documentStatus || null}
+                        size="small"
+                      />
                     </TableCell>
                     <TableCell align="right">
                       {participant.documentName ? (

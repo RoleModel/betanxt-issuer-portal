@@ -1,34 +1,53 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.942Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { createPositionVote } from '@/domain-models/api/votes'
+import { createPositionVote, listPositionVotes } from '@/domain-models/api/votes'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // TODO: Implement getPositionVotes
-    // Operation: getPositionVotes
-    // This route was auto-generated from OpenAPI spec
-    
-    // Example: Fetch data from Supabase
-    // const { data, error } = await supabase
-    //   .from('table_name')
-    //   .select('*')
-    //   .limit(20)
+    const { searchParams } = new URL(request.url)
+    const meetingId = searchParams.get('meetingId') || undefined
+    const positionId = searchParams.get('positionId') || undefined
+    const proposalId = searchParams.get('proposalId') || undefined
+    const vote = searchParams.get('vote') || undefined
+    const order = searchParams.get('order') || undefined
+    const limit = searchParams.get('limit')
+      ? Number.parseInt(searchParams.get('limit') || '', 10)
+      : undefined
+    const offset = searchParams.get('offset')
+      ? Number.parseInt(searchParams.get('offset') || '', 10)
+      : undefined
 
-    return withCors(NextResponse.json([]))
+    const { data, error } = await listPositionVotes({
+      meetingId,
+      positionId,
+      proposalId,
+      vote,
+      order,
+      limit,
+      offset,
+    })
+
+    if (error) {
+      return withCors(
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
+      )
+    }
+
+    return withCors(NextResponse.json(data || []))
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getPositionVotes'
+          operationId: 'getPositionVotes',
         },
         { status: 500 }
       )
@@ -46,10 +65,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
       )
     }
 
@@ -57,10 +73,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createPositionVote'
+          operationId: 'createPositionVote',
         },
         { status: 500 }
       )

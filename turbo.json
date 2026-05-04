@@ -1,18 +1,10 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "$schema": "https://v2-9-8.turborepo.dev/schema.json",
+  "globalDependencies": ["**/.env.*local"],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**"
-      ],
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "GITHUB_TOKEN",
         "ANTHROPIC_API_KEY",
@@ -38,17 +30,13 @@
         "POSTGRES_PASSWORD",
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
-        "VERCEL_DEPLOY_HOOK_URL"
+        "VERCEL_DEPLOY_HOOK_URL",
+        "AI_GATEWAY_API_KEY"
       ]
     },
     "build:test": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
@@ -57,35 +45,25 @@
     "start": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     },
     "start:test": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "build:test"
-      ]
+      "dependsOn": ["build:test"]
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "test:e2e": {},
     "test:unit": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "docker:build": {
       "cache": false
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {},
     "clean": {

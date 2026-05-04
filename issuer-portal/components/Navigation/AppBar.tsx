@@ -1,53 +1,25 @@
 'use client'
 
+import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
 import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
 import type { User } from 'next-auth'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
+import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton, Typography } from '@mui/material'
-import { useColorScheme } from '@mui/material/styles'
 import { Box } from '@mui/material'
 
-// Preload NotificationPopper for better performance - no dynamic import delay
-import NotificationPopper from '@/components/Notifications/NotificationPopper'
 import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
+import NotificationPopper from '@/components/Notifications/NotificationPopper'
 
-import { useClient } from '@/contexts/ClientContext'
-import MeetingContext from '@/contexts/MeetingContext'
-import { useNotifications } from '@/contexts/NotificationContext'
-import { computeClientLogoSrc } from '@/utils/clientBranding'
-import buildApiClient from '@/domain-models/apiClient'
-
-import { formatMeetingDate } from '@/utils/meetingUtils'
-
-// Custom hook to safely use meeting context when it might not be available
-const useMeetingSafe = () => {
-  const context = useContext(MeetingContext)
-  return useMemo(
-    () => context || { meetings: [] as { id?: string; status?: string }[], currentMeeting: null },
-    [context]
-  )
-}
-
-// --- Hoisted regex constants (avoid re-creation & keep intent explicit) ---
-const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//
-const PAST_MEETINGS_REGEX = /^\/[A-Z]+\/past-meetings$/
-const PAST_MEETING_REGEX = /^\/[A-Z]+\/past-meeting\//
-const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
-const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
-const SECURE_FILE_TRANSFER_REGEX = /^\/[A-Z]+\/secure-file-transfer$/
-const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
-
+import { useAppBar } from '@/hooks/useAppBar'
 
 // Next.js Image component wrapper for BNAppBar logo
 const NextImageComponent = React.memo(
   (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
-    const { src, alt, width: _width, height: _height, style } = props
+    const { src, alt, style } = props
 
-    // Don't render anything if no src is provided (prevents flash)
     if (!src) {
       return null
     }
@@ -81,292 +53,39 @@ interface BNAppBarWrapperProps {
 }
 
 export function BNAppBarClient(props: BNAppBarWrapperProps) {
-  return <BNAppBarClientMemo {...props} />
+  return (
+    <Suspense fallback={null}>
+      <BNAppBarClientMemo {...props} />
+    </Suspense>
+  )
 }
 
 const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   props: BNAppBarWrapperProps
 ) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(
-    null
-  )
-  // NotificationPopper is now preloaded - no need for conditional loading
   const notificationButtonRef = useRef<HTMLButtonElement>(null)
 
-
-
-  // Get current client for logo and branding
-  const { currentClient } = useClient()
-
-  // Get theme context for toggle functionality
-  const { mode, setMode } = useColorScheme()
-
-  // Get notification count from context
-  let unreadCount = 0
-  try {
-    const notificationContext = useNotifications()
-    unreadCount = notificationContext.unreadCount
-  } catch {
-    // NotificationProvider not available - silently fail
-  }
-
-  // Get client logo based on client ticker or name (shared with PDF export)
-  const getClientLogo = useCallback(
-    (clientName?: string, ticker?: string) =>
-      computeClientLogoSrc(clientName, ticker, '/images/logo.svg', '-full'),
-    []
-  )
-
-  // Get meetings data - handle case where meeting context may not be available
-  const meetingContext = useMeetingSafe()
-  const meetings = useMemo(() => meetingContext.meetings, [meetingContext.meetings])
-  const [routeMeetingStatus, setRouteMeetingStatus] = useState<string | null>(null)
-  const [routeMeetingDate, setRouteMeetingDate] = useState<string | null>(null)
-
-  // Extract current meeting ID from pathname (handles both /meeting/ and /past-meeting/)
-  const currentMeetingId = useMemo(() => {
-    const match = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)
-    return match ? match[1] : null
-  }, [pathname])
-
-  React.useEffect(() => {
-    let active = true
-    const fetchStatus = async () => {
-      try {
-        if (!currentMeetingId) {
-          setRouteMeetingStatus(null)
-          return
-        }
-
-        // Immediately check if meeting is in the active meetings list
-        // If not, we can assume it's a past meeting before the API call completes
-        const meetingInActiveList = meetings.some((m: { id?: string }) => m.id === currentMeetingId)
-        if (!meetingInActiveList && meetings.length > 0) {
-          // Meeting not in active list, likely a past meeting
-          setRouteMeetingStatus('COMPLETE')
-          return
-        }
-
-        const api = await buildApiClient()
-        const { data } = await api.GET('/meetings/{meetingId}', { params: { path: { meetingId: currentMeetingId } } })
-        if (active) {
-          const status = (data && (data as { status?: string }).status) || null
-          setRouteMeetingStatus(status)
-          const date = (data && (data as { meetingDate?: string }).meetingDate) || null
-          setRouteMeetingDate(date)
-        }
-      } catch {
-        if (active) {
-          setRouteMeetingStatus(null)
-          setRouteMeetingDate(null)
-        }
-      }
-    }
-    void fetchStatus()
-    return () => {
-      active = false
-    }
-  }, [currentMeetingId, meetings])
-
-
-  // Use the current client's ticker for dashboard path, fallback to '/' if no client
-  const dashboardPath = useMemo(() => {
-    if (currentClient?.ticker) {
-      const activeMeeting = meetings.find(
-        (meeting: { id?: string; status?: string }) => meeting.status !== 'COMPLETE'
-      )
-      if (activeMeeting?.id) {
-        return `/${currentClient.ticker}/meeting/${activeMeeting.id}/dashboard`
-      }
-    }
-    return '/'
-  }, [currentClient, meetings])
-
-  // Extract ticker once per render - memoize regex execution
-  const urlTicker = useMemo(() => {
-    const match = TICKER_PREFIX_REGEX.exec(pathname)
-    return match ? match[1] : null
-  }, [pathname])
-
-  // Remove prefetch to improve performance - navigation is still instant with Next.js
-  // Prefetch was causing unnecessary network requests and slowing down the app
-
-  // Memoize tabs array to prevent recreation
-  const exampleTabs = useMemo(() => {
-    const navTicker = urlTicker || currentClient?.ticker
-    const tickerPrefix = navTicker ? `/${navTicker}` : ''
-
-    return [
-      { label: 'Dashboard', value: 'meeting', href: dashboardPath },
-      {
-        label: 'Past Meetings',
-        value: 'past-meetings',
-        href: `${tickerPrefix}/past-meetings`,
-      },
-      { label: 'Reporting', value: 'reporting', href: `${tickerPrefix}/reporting` },
-      { label: 'File Transfer', value: 'secure-file-transfer', href: `${tickerPrefix}/secure-file-transfer` },
-      { label: 'Education', value: 'education', href: '/education' },
-      { label: 'Products', value: 'products', href: '/products' },
-    ]
-  }, [dashboardPath, urlTicker, currentClient?.ticker])
-
-  const currentTab = useMemo(() => {
-    // Check for specific page routes that don't have tabs first
-    if (pathname === '/profile' || pathname.startsWith('/profile/')) return null
-    if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
-
-    // Check if we're on a past-meeting route (singular - viewing a specific past meeting)
-    if (PAST_MEETING_REGEX.test(pathname)) return 'past-meetings'
-
-    // Check if we're explicitly on the past meetings list page
-    if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
-      return 'past-meetings'
-
-    // Check for other non-meeting routes
-    if (MEETING_REPORTS_REGEX.test(pathname)) return 'meeting'
-    if (REPORTING_REGEX.test(pathname)) return 'reporting'
-    if (SECURE_FILE_TRANSFER_REGEX.test(pathname)) return 'secure-file-transfer'
-    if (pathname === '/education' || pathname.startsWith('/education/'))
-      return 'education'
-    if (pathname === '/products' || pathname.startsWith('/products/')) return 'products'
-
-    // For active meeting routes
-    if (
-      pathname === '/' ||
-      pathname === '/meeting' ||
-      MEETING_PREFIX_REGEX.test(pathname) ||
-      pathname.startsWith('/meeting/')
-    ) {
-      return 'meeting'
-    }
-
-    return null
-  }, [pathname])
-
-  const meetingStatus: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | null = useMemo(() => {
-    if (!currentMeetingId) return null
-
-    // If we're on a past-meeting route, immediately return COMPLETE (don't wait for data)
-    if (PAST_MEETING_REGEX.test(pathname)) {
-      return 'COMPLETE'
-    }
-
-    const meeting = meetings.find((m) => m.id === currentMeetingId)
-    const raw = meeting?.status ?? routeMeetingStatus
-    const normalized = typeof raw === 'string' ? raw.toUpperCase() : raw
-    return (normalized === 'ACTIVE' || normalized === 'COMPLETE' || normalized === 'ADJOURNED')
-      ? (normalized)
-      : null
-  }, [currentMeetingId, meetings, routeMeetingStatus, pathname])
-
-  const meetingDateRaw = useMemo(() => {
-    if (!currentMeetingId) return null
-    const meeting = meetings.find((m) => m.id === currentMeetingId) as { meetingDate?: string } | undefined
-    return meeting?.meetingDate ?? meetingContext?.currentMeeting?.meetingDate ?? routeMeetingDate
-  }, [currentMeetingId, meetings, meetingContext?.currentMeeting?.meetingDate, routeMeetingDate])
-
-  const meetingDateLabel = useMemo(() => {
-    return meetingDateRaw ? formatMeetingDate(meetingDateRaw) : null
-  }, [meetingDateRaw])
-
-  const handleNotificationClick = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      // Prevent event bubbling to avoid potential conflicts
-      event.stopPropagation()
-      setNotificationAnchor(event.currentTarget)
-      setNotificationsOpen((prev) => !prev)
-    },
-    []
-  )
-
-  const handleNotificationClose = useCallback(() => {
-    setNotificationsOpen(false)
-  }, [])
-
-  // Cache stored client once - avoid localStorage read on every render
-  const storedClient = useMemo(() => {
-    if (typeof window === 'undefined') return null
-    try {
-      const stored = localStorage.getItem('betanxt-selected-client')
-      if (!stored) return null
-      const parsed = JSON.parse(stored) as { ticker?: string }
-      return parsed
-    } catch {
-      return null
-    }
-  }, []) // localStorage access is safe with window check, no dependencies needed
-
-  // Determine logo source - memoize expensive logo computation
-  const logoTicker = useMemo(
-    () => urlTicker || currentClient?.ticker || storedClient?.ticker,
-    [urlTicker, currentClient?.ticker, storedClient?.ticker]
-  )
-
-  const logoSrc = useMemo(() => {
-    // If we have a custom logoSrc prop, use it immediately
-    if (props.logoSrc) return props.logoSrc
-
-    // Determine the appropriate logo directly - no hydration checks needed
-    return logoTicker
-      ? getClientLogo(
-        currentClient?.company_name || currentClient?.short_name,
-        logoTicker
-      )
-      : '/images/logo.svg'
-  }, [
-    props.logoSrc,
-    logoTicker,
-    getClientLogo,
-    currentClient?.company_name,
-    currentClient?.short_name,
-  ])
-
-  // Memoize only the final slotProps object
-  const slotProps = useMemo(() => {
-    return {
-      logoImg: {
-        src: logoSrc,
-        alt: `${logoTicker ?? 'BetaNXT'} logo`,
-        width: 'auto',
-        height: 44,
-        style: {
-          height: 44,
-          width: 'auto',
-          backgroundColor: 'var(--mui-palette-common-white)',
-          padding: '4px 4px',
-          borderRadius: '4px',
-        },
-      },
-    }
-  }, [logoSrc, logoTicker])
-
-  const avatar = useMemo(() => {
-    if (!props.user) {
-      return { src: '/avatars/user.png', alt: 'User Avatar', children: 'US' }
-    }
-
-    const initials = props.user.name
-      ? props.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) // Take only first 2 initials like EditAvatarButton
-      : props.user.username?.substring(0, 2).toUpperCase() || 'U'
-
-    // Use uploaded image if available, otherwise show initials
-    return {
-      src: props.user.image || undefined,
-      alt: `${props.user.name || props.user.username} Avatar`,
-      children: !props.user.image ? initials : undefined,
-    }
-  }, [props.user])
-
-  // Hide tabs for specific pages that shouldn't have navigation tabs
-  const shouldHideTabs = currentTab === null // Hide tabs on pages without tabs (profile, pdf-preview, etc.)
+  const {
+    logoSlotProps,
+    isCSM,
+    isInClientContext,
+    tabs,
+    selectedTabValue,
+    shouldHideTabs,
+    handleTabChange,
+    handleWrapperClick,
+    currentMeetingId,
+    meetingStatus,
+    meetingDateLabel,
+    avatar,
+    menuItems,
+    unreadCount,
+    notificationsOpen,
+    notificationAnchor,
+    handleNotificationClick,
+    handleNotificationClose,
+    isReady,
+  } = useAppBar({ logoSrc: props.logoSrc, user: props.user })
 
   const endSlot = useCallback(
     () => (
@@ -375,7 +94,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
           ref={notificationButtonRef}
           onClick={handleNotificationClick}
           aria-label="notifications"
-          // Optimize for faster interaction
           disableRipple={false}
           disableTouchRipple={false}
         >
@@ -399,102 +117,47 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     ]
   )
 
-  const handleLogout = useCallback(async () => {
-    try {
-      // NextAuth v5 beta requires CSRF token for signout
-      // Get CSRF token first
-      const csrfResponse = await fetch('/api/auth/csrf')
-      const { csrfToken } = await csrfResponse.json() as { csrfToken: string }
+  // CSM logo component wrapper that renders BNLogo instead of a client image
+  // Only used when CSM is NOT in a client context
+  const showCSMBrandLogo = isCSM && !isInClientContext
+  const CSMLogoComponent = useMemo(() => {
+    if (!showCSMBrandLogo) return null
+    const CSMLogo = () => (
+      <Box sx={{ display: 'flex', alignItems: 'center', height: 44 }}>
+        <BNLogo height={28} />
+      </Box>
+    )
+    CSMLogo.displayName = 'CSMLogo'
+    return CSMLogo
+  }, [showCSMBrandLogo])
 
-      // Then call signout with CSRF token
-      await fetch('/api/auth/signout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          csrfToken,
-        }),
-      })
-
-      // Redirect to login
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout failed:', error)
-      // Fallback to router push even if signout request fails
-      router.push('/login')
-    }
-  }, [router])
-
-  const menuItems = useMemo(
-    () => [
-      { label: 'Profile', onClick: () => router.push('/profile') },
-      {
-        label: `Switch to ${mode === 'light' ? 'Dark' : 'Light'} Mode`,
-        onClick: () => setMode(mode === 'light' ? 'dark' : 'light'),
-      },
-      { label: 'Logout', onClick: () => void handleLogout() },
-    ],
-    [router, mode, setMode, handleLogout]
-  )
-
-  // Create a selectedTabValue - use undefined for pages without active tabs
-  // This prevents any tab from being highlighted on non-tab pages like profile
-  const selectedTabValue = currentTab === null ? undefined : currentTab
-
-  // Handle tab change with client-side navigation
-  const handleTabChange = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
-      event.preventDefault()
-      const selectedTab = exampleTabs.find((tab) => tab.value === newValue)
-      if (selectedTab?.href) {
-        router.push(selectedTab.href)
-      }
-    },
-    [exampleTabs, router]
-  )
-
-  // Intercept all clicks on the AppBar to prevent default navigation
-  const handleWrapperClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement
-
-    // Find the closest anchor tag
-    const anchor = target.closest('a')
-    const href = anchor?.getAttribute('href')
-    // Only intercept internal navigation (not external links)
-    if (href?.startsWith('/')) {
-      event.preventDefault()
-      event.stopPropagation()
-      router.push(href)
-    }
-  }, [router])
-
-  // Prepare props object
   const appBarProps = {
-    slots: { logoImg: NextImageComponent, end: endSlot },
-    slotProps,
+    slots: {
+      logoImg:
+        showCSMBrandLogo && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
+      end: endSlot,
+    },
+    slotProps: showCSMBrandLogo ? undefined : logoSlotProps,
     color: 'secondary' as const,
-    tabs: shouldHideTabs ? [] : exampleTabs,
+    tabs: shouldHideTabs ? [] : tabs,
     avatar,
     menuItems,
-    selectedTabValue,
+    // Cast: MUI Tabs accepts `false` for "no selection" but BNAppBar types it as `string`.
+    // At runtime `false` passes through correctly and suppresses the MUI console warning.
+    selectedTabValue: selectedTabValue as string | undefined,
     meetingStatus,
     onTabChange: handleTabChange,
   }
 
-  // Handle SSR where mode might be undefined
-  if (!mode) {
+  if (!isReady) {
     return null
   }
 
   return (
     <Box onClick={handleWrapperClick}>
-      <BNAppBar {...appBarProps} >
+      <BNAppBar {...appBarProps}>
         {props.appSwitcher && (
-          <Box
-            aria-label="Client and Application Switcher"
-            role="complementary"
-          >
+          <Box aria-label="Client and Application Switcher" role="complementary">
             <ClientAppSwitcher currentAppTitle="Issuer Portal" />
           </Box>
         )}
@@ -503,7 +166,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
         <Box
           sx={{
             paddingInline: 3,
-            paddingBlock: .5,
+            paddingBlock: 0.5,
             borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
             backgroundColor: (theme) =>
               !meetingStatus || meetingStatus === 'ACTIVE'
@@ -514,17 +177,21 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
             transition: 'background-color 120ms ease',
           }}
         >
-          <Typography variant="body3" fontWeight={500} sx={{
-            color: (theme) =>
-              !meetingStatus || meetingStatus === 'ACTIVE'
-                ? 'text.primary'
-                : meetingStatus === 'COMPLETE'
-                  ? theme.vars.palette.warning.contrastText
-                  : theme.vars.palette.warning.contrastText,
-          }}>
+          <Typography
+            variant="body3"
+            fontWeight={500}
+            sx={{
+              color: (theme) =>
+                !meetingStatus || meetingStatus === 'ACTIVE'
+                  ? 'text.primary'
+                  : meetingStatus === 'COMPLETE'
+                    ? theme.vars.palette.warning.contrastText
+                    : theme.vars.palette.warning.contrastText,
+            }}
+          >
             {meetingStatus === 'COMPLETE' && meetingDateLabel
               ? `You are viewing a past meeting from ${meetingDateLabel}.`
-              : (!meetingStatus || meetingStatus === 'ACTIVE')
+              : !meetingStatus || meetingStatus === 'ACTIVE'
                 ? 'You are viewing an active meeting.'
                 : 'You are viewing a meeting with unknown status.'}
           </Typography>

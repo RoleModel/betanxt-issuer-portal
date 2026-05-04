@@ -20,23 +20,26 @@
     "clean": "rm -rf .next node_modules/.cache"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.41",
+    "@ai-sdk/react": "^3.0.118",
     "@docuseal/signature-maker-react": "^1.0.2",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^7.3.1",
+    "@mui/icons-material": "^7.3.8",
     "@mui/lab": "^7.0.0-beta.17",
-    "@mui/material": "^7.3.2",
+    "@mui/material": "^7.3.8",
     "@mui/material-nextjs": "^7.3.5",
     "@mui/utils": "^7.3.2",
     "@mui/x-charts": "^8.12.0",
     "@mui/x-date-pickers": "^8.11.3",
     "@next/bundle-analyzer": "^16.0.0",
     "@react-pdf/renderer": "^4.3.1",
-    "@rolemodel/betanxt-design-system": "^1.0.0",
+    "@rolemodel/betanxt-design-system": "^1.1.1",
     "@supabase/supabase-js": "^2.58.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
+    "ai": "^6.0.116",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.22",
     "mammoth": "^1.11.0",
@@ -55,15 +58,17 @@
     "swr": "^2.3.6",
     "turbo-ignore": "^2.5.8",
     "uuid": "^13.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.36.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/node": "^20.4.2",
+    "@types/node": "^24.0.0",
     "@types/number-abbreviate": "^2.0.0",
     "@types/react": "^18.2.15",
+    "baseline-browser-mapping": "^2.10.0",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "openapi-fetch": "^0.8.2",
@@ -71,6 +76,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": "^22.0.0"
+    "node": "^24.0.0"
   }
 }

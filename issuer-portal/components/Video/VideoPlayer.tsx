@@ -209,8 +209,7 @@ export default function VideoPlayer({
             bottom: 0,
             left: 0,
             right: 0,
-            background:
-              'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)',
+            background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)',
             padding: 2,
             opacity: showControls || !isPlaying ? 1 : 0,
             transition: 'opacity 0.3s ease',

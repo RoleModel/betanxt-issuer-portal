@@ -4,8 +4,8 @@ import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import React from 'react'
 
-import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/material'
 import { WebOutlined } from '@mui/icons-material'
+import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/material'
 
 import RevisionRequestDialog from '@/components/Documents/RevisionRequestDialog'
 import StatusChip from '@/components/ui/StatusChip'
@@ -200,7 +200,9 @@ export default function DocumentSiteCard() {
     // Check if we have a valid URL before opening the viewer
     if (!viewerUrl) {
       // Show an alert or notification that the site is not available
-      alert('Document hosting site is not available. Please ensure the client branding ID is configured.')
+      alert(
+        'Document hosting site is not available. Please ensure the client branding ID is configured.'
+      )
       return
     }
     setHostingSiteViewerOpen(true)
@@ -280,7 +282,7 @@ export default function DocumentSiteCard() {
         <CardContent>
           <Box
             sx={{
-              p: 2,
+              p: 3,
               backgroundColor: 'background.default',
               borderRadius: 1,
               border: '1px solid',
@@ -292,7 +294,7 @@ export default function DocumentSiteCard() {
             }}
           >
             <WebOutlined sx={{ fontSize: 40 }} />
-            <Typography variant="h4" component="p">
+            <Typography variant="h3" component="p">
               Document Hosting Site
             </Typography>
             <Typography variant="body3" color="text.secondary">

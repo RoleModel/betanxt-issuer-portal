@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useMemo } from 'react'
 import useSWR from 'swr'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -74,14 +75,14 @@ const normalizeClient = (raw: unknown): Client | null => {
   const accountsRaw = record.accounts
   const accounts = Array.isArray(accountsRaw)
     ? accountsRaw
-      .map((account) => asRecord(account))
-      .filter((account): account is Record<string, unknown> => Boolean(account))
-      .map((account) => ({
-        id: asString(account.id) ?? '',
-        name: asString(account.name) ?? undefined,
-        primary_contact: asString(account.primary_contact) ?? undefined,
-      }))
-      .filter((account) => account.id)
+        .map((account) => asRecord(account))
+        .filter((account): account is Record<string, unknown> => Boolean(account))
+        .map((account) => ({
+          id: asString(account.id) ?? '',
+          name: asString(account.name) ?? undefined,
+          primary_contact: asString(account.primary_contact) ?? undefined,
+        }))
+        .filter((account) => account.id)
     : undefined
 
   const phaseValue = pickNumber(record, ['phase']) ?? 2
@@ -164,6 +165,9 @@ export const useClients = (): UseClientsResult => {
   const { data: session } = useSession()
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
 
+  // Tickers this user is allowed to see (PARENT_CLIENT users have an explicit allow-list)
+  const allowedTickers = session?.user?.clientTickers
+
   // Custom fetcher for clients
   const clientsFetcher = async () => {
     // Only fetch if we have a session (non-bypass mode) or bypass is enabled
@@ -172,7 +176,7 @@ export const useClients = (): UseClientsResult => {
     }
 
     const apiClient = await buildApiClient()
-    const { data, error} = await apiClient.GET('/clients')
+    const { data, error } = await apiClient.GET('/clients')
 
     if (error) {
       throw new Error(
@@ -186,12 +190,25 @@ export const useClients = (): UseClientsResult => {
   }
 
   // Use SWR for data fetching with deduplication
-  const { data, error, isLoading, mutate } = useSWR(
+  const {
+    data: rawData,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
     // Key includes session info to refetch when user changes
     session || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
     clientsFetcher,
     clientsSWRConfig
   )
+
+  // Filter is applied outside the fetcher so it is always reactive to the current session.
+  // This prevents stale cached data from leaking through to restricted users.
+  const clients = useMemo(() => {
+    if (!rawData) return []
+    if (!allowedTickers) return rawData
+    return rawData.filter((c) => allowedTickers.includes(c.ticker))
+  }, [rawData, allowedTickers])
 
   // Transform error for consistent interface
   let errorMessage: string | null = null
@@ -204,7 +221,7 @@ export const useClients = (): UseClientsResult => {
   }
 
   return {
-    clients: data || [],
+    clients,
     loading: isLoading,
     error: errorMessage,
     refetch: async () => {

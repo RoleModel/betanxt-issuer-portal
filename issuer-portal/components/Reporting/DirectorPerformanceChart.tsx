@@ -5,9 +5,8 @@ import React from 'react'
 import { Box, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts'
 
-import SkeletonChart from '@/components/ui/SkeletonChart'
-
 import { ChartDataProvider } from '@/components/Reporting/ChartDataContext'
+import SkeletonChart from '@/components/ui/SkeletonChart'
 
 interface DirectorPerformanceData {
   directorName: string

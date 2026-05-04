@@ -35,7 +35,7 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
   return {
     id: asString(record.id) || '',
-    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'UNVOTED',
+    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || 'unvoted',
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
     votingSource:
@@ -300,7 +300,17 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
           proposalNumber: parseInt(proposal.proposalNumber, 10) || 0,
           description: proposal.proposalType,
           directorName: proposal.directorName,
+          recommendation: proposal.recommendation,
           votingResults: mockVotingResults,
+          voteCounts: {
+            for: mockVotingResults.for.shares > 0 ? 1 : 0,
+            against: mockVotingResults.against.shares > 0 ? 1 : 0,
+            abstain: mockVotingResults.abstain.shares > 0 ? 1 : 0,
+            total:
+              (mockVotingResults.for.shares > 0 ? 1 : 0) +
+              (mockVotingResults.against.shares > 0 ? 1 : 0) +
+              (mockVotingResults.abstain.shares > 0 ? 1 : 0),
+          },
           totalShares: totalVoted,
           status: 'active' as const,
         }

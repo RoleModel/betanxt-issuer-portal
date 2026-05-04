@@ -64,7 +64,9 @@ export default [
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['scripts/*.mjs'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -140,6 +142,14 @@ export default [
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+
+  // Mock API server route stubs — handlers are async by convention even without await
+  {
+    files: ['mock-api-server/app/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/require-await': 'off',
     },
   },
 ]

@@ -1,13 +1,17 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.937Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { getAccountById, updateAccount, deleteAccount } from '@/domain-models/api/accounts'
+import {
+  deleteAccount,
+  getAccountById,
+  updateAccount,
+} from '@/domain-models/api/accounts'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
 interface RouteParams {
   accountId: string
@@ -27,10 +31,7 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -38,10 +39,10 @@ export async function GET(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getAccountById'
+          operationId: 'getAccountById',
         },
         { status: 500 }
       )
@@ -66,10 +67,7 @@ export async function PUT(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -77,10 +75,10 @@ export async function PUT(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'updateAccount'
+          operationId: 'updateAccount',
         },
         { status: 500 }
       )
@@ -102,10 +100,7 @@ export async function DELETE(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -113,10 +108,10 @@ export async function DELETE(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'deleteAccount'
+          operationId: 'deleteAccount',
         },
         { status: 500 }
       )

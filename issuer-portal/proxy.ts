@@ -1,27 +1,34 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function proxy(_request: NextRequest) {
-  // Check if auth bypass is enabled
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-  if (bypassAuth) {
+  // Allow login page, API routes, auth routes, and static assets through
+  if (
+    pathname.includes('/login') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    pathname === '/favicon.ico'
+  ) {
     return NextResponse.next()
   }
 
-  // Simple client-side routing - let NextAuth handle authentication
-  // This avoids Edge Runtime compatibility issues
+  // Server-side session cookie check to prevent unauthenticated flash
+  const hasSession =
+    request.cookies.has('authjs.session-token') ||
+    request.cookies.has('__Secure-authjs.session-token') ||
+    request.cookies.has('next-auth.session-token') ||
+    request.cookies.has('__Secure-next-auth.session-token')
 
-  // Allow all requests to pass through for now
-  // Authentication will be handled by NextAuth SessionProvider on the client side
+  if (!hasSession) {
+    const loginUrl = new URL('/login', request.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
   return NextResponse.next()
 }
 
-// Configure which routes the middleware should run on
 export const config = {
-  matcher: [
-    // Temporarily disabled to avoid Edge Runtime issues
-    // Re-enable when Edge Runtime compatibility is resolved
-    // '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|fonts|logos|images).*)'],
 }

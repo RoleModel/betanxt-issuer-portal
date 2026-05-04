@@ -631,13 +631,13 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       // Create client data inside the handler to ensure latest meeting data (following TaskDrawer pattern)
       const clientData = currentClient
         ? {
-          issuerName: currentClient.company_name ?? currentClient.short_name ?? '',
-          cusipNumber: currentMeeting?.cusip ?? undefined,
-          contactName: currentClient.primary_contact ?? '',
-          email: currentClient.primary_contact_email ?? '',
-          meetingDate: currentMeeting?.meetingDate ?? undefined,
-          ticker: currentClient.ticker ?? undefined,
-        }
+            issuerName: currentClient.company_name ?? currentClient.short_name ?? '',
+            cusipNumber: currentMeeting?.cusip ?? undefined,
+            contactName: currentClient.primary_contact ?? '',
+            email: currentClient.primary_contact_email ?? '',
+            meetingDate: currentMeeting?.meetingDate ?? undefined,
+            ticker: currentClient.ticker ?? undefined,
+          }
         : undefined
 
       console.log(
@@ -1006,7 +1006,6 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     <Stack sx={{ height: '100%' }}>
       {/* Header */}
       <DrawerHeader
-
         title={`Phase ${currentPhaseNumber} Overview`}
         onClose={handleMainDrawerClose}
         navigation={{
@@ -1181,14 +1180,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 const modifiedTask: Task =
                   hasSignedDoc && task.links && Array.isArray(task.links)
                     ? {
-                      ...task,
-                      links: (task.links as TaskLink[]).map((link: TaskLink) => {
-                        if (link.action === 'signature' && link.label === 'Sign Form') {
-                          return { ...link, label: 'View Form' }
-                        }
-                        return link
-                      }) as unknown as Record<string, unknown>,
-                    }
+                        ...task,
+                        links: (task.links as TaskLink[]).map((link: TaskLink) => {
+                          if (link.action === 'signature' && link.label === 'Sign Form') {
+                            return { ...link, label: 'View Form' }
+                          }
+                          return link
+                        }) as unknown as Record<string, unknown>,
+                      }
                     : task
 
                 return (
@@ -1362,12 +1361,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         task={
           currentTaskForDocument
             ? {
-              id: currentTaskForDocument.id ?? '',
-              task_id: currentTaskForDocument.taskId ?? currentTaskForDocument.id,
-              title: currentTaskForDocument.title ?? 'Document',
-              type: currentTaskForDocument.type,
-              meeting_id: currentTaskForDocument.meetingId,
-            }
+                id: currentTaskForDocument.id ?? '',
+                task_id: currentTaskForDocument.taskId ?? currentTaskForDocument.id,
+                title: currentTaskForDocument.title ?? 'Document',
+                type: currentTaskForDocument.type,
+                meeting_id: currentTaskForDocument.meetingId,
+              }
             : undefined
         }
         documentType="signature"

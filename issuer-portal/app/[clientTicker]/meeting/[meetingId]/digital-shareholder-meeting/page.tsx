@@ -4,8 +4,8 @@ import React, { Suspense, useCallback, useState } from 'react'
 import * as XLSX from 'xlsx'
 
 import { Refresh } from '@mui/icons-material'
-import { Alert, Button, Container, Snackbar, Stack, Typography } from '@mui/material'
 import { FileUploadOutlined } from '@mui/icons-material'
+import { Alert, Button, Container, Snackbar, Stack, Typography } from '@mui/material'
 
 import EmptyState from '@/components/EmptyState'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
@@ -184,7 +184,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-              `Found columns: ${availableColumns}`
+                `Found columns: ${availableColumns}`
             )
           )
           return
@@ -210,7 +210,9 @@ export default function DigitalShareholderMeetingPage() {
   const currentMeeting = meetingContext.currentMeeting
 
   // Only call the hook when we have a meeting ID
-  const digitalMeetingData = useDigitalShareholderMeeting(currentMeeting?.id || undefined) as {
+  const digitalMeetingData = useDigitalShareholderMeeting(
+    currentMeeting?.id || undefined
+  ) as {
     attendees: unknown[]
     error: unknown
     isLoading: boolean
@@ -343,10 +345,18 @@ export default function DigitalShareholderMeetingPage() {
             title="No digital meeting attendees yet — add attendees to get started"
             action={
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button variant="contained" onClick={handleUploadClick} startIcon={<FileUploadOutlined />}>
+                <Button
+                  variant="contained"
+                  onClick={handleUploadClick}
+                  startIcon={<FileUploadOutlined />}
+                >
                   Add Participants
                 </Button>
-                <Button variant="outlined" onClick={handleGuestRegistrantsUpload} startIcon={<FileUploadOutlined />}>
+                <Button
+                  variant="outlined"
+                  onClick={handleGuestRegistrantsUpload}
+                  startIcon={<FileUploadOutlined />}
+                >
                   Upload Guest Registrants
                 </Button>
               </Stack>

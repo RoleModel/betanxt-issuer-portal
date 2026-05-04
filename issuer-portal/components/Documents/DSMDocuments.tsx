@@ -2,6 +2,7 @@
 
 import React from 'react'
 
+import { FileUploadOutlined } from '@mui/icons-material'
 import {
   Button,
   Card,
@@ -18,8 +19,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-
-import { FileUploadOutlined } from '@mui/icons-material'
 
 import SrOnlyTableCaption from '@/components/ui/SROnlyTableCaption'
 import StatusChip from '@/components/ui/StatusChip'
@@ -69,9 +68,11 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
     placeholders = [],
   } = props
 
-  console.log('[DSMDocuments] Received dsmDocuments:', dsmDocuments.length, dsmDocuments.map(d => ({ title: d.title, type: d.type })))
-
-
+  console.log(
+    '[DSMDocuments] Received dsmDocuments:',
+    dsmDocuments.length,
+    dsmDocuments.map((d) => ({ title: d.title, type: d.type }))
+  )
 
   // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
   const mergedRows: Document[] = []
@@ -89,7 +90,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
     // If no exact match and placeholder is "Static Slide or Presentation",
     // look for documents containing "presentation"
     if (!realDoc && placeholder.title.toLowerCase() === 'static slide or presentation') {
-      realDoc = dsmDocuments.find(doc =>
+      realDoc = dsmDocuments.find((doc) =>
         doc.title?.toLowerCase().includes('presentation')
       )
     }
@@ -122,7 +123,8 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
         title={' Digital Shareholder Meeting Documents'}
         subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
         action={
-          <Button variant="contained"
+          <Button
+            variant="contained"
             onClick={onUpload}
             startIcon={<FileUploadOutlined />}
           >
@@ -148,9 +150,9 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
             <TableBody>
               {(dsmRowsPerPage > 0
                 ? mergedRows.slice(
-                  dsmPage * dsmRowsPerPage,
-                  dsmPage * dsmRowsPerPage + dsmRowsPerPage
-                )
+                    dsmPage * dsmRowsPerPage,
+                    dsmPage * dsmRowsPerPage + dsmRowsPerPage
+                  )
                 : mergedRows
               ).map((doc) => (
                 <TableRow key={doc.id}>

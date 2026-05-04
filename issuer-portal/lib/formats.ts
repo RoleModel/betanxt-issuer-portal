@@ -12,7 +12,9 @@ export const formatDate = (dateInput: string | Date | undefined | null): string 
   })
 }
 
-export const formatDateWithYear = (dateInput: string | Date | undefined | null): string => {
+export const formatDateWithYear = (
+  dateInput: string | Date | undefined | null
+): string => {
   if (!dateInput) return '-'
 
   const date = dateInput instanceof Date ? dateInput : new Date(dateInput)

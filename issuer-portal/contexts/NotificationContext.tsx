@@ -3,8 +3,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 import { buildApiClient } from '@/domain-models/apiClient'
-import { useClient } from '@/contexts/ClientContext'
 
+import { useClient } from '@/contexts/ClientContext'
 import type { components } from '@/types/api'
 
 type DbNotification = components['schemas']['Notification']

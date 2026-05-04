@@ -9,11 +9,18 @@ import { Box, LinearProgress, Typography } from '@mui/material'
 import { useClient } from '@/contexts/ClientContext'
 
 export default function HomePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const { currentClient, availableClients, loading: clientLoading, error } = useClient()
   const router = useRouter()
   const [showError, setShowError] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
+
+  // Always redirect unauthenticated users to login
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
 
   useEffect(() => {
     // Show error after 5 seconds if still loading
@@ -27,26 +34,45 @@ export default function HomePage() {
   }, [clientLoading, currentClient])
 
   useEffect(() => {
-    // Middleware already handles authentication, so just redirect to client meeting once loaded
-    if (clientLoading || hasRedirected) return // Still loading or already redirected
+    if (hasRedirected) return
+    if (status !== 'authenticated') return
+
+    const userType = session?.user?.type
+    const clientTicker = session?.user?.client_ticker
+
+    // PARENT_CLIENT, SOLICITOR, and CSM users go to the events overview dashboard
+    if (userType === 'PARENT_CLIENT' || userType === 'SOLICITOR' || userType === 'CSM') {
+      setHasRedirected(true)
+      router.push('/events')
+      return
+    }
+
+    // ISSUER users with a client_ticker can redirect immediately (no API dependency)
+    if (userType === 'ISSUER' && clientTicker) {
+      const defaultMeetingId = `${clientTicker.toLowerCase()}-annual-meeting-2026`
+      setHasRedirected(true)
+      router.push(`/${clientTicker}/meeting/${defaultMeetingId}`)
+      return
+    }
+
+    // Wait for client context to finish loading before attempting fallback
+    if (clientLoading) return
+
+    // Don't attempt fallback routing until user type is known
+    if (!userType) return
 
     if (currentClient) {
-      // Have a client, redirect to client meeting
       const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2026`
       setHasRedirected(true)
       router.push(`/${currentClient.ticker}/meeting/${defaultMeetingId}`)
     } else if (availableClients.length > 0) {
-      // No current client but have available clients - redirect to first one
       const firstClient = availableClients[0]
       const defaultMeetingId = `${firstClient.ticker.toLowerCase()}-annual-meeting-2026`
       setHasRedirected(true)
       router.push(`/${firstClient.ticker}/meeting/${defaultMeetingId}`)
-    } else if (!clientLoading) {
-      // Loading complete but no clients available
-      // For ADMIN users without a specific client, redirect to first available client
-      // For other users, this is an error state - should not happen
-      if (session?.user?.type === 'ADMIN') {
-        // Redirect to WEN as default for admins
+    } else {
+      // No clients available — ADMIN gets a default, others go to login
+      if (userType === 'ADMIN') {
         setHasRedirected(true)
         router.push('/WEN/meeting/wen-annual-meeting-2026')
       } else {
@@ -54,7 +80,16 @@ export default function HomePage() {
         router.push('/login')
       }
     }
-  }, [router, currentClient, availableClients, clientLoading, hasRedirected, session])
+  }, [
+    router,
+    currentClient,
+    availableClients,
+    clientLoading,
+    hasRedirected,
+    session?.user?.type,
+    session?.user?.client_ticker,
+    status,
+  ])
 
   if (error || showError) {
     return (

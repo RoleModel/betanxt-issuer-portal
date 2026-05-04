@@ -286,32 +286,32 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   height: 18,
                   ...(isKeyDate
                     ? {
-                      backgroundColor:
-                        task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
-                          ? (theme) => theme.vars?.palette.keydate.dark
-                          : 'transparent',
-                      color:
-                        task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
-                          ? 'white'
-                          : (theme) => theme.vars?.palette.keydate.contrastText,
-                      border:
-                        task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
-                          ? 'none'
-                          : (theme) =>
-                            `1px solid ${theme.vars?.palette.keydate.contrastText}`,
-                    }
-                    : isMeetingDate
-                      ? {
                         backgroundColor:
                           task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
-                            ? (theme) => theme.vars?.palette.complete
-                            : 'rgba(255,255,255,0.2)',
-                        color: 'white',
+                            ? (theme) => theme.vars?.palette.keydate.dark
+                            : 'transparent',
+                        color:
+                          task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
+                            ? 'white'
+                            : (theme) => theme.vars?.palette.keydate.contrastText,
                         border:
                           task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
                             ? 'none'
-                            : '1px solid white',
+                            : (theme) =>
+                                `1px solid ${theme.vars?.palette.keydate.contrastText}`,
                       }
+                    : isMeetingDate
+                      ? {
+                          backgroundColor:
+                            task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
+                              ? (theme) => theme.vars?.palette.complete
+                              : 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          border:
+                            task.status === 'COMPLETE' || task.status === 'AUTHORIZED'
+                              ? 'none'
+                              : '1px solid white',
+                        }
                       : {}),
                 }}
               />
@@ -339,9 +339,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         '&:hover': onClick
           ? {
-            transform: 'translateY(-1px)',
-            transition: 'all 0.2s ease-in-out',
-          }
+              transform: 'translateY(-1px)',
+              transition: 'all 0.2s ease-in-out',
+            }
           : {},
       }}
       onClick={onClick}

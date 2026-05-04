@@ -1,13 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-
-import type { NextRequest} from 'next/server';
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { handleCors, withCors } from '@/utils/cors'
-import { listDocuments, createDocument } from '@/domain-models/api/documents'
+import { createDocument, listDocuments } from '@/domain-models/api/documents'
+
 import type { components } from '@/types/api'
+import { handleCors, withCors } from '@/utils/cors'
 
 interface RouteParams {
   meetingId: string
@@ -25,14 +25,14 @@ export async function GET(
     // Extract query parameters
     const { searchParams } = new URL(request.url)
     const statusParam = searchParams.get('status') || undefined
-    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = 
-      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam) 
-        ? statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
+    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
+      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
+        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
         : undefined
     const typeParam = searchParams.get('type') || undefined
-    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined = 
-      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam) 
-        ? typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'
+    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined =
+      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam)
+        ? (typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER')
         : undefined
 
     // Use existing domain model function
@@ -40,10 +40,7 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 500 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
       )
     }
 
@@ -51,10 +48,10 @@ export async function GET(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listDocuments'
+          operationId: 'listDocuments',
         },
         { status: 500 }
       )
@@ -79,10 +76,7 @@ export async function POST(
 
     if (error) {
       return withCors(
-        NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400 }
-        )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
       )
     }
 
@@ -90,10 +84,10 @@ export async function POST(
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { 
+        {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createDocument'
+          operationId: 'createDocument',
         },
         { status: 500 }
       )

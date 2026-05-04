@@ -38,10 +38,17 @@ export interface ProposalVoting {
   proposalTitle?: string
   proposalType?: string
   directorName?: string
+  recommendation?: string
   votingResults: {
     for: { shares: number; percentage: number }
     against: { shares: number; percentage: number }
     abstain: { shares: number; percentage: number }
+  }
+  voteCounts?: {
+    for: number
+    against: number
+    abstain: number
+    total: number
   }
   totalShares: number
   status: 'active' | 'completed' | 'pending'

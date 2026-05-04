@@ -47,9 +47,9 @@ interface ParticipationData {
 interface YearOverYearData {
   year: number
   participationRate: number
-  proposalsCount: number
-  passedCount: number
-  failedCount: number
+  registeredShares: number
+  beneficialShares: number
+  totalShares: number
 }
 
 interface EventSummaryData {
@@ -89,21 +89,23 @@ interface QuorumData {
 interface MappedEventSummary {
   event: string
   meetingId?: string
-  recordDate: string
   meetingType: string
-  quorum: string
-  participation: string
-  numProposals: number
-  outcome: string
+  inspector: string
+  brokerSearchDate: string
+  recordDate: string
+  filingDate: string
+  mailingDate: string
+  mailingMethod: string
+  votingCutoff: string
   meetingYear: number
 }
 
 interface MappedYearOverYear {
   year: number
   participationRate: number
-  proposalsCount: number
-  passedCount: number
-  failedCount: number
+  registeredShares: number
+  beneficialShares: number
+  totalShares: number
 }
 
 interface MappedProposalPerformanceData {
@@ -431,11 +433,11 @@ function calculateParticipationData(positions: Position[]): ParticipationData {
 function calculateYearOverYearData(
   meetings: Meeting[],
   _proposals: Proposal[],
-  _positions: Position[]
+  positions: Position[]
 ): YearOverYearData[] {
   const yearMap = new Map<number, YearOverYearData>()
 
-  // Only use Annual meetings for Year-over-Year chart (max 8 proposals each)
+  // Only use Annual meetings for Year-over-Year chart
   const annualMeetings = meetings.filter(
     (m) => !(m.meetingType ?? 'Annual').toLowerCase().includes('special')
   )
@@ -448,25 +450,35 @@ function calculateYearOverYearData(
     // Skip if we already have data for this year (take first annual meeting)
     if (yearMap.has(year)) return
 
-    // 8 proposals per annual meeting, only 2024 shows 7/8 passed
-    const proposalsCount = 8
-    const passedCount = year === 2024 ? 7 : 8
-    const failedCount = year === 2024 ? 1 : 0
+    // Get positions for this meeting
+    const meetingPositions = positions.filter((p) => p.meetingId === meeting.id)
 
-    // Generate consistent participation rate between 58% and 74% using meeting id as seed
-    // This matches the seeded random in transformEventSummaryData
-    const meetingIdHash = (meeting.id ?? '')
-      .split('')
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-    const participationRate = 58 + seededRandom * 16
+    // Calculate registered vs beneficial shares
+    // accountType: 'Non-DTC' = Registered (directly held)
+    // accountType: 'DTC/CDS' = Beneficial (street name, held through brokers)
+    const registeredShares = meetingPositions
+      .filter((p) => p.accountType === 'Non-DTC')
+      .reduce((sum, p) => sum + (p.sharesVoted ?? 0), 0)
+
+    const beneficialShares = meetingPositions
+      .filter((p) => p.accountType === 'DTC/CDS')
+      .reduce((sum, p) => sum + (p.sharesVoted ?? 0), 0)
+
+    const totalShares = registeredShares + beneficialShares
+
+    const totalSharesOutstandingNum = Number.parseInt(
+      meeting.totalSharesOutstanding ?? '0',
+      10
+    )
+    const participationRate =
+      totalSharesOutstandingNum > 0 ? (totalShares / totalSharesOutstandingNum) * 100 : 0
 
     yearMap.set(year, {
       year,
       participationRate,
-      proposalsCount,
-      passedCount,
-      failedCount,
+      registeredShares,
+      beneficialShares,
+      totalShares,
     })
   })
 
@@ -669,29 +681,12 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
 // UI Transformation functions
 function transformEventSummaryData(
   meetings: Meeting[],
-  proposals: Proposal[] = [],
+  _proposals: Proposal[] = [],
   _positions: Position[] = []
 ): MappedEventSummary[] {
   if (!meetings || meetings.length === 0) {
     return []
   }
-
-  // Pre-aggregate proposals by meeting id (support camelCase and snake_case)
-  const proposalsByMeeting = proposals.reduce((acc, p) => {
-    const key =
-      ((p as unknown as { meetingId?: string; meeting_id?: string }).meetingId ??
-        (p as unknown as { meeting_id?: string }).meeting_id) ||
-      ''
-    if (!key) return acc
-    const fr =
-      (p as unknown as { finalResult?: string; final_result?: string }).finalResult ??
-      (p as unknown as { final_result?: string }).final_result
-    const bucket = acc.get(key) || { total: 0, passed: 0 }
-    bucket.total += 1
-    if (fr === 'PASSED') bucket.passed += 1
-    acc.set(key, bucket)
-    return acc
-  }, new Map<string, { total: number; passed: number }>())
 
   const results: MappedEventSummary[] = []
 
@@ -704,47 +699,19 @@ function transformEventSummaryData(
         : 'Unknown'
       const meetingType = meeting.meetingType ?? 'Annual'
 
-      // Get meeting-specific data (kept for future use with real data)
-      const _proposalAgg = proposalsByMeeting.get(meeting.id ?? '') || {
-        total: 0,
-        passed: 0,
-      }
+      const meetingRecord = meeting as Record<string, unknown>
 
-      // Generate mock data based on meeting type
-      let numProposals: number
-      let passedProposals: number
-      if (meetingType.toLowerCase().includes('special')) {
-        // Special meetings: 5 proposals, all passed
-        numProposals = 5
-        passedProposals = 5
-      } else {
-        // Annual meetings: 8 proposals, with one specific year showing 7/8
-        numProposals = 8
-        const yearNum = typeof year === 'number' ? year : parseInt(String(year), 10)
-        // Only 2024 shows 7/8 passed, all others 8/8
-        passedProposals = yearNum === 2024 ? 7 : 8
-      }
-
-      // Generate consistent participation rate between 58% and 74% using meeting id as seed
-      const meetingIdHash = (meeting.id ?? '')
-        .split('')
-        .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-      const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-      const participationRate = 58 + seededRandom * 16
-
-      // Always show quorum as met
-      const quorumMet = true
-
-      const result = {
+      const result: MappedEventSummary = {
         event: `${meetingType} ${year}`,
         meetingId: meeting.id,
+        meetingType,
+        inspector: (meetingRecord.inspector as string) ?? '',
+        brokerSearchDate: (meetingRecord.brokerSearchDate as string) ?? '',
         recordDate: (meeting.recordDate || meeting.meetingDate) ?? '',
-        meetingType: meetingType,
-        quorum: quorumMet ? 'Yes' : 'No', // Always "Yes" as requested
-        participation: `${participationRate.toFixed(1)}%`,
-        numProposals: numProposals,
-        outcome:
-          numProposals > 0 ? `${passedProposals}/${numProposals} Passed` : 'No Proposals',
+        filingDate: (meetingRecord.filingDate as string) ?? '',
+        mailingDate: (meetingRecord.mailingDate as string) ?? '',
+        mailingMethod: (meetingRecord.distributionType as string) ?? '',
+        votingCutoff: (meetingRecord.cutoffDate as string) ?? '',
         meetingYear: typeof year === 'number' ? year : parseInt(year.toString(), 10) || 0,
       }
 
@@ -764,9 +731,9 @@ function transformYearOverYearData(
     year:
       typeof y.year === 'string' ? parseInt(y.year, 10) : (y.year as unknown as number),
     participationRate: y.participationRate,
-    proposalsCount: y.proposalsCount,
-    passedCount: y.passedCount,
-    failedCount: y.failedCount,
+    registeredShares: y.registeredShares,
+    beneficialShares: y.beneficialShares,
+    totalShares: y.totalShares,
   }))
 }
 

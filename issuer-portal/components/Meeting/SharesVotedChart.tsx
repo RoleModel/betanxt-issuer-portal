@@ -8,37 +8,41 @@ import { PieChart } from '@mui/x-charts/PieChart'
 import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
 
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
+import type { VotingSummary } from '@/types/phases'
 
 interface SharesVotedChartProps {
   meetingId?: string
   loading?: boolean
+  votingSummaryOverride?: VotingSummary | null
 }
 
 export default function SharesVotedChart({
   meetingId,
   loading = false,
+  votingSummaryOverride,
 }: SharesVotedChartProps) {
   const { votingSummary, loading: votingLoading } = useVotingTabulation(meetingId)
+  const resolvedSummary = votingSummaryOverride ?? votingSummary
 
   const { percentage, votingBreakdownData } = useMemo(() => {
-    if (!votingSummary) {
+    if (!resolvedSummary) {
       return { percentage: 0, votingBreakdownData: [] }
     }
 
     // Check if we have actual voting breakdown data
     const hasVotingData =
-      votingSummary.votingBreakdown.for.shares > 0 ||
-      votingSummary.votingBreakdown.against.shares > 0 ||
-      votingSummary.votingBreakdown.abstain.shares > 0
+      resolvedSummary.votingBreakdown.for.shares > 0 ||
+      resolvedSummary.votingBreakdown.against.shares > 0 ||
+      resolvedSummary.votingBreakdown.abstain.shares > 0
 
     if (!hasVotingData) {
       // If no voting breakdown data, show just the voted vs unvoted
-      const totalVoted = votingSummary.totalSharesVoted
+      const totalVoted = resolvedSummary.totalSharesVoted
       const totalUnvoted =
-        votingSummary.totalSharesOutstanding - votingSummary.totalSharesVoted
+        resolvedSummary.totalSharesOutstanding - resolvedSummary.totalSharesVoted
 
       return {
-        percentage: votingSummary.percentageVoted,
+        percentage: resolvedSummary.percentageVoted,
         votingBreakdownData: [
           {
             id: 'voted',
@@ -48,7 +52,7 @@ export default function SharesVotedChart({
           },
           {
             id: 'unvoted',
-            label: 'Unvoted',
+            label: 'Not Voted',
             value: totalUnvoted,
             color: 'var(--mui-palette-chartSeries-4-main)',
           },
@@ -57,29 +61,29 @@ export default function SharesVotedChart({
     }
 
     return {
-      percentage: votingSummary.percentageVoted,
+      percentage: resolvedSummary.percentageVoted,
       votingBreakdownData: [
         {
           id: 'for',
           label: 'For',
-          value: votingSummary.votingBreakdown.for.shares,
+          value: resolvedSummary.votingBreakdown.for.shares,
           color: 'var(--mui-palette-chartSeries-0-main)',
         },
         {
           id: 'against',
           label: 'Against',
-          value: votingSummary.votingBreakdown.against.shares,
+          value: resolvedSummary.votingBreakdown.against.shares,
           color: 'var(--mui-palette-chartSeries-1-main)',
         },
         {
           id: 'abstain',
           label: 'Abstain',
-          value: votingSummary.votingBreakdown.abstain.shares,
+          value: resolvedSummary.votingBreakdown.abstain.shares,
           color: 'var(--mui-palette-chartSeries-2-main)',
         },
       ].filter((item) => item.value > 0),
     }
-  }, [votingSummary])
+  }, [resolvedSummary])
 
   if (loading || votingLoading) {
     return (
@@ -95,55 +99,53 @@ export default function SharesVotedChart({
   // Use the voting breakdown data
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader title="Shares Voted" />
       <CardContent>
         <Box
           sx={{
+            minHeight: 250,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: 3,
+            justifyContent: 'center',
+            color: 'text.secondary',
           }}
         >
-          {/* MUI X Charts Pie Chart */}
-          <Box sx={{ position: 'relative' }}>
-            <PieChart
-              series={[
-                {
-                  data: votingBreakdownData,
-                  innerRadius: 75,
+          <PieChart
+            series={[
+              {
+                data: votingBreakdownData,
+                innerRadius: 75,
 
-                  outerRadius: 100,
-                  highlightScope: { fade: 'global', highlight: 'item' },
-                },
-              ]}
-              width={250}
-              height={250}
-              margin={{ top: 20, bottom: 20, left: 20, right: 20 }}
-              hideLegend={false}
-              slotProps={{
-                legend: {
-                  direction: 'horizontal',
-                  position: { vertical: 'bottom', horizontal: 'center' },
-                },
+                outerRadius: 100,
+                highlightScope: { fade: 'global', highlight: 'item' },
+              },
+            ]}
+            width={250}
+            height={250}
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            hideLegend={false}
+            slotProps={{
+              legend: {
+                direction: 'horizontal',
+                position: { vertical: 'bottom', horizontal: 'center' },
+              },
+            }}
+          >
+            <PieCenterLabel
+              data={{
+                total: percentage,
+                label: 'Voted',
+                centerPercentage: `${percentage}%`,
+                sliceData: votingBreakdownData.map((item, index) => ({
+                  id: index,
+                  value: item.value,
+                  label: item.label,
+                  color: item.color,
+                })),
               }}
-            >
-              <PieCenterLabel
-                data={{
-                  total: percentage,
-                  label: 'Voted',
-                  centerPercentage: `${percentage}%`,
-                  sliceData: votingBreakdownData.map((item, index) => ({
-                    id: index,
-                    value: item.value,
-                    label: item.label,
-                    color: item.color,
-                  })),
-                }}
-              />
-            </PieChart>
-          </Box>
+            />
+          </PieChart>
         </Box>
       </CardContent>
     </Card>

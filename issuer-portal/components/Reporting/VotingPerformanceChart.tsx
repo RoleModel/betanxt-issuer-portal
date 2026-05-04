@@ -136,7 +136,9 @@ export default function VotingPerformanceChart({
   }, [meetingId])
 
   if (loading) {
-    return <SkeletonChart title="Voting Performance By Share Range" height={345} showLegend />
+    return (
+      <SkeletonChart title="Voting Performance By Share Range" height={345} showLegend />
+    )
   }
 
   if (data.length === 0) {

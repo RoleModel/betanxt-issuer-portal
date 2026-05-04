@@ -1,12 +1,20 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
-import type { KeyDate, Position, Task } from '@/types/api-exports'
+
 import type { components } from '@/types/api'
+import type { KeyDate, Position, Task } from '@/types/api-exports'
+import { asArray, asNumber, asRecord, asString } from '@/utils/typeUtils'
 
 type Meeting = components['schemas']['Meeting']
 
@@ -38,6 +46,7 @@ export function MeetingProvider({
   initialMeeting = null,
 }: MeetingProviderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(initialMeeting)
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [positions, setPositions] = useState<Position[]>([])
@@ -128,7 +137,19 @@ export function MeetingProvider({
     return meetingMatch?.[1]
   }, [pathname])
 
+  const redirectToMeetingTicker = useCallback(
+    (meeting: Meeting): boolean => {
+      const urlTicker = getTickerFromURL()
+      const meetingTicker = meeting.ticker
 
+      if (!urlTicker || !meetingTicker) return false
+      if (urlTicker.toUpperCase() === meetingTicker.toUpperCase()) return false
+
+      router.replace(pathname.replace(/^\/[^/]+/, `/${meetingTicker}`))
+      return true
+    },
+    [getTickerFromURL, pathname, router]
+  )
 
   const refreshMeetings = useCallback(
     async (ticker?: string) => {
@@ -167,28 +188,42 @@ export function MeetingProvider({
             ticker: asString(record.ticker) || '',
             cusip: asString(record.cusip) || undefined,
             meetingType: asString(record.meetingType) || undefined,
-            meetingYear: typeof record.meetingYear === 'number' ? record.meetingYear : undefined,
+            meetingYear:
+              typeof record.meetingYear === 'number' ? record.meetingYear : undefined,
             status: asString(record.status) as Meeting['status'],
             meetingDate: asString(record.meetingDate) || undefined,
             recordDate: asString(record.recordDate) || undefined,
             cutoffDate: asString(record.cutoffDate) || undefined,
             currentPhase: asString(record.currentPhase) || undefined,
-            overallCompletion: typeof record.overallCompletion === 'number' ? record.overallCompletion : undefined,
+            overallCompletion:
+              typeof record.overallCompletion === 'number'
+                ? record.overallCompletion
+                : undefined,
             preFilingDate: asString(record.preFilingDate) || undefined,
             filingDate: asString(record.filingDate) || undefined,
             brokerSearchDate: asString(record.brokerSearchDate) || undefined,
             mailingDate: asString(record.mailingDate) || undefined,
             distributionType: asString(record.distributionType) || undefined,
             transferAgent: asString(record.transferAgent) || undefined,
-            transferAgentConfirmed: typeof record.transferAgentConfirmed === 'boolean' ? record.transferAgentConfirmed : null,
+            transferAgentConfirmed:
+              typeof record.transferAgentConfirmed === 'boolean'
+                ? record.transferAgentConfirmed
+                : null,
             employeeStockPlans: asString(record.employeeStockPlans) || undefined,
             planAdministrator: asString(record.planAdministrator) || undefined,
-            planAdministratorContact: asString(record.planAdministratorContact) || undefined,
-            planAdministratorContactEmail: asString(record.planAdministratorContactEmail) || undefined,
+            planAdministratorContact:
+              asString(record.planAdministratorContact) || undefined,
+            planAdministratorContactEmail:
+              asString(record.planAdministratorContactEmail) || undefined,
             solicitor: asString(record.solicitor) || undefined,
             solicitorEmail: asString(record.solicitorEmail) || undefined,
             inspector: asString(record.inspector) || undefined,
             ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
+            mailingStatus: asString(record.mailingStatus) || undefined,
+            quorumRequirement:
+              asNumber(record.quorumRequirement) ??
+              asNumber(record.quorum_requirement) ??
+              undefined,
             clientId: asString(record.clientId) || undefined,
             createdAt: asString(record.createdAt) || undefined,
             updatedAt: asString(record.updatedAt) || undefined,
@@ -203,7 +238,13 @@ export function MeetingProvider({
         const meetingIdFromURL = getMeetingIdFromURL()
         if (meetingIdFromURL) {
           const targetMeeting = normalizedMeetings.find((m) => m.id === meetingIdFromURL)
-          if (targetMeeting && (!currentMeeting || currentMeeting.id !== targetMeeting.id)) {
+          if (
+            targetMeeting &&
+            (!currentMeeting || currentMeeting.id !== targetMeeting.id)
+          ) {
+            if (redirectToMeetingTicker(targetMeeting)) {
+              return
+            }
             setCurrentMeeting(targetMeeting)
           }
         } else if (!currentMeeting && normalizedMeetings.length > 0) {
@@ -216,7 +257,7 @@ export function MeetingProvider({
         setIsLoading(false)
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL, currentMeeting]
+    [getTickerFromURL, getMeetingIdFromURL, currentMeeting, redirectToMeetingTicker]
   )
 
   const getMeetingById = useCallback(
@@ -272,26 +313,44 @@ export function MeetingProvider({
       // Handle positions
       const positionData: Position[] = []
       if (!positionsResult.error) {
-        const rawPositions = asArray(positionsResult.data)
+        const positionsResponse = asRecord(positionsResult.data)
+        const rawPositions = positionsResponse
+          ? asArray(positionsResponse.positions)
+          : asArray(positionsResult.data)
         for (const item of rawPositions) {
           const record = asRecord(item)
           if (!record) continue
 
           const position: Position = {
             id: asString(record.id) || '',
-            meetingId: asString(record.meetingId) || '',
+            meetingId:
+              asString(record.meetingId) || asString(record.meeting_id) || '',
             cusip: asString(record.cusip) || undefined,
-            accountType: asString(record.accountType) || undefined,
-            setKey: asString(record.setKey) || undefined,
+            accountType:
+              asString(record.accountType) || asString(record.account_type) || undefined,
+            setKey: asString(record.setKey) || asString(record.set_key) || undefined,
             name: asString(record.name) || undefined,
-            accountNumber: asString(record.accountNumber) || undefined,
-            controlNumber: asString(record.controlNumber) || undefined,
-            voteStatus: asString(record.voteStatus) as Position['voteStatus'],
+            accountNumber:
+              asString(record.accountNumber) ||
+              asString(record.account_number) ||
+              undefined,
+            controlNumber:
+              asString(record.controlNumber) ||
+              asString(record.control_number) ||
+              undefined,
+            voteStatus: (
+              asString(record.voteStatus) || asString(record.vote_status)
+            ) as Position['voteStatus'],
             shares: typeof record.shares === 'number' ? record.shares : undefined,
-            sharesVoted: typeof record.sharesVoted === 'number' ? record.sharesVoted : undefined,
+            sharesVoted:
+              typeof record.sharesVoted === 'number'
+                ? record.sharesVoted
+                : typeof record.shares_voted === 'number'
+                  ? record.shares_voted
+                  : undefined,
             source: record.source as Position['source'],
-            createdAt: asString(record.createdAt) || undefined,
-            updatedAt: asString(record.updatedAt) || undefined,
+            createdAt: asString(record.createdAt) || asString(record.created_at) || undefined,
+            updatedAt: asString(record.updatedAt) || asString(record.updated_at) || undefined,
           }
 
           positionData.push(position)
@@ -327,6 +386,9 @@ export function MeetingProvider({
       const targetMeeting = meetings.find((m) => m.id === meetingIdFromURL)
       // Only update if we found a target meeting and it's different from current
       if (targetMeeting) {
+        if (redirectToMeetingTicker(targetMeeting)) {
+          return
+        }
         setCurrentMeeting((prev) => {
           // Only update if different to avoid unnecessary re-renders
           if (!prev || prev.id !== targetMeeting.id) {
@@ -344,6 +406,9 @@ export function MeetingProvider({
             })
             if (data) {
               const meetingData = data as Meeting
+              if (redirectToMeetingTicker(meetingData)) {
+                return
+              }
               setCurrentMeeting((prev) => {
                 if (!prev || prev.id !== meetingData.id) {
                   return meetingData
@@ -358,7 +423,7 @@ export function MeetingProvider({
         void fetchPastMeeting()
       }
     }
-  }, [meetings, getMeetingIdFromURL])
+  }, [meetings, getMeetingIdFromURL, redirectToMeetingTicker])
 
   // Fetch meeting data when current meeting changes
   useEffect(() => {
