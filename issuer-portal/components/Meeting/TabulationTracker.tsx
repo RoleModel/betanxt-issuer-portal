@@ -222,7 +222,7 @@ const sortMeetingsBySeriesOrder = (
   return firstDate - secondDate
 }
 
-function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
+function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps) {
   const { currentMeeting } = useMeeting()
   const [data, setData] = React.useState<TabulationData | null>(null)
   const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>(
@@ -230,7 +230,7 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
   )
   const [_nextPhaseDate, setNextPhaseDate] = React.useState<Date | null>(null)
   const [voteCutoffDate, setVoteCutoffDate] = React.useState<Date | null>(null)
-  const [phases, setPhases] = React.useState<Phase[]>([])
+  const [_phases, setPhases] = React.useState<Phase[]>([])
 
   const currentMeetingId = meetingId ?? currentMeeting?.id
 
@@ -505,33 +505,13 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
     currentMeetingId,
   ])
 
-  const routePhaseNumber =
-    typeof phase === 'string' ? Number.parseInt(phase.trim(), 10) : Number.NaN
-  const meetingPhaseNumber = currentMeeting?.currentPhase
-    ? Number.parseInt(currentMeeting.currentPhase.replace('Phase ', '') || '0', 10)
-    : Number.NaN
-  const currentPhaseNumber = Number.isFinite(routePhaseNumber)
-    ? routePhaseNumber
-    : Number.isFinite(meetingPhaseNumber)
-      ? meetingPhaseNumber
-      : 0
-
-  const isVotingPhaseFromMeeting = currentPhaseNumber >= 6
-  const isVotingPhaseFromPhases = phases.some(
-    (phase) =>
-      (phase.orderIndex ?? 0) >= 6 &&
-      ((phase.status as string) === 'ACTIVE' ||
-        phase.status === 'COMPLETE' ||
-        phase.status === 'IN_PROGRESS')
-  )
-  const isVotingPhase = isVotingPhaseFromMeeting || isVotingPhaseFromPhases
   const currentData = data?.meeting_id === currentMeetingId ? data : null
   const currentVotePercentage = currentData
     ? Number.parseFloat(currentData.vote_percentage)
     : 0
 
   const progress =
-    currentData && isVotingPhase
+    currentData
       ? {
           voted: Math.round(currentVotePercentage),
           unvoted: 100 - Math.round(currentVotePercentage),
@@ -595,18 +575,16 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
       ? [
           {
             label: 'Shares Voted',
-            value:
-              currentData && isVotingPhase
-                ? Number(currentData.shares_voted).toLocaleString()
-                : '0',
+            value: currentData
+              ? Number(currentData.shares_voted).toLocaleString()
+              : '--',
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
           {
             label: 'Shares Unvoted',
-            value:
-              currentData && isVotingPhase
-                ? Number(currentData.shares_unvoted).toLocaleString()
-                : '0',
+            value: currentData
+              ? Number(currentData.shares_unvoted).toLocaleString()
+              : '--',
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
         ]
@@ -786,10 +764,9 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                 secondary={{
                   variant: 'h2',
                   fontWeight: 600,
-                  text:
-                    currentData && isVotingPhase
-                      ? Number(currentData.shares_voted).toLocaleString()
-                      : '0',
+                  text: currentData
+                    ? Number(currentData.shares_voted).toLocaleString()
+                    : '--',
                 }}
                 sx={{ flex: 1 }}
               />
@@ -822,10 +799,9 @@ function TabulationTracker({ meetingId, phase }: TabulationTrackerProps) {
                 secondary={{
                   variant: 'h2',
                   fontWeight: 600,
-                  text:
-                    currentData && isVotingPhase
-                      ? Number(currentData.shares_unvoted).toLocaleString()
-                      : '0',
+                  text: currentData
+                    ? Number(currentData.shares_unvoted).toLocaleString()
+                    : '--',
                 }}
                 sx={{ flex: 1 }}
               />

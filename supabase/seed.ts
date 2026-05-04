@@ -3685,10 +3685,14 @@ const main = async () => {
     const companyData = getCompanyDataByTicker(ticker)
 
     // Determine if this meeting should have a tabulation report
-    // Phase 8 (complete) or Phase 7+ (ongoing special meetings need reports)
+    // Phase 8 (complete), Phase 7+ special meetings, or any active annual meeting (phase 1+)
     const meetingPhase = meetingPhaseMap[meetingId] ?? 8
     const isSpecialMeeting = meetingId.includes('special')
-    const shouldHaveReport = meetingPhase === 8 || (meetingPhase >= 7 && isSpecialMeeting)
+    const isAnnualMeeting = meetingId.includes('annual')
+    const shouldHaveReport =
+      meetingPhase === 8 ||
+      (meetingPhase >= 7 && isSpecialMeeting) ||
+      (isAnnualMeeting && meetingPhase >= 1)
 
     if (shouldHaveReport) {
       const tabulationId = copycat.uuid(`tabulation-${meetingId}`)
