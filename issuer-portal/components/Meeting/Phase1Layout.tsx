@@ -2,15 +2,20 @@
 
 import { Suspense } from 'react'
 
+import useSWR from 'swr'
+
 import { Grid } from '@mui/material'
 
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 import DocumentHostingCard from '@/components/Meeting/DocumentHostingCard'
 import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import QuorumGaugeCard from '@/components/Meeting/QuorumGaugeCard'
 
-import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
 import { buildQuorumGaugeModel } from '@/utils/quorum'
+
+type TabulationReport = components['schemas']['TabulationReport']
 
 interface Phase1LayoutProps {
   meetingId?: string
@@ -18,10 +23,26 @@ interface Phase1LayoutProps {
 }
 
 function Phase1Layout({ meeting }: Phase1LayoutProps) {
-  const { votingSummary, loading } = useVotingTabulation(meeting?.id)
+  const { data: tabulationReport, isLoading } = useSWR<TabulationReport | null>(
+    meeting?.id ? `/tabulation-report/${meeting.id}` : null,
+    async () => {
+      if (!meeting?.id) return null
+      const apiClient = await buildApiClient()
+      const result = await apiClient.GET('/meetings/{meetingId}/tabulation-report', {
+        params: { path: { meetingId: meeting.id } },
+      })
+      return result.data ?? null
+    },
+    { revalidateOnFocus: false }
+  )
+
+  const representedShares = tabulationReport?.positionsVoted?.votedShares ?? 0
+  const totalOutstandingShares =
+    tabulationReport?.positionsVoted?.totalShares ?? meeting?.totalSharesOutstanding ?? 0
+
   const quorumGaugeModel = buildQuorumGaugeModel({
-    totalOutstandingShares: votingSummary?.totalSharesOutstanding ?? meeting?.totalSharesOutstanding,
-    representedShares: votingSummary?.totalSharesVoted ?? 0,
+    totalOutstandingShares,
+    representedShares,
     quorumRequirementPercent: meeting?.quorumRequirement ?? 50,
   })
 
@@ -38,7 +59,7 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
           <QuorumGaugeCard
             title="Percentage to Quorum"
             model={quorumGaugeModel}
-            loading={loading}
+            loading={isLoading}
           />
         </Grid>
       </Grid>

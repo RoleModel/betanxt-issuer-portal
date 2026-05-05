@@ -12,6 +12,7 @@ import {
   timelineItemClasses,
 } from '@mui/lab'
 import { Card, CardContent, CardHeader, Chip, Typography } from '@mui/material'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 export type MailingStatus =
   | 'Pending Positions'
@@ -93,10 +94,10 @@ export default function MailingTimelineCard({
 
   const formattedDate = statusDate
     ? new Date(statusDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
     : null
 
   return (
@@ -120,11 +121,13 @@ export default function MailingTimelineCard({
 
             return (
               <TimelineItem key={step.label}>
-                <TimelineSeparator>
+                <TimelineSeparator sx={{
+                  marginBottom: '-0.5rem'
+                }}>
                   <TimelineDot
                     variant={isCompleted ? 'filled' : 'outlined'}
                     sx={{
-                      mt: 1.1,
+                      mt: 1,
                       bgcolor: isCompleted ? step.paletteVar : 'transparent',
                       borderColor: step.paletteVar,
                     }}
@@ -139,7 +142,7 @@ export default function MailingTimelineCard({
                     />
                   )}
                 </TimelineSeparator>
-                <TimelineContent sx={{ py: 0.5, px: 2 }}>
+                <TimelineContent sx={{ py: 0.8, px: 2 }}>
                   {isCurrent ? (
                     <>
                       {formattedDate && (
@@ -152,11 +155,19 @@ export default function MailingTimelineCard({
                         </Typography>
                       )}
                       <Chip
+                        icon={isCompleted ?
+                          <CheckCircleIcon
+                            sx={{
+                              '--mui-palette-Chip-defaultIconColor': 'var(--mui-palette-success-contrastText)',
+                              fontSize: 16,
+                              boxSizing: 'content-box',
+                            }}
+                          ></CheckCircleIcon> : undefined}
                         label={step.label}
                         size="small"
                         sx={{
-                          bgcolor: step.paletteVar,
-                          color: step.color,
+                          bgcolor: isCompleted ? 'var(--mui-palette-success-main)' : step.paletteVar,
+                          color: isCompleted ? 'var(--mui-palette-success-contrastText)' : step.color,
                           fontWeight: 600,
                           fontSize: '0.75rem',
                         }}

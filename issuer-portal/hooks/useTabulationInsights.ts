@@ -316,6 +316,8 @@ export function useTabulationInsights(
   const [meetingTitle, setMeetingTitle] = React.useState('')
   const [clientTicker, setClientTicker] = React.useState('')
   const [filters, setFilters] = React.useState<TabulationFilters>(DEFAULT_FILTERS)
+  const [tabulationReportVotedShares, setTabulationReportVotedShares] = React.useState<number | null>(null)
+  const [tabulationReportTotalShares, setTabulationReportTotalShares] = React.useState<number | null>(null)
 
   React.useEffect(() => {
     if (!meetingId) return
@@ -326,7 +328,7 @@ export function useTabulationInsights(
       try {
         const apiClient = await buildApiClient()
 
-        const [positionsResult, proposalsResult, meetingResult] = await Promise.all([
+        const [positionsResult, proposalsResult, meetingResult, tabulationReportResult] = await Promise.all([
           apiClient.GET('/positions', {
             params: {
               query: {
@@ -341,6 +343,11 @@ export function useTabulationInsights(
             },
           }),
           apiClient.GET('/meetings/{meetingId}', {
+            params: {
+              path: { meetingId },
+            },
+          }),
+          apiClient.GET('/meetings/{meetingId}/tabulation-report', {
             params: {
               path: { meetingId },
             },
@@ -384,6 +391,17 @@ export function useTabulationInsights(
         const meetingRecord = asRecord(meetingResult.data)
         setMeetingTitle(asString(meetingRecord?.title) || '')
         setClientTicker(asString(meetingRecord?.ticker) || '')
+
+        const reportData = asRecord(tabulationReportResult.data)
+        const positionsVoted = asRecord(reportData?.positionsVoted)
+        if (positionsVoted) {
+          const reportVotedShares = toFiniteNumber(positionsVoted.votedShares)
+          const reportTotalShares = toFiniteNumber(positionsVoted.totalShares)
+          if (reportTotalShares > 0) {
+            setTabulationReportVotedShares(reportVotedShares)
+            setTabulationReportTotalShares(reportTotalShares)
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch tabulation insights:', error)
       } finally {
@@ -640,16 +658,24 @@ export function useTabulationInsights(
   }, [filters, positionVotes, positions, proposals])
 
   const totalSharesOutstanding = React.useMemo(() => {
+    if (tabulationReportTotalShares !== null && tabulationReportTotalShares > 0) {
+      return tabulationReportTotalShares
+    }
+
     const fallbackOutstanding = filteredPositions.reduce(
       (sum, position) => sum + position.shares,
       0
     )
 
     return toFiniteNumber(meeting?.totalSharesOutstanding) || fallbackOutstanding
-  }, [filteredPositions, meeting?.totalSharesOutstanding])
+  }, [filteredPositions, meeting?.totalSharesOutstanding, tabulationReportTotalShares])
 
   const representedShares = React.useMemo(() => {
     const hasActiveFilters = Object.values(filters).some((value) => isActiveFilterValue(value))
+
+    if (!hasActiveFilters && tabulationReportVotedShares !== null) {
+      return tabulationReportVotedShares
+    }
 
     if (!hasActiveFilters) {
       return positions
@@ -664,7 +690,7 @@ export function useTabulationInsights(
     return filteredPositions
       .filter((position) => position.voteStatus === 'Voted')
       .reduce((sum, position) => sum + position.sharesVoted, 0)
-  }, [filteredPositions, filters, positions, proposalsForDisplay])
+  }, [filteredPositions, filters, positions, proposalsForDisplay, tabulationReportVotedShares])
 
   const summary = React.useMemo(() => {
     return buildVotingSummary({

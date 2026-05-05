@@ -3914,6 +3914,87 @@ SELECT
     }
   })
 
+  // Override tabulation report positions_voted for WEN meetings with accurate share counts
+  // WEN 2026 (active, phase 1): 2.95% voted — 5,624,687 of 190,466,246 total shares
+  sqlStatements.push(`
+UPDATE tabulation_report
+SET
+  positions_voted = '{"voted": 127, "unvoted": 5550, "totalShares": 190466246, "votedShares": 5624687}'::jsonb,
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026';`)
+
+  // WEN 2025 (complete, previous year): 2,564,849 of 190,446,246 total shares voted
+  sqlStatements.push(`
+UPDATE tabulation_report
+SET
+  positions_voted = '{"voted": 46, "unvoted": 0, "totalShares": 190446246, "votedShares": 2564849}'::jsonb,
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2025';`)
+
+  // WEN 2026 — seed actual voted positions and per-proposal position_vote records
+  // 6 positions totaling 5,624,687 shares (2.95% of 190,466,246)
+  sqlStatements.push(`
+UPDATE position SET vote_status = 'Voted', shares_voted = 2052355, source = 'WEB', date_voted = '04/30/2026 09:15AM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'WELLINGTON MANAGEMENT';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 1670944, source = 'WEB', date_voted = '04/28/2026 10:42AM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'T. ROWE PRICE';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 1107909, source = 'WEB', date_voted = '05/01/2026 02:31PM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'BANK OF AMERICA CORP';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 272436, source = 'PRINT', date_voted = '04/25/2026 11:00AM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'SEAMUS DANIEL III';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 268803, source = 'WEB', date_voted = '04/29/2026 03:17PM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'IUDICIT CAPITAL CORP';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 252240, source = 'WEB', date_voted = '04/27/2026 08:54AM', updated_at = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'TORUM CAPITAL LLC';
+
+DELETE FROM position_vote
+WHERE position_id IN (
+  SELECT id FROM position
+  WHERE meeting_id = 'wen-annual-meeting-2026'
+    AND name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
+);
+
+INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
+SELECT
+  gen_random_uuid(),
+  pos.id,
+  prop.id,
+  CASE
+    WHEN prop.proposal_type = 'Shareholder Proposal' AND pos.name = 'SEAMUS DANIEL III' THEN 'ABSTAIN'
+    WHEN prop.proposal_type = 'Shareholder Proposal' THEN 'AGAINST'
+    ELSE 'FOR'
+  END,
+  pos.shares_voted::text,
+  NOW()
+FROM position pos
+CROSS JOIN proposal prop
+WHERE pos.meeting_id = 'wen-annual-meeting-2026'
+  AND pos.name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
+  AND prop.meeting_id = 'wen-annual-meeting-2026';
+
+UPDATE proposal SET
+  total_votes_for      = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 0       ELSE 5624687 END,
+  total_votes_against  = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 5352251 ELSE 0       END,
+  total_votes_abstain  = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 272436  ELSE 0       END,
+  total_shares_eligible = 190466246,
+  for_percentage       = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 0       ELSE ROUND((5624687.0/190466246)*100, 4) END,
+  against_percentage   = CASE WHEN proposal_type = 'Shareholder Proposal' THEN ROUND((5352251.0/190466246)*100, 4) ELSE 0 END,
+  abstain_percentage   = CASE WHEN proposal_type = 'Shareholder Proposal' THEN ROUND((272436.0/190466246)*100, 4)  ELSE 0 END,
+  participation_rate   = ROUND((5624687.0/190466246)*100, 4),
+  final_result         = 'PENDING',
+  voting_completed     = false,
+  voting_completed_at  = NULL,
+  updated_at           = NOW()
+WHERE meeting_id = 'wen-annual-meeting-2026';
+`)
+
   sqlStatements.push('')
 
   // Digital shareholder meeting attendees

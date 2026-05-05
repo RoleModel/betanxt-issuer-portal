@@ -48,7 +48,7 @@ export default function QuorumGaugeCard({
                 valueMax={100}
                 startAngle={-110}
                 endAngle={110}
-                text={() => `${Math.round(model.percentRepresented)}%`}
+                text={() => `${model.percentRepresented.toFixed(2)}%`}
                 sx={{
                   '& .MuiGauge-valueArc': {
                     fill: model.quorumMet
