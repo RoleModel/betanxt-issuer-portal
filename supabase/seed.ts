@@ -1433,7 +1433,7 @@ const main = async () => {
         const transferAgent = transferAgents[transferAgentIndex]
 
         // Determine mailing status based on meeting status
-        const mailingStatus = status === 'COMPLETE' ? 'Mailing Complete' : 'Pending Positions'
+        const mailingStatus = status === 'COMPLETE' ? 'Mailing Completed' : 'Preparing for Mailing'
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
@@ -1523,10 +1523,10 @@ const main = async () => {
           const meetingClient = meetingToClient[meetingId]
           const year = parseInt(meetingId.split('-').slice(-1)[0])
           const isSpecialMeeting = meetingId.includes('special-meeting')
-          // Include 2025 and before, or 2026 special meetings
+          // Include 2025 and before, 2026 special meetings, or WEN 2026 annual meeting
           return (
             meetingClient?.ticker === ticker &&
-            (year <= 2025 || (year === 2026 && isSpecialMeeting))
+            (year <= 2025 || (year === 2026 && isSpecialMeeting) || (year === 2026 && ticker === 'WEN'))
           )
         })
 

@@ -115,6 +115,7 @@ const getStatusStyles = (status: string | null): SxProps<Theme> => {
     'Voted',
     'Shares Balanced',
     'Mailing Complete',
+    'Mailing Completed',
     'Ordered',
     'Authorized',
     'AUTHORIZED',
