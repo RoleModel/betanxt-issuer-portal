@@ -21,9 +21,7 @@ export default function TabulationReportCard({
 }: TabulationReportCardProps) {
   const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
-  const { proposals: votingProposals, votingSummary } = useVotingTabulation(
-    currentMeeting?.id
-  )
+  const { proposals: votingProposals } = useVotingTabulation(currentMeeting?.id)
   const [rawProposals, setRawProposals] = useState<components['schemas']['Proposal'][]>(
     []
   )
@@ -55,7 +53,11 @@ export default function TabulationReportCard({
     }
     // Map proposals to the format expected by the PDF export
     // Use raw proposal data which contains the actual totals from the CSV
-    const proposalsForExport = rawProposals.map((rp) => {
+    // Sort by proposal number so director elections appear in order (1.01, 1.02, ...)
+    const sortedRawProposals = [...rawProposals].sort(
+      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0)
+    )
+    const proposalsForExport = sortedRawProposals.map((rp) => {
       const totalVotesFor = rp.totalVotesFor ?? 0
       const totalVotesAgainst = rp.totalVotesAgainst ?? 0
       const totalVotesAbstain = rp.totalVotesAbstain ?? 0
@@ -76,16 +78,23 @@ export default function TabulationReportCard({
       }
     })
 
-    // Calculate quorum data from meeting and proposal totals
-    const totalOutstanding = Number(currentMeeting.totalSharesOutstanding ?? 0)
-
-    // Get votes represented from the first proposal's total (all proposals should have same total)
-    const firstProposal = rawProposals[0]
+    // Get votes represented — use any proposal that has votes (participation is the same across all)
+    const firstProposal = sortedRawProposals.find(
+      (rp) => (rp.totalVotesFor ?? 0) + (rp.totalVotesAgainst ?? 0) + (rp.totalVotesAbstain ?? 0) > 0
+    ) ?? sortedRawProposals[0]
     const votesRepresented = firstProposal
       ? (firstProposal.totalVotesFor ?? 0) +
         (firstProposal.totalVotesAgainst ?? 0) +
         (firstProposal.totalVotesAbstain ?? 0)
       : 0
+
+    // Prefer proposal.totalSharesEligible — it reflects the actual eligible share count
+    // used when votes were recorded, which may differ from meeting.totalSharesOutstanding
+    const proposalSharesEligible = Number(firstProposal?.totalSharesEligible ?? 0)
+    const totalOutstanding =
+      proposalSharesEligible > 0
+        ? proposalSharesEligible
+        : Number(currentMeeting.totalSharesOutstanding ?? 0)
 
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
@@ -117,7 +126,6 @@ export default function TabulationReportCard({
       brokerNonVote: currentMeeting.brokerNonVote ?? 0,
       proposals: proposalsForExport.map((p) => {
         const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
-        const totalOutstanding = votingSummary?.totalSharesOutstanding || 1 // Prevent division by zero
 
         return {
           proposalNumber: p.proposalNumber.toString(),
@@ -129,21 +137,12 @@ export default function TabulationReportCard({
           percentFor: p.forPercentage,
           percentAgainst: p.againstPercentage,
           percentAbstain: p.abstainPercentage,
-          percentOfOutstanding: (totalVotes / totalOutstanding) * 100,
-          percentOfTotalVoted: (totalVotes / votesRepresented) * 100,
-          percentOfProposalVotes: 100, // This proposal's votes as % of itself is always 100
+          percentOfOutstanding: totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
+          percentOfTotalVoted: votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
+          percentOfProposalVotes: 100,
         }
       }),
     }
-
-    console.warn('Tabulation data being sent:', {
-      companyName: tabulationData.companyName,
-      proposalCount: tabulationData.proposals.length,
-      firstProposal: tabulationData.proposals[0],
-      votingSummary,
-      totalOutstanding,
-      votesRepresented,
-    })
 
     await exportTabulationPdf({
       tabulationData,

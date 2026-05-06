@@ -15,6 +15,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
+
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
@@ -50,7 +51,6 @@ interface HistoricalTabulationPoint {
   unvotedShares: number
   isCurrentMeeting: boolean
 }
-
 
 interface TabulationTrackerProps {
   meetingId?: string
@@ -510,13 +510,12 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
     ? Number.parseFloat(currentData.vote_percentage)
     : 0
 
-  const progress =
-    currentData
-      ? {
-          voted: Math.round(currentVotePercentage),
-          unvoted: 100 - Math.round(currentVotePercentage),
-        }
-      : { voted: 0, unvoted: 0 }
+  const progress = currentData
+    ? {
+        voted: Math.round(currentVotePercentage),
+        unvoted: 100 - Math.round(currentVotePercentage),
+      }
+    : { voted: 0, unvoted: 0 }
 
   const meetingStatus = currentData?.status || currentMeeting?.status || ''
   const isCompleted = meetingStatus === 'COMPLETE' || meetingStatus === 'completed'
@@ -575,9 +574,7 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
       ? [
           {
             label: 'Shares Voted',
-            value: currentData
-              ? Number(currentData.shares_voted).toLocaleString()
-              : '--',
+            value: currentData ? Number(currentData.shares_voted).toLocaleString() : '--',
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
           {
@@ -773,7 +770,9 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
 
               {shouldShowPreviousYearInfo ? (
                 <Stack direction="row" alignItems="center" gap={1} justifyContent="end">
-                  <Typography variant="body3">Previous year:</Typography>
+                  <Typography variant="body3" sx={{ lineHeight: 2.5 }}>
+                    Previous year:
+                  </Typography>
                   {previousComparablePoint ? (
                     <Typography variant="body3" fontWeight={600} color="inherit">
                       {previousComparablePoint.votedShares.toLocaleString()}
@@ -807,7 +806,9 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
               />
               {shouldShowPreviousYearInfo ? (
                 <Stack direction="row" alignItems="center" justifyContent="end" gap={1}>
-                  <Typography variant="body3">Previous year:</Typography>
+                  <Typography variant="body3" sx={{ lineHeight: 2.5 }}>
+                    Previous year:
+                  </Typography>
                   {previousComparablePoint ? (
                     <Typography variant="body3" fontWeight={600} color="inherit">
                       {previousComparablePoint.unvotedShares.toLocaleString()}

@@ -1,6 +1,10 @@
 'use client'
 
 import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
+import React, { useEffect, useState } from 'react'
+
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
@@ -12,62 +16,138 @@ import FeatureTile from '../FeatureTile'
 export default function TabulationReportCard() {
   const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
-  const { proposals, votingSummary } = useVotingTabulation(currentMeeting?.id)
+  const { proposals: votingProposals } = useVotingTabulation(currentMeeting?.id)
+  const [rawProposals, setRawProposals] = useState<components['schemas']['Proposal'][]>([])
+
+  useEffect(() => {
+    const fetchProposals = async () => {
+      if (!currentMeeting?.id) return
+
+      const apiClient = await buildApiClient()
+      const { data } = await apiClient.GET('/meetings/{meetingId}/proposals', {
+        params: { path: { meetingId: currentMeeting.id } },
+      })
+
+      if (data) {
+        const proposals = Array.isArray(data) ? data : []
+        setRawProposals(proposals)
+      }
+    }
+
+    void fetchProposals()
+  }, [currentMeeting?.id])
 
   const handleDownload = async () => {
-    if (!currentMeeting || !proposals) return
+    if (!currentMeeting) return
 
-    try {
-      await exportTabulationPdf({
-        tabulationData: {
-          companyName:
-            currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
-          meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
-          meetingDate: currentMeeting.meetingDate ?? '',
-          recordDate: currentMeeting.recordDate ?? '',
-          totalOutstanding: votingSummary?.totalSharesOutstanding ?? 0,
-          votesRepresentedForQuorum: votingSummary?.totalSharesVoted ?? 0,
-          quorumPercentage: votingSummary?.percentageVoted ?? 0,
-          quorumRequirement: '50%',
-          votesOverUnderQuorum:
-            (votingSummary?.totalSharesVoted ?? 0) -
-            (votingSummary?.totalSharesOutstanding ?? 0) * 0.5,
-          cusipList: currentMeeting.cusip ?? '',
-          brokerNonVote: currentMeeting.brokerNonVote ?? 0,
-          proposals: proposals.map((p) => ({
-            proposalNumber: String(p.proposalNumber),
-            title: p.proposalTitle ?? '',
-            directorName: p.directorName ?? '',
-            voteFor: p.votingResults.for.shares,
-            voteAgainst: p.votingResults.against.shares,
-            voteAbstain: p.votingResults.abstain.shares,
-            percentFor: p.votingResults.for.percentage,
-            percentAgainst: p.votingResults.against.percentage,
-            percentAbstain: p.votingResults.abstain.percentage,
+    const sortedRawProposals = [...rawProposals].sort(
+      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0)
+    )
+    const proposalsForExport = sortedRawProposals.map((rp) => {
+      const totalVotesFor = rp.totalVotesFor ?? 0
+      const totalVotesAgainst = rp.totalVotesAgainst ?? 0
+      const totalVotesAbstain = rp.totalVotesAbstain ?? 0
+      const totalVotes = totalVotesFor + totalVotesAgainst + totalVotesAbstain
+
+      return {
+        proposalNumber: rp.proposalNumber ?? 0,
+        proposalTitle: rp.proposalTitle ?? '',
+        directorName: rp.directorName ?? '',
+        totalVotesFor,
+        totalVotesAgainst,
+        totalVotesAbstain,
+        forPercentage: totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0,
+        againstPercentage: totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
+        abstainPercentage: totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
+      }
+    })
+
+    const firstProposal =
+      sortedRawProposals.find(
+        (rp) =>
+          (rp.totalVotesFor ?? 0) +
+            (rp.totalVotesAgainst ?? 0) +
+            (rp.totalVotesAbstain ?? 0) >
+          0
+      ) ?? sortedRawProposals[0]
+    const votesRepresented = firstProposal
+      ? (firstProposal.totalVotesFor ?? 0) +
+        (firstProposal.totalVotesAgainst ?? 0) +
+        (firstProposal.totalVotesAbstain ?? 0)
+      : 0
+
+    const proposalSharesEligible = Number(firstProposal?.totalSharesEligible ?? 0)
+    const totalOutstanding =
+      proposalSharesEligible > 0
+        ? proposalSharesEligible
+        : Number(currentMeeting.totalSharesOutstanding ?? 0)
+
+    const quorumPercentage =
+      totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
+    const votesOverUnderQuorum = votesRepresented - totalOutstanding * 0.5
+
+    const isMeetingConcluded = currentMeeting.meetingDate
+      ? new Date(currentMeeting.meetingDate) < new Date()
+      : false
+
+    const reportTitle = isMeetingConcluded
+      ? 'Final Tabulation Results'
+      : 'Preliminary Tabulation Results'
+
+    await exportTabulationPdf({
+      tabulationData: {
+        companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
+        meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
+        meetingDate: currentMeeting.meetingDate ?? '',
+        recordDate: currentMeeting.recordDate ?? '',
+        totalOutstanding,
+        votesRepresentedForQuorum: votesRepresented,
+        quorumPercentage,
+        quorumRequirement: '50%',
+        votesOverUnderQuorum,
+        cusipList: currentMeeting.cusip ?? '',
+        reportTitle,
+        brokerNonVote: currentMeeting.brokerNonVote ?? 0,
+        proposals: proposalsForExport.map((p) => {
+          const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain
+          return {
+            proposalNumber: p.proposalNumber.toString(),
+            title: p.proposalTitle,
+            directorName: p.directorName,
+            voteFor: p.totalVotesFor,
+            voteAgainst: p.totalVotesAgainst,
+            voteAbstain: p.totalVotesAbstain,
+            percentFor: p.forPercentage,
+            percentAgainst: p.againstPercentage,
+            percentAbstain: p.abstainPercentage,
             percentOfOutstanding:
-              (p.votingResults.for.shares /
-                (votingSummary?.totalSharesOutstanding || 1)) *
-              100,
+              totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
             percentOfTotalVoted:
-              (p.votingResults.for.shares / (votingSummary?.totalSharesVoted || 1)) * 100,
-            percentOfProposalVotes: p.votingResults.for.percentage,
-          })),
-        },
-        clientTicker: currentMeeting.ticker,
-      })
-    } catch (error) {
-      console.error('Failed to export tabulation report:', error)
-    }
+              votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
+            percentOfProposalVotes: 100,
+          }
+        }),
+      },
+      clientTicker: currentMeeting.ticker || undefined,
+    })
   }
+
+  const isDataReady = !!(currentMeeting && votingProposals.length > 0)
+
+  const isMeetingConcluded = currentMeeting?.meetingDate
+    ? new Date(currentMeeting.meetingDate) < new Date()
+    : false
+
+  const reportTitle = isMeetingConcluded ? 'Final Tabulation Results' : 'Preliminary Tabulation Results'
 
   return (
     <FeatureTile
-      title="Prelimimary Tabulation Report"
+      title={reportTitle}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."
       icon={<IconForFileType fileType="PDF" />}
       variant="tertiary"
-      actionText="Download"
-      onClick={handleDownload}
+      actionText={isDataReady ? 'Download' : 'Loading...'}
+      onClick={isDataReady ? handleDownload : undefined}
     />
   )
 }

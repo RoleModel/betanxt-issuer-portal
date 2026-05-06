@@ -3954,11 +3954,11 @@ WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'IUDICIT CAPITAL CORP';
 UPDATE position SET vote_status = 'Voted', shares_voted = 252240, source = 'WEB', date_voted = '04/27/2026 08:54AM', updated_at = NOW()
 WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'TORUM CAPITAL LLC';
 
+-- Remove ALL position_vote records for WEN 2026 proposals (including spurious WITHHOLD votes
+-- that the seed generator adds for unvoted positions), then rebuild from scratch.
 DELETE FROM position_vote
-WHERE position_id IN (
-  SELECT id FROM position
-  WHERE meeting_id = 'wen-annual-meeting-2026'
-    AND name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
+WHERE proposal_id IN (
+  SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026'
 );
 
 INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
@@ -3979,20 +3979,57 @@ WHERE pos.meeting_id = 'wen-annual-meeting-2026'
   AND pos.name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
   AND prop.meeting_id = 'wen-annual-meeting-2026';
 
-UPDATE proposal SET
-  total_votes_for      = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 0       ELSE 5624687 END,
-  total_votes_against  = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 5352251 ELSE 0       END,
-  total_votes_abstain  = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 272436  ELSE 0       END,
+-- Director vote variation: specific institutional holders oppose specific directors
+-- 1.02 Peter W. May      — TORUM opposes (overboarding)
+-- 1.03 Matthew H. Peltz  — SEAMUS opposes (governance)
+-- 1.05 Caruso-Cabrera     — IUDICIT + TORUM oppose (audit committee)
+-- 1.07 Richard H. Gomez  — T. ROWE opposes (compensation)
+-- 1.08 M. Mathews-Spradlin — WELLINGTON + T. ROWE oppose (pay concern)
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.02)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'TORUM CAPITAL LLC');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.03)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'SEAMUS DANIEL III');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.05)
+  AND position_id IN (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name IN ('IUDICIT CAPITAL CORP','TORUM CAPITAL LLC'));
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.07)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'T. ROWE PRICE');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.08)
+  AND position_id IN (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE'));
+
+-- Recalculate all proposal totals from actual position_vote records
+UPDATE proposal p SET
+  total_votes_for      = agg.total_for,
+  total_votes_against  = agg.total_against,
+  total_votes_abstain  = agg.total_abstain,
   total_shares_eligible = 190466246,
-  for_percentage       = CASE WHEN proposal_type = 'Shareholder Proposal' THEN 0       ELSE ROUND((5624687.0/190466246)*100, 4) END,
-  against_percentage   = CASE WHEN proposal_type = 'Shareholder Proposal' THEN ROUND((5352251.0/190466246)*100, 4) ELSE 0 END,
-  abstain_percentage   = CASE WHEN proposal_type = 'Shareholder Proposal' THEN ROUND((272436.0/190466246)*100, 4)  ELSE 0 END,
-  participation_rate   = ROUND((5624687.0/190466246)*100, 4),
+  for_percentage       = ROUND((agg.total_for     / 190466246.0) * 100, 4),
+  against_percentage   = ROUND((agg.total_against / 190466246.0) * 100, 4),
+  abstain_percentage   = ROUND((agg.total_abstain / 190466246.0) * 100, 4),
+  participation_rate   = ROUND(((agg.total_for + agg.total_against + agg.total_abstain) / 190466246.0) * 100, 4),
   final_result         = 'PENDING',
   voting_completed     = false,
   voting_completed_at  = NULL,
   updated_at           = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026';
+FROM (
+  SELECT pv.proposal_id,
+    SUM(CASE WHEN pv.vote = 'FOR'     THEN pv.shares_voting::numeric ELSE 0 END) AS total_for,
+    SUM(CASE WHEN pv.vote = 'AGAINST' THEN pv.shares_voting::numeric ELSE 0 END) AS total_against,
+    SUM(CASE WHEN pv.vote = 'ABSTAIN' THEN pv.shares_voting::numeric ELSE 0 END) AS total_abstain
+  FROM position_vote pv
+  JOIN proposal pr ON pr.id = pv.proposal_id
+  WHERE pr.meeting_id = 'wen-annual-meeting-2026'
+  GROUP BY pv.proposal_id
+) agg
+WHERE p.id = agg.proposal_id AND p.meeting_id = 'wen-annual-meeting-2026';
 `)
 
   sqlStatements.push('')
