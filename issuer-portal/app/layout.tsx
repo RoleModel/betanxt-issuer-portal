@@ -9,9 +9,9 @@ import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type {} from '@mui/material/themeCssVarsAugmentation'
+import type { } from '@mui/material/themeCssVarsAugmentation'
+import { Agentation } from "agentation";
 
-import '@/components/Documents/react-pdf.css'
 import RootLayoutClient from '@/components/Layout/RootLayoutClient'
 import GlobalStyle from '@/components/mui-styling/GlobalStyles'
 import ThemeRegistry from '@/components/mui-styling/ThemeRegistry'
@@ -85,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AppRouterCacheProvider>
         <SpeedInsights />
         <Analytics />
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   )

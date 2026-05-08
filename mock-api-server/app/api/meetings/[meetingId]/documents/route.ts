@@ -30,13 +30,13 @@ export async function GET(
         ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
         : undefined
     const typeParam = searchParams.get('type') || undefined
-    const type: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined =
-      typeParam && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(typeParam)
-        ? (typeParam as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER')
-        : undefined
+
+    console.log('listDocuments query:', { meetingId, status: statusParam, type: typeParam })
 
     // Use existing domain model function
-    const { data, error } = await listDocuments(meetingId, { status, type })
+    const { data, error } = await listDocuments(meetingId, { status, type: typeParam })
+
+    console.log('listDocuments result:', { dataCount: data?.length, error })
 
     if (error) {
       return withCors(

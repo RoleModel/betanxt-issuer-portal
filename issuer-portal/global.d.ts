@@ -4,6 +4,20 @@ import '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
 
 import '@mui/material/styles'
 
+declare module 'react-pdf' {
+  export * from 'react-pdf/dist/index.js'
+}
+
+declare module '*.css' {
+  const classes: Record<string, string>
+  export default classes
+}
+
+declare module '*.css' {
+  const classes: Record<string, string>
+  export default classes
+}
+
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     appTitle: true

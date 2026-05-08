@@ -4,7 +4,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { getDocumentById, updateDocument } from '@/domain-models/api/documents'
+import { getDocumentById, updateDocument, deleteDocument } from '@/domain-models/api/documents'
 
 import type { components } from '@/types/api'
 import { handleCors, withCors } from '@/utils/cors'
@@ -85,4 +85,35 @@ export async function PUT(
 // Handle preflight requests
 export function OPTIONS() {
   return handleCors()
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<RouteParams> }
+): Promise<NextResponse> {
+  try {
+    const resolvedParams = await params
+    const id = resolvedParams.id
+
+    const { error } = await deleteDocument(id)
+
+    if (error) {
+      return withCors(
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
+      )
+    }
+
+    return withCors(NextResponse.json({ success: true }))
+  } catch (error) {
+    return withCors(
+      NextResponse.json(
+        {
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          operationId: 'deleteDocument',
+        },
+        { status: 500 }
+      )
+    )
+  }
 }

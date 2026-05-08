@@ -2,19 +2,19 @@
 
 import dynamic from 'next/dynamic'
 import React, { useEffect, useRef, useState } from 'react'
-// Import CSS for react-pdf
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
 
 import { Box, CircularProgress } from '@mui/material'
 
-import '@/components/Documents/react-pdf.css'
+import '@/styles/react-pdf.css'
 
-// Dynamically import react-pdf components with SSR disabled
-const Document = dynamic(() => import('react-pdf').then((mod) => mod.Document), {
-  ssr: false,
-  loading: () => null, // Remove loading spinner from dynamic import
-})
+const Document = dynamic(
+  () =>
+    import('react-pdf').then((mod) => {
+      mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`
+      return mod.Document
+    }),
+  { ssr: false, loading: () => null }
+)
 
 const Page = dynamic(() => import('react-pdf').then((mod) => mod.Page), { ssr: false })
 
@@ -35,50 +35,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   onLoadSuccess,
   onLoadError,
 }) => {
-  const [isWorkerReady, setIsWorkerReady] = useState(false)
   const [isPdfLoaded, setIsPdfLoaded] = useState(false)
   const [actualWidth, setActualWidth] = useState<number | null>(null)
-  const hasInitialized = useRef(false)
 
-  // Safety check: only process PDF files or data URIs
   const isPdfFile =
     file?.toLowerCase().endsWith('.pdf') ||
     file?.includes('/test-pdf') ||
     file?.startsWith('data:application/pdf')
 
-  // Store the width immediately when it changes
   useEffect(() => {
     setActualWidth(width)
   }, [width])
 
-  // Call onLoadError if provided for non-PDF files
   useEffect(() => {
     if (!isPdfFile && onLoadError) {
       onLoadError(new Error(`PDFViewer: File is not a PDF (${file})`))
     }
   }, [isPdfFile, file, onLoadError])
 
-  useEffect(() => {
-    // Initialize PDF.js worker only once
-    if (typeof window !== 'undefined' && !hasInitialized.current) {
-      hasInitialized.current = true
-      import('react-pdf')
-        .then(({ pdfjs }) => {
-          // Prefer official build path (non-legacy). Fallback set below if needed.
-          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
-          setIsWorkerReady(true)
-        })
-        .catch(() => {
-          // Try fallback worker URL silently
-          void import('react-pdf').then(({ pdfjs }) => {
-            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
-            setIsWorkerReady(true)
-          })
-        })
-    }
-  }, [])
-
-  // Reset loaded state when file changes
   useEffect(() => {
     setIsPdfLoaded(false)
   }, [file])
@@ -105,7 +79,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   }
 
-  // Validate file prop
   const isValidFile = file && typeof file === 'string' && file.trim() !== ''
 
   if (!isValidFile) {
@@ -127,9 +100,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     )
   }
 
-  // Wait for worker and width to be ready
-  if (!isWorkerReady || actualWidth === null) {
-    // Use default width if actualWidth is not yet available
+  if (actualWidth === null) {
     const defaultWidth = width
     return (
       <Box
@@ -153,7 +124,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Spinner overlay until PDF is loaded */}
       {!isPdfLoaded && (
         <Box
           sx={{

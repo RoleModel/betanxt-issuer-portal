@@ -10,6 +10,10 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
+import {
+  formatQuorumRequirementPercentLabel,
+  quorumRequiredShares,
+} from '@/utils/quorum'
 
 import FeatureTile from '../FeatureTile'
 
@@ -84,7 +88,12 @@ export default function TabulationReportCard() {
 
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
-    const votesOverUnderQuorum = votesRepresented - totalOutstanding * 0.5
+    const quorumRequirement = formatQuorumRequirementPercentLabel(
+      currentMeeting.quorumRequirement,
+    )
+    const votesOverUnderQuorum =
+      votesRepresented -
+      quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement)
 
     const isMeetingConcluded = currentMeeting.meetingDate
       ? new Date(currentMeeting.meetingDate) < new Date()
@@ -103,7 +112,7 @@ export default function TabulationReportCard() {
         totalOutstanding,
         votesRepresentedForQuorum: votesRepresented,
         quorumPercentage,
-        quorumRequirement: '50%',
+        quorumRequirement,
         votesOverUnderQuorum,
         cusipList: currentMeeting.cusip ?? '',
         reportTitle,

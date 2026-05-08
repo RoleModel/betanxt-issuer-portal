@@ -1,14 +1,15 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Issuer Portal Monorepo Root",
-  "files": [],
-  "exclude": ["node_modules", "**/node_modules"],
-  "references": [
-    {
-      "path": "issuer-portal"
-    },
-    {
-      "path": "mock-api-server"
-    }
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "global.d.ts",
+    "react-pdf/dist/Page/AnnotationLayer.css"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

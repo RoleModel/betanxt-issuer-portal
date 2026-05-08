@@ -100,6 +100,8 @@ export async function listDocuments(
   try {
     let query = supabase.from('document').select('*').eq('meeting_id', meetingId)
 
+    console.log('listDocuments query built:', { meetingId, opts })
+
     // Apply filters
     if (opts?.type) {
       query = query.eq('type', opts.type)
@@ -112,6 +114,8 @@ export async function listDocuments(
     query = query.order('created_at', { ascending: false })
 
     const { data, error } = await query
+
+    console.log('listDocuments raw result:', { dataCount: data?.length, error })
 
     if (error) {
       return {
@@ -207,6 +211,8 @@ export async function createDocument(
       })
       .select()
       .single()
+
+    console.log('createDocument result:', { data, error })
 
     if (error) {
       return {
@@ -395,6 +401,47 @@ export async function downloadDocument(id: string): Promise<ApiResponse<string>>
     return {
       error: {
         message: error instanceof Error ? error.message : 'Failed to download document',
+      },
+    }
+  }
+}
+
+export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
+  try {
+    const { data: docData } = await supabase
+      .from('document')
+      .select('file_path')
+      .eq('id', id)
+      .single()
+
+    if (docData?.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([docData.file_path])
+
+      if (storageError) {
+        console.warn('Failed to remove file from storage:', storageError.message)
+      }
+    }
+
+    const { error } = await supabase
+      .from('document')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      return {
+        error: { message: error.message ?? 'Failed to delete document' },
+      }
+    }
+
+    return {
+      data: undefined,
+    }
+  } catch (error) {
+    return {
+      error: {
+        message: error instanceof Error ? error.message : 'Failed to delete document',
       },
     }
   }

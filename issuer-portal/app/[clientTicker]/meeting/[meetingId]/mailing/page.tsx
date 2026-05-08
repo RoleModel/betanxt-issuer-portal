@@ -114,6 +114,7 @@ export default function MailingPage() {
                 | undefined
             }
             statusDate={currentMeeting?.updatedAt}
+            meetingId={meetingId}
           />
         </Grid>
       </Grid>

@@ -15,6 +15,7 @@ interface FeatureTileProps {
   title: string
   subtitle?: string
   description?: string | React.ReactNode
+  children?: React.ReactNode
   actionText?: string
   icon?: React.ReactNode
   iconSize?: '24px' | '32px' | '48px' | '64px' | '96px'
@@ -43,6 +44,7 @@ export function FeatureTile({
   onClick,
   href,
   brandFont = false,
+  children,
 }: FeatureTileProps) {
   // Get colors from betanxt theme
   const theme = useTheme();
@@ -97,6 +99,7 @@ export function FeatureTile({
       sx={[
         {
           display: 'flex',
+          position: 'relative',
           flex: flex ? '1 0 0%' : '0 0 auto',
           flexDirection: 'column',
           height: height ?? undefined,
@@ -227,6 +230,7 @@ export function FeatureTile({
           </Typography>
         ) : null}
       </Box>
+      {children}
     </Card>
   )
 

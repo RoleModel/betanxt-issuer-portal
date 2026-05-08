@@ -394,8 +394,9 @@ export interface paths {
     get: operations['getDocumentById']
     /** Update document */
     put: operations['updateDocument']
+    /** Delete document */
+    delete: operations['deleteDocument']
     post?: never
-    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -3290,6 +3291,30 @@ export interface operations {
       400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
+      404: components['responses']['NotFound']
+    }
+  }
+  deleteDocument: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Document deleted successfully */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': { success: boolean }
+        }
+      }
+      401: components['responses']['Unauthorized']
       404: components['responses']['NotFound']
     }
   }

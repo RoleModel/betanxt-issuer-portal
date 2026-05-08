@@ -11,6 +11,10 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
+import {
+  formatQuorumRequirementPercentLabel,
+  quorumRequiredShares,
+} from '@/utils/quorum'
 
 interface TabulationReportCardProps {
   variant?: 'default' | 'primary' | 'secondary' | 'tertiary' | 'base'
@@ -98,8 +102,12 @@ export default function TabulationReportCard({
 
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
-    const quorumRequirement = '50%' // Default, should come from meeting config
-    const votesOverUnderQuorum = votesRepresented - totalOutstanding * 0.5
+    const quorumRequirement = formatQuorumRequirementPercentLabel(
+      currentMeeting.quorumRequirement,
+    )
+    const votesOverUnderQuorum =
+      votesRepresented -
+      quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement)
 
     // Determine if meeting has concluded
     const isMeetingConcluded = currentMeeting.meetingDate

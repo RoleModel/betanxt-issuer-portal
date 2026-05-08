@@ -3,7 +3,11 @@
   "display": "Issuer Portal",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["dom", "dom.iterable", "es2022"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2022"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -21,21 +25,47 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/contexts/*": ["./contexts/*"],
-      "@/domain-models/*": ["./domain-models/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/types/*": ["./types/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/theme/*": ["./components/mui-styling/theme/*"],
-      "@backend/*": ["../mock-api-server/*"],
-      "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/styles/*": [
+        "./styles/*"
+      ],
+      "@/contexts/*": [
+        "./contexts/*"
+      ],
+      "@/domain-models/*": [
+        "./domain-models/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
+      ],
+      "@/types/*": [
+        "./types/*"
+      ],
+      "@/utils/*": [
+        "./utils/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/theme/*": [
+        "./components/mui-styling/theme/*"
+      ],
+      "@backend/*": [
+        "../mock-api-server/*"
+      ],
+      "@rolemodel/*": [
+        "./node_modules/@rolemodel/betanxt-design-system/*"
+      ]
     },
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "noErrorTruncation": true
   },
   "include": [

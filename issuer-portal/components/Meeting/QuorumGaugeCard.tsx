@@ -29,11 +29,20 @@ export default function QuorumGaugeCard({
   const statusColor = model?.quorumMet ? 'success' : 'default'
   const displayTitle = title ?? 'Quorum tracker'
 
+  const formatQuorumRequirement = (percent: number | undefined): string => {
+    if (percent === undefined || percent === null) return '50% + 1'
+    if (percent === 50) return '50% + 1'
+    if (percent === 33.3 || percent === 33.33) return '33.3% + 1'
+    if (percent === 66.6 || percent === 66.67) return '66.6% + 1'
+    if (percent === 80) return '80% + 1'
+    return `${percent}% + 1`
+  }
+
   return (
     <Card elevation={3} sx={{ flex: 1, height: '100%' }}>
       <CardHeader
         title={displayTitle}
-        subheader={`Quorum requirement: ${model?.quorumRequirementPercent}%`}
+        subheader={`Quorum requirement: ${formatQuorumRequirement(model?.quorumRequirementPercent)}`}
       />
       <CardContent>
         {loading || !model ? (

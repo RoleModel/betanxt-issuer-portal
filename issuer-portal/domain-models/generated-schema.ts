@@ -134,6 +134,8 @@ export interface paths {
     get: operations['getDocumentById']
     /** Update document */
     put: operations['updateDocument']
+    /** Delete document */
+    delete: operations['deleteDocument']
   }
   '/documents/{id}/download': {
     /** Download document file */
@@ -2495,6 +2497,24 @@ export interface operations {
       400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
       403: components['responses']['Forbidden']
+      404: components['responses']['NotFound']
+    }
+  }
+  /** Delete document */
+  deleteDocument: {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Document deleted successfully */
+      200: {
+        content: {
+          'application/json': { success: boolean }
+        }
+      }
+      401: components['responses']['Unauthorized']
       404: components['responses']['NotFound']
     }
   }

@@ -27,6 +27,7 @@
     "@next/eslint-plugin-next": "^15.5.4",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
+    "agentation": "^3.0.2",
     "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.5.4",

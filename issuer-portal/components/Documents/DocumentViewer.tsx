@@ -42,7 +42,6 @@ import type { TransitionProps } from '@mui/material/transitions'
 import DraggableSignatureArea from '@/components/Documents/DraggableSignatureArea'
 import { FormFieldArea } from '@/components/Documents/FormFieldArea'
 import OfficeDocumentViewer from '@/components/Documents/OfficeDocumentViewer'
-import PDFViewer from '@/components/Documents/PDFViewer'
 import FileUploadDialog from '@/components/FileUpload/FileUploadDialog'
 
 import { useDocuments } from '@/hooks/useDocuments'
@@ -58,6 +57,22 @@ import {
 const SignatureModal = dynamic(() => import('@/components/Documents/SignatureModal'), {
   ssr: false,
   loading: () => null,
+})
+
+const PDFViewer = dynamic(() => import('@/components/Documents/PDFViewer'), {
+  ssr: false,
+  loading: () => (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 400,
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  ),
 })
 
 interface SignatureArea {
