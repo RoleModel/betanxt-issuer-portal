@@ -96,9 +96,6 @@ export default function MailingTimelineCard({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [localMailingStatus, setLocalMailingStatus] = useState<MailingStatus | null>(
-    (currentStatus as MailingStatus | null) ?? null
-  )
   const [localAffidavitDoc, setLocalAffidavitDoc] = useState<Document | null | undefined>(
     undefined
   )
@@ -121,19 +118,12 @@ export default function MailingTimelineCard({
   const hasAffidavit = !!displayDoc
   const isAffidavitLoading = localAffidavitDoc === undefined && affidavitLoading
 
-  const effectiveStatus = hasAffidavit
-    ? 'Mailing Completed'
-    : (localMailingStatus ?? null)
-  const effectiveDate = hasAffidavit
-    ? (displayDoc?.updatedAt ?? displayDoc?.createdAt ?? statusDate)
-    : statusDate
-
-  const activeIndex = effectiveStatus
-    ? WORKFLOW_STEPS.findIndex((s) => s.label === effectiveStatus)
+  const activeIndex = currentStatus
+    ? WORKFLOW_STEPS.findIndex((s) => s.label === currentStatus)
     : -1
 
-  const formattedDate = effectiveDate
-    ? new Date(effectiveDate).toLocaleDateString('en-US', {
+  const formattedDate = statusDate
+    ? new Date(statusDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -194,15 +184,9 @@ export default function MailingTimelineCard({
         return
       }
 
-      await apiClient.PUT('/meetings/{meetingId}', {
-        params: { path: { meetingId } },
-        body: { mailingStatus: 'Mailing Completed' },
-      })
-
       if (createdDoc) {
         setLocalAffidavitDoc(createdDoc as unknown as Document)
       }
-      setLocalMailingStatus('Mailing Completed')
       setUploadDialogOpen(false)
       setUploadFiles([])
     } catch {
@@ -222,16 +206,10 @@ export default function MailingTimelineCard({
         params: { path: { id: displayDoc.id } },
       })
 
-      await apiClient.PUT('/meetings/{meetingId}', {
-        params: { path: { meetingId } },
-        body: { mailingStatus: 'Mailing In Progress' },
-      })
-
       await mutate(`/meetings/${meetingId}/affidavit-of-mailing`, null, {
         revalidate: false,
       })
       setLocalAffidavitDoc(null)
-      setLocalMailingStatus('Mailing In Progress')
       setDeleteDialogOpen(false)
     } catch {
       // Delete failed; user can retry from the dialog
@@ -422,8 +400,7 @@ export default function MailingTimelineCard({
         <DialogTitle>Upload Mailing Affidavit</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            Upload the Mailing Affidavit PDF document. This will mark the mailing as
-            complete.
+            Upload the Mailing Affidavit PDF document.
           </DialogContentText>
           <BNFileUpload
             maxFiles={1}
