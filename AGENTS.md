@@ -49,3 +49,15 @@ You `MUST` always use this tool when:
 - Before making architectural decisions to understand existing patterns
 - When debugging issues to check for previous solutions
 - Working with unfamiliar parts of the codebase
+
+## Learned User Preferences
+
+- Affidavit upload and delete must not change meeting mailing status; keep those flows document-only unless product explicitly ties them to workflow.
+- When CSM-editable values affect calculations (for example quorum percentage), persist them on the meeting and thread them through context and widgets instead of relying on UI-only defaults.
+
+## Learned Workspace Facts
+
+- Mailing timeline UI should follow meeting `currentStatus` and `statusDate`; do not treat affidavit presence as “mailing completed” or drive the timeline from affidavit timestamps alone.
+- Tabulation PDF quorum labeling and `votesOverUnderQuorum` must use each meeting’s `quorumRequirement` (with shared helpers), not a hardcoded 50% or `0.5` multiplier on outstanding shares.
+- Shared quorum math and display helpers live in `issuer-portal/utils/quorum.ts`; reuse them across gauges and export paths.
+- Do not leave debug `console.*` calls in production UI components (mailing/timeline work included).
