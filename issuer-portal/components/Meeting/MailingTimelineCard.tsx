@@ -20,6 +20,7 @@ import {
   Button,
   Card,
   CardActionArea,
+  CardActions,
   CardContent,
   CardHeader,
   Chip,
@@ -28,6 +29,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Stack,
   Typography,
 } from '@mui/material'
@@ -360,17 +362,6 @@ export default function MailingTimelineCard({
               actionText={'Download'}
               onClick={handleDownload}
             />
-            {isCSM && (
-              <Button
-                color="error"
-                variant="outlined"
-                startIcon={<DeleteIcon />}
-                onClick={() => setDeleteDialogOpen(true)}
-                sx={{ alignSelf: 'flex-end' }}
-              >
-                Delete Affidavit
-              </Button>
-            )}
           </Stack>
         </Fade>
       )}
@@ -388,6 +379,19 @@ export default function MailingTimelineCard({
               </Typography>
             </CardContent>
           </CardActionArea>
+        </Card>
+      )}
+      {hasAffidavit && displayDoc && (
+        <Card variant="outlined" sx={{ mt: 2 }}>
+          <CardActions>
+            <CheckCircleIcon color="success" />
+            <Typography variant="body3" color="text.secondary" sx={{ flexGrow: 1 }}>
+              Mailing Affidavit Uploaded
+            </Typography>
+            <IconButton color="error" onClick={() => setDeleteDialogOpen(true)}>
+              <DeleteIcon />
+            </IconButton>
+          </CardActions>
         </Card>
       )}
 
