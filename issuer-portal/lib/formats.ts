@@ -1,7 +1,19 @@
+const parseDisplayDate = (dateInput: string | Date): Date => {
+  if (dateInput instanceof Date) return dateInput
+
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateInput)
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch
+    return new Date(Number(year), Number(month) - 1, Number(day))
+  }
+
+  return new Date(dateInput)
+}
+
 export const formatDate = (dateInput: string | Date | undefined | null): string => {
   if (!dateInput) return '-'
 
-  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+  const date = parseDisplayDate(dateInput)
 
   // Check if date is valid
   if (isNaN(date.getTime())) return '-'
@@ -17,7 +29,7 @@ export const formatDateWithYear = (
 ): string => {
   if (!dateInput) return '-'
 
-  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+  const date = parseDisplayDate(dateInput)
 
   // Check if date is valid
   if (isNaN(date.getTime())) return '-'
