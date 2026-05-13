@@ -101,8 +101,6 @@ const CSV_POSITION_TOTALS_BY_MEETING_ID: Record<string, number> = {
   'elvn-annual-meeting-2025': 20,
 }
 
-const FUTURE_MEETING_IDS = new Set(['wen-annual-meeting-2026'])
-
 const emptyNonDtcVoteStatus: NonDtcVoteStatus = {
   unvotedShareholders: 0,
   unvotedShares: 0,
@@ -314,51 +312,6 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
   return normalizedReport
 }
 
-function zeroFutureMeetingVotes(report: TabulationReport): TabulationReport {
-  if (!FUTURE_MEETING_IDS.has(report.meetingId)) {
-    return report
-  }
-
-  const totalShares = report.positionsVoted.totalShares
-  const positionTotal = CSV_POSITION_TOTALS_BY_MEETING_ID[report.meetingId] ?? 0
-
-  return {
-    ...report,
-    nonDtcVoteStatus: {
-      ...report.nonDtcVoteStatus,
-      printShareholders: 0,
-      printShares: 0,
-      ivrShareholders: 0,
-      ivrShares: 0,
-      webShareholders: 0,
-      webShares: 0,
-      votedSubtotalShareholders: 0,
-      votedSubtotalShares: 0,
-      unvotedShareholders: report.nonDtcVoteStatus.grandTotalShareholders,
-      unvotedShares: report.nonDtcVoteStatus.grandTotalShares,
-    },
-    dtcVoteStatus: {
-      ...report.dtcVoteStatus,
-      votedShareholders: 0,
-      votedShares: 0,
-      unvotedShareholders: report.dtcVoteStatus.grandTotalShareholders,
-      unvotedShares: report.dtcVoteStatus.grandTotalShares,
-    },
-    voteDistribution: {
-      dtcVotedShares: 0,
-      dtcUnvotedShares: report.dtcVoteStatus.grandTotalShares,
-      nonDtcVotedShares: 0,
-      nonDtcUnvotedShares: report.nonDtcVoteStatus.grandTotalShares,
-    },
-    positionsVoted: {
-      voted: 0,
-      unvoted: positionTotal,
-      totalShares,
-      votedShares: 0,
-    },
-  }
-}
-
 // Transform snake_case database fields to camelCase API fields
 function transformTabulationReport(dbReport: TabulationReportRow): TabulationReport {
   const report = normalizeReportTotals({
@@ -378,7 +331,7 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
     updatedAt: toIsoString(dbReport.updated_at),
   })
 
-  return zeroFutureMeetingVotes(report)
+  return report
 }
 
 export async function getTabulationReport(

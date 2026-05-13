@@ -1,15 +1,12 @@
 'use client'
 
-import baseTheme from '@rolemodel/betanxt-design-system/themes/baseTheme'
 import betanxtTheme from '@rolemodel/betanxt-design-system/themes/betanxtTheme'
-import { useTheme } from '@mui/material/styles';
 import Link from 'next/link'
 import React from 'react'
 
 import type { PaletteColor, SxProps } from '@mui/material'
 import { Box, Card, Typography } from '@mui/material'
-
-
+import { useTheme } from '@mui/material/styles'
 
 interface FeatureTileProps {
   title: string
@@ -47,7 +44,7 @@ export function FeatureTile({
   children,
 }: FeatureTileProps) {
   // Get colors from betanxt theme
-  const theme = useTheme();
+  const theme = useTheme()
   const getVariantColors = (variant: string) => {
     switch (variant) {
       case 'primary':
@@ -113,8 +110,8 @@ export function FeatureTile({
           '&:hover':
             href || onClick
               ? {
-                transform: 'translateY(-2px)',
-              }
+                  transform: 'translateY(-2px)',
+                }
               : undefined,
         },
         (theme) =>
