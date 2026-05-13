@@ -1,17 +1,16 @@
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Agentation } from 'agentation'
 import type { Metadata } from 'next'
 import type { Viewport } from 'next'
 import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
-
 import localFont from 'next/font/local'
 import React from 'react'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
-import type { } from '@mui/material/themeCssVarsAugmentation'
-import { Agentation } from "agentation";
+import type {} from '@mui/material/themeCssVarsAugmentation'
 
 import RootLayoutClient from '@/components/Layout/RootLayoutClient'
 import GlobalStyle from '@/components/mui-styling/GlobalStyles'
@@ -86,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AppRouterCacheProvider>
         <SpeedInsights />
         <Analytics />
-        {process.env.NODE_ENV === "development" && <Agentation />}
+        {process.env.NODE_ENV === 'development' && <Agentation />}
       </body>
     </html>
   )

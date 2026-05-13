@@ -28,7 +28,9 @@ async function run() {
   )
   console.log('\nPosition votes:')
   for (const row of pvs.rows) {
-    console.log(`  ${String(row.name).padEnd(30)} | ${String(row.proposal_number).padEnd(6)} | ${row.vote}`)
+    console.log(
+      `  ${String(row.name).padEnd(30)} | ${String(row.proposal_number).padEnd(6)} | ${row.vote}`
+    )
   }
 
   await client.end()

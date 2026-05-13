@@ -323,8 +323,7 @@ export function MeetingProvider({
 
           const position: Position = {
             id: asString(record.id) || '',
-            meetingId:
-              asString(record.meetingId) || asString(record.meeting_id) || '',
+            meetingId: asString(record.meetingId) || asString(record.meeting_id) || '',
             cusip: asString(record.cusip) || undefined,
             accountType:
               asString(record.accountType) || asString(record.account_type) || undefined,
@@ -338,9 +337,8 @@ export function MeetingProvider({
               asString(record.controlNumber) ||
               asString(record.control_number) ||
               undefined,
-            voteStatus: (
-              asString(record.voteStatus) || asString(record.vote_status)
-            ) as Position['voteStatus'],
+            voteStatus: (asString(record.voteStatus) ||
+              asString(record.vote_status)) as Position['voteStatus'],
             shares: typeof record.shares === 'number' ? record.shares : undefined,
             sharesVoted:
               typeof record.sharesVoted === 'number'
@@ -349,8 +347,10 @@ export function MeetingProvider({
                   ? record.shares_voted
                   : undefined,
             source: record.source as Position['source'],
-            createdAt: asString(record.createdAt) || asString(record.created_at) || undefined,
-            updatedAt: asString(record.updatedAt) || asString(record.updated_at) || undefined,
+            createdAt:
+              asString(record.createdAt) || asString(record.created_at) || undefined,
+            updatedAt:
+              asString(record.updatedAt) || asString(record.updated_at) || undefined,
           }
 
           positionData.push(position)

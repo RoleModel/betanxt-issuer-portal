@@ -49,7 +49,10 @@ async function run() {
       [MEETING_ID]
     )
     const positionsByName = new Map<string, { id: string; shares_voted: string }>(
-      positionsRes.rows.map((r: { id: string; name: string; shares_voted: string }) => [r.name, r])
+      positionsRes.rows.map((r: { id: string; name: string; shares_voted: string }) => [
+        r.name,
+        r,
+      ])
     )
 
     console.log(`\n📋 Processing ${proposalsRes.rows.length} director proposals...`)

@@ -26,7 +26,9 @@ async function run() {
     ORDER BY pr.proposal_number
   `)
   for (const row of r.rows) {
-    console.log(`${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString().padStart(12)} | ${row.votes}`)
+    console.log(
+      `${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString().padStart(12)} | ${row.votes}`
+    )
   }
 
   const total = await client.query(`

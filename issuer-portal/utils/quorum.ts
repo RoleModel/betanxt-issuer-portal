@@ -51,7 +51,7 @@ export const buildQuorumGaugeModel = (params: {
 /** Share count needed to satisfy quorum as a fraction of outstanding shares. */
 export function quorumRequiredShares(
   totalOutstandingShares: number | string | null | undefined,
-  quorumRequirementPercent?: number | string | null,
+  quorumRequirementPercent?: number | string | null
 ): number {
   const total = toFiniteNumber(totalOutstandingShares)
   const pct = toFiniteNumber(quorumRequirementPercent) || 50
@@ -62,7 +62,7 @@ export function quorumRequiredShares(
  * Label for tabulation PDF "% Needed for Quorum" (percent only; export template appends "+ 1 Vote").
  */
 export function formatQuorumRequirementPercentLabel(
-  quorumRequirementPercent?: number | string | null,
+  quorumRequirementPercent?: number | string | null
 ): string {
   const pct = toFiniteNumber(quorumRequirementPercent) || 50
   if (pct === 50) return '50%'

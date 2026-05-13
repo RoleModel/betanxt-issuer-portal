@@ -25,6 +25,7 @@ import {
 
 import VotingTabulationTable from '@/components/Meeting/VotingTabulationTable'
 import PositionsTable from '@/components/Tabulation/PositionsTable'
+
 import type { TabulationFilters, TabulationPosition } from '@/hooks/useTabulationInsights'
 import type { ProposalVoting } from '@/types/phases'
 import { exportPositionsToPdf } from '@/utils/exportPositionsPdf'
@@ -175,8 +176,8 @@ export default function ProposalDetailsCard({
           alignItems: { xs: 'stretch', sm: 'center' },
           '& .MuiCardHeader-action': {
             m: 0,
-            width: "auto",
-            justifyContent: "end"
+            width: 'auto',
+            justifyContent: 'end',
           },
           flexDirection: { xs: 'column', sm: 'row' },
           gap: 2,
@@ -195,13 +196,15 @@ export default function ProposalDetailsCard({
         {selectedTab === 0 ? (
           <VotingTabulationTable proposals={proposals} loading={loading} />
         ) : (
-          <PositionsTable
-            positions={positions}
-            loading={loading}
-          />
+          <PositionsTable positions={positions} loading={loading} />
         )}
       </CardContent>
-      <Dialog open={filterDialogOpen} onClose={() => setFilterDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={filterDialogOpen}
+        onClose={() => setFilterDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Filter Positions</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ pt: 1 }}>

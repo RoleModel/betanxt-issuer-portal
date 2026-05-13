@@ -19,13 +19,43 @@ const VOTED_POSITIONS: {
   source: 'WEB' | 'PRINT' | 'IVR'
   dateVoted: string
 }[] = [
-  { name: 'WELLINGTON MANAGEMENT', sharesVoted: 2052355, source: 'WEB', dateVoted: '04/30/2026 09:15AM' },
-  { name: 'T. ROWE PRICE', sharesVoted: 1670944, source: 'WEB', dateVoted: '04/28/2026 10:42AM' },
-  { name: 'BANK OF AMERICA CORP', sharesVoted: 1107909, source: 'WEB', dateVoted: '05/01/2026 02:31PM' },
-  { name: 'SEAMUS DANIEL III', sharesVoted: 272436, source: 'PRINT', dateVoted: '04/25/2026 11:00AM' },
-  { name: 'IUDICIT CAPITAL CORP', sharesVoted: 268803, source: 'WEB', dateVoted: '04/29/2026 03:17PM' },
+  {
+    name: 'WELLINGTON MANAGEMENT',
+    sharesVoted: 2052355,
+    source: 'WEB',
+    dateVoted: '04/30/2026 09:15AM',
+  },
+  {
+    name: 'T. ROWE PRICE',
+    sharesVoted: 1670944,
+    source: 'WEB',
+    dateVoted: '04/28/2026 10:42AM',
+  },
+  {
+    name: 'BANK OF AMERICA CORP',
+    sharesVoted: 1107909,
+    source: 'WEB',
+    dateVoted: '05/01/2026 02:31PM',
+  },
+  {
+    name: 'SEAMUS DANIEL III',
+    sharesVoted: 272436,
+    source: 'PRINT',
+    dateVoted: '04/25/2026 11:00AM',
+  },
+  {
+    name: 'IUDICIT CAPITAL CORP',
+    sharesVoted: 268803,
+    source: 'WEB',
+    dateVoted: '04/29/2026 03:17PM',
+  },
   // TORUM votes 252,240 of its 256,090 shares
-  { name: 'TORUM CAPITAL LLC', sharesVoted: 252240, source: 'WEB', dateVoted: '04/27/2026 08:54AM' },
+  {
+    name: 'TORUM CAPITAL LLC',
+    sharesVoted: 252240,
+    source: 'WEB',
+    dateVoted: '04/27/2026 08:54AM',
+  },
 ]
 // Verify total: 2,052,355 + 1,670,944 + 1,107,909 + 272,436 + 268,803 + 252,240 = 5,624,687
 
@@ -73,7 +103,9 @@ async function run() {
       } else {
         const row = res.rows[0]
         totalVotedShares += Number(row.shares_voted)
-        console.log(`  ✓ ${row.name}: ${Number(row.shares_voted).toLocaleString()} shares voted`)
+        console.log(
+          `  ✓ ${row.name}: ${Number(row.shares_voted).toLocaleString()} shares voted`
+        )
       }
     }
     console.log(`  Total voted shares: ${totalVotedShares.toLocaleString()}`)
@@ -97,7 +129,7 @@ async function run() {
          WHERE meeting_id = $1
            AND name = ANY($2::text[])
        )`,
-      [MEETING_ID, VOTED_POSITIONS.map(p => p.name)]
+      [MEETING_ID, VOTED_POSITIONS.map((p) => p.name)]
     )
     console.log(`  Deleted ${delRes.rowCount} existing records`)
 
@@ -141,7 +173,7 @@ async function run() {
     console.log('\n📈 Updating proposal vote totals...')
 
     // Institutional shares (all voted positions except SEAMUS)
-    const seamus = VOTED_POSITIONS.find(p => p.name === 'SEAMUS DANIEL III')!
+    const seamus = VOTED_POSITIONS.find((p) => p.name === 'SEAMUS DANIEL III')!
     const institutionalShares = totalVotedShares - seamus.sharesVoted // 5,352,251
     const totalSharesEligible = 190466246
 
@@ -172,14 +204,20 @@ async function run() {
              updated_at = NOW()
          WHERE id = $9`,
         [
-          totalVotesFor, totalVotesAgainst, totalVotesAbstain,
+          totalVotesFor,
+          totalVotesAgainst,
+          totalVotesAbstain,
           totalSharesEligible,
-          forPct.toFixed(4), againstPct.toFixed(4), abstainPct.toFixed(4),
+          forPct.toFixed(4),
+          againstPct.toFixed(4),
+          abstainPct.toFixed(4),
           participationRate.toFixed(4),
           proposal.id,
         ]
       )
-      console.log(`  ✓ Proposal ${Number(proposal.proposal_number).toFixed(2)}: FOR=${totalVotesFor.toLocaleString()}, AGAINST=${totalVotesAgainst.toLocaleString()}, ABSTAIN=${totalVotesAbstain.toLocaleString()}`)
+      console.log(
+        `  ✓ Proposal ${Number(proposal.proposal_number).toFixed(2)}: FOR=${totalVotesFor.toLocaleString()}, AGAINST=${totalVotesAgainst.toLocaleString()}, ABSTAIN=${totalVotesAbstain.toLocaleString()}`
+      )
     }
 
     // 7. Update tabulation report to match
@@ -205,8 +243,12 @@ async function run() {
     console.log('\n🎉 Done! Summary:')
     console.log(`   Positions voted:    ${votedPositions.length}`)
     console.log(`   Shares voted:       ${totalVotedShares.toLocaleString()}`)
-    console.log(`   Shares not voted:   ${(totalSharesEligible - totalVotedShares).toLocaleString()}`)
-    console.log(`   % Voted:            ${((totalVotedShares / totalSharesEligible) * 100).toFixed(2)}%`)
+    console.log(
+      `   Shares not voted:   ${(totalSharesEligible - totalVotedShares).toLocaleString()}`
+    )
+    console.log(
+      `   % Voted:            ${((totalVotedShares / totalSharesEligible) * 100).toFixed(2)}%`
+    )
     console.log(`   position_vote rows: ${voteCount}`)
   } catch (err) {
     await client.query('ROLLBACK')

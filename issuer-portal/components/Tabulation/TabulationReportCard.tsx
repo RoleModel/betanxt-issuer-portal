@@ -11,10 +11,7 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
-import {
-  formatQuorumRequirementPercentLabel,
-  quorumRequiredShares,
-} from '@/utils/quorum'
+import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from '@/utils/quorum'
 
 interface TabulationReportCardProps {
   variant?: 'default' | 'primary' | 'secondary' | 'tertiary' | 'base'
@@ -83,9 +80,14 @@ export default function TabulationReportCard({
     })
 
     // Get votes represented — use any proposal that has votes (participation is the same across all)
-    const firstProposal = sortedRawProposals.find(
-      (rp) => (rp.totalVotesFor ?? 0) + (rp.totalVotesAgainst ?? 0) + (rp.totalVotesAbstain ?? 0) > 0
-    ) ?? sortedRawProposals[0]
+    const firstProposal =
+      sortedRawProposals.find(
+        (rp) =>
+          (rp.totalVotesFor ?? 0) +
+            (rp.totalVotesAgainst ?? 0) +
+            (rp.totalVotesAbstain ?? 0) >
+          0
+      ) ?? sortedRawProposals[0]
     const votesRepresented = firstProposal
       ? (firstProposal.totalVotesFor ?? 0) +
         (firstProposal.totalVotesAgainst ?? 0) +
@@ -103,7 +105,7 @@ export default function TabulationReportCard({
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = formatQuorumRequirementPercentLabel(
-      currentMeeting.quorumRequirement,
+      currentMeeting.quorumRequirement
     )
     const votesOverUnderQuorum =
       votesRepresented -
@@ -145,8 +147,10 @@ export default function TabulationReportCard({
           percentFor: p.forPercentage,
           percentAgainst: p.againstPercentage,
           percentAbstain: p.abstainPercentage,
-          percentOfOutstanding: totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
-          percentOfTotalVoted: votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
+          percentOfOutstanding:
+            totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
+          percentOfTotalVoted:
+            votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
           percentOfProposalVotes: 100,
         }
       }),

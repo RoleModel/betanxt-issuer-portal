@@ -4,7 +4,11 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { getDocumentById, updateDocument, deleteDocument } from '@/domain-models/api/documents'
+import {
+  deleteDocument,
+  getDocumentById,
+  updateDocument,
+} from '@/domain-models/api/documents'
 
 import type { components } from '@/types/api'
 import { handleCors, withCors } from '@/utils/cors'

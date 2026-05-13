@@ -2,9 +2,9 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { downloadDocument } from '@/domain-models/api/documents'
-import { supabase } from '@/utils/supabase/client'
 
 import { handleCors, withCors } from '@/utils/cors'
+import { supabase } from '@/utils/supabase/client'
 
 interface RouteParams {
   id: string
@@ -27,12 +27,13 @@ export async function GET(
     }
 
     if (!filePath) {
-      return withCors(
-        NextResponse.json({ error: 'File not found' }, { status: 404 })
-      )
+      return withCors(NextResponse.json({ error: 'File not found' }, { status: 404 }))
     }
 
-    const storagePath = filePath.replace(/^\/storage\/v1\/object\/public\/documents\//, '')
+    const storagePath = filePath.replace(
+      /^\/storage\/v1\/object\/public\/documents\//,
+      ''
+    )
 
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('documents')
@@ -47,7 +48,10 @@ export async function GET(
     const contentType = fileData.type || 'application/octet-stream'
     const headers = new Headers()
     headers.set('Content-Type', contentType)
-    headers.set('Content-Disposition', `attachment; filename="${storagePath.split('/').pop()}"`)
+    headers.set(
+      'Content-Disposition',
+      `attachment; filename="${storagePath.split('/').pop()}"`
+    )
 
     return new NextResponse(fileData.stream(), { headers })
   } catch (error) {

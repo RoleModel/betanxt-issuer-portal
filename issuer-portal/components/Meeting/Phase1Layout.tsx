@@ -1,16 +1,16 @@
 'use client'
 
 import { Suspense } from 'react'
-
 import useSWR from 'swr'
 
 import { Grid } from '@mui/material'
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
 import DocumentHostingCard from '@/components/Meeting/DocumentHostingCard'
 import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
 import QuorumGaugeCard from '@/components/Meeting/QuorumGaugeCard'
+
+import buildApiClient from '@/domain-models/apiClient'
+import type { components } from '@/domain-models/generated-schema'
 
 import type { Meeting } from '@/types/api-exports'
 import { buildQuorumGaugeModel } from '@/utils/quorum'
@@ -49,10 +49,10 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
   return (
     <Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={{ xs: 12, md: 6, }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <KeyDatesCard meeting={meeting} />
         </Grid>
-        <Grid size={{ xs: 12, md: 3, }}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <DocumentHostingCard meeting={meeting} />
         </Grid>
         <Grid size={{ xs: 12, md: 3 }}>

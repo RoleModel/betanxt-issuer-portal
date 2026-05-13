@@ -33,7 +33,8 @@ async function run() {
     await client.query('BEGIN')
 
     // Delete position_vote records for WEN 2026 proposals that don't belong to our 6 voted positions
-    const del = await client.query(`
+    const del = await client.query(
+      `
       DELETE FROM position_vote
       WHERE proposal_id IN (
         SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026'
@@ -43,7 +44,9 @@ async function run() {
         WHERE meeting_id = 'wen-annual-meeting-2026'
           AND name = ANY($1::text[])
       )
-    `, [VOTED_NAMES])
+    `,
+      [VOTED_NAMES]
+    )
     console.log(`🗑️  Deleted ${del.rowCount} spurious position_vote records`)
 
     // Verify counts
@@ -58,7 +61,9 @@ async function run() {
     `)
     console.log('\nPost-cleanup counts:')
     for (const row of counts.rows) {
-      console.log(`  ${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString()}`)
+      console.log(
+        `  ${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString()}`
+      )
     }
 
     await client.query('COMMIT')

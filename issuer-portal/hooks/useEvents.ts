@@ -54,7 +54,9 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const meetingStatus: 'ACTIVE' | 'COMPLETE' = status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETE'
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null
-  const quorumRequirement = asNumber(meeting.quorumRequirement ?? meeting.quorum_requirement)
+  const quorumRequirement = asNumber(
+    meeting.quorumRequirement ?? meeting.quorum_requirement
+  )
 
   return {
     id,

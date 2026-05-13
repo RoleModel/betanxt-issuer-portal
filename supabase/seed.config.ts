@@ -381,7 +381,8 @@ export const seedConfig = {
       companyName: 'IN8bio, Inc.',
       shortName: 'IN8bio',
       industry: 'Biotechnology',
-      description: 'Clinical-stage biopharmaceutical company focused on gamma-delta T cells',
+      description:
+        'Clinical-stage biopharmaceutical company focused on gamma-delta T cells',
       website: 'https://www.in8bio.com',
       primaryContact: 'Jonathan White',
       primaryContactEmail: 'jonathan.white@in8bio.com',

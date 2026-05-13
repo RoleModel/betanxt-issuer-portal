@@ -424,10 +424,7 @@ export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
       }
     }
 
-    const { error } = await supabase
-      .from('document')
-      .delete()
-      .eq('id', id)
+    const { error } = await supabase.from('document').delete().eq('id', id)
 
     if (error) {
       return {

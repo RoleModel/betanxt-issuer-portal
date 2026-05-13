@@ -25,7 +25,9 @@ async function run() {
     ORDER BY pr.proposal_number, pos.name
   `)
   for (const row of r.rows) {
-    console.log(`${row.name.padEnd(30)} | ${Number(row.proposal_number).toFixed(2)} | ${row.vote.padEnd(8)} | shares_voting="${row.shares_voting}"`)
+    console.log(
+      `${row.name.padEnd(30)} | ${Number(row.proposal_number).toFixed(2)} | ${row.vote.padEnd(8)} | shares_voting="${row.shares_voting}"`
+    )
   }
 
   await client.end()

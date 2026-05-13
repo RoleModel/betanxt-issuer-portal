@@ -151,15 +151,14 @@ export default function AgendaTable(_props: AgendaTableProps) {
                                   proposal.proposalType,
                                   proposal.proposalNumber.toString(),
                                   proposal.directorName
-                                )
-                                  .map((option) => (
-                                    <Chip
-                                      key={option}
-                                      label={option}
-                                      size="small"
-                                      variant="outlined"
-                                    />
-                                  ))}
+                                ).map((option) => (
+                                  <Chip
+                                    key={option}
+                                    label={option}
+                                    size="small"
+                                    variant="outlined"
+                                  />
+                                ))}
                               </Box>
                             </TableCell>
                           </TableRow>

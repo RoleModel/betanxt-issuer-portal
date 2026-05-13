@@ -10,10 +10,7 @@ import { useClient } from '@/contexts/ClientContext'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
-import {
-  formatQuorumRequirementPercentLabel,
-  quorumRequiredShares,
-} from '@/utils/quorum'
+import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from '@/utils/quorum'
 
 import FeatureTile from '../FeatureTile'
 
@@ -21,7 +18,9 @@ export default function TabulationReportCard() {
   const { currentClient } = useClient()
   const { currentMeeting } = useMeeting()
   const { proposals: votingProposals } = useVotingTabulation(currentMeeting?.id)
-  const [rawProposals, setRawProposals] = useState<components['schemas']['Proposal'][]>([])
+  const [rawProposals, setRawProposals] = useState<components['schemas']['Proposal'][]>(
+    []
+  )
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -89,7 +88,7 @@ export default function TabulationReportCard() {
     const quorumPercentage =
       totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0
     const quorumRequirement = formatQuorumRequirementPercentLabel(
-      currentMeeting.quorumRequirement,
+      currentMeeting.quorumRequirement
     )
     const votesOverUnderQuorum =
       votesRepresented -
@@ -105,7 +104,8 @@ export default function TabulationReportCard() {
 
     await exportTabulationPdf({
       tabulationData: {
-        companyName: currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
+        companyName:
+          currentClient?.company_name ?? currentClient?.short_name ?? 'Company',
         meetingType: currentMeeting.meetingType ?? 'Annual Meeting',
         meetingDate: currentMeeting.meetingDate ?? '',
         recordDate: currentMeeting.recordDate ?? '',
@@ -147,7 +147,9 @@ export default function TabulationReportCard() {
     ? new Date(currentMeeting.meetingDate) < new Date()
     : false
 
-  const reportTitle = isMeetingConcluded ? 'Final Tabulation Results' : 'Preliminary Tabulation Results'
+  const reportTitle = isMeetingConcluded
+    ? 'Final Tabulation Results'
+    : 'Preliminary Tabulation Results'
 
   return (
     <FeatureTile

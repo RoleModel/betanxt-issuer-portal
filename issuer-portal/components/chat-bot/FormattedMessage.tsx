@@ -9,12 +9,11 @@ interface FormattedMessageProps {
   variant?: 'body1' | 'body2'
 }
 
-export function FormattedMessage({
-  content,
-  variant = 'body2',
-}: FormattedMessageProps) {
+export function FormattedMessage({ content, variant = 'body2' }: FormattedMessageProps) {
   const sanitizedContent = content.replaceAll('**', '').replaceAll('##', '')
-  const paragraphs = sanitizedContent.split(/\n\s*\n/).filter((paragraph) => paragraph.trim())
+  const paragraphs = sanitizedContent
+    .split(/\n\s*\n/)
+    .filter((paragraph) => paragraph.trim())
 
   const renderParagraph = (paragraph: string) => {
     const bulletLines = paragraph
@@ -47,11 +46,16 @@ export function FormattedMessage({
 
   return (
     <Box>
-      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map((paragraph, index) => (
-        <Box key={`${paragraph}-${index}`} sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}>
-          {renderParagraph(paragraph)}
-        </Box>
-      ))}
+      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map(
+        (paragraph, index) => (
+          <Box
+            key={`${paragraph}-${index}`}
+            sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}
+          >
+            {renderParagraph(paragraph)}
+          </Box>
+        )
+      )}
     </Box>
   )
 }

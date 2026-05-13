@@ -4,6 +4,7 @@ import React from 'react'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+
 import type { ProposalVoting, VotingSummary } from '@/types/phases'
 import type { QuorumGaugeViewModel } from '@/utils/quorum'
 import { buildQuorumGaugeModel } from '@/utils/quorum'
@@ -181,13 +182,21 @@ const normalizeProposal = (value: unknown): ProposalRecord | null => {
   return {
     id: toStringValue(record.id),
     proposalNumber: toFiniteNumber(record.proposalNumber ?? record.proposal_number),
-    proposalTitle: toStringValue(record.proposalTitle ?? record.proposal_title ?? record.title),
-    proposalType: toNullableString(record.proposalType ?? record.proposal_type) ?? undefined,
+    proposalTitle: toStringValue(
+      record.proposalTitle ?? record.proposal_title ?? record.title
+    ),
+    proposalType:
+      toNullableString(record.proposalType ?? record.proposal_type) ?? undefined,
     recommendation: toNullableString(record.recommendation) ?? undefined,
-    directorName: toNullableString(record.directorName ?? record.director_name) ?? undefined,
+    directorName:
+      toNullableString(record.directorName ?? record.director_name) ?? undefined,
     totalVotesFor: toFiniteNumber(record.totalVotesFor ?? record.total_votes_for),
-    totalVotesAgainst: toFiniteNumber(record.totalVotesAgainst ?? record.total_votes_against),
-    totalVotesAbstain: toFiniteNumber(record.totalVotesAbstain ?? record.total_votes_abstain),
+    totalVotesAgainst: toFiniteNumber(
+      record.totalVotesAgainst ?? record.total_votes_against
+    ),
+    totalVotesAbstain: toFiniteNumber(
+      record.totalVotesAbstain ?? record.total_votes_abstain
+    ),
   }
 }
 
@@ -274,7 +283,8 @@ const buildVotingSummary = (params: {
       totalSharesOutstanding > 0
         ? Math.round((representedShares / totalSharesOutstanding) * 10000) / 100
         : 0,
-    positionsVoted: positions.filter((position) => position.voteStatus === 'Voted').length,
+    positionsVoted: positions.filter((position) => position.voteStatus === 'Voted')
+      .length,
     totalPositions: positions.length,
     lastUpdated: new Date().toISOString(),
     votingMethods: {
@@ -316,8 +326,12 @@ export function useTabulationInsights(
   const [meetingTitle, setMeetingTitle] = React.useState('')
   const [clientTicker, setClientTicker] = React.useState('')
   const [filters, setFilters] = React.useState<TabulationFilters>(DEFAULT_FILTERS)
-  const [tabulationReportVotedShares, setTabulationReportVotedShares] = React.useState<number | null>(null)
-  const [tabulationReportTotalShares, setTabulationReportTotalShares] = React.useState<number | null>(null)
+  const [tabulationReportVotedShares, setTabulationReportVotedShares] = React.useState<
+    number | null
+  >(null)
+  const [tabulationReportTotalShares, setTabulationReportTotalShares] = React.useState<
+    number | null
+  >(null)
 
   React.useEffect(() => {
     if (!meetingId) return
@@ -328,31 +342,32 @@ export function useTabulationInsights(
       try {
         const apiClient = await buildApiClient()
 
-        const [positionsResult, proposalsResult, meetingResult, tabulationReportResult] = await Promise.all([
-          apiClient.GET('/positions', {
-            params: {
-              query: {
-                meetingId,
-                limit: 5000,
+        const [positionsResult, proposalsResult, meetingResult, tabulationReportResult] =
+          await Promise.all([
+            apiClient.GET('/positions', {
+              params: {
+                query: {
+                  meetingId,
+                  limit: 5000,
+                },
               },
-            },
-          }),
-          apiClient.GET('/meetings/{meetingId}/proposals', {
-            params: {
-              path: { meetingId },
-            },
-          }),
-          apiClient.GET('/meetings/{meetingId}', {
-            params: {
-              path: { meetingId },
-            },
-          }),
-          apiClient.GET('/meetings/{meetingId}/tabulation-report', {
-            params: {
-              path: { meetingId },
-            },
-          }),
-        ])
+            }),
+            apiClient.GET('/meetings/{meetingId}/proposals', {
+              params: {
+                path: { meetingId },
+              },
+            }),
+            apiClient.GET('/meetings/{meetingId}', {
+              params: {
+                path: { meetingId },
+              },
+            }),
+            apiClient.GET('/meetings/{meetingId}/tabulation-report', {
+              params: {
+                path: { meetingId },
+              },
+            }),
+          ])
 
         const rawPositions = Array.isArray(positionsResult.data)
           ? positionsResult.data
@@ -366,14 +381,18 @@ export function useTabulationInsights(
           []
         )
 
-        const rawProposals = Array.isArray(proposalsResult.data) ? proposalsResult.data : []
+        const rawProposals = Array.isArray(proposalsResult.data)
+          ? proposalsResult.data
+          : []
         const normalizedProposals = rawProposals.reduce<ProposalRecord[]>((acc, item) => {
           const normalized = normalizeProposal(item)
           if (normalized) acc.push(normalized)
           return acc
         }, [])
 
-        const positionIds = normalizedPositions.map((position) => position.id).filter(Boolean)
+        const positionIds = normalizedPositions
+          .map((position) => position.id)
+          .filter(Boolean)
         const positionIdSet = new Set(positionIds)
         const proposalIds = new Set(normalizedProposals.map((proposal) => proposal.id))
         const rawPositionVotes =
@@ -413,12 +432,16 @@ export function useTabulationInsights(
   }, [meetingId])
 
   const accountTypes = React.useMemo(
-    () => [...new Set(positions.map((position) => position.accountType).filter(Boolean))].sort(),
+    () =>
+      [
+        ...new Set(positions.map((position) => position.accountType).filter(Boolean)),
+      ].sort(),
     [positions]
   )
 
   const setKeys = React.useMemo(
-    () => [...new Set(positions.map((position) => position.setKey).filter(Boolean))].sort(),
+    () =>
+      [...new Set(positions.map((position) => position.setKey).filter(Boolean))].sort(),
     [positions]
   )
 
@@ -447,7 +470,9 @@ export function useTabulationInsights(
       const matchesSearch =
         !filters.searchQuery ||
         position.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        position.accountNumber.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        position.accountNumber
+          .toLowerCase()
+          .includes(filters.searchQuery.toLowerCase()) ||
         position.controlNumber.toLowerCase().includes(filters.searchQuery.toLowerCase())
 
       const matchesVoteStatus =
@@ -604,7 +629,10 @@ export function useTabulationInsights(
         let abstainCount = 0
 
         positionVotes.forEach((vote) => {
-          if (vote.proposalId !== proposal.id || !filteredPositionIds.has(vote.positionId)) {
+          if (
+            vote.proposalId !== proposal.id ||
+            !filteredPositionIds.has(vote.positionId)
+          ) {
             return
           }
 
@@ -671,7 +699,9 @@ export function useTabulationInsights(
   }, [filteredPositions, meeting?.totalSharesOutstanding, tabulationReportTotalShares])
 
   const representedShares = React.useMemo(() => {
-    const hasActiveFilters = Object.values(filters).some((value) => isActiveFilterValue(value))
+    const hasActiveFilters = Object.values(filters).some((value) =>
+      isActiveFilterValue(value)
+    )
 
     if (!hasActiveFilters && tabulationReportVotedShares !== null) {
       return tabulationReportVotedShares
@@ -690,7 +720,13 @@ export function useTabulationInsights(
     return filteredPositions
       .filter((position) => position.voteStatus === 'Voted')
       .reduce((sum, position) => sum + position.sharesVoted, 0)
-  }, [filteredPositions, filters, positions, proposalsForDisplay, tabulationReportVotedShares])
+  }, [
+    filteredPositions,
+    filters,
+    positions,
+    proposalsForDisplay,
+    tabulationReportVotedShares,
+  ])
 
   const summary = React.useMemo(() => {
     return buildVotingSummary({

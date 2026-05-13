@@ -108,7 +108,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: 'left' }}
+                  >
                     {formatPercentage(proposal.votingResults.for.percentage)}
                   </Typography>
                   <LinearProgress
@@ -121,7 +125,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: 'left' }}
+                  >
                     {formatPercentage(proposal.votingResults.against.percentage)}
                   </Typography>
                   <LinearProgress
@@ -134,7 +142,11 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: 'left' }}>
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: 'left' }}
+                  >
                     {formatPercentage(proposal.votingResults.abstain.percentage)}
                   </Typography>
                   <LinearProgress

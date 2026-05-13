@@ -9,7 +9,5 @@
     "global.d.ts",
     "react-pdf/dist/Page/AnnotationLayer.css"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

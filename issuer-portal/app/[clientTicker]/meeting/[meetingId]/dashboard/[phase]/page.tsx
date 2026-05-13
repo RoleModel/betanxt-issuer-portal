@@ -23,14 +23,14 @@ export default function PhasePage() {
 
   const meetingForPhase = meeting
     ? {
-      ...meeting,
-      client: meeting.client
-        ? {
-          ...meeting.client,
-          isActive: meeting.client.isActive ?? true,
-        }
-        : meeting.client,
-    }
+        ...meeting,
+        client: meeting.client
+          ? {
+              ...meeting.client,
+              isActive: meeting.client.isActive ?? true,
+            }
+          : meeting.client,
+      }
     : meeting
 
   return (

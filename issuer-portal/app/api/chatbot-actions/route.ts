@@ -1,7 +1,11 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { drainChatbotActions, enqueueChatbotAction, type ChatbotAction } from '@/lib/chatbotActionsStore'
+import {
+  type ChatbotAction,
+  drainChatbotActions,
+  enqueueChatbotAction,
+} from '@/lib/chatbotActionsStore'
 
 export function GET() {
   return NextResponse.json({ actions: drainChatbotActions() })

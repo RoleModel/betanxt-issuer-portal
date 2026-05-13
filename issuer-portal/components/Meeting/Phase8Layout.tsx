@@ -14,10 +14,7 @@ import { useClient } from '@/contexts/ClientContext'
 import { useVotingTabulation } from '@/hooks/useVotingTabulation'
 import type { Meeting } from '@/types/api-exports'
 import { exportTabulationPdf } from '@/utils/exportTabulationPdf'
-import {
-  formatQuorumRequirementPercentLabel,
-  quorumRequiredShares,
-} from '@/utils/quorum'
+import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from '@/utils/quorum'
 
 interface Phase8LayoutProps {
   meetingId?: string
@@ -45,12 +42,14 @@ export default React.memo(function Phase8Layout({
           totalOutstanding: votingSummary?.totalSharesOutstanding ?? 0,
           votesRepresentedForQuorum: votingSummary?.totalSharesVoted ?? 0,
           quorumPercentage: votingSummary?.percentageVoted ?? 0,
-          quorumRequirement: formatQuorumRequirementPercentLabel(meeting.quorumRequirement),
+          quorumRequirement: formatQuorumRequirementPercentLabel(
+            meeting.quorumRequirement
+          ),
           votesOverUnderQuorum:
             (votingSummary?.totalSharesVoted ?? 0) -
             quorumRequiredShares(
               votingSummary?.totalSharesOutstanding ?? 0,
-              meeting.quorumRequirement,
+              meeting.quorumRequirement
             ),
           cusipList: meeting.cusip ?? '',
           brokerNonVote: meeting.brokerNonVote ?? 0,

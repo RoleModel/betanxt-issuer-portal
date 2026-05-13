@@ -57,7 +57,10 @@ async function run() {
            updated_at          = NOW()
          WHERE id = $9`,
         [
-          totalFor, totalAgainst, totalAbstain, totalShares,
+          totalFor,
+          totalAgainst,
+          totalAbstain,
+          totalShares,
           ((totalFor / totalShares) * 100).toFixed(4),
           ((totalAgainst / totalShares) * 100).toFixed(4),
           ((totalAbstain / totalShares) * 100).toFixed(4),

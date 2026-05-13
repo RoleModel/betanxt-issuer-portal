@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 
 import { Box, CircularProgress } from '@mui/material'
 
-
 const Document = dynamic(
   () =>
     import('react-pdf').then((mod) => {

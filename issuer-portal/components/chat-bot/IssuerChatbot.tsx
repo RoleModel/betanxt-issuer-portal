@@ -1,12 +1,14 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport, type UIMessage } from 'ai'
+import { usePathname } from 'next/navigation'
+import React from 'react'
+
 import { SmartToy } from '@mui/icons-material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CloseIcon from '@mui/icons-material/Close'
-import { DefaultChatTransport, type UIMessage } from 'ai'
 import {
   Avatar,
   Box,
@@ -20,7 +22,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React from 'react'
 
 import { useChatbotContext } from '@/contexts/ChatbotContext'
 import type { ChatbotAction } from '@/lib/chatbotActionsStore'
@@ -85,7 +86,9 @@ export default function IssuerChatbot() {
   )
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
   const [input, setInput] = React.useState('')
-  const [messageTimestamps, setMessageTimestamps] = React.useState<Record<string, number>>({})
+  const [messageTimestamps, setMessageTimestamps] = React.useState<
+    Record<string, number>
+  >({})
   const [actionPollBudget, setActionPollBudget] = React.useState(0)
   const chatContainerRef = React.useRef<HTMLDivElement>(null)
   const pathname = usePathname()
@@ -223,8 +226,9 @@ export default function IssuerChatbot() {
 
       const firstMessageContent = getMessageContent(messages[0])
       const conversationTitle = firstMessageContent
-        ? `${sanitize(firstMessageContent).slice(0, 50)}${firstMessageContent.length > 50 ? '...' : ''
-        }`
+        ? `${sanitize(firstMessageContent).slice(0, 50)}${
+            firstMessageContent.length > 50 ? '...' : ''
+          }`
         : 'New Conversation'
       const now = Date.now()
 
@@ -233,18 +237,21 @@ export default function IssuerChatbot() {
         title: conversationTitle,
         messages: toStoredMessages(messages, messageTimestamps),
         createdAt: currentConversationId
-          ? conversations.find((conversation) => conversation.id === currentConversationId)
-            ?.createdAt || now
+          ? conversations.find(
+              (conversation) => conversation.id === currentConversationId
+            )?.createdAt || now
           : now,
         updatedAt: now,
       }
 
       setConversations((prev) => {
-        const existing = prev.find((conversation) => conversation.id === conversationData.id)
+        const existing = prev.find(
+          (conversation) => conversation.id === conversationData.id
+        )
         const updated = existing
           ? prev.map((conversation) =>
-            conversation.id === conversationData.id ? conversationData : conversation
-          )
+              conversation.id === conversationData.id ? conversationData : conversation
+            )
           : [...prev, conversationData]
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
@@ -266,7 +273,8 @@ export default function IssuerChatbot() {
     }
 
     const speedDialElement = document.querySelector('[aria-label="Support Contacts"]')
-    const nextAnchor = speedDialElement instanceof HTMLElement ? speedDialElement : document.body
+    const nextAnchor =
+      speedDialElement instanceof HTMLElement ? speedDialElement : document.body
 
     setAnchorEl(nextAnchor)
     setShowConversations(false)
@@ -548,7 +556,9 @@ export default function IssuerChatbot() {
                                 lineHeight: 1.4,
                               }}
                             >
-                              {sanitize(lastAssistantMessage?.content || conversation.title)}
+                              {sanitize(
+                                lastAssistantMessage?.content || conversation.title
+                              )}
                             </Typography>
                           </Box>
                           <Typography
@@ -556,17 +566,23 @@ export default function IssuerChatbot() {
                             color="text.secondary"
                             textAlign="right"
                           >
-                            {new Date(conversation.updatedAt).toLocaleDateString('en-US', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            })}{' '}
-                            {new Date(conversation.updatedAt).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true,
-                            })}
+                            {new Date(conversation.updatedAt).toLocaleDateString(
+                              'en-US',
+                              {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              }
+                            )}{' '}
+                            {new Date(conversation.updatedAt).toLocaleTimeString(
+                              'en-US',
+                              {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              }
+                            )}
                           </Typography>
                         </Stack>
                       </Stack>

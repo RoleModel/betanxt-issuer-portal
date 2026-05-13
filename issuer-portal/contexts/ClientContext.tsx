@@ -242,7 +242,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return
         }
 
-        const pastMeetingMatch = /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(pathname)
+        const pastMeetingMatch = /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(
+          pathname
+        )
         const activeMeetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(\/.*)?$/.exec(pathname)
 
         // Past meetings are client-specific records, so do not carry a different client's

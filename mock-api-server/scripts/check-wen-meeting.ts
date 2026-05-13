@@ -28,7 +28,9 @@ async function run() {
   )
   console.log('\nProposal totals:')
   for (const row of p.rows) {
-    console.log(`  ${row.proposal_number} | FOR=${row.total_votes_for} AGAINST=${row.total_votes_against} ABSTAIN=${row.total_votes_abstain} | eligible=${row.total_shares_eligible}`)
+    console.log(
+      `  ${row.proposal_number} | FOR=${row.total_votes_for} AGAINST=${row.total_votes_against} ABSTAIN=${row.total_votes_abstain} | eligible=${row.total_shares_eligible}`
+    )
   }
 
   await client.end()

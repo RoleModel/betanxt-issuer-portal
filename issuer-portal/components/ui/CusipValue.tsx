@@ -11,10 +11,7 @@ interface CusipValueProps {
   variant?: 'body3' | 'body2' | 'caption'
 }
 
-export default function CusipValue({
-  value,
-  variant = 'body3',
-}: CusipValueProps) {
+export default function CusipValue({ value, variant = 'body3' }: CusipValueProps) {
   const cusips = normalizeCusips(value)
 
   if (cusips.length === 0) {

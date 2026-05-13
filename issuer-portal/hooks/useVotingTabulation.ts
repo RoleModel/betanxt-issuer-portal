@@ -155,7 +155,10 @@ const fetchVotingData = async (meetingId: string) => {
         const prevPositions = prevPositionsRaw
           .map((position) => normalizePosition(position))
           .filter((position): position is NormalizedPosition => position !== null)
-        const prevTotalShares = prevPositions.reduce((sum, position) => sum + position.shares, 0)
+        const prevTotalShares = prevPositions.reduce(
+          (sum, position) => sum + position.shares,
+          0
+        )
         const prevVotedShares = prevPositions
           .filter((position) => position.voteStatus === 'Voted')
           .reduce((sum, position) => sum + position.sharesVoted, 0)
@@ -200,12 +203,15 @@ const fetchVotingData = async (meetingId: string) => {
     .filter((position): position is NormalizedPosition => position !== null)
   const proposalIds = new Set(proposals.map((proposal) => proposal.id))
   const positionIdSet = new Set(positions.map((position) => position.id))
-  const positionVotesRaw = positionIdSet.size > 0 ? await fetchPositionVotesForMeeting(meetingId) : []
+  const positionVotesRaw =
+    positionIdSet.size > 0 ? await fetchPositionVotesForMeeting(meetingId) : []
 
   const proposalVoteCounts = new Map<string, ProposalVoteCounts>()
   const normalizedVotes = positionVotesRaw
     .map((positionVote) => normalizePositionVote(positionVote))
-    .filter((positionVote): positionVote is NormalizedPositionVote => positionVote !== null)
+    .filter(
+      (positionVote): positionVote is NormalizedPositionVote => positionVote !== null
+    )
 
   normalizedVotes.forEach((vote) => {
     if (!proposalIds.has(vote.proposalId) || !positionIdSet.has(vote.positionId)) {

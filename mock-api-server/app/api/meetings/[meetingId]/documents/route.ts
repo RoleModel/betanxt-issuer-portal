@@ -31,7 +31,11 @@ export async function GET(
         : undefined
     const typeParam = searchParams.get('type') || undefined
 
-    console.log('listDocuments query:', { meetingId, status: statusParam, type: typeParam })
+    console.log('listDocuments query:', {
+      meetingId,
+      status: statusParam,
+      type: typeParam,
+    })
 
     // Use existing domain model function
     const { data, error } = await listDocuments(meetingId, { status, type: typeParam })

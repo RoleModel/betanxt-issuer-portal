@@ -1,12 +1,12 @@
+import { createOpenAI } from '@ai-sdk/openai'
 import {
+  type UIMessage,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
   stepCountIs,
   streamText,
-  type UIMessage,
 } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 
 import { auth } from '@/auth'
@@ -136,9 +136,7 @@ const asNumber = (value: unknown): number => {
 
 const asStringArray = (value: unknown): string[] => {
   return Array.isArray(value)
-    ? value
-        .map((item) => asString(item))
-        .filter((item): item is string => Boolean(item))
+    ? value.map((item) => asString(item)).filter((item): item is string => Boolean(item))
     : []
 }
 
@@ -147,7 +145,10 @@ const asArray = (value: unknown): unknown[] => {
 }
 
 const normalizeText = (value: string): string => {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
 }
 
 const extractMeetingYearFromSearch = (search?: string): number | undefined => {
@@ -423,26 +424,43 @@ const deriveTabulationReportSummary = (
     (position) => asString(position.voteStatus ?? position.vote_status) === 'Unvoted'
   )
 
-  const totalShares = positions.reduce((sum, position) => sum + asNumber(position.shares), 0)
+  const totalShares = positions.reduce(
+    (sum, position) => sum + asNumber(position.shares),
+    0
+  )
   const votedShares = votedPositions.reduce(
     (sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted),
     0
   )
 
   const dtcVotedShares = votedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === 'DTC/CDS')
-    .reduce((sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted), 0)
+    .filter(
+      (position) => asString(position.accountType ?? position.account_type) === 'DTC/CDS'
+    )
+    .reduce(
+      (sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted),
+      0
+    )
 
   const dtcUnvotedShares = unvotedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === 'DTC/CDS')
+    .filter(
+      (position) => asString(position.accountType ?? position.account_type) === 'DTC/CDS'
+    )
     .reduce((sum, position) => sum + asNumber(position.shares), 0)
 
   const nonDtcVotedShares = votedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === 'Non-DTC')
-    .reduce((sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted), 0)
+    .filter(
+      (position) => asString(position.accountType ?? position.account_type) === 'Non-DTC'
+    )
+    .reduce(
+      (sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted),
+      0
+    )
 
   const nonDtcUnvotedShares = unvotedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === 'Non-DTC')
+    .filter(
+      (position) => asString(position.accountType ?? position.account_type) === 'Non-DTC'
+    )
     .reduce((sum, position) => sum + asNumber(position.shares), 0)
 
   const setKeys = [
@@ -601,10 +619,7 @@ const getFallbackAssistantReply = (
   return 'AI Gateway is not configured yet. I can still open support contacts or navigate to dashboard, agenda, mailing, tabulation, and reports.'
 }
 
-const createFallbackResponse = (
-  messages: UIMessage[],
-  currentPath: string
-): Response => {
+const createFallbackResponse = (messages: UIMessage[], currentPath: string): Response => {
   const content = getFallbackAssistantReply(messages, currentPath)
   const stream = createUIMessageStream({
     originalMessages: messages,
@@ -725,11 +740,11 @@ const tryHandleMeetingOverviewPrompt = async ({
   const selectedMeeting =
     meetings.length === 1
       ? meetings[0]
-      : meetings.find((meeting) =>
+      : (meetings.find((meeting) =>
           normalizeText(asString(meeting.meetingType) ?? '').includes(
             normalizeText(extractMeetingTypeFromSearch(prompt) ?? '')
           )
-        ) ?? meetings[0]
+        ) ?? meetings[0])
 
   const meetingId = asString(selectedMeeting.id)
 
@@ -824,7 +839,11 @@ const tryHandleDirectorSlatePrompt = async ({
     const proposalType = normalizeText(asString(proposal.proposalType) ?? '')
     const title = normalizeText(asString(proposal.title) ?? '')
 
-    return Boolean(directorName) || proposalType.includes('director') || title.includes('director')
+    return (
+      Boolean(directorName) ||
+      proposalType.includes('director') ||
+      title.includes('director')
+    )
   })
 
   if (directorSlate.length === 0) {
@@ -954,22 +973,21 @@ const executePortalQuery = async ({
           title: asString(row.title) ?? '',
           status: asString(row.status) ?? 'UNKNOWN',
           meetingType:
-            asString(row.meetingType) ??
-            asString(row.meeting_type) ??
-            'Meeting',
+            asString(row.meetingType) ?? asString(row.meeting_type) ?? 'Meeting',
           meetingYear:
             row.meetingYear !== undefined
               ? asNumber(row.meetingYear)
               : row.meeting_year !== undefined
                 ? asNumber(row.meeting_year)
                 : null,
-          meetingDate:
-            asString(row.meetingDate) ?? asString(row.meeting_date) ?? null,
+          meetingDate: asString(row.meetingDate) ?? asString(row.meeting_date) ?? null,
         }))
         .filter((meeting) => meeting.id && meeting.title)
         .filter((meeting) => {
           if (!requestedMeetingType) return true
-          return normalizeText(meeting.meetingType) === normalizeText(requestedMeetingType)
+          return (
+            normalizeText(meeting.meetingType) === normalizeText(requestedMeetingType)
+          )
         })
         .filter((meeting) => {
           if (!normalizedMeetingSearch) return true
@@ -997,7 +1015,10 @@ const executePortalQuery = async ({
         return { error: 'Provide a meetingId or ask this while viewing a meeting page.' }
       }
 
-      const meeting = await getMeetingData(resolvedMeetingId, accessContext.allowedTickers)
+      const meeting = await getMeetingData(
+        resolvedMeetingId,
+        accessContext.allowedTickers
+      )
 
       return {
         entity,
@@ -1050,17 +1071,14 @@ const executePortalQuery = async ({
             asString(row.directorName) ??
             asString(row.director_name) ??
             '',
-          directorName:
-            asString(row.directorName) ?? asString(row.director_name) ?? null,
-          proposalType:
-            asString(row.proposalType) ?? asString(row.proposal_type) ?? null,
+          directorName: asString(row.directorName) ?? asString(row.director_name) ?? null,
+          proposalType: asString(row.proposalType) ?? asString(row.proposal_type) ?? null,
           managementRecommendation:
             asString(row.managementRecommendation) ??
             asString(row.management_recommendation) ??
             asString(row.recommendation) ??
             '',
-          finalResult:
-            asString(row.finalResult) ?? asString(row.final_result) ?? '',
+          finalResult: asString(row.finalResult) ?? asString(row.final_result) ?? '',
         }))
         .filter((proposal) => proposal.id || proposal.title)
         .filter((proposal) => {
@@ -1132,7 +1150,9 @@ const executePortalQuery = async ({
       }
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers)
-      const payload = await fetchPortalJson(`/positions?meetingId=${resolvedMeetingId}&limit=50000`)
+      const payload = await fetchPortalJson(
+        `/positions?meetingId=${resolvedMeetingId}&limit=50000`
+      )
       const root = asRecord(payload)
       const rows = Array.isArray(payload) ? payload : asArray(root?.positions)
       const positions = rows
@@ -1175,7 +1195,9 @@ const executePortalQuery = async ({
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers)
       try {
-        const payload = await fetchPortalJson(`/meetings/${resolvedMeetingId}/tabulation-report`)
+        const payload = await fetchPortalJson(
+          `/meetings/${resolvedMeetingId}/tabulation-report`
+        )
         const report = asRecord(payload)
         if (!report) {
           throw new Error(`Tabulation report for ${resolvedMeetingId} is unavailable.`)
@@ -1281,7 +1303,8 @@ export async function POST(request: Request) {
 
           if (!path) {
             return {
-              error: 'The user is not currently on a meeting route that can be navigated from.',
+              error:
+                'The user is not currently on a meeting route that can be navigated from.',
             }
           }
 
@@ -1364,9 +1387,7 @@ export async function POST(request: Request) {
           } catch (error) {
             return {
               error:
-                error instanceof Error
-                  ? error.message
-                  : 'The portal data query failed.',
+                error instanceof Error ? error.message : 'The portal data query failed.',
             }
           }
         },
