@@ -8,6 +8,8 @@ import { getTabulationReport } from '@/domain-models/api/tabulationReports'
 
 import { handleCors, withCors } from '@/utils/cors'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   meetingId: string
 }
