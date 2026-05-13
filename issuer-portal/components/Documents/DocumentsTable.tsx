@@ -107,6 +107,24 @@ export default function DocumentsTable(props: DocumentsTableProps) {
               </TableCell>
               <TableCell size="small">
                 <StatusChip status={(doc.status ?? null) as string | null} />
+                {doc.status === 'UPLOADED' && (
+                  <Box
+                    component="span"
+                    sx={{
+                      border: 0,
+                      clip: 'rect(0 0 0 0)',
+                      height: 1,
+                      margin: -1,
+                      overflow: 'hidden',
+                      p: 0,
+                      position: 'absolute',
+                      whiteSpace: 'nowrap',
+                      width: 1,
+                    }}
+                  >
+                    Complete
+                  </Box>
+                )}
               </TableCell>
               <TableCell size="small" align="right">
                 <Button

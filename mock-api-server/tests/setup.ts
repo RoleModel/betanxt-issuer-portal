@@ -7,6 +7,7 @@ const __dirname = path.dirname(__filename)
 
 function globalSetup() {
   // Load environment variables for tests
+  config({ path: path.join(__dirname, '../.env.local') })
   config({ path: path.join(__dirname, '../.env.development.local') })
 
   // Validate required environment variables

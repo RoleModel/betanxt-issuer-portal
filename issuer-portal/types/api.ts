@@ -1604,6 +1604,9 @@ export interface components {
     }
     UpdateMeetingRequest: {
       title?: string
+      cusip?: string
+      /** Format: date */
+      brokerSearchDate?: string | null
       /** Format: date */
       recordDate?: string
       /** Format: date */

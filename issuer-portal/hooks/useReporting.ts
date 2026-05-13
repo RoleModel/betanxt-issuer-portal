@@ -745,7 +745,15 @@ function transformProposalPerformanceData(
   // Group proposals by type and calculate performance metrics
   const proposalsByType = proposals.reduce(
     (acc, proposal) => {
-      const type = proposal.proposalType ?? 'Unknown'
+      const rawType = proposal.proposalType ?? 'Unknown'
+      const type =
+        rawType === 'DIRECTOR_ELECTION' || /director/i.test(rawType)
+          ? 'Director Election'
+          : rawType === 'SAY_ON_PAY' || /say.*pay/i.test(rawType)
+            ? 'Say on Pay'
+            : /auditor/i.test(rawType)
+              ? 'Auditor'
+              : rawType
       if (!acc[type]) {
         acc[type] = { total: 0, passed: 0, support: [] }
       }

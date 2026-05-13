@@ -102,9 +102,6 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         setLoading(true)
         setError(null)
 
-        // Combine regular documents and DSM documents for lookup
-        const allExistingDocs = [...documents, ...dsmDocuments]
-
         // Upload each file using the API endpoint
         const uploadPromises = files.map(async (file, index) => {
           // Try multiple association key formats:
@@ -114,28 +111,37 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
           const fileNameSizeKey = `${file.name}-${file.size}`
           const associationId =
             associations?.[fileIndexKey] || associations?.[fileNameSizeKey]
-          const title = associationId || file.name.replace(/\.[^/.]+$/, '')
+          const title = associationId || file.name
 
-          // Check if a document with this title and type already exists
-          const existingDoc = allExistingDocs.find(
-            (doc) => doc.title === title && doc.type === documentType
-          )
-
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('meetingId', meetingId)
-          formData.append('title', title)
-
-          // If we found an existing document, pass its ID to trigger replacement
-          if (existingDoc?.id) {
-            formData.append('documentId', existingDoc.id)
-          }
-
-          // Upload via the API route
-          const response = await fetch(`/api/documents/types/${documentType}/upload`, {
-            method: 'POST',
-            body: formData,
+          const fileData = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => {
+              if (typeof reader.result === 'string') {
+                resolve(reader.result)
+              } else {
+                reject(new Error(`Failed to read ${file.name}`))
+              }
+            }
+            reader.onerror = () => reject(new Error(`Failed to read ${file.name}`))
+            reader.readAsDataURL(file)
           })
+
+          const apiBaseUrl =
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+          const response = await fetch(
+            `${apiBaseUrl}/meetings/${encodeURIComponent(meetingId)}/documents`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title,
+                type: documentType,
+                file: fileData,
+              }),
+            }
+          )
 
           if (!response.ok) {
             const errorData = await response.json()
@@ -157,7 +163,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         setLoading(false)
       }
     },
-    [documents, dsmDocuments, refreshDocuments]
+    [refreshDocuments]
   )
 
   const value: DocumentContextType = useMemo(

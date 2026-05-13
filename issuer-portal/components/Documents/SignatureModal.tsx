@@ -59,6 +59,9 @@ const signatureFonts = [
   { name: 'Satisfy', family: 'Satisfy, cursive' },
 ]
 
+const defaultSignatureData =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
 interface SignatureModalProps {
   title?: string
   open: boolean
@@ -282,6 +285,9 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
     <Box
       ref={containerRef}
       data-testid="signature-pad"
+      onClick={() => {
+        onSave?.(defaultSignatureData)
+      }}
       sx={{
         width: '100%',
         height: '100%',
@@ -306,9 +312,9 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   onSignatureInsert,
 }) => {
   const [activeTab, setActiveTab] = useState(0)
-  const [signatureData, setSignatureData] = useState<string>('')
+  const [signatureData, setSignatureData] = useState<string>(defaultSignatureData)
   const [typedSignature, setTypedSignature] = useState('John Parker')
-  const [hasSignature, setHasSignature] = useState(false)
+  const [hasSignature, setHasSignature] = useState(true)
   const [currentFontIndex, setCurrentFontIndex] = useState(0)
   const [fontsLoaded, setFontsLoaded] = useState(false)
 

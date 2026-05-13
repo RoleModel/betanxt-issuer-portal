@@ -82,8 +82,10 @@ interface ParsedProposal {
 type ExcelRow = Record<string, string | number | boolean | Date | undefined>
 
 export default function DocumentsPage({ params }: DocumentsPageProps) {
-  React.use(params) // Consume params but don't store
+  const routeParams = React.use(params)
+  const routeMeetingId = routeParams.meetingId
   const { currentMeeting } = useMeeting()
+  const activeMeetingId = currentMeeting?.id ?? routeMeetingId
   const {
     documents: regularDocuments,
     dsmDocuments,
@@ -92,12 +94,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     refreshDocuments,
     uploadDocument,
   } = useDocuments()
-  const { uploadProposals } = useVotingTabulation(currentMeeting?.id ?? '')
+  const { uploadProposals } = useVotingTabulation(activeMeetingId)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [dsmPage, setDsmPage] = useState(0)
   const [dsmRowsPerPage, setDsmRowsPerPage] = useState(6)
+  const [isClientReady, setIsClientReady] = useState(false)
   const previousMeetingIdRef = React.useRef<string | null>(null)
 
   // Calculate DSM progress
@@ -129,14 +132,17 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // Set active meeting based on URL parameter
   // Meeting is set by layout - no need to set it again here
+  useEffect(() => {
+    setIsClientReady(true)
+  }, [])
 
   // Fetch documents from API when meeting changes
   useEffect(() => {
-    if (currentMeeting?.id && previousMeetingIdRef.current !== currentMeeting.id) {
-      previousMeetingIdRef.current = currentMeeting.id
-      void refreshDocuments(currentMeeting.id)
+    if (activeMeetingId && previousMeetingIdRef.current !== activeMeetingId) {
+      previousMeetingIdRef.current = activeMeetingId
+      void refreshDocuments(activeMeetingId)
     }
-  }, [currentMeeting?.id, refreshDocuments])
+  }, [activeMeetingId, refreshDocuments])
 
   // Refresh documents when page gains focus or becomes visible
   useEffect(() => {
@@ -147,8 +153,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         isInitialMount = false
         return
       }
-      if (currentMeeting?.id) {
-        void refreshDocuments(currentMeeting.id)
+      if (activeMeetingId) {
+        void refreshDocuments(activeMeetingId)
       }
     }
 
@@ -157,15 +163,15 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         isInitialMount = false
         return
       }
-      if (!document.hidden && currentMeeting?.id) {
-        void refreshDocuments(currentMeeting.id)
+      if (!document.hidden && activeMeetingId) {
+        void refreshDocuments(activeMeetingId)
       }
     }
 
     const handleDocumentsUploaded = (event: Event) => {
       const customEvent = event as CustomEvent<{ meetingId: string }>
-      if (currentMeeting?.id && customEvent.detail.meetingId === currentMeeting.id) {
-        void refreshDocuments(currentMeeting.id)
+      if (activeMeetingId && customEvent.detail.meetingId === activeMeetingId) {
+        void refreshDocuments(activeMeetingId)
       }
     }
 
@@ -178,7 +184,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('documentsUploaded', handleDocumentsUploaded)
     }
-  }, [currentMeeting?.id, refreshDocuments])
+  }, [activeMeetingId, refreshDocuments])
 
   // Helper to normalize raw status values from API / placeholders.
   const normalizeStatus = React.useCallback(
@@ -344,42 +350,36 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     files: File[],
     associations?: Record<string, string>
   ) => {
-    if (!currentMeeting?.id) {
-      console.error('No current meeting ID')
-      return
+    if (!activeMeetingId) {
+      throw new Error('No current meeting ID')
     }
-    try {
-      // Check if this is an Agenda upload with Excel/CSV file
-      const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
-      const file = files[0]
-      const isExcelOrCsv =
-        file &&
-        (file.type ===
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-          file.type === 'application/vnd.ms-excel' ||
-          file.type === 'text/csv' ||
-          file.name.endsWith('.xlsx') ||
-          file.name.endsWith('.xls') ||
-          file.name.endsWith('.csv'))
+    // Check if this is an Agenda upload with Excel/CSV file
+    const isAgendaUpload = selectedDsmDocument?.title === 'Agenda'
+    const file = files[0]
+    const isExcelOrCsv =
+      file &&
+      (file.type ===
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel' ||
+        file.type === 'text/csv' ||
+        file.name.endsWith('.xlsx') ||
+        file.name.endsWith('.xls') ||
+        file.name.endsWith('.csv'))
 
-      if (isAgendaUpload && isExcelOrCsv) {
-        // Parse and upload as proposals
-        const proposals = await parseAgendaFile(file)
-        await uploadProposals(proposals)
-        setUploadDialogOpen(false)
-        setSelectedDsmDocument(null)
-      } else {
-        // Determine document type based on upload source
-        const documentType = uploadSource === 'dsm' ? 'dsm-document' : 'general-document'
-        // Upload as document
-        await uploadDocument(currentMeeting.id, files, documentType, associations)
-      }
+    if (isAgendaUpload && isExcelOrCsv) {
+      // Parse and upload as proposals
+      const proposals = await parseAgendaFile(file)
+      await uploadProposals(proposals)
       setUploadDialogOpen(false)
       setSelectedDsmDocument(null)
-    } catch (error) {
-      console.error('Upload error:', error)
-      // Error is already handled by the context
+    } else {
+      // Determine document type based on upload source
+      const documentType = uploadSource === 'dsm' ? 'dsm-document' : 'general-document'
+      // Upload as document
+      await uploadDocument(activeMeetingId, files, documentType, associations)
     }
+    setUploadDialogOpen(false)
+    setSelectedDsmDocument(null)
   }
 
   const handleDocumentAction = (doc: Document) => {
@@ -417,8 +417,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     try {
       // TODO: Implement document approval via API
       handleApprovalDrawerClose()
-      if (currentMeeting?.id) {
-        await refreshDocuments(currentMeeting.id)
+      if (activeMeetingId) {
+        await refreshDocuments(activeMeetingId)
       }
     } catch {
       // Handle error
@@ -454,6 +454,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     variant="contained"
                     startIcon={<FileUploadOutlinedIcon />}
                     onClick={handleUpload}
+                    onMouseDown={handleUpload}
+                    disabled={!isClientReady || !activeMeetingId}
                   >
                     Upload
                   </Button>
@@ -626,7 +628,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
         open={uploadDialogOpen}
         onClose={handleUploadDialogClose}
         onUpload={handleFilesUpload}
-        meetingId={currentMeeting?.id}
+        meetingId={activeMeetingId}
         documentType="dsm-document"
         preSelectedDocumentId={selectedDsmDocument?.title}
       />

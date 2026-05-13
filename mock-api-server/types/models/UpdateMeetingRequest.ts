@@ -33,6 +33,18 @@ export interface UpdateMeetingRequest {
   title?: string
   /**
    *
+   * @type {string}
+   * @memberof UpdateMeetingRequest
+   */
+  cusip?: string
+  /**
+   *
+   * @type {Date}
+   * @memberof UpdateMeetingRequest
+   */
+  brokerSearchDate?: Date | null
+  /**
+   *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
@@ -169,6 +181,9 @@ export function UpdateMeetingRequestFromJSONTyped(
   }
   return {
     title: json['title'] == null ? undefined : json['title'],
+    cusip: json['cusip'] == null ? undefined : json['cusip'],
+    brokerSearchDate:
+      json['brokerSearchDate'] == null ? undefined : new Date(json['brokerSearchDate']),
     recordDate: json['recordDate'] == null ? undefined : new Date(json['recordDate']),
     mailingDate: json['mailingDate'] == null ? undefined : new Date(json['mailingDate']),
     meetingDate: json['meetingDate'] == null ? undefined : new Date(json['meetingDate']),
@@ -218,6 +233,11 @@ export function UpdateMeetingRequestToJSONTyped(
 
   return {
     title: value['title'],
+    cusip: value['cusip'],
+    brokerSearchDate:
+      value['brokerSearchDate'] == null
+        ? undefined
+        : value['brokerSearchDate'].toISOString().substring(0, 10),
     recordDate:
       value['recordDate'] == null
         ? undefined

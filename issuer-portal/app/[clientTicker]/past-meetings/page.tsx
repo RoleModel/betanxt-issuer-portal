@@ -23,14 +23,20 @@ type ParticipationMetrics = Pick<
   'participationPercent' | 'totalVotes' | 'votingShares'
 >
 
-// Generate consistent participation rate between 58% and 74% using meeting id as seed
-// This matches the seeded random in useReporting.ts
+const PARTICIPATION_OVERRIDES_BY_MEETING_ID: Record<string, number> = {
+  'wen-annual-meeting-2025': 8.3,
+}
+
+// Generate consistent fallback participation for historical demo meetings.
 const generateSeededParticipation = (meetingId: string): number => {
+  const override = PARTICIPATION_OVERRIDES_BY_MEETING_ID[meetingId]
+  if (override !== undefined) return override
+
   const meetingIdHash = (meetingId ?? '')
     .split('')
     .reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-  return Math.round((58 + seededRandom * 16) * 10) / 10
+  return Math.round((7 + seededRandom * 42) * 10) / 10
 }
 
 const getDefaultMetrics = (meetingId: string): ParticipationMetrics => ({
@@ -200,13 +206,21 @@ export default function PastMeetingsPage() {
         ? typedData.meetings
         : []
 
-      // Use consistent seeded mock participation data to match Reporting page
       const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
         (meeting: Meeting): PastMeetingData => {
           const meetingId = getMeetingId(meeting)
+          const metrics = getDefaultMetrics(meetingId)
+          const totalSharesOutstanding = getTotalSharesOutstanding(meeting)
+
           return {
             ...meeting,
-            ...getDefaultMetrics(meetingId),
+            ...metrics,
+            votingShares:
+              totalSharesOutstanding > 0
+                ? Math.round(
+                    (totalSharesOutstanding * metrics.participationPercent) / 100
+                  )
+                : metrics.votingShares,
           }
         }
       )

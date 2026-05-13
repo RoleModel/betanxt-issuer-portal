@@ -27,6 +27,7 @@ const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/
 const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/
 const SECURE_FILE_TRANSFER_REGEX = /^\/[A-Z]+\/secure-file-transfer$/
 const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//
+const EDIT_EVENT_REGEX = /^\/edit\/[^/]+$/
 
 // Safely use meeting context when it might not be available
 const useMeetingSafe = () => {
@@ -327,7 +328,7 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
   const currentTab = useMemo(() => {
     if (pathname === '/pdf-preview' || pathname.startsWith('/pdf-preview/')) return null
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return ''
-    if (pathname === '/events') return 'events'
+    if (pathname === '/events' || EDIT_EVENT_REGEX.test(pathname)) return 'events'
     if (PAST_MEETING_REGEX.test(pathname)) return 'past-meetings'
     if (PAST_MEETINGS_REGEX.test(pathname) || pathname === '/past-meetings')
       return 'past-meetings'

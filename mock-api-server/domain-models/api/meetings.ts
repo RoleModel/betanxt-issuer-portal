@@ -20,8 +20,9 @@ interface ApiResponse<T> {
 type MeetingRow = Database['public']['Tables']['meeting']['Row'] & {
   cutoff_date?: string | null
 }
+type ClientRow = Database['public']['Tables']['clients']['Row']
 type MeetingRowWithRelations = Omit<MeetingRow, 'client'> & {
-  client?: MeetingRow['client'] | Meeting['client']
+  client?: ClientRow | Meeting['client'] | string | null
 }
 
 // Helper function to convert null to undefined
@@ -34,12 +35,48 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 // response always matches the `Clients` schema regardless of how the data arrived.
 function transformClientSummary(raw: unknown): Meeting['client'] {
   if (typeof raw !== 'object' || raw === null) return undefined
-  const c = raw as Record<string, string | null | undefined>
+  const c = raw as Record<string, unknown>
+  const isActive = c.isActive ?? c.is_active
+
   return {
-    id: c.id ?? undefined,
-    ticker: c.ticker ?? undefined,
-    companyName: c.companyName ?? c.company_name ?? undefined,
-    shortName: c.shortName ?? c.short_name ?? undefined,
+    id: typeof c.id === 'string' ? c.id : undefined,
+    ticker: typeof c.ticker === 'string' ? c.ticker : undefined,
+    companyName:
+      typeof c.companyName === 'string'
+        ? c.companyName
+        : typeof c.company_name === 'string'
+          ? c.company_name
+          : undefined,
+    shortName:
+      typeof c.shortName === 'string'
+        ? c.shortName
+        : typeof c.short_name === 'string'
+          ? c.short_name
+          : undefined,
+    industry: typeof c.industry === 'string' ? c.industry : null,
+    description: typeof c.description === 'string' ? c.description : null,
+    website: typeof c.website === 'string' ? c.website : null,
+    primaryContact:
+      typeof c.primaryContact === 'string'
+        ? c.primaryContact
+        : typeof c.primary_contact === 'string'
+          ? c.primary_contact
+          : null,
+    primaryContactEmail:
+      typeof c.primaryContactEmail === 'string'
+        ? c.primaryContactEmail
+        : typeof c.primary_contact_email === 'string'
+          ? c.primary_contact_email
+          : null,
+    isActive: typeof isActive === 'boolean' ? isActive : true,
+    brandingId:
+      typeof c.brandingId === 'number'
+        ? c.brandingId
+        : typeof c.branding_id === 'number'
+          ? c.branding_id
+          : null,
+    createdAt: typeof c.createdAt === 'string' ? c.createdAt : undefined,
+    updatedAt: typeof c.updatedAt === 'string' ? c.updatedAt : undefined,
   }
 }
 
@@ -144,17 +181,27 @@ export async function listMeetings(
 
     // Fetch client data for all unique client_ids and attach manually.
     // A direct FK join is not available because the schema has no FK constraints.
-    const uniqueClientIds = [...new Set(rows.map((r) => r.client_id).filter(Boolean))]
-    const clientMap = new Map<string, { id: string; ticker: string | null; company_name: string | null; short_name: string | null }>()
+    const uniqueClientIds = [
+      ...new Set(
+        rows
+          .map((row) => row.client_id)
+          .filter((clientId): clientId is string => typeof clientId === 'string')
+      ),
+    ]
+    const clientMap = new Map<string, ClientRow>()
 
     if (uniqueClientIds.length > 0) {
       const { data: clientsData } = await supabase
         .from('clients')
-        .select('id, ticker, company_name, short_name')
-        .in('id', uniqueClientIds as string[])
+        .select(
+          'id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, created_at, updated_at'
+        )
+        .in('id', uniqueClientIds)
 
       for (const c of clientsData ?? []) {
-        clientMap.set(c.id, c)
+        if (c.id) {
+          clientMap.set(c.id, c)
+        }
       }
     }
 
@@ -300,6 +347,9 @@ export async function updateMeeting(
     // Transform camelCase to snake_case for database
     const dbUpdate: Record<string, unknown> = {}
     if (meetingData.title !== undefined) dbUpdate.title = meetingData.title
+    if (meetingData.cusip !== undefined) dbUpdate.cusip = meetingData.cusip
+    if (meetingData.brokerSearchDate !== undefined)
+      dbUpdate.broker_search_date = meetingData.brokerSearchDate
     if (meetingData.recordDate !== undefined)
       dbUpdate.record_date = meetingData.recordDate
     if (meetingData.mailingDate !== undefined)

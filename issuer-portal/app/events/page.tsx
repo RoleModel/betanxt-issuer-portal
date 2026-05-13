@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import NextLink from 'next/link'
 import React, { useMemo, useState } from 'react'
 
+import { Edit } from '@mui/icons-material'
 import { SearchOutlined } from '@mui/icons-material'
 import {
   Card,
@@ -11,6 +12,7 @@ import {
   CardHeader,
   CircularProgress,
   Container,
+  IconButton,
   InputAdornment,
   Link,
   Table,
@@ -80,8 +82,8 @@ export default function EventsPage() {
     }
 
     return [...filtered].sort((a, b) => {
-      let compareA: string | number | null = a[orderBy]
-      let compareB: string | number | null = b[orderBy]
+      let compareA: string | number | null | undefined = a[orderBy]
+      let compareB: string | number | null | undefined = b[orderBy]
 
       if (orderBy === 'eventDate') {
         compareA = parseEventDate(a.eventDate).getTime()
@@ -190,12 +192,13 @@ export default function EventsPage() {
                       Event Type
                     </TableSortLabel>
                   </TableCell>
+                  {isCSM && <TableCell align="right">Edit</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={isCSM ? 6 : 4} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
                       <CircularProgress size={24} />
                     </TableCell>
                   </TableRow>
@@ -225,11 +228,24 @@ export default function EventsPage() {
                         <TableCell sx={{ whiteSpace: 'nowrap' }}>
                           {row.eventType}
                         </TableCell>
+                        {isCSM && (
+                          <TableCell align="right">
+                            <IconButton
+                              component={NextLink}
+                              href={`/edit/${row.id}`}
+                              color="primary"
+                              size="small"
+                              sx={{ ml: 1 }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                     {paginatedEvents.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={isCSM ? 6 : 4} align="center" sx={{ py: 4 }}>
+                        <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
                           <Typography color="text.secondary">
                             {searchQuery
                               ? 'No events match your search.'
@@ -250,8 +266,8 @@ export default function EventsPage() {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelDisplayedRows={({ from, to }) =>
-                      `${from}-${to} of ${totalPages}`
+                    labelDisplayedRows={({ from, to, count }) =>
+                      `${from}-${to} of ${count} (${totalPages} pages)`
                     }
                   />
                 </TableRow>

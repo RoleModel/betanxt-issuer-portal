@@ -8,6 +8,9 @@ export interface EventRow {
   event: string
   cusip: string
   eventDate: string
+  mailingDate?: string | null
+  brokerSearchDate?: string | null
+  recordDate?: string | null
   eventType: 'Annual Meeting' | 'Special Meeting'
   meetingId: string
   clientTicker: string

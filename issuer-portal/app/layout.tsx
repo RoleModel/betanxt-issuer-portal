@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import type { Viewport } from 'next'
 import { SessionProvider } from 'next-auth/react'
 import { Roboto, Roboto_Condensed } from 'next/font/google'
+
 import localFont from 'next/font/local'
 import React from 'react'
 

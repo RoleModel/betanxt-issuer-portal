@@ -191,11 +191,9 @@ export default function PastMeetingsTable({
                             <Typography variant="body3" sx={{ fontWeight: 600 }}>
                               {meeting.participationPercent}%
                             </Typography>
-                            {meeting.votingShares > 0 && (
-                              <Typography variant="body3" color="text.secondary">
-                                {truncateNumber(meeting.votingShares)}
-                              </Typography>
-                            )}
+                            <Typography variant="body3" color="text.secondary">
+                              {truncateNumber(meeting.votingShares)}
+                            </Typography>
                           </Box>
                           <LinearProgress
                             variant="determinate"

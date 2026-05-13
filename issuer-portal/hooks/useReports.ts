@@ -113,6 +113,11 @@ const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([
 }
 
 function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
+  if (Array.isArray(brokerVoting)) {
+    const normalized = _normalizeBrokerVotingEntries(brokerVoting)
+    return normalized.length > 0 ? { summary: normalized } : {}
+  }
+
   if (!brokerVoting || typeof brokerVoting !== 'object') {
     return {}
   }
@@ -126,26 +131,7 @@ function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
   Object.entries(rawData).forEach(([proposalId, brokers]) => {
     if (!Array.isArray(brokers)) return
 
-    const normalized = brokers.reduce<BrokerVotingData[]>((acc, entry) => {
-      const brokerRecord = asRecord(entry)
-      if (!brokerRecord) return acc
-
-      const forVotes = toFiniteNumber(brokerRecord.for)
-      const againstVotes = toFiniteNumber(brokerRecord.against)
-      const abstainVotes = toFiniteNumber(brokerRecord.abstain)
-
-      // Ensure broker is always a string to prevent chart rendering errors
-      const brokerName = asString(brokerRecord.broker)
-      acc.push({
-        broker: brokerName ?? 'Unknown',
-        for: forVotes,
-        against: againstVotes,
-        abstain: abstainVotes,
-        total: forVotes + againstVotes + abstainVotes,
-      })
-
-      return acc
-    }, [])
+    const normalized = _normalizeBrokerVotingEntries(brokers)
 
     if (normalized.length > 0) {
       result[proposalId] = normalized
@@ -153,6 +139,33 @@ function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
   })
 
   return result
+}
+
+function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
+  return entries.reduce<BrokerVotingData[]>((acc, entry) => {
+    const brokerRecord = asRecord(entry)
+    if (!brokerRecord) return acc
+
+    const forVotes = toFiniteNumber(brokerRecord.sharesFor ?? brokerRecord.for)
+    const againstVotes = toFiniteNumber(
+      brokerRecord.sharesAgainst ?? brokerRecord.against
+    )
+    const abstainVotes = toFiniteNumber(
+      brokerRecord.sharesAbstain ?? brokerRecord.abstain
+    )
+
+    // Ensure broker is always a string to prevent chart rendering errors
+    const brokerName = asString(brokerRecord.broker)
+    acc.push({
+      broker: brokerName ?? 'Unknown',
+      for: forVotes,
+      against: againstVotes,
+      abstain: abstainVotes,
+      total: forVotes + againstVotes + abstainVotes,
+    })
+
+    return acc
+  }, [])
 }
 
 function _transformShareRangePerformance(

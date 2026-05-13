@@ -716,27 +716,27 @@ export interface components {
     PhaseStatus: 'IN_PROGRESS' | 'COMPLETE'
     /** @enum {string} */
     TaskStatus:
-    | 'INCOMPLETE'
-    | 'COMPLETE'
-    | 'CANCELLED'
-    | 'NEEDS_AUTHORIZATION'
-    | 'AUTHORIZED'
-    | 'PENDING_AUTHORIZATION'
-    | 'WAITING_FOR_FORM_RETURN'
-    | 'AUTHORIZATION_NEEDED'
-    | 'SUBMITTED_AWAITING_RECORD_DATE'
-    | 'REQUEST_FORM_TO_FOLLOW'
+      | 'INCOMPLETE'
+      | 'COMPLETE'
+      | 'CANCELLED'
+      | 'NEEDS_AUTHORIZATION'
+      | 'AUTHORIZED'
+      | 'PENDING_AUTHORIZATION'
+      | 'WAITING_FOR_FORM_RETURN'
+      | 'AUTHORIZATION_NEEDED'
+      | 'SUBMITTED_AWAITING_RECORD_DATE'
+      | 'REQUEST_FORM_TO_FOLLOW'
     /** @enum {string} */
     DocumentStatus:
-    | 'DRAFT'
-    | 'AWAITING_DRAFT'
-    | 'AWAITING_REVIEW'
-    | 'APPROVED'
-    | 'UPLOADED'
-    | 'IN_PROGRESS'
-    | 'SIGNED'
-    | 'AUTHORIZED'
-    | 'COMPLETED'
+      | 'DRAFT'
+      | 'AWAITING_DRAFT'
+      | 'AWAITING_REVIEW'
+      | 'APPROVED'
+      | 'UPLOADED'
+      | 'IN_PROGRESS'
+      | 'SIGNED'
+      | 'AUTHORIZED'
+      | 'COMPLETED'
     Account: {
       /** Format: uuid */
       id?: string
@@ -1214,16 +1214,16 @@ export interface components {
       documentId?: string
       /** @enum {string} */
       eventType?:
-      | 'CREATED'
-      | 'UPLOADED'
-      | 'VIEWED'
-      | 'DOWNLOADED'
-      | 'SIGNED'
-      | 'APPROVED'
-      | 'REJECTED'
-      | 'COMMENTED'
-      | 'UPDATED'
-      | 'DELETED'
+        | 'CREATED'
+        | 'UPLOADED'
+        | 'VIEWED'
+        | 'DOWNLOADED'
+        | 'SIGNED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'COMMENTED'
+        | 'UPDATED'
+        | 'DELETED'
       /** Format: uuid */
       userId?: string
       userName?: string
@@ -1380,6 +1380,9 @@ export interface components {
     }
     UpdateMeetingRequest: {
       title?: string
+      cusip?: string
+      /** Format: date */
+      brokerSearchDate?: string | null
       /** Format: date */
       recordDate?: string
       /** Format: date */
@@ -3245,16 +3248,16 @@ export interface operations {
         'application/json': {
           /** @enum {string} */
           eventType:
-          | 'CREATED'
-          | 'UPLOADED'
-          | 'VIEWED'
-          | 'DOWNLOADED'
-          | 'SIGNED'
-          | 'APPROVED'
-          | 'REJECTED'
-          | 'COMMENTED'
-          | 'UPDATED'
-          | 'DELETED'
+            | 'CREATED'
+            | 'UPLOADED'
+            | 'VIEWED'
+            | 'DOWNLOADED'
+            | 'SIGNED'
+            | 'APPROVED'
+            | 'REJECTED'
+            | 'COMMENTED'
+            | 'UPDATED'
+            | 'DELETED'
           metadata?: Record<string, unknown>
         }
       }
