@@ -1,4 +1,5 @@
 import type { components } from '@/types/api'
+import { syncTabulationReportTotalShares } from '@/domain-models/api/tabulationReports'
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 
@@ -405,9 +406,18 @@ export async function updateMeeting(
       }
     }
 
-    return {
-      data: transformMeeting(data as MeetingRowWithRelations),
+    const updated = transformMeeting(data as MeetingRowWithRelations)
+
+    // Keep the tabulation report's total-share counts in sync when the CSM
+    // edits totalSharesOutstanding so the dashboard reflects it immediately.
+    if (
+      meetingData.totalSharesOutstanding !== undefined &&
+      meetingData.totalSharesOutstanding !== null
+    ) {
+      void syncTabulationReportTotalShares(id, meetingData.totalSharesOutstanding)
     }
+
+    return { data: updated }
   } catch (error) {
     return {
       error: {

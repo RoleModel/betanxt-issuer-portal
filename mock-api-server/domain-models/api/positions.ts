@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 
 import type { components } from '@/types/api'
+import { refreshTabulationReportFromPositions } from '@/domain-models/api/tabulationReports'
 import { supabase } from '@/utils/supabase/client'
 import type { Database } from '@/utils/supabase/database.types'
 
@@ -215,9 +216,14 @@ export async function updatePosition(
       }
     }
 
-    return {
-      data: transformPosition(data),
+    const updated = transformPosition(data)
+
+    // Keep the tabulation report's voted-share summary in sync
+    if (updated.meetingId) {
+      void refreshTabulationReportFromPositions(updated.meetingId)
     }
+
+    return { data: updated }
   } catch (error) {
     return {
       error: {

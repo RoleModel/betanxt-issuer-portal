@@ -54,6 +54,8 @@ You `MUST` always use this tool when:
 
 - Affidavit upload and delete must not change meeting mailing status; keep those flows document-only unless product explicitly ties them to workflow.
 - When CSM-editable values affect calculations (for example quorum percentage), persist them on the meeting and thread them through context and widgets instead of relying on UI-only defaults.
+- CSM-only UI controls (edit buttons, inline actions) should be hover-revealed with `opacity: 0` → `1` on parent hover; never always-visible for CSM users.
+- Navigation actions (back buttons, breadcrumbs) should be context-aware — detect origin route and adjust label/destination accordingly (e.g. "Back to Event" vs "Back to Events").
 
 ## Learned Workspace Facts
 
@@ -61,3 +63,7 @@ You `MUST` always use this tool when:
 - Tabulation PDF quorum labeling and `votesOverUnderQuorum` must use each meeting’s `quorumRequirement` (with shared helpers), not a hardcoded 50% or `0.5` multiplier on outstanding shares.
 - Shared quorum math and display helpers live in `issuer-portal/utils/quorum.ts`; reuse them across gauges and export paths.
 - Do not leave debug `console.*` calls in production UI components (mailing/timeline work included).
+- Shares voted/unvoted shown in charts are aggregated from `Position` records, not from `Meeting` fields. `useVotingTabulation.ts` computes: `totalShares` = sum of `position.shares`; `sharesVoted` = sum of `position.sharesVoted` for positions where `voteStatus === 'Voted'` (mixed case).
+- The `/positions` API endpoint returns `{ positions: [...] }` — a wrapped object, not a plain array. Always extract `.positions` (or the equivalent domain helper) when consuming the response.
+- Position queries use plain meeting IDs without the `eq.` prefix (e.g. `meetingId: eventId`), despite OpenAPI docs showing `eq.WEN-2024-AGM` in examples.
+- `totalSharesOutstanding` on `Meeting` may arrive as a `number` at runtime despite TypeScript typing it as `string`. Use `String(value)` before calling string methods like `.trim()`.

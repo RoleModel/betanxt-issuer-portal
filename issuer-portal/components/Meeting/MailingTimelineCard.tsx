@@ -6,6 +6,7 @@ import useSWR, { mutate } from 'swr'
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import {
   Timeline,
@@ -24,13 +25,17 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   IconButton,
+  MenuItem,
+  Select,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import Fade from '@mui/material/Fade'
@@ -43,6 +48,7 @@ import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
 
 type Document = components['schemas']['Document']
+type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
 
 export type MailingStatus =
   | 'Preparing for Mailing'
@@ -60,6 +66,7 @@ interface MailingTimelineCardProps {
   currentStatus?: MailingStatus | null
   statusDate?: string | null
   meetingId?: string
+  onStatusChange?: (newStatus: MailingStatus) => void
 }
 
 const WORKFLOW_STEPS: WorkflowStep[] = [
@@ -89,18 +96,23 @@ export default function MailingTimelineCard({
   currentStatus,
   statusDate,
   meetingId,
+  onStatusChange,
 }: MailingTimelineCardProps) {
   const { data: session } = useSession()
   const isCSM = session?.user?.type === 'CSM'
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [pendingStatus, setPendingStatus] = useState<MailingStatus | null>(null)
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [localAffidavitDoc, setLocalAffidavitDoc] = useState<Document | null | undefined>(
     undefined
   )
+  const [localStatus, setLocalStatus] = useState<MailingStatus | null | undefined>(undefined)
 
   const { data: affidavitDoc, isLoading: affidavitLoading } = useSWR<Document | null>(
     meetingId ? `/meetings/${meetingId}/affidavit-of-mailing` : null,
@@ -120,9 +132,39 @@ export default function MailingTimelineCard({
   const hasAffidavit = !!displayDoc
   const isAffidavitLoading = localAffidavitDoc === undefined && affidavitLoading
 
-  const activeIndex = currentStatus
-    ? WORKFLOW_STEPS.findIndex((s) => s.label === currentStatus)
+  const displayStatus = localStatus === undefined ? currentStatus : localStatus
+
+  const activeIndex = displayStatus
+    ? WORKFLOW_STEPS.findIndex((s) => s.label === displayStatus)
     : -1
+
+  const handleStatusStepClick = (step: WorkflowStep) => {
+    if (!isCSM || !meetingId) return
+    setPendingStatus(step.label)
+    setStatusDialogOpen(true)
+  }
+
+  const handleStatusUpdate = async () => {
+    if (!pendingStatus || !meetingId) return
+
+    setIsUpdatingStatus(true)
+    try {
+      const apiClient = await buildApiClient()
+      const body: UpdateMeetingRequest = { mailingStatus: pendingStatus }
+      await apiClient.PUT('/meetings/{meetingId}', {
+        params: { path: { meetingId } },
+        body,
+      })
+      setLocalStatus(pendingStatus)
+      onStatusChange?.(pendingStatus)
+      setStatusDialogOpen(false)
+      setPendingStatus(null)
+    } catch {
+      // Update failed; dialog stays open for retry
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
 
   const formattedDate = statusDate
     ? new Date(statusDate).toLocaleDateString('en-US', {
@@ -252,7 +294,16 @@ export default function MailingTimelineCard({
   return (
     <Stack spacing={hasAffidavit ? 2 : 0}>
       <Card sx={{ height: '100%' }}>
-        <CardHeader title="Mailing Timeline" />
+        <CardHeader
+          title="Mailing Timeline"
+          action={
+            isCSM && meetingId ? (
+              <Tooltip title="Click a step to update status">
+                <EditIcon fontSize="small" color="action" sx={{ mt: 1.5, mr: 0.5 }} />
+              </Tooltip>
+            ) : undefined
+          }
+        />
         <CardContent sx={{ pt: 0 }}>
           <Timeline
             sx={{
@@ -269,8 +320,26 @@ export default function MailingTimelineCard({
               const isCurrent = index === activeIndex
               const isLast = index === WORKFLOW_STEPS.length - 1
 
+              const isClickable = isCSM && meetingId && !isUpdatingStatus
+
               return (
-                <TimelineItem key={step.label}>
+                <TimelineItem
+                  key={step.label}
+                  onClick={() => isClickable && handleStatusStepClick(step)}
+                  sx={
+                    isClickable
+                      ? {
+                          cursor: 'pointer',
+                          borderRadius: 1,
+                          mx: -1,
+                          px: 1,
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          },
+                        }
+                      : undefined
+                  }
+                >
                   <TimelineSeparator
                     sx={{
                       marginBottom: '-0.5rem',
@@ -450,6 +519,52 @@ export default function MailingTimelineCard({
             onClick={handleDelete}
           >
             {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={statusDialogOpen}
+        onClose={() => !isUpdatingStatus && setStatusDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Update Mailing Status</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Set the mailing timeline status to{' '}
+            <strong>{pendingStatus}</strong>?
+          </DialogContentText>
+          <Select
+            fullWidth
+            size="small"
+            value={pendingStatus ?? ''}
+            onChange={(e) => setPendingStatus(e.target.value as MailingStatus)}
+          >
+            {WORKFLOW_STEPS.map((s) => (
+              <MenuItem key={s.label} value={s.label}>
+                {s.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => {
+              setStatusDialogOpen(false)
+              setPendingStatus(null)
+            }}
+            disabled={isUpdatingStatus}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!pendingStatus || isUpdatingStatus}
+            onClick={handleStatusUpdate}
+            startIcon={isUpdatingStatus ? <CircularProgress size={16} /> : undefined}
+          >
+            {isUpdatingStatus ? 'Saving...' : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>

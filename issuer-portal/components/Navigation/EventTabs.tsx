@@ -1,7 +1,8 @@
 'use client'
 
 import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import NextLink from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React, {
   useCallback,
@@ -12,6 +13,7 @@ import React, {
   useTransition,
 } from 'react'
 
+import { EditOutlined as EditOutlinedIcon } from '@mui/icons-material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import {
   Box,
@@ -27,8 +29,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-
-import PhaseDrawer from '@/components/Drawers/PhaseDrawer'
 
 import type { components } from '@/domain-models/generated-schema'
 
@@ -121,6 +121,9 @@ export function EventTabs() {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const { data: session } = useSession()
+  const userType = session?.user?.type ?? 'PARENT_CLIENT'
+  const isCSM = userType === 'CSM'
 
   // Try to get meeting context, but handle pages without MeetingProvider
   let meetingContextValue = null
@@ -140,9 +143,6 @@ export function EventTabs() {
 
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
   const theme = useTheme()
-  const [phaseDrawerOpen, setPhaseDrawerOpen] = useState(false)
-  const [drawerPhase, setDrawerPhase] = useState(1)
-  const togglePhaseDrawer = (newOpen: boolean) => () => setPhaseDrawerOpen(newOpen)
   const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -155,11 +155,6 @@ export function EventTabs() {
 
   // Memoize navigation tabs with current phase
   const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
-
-  // Keep drawerPhase in sync with currentPhase when meeting changes
-  useEffect(() => {
-    setDrawerPhase(currentPhase)
-  }, [currentPhase])
 
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)
@@ -558,8 +553,13 @@ export function EventTabs() {
     }, [currentPath, ticker, meetingId, meetingType, meeting.currentPhase])
 
     return (
-      <Stack>
-        <Link
+      <Stack
+        sx={{
+          position: 'relative',
+          '&:hover .edit-tab-button': { opacity: 1 },
+        }}
+      >
+        <NextLink
           href={targetPath}
           key={meeting.id || index}
           passHref
@@ -624,7 +624,31 @@ export function EventTabs() {
               </Stack>
             </Box>
           </Box>
-        </Link>
+        </NextLink>
+
+        {isCSM && (
+          <IconButton
+            className="edit-tab-button"
+            component={NextLink}
+            href={`/edit/${meetingId}?returnUrl=${encodeURIComponent(pathname)}`}
+            size="small"
+            aria-label={`Edit ${meeting.title}`}
+            sx={(theme) => ({
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              zIndex: 2,
+              opacity: 0,
+              transition: theme.transitions.create('opacity'),
+              backgroundColor: theme.vars.palette.background.paper,
+              '&:hover': {
+                backgroundColor: theme.vars.palette.action.hover,
+              },
+            })}
+          >
+            <EditOutlinedIcon fontSize="small" />
+          </IconButton>
+        )}
       </Stack>
     )
   })
@@ -777,7 +801,7 @@ export function EventTabs() {
                   key={tab.label}
                   value={tab.label}
                   label={tab.label}
-                  component={Link}
+                  component={NextLink}
                   href={tabHref}
                   sx={(theme) => ({
                     color: isActive
@@ -804,12 +828,6 @@ export function EventTabs() {
           </Tabs>
         </Container>
       </Paper>
-      <PhaseDrawer
-        open={phaseDrawerOpen}
-        onClose={togglePhaseDrawer(false)}
-        phase={drawerPhase}
-        onPhaseChange={(p) => setDrawerPhase(p)}
-      />
     </Box>
   )
 }

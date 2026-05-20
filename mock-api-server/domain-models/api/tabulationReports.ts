@@ -334,6 +334,146 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
   return report
 }
 
+/**
+ * After a position update, recalculate and persist the live voted-share totals
+ * back into the tabulation_report JSONB fields that the dashboard reads.
+ */
+export async function refreshTabulationReportFromPositions(
+  meetingId: string
+): Promise<void> {
+  const { data: positions, error: posErr } = await supabase
+    .from('position')
+    .select('shares, shares_voted, vote_status')
+    .eq('meeting_id', meetingId)
+
+  if (posErr || !positions) return
+
+  const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
+  const votedPositions = positions.filter((p) => p.vote_status === 'Voted')
+  const votedShares = votedPositions.reduce((sum, p) => sum + (p.shares_voted ?? 0), 0)
+  const votedCount = votedPositions.length
+  const unvotedCount = positions.length - votedCount
+  const unvotedShares = Math.max(totalShares - votedShares, 0)
+
+  const { data: report } = await supabase
+    .from('tabulation_report')
+    .select('positions_voted, non_dtc_vote_status, vote_distribution')
+    .eq('meeting_id', meetingId)
+    .single()
+
+  if (!report) return
+
+  const updatedPositionsVoted = {
+    ...(typeof report.positions_voted === 'object' && report.positions_voted !== null
+      ? (report.positions_voted as object)
+      : {}),
+    voted: votedCount,
+    unvoted: unvotedCount,
+    totalShares,
+    votedShares,
+  }
+
+  const prevNonDtc =
+    typeof report.non_dtc_vote_status === 'object' && report.non_dtc_vote_status !== null
+      ? (report.non_dtc_vote_status as Record<string, unknown>)
+      : {}
+  const updatedNonDtcVoteStatus = {
+    ...prevNonDtc,
+    votedSubtotalShares: votedShares,
+    unvotedShares,
+    grandTotalShares: totalShares,
+  }
+
+  const prevDist =
+    typeof report.vote_distribution === 'object' && report.vote_distribution !== null
+      ? (report.vote_distribution as Record<string, unknown>)
+      : {}
+  const updatedVoteDistribution = {
+    ...prevDist,
+    nonDtcVotedShares: votedShares,
+    nonDtcUnvotedShares: unvotedShares,
+  }
+
+  await supabase
+    .from('tabulation_report')
+    .update({
+      positions_voted: updatedPositionsVoted,
+      non_dtc_vote_status: updatedNonDtcVoteStatus,
+      vote_distribution: updatedVoteDistribution,
+    })
+    .eq('meeting_id', meetingId)
+}
+
+/**
+ * When CSM edits totalSharesOutstanding on the meeting, push that value into the
+ * tabulation report so the dashboard "Shares Not Voted" reflects it immediately.
+ * Always reads live voted shares from the position table so stale cache can't
+ * corrupt the reported voted count.
+ */
+export async function syncTabulationReportTotalShares(
+  meetingId: string,
+  totalSharesOutstanding: number
+): Promise<void> {
+  const [{ data: positions }, { data: report }] = await Promise.all([
+    supabase
+      .from('position')
+      .select('shares_voted, vote_status')
+      .eq('meeting_id', meetingId),
+    supabase
+      .from('tabulation_report')
+      .select('positions_voted, non_dtc_vote_status, vote_distribution')
+      .eq('meeting_id', meetingId)
+      .single(),
+  ])
+
+  if (!report) return
+
+  const votedShares = (positions ?? [])
+    .filter((p) => p.vote_status === 'Voted')
+    .reduce((sum, p) => sum + (p.shares_voted ?? 0), 0)
+  const unvotedShares = Math.max(totalSharesOutstanding - votedShares, 0)
+
+  const prevPV =
+    typeof report.positions_voted === 'object' && report.positions_voted !== null
+      ? (report.positions_voted as Record<string, unknown>)
+      : {}
+  const updatedPositionsVoted = {
+    ...prevPV,
+    totalShares: totalSharesOutstanding,
+    votedShares,
+  }
+
+  const prevNonDtc =
+    typeof report.non_dtc_vote_status === 'object' && report.non_dtc_vote_status !== null
+      ? (report.non_dtc_vote_status as Record<string, unknown>)
+      : {}
+  const updatedNonDtcVoteStatus = {
+    ...prevNonDtc,
+    grandTotalShares: totalSharesOutstanding,
+    unvotedShares,
+    votedSubtotalShares: votedShares,
+  }
+
+  const prevDist =
+    typeof report.vote_distribution === 'object' && report.vote_distribution !== null
+      ? (report.vote_distribution as Record<string, unknown>)
+      : {}
+  const updatedVoteDistribution = {
+    ...prevDist,
+    nonDtcVotedShares: votedShares,
+    nonDtcUnvotedShares: unvotedShares,
+  }
+
+  await supabase
+    .from('tabulation_report')
+    .update({
+      positions_voted: updatedPositionsVoted,
+      non_dtc_vote_status: updatedNonDtcVoteStatus,
+      vote_distribution: updatedVoteDistribution,
+    })
+    .eq('meeting_id', meetingId)
+}
+
 export async function getTabulationReport(
   meetingId: string
 ): Promise<ApiResponse<TabulationReport>> {
