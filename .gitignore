@@ -36,3 +36,5 @@ mock-api-server/.DS_Store
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
+.playwright-cli/
+mock-api-server/.DS_Store
