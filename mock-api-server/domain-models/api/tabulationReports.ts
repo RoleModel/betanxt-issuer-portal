@@ -337,69 +337,84 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
 /**
  * After a position update, recalculate and persist the live voted-share totals
  * back into the tabulation_report JSONB fields that the dashboard reads.
+ * Uses meeting.total_shares_outstanding as the authoritative grand total so that
+ * CSM edits to that field are respected even when individual position.shares differ.
  */
 export async function refreshTabulationReportFromPositions(
   meetingId: string
 ): Promise<void> {
-  const { data: positions, error: posErr } = await supabase
-    .from('position')
-    .select('shares, shares_voted, vote_status')
-    .eq('meeting_id', meetingId)
+  const [{ data: positions, error: posErr }, { data: meeting }, { data: report }] =
+    await Promise.all([
+      supabase
+        .from('position')
+        .select('shares, shares_voted, vote_status')
+        .eq('meeting_id', meetingId),
+      supabase
+        .from('meeting')
+        .select('total_shares_outstanding')
+        .eq('id', meetingId)
+        .single(),
+      supabase
+        .from('tabulation_report')
+        .select('positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution')
+        .eq('meeting_id', meetingId)
+        .single(),
+    ])
 
-  if (posErr || !positions) return
+  if (posErr || !positions || !report) return
 
-  const totalShares = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
   const votedPositions = positions.filter((p) => p.vote_status === 'Voted')
   const votedShares = votedPositions.reduce((sum, p) => sum + (p.shares_voted ?? 0), 0)
   const votedCount = votedPositions.length
   const unvotedCount = positions.length - votedCount
-  const unvotedShares = Math.max(totalShares - votedShares, 0)
 
-  const { data: report } = await supabase
-    .from('tabulation_report')
-    .select('positions_voted, non_dtc_vote_status, vote_distribution')
-    .eq('meeting_id', meetingId)
-    .single()
-
-  if (!report) return
+  // Prefer the meeting's explicit totalSharesOutstanding; fall back to sum of position shares
+  const positionSharesSum = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0)
+  const grandTotal =
+    meeting?.total_shares_outstanding != null
+      ? Number(meeting.total_shares_outstanding)
+      : positionSharesSum
+  const unvotedShares = Math.max(grandTotal - votedShares, 0)
 
   const updatedPositionsVoted = {
-    ...(typeof report.positions_voted === 'object' && report.positions_voted !== null
-      ? (report.positions_voted as object)
-      : {}),
+    ...parseJsonField<Record<string, unknown>>(report.positions_voted, {}),
     voted: votedCount,
     unvoted: unvotedCount,
-    totalShares,
+    totalShares: grandTotal,
     votedShares,
   }
 
-  const prevNonDtc =
-    typeof report.non_dtc_vote_status === 'object' && report.non_dtc_vote_status !== null
-      ? (report.non_dtc_vote_status as Record<string, unknown>)
-      : {}
+  // Place the entire CSM-set total in non-DTC and zero out DTC so that
+  // normalizeReportTotals computes statusTotalShares = grandTotal correctly.
   const updatedNonDtcVoteStatus = {
-    ...prevNonDtc,
+    ...parseJsonField<Record<string, unknown>>(report.non_dtc_vote_status, {}),
     votedSubtotalShares: votedShares,
     unvotedShares,
-    grandTotalShares: totalShares,
+    grandTotalShares: grandTotal,
   }
 
-  const prevDist =
-    typeof report.vote_distribution === 'object' && report.vote_distribution !== null
-      ? (report.vote_distribution as Record<string, unknown>)
-      : {}
+  const updatedDtcVoteStatus = {
+    ...parseJsonField<Record<string, unknown>>(report.dtc_vote_status, {}),
+    grandTotalShares: 0,
+    unvotedShares: 0,
+    votedShares: 0,
+  }
+
   const updatedVoteDistribution = {
-    ...prevDist,
+    ...parseJsonField<Record<string, unknown>>(report.vote_distribution, {}),
     nonDtcVotedShares: votedShares,
     nonDtcUnvotedShares: unvotedShares,
+    dtcVotedShares: 0,
+    dtcUnvotedShares: 0,
   }
 
   await supabase
     .from('tabulation_report')
     .update({
-      positions_voted: updatedPositionsVoted,
-      non_dtc_vote_status: updatedNonDtcVoteStatus,
-      vote_distribution: updatedVoteDistribution,
+      positions_voted: JSON.stringify(updatedPositionsVoted),
+      non_dtc_vote_status: JSON.stringify(updatedNonDtcVoteStatus),
+      dtc_vote_status: JSON.stringify(updatedDtcVoteStatus),
+      vote_distribution: JSON.stringify(updatedVoteDistribution),
     })
     .eq('meeting_id', meetingId)
 }
@@ -421,7 +436,7 @@ export async function syncTabulationReportTotalShares(
       .eq('meeting_id', meetingId),
     supabase
       .from('tabulation_report')
-      .select('positions_voted, non_dtc_vote_status, vote_distribution')
+      .select('positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution')
       .eq('meeting_id', meetingId)
       .single(),
   ])
@@ -433,43 +448,43 @@ export async function syncTabulationReportTotalShares(
     .reduce((sum, p) => sum + (p.shares_voted ?? 0), 0)
   const unvotedShares = Math.max(totalSharesOutstanding - votedShares, 0)
 
-  const prevPV =
-    typeof report.positions_voted === 'object' && report.positions_voted !== null
-      ? (report.positions_voted as Record<string, unknown>)
-      : {}
   const updatedPositionsVoted = {
-    ...prevPV,
+    ...parseJsonField<Record<string, unknown>>(report.positions_voted, {}),
     totalShares: totalSharesOutstanding,
     votedShares,
   }
 
-  const prevNonDtc =
-    typeof report.non_dtc_vote_status === 'object' && report.non_dtc_vote_status !== null
-      ? (report.non_dtc_vote_status as Record<string, unknown>)
-      : {}
+  // Place the entire CSM-set total in non-DTC and zero out DTC so that
+  // normalizeReportTotals computes statusTotalShares = grandTotal correctly.
   const updatedNonDtcVoteStatus = {
-    ...prevNonDtc,
+    ...parseJsonField<Record<string, unknown>>(report.non_dtc_vote_status, {}),
     grandTotalShares: totalSharesOutstanding,
     unvotedShares,
     votedSubtotalShares: votedShares,
   }
 
-  const prevDist =
-    typeof report.vote_distribution === 'object' && report.vote_distribution !== null
-      ? (report.vote_distribution as Record<string, unknown>)
-      : {}
+  const updatedDtcVoteStatus = {
+    ...parseJsonField<Record<string, unknown>>(report.dtc_vote_status, {}),
+    grandTotalShares: 0,
+    unvotedShares: 0,
+    votedShares: 0,
+  }
+
   const updatedVoteDistribution = {
-    ...prevDist,
+    ...parseJsonField<Record<string, unknown>>(report.vote_distribution, {}),
     nonDtcVotedShares: votedShares,
     nonDtcUnvotedShares: unvotedShares,
+    dtcVotedShares: 0,
+    dtcUnvotedShares: 0,
   }
 
   await supabase
     .from('tabulation_report')
     .update({
-      positions_voted: updatedPositionsVoted,
-      non_dtc_vote_status: updatedNonDtcVoteStatus,
-      vote_distribution: updatedVoteDistribution,
+      positions_voted: JSON.stringify(updatedPositionsVoted),
+      non_dtc_vote_status: JSON.stringify(updatedNonDtcVoteStatus),
+      dtc_vote_status: JSON.stringify(updatedDtcVoteStatus),
+      vote_distribution: JSON.stringify(updatedVoteDistribution),
     })
     .eq('meeting_id', meetingId)
 }

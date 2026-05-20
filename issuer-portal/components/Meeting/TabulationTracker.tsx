@@ -417,6 +417,7 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
     currentMeeting?.meetingDate,
     currentMeeting?.status,
     currentMeeting?.title,
+    currentMeeting?.totalSharesOutstanding,
     currentMeetingId,
   ])
 

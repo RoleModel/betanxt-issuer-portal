@@ -29,7 +29,7 @@ interface ApiResponse<T> {
 // Transform snake_case database fields to camelCase API fields
 function transformPosition(dbPosition: PositionRow): Position {
   return {
-    id: dbPosition.id,
+    id: dbPosition.id ?? '',
     meetingId: nullToUndefined(dbPosition.meeting_id),
     cusip: nullToUndefined(dbPosition.cusip),
     accountType: nullToUndefined(dbPosition.account_type),
@@ -220,7 +220,7 @@ export async function updatePosition(
 
     // Keep the tabulation report's voted-share summary in sync
     if (updated.meetingId) {
-      void refreshTabulationReportFromPositions(updated.meetingId)
+      await refreshTabulationReportFromPositions(updated.meetingId)
     }
 
     return { data: updated }

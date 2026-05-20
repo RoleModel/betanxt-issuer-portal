@@ -414,7 +414,7 @@ export async function updateMeeting(
       meetingData.totalSharesOutstanding !== undefined &&
       meetingData.totalSharesOutstanding !== null
     ) {
-      void syncTabulationReportTotalShares(id, meetingData.totalSharesOutstanding)
+      await syncTabulationReportTotalShares(id, Number(meetingData.totalSharesOutstanding))
     }
 
     return { data: updated }
