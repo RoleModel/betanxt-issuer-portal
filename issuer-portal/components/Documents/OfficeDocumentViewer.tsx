@@ -34,9 +34,11 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
 
         const arrayBuffer = await response.arrayBuffer()
 
-        // Convert DOCX to HTML using mammoth
+        // Convert DOCX to HTML using mammoth, then strip any <script> tags
+        // that may come from embedded macros to avoid React 19 warnings
         const result = await mammoth.convertToHtml({ arrayBuffer })
-        setHtmlContent(result.value)
+        const sanitized = result.value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        setHtmlContent(sanitized)
 
         if (result.messages.length > 0 && process.env.NODE_ENV === 'development') {
           console.log('Mammoth conversion messages:', result.messages)

@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react'
 
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import {
   Box,
   Button,
+  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
@@ -16,6 +18,7 @@ import {
   DialogTitle,
   Grid,
   InputAdornment,
+  Menu,
   MenuItem,
   Select,
   Tab,
@@ -29,6 +32,7 @@ import PositionsTable from '@/components/Tabulation/PositionsTable'
 import type { TabulationFilters, TabulationPosition } from '@/hooks/useTabulationInsights'
 import type { ProposalVoting } from '@/types/phases'
 import { exportPositionsToPdf } from '@/utils/exportPositionsPdf'
+import { exportPositionsToXlsx } from '@/utils/exportPositionsXlsx'
 
 interface FilterOption {
   value: string
@@ -63,10 +67,11 @@ export default function ProposalDetailsCard({
   const [selectedTab, setSelectedTab] = useState(0)
   const [filterDialogOpen, setFilterDialogOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
 
-  const handleExportPositions = async () => {
+  const handleExportPdf = async () => {
     if (isExporting) return
-
+    setMenuAnchorEl(null)
     setIsExporting(true)
     try {
       await exportPositionsToPdf({
@@ -79,6 +84,23 @@ export default function ProposalDetailsCard({
     } finally {
       setIsExporting(false)
     }
+  }
+
+  const handleExportXlsx = () => {
+    setMenuAnchorEl(null)
+    exportPositionsToXlsx({
+      positions,
+      meetingTitle: meetingTitle ?? 'Meeting Positions',
+      clientTicker: clientTicker ?? '',
+    })
+  }
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null)
   }
 
   const resetFilters = () => {
@@ -153,16 +175,29 @@ export default function ProposalDetailsCard({
         Filters
       </Button>
       {selectedTab === 1 ? (
-        <Button
-          variant="text"
-          color="primary"
-          onClick={() => void handleExportPositions()}
-          loading={isExporting}
-          loadingIndicator="Generating..."
-          disabled={isExporting}
-        >
-          Export Positions
-        </Button>
+        <>
+          <ButtonGroup variant="outlined" color="primary" disabled={isExporting}>
+            <Button
+              size="large"
+              onClick={() => void handleExportPdf()}
+              loading={isExporting}
+              loadingIndicator="Generating..."
+            >
+              Export Positions
+            </Button>
+            <Button size="large" onClick={handleMenuOpen}>
+              <ArrowDropDownIcon />
+            </Button>
+          </ButtonGroup>
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={() => void handleExportPdf()}>Export as PDF</MenuItem>
+            <MenuItem onClick={handleExportXlsx}>Export as Excel</MenuItem>
+          </Menu>
+        </>
       ) : null}
     </Box>
   )

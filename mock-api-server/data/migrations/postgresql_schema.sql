@@ -330,7 +330,8 @@ CREATE TABLE IF NOT EXISTS public.create_meeting_request (
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT NOT NULL,
     quorum_requirement DECIMAL(20, 9) NOT NULL,
-    client_id TEXT NOT NULL
+    client_id TEXT NOT NULL,
+    mailing_status TEXT DEFAULT NULL
 );
 COMMENT ON TABLE create_meeting_request IS 'Original model name - CreateMeetingRequest.';
 COMMENT ON COLUMN create_meeting_request.record_date IS 'Original param name - recordDate.';
@@ -350,6 +351,7 @@ COMMENT ON COLUMN create_meeting_request.ivr_dial_in_number IS 'IVR dial-in voti
 COMMENT ON COLUMN create_meeting_request.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN create_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';
 COMMENT ON COLUMN create_meeting_request.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
+COMMENT ON COLUMN create_meeting_request.mailing_status IS 'Current status of the mailing process. Original param name - mailingStatus.';
 
 --
 -- Table 'create_phase_request' generated from model 'CreatePhaseRequest'
@@ -830,14 +832,13 @@ CREATE TABLE IF NOT EXISTS public.meeting (
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
     broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
-    mailing_status TEXT DEFAULT 'Pending Positions',
+    mailing_status TEXT DEFAULT NULL,
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
     client TEXT DEFAULT NULL
 );
 COMMENT ON TABLE meeting IS 'Original model name - Meeting.';
-COMMENT ON COLUMN meeting.mailing_status IS 'Current status of the mailing process for this meeting. Original param name - mailingStatus.';
 COMMENT ON COLUMN meeting.pre_filing_date IS 'Original param name - preFilingDate.';
 COMMENT ON COLUMN meeting.filing_date IS 'Original param name - filingDate.';
 COMMENT ON COLUMN meeting.broker_search_date IS 'Original param name - brokerSearchDate.';
@@ -861,6 +862,7 @@ COMMENT ON COLUMN meeting.ivr_dial_in_number IS 'IVR dial-in voting number (e.g.
 COMMENT ON COLUMN meeting.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN meeting.quorum_requirement IS 'Original param name - quorumRequirement.';
 COMMENT ON COLUMN meeting.broker_non_vote IS 'Total broker non-votes for this meeting. Original param name - brokerNonVote.';
+COMMENT ON COLUMN meeting.mailing_status IS 'Current status of the mailing process for this meeting. Original param name - mailingStatus.';
 COMMENT ON COLUMN meeting.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
 COMMENT ON COLUMN meeting.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN meeting.updated_at IS 'Original param name - updatedAt.';
@@ -1307,6 +1309,7 @@ COMMENT ON TABLE update_document_request IS 'Original model name - UpdateDocumen
 --
 CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     title VARCHAR(200) DEFAULT NULL,
+    cusip TEXT DEFAULT NULL,
     record_date DATE DEFAULT NULL,
     mailing_date DATE DEFAULT NULL,
     meeting_date DATE DEFAULT NULL,
@@ -1327,10 +1330,10 @@ CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     ivr_dial_in_number TEXT DEFAULT NULL,
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
+    broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
     mailing_status TEXT DEFAULT NULL
 );
 COMMENT ON TABLE update_meeting_request IS 'Original model name - UpdateMeetingRequest.';
-COMMENT ON COLUMN update_meeting_request.mailing_status IS 'Current status of the mailing process. Original param name - mailingStatus.';
 COMMENT ON COLUMN update_meeting_request.record_date IS 'Original param name - recordDate.';
 COMMENT ON COLUMN update_meeting_request.mailing_date IS 'Original param name - mailingDate.';
 COMMENT ON COLUMN update_meeting_request.meeting_date IS 'Original param name - meetingDate.';
@@ -1349,6 +1352,8 @@ COMMENT ON COLUMN update_meeting_request.solicitor_email IS 'Original param name
 COMMENT ON COLUMN update_meeting_request.ivr_dial_in_number IS 'IVR dial-in voting number. Original param name - ivrDialInNumber.';
 COMMENT ON COLUMN update_meeting_request.total_shares_outstanding IS 'Original param name - totalSharesOutstanding.';
 COMMENT ON COLUMN update_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';
+COMMENT ON COLUMN update_meeting_request.broker_non_vote IS 'Total broker non-votes for this meeting. Original param name - brokerNonVote.';
+COMMENT ON COLUMN update_meeting_request.mailing_status IS 'Current status of the mailing process. Original param name - mailingStatus.';
 
 --
 -- Table 'update_phase_request' generated from model 'UpdatePhaseRequest'

@@ -7,6 +7,7 @@ import QuorumGaugeCard from '@/components/Meeting/QuorumGaugeCard'
 import BeneficialVsRegisteredCard from '@/components/Tabulation/BeneficialVsRegisteredCard'
 import ProposalDetailsCard from '@/components/Tabulation/ProposalDetailsCard'
 import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
+import { TabulationDistributionDrawer } from '@/components/Tabulation/TabulationDistributionDrawer'
 import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
 import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
 
@@ -40,6 +41,14 @@ export default function TabulationPage() {
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
       <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={12}>
+          <TabulationDistributionDrawer
+            meetingId={meetingId}
+            clientTicker={clientTicker}
+            initialDistribution={currentMeeting?.tabulationDistribution ?? undefined}
+            meetingDate={currentMeeting?.meetingDate}
+          />
+        </Grid>
+        <Grid size={12}>
           <Grid container columns={{ sm: 5, md: 6, lg: 5 }} spacing={{ xs: 2, md: 3 }}>
             <Grid size={{ sm: 5, md: 2, lg: 1 }}>
               <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
@@ -70,6 +79,7 @@ export default function TabulationPage() {
             </Grid>
           </Grid>
         </Grid>
+
         <Grid size={12}>
           <ProposalDetailsCard
             loading={tabulationLoading}

@@ -6,10 +6,21 @@ import { usePathname, useRouter } from 'next/navigation'
 import React, { Suspense, useMemo, useState } from 'react'
 
 import { ArrowDropDownOutlined } from '@mui/icons-material'
-import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Chip,
+  Divider,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material'
 
 import { useClient } from '@/contexts/ClientContext'
 import type { Client } from '@/hooks/useClients'
+import { useClients } from '@/hooks/useClients'
 import { useEvents } from '@/hooks/useEvents'
 import type { EventRow } from '@/utils/eventData'
 
@@ -25,17 +36,32 @@ interface ClientAppSwitcherProps {
 }
 
 /**
- * Switch button for PARENT_CLIENT / SOLICITOR users.
- * - On /events: shows the brand name (DFIN / Morrow Sodali) with no dropdown.
- * - On a meeting page: shows the issuer name with a dropdown
- *   listing all event companies for that user type.
+ * Switch button for PARENT_CLIENT / SOLICITOR / CSM users.
+ * - On /events: PARENT_CLIENT / SOLICITOR see brand name only; CSM gets a dropdown
+ *   (assigned clients + search any client).
+ * - On client/meeting routes: shows the issuer name with a dropdown of event companies.
+ * - For CSM: additionally shows a searchable Autocomplete for all clients
+ *   and a "Covering for…" Chip when viewing a non-assigned client.
  */
 function EventSwitchButton({ userType }: { userType: string }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [csmInputValue, setCsmInputValue] = useState('')
   const pathname = usePathname()
   const router = useRouter()
   const open = Boolean(anchorEl)
+  const { data: session } = useSession()
   const { events } = useEvents()
+  const { currentClient, switchClient } = useClient()
+  const { clients: allClients } = useClients()
+
+  const isCsm = userType === 'CSM'
+
+  const assignedTickers = useMemo(() => {
+    if (!isCsm) return null
+    const tickers = session?.user?.clientTickers
+    if (!tickers || tickers.length === 0) return null
+    return new Set(tickers.map((ticker) => ticker.toUpperCase()))
+  }, [isCsm, session?.user?.clientTickers])
 
   const isOnEventsPage = pathname === '/events'
   const isOnMeetingPage = /\/[^/]+\/(?:past-)?meeting\//.test(pathname)
@@ -97,11 +123,22 @@ function EventSwitchButton({ userType }: { userType: string }) {
   // Determine display name and whether dropdown is active
   const displayName = useMemo(() => {
     if (currentClientOption) return currentClientOption.event
+    if (isCsm && currentClient) {
+      return (
+        currentClient.company_name ?? currentClient.short_name ?? currentClient.ticker
+      )
+    }
     return USER_TYPE_BRAND_LABELS[userType] ?? 'Select Client'
-  }, [currentClientOption, userType])
+  }, [currentClientOption, userType, isCsm, currentClient])
 
-  // Dropdown is active on all pages except /events
-  const hasDropdown = !isOnEventsPage
+  // For CSM: detect when active client is outside assigned clientTickers
+  const isCovering = useMemo(() => {
+    if (!isCsm || !currentClient || !assignedTickers) return false
+    return !assignedTickers.has(currentClient.ticker.toUpperCase())
+  }, [isCsm, currentClient, assignedTickers])
+
+  // CSM needs the switcher on /events (backup client search); others show brand only there
+  const hasDropdown = !isOnEventsPage || isCsm
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     if (hasDropdown) {
@@ -111,6 +148,25 @@ function EventSwitchButton({ userType }: { userType: string }) {
 
   const handleClose = () => {
     setAnchorEl(null)
+  }
+
+  const handleCsmClientSelect = (client: Client | null) => {
+    if (!client) return
+    setCsmInputValue('')
+    handleClose()
+
+    if (isOnEventsPage) {
+      switchClient(client)
+      return
+    }
+
+    const matchingEvent = clientOptions.find((row) => row.clientTicker === client.ticker)
+    if (matchingEvent) {
+      handleEventSelect(matchingEvent)
+      return
+    }
+
+    switchClient(client)
   }
 
   const handleEventSelect = (row: EventRow) => {
@@ -141,31 +197,48 @@ function EventSwitchButton({ userType }: { userType: string }) {
     handleClose()
   }
 
+  const coveringChip =
+    isCovering && currentClient ? (
+      <Chip
+        label={`Covering for ${currentClient.short_name ?? currentClient.company_name}`}
+        color="warning"
+        size="small"
+        variant="outlined"
+        sx={{ borderColor: 'warning.main' }}
+      />
+    ) : null
+
   if (!hasDropdown) {
     return (
-      <Typography variant="button" sx={{ px: 1.375 }}>
-        {displayName}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="button" sx={{ px: 1.375 }}>
+          {displayName}
+        </Typography>
+        {coveringChip}
+      </Box>
     )
   }
 
   return (
     <>
-      <Button
-        tabIndex={0}
-        variant="text"
-        color="inherit"
-        endIcon={<ArrowDropDownOutlined />}
-        onClick={handleClick}
-        sx={{
-          textTransform: 'none',
-          '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          },
-        }}
-      >
-        {displayName}
-      </Button>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          tabIndex={0}
+          variant="text"
+          color="inherit"
+          endIcon={<ArrowDropDownOutlined />}
+          onClick={handleClick}
+          sx={{
+            textTransform: 'none',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            },
+          }}
+        >
+          {displayName}
+        </Button>
+        {coveringChip}
+      </Box>
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -179,18 +252,102 @@ function EventSwitchButton({ userType }: { userType: string }) {
           horizontal: 'left',
         }}
         slotProps={{
+          list: {
+            sx: {
+              maxHeight: 300,
+              overflowY: 'auto',
+            },
+          },
           paper: {
             sx: {
               backgroundColor: (theme) =>
                 theme.vars?.palette?.appSwitcher?.background ||
                 theme.palette.primary.main,
               color: (theme) => theme.palette.common.white,
-              minWidth: 200,
-              maxHeight: 400,
+              minWidth: isCsm ? 280 : 200,
+              overflow: isCsm ? 'visible' : undefined,
             },
           },
         }}
+        disableAutoFocusItem={isCsm}
       >
+        {isCsm
+          ? [
+              ...(clientOptions.length > 0 ? [] : []),
+              <MenuItem
+                key="csm-search"
+                disableRipple
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+                sx={{
+                  cursor: 'default',
+                  display: 'block',
+                  px: 1.5,
+                  py: 1,
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                }}
+              >
+                <Autocomplete<Client>
+                  options={allClients}
+                  getOptionLabel={(option) =>
+                    option.company_name ?? option.short_name ?? option.ticker
+                  }
+                  inputValue={csmInputValue}
+                  onInputChange={(_, value) => setCsmInputValue(value)}
+                  value={null}
+                  onChange={(_, client) => handleCsmClientSelect(client)}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  size="small"
+                  slotProps={{
+                    popper: {
+                      disablePortal: true,
+                      placement: 'bottom-start',
+                    },
+                    paper: {
+                      sx: {
+                        backgroundColor: (theme) => theme.vars?.palette?.secondary.main,
+                        color: (theme) => theme.vars?.palette?.secondary?.contrastText,
+                        '& .MuiAutocomplete-noOptions': {
+                          color: (theme) =>
+                            theme.vars?.palette?.appSwitcher?.contrastText,
+                          fontSize: (theme) => theme.typography.body3.fontSize,
+                        },
+                      },
+                    },
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      size="small"
+                      placeholder="Switch to another client..."
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      sx={(theme) => ({
+                        '& .MuiInputBase-root': {
+                          color: 'inherit',
+                          backgroundColor: theme.vars.palette.appSwitcher?.background,
+                          '& fieldset': { borderColor: theme.vars.palette.grey[700] },
+                          '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.5)' },
+                          '&.Mui-focused fieldset': {
+                            borderColor: 'rgba(255,255,255,0.8)',
+                          },
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: 'rgba(255,255,255,0.6)',
+                          opacity: 1,
+                        },
+                        '& .MuiAutocomplete-endAdornment .MuiSvgIcon-root': {
+                          color: 'rgba(255,255,255,0.7)',
+                        },
+                      })}
+                    />
+                  )}
+                />
+              </MenuItem>,
+            ]
+          : null}
         {clientOptions.map((row) => (
           <MenuItem
             key={row.clientTicker}
@@ -301,9 +458,7 @@ function SwitchButton() {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: (theme) =>
-                theme.vars?.palette?.appSwitcher?.background ||
-                theme.palette.primary.main,
+              backgroundColor: (theme) => theme.vars?.palette?.appSwitcher?.background,
               color: (theme) => theme.palette.common.white,
               minWidth: 200,
             },

@@ -16,12 +16,14 @@ import {
   CircularProgress,
   Container,
   Divider,
+  Grid,
   MenuItem,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
 
+import { ClientFeaturesCard } from '@/components/Meeting/ClientFeaturesCard'
 import type { MailingStatus } from '@/components/Meeting/MailingTimelineCard'
 
 import buildApiClient from '@/domain-models/apiClient'
@@ -82,7 +84,8 @@ const toForm = (meeting: Meeting): EventForm => ({
     typeof meeting.quorumRequirement === 'number'
       ? String(meeting.quorumRequirement)
       : '',
-  totalSharesOutstanding: meeting.totalSharesOutstanding != null ? String(meeting.totalSharesOutstanding) : '',
+  totalSharesOutstanding:
+    meeting.totalSharesOutstanding != null ? String(meeting.totalSharesOutstanding) : '',
   brokerNonVote:
     typeof meeting.brokerNonVote === 'number' ? String(meeting.brokerNonVote) : '',
   mailingStatus: (meeting.mailingStatus as MailingStatus | null) ?? '',
@@ -211,7 +214,6 @@ export default function EditEventPage() {
     void loadPositions()
   }, [eventId, canEdit])
 
-
   const pageTitle = useMemo(() => {
     if (!meeting) return 'Edit Event'
     return `Edit ${meeting.ticker ?? 'Event'} ${meeting.title ?? 'Event'}`
@@ -318,7 +320,10 @@ export default function EditEventPage() {
         const api2 = await buildApiClient()
         await api2.PUT('/positions/{id}', {
           params: { path: { id: targetId } },
-          body: { sharesVoted: newSharesVoted, voteStatus: newVoteStatus } satisfies UpdatePositionRequest,
+          body: {
+            sharesVoted: newSharesVoted,
+            voteStatus: newVoteStatus,
+          } satisfies UpdatePositionRequest,
         })
         setVotingSharesDirty(false)
       }
@@ -335,239 +340,259 @@ export default function EditEventPage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 3 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
       <Button variant="text" onClick={handleBack} sx={{ mb: 2 }}>
         {backLabel}
       </Button>
-
-      <Card>
-        <CardHeader
-          title={pageTitle}
-          subheader={
-            meeting?.ticker && meeting?.cusip
-              ? `${meeting.ticker} - CUSIP ${meeting.cusip}`
-              : undefined
-          }
-        />
-        <CardContent>
-          {loading ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              minHeight={240}
-            >
-              <CircularProgress />
-            </Box>
-          ) : !canEdit ? (
-            <Alert severity="warning">Only CSM users can edit events.</Alert>
-          ) : error && !form ? (
-            <Alert severity="error">{error}</Alert>
-          ) : form ? (
-            <Box component="form" id="edit-event-form" onSubmit={handleSubmit}>
-              <Stack spacing={2}>
-                {error && <Alert severity="error">{error}</Alert>}
-                {success && <Alert severity="success">Event updated.</Alert>}
-
-                <TextField
-                  label="Meeting Title"
-                  value={form.title}
-                  onChange={handleTextChange('title')}
-                  fullWidth
-                  required
-                  inputProps={{ maxLength: 200 }}
-                />
-
-                <TextField
-                  label="CUSIP"
-                  value={form.cusip}
-                  onChange={handleTextChange('cusip')}
-                  fullWidth
-                  required
-                />
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    select
-                    label="Event Type"
-                    value={form.meetingType}
-                    onChange={handleTextChange('meetingType')}
-                    fullWidth
-                    required
-                  >
-                    {meetingTypes.map((type) => (
-                      <MenuItem key={type} value={type}>
-                        {type}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-
-                  <TextField
-                    select
-                    label="Status"
-                    value={form.status}
-                    onChange={handleTextChange('status')}
-                    fullWidth
-                    required
-                  >
-                    {meetingStatuses.map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Stack>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    label="Broker Search Date"
-                    type="date"
-                    value={form.brokerSearchDate}
-                    onChange={handleTextChange('brokerSearchDate')}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Record Date"
-                    type="date"
-                    value={form.recordDate}
-                    onChange={handleTextChange('recordDate')}
-                    fullWidth
-                    required
-                  />
-                </Stack>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    label="Mailing Date"
-                    type="date"
-                    value={form.mailingDate}
-                    onChange={handleTextChange('mailingDate')}
-                    fullWidth
-                    required
-                  />
-
-                  <TextField
-                    label="Event Date"
-                    type="date"
-                    value={form.meetingDate}
-                    onChange={handleTextChange('meetingDate')}
-                    fullWidth
-                    required
-                  />
-                </Stack>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    label="Cutoff Date"
-                    type="date"
-                    value={form.cutoffDate}
-                    onChange={handleTextChange('cutoffDate')}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Quorum Requirement (%)"
-                    type="number"
-                    value={form.quorumRequirement}
-                    onChange={handleTextChange('quorumRequirement')}
-                    fullWidth
-                    required
-                  />
-                </Stack>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    label="Total Shares Outstanding"
-                    type="number"
-                    value={form.totalSharesOutstanding}
-                    onChange={handleTextChange('totalSharesOutstanding')}
-                    fullWidth
-                    helperText="Total shares eligible to vote"
-                  />
-
-                  <TextField
-                    label="Broker Non-Vote"
-                    type="number"
-                    value={form.brokerNonVote}
-                    onChange={handleTextChange('brokerNonVote')}
-                    fullWidth
-                    helperText="Total broker non-vote shares"
-                  />
-                </Stack>
-
-                <TextField
-                  select
-                  id="mailing-status"
-                  label="Mailing Status"
-                  value={form.mailingStatus}
-                  onChange={handleTextChange('mailingStatus')}
-                  fullWidth
+      <Grid container spacing={2}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 12,
+            lg: 8,
+          }}
+        >
+          <Card>
+            <CardHeader
+              title={pageTitle}
+              subheader={
+                meeting?.ticker && meeting?.cusip
+                  ? `${meeting.ticker} - CUSIP ${meeting.cusip}`
+                  : undefined
+              }
+            />
+            <CardContent>
+              {loading ? (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  minHeight={240}
                 >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  {mailingStatuses.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {s}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <Divider />
-
-                {/* Voting Shares Section */}
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Voting Shares
-                  </Typography>
-
-                  {positionsLoading ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
-                      <CircularProgress size={18} />
-                      <Typography variant="body2" color="text.secondary">
-                        Loading position data…
-                      </Typography>
-                    </Box>
-                  ) : positions.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
-                      No positions found for this meeting.
-                    </Typography>
-                  ) : (
-                    <TextField
-                      label="Shares Voted"
-                      type="number"
-                      value={votingShares.sharesVoted}
-                      onChange={(e) => {
-                        setVotingShares((prev) => ({ ...prev, sharesVoted: e.target.value }))
-                        setVotingSharesDirty(true)
-                        setSuccess(false)
-                      }}
-                      helperText="Total shares voted across all positions"
-                      sx={{ width: 260 }}
-                      slotProps={{ input: { inputProps: { min: 0, step: 1 } } }}
-                    />
-                  )}
+                  <CircularProgress />
                 </Box>
-              </Stack>
-            </Box>
-          ) : (
-            <Typography color="text.secondary">Event not found.</Typography>
-          )}
-        </CardContent>
-        {form && canEdit && (
-          <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
-            <Button
-              type="submit"
-              form="edit-event-form"
-              variant="contained"
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </CardActions>
+              ) : !canEdit ? (
+                <Alert severity="warning">Only CSM users can edit events.</Alert>
+              ) : error && !form ? (
+                <Alert severity="error">{error}</Alert>
+              ) : form ? (
+                <Box component="form" id="edit-event-form" onSubmit={handleSubmit}>
+                  <Stack spacing={2}>
+                    {error && <Alert severity="error">{error}</Alert>}
+                    {success && <Alert severity="success">Event updated.</Alert>}
+
+                    <TextField
+                      label="Meeting Title"
+                      value={form.title}
+                      onChange={handleTextChange('title')}
+                      fullWidth
+                      required
+                      slotProps={{ input: { inputProps: { maxLength: 200 } as const } }}
+                    />
+
+                    <TextField
+                      label="CUSIP"
+                      value={form.cusip}
+                      onChange={handleTextChange('cusip')}
+                      fullWidth
+                      required
+                    />
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        select
+                        label="Event Type"
+                        value={form.meetingType}
+                        onChange={handleTextChange('meetingType')}
+                        fullWidth
+                        required
+                      >
+                        {meetingTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {type}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+
+                      <TextField
+                        select
+                        label="Status"
+                        value={form.status}
+                        onChange={handleTextChange('status')}
+                        fullWidth
+                        required
+                      >
+                        {meetingStatuses.map((status) => (
+                          <MenuItem key={status} value={status}>
+                            {status}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Stack>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        label="Broker Search Date"
+                        type="date"
+                        value={form.brokerSearchDate}
+                        onChange={handleTextChange('brokerSearchDate')}
+                        fullWidth
+                      />
+
+                      <TextField
+                        label="Record Date"
+                        type="date"
+                        value={form.recordDate}
+                        onChange={handleTextChange('recordDate')}
+                        fullWidth
+                        required
+                      />
+                    </Stack>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        label="Mailing Date"
+                        type="date"
+                        value={form.mailingDate}
+                        onChange={handleTextChange('mailingDate')}
+                        fullWidth
+                        required
+                      />
+
+                      <TextField
+                        label="Event Date"
+                        type="date"
+                        value={form.meetingDate}
+                        onChange={handleTextChange('meetingDate')}
+                        fullWidth
+                        required
+                      />
+                    </Stack>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        label="Cutoff Date"
+                        type="date"
+                        value={form.cutoffDate}
+                        onChange={handleTextChange('cutoffDate')}
+                        fullWidth
+                      />
+
+                      <TextField
+                        label="Quorum Requirement (%)"
+                        type="number"
+                        value={form.quorumRequirement}
+                        onChange={handleTextChange('quorumRequirement')}
+                        fullWidth
+                        required
+                      />
+                    </Stack>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        label="Total Shares Outstanding"
+                        type="number"
+                        value={form.totalSharesOutstanding}
+                        onChange={handleTextChange('totalSharesOutstanding')}
+                        fullWidth
+                        helperText="Total shares eligible to vote"
+                      />
+
+                      <TextField
+                        label="Broker Non-Vote"
+                        type="number"
+                        value={form.brokerNonVote}
+                        onChange={handleTextChange('brokerNonVote')}
+                        fullWidth
+                        helperText="Total broker non-vote shares"
+                      />
+                    </Stack>
+
+                    <TextField
+                      select
+                      id="mailing-status"
+                      label="Mailing Status"
+                      value={form.mailingStatus}
+                      onChange={handleTextChange('mailingStatus')}
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>None</em>
+                      </MenuItem>
+                      {mailingStatuses.map((s) => (
+                        <MenuItem key={s} value={s}>
+                          {s}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <Divider />
+
+                    {/* Voting Shares Section */}
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                        Voting Shares
+                      </Typography>
+
+                      {positionsLoading ? (
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}
+                        >
+                          <CircularProgress size={18} />
+                          <Typography variant="body2" color="text.secondary">
+                            Loading position data…
+                          </Typography>
+                        </Box>
+                      ) : positions.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                          No positions found for this meeting.
+                        </Typography>
+                      ) : (
+                        <TextField
+                          label="Shares Voted"
+                          type="number"
+                          value={votingShares.sharesVoted}
+                          onChange={(e) => {
+                            setVotingShares((prev) => ({
+                              ...prev,
+                              sharesVoted: e.target.value,
+                            }))
+                            setVotingSharesDirty(true)
+                            setSuccess(false)
+                          }}
+                          helperText="Total shares voted across all positions"
+                          sx={{ width: 260 }}
+                          slotProps={{ input: { inputProps: { min: 0, step: 1 } } }}
+                        />
+                      )}
+                    </Box>
+                  </Stack>
+                </Box>
+              ) : (
+                <Typography color="text.secondary">Event not found.</Typography>
+              )}
+            </CardContent>
+            {form && canEdit && (
+              <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
+                <Button
+                  type="submit"
+                  form="edit-event-form"
+                  variant="contained"
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </CardActions>
+            )}
+          </Card>
+        </Grid>
+
+        {meeting?.ticker && (
+          <Grid size={{ xs: 12, md: 12, lg: 4 }}>
+            <ClientFeaturesCard clientTicker={meeting.ticker} />
+          </Grid>
         )}
-      </Card>
+      </Grid>
     </Container>
   )
 }

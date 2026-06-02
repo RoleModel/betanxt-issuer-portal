@@ -15,7 +15,7 @@ import {
 
 import { getPhaseColor } from '@/components/mui-styling/theme'
 
-import { calculateDaysUntil, formatDaysUntil } from '@/utils/dateUtils'
+import { calculateDaysUntil, formatDaysUntil, parseLocalDate } from '@/utils/dateUtils'
 
 interface TransformedKeyDate {
   title: string
@@ -97,7 +97,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.brokerSearchDate) {
     meetingKeyDates.push({
       title: 'Broker Search',
-      date: new Date(meeting.brokerSearchDate).toLocaleDateString('en-US', {
+      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       }),
@@ -110,7 +110,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.recordDate) {
     meetingKeyDates.push({
       title: 'Record Date',
-      date: new Date(meeting.recordDate).toLocaleDateString('en-US', {
+      date: parseLocalDate(meeting.recordDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       }),
@@ -123,7 +123,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.mailingDate) {
     meetingKeyDates.push({
       title: 'Mailing Date',
-      date: new Date(meeting.mailingDate).toLocaleDateString('en-US', {
+      date: parseLocalDate(meeting.mailingDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       }),
@@ -136,7 +136,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.meetingDate) {
     meetingKeyDates.push({
       title: 'Meeting Date',
-      date: new Date(meeting.meetingDate).toLocaleDateString('en-US', {
+      date: parseLocalDate(meeting.meetingDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       }),

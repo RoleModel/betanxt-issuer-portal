@@ -1,13 +1,27 @@
 /**
+ * Parse a date string as local midnight, avoiding the UTC-offset shift that
+ * `new Date("YYYY-MM-DD")` introduces (ISO-only strings are parsed as UTC,
+ * which shifts the displayed day backward in negative-offset timezones).
+ */
+export function parseLocalDate(dateString: string): Date {
+  // Pure ISO date "YYYY-MM-DD" — build from parts to get local midnight
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+  // Full ISO timestamps already carry timezone info — let the runtime handle them
+  return new Date(dateString)
+}
+
+/**
  * Calculate the number of days until a given date
  * @param dateString - The target date string
  * @returns Number of days until the date (negative if past)
  */
 export const calculateDaysUntil = (dateString: string): number => {
-  const targetDate = new Date(dateString)
+  const targetDate = parseLocalDate(dateString)
   const today = new Date()
 
-  // Reset time to start of day for accurate comparison
   today.setHours(0, 0, 0, 0)
   targetDate.setHours(0, 0, 0, 0)
 
@@ -23,20 +37,21 @@ export const calculateDaysUntil = (dateString: string): number => {
  * @returns Formatted date string
  */
 export const formatDateForDisplay = (dateString: string): string => {
-  const date = new Date(dateString)
+  const date = parseLocalDate(dateString)
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   })
 }
+
 /**
  * Format a date string for display
  * @param dateString - The date string to format
  * @returns Formatted date string
  */
 export const friendlyDate = (dateString: string): string => {
-  const date = new Date(dateString)
+  const date = parseLocalDate(dateString)
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',

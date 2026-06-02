@@ -10,11 +10,13 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Chip,
   CircularProgress,
   Container,
   IconButton,
   InputAdornment,
   Link,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -25,6 +27,7 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 
@@ -57,9 +60,22 @@ export default function EventsPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showAllClients, setShowAllClients] = useState(false)
+  const [showActiveOnly, setShowActiveOnly] = useState(true)
 
   const userType = session?.user?.type ?? 'PARENT_CLIENT'
   const isCSM = userType === 'CSM'
+  // Assigned tickers for this CSM — undefined means no restriction
+  const assignedTickers = useMemo<Set<string> | null>(() => {
+    if (!isCSM) return null
+    const tickers = session?.user?.clientTickers
+    if (!tickers || tickers.length === 0) return null
+    return new Set(tickers.map((t) => t.toUpperCase()))
+  }, [isCSM, session?.user?.clientTickers])
+
+  // When the search is non-empty the filter is automatically expanded to all clients
+  const isSearching = searchQuery.trim().length > 0
+  const isFiltered = isCSM && !!assignedTickers && !showAllClients && !isSearching
 
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -70,6 +86,18 @@ export default function EventsPage() {
   const filteredAndSortedEvents = useMemo(() => {
     let filtered = events
 
+    // CSM: restrict to assigned clients unless searching or expanded
+    if (isFiltered && assignedTickers) {
+      filtered = filtered.filter((row) =>
+        assignedTickers.has(row.clientTicker.toUpperCase())
+      )
+    }
+
+    // Active-only filter: hide COMPLETE meetings unless the user opts in
+    if (showActiveOnly) {
+      filtered = filtered.filter((row) => row.meetingStatus === 'ACTIVE')
+    }
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -77,7 +105,8 @@ export default function EventsPage() {
           row.event.toLowerCase().includes(query) ||
           row.cusip.toLowerCase().includes(query) ||
           row.eventType.toLowerCase().includes(query) ||
-          row.eventDate.includes(query)
+          row.eventDate.includes(query) ||
+          row.clientTicker.toLowerCase().includes(query)
       )
     }
 
@@ -102,7 +131,7 @@ export default function EventsPage() {
 
       return 0
     })
-  }, [events, searchQuery, order, orderBy])
+  }, [events, searchQuery, order, orderBy, isFiltered, assignedTickers, showActiveOnly])
 
   const paginatedEvents = useMemo(
     () =>
@@ -128,27 +157,69 @@ export default function EventsPage() {
     <Container maxWidth="lg" data-testid="events-page" sx={{ p: { xs: 2, sm: 3 } }}>
       <Card>
         <CardHeader
-          title="Events"
+          title={'Events'}
           action={
-            <TextField
-              size="small"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setPage(0)
-              }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchOutlined fontSize="small" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{ minWidth: 200 }}
-            />
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Tooltip title={showActiveOnly ? 'Showing upcoming meetings only. Click to include past meetings.' : 'Showing all meetings including past. Click to show upcoming only.'}>
+                <Chip
+                  label={showActiveOnly ? 'Upcoming' : 'All meetings'}
+                  size="small"
+                  color={showActiveOnly ? 'success' : 'default'}
+                  variant={showActiveOnly ? 'filled' : 'outlined'}
+                  onClick={() => {
+                    setShowActiveOnly((v) => !v)
+                    setPage(0)
+                  }}
+                  onDelete={showActiveOnly ? () => { setShowActiveOnly(false); setPage(0) } : undefined}
+                  sx={{ cursor: 'pointer' }}
+                />
+              </Tooltip>
+              {isCSM && assignedTickers && (
+                <Tooltip
+                  title={
+                    isFiltered
+                      ? `Showing your ${assignedTickers.size} assigned client${assignedTickers.size === 1 ? '' : 's'}. Search or click to see all.`
+                      : isSearching
+                        ? 'Searching all clients'
+                        : 'Showing all clients'
+                  }
+                >
+                  <Chip
+                    label={
+                      isFiltered ? `My clients (${assignedTickers.size})` : 'All clients'
+                    }
+                    size="small"
+                    color={isFiltered ? 'primary' : 'default'}
+                    variant={isFiltered ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      setShowAllClients((v) => !v)
+                      setPage(0)
+                    }}
+                    onDelete={isFiltered ? () => { setShowAllClients(true); setPage(0) } : undefined}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                </Tooltip>
+              )}
+              <TextField
+                size="small"
+                placeholder={isCSM && assignedTickers ? 'Search all clients…' : 'Search'}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(0)
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchOutlined fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={{ minWidth: 220 }}
+              />
+            </Stack>
           }
         />
         <CardContent sx={{ p: 0 }}>
@@ -249,7 +320,11 @@ export default function EventsPage() {
                           <Typography color="text.secondary">
                             {searchQuery
                               ? 'No events match your search.'
-                              : 'No events found.'}
+                              : showActiveOnly
+                                ? 'No upcoming events found. Click "Upcoming" to show all meetings.'
+                                : isFiltered
+                                  ? 'No events for your assigned clients.'
+                                  : 'No events found.'}
                           </Typography>
                         </TableCell>
                       </TableRow>

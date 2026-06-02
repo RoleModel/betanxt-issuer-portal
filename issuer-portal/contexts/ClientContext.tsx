@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-import { type Client, useClients } from '@/hooks/useClients'
+import { type Client, type ClientFeatureKey, useClients } from '@/hooks/useClients'
 
 interface ClientContextType {
   currentClient: Client | null
@@ -13,6 +13,7 @@ interface ClientContextType {
   error: string | null
   switchClient: (client: Client) => void
   canAccessClient: (clientId: string) => boolean
+  updateCurrentClientFeatures: (features: ClientFeatureKey[]) => void
   isHydrated: boolean
 }
 
@@ -237,8 +238,15 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Navigate to the equivalent page for the selected client using ticker-based routing
       if (client.ticker) {
         // Only navigate if on a ticker-based route
-        if (pathname.startsWith('/education') || pathname.startsWith('/products')) {
-          // Education and products pages are at root level - just switch the client, no navigation
+        if (
+          pathname === '/events' ||
+          pathname.startsWith('/education') ||
+          pathname.startsWith('/products')
+        ) {
+          // Global pages: update client context only, keep the user on the current view
+          setTimeout(() => {
+            setIsUserSwitching(false)
+          }, 500)
           return
         }
 
@@ -298,10 +306,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }
 
-  // Debug: Show current client state
-  React.useEffect(() => {
-    // Client state logging can be added here if needed
-  }, [currentClient])
+  // Immediately patch enabledFeatures on the current client without waiting for SWR re-fetch.
+  // Called by ClientFeaturesCard after a successful PUT so tabs update in real-time.
+  const updateCurrentClientFeatures = useCallback(
+    (features: ClientFeatureKey[]) => {
+      setCurrentClient((prev) => (prev ? { ...prev, enabledFeatures: features } : prev))
+    },
+    []
+  )
 
   return (
     <ClientContext.Provider
@@ -312,6 +324,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         error: error ?? clientsError,
         switchClient,
         canAccessClient,
+        updateCurrentClientFeatures,
         isHydrated: !loading && !clientsLoading && !!currentClient,
       }}
     >
@@ -333,6 +346,9 @@ export const useClient = () => {
         // No-op when outside provider
       },
       canAccessClient: () => false,
+      updateCurrentClientFeatures: () => {
+        // No-op when outside provider
+      },
       isHydrated: true,
     }
   }

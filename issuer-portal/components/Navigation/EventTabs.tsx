@@ -33,6 +33,7 @@ import {
 import type { components } from '@/domain-models/generated-schema'
 
 import { useClient } from '@/contexts/ClientContext'
+import { useClientFeatures } from '@/hooks/useClientFeatures'
 import { useMeeting } from '@/contexts/MeetingContext'
 import { useRoutePreload } from '@/hooks/useRoutePreload'
 import { formatDateWithYear } from '@/lib/formats'
@@ -52,13 +53,17 @@ interface MeetingTab {
   client: string
 }
 
-const getNavigationTabs = (currentPhase: number) => [
-  { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}` },
-  { label: 'Agenda', route: '/agenda' },
-  { label: 'Mailing', route: '/mailing' },
-  { label: 'Tabulation', route: '/tabulation' },
-  { label: 'Reports', route: '/reports' },
+type FeatureGate = 'agenda' | 'mailing' | 'tabulation' | 'reports' | null
+
+const ALL_NAVIGATION_TABS = (currentPhase: number) => [
+  { label: 'Meeting Dashboard', route: `/dashboard/${currentPhase}`, featureGate: null as FeatureGate },
+  { label: 'Agenda', route: '/agenda', featureGate: 'agenda' as FeatureGate },
+  { label: 'Mailing', route: '/mailing', featureGate: 'mailing' as FeatureGate },
+  { label: 'Tabulation', route: '/tabulation', featureGate: 'tabulation' as FeatureGate },
+  { label: 'Reports', route: '/reports', featureGate: 'reports' as FeatureGate },
 ]
+
+const getNavigationTabs = (currentPhase: number) => ALL_NAVIGATION_TABS(currentPhase)
 
 const ScrollButton = styled(IconButton, {
   shouldForwardProp: (prop) => !['direction'].includes(prop as string),
@@ -142,6 +147,7 @@ export function EventTabs() {
   const activeMeeting = meetingContextValue?.currentMeeting ?? null
 
   const { currentClient, loading: clientLoading, error: clientError } = useClient()
+  const { isEnabled } = useClientFeatures()
   const theme = useTheme()
   const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1]
   const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl)
@@ -153,8 +159,14 @@ export function EventTabs() {
     [currentMeeting?.currentPhase]
   )
 
-  // Memoize navigation tabs with current phase
-  const navigationTabs = useMemo(() => getNavigationTabs(currentPhase), [currentPhase])
+  // Memoize navigation tabs with current phase, filtered by client feature flags
+  const navigationTabs = useMemo(
+    () =>
+      getNavigationTabs(currentPhase).filter(
+        (tab) => tab.featureGate === null || isEnabled(tab.featureGate)
+      ),
+    [currentPhase, isEnabled]
+  )
 
   // Preload routes for the current meeting
   useRoutePreload(currentMeeting?.id)

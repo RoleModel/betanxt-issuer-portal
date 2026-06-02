@@ -145,6 +145,17 @@ const mockUsers: Record<
     type: 'CSM',
     account_id: undefined,
     client_ticker: null,
+    // Assigned portfolio for this CSM — events list defaults to these clients only
+    clientTickers: [
+      'WEN', // Wendy's International, Inc.
+      'PAYC', // Paycom Software, Inc.
+      'WWD', // Woodward, Inc.
+      'ELVN', // Enliven Therapeutics, Inc.
+      'BCSF', // Bain Capital Specialty Finance, Inc.
+      'CHH', // Champion Homes, Inc.
+      'WAL', // Western Alliance Bancorporation
+      'PHX', // PHX Minerals Inc.
+    ],
   },
 }
 
@@ -182,6 +193,25 @@ export const {
             | 'PARENT_CLIENT'
             | 'SOLICITOR'
             | 'CSM'
+          // For role-specific bypass users, delegate to the matching mock user so that
+          // role-specific fields (e.g. clientTickers for CSM) are properly included.
+          const roleToMockUser: Partial<Record<string, string>> = {
+            CSM: 'csm.user',
+            PARENT_CLIENT: 'dfin.admin',
+            SOLICITOR: 'morrow',
+          }
+          const delegateName = roleToMockUser[bypassRole]
+          if (delegateName && mockUsers[delegateName]) {
+            const m = mockUsers[delegateName]
+            return {
+              id: m.id,
+              username: m.username,
+              type: bypassRole,
+              account_id: m.account_id,
+              client_ticker: m.client_ticker ?? null,
+              clientTickers: m.clientTickers,
+            }
+          }
           return {
             id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             username: 'dev.user',

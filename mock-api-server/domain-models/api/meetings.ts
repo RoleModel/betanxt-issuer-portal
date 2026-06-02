@@ -76,6 +76,11 @@ function transformClientSummary(raw: unknown): Meeting['client'] {
         : typeof c.branding_id === 'number'
           ? c.branding_id
           : null,
+    enabledFeatures: Array.isArray(c.enabledFeatures)
+      ? (c.enabledFeatures as ('documents' | 'mailing' | 'tabulation' | 'reports' | 'fileTransfer' | 'agenda')[])
+      : Array.isArray(c.enabled_features)
+        ? (c.enabled_features as ('documents' | 'mailing' | 'tabulation' | 'reports' | 'fileTransfer' | 'agenda')[])
+        : ['documents', 'mailing', 'tabulation', 'reports', 'fileTransfer', 'agenda'],
     createdAt: typeof c.createdAt === 'string' ? c.createdAt : undefined,
     updatedAt: typeof c.updatedAt === 'string' ? c.updatedAt : undefined,
   }
@@ -121,10 +126,26 @@ function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
     quorumRequirement: nullToUndefined(dbMeeting.quorum_requirement),
     brokerNonVote: nullToUndefined(dbMeeting.broker_non_vote),
     mailingStatus: nullToUndefined(dbMeeting.mailing_status),
+    tabulationDistribution: parseTabulationDistribution(dbMeeting.tabulation_distribution),
     clientId: nullToUndefined(dbMeeting.client_id),
     createdAt: nullToUndefined(dbMeeting.created_at),
     updatedAt: nullToUndefined(dbMeeting.updated_at),
     client: transformClientSummary(dbMeeting.client),
+  }
+}
+
+function parseTabulationDistribution(
+  raw: Database['public']['Tables']['meeting']['Row']['tabulation_distribution']
+): components['schemas']['TabulationDistribution'] | undefined {
+  if (raw === null || raw === undefined) return undefined
+  if (typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const d = raw as Record<string, unknown>
+  return {
+    enabled: typeof d.enabled === 'boolean' ? d.enabled : false,
+    startOffsetDays: typeof d.startOffsetDays === 'number' ? d.startOffsetDays : 15,
+    recipients: Array.isArray(d.recipients) ? (d.recipients as string[]) : [],
+    lastSentAt: typeof d.lastSentAt === 'string' ? d.lastSentAt : null,
+    nextScheduledAt: typeof d.nextScheduledAt === 'string' ? d.nextScheduledAt : null,
   }
 }
 
@@ -195,7 +216,7 @@ export async function listMeetings(
       const { data: clientsData } = await supabase
         .from('clients')
         .select(
-          'id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, created_at, updated_at'
+          'id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, enabled_features, created_at, updated_at'
         )
         .in('id', uniqueClientIds)
 
@@ -392,6 +413,10 @@ export async function updateMeeting(
       dbUpdate.broker_non_vote = meetingData.brokerNonVote
     if (meetingData.mailingStatus !== undefined)
       dbUpdate.mailing_status = meetingData.mailingStatus
+    if (meetingData.tabulationDistribution !== undefined)
+      dbUpdate.tabulation_distribution = meetingData.tabulationDistribution
+        ? JSON.parse(JSON.stringify(meetingData.tabulationDistribution))
+        : null
 
     const { data, error } = await supabase
       .from('meeting')

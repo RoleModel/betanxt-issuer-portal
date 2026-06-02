@@ -9,6 +9,23 @@ import buildApiClient from '@/domain-models/apiClient'
 import { clientsSWRConfig } from '@/lib/swr-config'
 import { asArray, asRecord, asString } from '@/utils/typeUtils'
 
+export type ClientFeatureKey =
+  | 'documents'
+  | 'mailing'
+  | 'tabulation'
+  | 'reports'
+  | 'fileTransfer'
+  | 'agenda'
+
+export const ALL_FEATURE_KEYS: ClientFeatureKey[] = [
+  'documents',
+  'mailing',
+  'tabulation',
+  'reports',
+  'fileTransfer',
+  'agenda',
+]
+
 export interface Client {
   id: string
   name: string
@@ -24,6 +41,7 @@ export interface Client {
   branding_id?: number
   created_at?: string
   updated_at?: string
+  enabledFeatures?: ClientFeatureKey[]
   phase?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 // Event phase for routing logic
   meeting_id?: string // Default meeting ID for the client
   // Added: accounts returned by /clients API (used for filtering meetings by accountId)
@@ -123,6 +141,11 @@ const normalizeClient = (raw: unknown): Client | null => {
     phase,
     meeting_id: asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
     accounts,
+    enabledFeatures: (() => {
+      const raw = record.enabledFeatures ?? record.enabled_features
+      if (Array.isArray(raw)) return raw as ClientFeatureKey[]
+      return ALL_FEATURE_KEYS
+    })(),
   }
 }
 

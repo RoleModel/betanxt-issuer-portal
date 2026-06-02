@@ -2356,16 +2356,54 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Notification'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
         '401':
           $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createNotification
+      summary: Create an in-app notification
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationInput'
+      responses:
+        '201':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cron/tabulation-distribute:
+    post:
+      operationId: runTabulationDistribute
+      summary: Run daily tabulation report distribution
+      description: >
+        Finds all meetings with auto-distribution enabled and within their delivery window,
+        creates in-app notifications for every user associated with the meeting, and sends
+        emails to configured recipients. Intended to be called by a daily cron job at 8 AM,
+        but can also be triggered manually from the distribution settings drawer.
+      tags: [Cron]
+      responses:
+        '200':
+          description: Distribution run completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TabulationDistributeResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Internal server error
 
   /notifications/{notificationId}/mark-read:
     patch:
@@ -2538,6 +2576,19 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+            enum:
+              - documents
+              - mailing
+              - tabulation
+              - reports
+              - fileTransfer
+              - agenda
+          description: Feature modules enabled for this client
+          example: ['documents', 'mailing', 'tabulation', 'reports', 'fileTransfer', 'agenda']
         createdAt:
           type: string
           format: date-time
@@ -2711,9 +2762,41 @@ components:
         updatedAt:
           type: string
           format: date-time
+        tabulationDistribution:
+          $ref: '#/components/schemas/TabulationDistribution'
+          nullable: true
+          description: Prototype config for automated daily tabulation report delivery
         client:
           $ref: '#/components/schemas/Clients'
           description: The client this meeting belongs to (relationship)
+
+    TabulationDistribution:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: false
+          description: Whether auto-delivery of daily tabulation reports is enabled
+        startOffsetDays:
+          type: integer
+          default: 15
+          description: How many days before meeting date to start delivering reports
+        recipients:
+          type: array
+          items:
+            type: string
+            format: email
+          description: Email addresses to receive daily tabulation reports
+        lastSentAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of the last automated delivery
+        nextScheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Computed next delivery timestamp (prototype display only)
 
     Phase:
       type: object
@@ -3327,6 +3410,13 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+            enum: [documents, mailing, tabulation, reports, fileTransfer, agenda]
+          description: Feature modules enabled for this client
+          default: [documents, mailing, tabulation, reports, fileTransfer, agenda]
 
     UpdateClientRequest:
       type: object
@@ -3369,6 +3459,18 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+            enum:
+              - documents
+              - mailing
+              - tabulation
+              - reports
+              - fileTransfer
+              - agenda
+          description: Feature modules enabled for this client
 
     CreateUserRequest:
       type: object
@@ -3609,6 +3711,10 @@ components:
           type: string
           nullable: true
           description: Current status of the mailing process
+        tabulationDistribution:
+          $ref: '#/components/schemas/TabulationDistribution'
+          nullable: true
+          description: Prototype config for automated daily tabulation report delivery
 
     CreatePhaseRequest:
       type: object
@@ -3966,6 +4072,78 @@ components:
           format: date-time
           nullable: true
           example: null
+
+    CreateNotificationInput:
+      type: object
+      required: [userId, title, message]
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user to notify
+        meetingId:
+          type: string
+          nullable: true
+          description: Meeting the notification relates to
+        title:
+          type: string
+          description: Short notification title
+          example: 'Daily Tabulation Report Available'
+        message:
+          type: string
+          description: Full notification message body
+        type:
+          type: string
+          enum: [info, warning, error, success]
+          default: info
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          default: medium
+        actionUrl:
+          type: string
+          nullable: true
+          description: URL to navigate to when the notification is clicked
+
+    TabulationDistributeMeetingResult:
+      type: object
+      properties:
+        meetingId:
+          type: string
+        ticker:
+          type: string
+        notificationsCreated:
+          type: integer
+        emailsSent:
+          type: integer
+        emailRecipients:
+          type: array
+          items:
+            type: string
+            format: email
+        skipped:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    TabulationDistributeResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        date:
+          type: string
+          format: date
+        processed:
+          type: integer
+        skipped:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TabulationDistributeMeetingResult'
 
     Mailing:
       type: object

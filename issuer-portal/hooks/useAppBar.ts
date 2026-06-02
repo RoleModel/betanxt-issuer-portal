@@ -304,7 +304,12 @@ export function useAppBar(params: UseAppBarParams): UseAppBarResult {
     // Dashboard + client tabs only appear once inside a specific client context.
     if (isMultiClientUser) {
       if (isInClientContext) {
+        // CSMs should only see File Transfer inside a client context (not globally)
         return [eventsTab, dashboardTab, pastMeetingsTab, reportingTab, fileTransferTab]
+      }
+      // CSMs: no File Transfer at the global level — they must navigate via a client context
+      if (isCSM) {
+        return [eventsTab]
       }
       return [eventsTab, fileTransferTab]
     }

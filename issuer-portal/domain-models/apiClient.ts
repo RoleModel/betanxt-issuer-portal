@@ -21,15 +21,6 @@ export type ApiClientReturnType<T> =
       }
     }
 
-// Simple cache to prevent duplicate API calls within a short time window
-interface CacheEntry {
-  data: unknown
-  timestamp: number
-}
-
-const apiCache = new Map<string, CacheEntry>()
-const CACHE_TTL = 5000 // 5 seconds cache TTL for performance
-
 // Session cache to prevent excessive getSession() calls
 interface SessionCacheEntry {
   session: Session | null
@@ -59,22 +50,6 @@ const getCachedSession = async (): Promise<Session | null> => {
 // Function to clear session cache (useful for logout or session changes)
 export const clearSessionCache = () => {
   sessionCache = null
-}
-
-export const getCacheKey = (url: string, params?: Record<string, unknown>): string => {
-  return `${url}:${JSON.stringify(params || {})}`
-}
-
-export const getCachedResponse = <T>(key: string): T | null => {
-  const entry = apiCache.get(key)
-  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
-    return entry.data as T
-  }
-  return null
-}
-
-export const setCachedResponse = <T>(key: string, data: T): void => {
-  apiCache.set(key, { data, timestamp: Date.now() })
 }
 
 export const buildApiClient = async () => {

@@ -8,6 +8,7 @@ import buildApiClient from '@/domain-models/apiClient'
 
 import { clientsSWRConfig } from '@/lib/swr-config'
 import { getBrandConfigByTicker } from '@/utils/brandConfig'
+import { parseLocalDate } from '@/utils/dateUtils'
 import type { EventRow } from '@/utils/eventData'
 import { asNumber, asRecord, asString } from '@/utils/typeUtils'
 
@@ -40,7 +41,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     getBrandConfigByTicker(ticker)?.companyName ??
     ticker
 
-  const eventDate = new Date(meetingDate).toLocaleDateString('en-US', {
+  const eventDate = parseLocalDate(meetingDate).toLocaleDateString('en-US', {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
@@ -84,8 +85,12 @@ export function useEvents(): UseEventsResult {
   const { data: session } = useSession()
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
 
-  // Tickers this user is allowed to see (PARENT_CLIENT / SOLICITOR users have an explicit allow-list)
-  const allowedTickers = session?.user?.clientTickers
+  const userType = session?.user?.type
+  const isUnrestrictedRole = userType === 'CSM' || userType === 'ADMIN'
+
+  // Only PARENT_CLIENT / SOLICITOR have a hard server-side allow-list of tickers.
+  // CSM / ADMIN always receive all events (page-level filtering handles their UX).
+  const allowedTickers = isUnrestrictedRole ? undefined : session?.user?.clientTickers
 
   const eventsFetcher = async (): Promise<EventRow[]> => {
     if (!bypassAuth && !session) return []

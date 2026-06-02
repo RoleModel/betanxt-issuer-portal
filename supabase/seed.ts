@@ -949,8 +949,13 @@ const main = async () => {
     const clientId = copycat.uuid(`client-${client.ticker}-${timestamp}`)
     clientIds[client.ticker] = clientId
 
+    // All features enabled by default; disable fileTransfer for demo client (index 0)
+    const enabledFeatures =
+      index === 0
+        ? ['documents', 'mailing', 'tabulation', 'reports', 'agenda']
+        : ['documents', 'mailing', 'tabulation', 'reports', 'fileTransfer', 'agenda']
     sqlStatements.push(
-      `INSERT INTO clients(id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, created_at) VALUES (` +
+      `INSERT INTO clients(id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, enabled_features, created_at) VALUES (` +
         `${sqlValue(clientId)}, ` +
         `${sqlValue(client.ticker)}, ` +
         `${sqlValue(client.companyName)}, ` +
@@ -962,6 +967,7 @@ const main = async () => {
         `${sqlValue(client.primaryContactEmail)}, ` +
         `${sqlValue(client.isActive)}, ` +
         `${sqlValue(client.brandingId)}, ` +
+        `'${JSON.stringify(enabledFeatures)}'::jsonb, ` +
         `${sqlValue(createdAt)});`
     )
   })
@@ -4124,6 +4130,59 @@ WHERE p.id = agg.proposal_id AND p.meeting_id = 'wen-annual-meeting-2026';
     }
   })
   */
+
+  sqlStatements.push('')
+
+  // Phase F3: Seed mock tabulation distribution notifications for meetings within 15-day window
+  sqlStatements.push('-- Phase F3: Mock tabulation distribution notifications')
+  const today = DateTime.now()
+  const distributionWindowDays = 15
+
+  // Gather all 2026 annual meetings and check if they are within the distribution window
+  seedConfig.clients.forEach((client) => {
+    const ticker = client.ticker.toUpperCase()
+    const meeting2026 = real2026Meetings[ticker as keyof typeof real2026Meetings]
+    if (!meeting2026) return
+
+    const meetingDate = DateTime.fromISO(meeting2026.meetingDate)
+    const windowStart = meetingDate.minus({ days: distributionWindowDays })
+    const isInWindow = today >= windowStart && today < meetingDate
+
+    if (!isInWindow) return
+
+    // Find the meeting ID for this client's 2026 annual meeting
+    const meetingId = meetingIds.find(
+      (id) => id.includes(ticker.toLowerCase()) && id.includes('2026') && id.includes('annual')
+    )
+    if (!meetingId) return
+
+    // Find a CSM user to assign the notification to (relationship manager at index 0, or first user)
+    const firstUser = seedConfig.users[0]
+    if (!firstUser) return
+    const userId = firstUser.id
+
+    // Seed 3 past mock deliveries for the last 3 days
+    for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {
+      const sentAt = today.minus({ days: daysAgo }).set({ hour: 8, minute: 0, second: 0 })
+      const notifId = copycat.uuid(`tabulation-dist-${meetingId}-${daysAgo}`)
+      const daysUntil = Math.ceil(meetingDate.diff(sentAt, 'days').days)
+
+      sqlStatements.push(
+        `INSERT INTO notification(id, title, message, type, priority, read, user_id, meeting_id, action_url, created_at, read_at) VALUES (` +
+          `${sqlValue(notifId)}, ` +
+          `${sqlValue('Daily Tabulation Report Available')}, ` +
+          `${sqlValue(`Daily tabulation report for ${client.companyName} — ${daysUntil} day${daysUntil === 1 ? '' : 's'} until meeting. Report auto-delivered.`)}, ` +
+          `${sqlValue('info')}, ` +
+          `${sqlValue('medium')}, ` +
+          `${sqlValue(daysAgo > 1)}, ` +
+          `${sqlValue(userId)}, ` +
+          `${sqlValue(meetingId)}, ` +
+          `${sqlValue(`/${ticker}/meeting/${meetingId}/tabulation`)}, ` +
+          `${sqlValue(sentAt.toISO())}, ` +
+          `${sqlValue(daysAgo > 1 ? sentAt.plus({ hours: 2 }).toISO() : null)});`
+      )
+    }
+  })
 
   sqlStatements.push('')
 

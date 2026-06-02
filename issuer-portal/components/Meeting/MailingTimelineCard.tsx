@@ -46,6 +46,7 @@ import type { UploadFile } from '@/components/FileUpload/types'
 
 import buildApiClient from '@/domain-models/apiClient'
 import type { components } from '@/domain-models/generated-schema'
+import { parseLocalDate } from '@/utils/dateUtils'
 
 type Document = components['schemas']['Document']
 type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
@@ -167,7 +168,7 @@ export default function MailingTimelineCard({
   }
 
   const formattedDate = statusDate
-    ? new Date(statusDate).toLocaleDateString('en-US', {
+    ? parseLocalDate(statusDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',

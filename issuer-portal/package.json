@@ -15,7 +15,8 @@
     "test": "npx playwright test",
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o domain-models/generated-schema.ts",
-    "generate:all-types": "npm run generate:types && cd ../mock-api-server && npm run generate:db-types",
+    "generate:api-types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o types/api.ts",
+    "generate:all-types": "npm run generate:types && npm run generate:api-types && cd ../mock-api-server && npm run generate:db-types",
     "format": "prettier --write .",
     "clean": "rm -rf .next node_modules/.cache"
   },
@@ -44,7 +45,7 @@
     "framer-motion": "^12.23.22",
     "mammoth": "^1.11.0",
     "motion": "^12.23.12",
-    "next": "^16.2.6",
+    "next": "^16.2.7",
     "next-auth": "^5.0.0-beta.30",
     "number-abbreviate": "^2.0.0",
     "pdf-lib": "^1.17.1",

@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import buildApiClient from '@/domain-models/apiClient'
 import { documentRepository } from '@/domain-models/documentRepository'
 import type { components } from '@/domain-models/generated-schema'
+import { sendDocumentUploadEmail } from '@/utils/emailNotifications'
 
 import type { components as apiComponents } from '@/types/api'
 import type {
@@ -604,7 +605,14 @@ export const useDocuments = (): UseDocumentsResult => {
       meetingId: string,
       documentType: string,
       file: File,
-      versionNotes?: string
+      versionNotes?: string,
+      emailMeta?: {
+        meetingType?: string
+        issuerAccountName?: string
+        uploaderName?: string
+        recipients?: string[]
+        meetingPath?: string
+      }
     ): Promise<Document | null> => {
       try {
         setLoading(true)
@@ -615,6 +623,24 @@ export const useDocuments = (): UseDocumentsResult => {
           file,
           versionNotes,
         })
+
+        if (doc && emailMeta?.recipients && emailMeta.recipients.length > 0) {
+          const portalBaseUrl =
+            process.env.NEXT_PUBLIC_PORTAL_BASE_URL ??
+            (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+          void sendDocumentUploadEmail({
+            meetingType: emailMeta.meetingType ?? 'Shareholder Meeting',
+            issuerAccountName: emailMeta.issuerAccountName ?? 'Issuer Account',
+            documentName: versionNotes?.trim() || file.name,
+            uploaderName: emailMeta.uploaderName ?? 'Portal User',
+            documentDescription: `${emailMeta.uploaderName ?? 'A user'} has uploaded ${versionNotes?.trim() || file.name}.`,
+            uploadDate: new Date().toISOString(),
+            viewDocumentUrl: `${portalBaseUrl}${emailMeta.meetingPath ?? ''}`,
+            portalBaseUrl,
+            recipients: emailMeta.recipients,
+          })
+        }
+
         return doc as Document | null
       } catch (err) {
         const errorMessage =
