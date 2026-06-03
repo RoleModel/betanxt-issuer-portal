@@ -213,11 +213,11 @@ function EventSwitchButton({ userType }: { userType: string }) {
   const coveringChip =
     isCovering && displayedClient ? (
       <Chip
-        label={`Covering for ${displayedClient.name}`}
+        label={`Viewing ${displayedClient.name}`}
         color="warning"
         size="small"
         variant="outlined"
-        sx={{ borderColor: "warning.main" }}
+        sx={{ borderColor: "warning.light" }}
       />
     ) : null;
 

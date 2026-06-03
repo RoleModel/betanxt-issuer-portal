@@ -182,8 +182,12 @@ export const useClients = (): UseClientsResult => {
   const { data: session } = useSession();
   const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
-  // Tickers this user is allowed to see (PARENT_CLIENT users have an explicit allow-list)
-  const allowedTickers = session?.user?.clientTickers;
+  // Only PARENT_CLIENT / SOLICITOR are hard-restricted to their allow-list of tickers.
+  // CSM / ADMIN can access (cover) any client — their assigned clientTickers only scope
+  // the events list default (handled in useEvents), not which clients they may switch to.
+  const userType = session?.user?.type;
+  const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
+  const allowedTickers = isUnrestrictedRole ? undefined : session?.user?.clientTickers;
 
   // Custom fetcher for clients
   const clientsFetcher = async () => {
