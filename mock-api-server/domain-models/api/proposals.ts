@@ -1,19 +1,20 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from "crypto";
 
-import type { components } from '@/types/api'
-import { supabase } from '@/utils/supabase/client'
-import type { Database } from '@/utils/supabase/database.types'
+import type { components } from "@/types/api";
+import type { Database } from "@/utils/supabase/database.types";
+
+import { supabase } from "@/utils/supabase/client";
 
 // Use generated types from OpenAPI schema
-type Proposal = components['schemas']['Proposal']
-type CreateProposalRequest = components['schemas']['CreateProposalRequest']
-type UpdateProposalRequest = components['schemas']['UpdateProposalRequest']
-type ProposalRow = Database['public']['Tables']['proposal']['Row']
-type ProposalUpdate = Database['public']['Tables']['proposal']['Update']
+type Proposal = components["schemas"]["Proposal"];
+type CreateProposalRequest = components["schemas"]["CreateProposalRequest"];
+type UpdateProposalRequest = components["schemas"]["UpdateProposalRequest"];
+type ProposalRow = Database["public"]["Tables"]["proposal"]["Row"];
+type ProposalUpdate = Database["public"]["Tables"]["proposal"]["Update"];
 
 // Helper function to convert null to undefined
 function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value
+  return value === null ? undefined : value;
 }
 
 function transformProposalRow(row: ProposalRow): Proposal {
@@ -43,67 +44,67 @@ function transformProposalRow(row: ProposalRow): Proposal {
     votingCompletedAt: nullToUndefined(row.voting_completed_at),
     createdAt: nullToUndefined(row.created_at),
     updatedAt: nullToUndefined(row.updated_at),
-  }
+  };
 }
 
 // Helper type for consistent response format
 interface ApiResponse<T> {
-  data?: T
+  data?: T;
   error?: {
-    message: string
-    statusCode?: number
-  }
+    message: string;
+    statusCode?: number;
+  };
 }
 
 export async function listProposals(
   meetingId: string,
-  proposalType?: string
+  proposalType?: string,
 ): Promise<ApiResponse<Proposal[]>> {
   try {
-    let query = supabase.from('proposal').select('*').eq('meeting_id', meetingId)
+    let query = supabase.from("proposal").select("*").eq("meeting_id", meetingId);
 
     if (proposalType) {
-      query = query.eq('proposal_type', proposalType)
+      query = query.eq("proposal_type", proposalType);
     }
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
     if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message ?? 'Failed to fetch proposals',
+          message: error.message ?? "Failed to fetch proposals",
           statusCode: 500,
         },
-      }
+      };
     }
 
     // Transform database rows to API response format
-    const proposals = (data ?? []).map(transformProposalRow)
+    const proposals = (data ?? []).map(transformProposalRow);
 
     return {
       data: proposals,
       error: undefined,
-    }
+    };
   } catch (err) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : 'Unknown error',
+        message: err instanceof Error ? err.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 
 export async function createProposal(
   meetingId: string,
-  body: CreateProposalRequest
+  body: CreateProposalRequest,
 ): Promise<ApiResponse<Proposal>> {
   try {
-    const request = body
+    const request = body;
     const { data, error } = await supabase
-      .from('proposal')
+      .from("proposal")
       .insert({
         id: randomUUID(),
         meeting_id: meetingId,
@@ -120,123 +121,114 @@ export async function createProposal(
         voting_completed: false,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message ?? 'Failed to create proposal',
+          message: error.message ?? "Failed to create proposal",
           statusCode: 400,
         },
-      }
+      };
     }
 
     // Transform database row to API response format
     return {
-      data: transformProposalRow(data as ProposalRow),
+      data: transformProposalRow(data),
       error: undefined,
-    }
+    };
   } catch (err) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : 'Unknown error',
+        message: err instanceof Error ? err.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 
 export async function getProposalById(id: string): Promise<ApiResponse<Proposal>> {
   try {
-    const { data, error } = await supabase
-      .from('proposal')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { data, error } = await supabase.from("proposal").select("*").eq("id", id).single();
 
     if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message ?? 'Failed to fetch proposal',
+          message: error.message ?? "Failed to fetch proposal",
           statusCode: 404,
         },
-      }
+      };
     }
 
     // Transform database row to API response format
     return {
-      data: transformProposalRow(data as ProposalRow),
+      data: transformProposalRow(data),
       error: undefined,
-    }
+    };
   } catch (err) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : 'Unknown error',
+        message: err instanceof Error ? err.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 
 export async function updateProposal(
   id: string,
-  body: UpdateProposalRequest
+  body: UpdateProposalRequest,
 ): Promise<ApiResponse<Proposal>> {
   try {
-    const request = body
-    const updateData: Partial<ProposalUpdate> = {}
-    if (request.proposalTitle !== undefined)
-      updateData.proposal_title = request.proposalTitle
-    if (request.proposalType !== undefined)
-      updateData.proposal_type = request.proposalType
+    const request = body;
+    const updateData: Partial<ProposalUpdate> = {};
+    if (request.proposalTitle !== undefined) updateData.proposal_title = request.proposalTitle;
+    if (request.proposalType !== undefined) updateData.proposal_type = request.proposalType;
     if (request.proposalSubtype !== undefined)
-      updateData.proposal_subtype = request.proposalSubtype
-    if (request.directorName !== undefined)
-      updateData.director_name = request.directorName
+      updateData.proposal_subtype = request.proposalSubtype;
+    if (request.directorName !== undefined) updateData.director_name = request.directorName;
     if (request.directorTermYears !== undefined)
-      updateData.director_term_years = request.directorTermYears
-    if (request.directorClass !== undefined)
-      updateData.director_class = request.directorClass
+      updateData.director_term_years = request.directorTermYears;
+    if (request.directorClass !== undefined) updateData.director_class = request.directorClass;
     if (request.termExpirationYear !== undefined)
-      updateData.term_expiration_year = request.termExpirationYear
+      updateData.term_expiration_year = request.termExpirationYear;
     if (request.frequencyOptions !== undefined)
-      updateData.frequency_options = request.frequencyOptions
-    if (request.recommendation !== undefined)
-      updateData.recommendation = request.recommendation
+      updateData.frequency_options = request.frequencyOptions;
+    if (request.recommendation !== undefined) updateData.recommendation = request.recommendation;
 
     const { data, error } = await supabase
-      .from('proposal')
+      .from("proposal")
       .update(updateData)
-      .eq('id', id)
+      .eq("id", id)
       .select()
-      .single()
+      .single();
 
     if (error) {
       return {
         data: undefined,
         error: {
-          message: error.message ?? 'Failed to update proposal',
+          message: error.message ?? "Failed to update proposal",
           statusCode: 400,
         },
-      }
+      };
     }
 
     // Transform database row to API response format
     return {
-      data: transformProposalRow(data as ProposalRow),
+      data: transformProposalRow(data),
       error: undefined,
-    }
+    };
   } catch (err) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : 'Unknown error',
+        message: err instanceof Error ? err.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }

@@ -1,40 +1,41 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-22T18:38:17.317Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import type { NextRequest } from "next/server";
 
-import { supabase } from '@/utils/supabase/client'
+import { NextResponse } from "next/server";
+
+import { supabase } from "@/utils/supabase/client";
 
 interface RouteParams {
-  id: string
+  id: string;
 }
 
 interface HistoryEvent {
-  id: string
-  event_type: string
-  user: string
-  timestamp: string
-  metadata?: Record<string, unknown>
+  id: string;
+  event_type: string;
+  user: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params
-    const documentId = resolvedParams.id
+    const resolvedParams = await params;
+    const documentId = resolvedParams.id;
 
     // Get history for this document from database
     const { data: history, error: dbError } = await supabase
-      .from('document_history')
-      .select('*')
-      .eq('document_id', documentId)
-      .order('timestamp', { ascending: false })
+      .from("document_history")
+      .select("*")
+      .eq("document_id", documentId)
+      .order("timestamp", { ascending: false });
 
     if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`)
+      throw new Error(`Database error: ${dbError.message}`);
     }
 
     // Transform database records to API format
@@ -44,52 +45,52 @@ export async function GET(
       user: record.user,
       timestamp: record.timestamp,
       metadata: record.metadata || undefined,
-    }))
+    }));
 
-    return NextResponse.json(historyEvents)
+    return NextResponse.json(historyEvents);
   } catch (error) {
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'getDocumentHistory',
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+        operationId: "getDocumentHistory",
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
 }
 
 interface HistoryEventRequest {
-  event_type?: string
-  eventType?: string
-  user?: string
-  metadata?: Record<string, unknown>
+  event_type?: string;
+  eventType?: string;
+  user?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params
-    const documentId = resolvedParams.id
-    const body = (await request.json()) as HistoryEventRequest
+    const resolvedParams = await params;
+    const documentId = resolvedParams.id;
+    const body = (await request.json()) as HistoryEventRequest;
 
     // Insert new history event into database
     const { data, error: dbError } = await supabase
-      .from('document_history')
+      .from("document_history")
       .insert({
         document_id: documentId,
-        event_type: (body.event_type || body.eventType) ?? 'unknown',
-        user: body.user ?? 'current-user',
+        event_type: (body.event_type || body.eventType) ?? "unknown",
+        user: body.user ?? "current-user",
         timestamp: new Date().toISOString(),
         metadata: body.metadata || {},
       })
       .select()
-      .single()
+      .single();
 
     if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`)
+      throw new Error(`Database error: ${dbError.message}`);
     }
 
     // Transform database record to API format
@@ -99,17 +100,17 @@ export async function POST(
       user: data.user,
       timestamp: data.timestamp,
       metadata: data.metadata || undefined,
-    }
+    };
 
-    return NextResponse.json(newEvent, { status: 201 })
+    return NextResponse.json(newEvent, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        operationId: 'addDocumentHistory',
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+        operationId: "addDocumentHistory",
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
 }

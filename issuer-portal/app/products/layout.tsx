@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box } from "@mui/material";
+import React from "react";
 
-import { Box } from '@mui/material'
-
-import { PageTitle } from '@/components/PageTitle'
+import { PageTitle } from "@/components/PageTitle";
 
 export default function ProductsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,5 +11,5 @@ export default function ProductsLayout({ children }: { children: React.ReactNode
       <PageTitle>Products</PageTitle>
       <Box flexGrow={1}>{children}</Box>
     </>
-  )
+  );
 }

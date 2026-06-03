@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,112 +23,110 @@ export interface UpdateClientRequest {
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  companyName?: string
+  companyName?: string;
   /**
    * Short display name for the company
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  shortName?: string
+  shortName?: string;
   /**
    * Industry sector
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  industry?: string
+  industry?: string;
   /**
    * Company description
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  description?: string
+  description?: string;
   /**
    * Company website URL
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  website?: string
+  website?: string;
   /**
    * Primary contact person
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  primaryContact?: string
+  primaryContact?: string;
   /**
    * Primary contact email
    * @type {string}
    * @memberof UpdateClientRequest
    */
-  primaryContactEmail?: string
+  primaryContactEmail?: string;
   /**
    * Whether the client is active
    * @type {boolean}
    * @memberof UpdateClientRequest
    */
-  isActive?: boolean
+  isActive?: boolean;
   /**
    * Unique branding identifier for document hosting site URLs
    * @type {number}
    * @memberof UpdateClientRequest
    */
-  brandingId?: number | null
+  brandingId?: number | null;
 }
 
 /**
  * Check if a given object implements the UpdateClientRequest interface.
  */
-export function instanceOfUpdateClientRequest(
-  value: object
-): value is UpdateClientRequest {
-  return true
+export function instanceOfUpdateClientRequest(value: object): value is UpdateClientRequest {
+  return true;
 }
 
 export function UpdateClientRequestFromJSON(json: any): UpdateClientRequest {
-  return UpdateClientRequestFromJSONTyped(json, false)
+  return UpdateClientRequestFromJSONTyped(json, false);
 }
 
 export function UpdateClientRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateClientRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    companyName: json['companyName'] == null ? undefined : json['companyName'],
-    shortName: json['shortName'] == null ? undefined : json['shortName'],
-    industry: json['industry'] == null ? undefined : json['industry'],
-    description: json['description'] == null ? undefined : json['description'],
-    website: json['website'] == null ? undefined : json['website'],
-    primaryContact: json['primaryContact'] == null ? undefined : json['primaryContact'],
+    companyName: json["companyName"] == null ? undefined : json["companyName"],
+    shortName: json["shortName"] == null ? undefined : json["shortName"],
+    industry: json["industry"] == null ? undefined : json["industry"],
+    description: json["description"] == null ? undefined : json["description"],
+    website: json["website"] == null ? undefined : json["website"],
+    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json['primaryContactEmail'] == null ? undefined : json['primaryContactEmail'],
-    isActive: json['isActive'] == null ? undefined : json['isActive'],
-    brandingId: json['brandingId'] == null ? undefined : json['brandingId'],
-  }
+      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+    isActive: json["isActive"] == null ? undefined : json["isActive"],
+    brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
+  };
 }
 
 export function UpdateClientRequestToJSON(json: any): UpdateClientRequest {
-  return UpdateClientRequestToJSONTyped(json, false)
+  return UpdateClientRequestToJSONTyped(json, false);
 }
 
 export function UpdateClientRequestToJSONTyped(
   value?: UpdateClientRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    companyName: value['companyName'],
-    shortName: value['shortName'],
-    industry: value['industry'],
-    description: value['description'],
-    website: value['website'],
-    primaryContact: value['primaryContact'],
-    primaryContactEmail: value['primaryContactEmail'],
-    isActive: value['isActive'],
-    brandingId: value['brandingId'],
-  }
+    companyName: value["companyName"],
+    shortName: value["shortName"],
+    industry: value["industry"],
+    description: value["description"],
+    website: value["website"],
+    primaryContact: value["primaryContact"],
+    primaryContactEmail: value["primaryContactEmail"],
+    isActive: value["isActive"],
+    brandingId: value["brandingId"],
+  };
 }

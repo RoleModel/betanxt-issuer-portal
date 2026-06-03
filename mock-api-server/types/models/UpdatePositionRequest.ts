@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,124 +23,122 @@ export interface UpdatePositionRequest {
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  name?: string
+  name?: string;
   /**
    *
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  accountNumber?: string | null
+  accountNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  controlNumber?: string | null
+  controlNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  voteStatus?: UpdatePositionRequestVoteStatusEnum
+  voteStatus?: UpdatePositionRequestVoteStatusEnum;
   /**
    *
    * @type {number}
    * @memberof UpdatePositionRequest
    */
-  shares?: number
+  shares?: number;
   /**
    *
    * @type {number}
    * @memberof UpdatePositionRequest
    */
-  sharesVoted?: number
+  sharesVoted?: number;
   /**
    *
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  source?: UpdatePositionRequestSourceEnum | null
+  source?: UpdatePositionRequestSourceEnum | null;
   /**
    *
    * @type {string}
    * @memberof UpdatePositionRequest
    */
-  dateVoted?: string | null
+  dateVoted?: string | null;
 }
 
 /**
  * @export
  */
 export const UpdatePositionRequestVoteStatusEnum = {
-  Voted: 'Voted',
-  Unvoted: 'Unvoted',
-} as const
+  Voted: "Voted",
+  Unvoted: "Unvoted",
+} as const;
 export type UpdatePositionRequestVoteStatusEnum =
-  (typeof UpdatePositionRequestVoteStatusEnum)[keyof typeof UpdatePositionRequestVoteStatusEnum]
+  (typeof UpdatePositionRequestVoteStatusEnum)[keyof typeof UpdatePositionRequestVoteStatusEnum];
 
 /**
  * @export
  */
 export const UpdatePositionRequestSourceEnum = {
-  Web: 'WEB',
-  Print: 'PRINT',
-  Ivr: 'IVR',
-} as const
+  Web: "WEB",
+  Print: "PRINT",
+  Ivr: "IVR",
+} as const;
 export type UpdatePositionRequestSourceEnum =
-  (typeof UpdatePositionRequestSourceEnum)[keyof typeof UpdatePositionRequestSourceEnum]
+  (typeof UpdatePositionRequestSourceEnum)[keyof typeof UpdatePositionRequestSourceEnum];
 
 /**
  * Check if a given object implements the UpdatePositionRequest interface.
  */
-export function instanceOfUpdatePositionRequest(
-  value: object
-): value is UpdatePositionRequest {
-  return true
+export function instanceOfUpdatePositionRequest(value: object): value is UpdatePositionRequest {
+  return true;
 }
 
 export function UpdatePositionRequestFromJSON(json: any): UpdatePositionRequest {
-  return UpdatePositionRequestFromJSONTyped(json, false)
+  return UpdatePositionRequestFromJSONTyped(json, false);
 }
 
 export function UpdatePositionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdatePositionRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    name: json['name'] == null ? undefined : json['name'],
-    accountNumber: json['accountNumber'] == null ? undefined : json['accountNumber'],
-    controlNumber: json['controlNumber'] == null ? undefined : json['controlNumber'],
-    voteStatus: json['voteStatus'] == null ? undefined : json['voteStatus'],
-    shares: json['shares'] == null ? undefined : json['shares'],
-    sharesVoted: json['sharesVoted'] == null ? undefined : json['sharesVoted'],
-    source: json['source'] == null ? undefined : json['source'],
-    dateVoted: json['dateVoted'] == null ? undefined : json['dateVoted'],
-  }
+    name: json["name"] == null ? undefined : json["name"],
+    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    voteStatus: json["voteStatus"] == null ? undefined : json["voteStatus"],
+    shares: json["shares"] == null ? undefined : json["shares"],
+    sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
+    source: json["source"] == null ? undefined : json["source"],
+    dateVoted: json["dateVoted"] == null ? undefined : json["dateVoted"],
+  };
 }
 
 export function UpdatePositionRequestToJSON(json: any): UpdatePositionRequest {
-  return UpdatePositionRequestToJSONTyped(json, false)
+  return UpdatePositionRequestToJSONTyped(json, false);
 }
 
 export function UpdatePositionRequestToJSONTyped(
   value?: UpdatePositionRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    name: value['name'],
-    accountNumber: value['accountNumber'],
-    controlNumber: value['controlNumber'],
-    voteStatus: value['voteStatus'],
-    shares: value['shares'],
-    sharesVoted: value['sharesVoted'],
-    source: value['source'],
-    dateVoted: value['dateVoted'],
-  }
+    name: value["name"],
+    accountNumber: value["accountNumber"],
+    controlNumber: value["controlNumber"],
+    voteStatus: value["voteStatus"],
+    shares: value["shares"],
+    sharesVoted: value["sharesVoted"],
+    source: value["source"],
+    dateVoted: value["dateVoted"],
+  };
 }

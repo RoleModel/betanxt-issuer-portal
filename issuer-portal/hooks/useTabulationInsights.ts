@@ -1,161 +1,157 @@
-'use client'
+"use client";
 
-import React from 'react'
+import React from "react";
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
+import type { ProposalVoting, VotingSummary } from "@/types/phases";
+import type { QuorumGaugeViewModel } from "@/utils/quorum";
 
-import type { ProposalVoting, VotingSummary } from '@/types/phases'
-import type { QuorumGaugeViewModel } from '@/utils/quorum'
-import { buildQuorumGaugeModel } from '@/utils/quorum'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+import buildApiClient from "@/domain-models/apiClient";
+import { buildQuorumGaugeModel } from "@/utils/quorum";
+import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 export interface TabulationPosition {
-  id: string
-  cusip: string
-  accountType: string
-  setKey: string
-  name: string
-  accountNumber: string
-  accountEmail: string | null
-  voteStatus: string
-  controlNumber: string
-  shares: number
-  sharesVoted: number
-  source: string
-  dateVoted: string | null
-  sentBy: string | null
+  id: string;
+  cusip: string;
+  accountType: string;
+  setKey: string;
+  name: string;
+  accountNumber: string;
+  accountEmail: string | null;
+  voteStatus: string;
+  controlNumber: string;
+  shares: number;
+  sharesVoted: number;
+  source: string;
+  dateVoted: string | null;
+  sentBy: string | null;
 }
 
 interface PositionVoteRecord {
-  positionId: string
-  proposalId: string
-  vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
-  sharesVoting: number
+  positionId: string;
+  proposalId: string;
+  vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
+  sharesVoting: number;
 }
 
 interface ProposalVoteCounts {
-  for: number
-  against: number
-  abstain: number
-  total: number
+  for: number;
+  against: number;
+  abstain: number;
+  total: number;
 }
 
 const fetchPositionVotesForMeeting = async (meetingId: string): Promise<unknown[]> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
   const response = await fetch(
-    `${baseUrl}/position_votes?meetingId=${encodeURIComponent(meetingId)}&limit=10000`
-  )
+    `${baseUrl}/position_votes?meetingId=${encodeURIComponent(meetingId)}&limit=10000`,
+  );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch position votes')
+    throw new Error("Failed to fetch position votes");
   }
 
-  const data: unknown = await response.json()
-  return asArray(data)
-}
+  const data: unknown = await response.json();
+  return asArray(data);
+};
 
 interface ProposalRecord {
-  id: string
-  proposalNumber: number
-  proposalTitle: string
-  proposalType?: string
-  recommendation?: string
-  directorName?: string
-  totalVotesFor: number
-  totalVotesAgainst: number
-  totalVotesAbstain: number
+  id: string;
+  proposalNumber: number;
+  proposalTitle: string;
+  proposalType?: string;
+  recommendation?: string;
+  directorName?: string;
+  totalVotesFor: number;
+  totalVotesAgainst: number;
+  totalVotesAbstain: number;
 }
 
 export interface TabulationFilters {
-  searchQuery: string
-  voteStatus: 'All' | 'Voted' | 'Unvoted'
-  holderType: 'all' | 'beneficial' | 'registered'
-  accountType: string
-  setKey: string
-  directorProposalId: string
-  controlNumber: string
-  accountNumber: string
-  positionName: string
-  shareLow: string
-  shareHigh: string
+  searchQuery: string;
+  voteStatus: "All" | "Voted" | "Unvoted";
+  holderType: "all" | "beneficial" | "registered";
+  accountType: string;
+  setKey: string;
+  directorProposalId: string;
+  controlNumber: string;
+  accountNumber: string;
+  positionName: string;
+  shareLow: string;
+  shareHigh: string;
 }
 
 interface DirectorOption {
-  id: string
-  label: string
+  id: string;
+  label: string;
 }
 
 interface BeneficialRegisteredBreakdown {
-  beneficial: number
-  registered: number
+  beneficial: number;
+  registered: number;
 }
 
 interface TabulationInsightsResult {
-  loading: boolean
-  proposals: ProposalVoting[]
-  filteredPositions: TabulationPosition[]
-  summary: VotingSummary | null
-  quorumGauge: QuorumGaugeViewModel | null
-  filters: TabulationFilters
-  setFilters: React.Dispatch<React.SetStateAction<TabulationFilters>>
-  accountTypes: string[]
-  setKeys: string[]
-  directors: DirectorOption[]
-  beneficialVsRegistered: BeneficialRegisteredBreakdown
-  meetingTitle: string
-  clientTicker: string
+  loading: boolean;
+  proposals: ProposalVoting[];
+  filteredPositions: TabulationPosition[];
+  summary: VotingSummary | null;
+  quorumGauge: QuorumGaugeViewModel | null;
+  filters: TabulationFilters;
+  setFilters: React.Dispatch<React.SetStateAction<TabulationFilters>>;
+  accountTypes: string[];
+  setKeys: string[];
+  directors: DirectorOption[];
+  beneficialVsRegistered: BeneficialRegisteredBreakdown;
+  meetingTitle: string;
+  clientTicker: string;
 }
 
 const DEFAULT_FILTERS: TabulationFilters = {
-  searchQuery: '',
-  voteStatus: 'All',
-  holderType: 'all',
-  accountType: '',
-  setKey: '',
-  directorProposalId: '',
-  controlNumber: '',
-  accountNumber: '',
-  positionName: '',
-  shareLow: '',
-  shareHigh: '',
-}
+  searchQuery: "",
+  voteStatus: "All",
+  holderType: "all",
+  accountType: "",
+  setKey: "",
+  directorProposalId: "",
+  controlNumber: "",
+  accountNumber: "",
+  positionName: "",
+  shareLow: "",
+  shareHigh: "",
+};
 
 const isActiveFilterValue = (value: string): boolean => {
-  return value !== '' && value !== 'All' && value !== 'all'
-}
+  return value !== "" && value !== "All" && value !== "all";
+};
 
 const toFiniteNumber = (value: unknown): number => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
   }
 
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : 0
-}
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
 
 const toStringValue = (value: unknown): string => {
-  if (value === null || value === undefined) return ''
-  const parsed = asString(value)
-  if (parsed) return parsed
-  if (
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'string'
-  ) {
-    return String(value)
+  if (value === null || value === undefined) return "";
+  const parsed = asString(value);
+  if (parsed) return parsed;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+    return String(value);
   }
-  return ''
-}
+  return "";
+};
 
 const toNullableString = (value: unknown): string | null => {
-  const parsed = toStringValue(value)
-  return parsed || null
-}
+  const parsed = toStringValue(value);
+  return parsed || null;
+};
 
 const normalizePosition = (value: unknown): TabulationPosition | null => {
-  const record = asRecord(value)
-  if (!record) return null
+  const record = asRecord(value);
+  if (!record) return null;
 
   return {
     id: toStringValue(record.id),
@@ -172,57 +168,49 @@ const normalizePosition = (value: unknown): TabulationPosition | null => {
     source: toStringValue(record.source ?? record.votingSource),
     dateVoted: toNullableString(record.date_voted ?? record.dateVoted),
     sentBy: toNullableString(record.sent_by ?? record.sentBy),
-  }
-}
+  };
+};
 
 const normalizeProposal = (value: unknown): ProposalRecord | null => {
-  const record = asRecord(value)
-  if (!record) return null
+  const record = asRecord(value);
+  if (!record) return null;
 
   return {
     id: toStringValue(record.id),
     proposalNumber: toFiniteNumber(record.proposalNumber ?? record.proposal_number),
-    proposalTitle: toStringValue(
-      record.proposalTitle ?? record.proposal_title ?? record.title
-    ),
-    proposalType:
-      toNullableString(record.proposalType ?? record.proposal_type) ?? undefined,
+    proposalTitle: toStringValue(record.proposalTitle ?? record.proposal_title ?? record.title),
+    proposalType: toNullableString(record.proposalType ?? record.proposal_type) ?? undefined,
     recommendation: toNullableString(record.recommendation) ?? undefined,
-    directorName:
-      toNullableString(record.directorName ?? record.director_name) ?? undefined,
+    directorName: toNullableString(record.directorName ?? record.director_name) ?? undefined,
     totalVotesFor: toFiniteNumber(record.totalVotesFor ?? record.total_votes_for),
-    totalVotesAgainst: toFiniteNumber(
-      record.totalVotesAgainst ?? record.total_votes_against
-    ),
-    totalVotesAbstain: toFiniteNumber(
-      record.totalVotesAbstain ?? record.total_votes_abstain
-    ),
-  }
-}
+    totalVotesAgainst: toFiniteNumber(record.totalVotesAgainst ?? record.total_votes_against),
+    totalVotesAbstain: toFiniteNumber(record.totalVotesAbstain ?? record.total_votes_abstain),
+  };
+};
 
 const normalizePositionVote = (value: unknown): PositionVoteRecord | null => {
-  const record = asRecord(value)
-  if (!record) return null
+  const record = asRecord(value);
+  if (!record) return null;
 
-  const vote = toStringValue(record.vote).toUpperCase()
-  if (!['FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD'].includes(vote)) {
-    return null
+  const vote = toStringValue(record.vote).toUpperCase();
+  if (!["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"].includes(vote)) {
+    return null;
   }
 
   return {
     positionId: toStringValue(record.positionId ?? record.position_id),
     proposalId: toStringValue(record.proposalId ?? record.proposal_id),
-    vote: vote as PositionVoteRecord['vote'],
+    vote: vote as PositionVoteRecord["vote"],
     sharesVoting: toFiniteNumber(record.sharesVoting ?? record.shares_voting),
-  }
-}
+  };
+};
 
 const buildProposalVoting = (
   proposal: ProposalRecord,
-  voteCounts?: ProposalVoteCounts
+  voteCounts?: ProposalVoteCounts,
 ): ProposalVoting => {
   const totalVotes =
-    proposal.totalVotesFor + proposal.totalVotesAgainst + proposal.totalVotesAbstain
+    proposal.totalVotesFor + proposal.totalVotesAgainst + proposal.totalVotesAbstain;
 
   return {
     proposalId: proposal.id,
@@ -248,33 +236,33 @@ const buildProposalVoting = (
     },
     voteCounts,
     totalShares: totalVotes,
-    status: 'active',
-  }
-}
+    status: "active",
+  };
+};
 
-const getHolderType = (position: TabulationPosition): 'beneficial' | 'registered' => {
-  return position.accountType === 'DTC/CDS' ? 'registered' : 'beneficial'
-}
+const getHolderType = (position: TabulationPosition): "beneficial" | "registered" => {
+  return position.accountType === "DTC/CDS" ? "registered" : "beneficial";
+};
 
 const buildVotingSummary = (params: {
-  positions: TabulationPosition[]
-  proposals: ProposalVoting[]
-  totalSharesOutstanding: number
-  representedShares: number
+  positions: TabulationPosition[];
+  proposals: ProposalVoting[];
+  totalSharesOutstanding: number;
+  representedShares: number;
 }): VotingSummary => {
-  const { positions, proposals, totalSharesOutstanding, representedShares } = params
+  const { positions, proposals, totalSharesOutstanding, representedShares } = params;
 
-  let forShares = 0
-  let againstShares = 0
-  let abstainShares = 0
+  let forShares = 0;
+  let againstShares = 0;
+  let abstainShares = 0;
 
   proposals.forEach((proposal) => {
-    forShares += proposal.votingResults.for.shares
-    againstShares += proposal.votingResults.against.shares
-    abstainShares += proposal.votingResults.abstain.shares
-  })
+    forShares += proposal.votingResults.for.shares;
+    againstShares += proposal.votingResults.against.shares;
+    abstainShares += proposal.votingResults.abstain.shares;
+  });
 
-  const totalProposalVotes = forShares + againstShares + abstainShares
+  const totalProposalVotes = forShares + againstShares + abstainShares;
 
   return {
     totalSharesVoted: representedShares,
@@ -283,14 +271,13 @@ const buildVotingSummary = (params: {
       totalSharesOutstanding > 0
         ? Math.round((representedShares / totalSharesOutstanding) * 10000) / 100
         : 0,
-    positionsVoted: positions.filter((position) => position.voteStatus === 'Voted')
-      .length,
+    positionsVoted: positions.filter((position) => position.voteStatus === "Voted").length,
     totalPositions: positions.length,
     lastUpdated: new Date().toISOString(),
     votingMethods: {
-      web: positions.filter((position) => position.source === 'WEB').length,
-      paper: positions.filter((position) => position.source === 'PRINT').length,
-      phone: positions.filter((position) => position.source === 'IVR').length,
+      web: positions.filter((position) => position.source === "WEB").length,
+      paper: positions.filter((position) => position.source === "PRINT").length,
+      phone: positions.filter((position) => position.source === "IVR").length,
     },
     votingBreakdown: {
       for: {
@@ -299,52 +286,50 @@ const buildVotingSummary = (params: {
       },
       against: {
         shares: againstShares,
-        percentage:
-          totalProposalVotes > 0 ? (againstShares / totalProposalVotes) * 100 : 0,
+        percentage: totalProposalVotes > 0 ? (againstShares / totalProposalVotes) * 100 : 0,
       },
       abstain: {
         shares: abstainShares,
-        percentage:
-          totalProposalVotes > 0 ? (abstainShares / totalProposalVotes) * 100 : 0,
+        percentage: totalProposalVotes > 0 ? (abstainShares / totalProposalVotes) * 100 : 0,
       },
       withhold: {
         shares: 0,
         percentage: 0,
       },
     },
-  }
-}
+  };
+};
 
 export function useTabulationInsights(
   meetingId?: string,
-  meeting?: components['schemas']['Meeting'] | null
+  meeting?: components["schemas"]["Meeting"] | null,
 ): TabulationInsightsResult {
-  const [loading, setLoading] = React.useState(true)
-  const [positions, setPositions] = React.useState<TabulationPosition[]>([])
-  const [proposals, setProposals] = React.useState<ProposalRecord[]>([])
-  const [positionVotes, setPositionVotes] = React.useState<PositionVoteRecord[]>([])
-  const [meetingTitle, setMeetingTitle] = React.useState('')
-  const [clientTicker, setClientTicker] = React.useState('')
-  const [filters, setFilters] = React.useState<TabulationFilters>(DEFAULT_FILTERS)
+  const [loading, setLoading] = React.useState(true);
+  const [positions, setPositions] = React.useState<TabulationPosition[]>([]);
+  const [proposals, setProposals] = React.useState<ProposalRecord[]>([]);
+  const [positionVotes, setPositionVotes] = React.useState<PositionVoteRecord[]>([]);
+  const [meetingTitle, setMeetingTitle] = React.useState("");
+  const [clientTicker, setClientTicker] = React.useState("");
+  const [filters, setFilters] = React.useState<TabulationFilters>(DEFAULT_FILTERS);
   const [tabulationReportVotedShares, setTabulationReportVotedShares] = React.useState<
     number | null
-  >(null)
+  >(null);
   const [tabulationReportTotalShares, setTabulationReportTotalShares] = React.useState<
     number | null
-  >(null)
+  >(null);
 
   React.useEffect(() => {
-    if (!meetingId) return
+    if (!meetingId) return;
 
     const fetchTabulationData = async () => {
-      setLoading(true)
+      setLoading(true);
 
       try {
-        const apiClient = await buildApiClient()
+        const apiClient = await buildApiClient();
 
         const [positionsResult, proposalsResult, meetingResult, tabulationReportResult] =
           await Promise.all([
-            apiClient.GET('/positions', {
+            apiClient.GET("/positions", {
               params: {
                 query: {
                   meetingId,
@@ -352,98 +337,87 @@ export function useTabulationInsights(
                 },
               },
             }),
-            apiClient.GET('/meetings/{meetingId}/proposals', {
+            apiClient.GET("/meetings/{meetingId}/proposals", {
               params: {
                 path: { meetingId },
               },
             }),
-            apiClient.GET('/meetings/{meetingId}', {
+            apiClient.GET("/meetings/{meetingId}", {
               params: {
                 path: { meetingId },
               },
             }),
-            apiClient.GET('/meetings/{meetingId}/tabulation-report', {
+            apiClient.GET("/meetings/{meetingId}/tabulation-report", {
               params: {
                 path: { meetingId },
               },
             }),
-          ])
+          ]);
 
         const rawPositions = Array.isArray(positionsResult.data)
           ? positionsResult.data
-          : asArray(asRecord(positionsResult.data)?.positions)
-        const normalizedPositions = rawPositions.reduce<TabulationPosition[]>(
-          (acc, item) => {
-            const normalized = normalizePosition(item)
-            if (normalized) acc.push(normalized)
-            return acc
-          },
-          []
-        )
+          : asArray(asRecord(positionsResult.data)?.positions);
+        const normalizedPositions = rawPositions.reduce<TabulationPosition[]>((acc, item) => {
+          const normalized = normalizePosition(item);
+          if (normalized) acc.push(normalized);
+          return acc;
+        }, []);
 
-        const rawProposals = Array.isArray(proposalsResult.data)
-          ? proposalsResult.data
-          : []
+        const rawProposals = Array.isArray(proposalsResult.data) ? proposalsResult.data : [];
         const normalizedProposals = rawProposals.reduce<ProposalRecord[]>((acc, item) => {
-          const normalized = normalizeProposal(item)
-          if (normalized) acc.push(normalized)
-          return acc
-        }, [])
+          const normalized = normalizeProposal(item);
+          if (normalized) acc.push(normalized);
+          return acc;
+        }, []);
 
-        const positionIds = normalizedPositions
-          .map((position) => position.id)
-          .filter(Boolean)
-        const positionIdSet = new Set(positionIds)
-        const proposalIds = new Set(normalizedProposals.map((proposal) => proposal.id))
+        const positionIds = normalizedPositions.map((position) => position.id).filter(Boolean);
+        const positionIdSet = new Set(positionIds);
+        const proposalIds = new Set(normalizedProposals.map((proposal) => proposal.id));
         const rawPositionVotes =
-          positionIdSet.size > 0 ? await fetchPositionVotesForMeeting(meetingId) : []
+          positionIdSet.size > 0 ? await fetchPositionVotesForMeeting(meetingId) : [];
         const normalizedVotes = rawPositionVotes
           .map((item) => normalizePositionVote(item))
           .filter((vote): vote is PositionVoteRecord => vote !== null)
           .filter((vote) => proposalIds.has(vote.proposalId))
-          .filter((vote) => positionIdSet.has(vote.positionId))
+          .filter((vote) => positionIdSet.has(vote.positionId));
 
-        setPositions(normalizedPositions)
-        setProposals(normalizedProposals)
-        setPositionVotes(normalizedVotes)
+        setPositions(normalizedPositions);
+        setProposals(normalizedProposals);
+        setPositionVotes(normalizedVotes);
 
-        const meetingRecord = asRecord(meetingResult.data)
-        setMeetingTitle(asString(meetingRecord?.title) || '')
-        setClientTicker(asString(meetingRecord?.ticker) || '')
+        const meetingRecord = asRecord(meetingResult.data);
+        setMeetingTitle(asString(meetingRecord?.title) || "");
+        setClientTicker(asString(meetingRecord?.ticker) || "");
 
-        const reportData = asRecord(tabulationReportResult.data)
-        const positionsVoted = asRecord(reportData?.positionsVoted)
+        const reportData = asRecord(tabulationReportResult.data);
+        const positionsVoted = asRecord(reportData?.positionsVoted);
         if (positionsVoted) {
-          const reportVotedShares = toFiniteNumber(positionsVoted.votedShares)
-          const reportTotalShares = toFiniteNumber(positionsVoted.totalShares)
+          const reportVotedShares = toFiniteNumber(positionsVoted.votedShares);
+          const reportTotalShares = toFiniteNumber(positionsVoted.totalShares);
           if (reportTotalShares > 0) {
-            setTabulationReportVotedShares(reportVotedShares)
-            setTabulationReportTotalShares(reportTotalShares)
+            setTabulationReportVotedShares(reportVotedShares);
+            setTabulationReportTotalShares(reportTotalShares);
           }
         }
       } catch (error) {
-        console.error('Failed to fetch tabulation insights:', error)
+        console.error("Failed to fetch tabulation insights:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    void fetchTabulationData()
-  }, [meetingId])
+    void fetchTabulationData();
+  }, [meetingId]);
 
   const accountTypes = React.useMemo(
-    () =>
-      [
-        ...new Set(positions.map((position) => position.accountType).filter(Boolean)),
-      ].sort(),
-    [positions]
-  )
+    () => [...new Set(positions.map((position) => position.accountType).filter(Boolean))].sort(),
+    [positions],
+  );
 
   const setKeys = React.useMemo(
-    () =>
-      [...new Set(positions.map((position) => position.setKey).filter(Boolean))].sort(),
-    [positions]
-  )
+    () => [...new Set(positions.map((position) => position.setKey).filter(Boolean))].sort(),
+    [positions],
+  );
 
   const directors = React.useMemo(
     () =>
@@ -453,51 +427,47 @@ export function useTabulationInsights(
           id: proposal.id,
           label: proposal.directorName || proposal.proposalTitle,
         })),
-    [proposals]
-  )
+    [proposals],
+  );
 
   const filteredPositions = React.useMemo(() => {
     const directorPositionIds = new Set(
       positionVotes
         .filter(
-          (vote) =>
-            !filters.directorProposalId || vote.proposalId === filters.directorProposalId
+          (vote) => !filters.directorProposalId || vote.proposalId === filters.directorProposalId,
         )
-        .map((vote) => vote.positionId)
-    )
+        .map((vote) => vote.positionId),
+    );
 
     return positions.filter((position) => {
       const matchesSearch =
         !filters.searchQuery ||
         position.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        position.accountNumber
-          .toLowerCase()
-          .includes(filters.searchQuery.toLowerCase()) ||
-        position.controlNumber.toLowerCase().includes(filters.searchQuery.toLowerCase())
+        position.accountNumber.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        position.controlNumber.toLowerCase().includes(filters.searchQuery.toLowerCase());
 
       const matchesVoteStatus =
-        filters.voteStatus === 'All' || position.voteStatus === filters.voteStatus
+        filters.voteStatus === "All" || position.voteStatus === filters.voteStatus;
       const matchesHolderType =
-        filters.holderType === 'all' || getHolderType(position) === filters.holderType
+        filters.holderType === "all" || getHolderType(position) === filters.holderType;
       const matchesAccountType =
-        !filters.accountType || position.accountType === filters.accountType
-      const matchesSetKey = !filters.setKey || position.setKey === filters.setKey
-      const matchesDirector =
-        !filters.directorProposalId || directorPositionIds.has(position.id)
+        !filters.accountType || position.accountType === filters.accountType;
+      const matchesSetKey = !filters.setKey || position.setKey === filters.setKey;
+      const matchesDirector = !filters.directorProposalId || directorPositionIds.has(position.id);
       const matchesControlNumber =
         !filters.controlNumber ||
-        position.controlNumber.toLowerCase().includes(filters.controlNumber.toLowerCase())
+        position.controlNumber.toLowerCase().includes(filters.controlNumber.toLowerCase());
       const matchesAccountNumber =
         !filters.accountNumber ||
-        position.accountNumber.toLowerCase().includes(filters.accountNumber.toLowerCase())
+        position.accountNumber.toLowerCase().includes(filters.accountNumber.toLowerCase());
       const matchesPositionName =
         !filters.positionName ||
-        position.name.toLowerCase().includes(filters.positionName.toLowerCase())
-      const shareLow = filters.shareLow ? Number.parseFloat(filters.shareLow) : null
-      const shareHigh = filters.shareHigh ? Number.parseFloat(filters.shareHigh) : null
+        position.name.toLowerCase().includes(filters.positionName.toLowerCase());
+      const shareLow = filters.shareLow ? Number.parseFloat(filters.shareLow) : null;
+      const shareHigh = filters.shareHigh ? Number.parseFloat(filters.shareHigh) : null;
       const matchesShareRange =
         (shareLow === null || position.shares >= shareLow) &&
-        (shareHigh === null || position.shares <= shareHigh)
+        (shareHigh === null || position.shares <= shareHigh);
 
       return (
         matchesSearch &&
@@ -510,21 +480,21 @@ export function useTabulationInsights(
         matchesAccountNumber &&
         matchesPositionName &&
         matchesShareRange
-      )
-    })
-  }, [filters, positionVotes, positions])
+      );
+    });
+  }, [filters, positionVotes, positions]);
 
   const proposalsForDisplay = React.useMemo(() => {
     const filtersForProposalAggregation = {
       ...filters,
-      voteStatus: 'All' as const,
-    }
-    const hasActiveProposalFilters = Object.values(filtersForProposalAggregation).some(
-      (value) => isActiveFilterValue(value)
-    )
+      voteStatus: "All" as const,
+    };
+    const hasActiveProposalFilters = Object.values(filtersForProposalAggregation).some((value) =>
+      isActiveFilterValue(value),
+    );
 
     if (!hasActiveProposalFilters) {
-      const voteCountsByProposalId = new Map<string, ProposalVoteCounts>()
+      const voteCountsByProposalId = new Map<string, ProposalVoteCounts>();
 
       positionVotes.forEach((vote) => {
         const currentCounts = voteCountsByProposalId.get(vote.proposalId) ?? {
@@ -532,23 +502,23 @@ export function useTabulationInsights(
           against: 0,
           abstain: 0,
           total: 0,
-        }
+        };
 
-        if (vote.vote === 'FOR') {
-          currentCounts.for += 1
-        } else if (vote.vote === 'ABSTAIN') {
-          currentCounts.abstain += 1
+        if (vote.vote === "FOR") {
+          currentCounts.for += 1;
+        } else if (vote.vote === "ABSTAIN") {
+          currentCounts.abstain += 1;
         } else {
-          currentCounts.against += 1
+          currentCounts.against += 1;
         }
 
-        currentCounts.total += 1
-        voteCountsByProposalId.set(vote.proposalId, currentCounts)
-      })
+        currentCounts.total += 1;
+        voteCountsByProposalId.set(vote.proposalId, currentCounts);
+      });
 
       return proposals.map((proposal) =>
-        buildProposalVoting(proposal, voteCountsByProposalId.get(proposal.id))
-      )
+        buildProposalVoting(proposal, voteCountsByProposalId.get(proposal.id)),
+      );
     }
 
     const filteredPositionIds = new Set(
@@ -564,41 +534,41 @@ export function useTabulationInsights(
               .includes(filtersForProposalAggregation.searchQuery.toLowerCase()) ||
             position.controlNumber
               .toLowerCase()
-              .includes(filtersForProposalAggregation.searchQuery.toLowerCase())
+              .includes(filtersForProposalAggregation.searchQuery.toLowerCase());
 
           const matchesHolderType =
-            filtersForProposalAggregation.holderType === 'all' ||
-            getHolderType(position) === filtersForProposalAggregation.holderType
+            filtersForProposalAggregation.holderType === "all" ||
+            getHolderType(position) === filtersForProposalAggregation.holderType;
           const matchesAccountType =
             !filtersForProposalAggregation.accountType ||
-            position.accountType === filtersForProposalAggregation.accountType
+            position.accountType === filtersForProposalAggregation.accountType;
           const matchesSetKey =
             !filtersForProposalAggregation.setKey ||
-            position.setKey === filtersForProposalAggregation.setKey
+            position.setKey === filtersForProposalAggregation.setKey;
           const matchesControlNumber =
             !filtersForProposalAggregation.controlNumber ||
             position.controlNumber
               .toLowerCase()
-              .includes(filtersForProposalAggregation.controlNumber.toLowerCase())
+              .includes(filtersForProposalAggregation.controlNumber.toLowerCase());
           const matchesAccountNumber =
             !filtersForProposalAggregation.accountNumber ||
             position.accountNumber
               .toLowerCase()
-              .includes(filtersForProposalAggregation.accountNumber.toLowerCase())
+              .includes(filtersForProposalAggregation.accountNumber.toLowerCase());
           const matchesPositionName =
             !filtersForProposalAggregation.positionName ||
             position.name
               .toLowerCase()
-              .includes(filtersForProposalAggregation.positionName.toLowerCase())
+              .includes(filtersForProposalAggregation.positionName.toLowerCase());
           const shareLow = filtersForProposalAggregation.shareLow
             ? Number.parseFloat(filtersForProposalAggregation.shareLow)
-            : null
+            : null;
           const shareHigh = filtersForProposalAggregation.shareHigh
             ? Number.parseFloat(filtersForProposalAggregation.shareHigh)
-            : null
+            : null;
           const matchesShareRange =
             (shareLow === null || position.shares >= shareLow) &&
-            (shareHigh === null || position.shares <= shareHigh)
+            (shareHigh === null || position.shares <= shareHigh);
 
           return (
             matchesSearch &&
@@ -609,47 +579,44 @@ export function useTabulationInsights(
             matchesAccountNumber &&
             matchesPositionName &&
             matchesShareRange
-          )
+          );
         })
-        .map((position) => position.id)
-    )
+        .map((position) => position.id),
+    );
 
     return proposals
       .filter(
         (proposal) =>
           !filtersForProposalAggregation.directorProposalId ||
-          proposal.id === filtersForProposalAggregation.directorProposalId
+          proposal.id === filtersForProposalAggregation.directorProposalId,
       )
       .map((proposal) => {
-        let forVotes = 0
-        let againstVotes = 0
-        let abstainVotes = 0
-        let forCount = 0
-        let againstCount = 0
-        let abstainCount = 0
+        let forVotes = 0;
+        let againstVotes = 0;
+        let abstainVotes = 0;
+        let forCount = 0;
+        let againstCount = 0;
+        let abstainCount = 0;
 
         positionVotes.forEach((vote) => {
-          if (
-            vote.proposalId !== proposal.id ||
-            !filteredPositionIds.has(vote.positionId)
-          ) {
-            return
+          if (vote.proposalId !== proposal.id || !filteredPositionIds.has(vote.positionId)) {
+            return;
           }
 
-          if (vote.vote === 'FOR') {
-            forVotes += vote.sharesVoting
-            forCount += 1
-          } else if (vote.vote === 'ABSTAIN') {
-            abstainVotes += vote.sharesVoting
-            abstainCount += 1
+          if (vote.vote === "FOR") {
+            forVotes += vote.sharesVoting;
+            forCount += 1;
+          } else if (vote.vote === "ABSTAIN") {
+            abstainVotes += vote.sharesVoting;
+            abstainCount += 1;
           } else {
-            againstVotes += vote.sharesVoting
-            againstCount += 1
+            againstVotes += vote.sharesVoting;
+            againstCount += 1;
           }
-        })
+        });
 
-        const totalVotes = forVotes + againstVotes + abstainVotes
-        const totalCount = forCount + againstCount + abstainCount
+        const totalVotes = forVotes + againstVotes + abstainVotes;
+        const totalCount = forCount + againstCount + abstainCount;
 
         return {
           proposalId: proposal.id,
@@ -680,53 +647,45 @@ export function useTabulationInsights(
             total: totalCount,
           },
           totalShares: totalVotes,
-          status: 'active' as const,
-        }
-      })
-  }, [filters, positionVotes, positions, proposals])
+          status: "active" as const,
+        };
+      });
+  }, [filters, positionVotes, positions, proposals]);
 
   const totalSharesOutstanding = React.useMemo(() => {
     if (tabulationReportTotalShares !== null && tabulationReportTotalShares > 0) {
-      return tabulationReportTotalShares
+      return tabulationReportTotalShares;
     }
 
     const fallbackOutstanding = filteredPositions.reduce(
       (sum, position) => sum + position.shares,
-      0
-    )
+      0,
+    );
 
-    return toFiniteNumber(meeting?.totalSharesOutstanding) || fallbackOutstanding
-  }, [filteredPositions, meeting?.totalSharesOutstanding, tabulationReportTotalShares])
+    return toFiniteNumber(meeting?.totalSharesOutstanding) || fallbackOutstanding;
+  }, [filteredPositions, meeting?.totalSharesOutstanding, tabulationReportTotalShares]);
 
   const representedShares = React.useMemo(() => {
-    const hasActiveFilters = Object.values(filters).some((value) =>
-      isActiveFilterValue(value)
-    )
+    const hasActiveFilters = Object.values(filters).some((value) => isActiveFilterValue(value));
 
     if (!hasActiveFilters && tabulationReportVotedShares !== null) {
-      return tabulationReportVotedShares
+      return tabulationReportVotedShares;
     }
 
     if (!hasActiveFilters) {
       return positions
-        .filter((position) => position.voteStatus === 'Voted')
-        .reduce((sum, position) => sum + position.sharesVoted, 0)
+        .filter((position) => position.voteStatus === "Voted")
+        .reduce((sum, position) => sum + position.sharesVoted, 0);
     }
 
     if (filters.directorProposalId) {
-      return proposalsForDisplay[0]?.totalShares ?? 0
+      return proposalsForDisplay[0]?.totalShares ?? 0;
     }
 
     return filteredPositions
-      .filter((position) => position.voteStatus === 'Voted')
-      .reduce((sum, position) => sum + position.sharesVoted, 0)
-  }, [
-    filteredPositions,
-    filters,
-    positions,
-    proposalsForDisplay,
-    tabulationReportVotedShares,
-  ])
+      .filter((position) => position.voteStatus === "Voted")
+      .reduce((sum, position) => sum + position.sharesVoted, 0);
+  }, [filteredPositions, filters, positions, proposalsForDisplay, tabulationReportVotedShares]);
 
   const summary = React.useMemo(() => {
     return buildVotingSummary({
@@ -734,28 +693,28 @@ export function useTabulationInsights(
       proposals: proposalsForDisplay,
       totalSharesOutstanding,
       representedShares,
-    })
-  }, [filteredPositions, proposalsForDisplay, representedShares, totalSharesOutstanding])
+    });
+  }, [filteredPositions, proposalsForDisplay, representedShares, totalSharesOutstanding]);
 
   const quorumGauge = React.useMemo(() => {
     return buildQuorumGaugeModel({
       totalOutstandingShares: totalSharesOutstanding,
       representedShares,
       quorumRequirementPercent: meeting?.quorumRequirement ?? 50,
-    })
-  }, [meeting?.quorumRequirement, representedShares, totalSharesOutstanding])
+    });
+  }, [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]);
 
   const beneficialVsRegistered = React.useMemo(
     () => ({
       beneficial: filteredPositions
-        .filter((position) => getHolderType(position) === 'beneficial')
+        .filter((position) => getHolderType(position) === "beneficial")
         .reduce((sum, position) => sum + position.shares, 0),
       registered: filteredPositions
-        .filter((position) => getHolderType(position) === 'registered')
+        .filter((position) => getHolderType(position) === "registered")
         .reduce((sum, position) => sum + position.shares, 0),
     }),
-    [filteredPositions]
-  )
+    [filteredPositions],
+  );
 
   return {
     loading,
@@ -771,5 +730,5 @@ export function useTabulationInsights(
     beneficialVsRegistered,
     meetingTitle,
     clientTicker,
-  }
+  };
 }

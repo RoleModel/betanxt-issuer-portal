@@ -1,6 +1,4 @@
-'use client'
-
-import { useCallback, useEffect, useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -15,50 +13,49 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
 
-import { ExportButton } from '../ExportButton'
+import { ExportButton } from "../ExportButton";
 
-type DigitalShareholderMeeting = components['schemas']['DigitalShareholderMeeting']
+type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMActualAttendeesProps {
-  meetingId: string
+  meetingId: string;
 }
 
 export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
-  const [attendees, setAttendees] = useState<DigitalShareholderMeeting[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [attendees, setAttendees] = useState<DigitalShareholderMeeting[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchActualAttendees = useCallback(async () => {
     try {
-      setError(null)
+      setError(null);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(
-        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
-      )
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`);
       if (!response.ok) {
-        throw new Error('Failed to fetch actual attendees')
+        throw new Error("Failed to fetch actual attendees");
       }
 
-      const data = (await response.json()) as DigitalShareholderMeeting[]
+      const data = (await response.json()) as DigitalShareholderMeeting[];
 
       // Filter for attendees who actually attended the meeting
       const actualAttendees = data.filter(
-        (participant) => (participant.minutesAttendedMeeting ?? 0) > 0
-      )
+        (participant) => (participant.minutesAttendedMeeting ?? 0) > 0,
+      );
 
-      setAttendees(actualAttendees)
+      setAttendees(actualAttendees);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load actual attendees')
+      setError(err instanceof Error ? err.message : "Failed to load actual attendees");
     }
-  }, [meetingId])
+  }, [meetingId]);
 
   useEffect(() => {
-    void fetchActualAttendees()
-  }, [fetchActualAttendees])
+    void fetchActualAttendees();
+  }, [fetchActualAttendees]);
 
   if (error) {
     return (
@@ -70,11 +67,11 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
           </CardContent>
         </Card>
       </Box>
-    )
+    );
   }
 
   if (attendees.length === 0) {
-    return null // Don't show the card if no one has attended yet
+    return null; // Don't show the card if no one has attended yet
   }
 
   return (
@@ -104,8 +101,8 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
               </TableHead>
               <TableBody>
                 {attendees.map((attendee) => {
-                  const minutesAttended = attendee.minutesAttendedMeeting ?? 0
-                  const role = attendee.registrantType ?? 'Participant'
+                  const minutesAttended = attendee.minutesAttendedMeeting ?? 0;
+                  const role = attendee.registrantType ?? "Participant";
 
                   return (
                     <TableRow key={attendee.id} hover>
@@ -123,18 +120,14 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
                         <Chip
                           label={role}
                           size="small"
-                          color={role === 'Guest' ? 'default' : 'primary'}
+                          color={role === "Guest" ? "default" : "primary"}
                         />
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={`${minutesAttended} min`}
-                          size="small"
-                          color="success"
-                        />
+                        <Chip label={`${minutesAttended} min`} size="small" color="success" />
                       </TableCell>
                     </TableRow>
-                  )
+                  );
                 })}
               </TableBody>
             </Table>
@@ -142,5 +135,5 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
         </CardContent>
       </Card>
     </Box>
-  )
+  );
 }

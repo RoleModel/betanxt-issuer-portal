@@ -10,11 +10,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type {
-  CreatePositionRequest,
-  Position,
-  UpdatePositionRequest,
-} from '../models/index'
+import type { CreatePositionRequest, Position, UpdatePositionRequest } from "../models/index";
+
 import {
   CreatePositionRequestFromJSON,
   CreatePositionRequestToJSON,
@@ -22,30 +19,30 @@ import {
   PositionToJSON,
   UpdatePositionRequestFromJSON,
   UpdatePositionRequestToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface CreatePositionOperationRequest {
-  createPositionRequest: CreatePositionRequest
+  createPositionRequest: CreatePositionRequest;
 }
 
 export interface GetPositionByIdRequest {
-  id: string
+  id: string;
 }
 
 export interface ListPositionsRequest {
-  meetingId?: string
-  voteStatus?: string
-  accountType?: string
-  select?: string
-  order?: string
-  limit?: number
-  offset?: number
+  meetingId?: string;
+  voteStatus?: string;
+  accountType?: string;
+  select?: string;
+  order?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface UpdatePositionOperationRequest {
-  id: string
-  updatePositionRequest: UpdatePositionRequest
+  id: string;
+  updatePositionRequest: UpdatePositionRequest;
 }
 
 /**
@@ -57,46 +54,44 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async createPositionRaw(
     requestParameters: CreatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Position>> {
-    if (requestParameters['createPositionRequest'] == null) {
+    if (requestParameters["createPositionRequest"] == null) {
       throw new runtime.RequiredError(
-        'createPositionRequest',
-        'Required parameter "createPositionRequest" was null or undefined when calling createPosition().'
-      )
+        "createPositionRequest",
+        'Required parameter "createPositionRequest" was null or undefined when calling createPosition().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/positions`
+    let urlPath = `/positions`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreatePositionRequestToJSON(requestParameters['createPositionRequest']),
+        body: CreatePositionRequestToJSON(requestParameters["createPositionRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PositionFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
   }
 
   /**
@@ -104,10 +99,10 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async createPosition(
     requestParameters: CreatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Position> {
-    const response = await this.createPositionRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.createPositionRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -115,47 +110,42 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async getPositionByIdRaw(
     requestParameters: GetPositionByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Position>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling getPositionById().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling getPositionById().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/positions/{id}`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/positions/{id}`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PositionFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
   }
 
   /**
@@ -163,10 +153,10 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async getPositionById(
     requestParameters: GetPositionByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Position> {
-    const response = await this.getPositionByIdRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getPositionByIdRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -175,64 +165,62 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async listPositionsRaw(
     requestParameters: ListPositionsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<Position>>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    if (requestParameters['meetingId'] != null) {
-      queryParameters['meetingId'] = requestParameters['meetingId']
+    if (requestParameters["meetingId"] != null) {
+      queryParameters["meetingId"] = requestParameters["meetingId"];
     }
 
-    if (requestParameters['voteStatus'] != null) {
-      queryParameters['voteStatus'] = requestParameters['voteStatus']
+    if (requestParameters["voteStatus"] != null) {
+      queryParameters["voteStatus"] = requestParameters["voteStatus"];
     }
 
-    if (requestParameters['accountType'] != null) {
-      queryParameters['accountType'] = requestParameters['accountType']
+    if (requestParameters["accountType"] != null) {
+      queryParameters["accountType"] = requestParameters["accountType"];
     }
 
-    if (requestParameters['select'] != null) {
-      queryParameters['select'] = requestParameters['select']
+    if (requestParameters["select"] != null) {
+      queryParameters["select"] = requestParameters["select"];
     }
 
-    if (requestParameters['order'] != null) {
-      queryParameters['order'] = requestParameters['order']
+    if (requestParameters["order"] != null) {
+      queryParameters["order"] = requestParameters["order"];
     }
 
-    if (requestParameters['limit'] != null) {
-      queryParameters['limit'] = requestParameters['limit']
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
-    if (requestParameters['offset'] != null) {
-      queryParameters['offset'] = requestParameters['offset']
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
     }
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/positions`
+    let urlPath = `/positions`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(PositionFromJSON)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PositionFromJSON));
   }
 
   /**
@@ -241,10 +229,10 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async listPositions(
     requestParameters: ListPositionsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<Position>> {
-    const response = await this.listPositionsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.listPositionsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -252,57 +240,52 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async updatePositionRaw(
     requestParameters: UpdatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Position>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling updatePosition().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling updatePosition().',
+      );
     }
 
-    if (requestParameters['updatePositionRequest'] == null) {
+    if (requestParameters["updatePositionRequest"] == null) {
       throw new runtime.RequiredError(
-        'updatePositionRequest',
-        'Required parameter "updatePositionRequest" was null or undefined when calling updatePosition().'
-      )
+        "updatePositionRequest",
+        'Required parameter "updatePositionRequest" was null or undefined when calling updatePosition().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/positions/{id}`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/positions/{id}`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'PUT',
+        method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdatePositionRequestToJSON(requestParameters['updatePositionRequest']),
+        body: UpdatePositionRequestToJSON(requestParameters["updatePositionRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PositionFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
   }
 
   /**
@@ -310,9 +293,9 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async updatePosition(
     requestParameters: UpdatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Position> {
-    const response = await this.updatePositionRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.updatePositionRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

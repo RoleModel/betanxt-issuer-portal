@@ -16,40 +16,34 @@
  * @export
  */
 export const PhaseStatus = {
-  InProgress: 'IN_PROGRESS',
-  Complete: 'COMPLETE',
-} as const
-export type PhaseStatus = (typeof PhaseStatus)[keyof typeof PhaseStatus]
+  InProgress: "IN_PROGRESS",
+  Complete: "COMPLETE",
+} as const;
+export type PhaseStatus = (typeof PhaseStatus)[keyof typeof PhaseStatus];
 
 export function instanceOfPhaseStatus(value: any): boolean {
   for (const key in PhaseStatus) {
     if (Object.prototype.hasOwnProperty.call(PhaseStatus, key)) {
       if (PhaseStatus[key as keyof typeof PhaseStatus] === value) {
-        return true
+        return true;
       }
     }
   }
-  return false
+  return false;
 }
 
 export function PhaseStatusFromJSON(json: any): PhaseStatus {
-  return PhaseStatusFromJSONTyped(json, false)
+  return PhaseStatusFromJSONTyped(json, false);
 }
 
-export function PhaseStatusFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): PhaseStatus {
-  return json as PhaseStatus
+export function PhaseStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): PhaseStatus {
+  return json as PhaseStatus;
 }
 
 export function PhaseStatusToJSON(value?: PhaseStatus | null): any {
-  return value as any
+  return value as any;
 }
 
-export function PhaseStatusToJSONTyped(
-  value: any,
-  ignoreDiscriminator: boolean
-): PhaseStatus {
-  return value as PhaseStatus
+export function PhaseStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): PhaseStatus {
+  return value as PhaseStatus;
 }

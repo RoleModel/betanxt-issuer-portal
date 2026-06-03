@@ -2,9 +2,9 @@ export default async function Layout({
   children,
   params,
 }: {
-  children: React.ReactNode
-  params: Promise<{ clientTicker: string; meetingId: string }>
+  children: React.ReactNode;
+  params: Promise<{ clientTicker: string; meetingId: string }>;
 }) {
-  await params
-  return children
+  await params;
+  return children;
 }

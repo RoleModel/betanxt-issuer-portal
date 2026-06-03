@@ -1,6 +1,4 @@
-'use client'
-
-import React, { useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -10,17 +8,18 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-} from '@mui/material'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+} from "@mui/material";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import React, { useState } from "react";
 
 interface ScheduleDialogProps {
-  open: boolean
-  onClose: () => void
-  onSchedule: (date: Date, notes?: string) => void
-  title: string
-  description: string
+  open: boolean;
+  onClose: () => void;
+  onSchedule: (date: Date, notes?: string) => void;
+  title: string;
+  description: string;
 }
 
 export default function ScheduleDialog({
@@ -30,30 +29,30 @@ export default function ScheduleDialog({
   title,
   description,
 }: ScheduleDialogProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [notes, setNotes] = useState('')
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [notes, setNotes] = useState("");
 
   const handleSchedule = () => {
     if (selectedDate) {
-      onSchedule(selectedDate, notes)
-      setSelectedDate(null)
-      setNotes('')
-      onClose()
+      onSchedule(selectedDate, notes);
+      setSelectedDate(null);
+      setNotes("");
+      onClose();
     }
-  }
+  };
 
   const handleClose = () => {
-    setSelectedDate(null)
-    setNotes('')
-    onClose()
-  }
+    setSelectedDate(null);
+    setNotes("");
+    onClose();
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
             <DateTimePicker
               label="Select Date and Time"
               value={selectedDate}
@@ -86,5 +85,5 @@ export default function ScheduleDialog({
         </DialogActions>
       </Dialog>
     </LocalizationProvider>
-  )
+  );
 }

@@ -1,3 +1,5 @@
+import type { UserType } from "./UserType";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { UserType } from './UserType'
+import { mapValues } from "../runtime";
 import {
   UserTypeFromJSON,
   UserTypeFromJSONTyped,
   UserTypeToJSON,
   UserTypeToJSONTyped,
-} from './UserType'
+} from "./UserType";
 
 /**
  *
@@ -30,99 +31,99 @@ export interface CreateUserRequest {
    * @type {string}
    * @memberof CreateUserRequest
    */
-  username: string
+  username: string;
   /**
    *
    * @type {string}
    * @memberof CreateUserRequest
    */
-  firstName: string
+  firstName: string;
   /**
    *
    * @type {string}
    * @memberof CreateUserRequest
    */
-  lastName: string
+  lastName: string;
   /**
    *
    * @type {string}
    * @memberof CreateUserRequest
    */
-  email: string
+  email: string;
   /**
    *
    * @type {string}
    * @memberof CreateUserRequest
    */
-  password: string
+  password: string;
   /**
    *
    * @type {UserType}
    * @memberof CreateUserRequest
    */
-  type: UserType
+  type: UserType;
   /**
    *
    * @type {string}
    * @memberof CreateUserRequest
    */
-  accountId?: string
+  accountId?: string;
 }
 
 /**
  * Check if a given object implements the CreateUserRequest interface.
  */
 export function instanceOfCreateUserRequest(value: object): value is CreateUserRequest {
-  if (!('username' in value) || value['username'] === undefined) return false
-  if (!('firstName' in value) || value['firstName'] === undefined) return false
-  if (!('lastName' in value) || value['lastName'] === undefined) return false
-  if (!('email' in value) || value['email'] === undefined) return false
-  if (!('password' in value) || value['password'] === undefined) return false
-  if (!('type' in value) || value['type'] === undefined) return false
-  return true
+  if (!("username" in value) || value["username"] === undefined) return false;
+  if (!("firstName" in value) || value["firstName"] === undefined) return false;
+  if (!("lastName" in value) || value["lastName"] === undefined) return false;
+  if (!("email" in value) || value["email"] === undefined) return false;
+  if (!("password" in value) || value["password"] === undefined) return false;
+  if (!("type" in value) || value["type"] === undefined) return false;
+  return true;
 }
 
 export function CreateUserRequestFromJSON(json: any): CreateUserRequest {
-  return CreateUserRequestFromJSONTyped(json, false)
+  return CreateUserRequestFromJSONTyped(json, false);
 }
 
 export function CreateUserRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateUserRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    username: json['username'],
-    firstName: json['firstName'],
-    lastName: json['lastName'],
-    email: json['email'],
-    password: json['password'],
-    type: UserTypeFromJSON(json['type']),
-    accountId: json['accountId'] == null ? undefined : json['accountId'],
-  }
+    username: json["username"],
+    firstName: json["firstName"],
+    lastName: json["lastName"],
+    email: json["email"],
+    password: json["password"],
+    type: UserTypeFromJSON(json["type"]),
+    accountId: json["accountId"] == null ? undefined : json["accountId"],
+  };
 }
 
 export function CreateUserRequestToJSON(json: any): CreateUserRequest {
-  return CreateUserRequestToJSONTyped(json, false)
+  return CreateUserRequestToJSONTyped(json, false);
 }
 
 export function CreateUserRequestToJSONTyped(
   value?: CreateUserRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    username: value['username'],
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    email: value['email'],
-    password: value['password'],
-    type: UserTypeToJSON(value['type']),
-    accountId: value['accountId'],
-  }
+    username: value["username"],
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    email: value["email"],
+    password: value["password"],
+    type: UserTypeToJSON(value["type"]),
+    accountId: value["accountId"],
+  };
 }

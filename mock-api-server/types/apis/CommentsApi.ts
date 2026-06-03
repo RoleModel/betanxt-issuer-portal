@@ -10,22 +10,23 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { Comment, CreateCommentRequest } from '../models/index'
+import type { Comment, CreateCommentRequest } from "../models/index";
+
 import {
   CommentFromJSON,
   CommentToJSON,
   CreateCommentRequestFromJSON,
   CreateCommentRequestToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface AddCommentRequest {
-  id: string
-  createCommentRequest: CreateCommentRequest
+  id: string;
+  createCommentRequest: CreateCommentRequest;
 }
 
 export interface GetDocumentCommentsRequest {
-  id: string
+  id: string;
 }
 
 /**
@@ -37,57 +38,52 @@ export class CommentsApi extends runtime.BaseAPI {
    */
   async addCommentRaw(
     requestParameters: AddCommentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Comment>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling addComment().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling addComment().',
+      );
     }
 
-    if (requestParameters['createCommentRequest'] == null) {
+    if (requestParameters["createCommentRequest"] == null) {
       throw new runtime.RequiredError(
-        'createCommentRequest',
-        'Required parameter "createCommentRequest" was null or undefined when calling addComment().'
-      )
+        "createCommentRequest",
+        'Required parameter "createCommentRequest" was null or undefined when calling addComment().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/documents/{id}/comments`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/documents/{id}/comments`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreateCommentRequestToJSON(requestParameters['createCommentRequest']),
+        body: CreateCommentRequestToJSON(requestParameters["createCommentRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      CommentFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => CommentFromJSON(jsonValue));
   }
 
   /**
@@ -95,10 +91,10 @@ export class CommentsApi extends runtime.BaseAPI {
    */
   async addComment(
     requestParameters: AddCommentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Comment> {
-    const response = await this.addCommentRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.addCommentRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -106,47 +102,42 @@ export class CommentsApi extends runtime.BaseAPI {
    */
   async getDocumentCommentsRaw(
     requestParameters: GetDocumentCommentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<Comment>>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling getDocumentComments().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling getDocumentComments().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/documents/{id}/comments`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/documents/{id}/comments`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(CommentFromJSON)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CommentFromJSON));
   }
 
   /**
@@ -154,9 +145,9 @@ export class CommentsApi extends runtime.BaseAPI {
    */
   async getDocumentComments(
     requestParameters: GetDocumentCommentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<Comment>> {
-    const response = await this.getDocumentCommentsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getDocumentCommentsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

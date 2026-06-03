@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   Box,
@@ -16,19 +14,20 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
 interface PreviewDialogProps<T> {
-  open: boolean
-  onClose: () => void
-  onConfirm: () => void
-  data: T[] | null
-  title: string
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  data: T[] | null;
+  title: string;
   columns: {
-    key: keyof T
-    label: string
-    render?: (value: unknown, row: T) => React.ReactNode
-  }[]
+    key: keyof T;
+    label: string;
+    render?: (value: unknown, row: T) => React.ReactNode;
+  }[];
 }
 
 export default function PreviewDialog<T>({
@@ -45,7 +44,7 @@ export default function PreviewDialog<T>({
         {title} - {data?.length ?? 0} Records
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ overflowX: 'auto' }}>
+        <Box sx={{ overflowX: "auto" }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -63,7 +62,7 @@ export default function PreviewDialog<T>({
                     <TableCell key={String(column.key)}>
                       {column.render
                         ? column.render(row[column.key], row)
-                        : String(row[column.key] || '-')}
+                        : String(row[column.key] || "-")}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -81,59 +80,55 @@ export default function PreviewDialog<T>({
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
 
 // Helper function for creating chip renderers
 export const createChipRenderer = (
-  getColor: (
-    value: string
-  ) => 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'default'
+  getColor: (value: string) => "primary" | "secondary" | "success" | "warning" | "info" | "default",
 ) => {
   const ChipRenderer = (value: unknown) => (
-    <Chip
-      label={String(value)}
-      color={getColor(String(value))}
-      variant="outlined"
-      size="small"
-    />
-  )
-  ChipRenderer.displayName = 'ChipRenderer'
-  return ChipRenderer
-}
+    <Chip label={String(value)} color={getColor(String(value))} variant="outlined" size="small" />
+  );
+  ChipRenderer.displayName = "ChipRenderer";
+  return ChipRenderer;
+};
 
 // Helper function for creating formatted number renderer
 export const createNumberRenderer = (formatter?: (num: number) => string) => {
   const NumberRenderer = (value: unknown) => {
-    const num = Number(value)
-    if (isNaN(num) || num === 0) return '-'
+    const num = Number(value);
+    if (isNaN(num) || num === 0) return "-";
     return (
-      <Typography variant="body2">
-        {formatter ? formatter(num) : num.toLocaleString()}
-      </Typography>
-    )
-  }
-  NumberRenderer.displayName = 'NumberRenderer'
-  return NumberRenderer
-}
+      <Typography variant="body2">{formatter ? formatter(num) : num.toLocaleString()}</Typography>
+    );
+  };
+  NumberRenderer.displayName = "NumberRenderer";
+  return NumberRenderer;
+};
 
 // Helper function for creating text renderer
-export const createTextRenderer = (color?: 'text.secondary' | 'text.primary') => {
+export const createTextRenderer = (color?: "text.secondary" | "text.primary") => {
   const TextRenderer = (value: unknown) => {
-    let displayValue: string
+    let displayValue: string;
     if (value == null) {
-      displayValue = '-'
-    } else if (typeof value === 'object') {
-      displayValue = JSON.stringify(value)
+      displayValue = "-";
+    } else if (typeof value === "object") {
+      displayValue = JSON.stringify(value);
     } else {
-      displayValue = String(value as string | number | boolean)
+      const primitive: string | number | boolean | bigint = value as
+        | string
+        | number
+        | boolean
+        | bigint;
+      displayValue = String(primitive);
     }
     return (
       <Typography variant="body2" color={color}>
         {displayValue}
       </Typography>
-    )
-  }
-  TextRenderer.displayName = 'TextRenderer'
-  return TextRenderer
-}
+    );
+  };
+  TextRenderer.displayName = "TextRenderer";
+  return TextRenderer;
+};

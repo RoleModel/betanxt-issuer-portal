@@ -1,3 +1,6 @@
+import type { Document } from "./Document";
+import type { User } from "./User";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,16 +13,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Document } from './Document'
+import { mapValues } from "../runtime";
 import {
   DocumentFromJSON,
   DocumentFromJSONTyped,
   DocumentToJSON,
   DocumentToJSONTyped,
-} from './Document'
-import type { User } from './User'
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from './User'
+} from "./Document";
+import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
 
 /**
  *
@@ -32,106 +33,106 @@ export interface Comment {
    * @type {number}
    * @memberof Comment
    */
-  id?: number
+  id?: number;
   /**
    *
    * @type {string}
    * @memberof Comment
    */
-  documentId?: string
+  documentId?: string;
   /**
    *
    * @type {string}
    * @memberof Comment
    */
-  userId?: string
+  userId?: string;
   /**
    *
    * @type {string}
    * @memberof Comment
    */
-  comment?: string
+  comment?: string;
   /**
    *
    * @type {string}
    * @memberof Comment
    */
-  firstName?: string
+  firstName?: string;
   /**
    *
    * @type {string}
    * @memberof Comment
    */
-  lastName?: string
+  lastName?: string;
   /**
    *
    * @type {Date}
    * @memberof Comment
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Document}
    * @memberof Comment
    */
-  document?: Document
+  document?: Document;
   /**
    *
    * @type {User}
    * @memberof Comment
    */
-  user?: User
+  user?: User;
 }
 
 /**
  * Check if a given object implements the Comment interface.
  */
 export function instanceOfComment(value: object): value is Comment {
-  return true
+  return true;
 }
 
 export function CommentFromJSON(json: any): Comment {
-  return CommentFromJSONTyped(json, false)
+  return CommentFromJSONTyped(json, false);
 }
 
 export function CommentFromJSONTyped(json: any, ignoreDiscriminator: boolean): Comment {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    userId: json['userId'] == null ? undefined : json['userId'],
-    comment: json['comment'] == null ? undefined : json['comment'],
-    firstName: json['firstName'] == null ? undefined : json['firstName'],
-    lastName: json['lastName'] == null ? undefined : json['lastName'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    document: json['document'] == null ? undefined : DocumentFromJSON(json['document']),
-    user: json['user'] == null ? undefined : UserFromJSON(json['user']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    userId: json["userId"] == null ? undefined : json["userId"],
+    comment: json["comment"] == null ? undefined : json["comment"],
+    firstName: json["firstName"] == null ? undefined : json["firstName"],
+    lastName: json["lastName"] == null ? undefined : json["lastName"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+    user: json["user"] == null ? undefined : UserFromJSON(json["user"]),
+  };
 }
 
 export function CommentToJSON(json: any): Comment {
-  return CommentToJSONTyped(json, false)
+  return CommentToJSONTyped(json, false);
 }
 
 export function CommentToJSONTyped(
   value?: Comment | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    documentId: value['documentId'],
-    userId: value['userId'],
-    comment: value['comment'],
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    document: DocumentToJSON(value['document']),
-    user: UserToJSON(value['user']),
-  }
+    id: value["id"],
+    documentId: value["documentId"],
+    userId: value["userId"],
+    comment: value["comment"],
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    document: DocumentToJSON(value["document"]),
+    user: UserToJSON(value["user"]),
+  };
 }

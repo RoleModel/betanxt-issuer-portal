@@ -1,20 +1,19 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Close } from "@mui/icons-material";
+import { Dialog, DialogContent, IconButton } from "@mui/material";
+import React from "react";
 
-import { Close } from '@mui/icons-material'
-import { Dialog, DialogContent, IconButton } from '@mui/material'
-
-import VideoPlayer from './VideoPlayer'
+import VideoPlayer from "./VideoPlayer";
 
 interface VideoPlayerDialogProps {
-  open: boolean
-  onClose: () => void
-  src?: string
-  title?: string
-  description?: string
-  poster?: string
-  seriesNumber?: string
+  open: boolean;
+  onClose: () => void;
+  src?: string;
+  title?: string;
+  description?: string;
+  poster?: string;
+  seriesNumber?: string;
 }
 
 export default function VideoPlayerDialog({
@@ -31,10 +30,10 @@ export default function VideoPlayerDialog({
       <DialogContent
         sx={{
           p: 2,
-          position: 'relative',
+          position: "relative",
           backgroundColor: (theme) => theme.vars.palette.common.black,
-          '&:hover .MuiIconButton-root': {
-            visibility: 'visible',
+          "&:hover .MuiIconButton-root": {
+            visibility: "visible",
             opacity: 1,
           },
         }}
@@ -43,12 +42,12 @@ export default function VideoPlayerDialog({
           aria-label="Close Video"
           onClick={onClose}
           sx={{
-            transition: (theme) => theme.transitions.create('opacity'),
+            transition: (theme) => theme.transitions.create("opacity"),
             opacity: { xs: 1, md: 0 },
-            visibility: { xs: 'visible', md: 'hidden' },
+            visibility: { xs: "visible", md: "hidden" },
             color: (theme) => theme.vars.palette.grey[500],
             backgroundColor: (theme) => theme.vars.palette.common.black,
-            position: 'absolute',
+            position: "absolute",
             right: 8,
             top: 8,
             zIndex: 100,
@@ -65,5 +64,5 @@ export default function VideoPlayerDialog({
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

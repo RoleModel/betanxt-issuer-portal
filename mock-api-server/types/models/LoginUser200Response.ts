@@ -1,3 +1,5 @@
+import type { User } from "./User";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,9 +12,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { User } from './User'
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from './User'
+import { mapValues } from "../runtime";
+import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
 
 /**
  *
@@ -25,55 +26,53 @@ export interface LoginUser200Response {
    * @type {User}
    * @memberof LoginUser200Response
    */
-  user?: User
+  user?: User;
   /**
    *
    * @type {string}
    * @memberof LoginUser200Response
    */
-  token?: string
+  token?: string;
 }
 
 /**
  * Check if a given object implements the LoginUser200Response interface.
  */
-export function instanceOfLoginUser200Response(
-  value: object
-): value is LoginUser200Response {
-  return true
+export function instanceOfLoginUser200Response(value: object): value is LoginUser200Response {
+  return true;
 }
 
 export function LoginUser200ResponseFromJSON(json: any): LoginUser200Response {
-  return LoginUser200ResponseFromJSONTyped(json, false)
+  return LoginUser200ResponseFromJSONTyped(json, false);
 }
 
 export function LoginUser200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): LoginUser200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    user: json['user'] == null ? undefined : UserFromJSON(json['user']),
-    token: json['token'] == null ? undefined : json['token'],
-  }
+    user: json["user"] == null ? undefined : UserFromJSON(json["user"]),
+    token: json["token"] == null ? undefined : json["token"],
+  };
 }
 
 export function LoginUser200ResponseToJSON(json: any): LoginUser200Response {
-  return LoginUser200ResponseToJSONTyped(json, false)
+  return LoginUser200ResponseToJSONTyped(json, false);
 }
 
 export function LoginUser200ResponseToJSONTyped(
   value?: LoginUser200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    user: UserToJSON(value['user']),
-    token: value['token'],
-  }
+    user: UserToJSON(value["user"]),
+    token: value["token"],
+  };
 }

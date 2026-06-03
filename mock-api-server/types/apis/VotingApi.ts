@@ -10,27 +10,28 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { CastVoteRequest, PositionVote } from '../models/index'
+import type { CastVoteRequest, PositionVote } from "../models/index";
+
 import {
   CastVoteRequestFromJSON,
   CastVoteRequestToJSON,
   PositionVoteFromJSON,
   PositionVoteToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface CreatePositionVoteRequest {
-  castVoteRequest: CastVoteRequest
+  castVoteRequest: CastVoteRequest;
 }
 
 export interface GetPositionVotesRequest {
-  positionId?: string
-  proposalId?: string
-  vote?: string
-  select?: string
-  order?: string
-  limit?: number
-  offset?: number
+  positionId?: string;
+  proposalId?: string;
+  vote?: string;
+  select?: string;
+  order?: string;
+  limit?: number;
+  offset?: number;
 }
 
 /**
@@ -43,46 +44,44 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async createPositionVoteRaw(
     requestParameters: CreatePositionVoteRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<PositionVote>> {
-    if (requestParameters['castVoteRequest'] == null) {
+    if (requestParameters["castVoteRequest"] == null) {
       throw new runtime.RequiredError(
-        'castVoteRequest',
-        'Required parameter "castVoteRequest" was null or undefined when calling createPositionVote().'
-      )
+        "castVoteRequest",
+        'Required parameter "castVoteRequest" was null or undefined when calling createPositionVote().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/position_votes`
+    let urlPath = `/position_votes`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CastVoteRequestToJSON(requestParameters['castVoteRequest']),
+        body: CastVoteRequestToJSON(requestParameters["castVoteRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PositionVoteFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => PositionVoteFromJSON(jsonValue));
   }
 
   /**
@@ -91,10 +90,10 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async createPositionVote(
     requestParameters: CreatePositionVoteRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<PositionVote> {
-    const response = await this.createPositionVoteRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.createPositionVoteRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -103,64 +102,64 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async getPositionVotesRaw(
     requestParameters: GetPositionVotesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<PositionVote>>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    if (requestParameters['positionId'] != null) {
-      queryParameters['positionId'] = requestParameters['positionId']
+    if (requestParameters["positionId"] != null) {
+      queryParameters["positionId"] = requestParameters["positionId"];
     }
 
-    if (requestParameters['proposalId'] != null) {
-      queryParameters['proposalId'] = requestParameters['proposalId']
+    if (requestParameters["proposalId"] != null) {
+      queryParameters["proposalId"] = requestParameters["proposalId"];
     }
 
-    if (requestParameters['vote'] != null) {
-      queryParameters['vote'] = requestParameters['vote']
+    if (requestParameters["vote"] != null) {
+      queryParameters["vote"] = requestParameters["vote"];
     }
 
-    if (requestParameters['select'] != null) {
-      queryParameters['select'] = requestParameters['select']
+    if (requestParameters["select"] != null) {
+      queryParameters["select"] = requestParameters["select"];
     }
 
-    if (requestParameters['order'] != null) {
-      queryParameters['order'] = requestParameters['order']
+    if (requestParameters["order"] != null) {
+      queryParameters["order"] = requestParameters["order"];
     }
 
-    if (requestParameters['limit'] != null) {
-      queryParameters['limit'] = requestParameters['limit']
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
-    if (requestParameters['offset'] != null) {
-      queryParameters['offset'] = requestParameters['offset']
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
     }
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/position_votes`
+    let urlPath = `/position_votes`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(PositionVoteFromJSON)
-    )
+      jsonValue.map(PositionVoteFromJSON),
+    );
   }
 
   /**
@@ -169,9 +168,9 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async getPositionVotes(
     requestParameters: GetPositionVotesRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<PositionVote>> {
-    const response = await this.getPositionVotesRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getPositionVotesRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

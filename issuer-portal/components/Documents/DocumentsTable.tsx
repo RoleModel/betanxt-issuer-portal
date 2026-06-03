@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   Box,
@@ -14,31 +12,26 @@ import {
   TablePagination,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import DocumentThumbnail from '@/components/Documents/DocumentThumbnail'
-import StatusChip from '@/components/ui/StatusChip'
+import type { components } from "@/domain-models/generated-schema";
+import type { ExtendedDocumentStatus } from "@/utils/documentUtils";
 
-import type { components } from '@/domain-models/generated-schema'
+import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
+import StatusChip from "@/components/ui/StatusChip";
+import { getDocumentActionLabel } from "@/utils/documentUtils";
 
-import { getDocumentActionLabel } from '@/utils/documentUtils'
-import type { ExtendedDocumentStatus } from '@/utils/documentUtils'
-
-type Document = components['schemas']['Document']
+type Document = components["schemas"]["Document"];
 
 interface DocumentsTableProps {
-  documents: Document[]
-  page: number
-  rowsPerPage: number
-  emptyRows: number
-  onPageChange: (
-    _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => void
-  onRowsPerPageChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void
-  onOpenDocument?: (doc: Document) => void
+  documents: Document[];
+  page: number;
+  rowsPerPage: number;
+  emptyRows: number;
+  onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
+  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onOpenDocument?: (doc: Document) => void;
 }
 
 export default function DocumentsTable(props: DocumentsTableProps) {
@@ -50,7 +43,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
     onPageChange,
     onRowsPerPageChange,
     onOpenDocument,
-  } = props
+  } = props;
 
   return (
     <TableContainer data-testid="documents-table">
@@ -59,7 +52,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
           <TableRow>
             <TableCell>Document</TableCell>
             <TableCell>Added/Updated</TableCell>
-            <TableCell sx={{ width: '200px' }}>Status</TableCell>
+            <TableCell sx={{ width: "200px" }}>Status</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -70,55 +63,53 @@ export default function DocumentsTable(props: DocumentsTableProps) {
           ).map((doc) => (
             <TableRow key={doc.id}>
               <TableCell size="small">
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <DocumentThumbnail
                     filePath={doc.filePath}
                     onClick={doc.filePath ? () => onOpenDocument?.(doc) : undefined}
                   />
-                  <Typography variant="body3">
-                    {doc.title ?? 'Untitled Document'}
-                  </Typography>
+                  <Typography variant="body3">{doc.title ?? "Untitled Document"}</Typography>
                 </Box>
               </TableCell>
               <TableCell size="small">
                 <Box>
                   <Typography variant="caption" display="block" color="text.secondary">
                     {doc.updatedAt
-                      ? new Date(doc.updatedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
+                      ? new Date(doc.updatedAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
                           hour12: true,
                         })
                       : doc.createdAt
-                        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit',
+                        ? new Date(doc.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
                             hour12: true,
                           })
-                        : '-'}
+                        : "-"}
                   </Typography>
                 </Box>
               </TableCell>
               <TableCell size="small">
                 <StatusChip status={(doc.status ?? null) as string | null} />
-                {doc.status === 'UPLOADED' && (
+                {doc.status === "UPLOADED" && (
                   <Box
                     component="span"
                     sx={{
                       border: 0,
-                      clip: 'rect(0 0 0 0)',
+                      clip: "rect(0 0 0 0)",
                       height: 1,
                       margin: -1,
-                      overflow: 'hidden',
+                      overflow: "hidden",
                       p: 0,
-                      position: 'absolute',
-                      whiteSpace: 'nowrap',
+                      position: "absolute",
+                      whiteSpace: "nowrap",
                       width: 1,
                     }}
                   >
@@ -131,13 +122,13 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                   variant="text"
                   data-testid={`document-action-${doc.id}`}
                   onClick={() => {
-                    if (doc.filePath) onOpenDocument?.(doc)
+                    if (doc.filePath) onOpenDocument?.(doc);
                   }}
                   disabled={!doc.filePath}
                 >
                   {getDocumentActionLabel({
                     status:
-                      typeof doc.status === 'string'
+                      typeof doc.status === "string"
                         ? (doc.status as ExtendedDocumentStatus)
                         : undefined,
                     filePath: doc.filePath,
@@ -153,9 +144,9 @@ export default function DocumentsTable(props: DocumentsTableProps) {
           )}
         </TableBody>
         <TableFooter>
-          <TableRow sx={{ minWidth: '100%' }}>
+          <TableRow sx={{ minWidth: "100%" }}>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+              rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
               colSpan={4}
               count={documents.length}
               rowsPerPage={rowsPerPage}
@@ -163,7 +154,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
               slotProps={{
                 select: {
                   inputProps: {
-                    'aria-label': 'rows per page',
+                    "aria-label": "rows per page",
                   },
                   native: true,
                 },
@@ -175,5 +166,5 @@ export default function DocumentsTable(props: DocumentsTableProps) {
         </TableFooter>
       </Table>
     </TableContainer>
-  )
+  );
 }

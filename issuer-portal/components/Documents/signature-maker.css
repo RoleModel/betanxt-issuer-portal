@@ -1,12 +1,12 @@
 /* SignatureMaker Custom Styles - MUI/BetaNXT Theme Integration */
 
 /* Hide default type buttons since we're using MUI Tabs */
-signature-maker [data-target='typeButtonsContainer'] {
+signature-maker [data-target="typeButtonsContainer"] {
   display: none !important;
 }
 
 /* Canvas Styling */
-signature-maker [data-target='canvas'] {
+signature-maker [data-target="canvas"] {
   width: 100% !important;
   height: 100% !important;
   min-height: 150px !important;
@@ -18,7 +18,7 @@ div:has(> canvas.signature-canvas) {
 }
 
 /* Style control buttons container */
-signature-maker [data-target='controlButtonsContainer'] {
+signature-maker [data-target="controlButtonsContainer"] {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
@@ -27,17 +27,17 @@ signature-maker [data-target='controlButtonsContainer'] {
 }
 
 /* Hide color selector */
-signature-maker [data-target='colorSelect'] {
+signature-maker [data-target="colorSelect"] {
   display: none !important;
 }
 
 /* Hide save/submit button */
-signature-maker [data-target='saveButton'] {
+signature-maker [data-target="saveButton"] {
   display: none !important;
 }
 
 /* Text input styling for typed signatures */
-signature-maker [data-target='textInput'],
+signature-maker [data-target="textInput"],
 signature-maker .signature-text-input {
   display: none !important; /* We use our own text input */
 }
@@ -180,11 +180,11 @@ signature-maker > div > div {
 }
 
 /* Override SignatureMaker component styles using data attributes */
-signature-maker[data-with-color-select='false'] [data-target='colorSelect'] {
+signature-maker[data-with-color-select="false"] [data-target="colorSelect"] {
   display: none !important;
 }
 
-signature-maker[data-with-submit='false'] [data-target='saveButton'] {
+signature-maker[data-with-submit="false"] [data-target="saveButton"] {
   display: none !important;
 }
 
@@ -203,19 +203,19 @@ signature-maker * {
 }
 
 /* Specific overrides for the provided HTML structure */
-signature-maker [style*='margin-bottom: 1rem'] {
+signature-maker [style*="margin-bottom: 1rem"] {
   margin-bottom: 0 !important;
 }
 
-signature-maker [style*='margin: 1rem 0'] {
+signature-maker [style*="margin: 1rem 0"] {
   margin: 0 !important;
 }
 
 /* Hide upload functionality if not needed */
-signature-maker [data-target='uploadTypeButton'] {
+signature-maker [data-target="uploadTypeButton"] {
   display: none !important;
 }
 
-signature-maker [data-target='fileInput'] {
+signature-maker [data-target="fileInput"] {
   display: none !important;
 }

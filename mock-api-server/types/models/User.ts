@@ -1,3 +1,6 @@
+import type { Account } from "./Account";
+import type { UserType } from "./UserType";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Account } from './Account'
+import { mapValues } from "../runtime";
 import {
   AccountFromJSON,
   AccountFromJSONTyped,
   AccountToJSON,
   AccountToJSONTyped,
-} from './Account'
-import type { UserType } from './UserType'
+} from "./Account";
 import {
   UserTypeFromJSON,
   UserTypeFromJSONTyped,
   UserTypeToJSON,
   UserTypeToJSONTyped,
-} from './UserType'
+} from "./UserType";
 
 /**
  *
@@ -37,106 +38,103 @@ export interface User {
    * @type {string}
    * @memberof User
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof User
    */
-  username?: string
+  username?: string;
   /**
    *
    * @type {string}
    * @memberof User
    */
-  firstName?: string
+  firstName?: string;
   /**
    *
    * @type {string}
    * @memberof User
    */
-  lastName?: string
+  lastName?: string;
   /**
    *
    * @type {string}
    * @memberof User
    */
-  email?: string
+  email?: string;
   /**
    * Legacy password field for seed data - not used with NextAuth
    * @type {string}
    * @memberof User
    */
-  password?: string | null
+  password?: string | null;
   /**
    *
    * @type {UserType}
    * @memberof User
    */
-  type?: UserType
+  type?: UserType;
   /**
    *
    * @type {string}
    * @memberof User
    */
-  accountId?: string | null
+  accountId?: string | null;
   /**
    *
    * @type {Account}
    * @memberof User
    */
-  account?: Account
+  account?: Account;
 }
 
 /**
  * Check if a given object implements the User interface.
  */
 export function instanceOfUser(value: object): value is User {
-  return true
+  return true;
 }
 
 export function UserFromJSON(json: any): User {
-  return UserFromJSONTyped(json, false)
+  return UserFromJSONTyped(json, false);
 }
 
 export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    username: json['username'] == null ? undefined : json['username'],
-    firstName: json['firstName'] == null ? undefined : json['firstName'],
-    lastName: json['lastName'] == null ? undefined : json['lastName'],
-    email: json['email'] == null ? undefined : json['email'],
-    password: json['password'] == null ? undefined : json['password'],
-    type: json['type'] == null ? undefined : UserTypeFromJSON(json['type']),
-    accountId: json['accountId'] == null ? undefined : json['accountId'],
-    account: json['account'] == null ? undefined : AccountFromJSON(json['account']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    username: json["username"] == null ? undefined : json["username"],
+    firstName: json["firstName"] == null ? undefined : json["firstName"],
+    lastName: json["lastName"] == null ? undefined : json["lastName"],
+    email: json["email"] == null ? undefined : json["email"],
+    password: json["password"] == null ? undefined : json["password"],
+    type: json["type"] == null ? undefined : UserTypeFromJSON(json["type"]),
+    accountId: json["accountId"] == null ? undefined : json["accountId"],
+    account: json["account"] == null ? undefined : AccountFromJSON(json["account"]),
+  };
 }
 
 export function UserToJSON(json: any): User {
-  return UserToJSONTyped(json, false)
+  return UserToJSONTyped(json, false);
 }
 
-export function UserToJSONTyped(
-  value?: User | null,
-  ignoreDiscriminator: boolean = false
-): any {
+export function UserToJSONTyped(value?: User | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    username: value['username'],
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    email: value['email'],
-    password: value['password'],
-    type: UserTypeToJSON(value['type']),
-    accountId: value['accountId'],
-    account: AccountToJSON(value['account']),
-  }
+    id: value["id"],
+    username: value["username"],
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    email: value["email"],
+    password: value["password"],
+    type: UserTypeToJSON(value["type"]),
+    accountId: value["accountId"],
+    account: AccountToJSON(value["account"]),
+  };
 }

@@ -1,10 +1,8 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import FilterListIcon from '@mui/icons-material/FilterList'
-import SearchOutlined from '@mui/icons-material/SearchOutlined'
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import {
   Box,
   Button,
@@ -24,32 +22,33 @@ import {
   Tab,
   Tabs,
   TextField,
-} from '@mui/material'
+} from "@mui/material";
+import React, { useState } from "react";
 
-import VotingTabulationTable from '@/components/Meeting/VotingTabulationTable'
-import PositionsTable from '@/components/Tabulation/PositionsTable'
+import type { TabulationFilters, TabulationPosition } from "@/hooks/useTabulationInsights";
+import type { ProposalVoting } from "@/types/phases";
 
-import type { TabulationFilters, TabulationPosition } from '@/hooks/useTabulationInsights'
-import type { ProposalVoting } from '@/types/phases'
-import { exportPositionsToPdf } from '@/utils/exportPositionsPdf'
-import { exportPositionsToXlsx } from '@/utils/exportPositionsXlsx'
+import VotingTabulationTable from "@/components/Meeting/VotingTabulationTable";
+import PositionsTable from "@/components/Tabulation/PositionsTable";
+import { exportPositionsToPdf } from "@/utils/exportPositionsPdf";
+import { exportPositionsToXlsx } from "@/utils/exportPositionsXlsx";
 
 interface FilterOption {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface ProposalDetailsCardProps {
-  proposals: ProposalVoting[]
-  positions: TabulationPosition[]
-  loading?: boolean
-  meetingTitle?: string
-  clientTicker?: string
-  filters: TabulationFilters
-  onFiltersChange: (filters: TabulationFilters) => void
-  accountTypes: FilterOption[]
-  setKeys: FilterOption[]
-  directors: FilterOption[]
+  proposals: ProposalVoting[];
+  positions: TabulationPosition[];
+  loading?: boolean;
+  meetingTitle?: string;
+  clientTicker?: string;
+  filters: TabulationFilters;
+  onFiltersChange: (filters: TabulationFilters) => void;
+  accountTypes: FilterOption[];
+  setKeys: FilterOption[];
+  directors: FilterOption[];
 }
 
 export default function ProposalDetailsCard({
@@ -64,69 +63,69 @@ export default function ProposalDetailsCard({
   setKeys,
   directors,
 }: ProposalDetailsCardProps) {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
-  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleExportPdf = async () => {
-    if (isExporting) return
-    setMenuAnchorEl(null)
-    setIsExporting(true)
+    if (isExporting) return;
+    setMenuAnchorEl(null);
+    setIsExporting(true);
     try {
       await exportPositionsToPdf({
         positions,
-        meetingTitle: meetingTitle ?? 'Meeting Positions',
-        clientTicker: clientTicker ?? '',
-      })
+        meetingTitle: meetingTitle ?? "Meeting Positions",
+        clientTicker: clientTicker ?? "",
+      });
     } catch (error) {
-      console.error('Failed to export PDF:', error)
+      console.error("Failed to export PDF:", error);
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   const handleExportXlsx = () => {
-    setMenuAnchorEl(null)
+    setMenuAnchorEl(null);
     exportPositionsToXlsx({
       positions,
-      meetingTitle: meetingTitle ?? 'Meeting Positions',
-      clientTicker: clientTicker ?? '',
-    })
-  }
+      meetingTitle: meetingTitle ?? "Meeting Positions",
+      clientTicker: clientTicker ?? "",
+    });
+  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setMenuAnchorEl(event.currentTarget)
-  }
+    setMenuAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setMenuAnchorEl(null)
-  }
+    setMenuAnchorEl(null);
+  };
 
   const resetFilters = () => {
     onFiltersChange({
-      searchQuery: '',
-      voteStatus: 'All',
-      holderType: 'all',
-      accountType: '',
-      setKey: '',
-      directorProposalId: '',
-      controlNumber: '',
-      accountNumber: '',
-      positionName: '',
-      shareLow: '',
-      shareHigh: '',
-    })
-  }
+      searchQuery: "",
+      voteStatus: "All",
+      holderType: "all",
+      accountType: "",
+      setKey: "",
+      directorProposalId: "",
+      controlNumber: "",
+      accountNumber: "",
+      positionName: "",
+      shareLow: "",
+      shareHigh: "",
+    });
+  };
 
   const headerActions = (
     <Box
       sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
+        display: "flex",
+        flexWrap: "wrap",
         gap: 1.5,
-        justifyContent: { xs: 'stretch', md: 'flex-end' },
-        width: 'fit-content',
+        justifyContent: { xs: "stretch", md: "flex-end" },
+        width: "fit-content",
         flex: 1,
       }}
     >
@@ -149,7 +148,7 @@ export default function ProposalDetailsCard({
             ),
           },
         }}
-        sx={{ minWidth: { xs: '100%', sm: 260 } }}
+        sx={{ minWidth: { xs: "100%", sm: 260 } }}
       />
       <Select
         value={filters.voteStatus}
@@ -189,18 +188,14 @@ export default function ProposalDetailsCard({
               <ArrowDropDownIcon />
             </Button>
           </ButtonGroup>
-          <Menu
-            anchorEl={menuAnchorEl}
-            open={Boolean(menuAnchorEl)}
-            onClose={handleMenuClose}
-          >
+          <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={() => void handleExportPdf()}>Export as PDF</MenuItem>
             <MenuItem onClick={handleExportXlsx}>Export as Excel</MenuItem>
           </Menu>
         </>
       ) : null}
     </Box>
-  )
+  );
 
   return (
     <Card>
@@ -208,21 +203,21 @@ export default function ProposalDetailsCard({
         title="Tabulation"
         action={headerActions}
         sx={{
-          alignItems: { xs: 'stretch', sm: 'center' },
-          '& .MuiCardHeader-action': {
+          alignItems: { xs: "stretch", sm: "center" },
+          "& .MuiCardHeader-action": {
             m: 0,
-            width: 'auto',
-            justifyContent: 'end',
+            width: "auto",
+            justifyContent: "end",
           },
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: "column", sm: "row" },
           gap: 2,
         }}
       />
-      <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+      <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Tabs
           value={selectedTab}
           onChange={(_, value: number) => setSelectedTab(value)}
-          sx={{ px: 3, borderBottom: 1, borderColor: 'divider' }}
+          sx={{ px: 3, borderBottom: 1, borderColor: "divider" }}
         >
           <Tab label="Overview" />
           <Tab label="Positions" />
@@ -252,7 +247,7 @@ export default function ProposalDetailsCard({
                 onChange={(event) =>
                   onFiltersChange({
                     ...filters,
-                    holderType: event.target.value as TabulationFilters['holderType'],
+                    holderType: event.target.value as TabulationFilters["holderType"],
                   })
                 }
                 size="small"
@@ -415,5 +410,5 @@ export default function ProposalDetailsCard({
         </DialogActions>
       </Dialog>
     </Card>
-  )
+  );
 }

@@ -134,10 +134,10 @@ Keep revalidation windows short (30–120s) for dashboards; rely on explicit tag
 ## Using the Repository in a Component
 
 ```tsx
-import { documentRepository } from '@/domain-models/documentRepository'
+import { documentRepository } from "@/domain-models/documentRepository";
 
 async function Example({ meetingId }: { meetingId: string }) {
-  const docs = await documentRepository.listByMeeting(meetingId)
+  const docs = await documentRepository.listByMeeting(meetingId);
   // render docs
 }
 ```
@@ -322,9 +322,9 @@ switch (link.action) {
 
 ```typescript
 interface TaskLink {
-  label: string // Display text for the link
-  action: string // Determines UI behavior (upload, signature, download, etc.)
-  url?: string // Optional URL for external actions
+  label: string; // Display text for the link
+  action: string; // Determines UI behavior (upload, signature, download, etc.)
+  url?: string; // Optional URL for external actions
 }
 ```
 
@@ -332,14 +332,14 @@ interface TaskLink {
 
 ```typescript
 interface SignatureArea {
-  id: string // Unique identifier
-  x: number // Percentage from left (0-100)
-  y: number // Percentage from top (0-100)
-  width: number // Percentage width (0-100)
-  height: number // Percentage height (0-100)
-  page?: number // Page number (default 1)
-  label?: string // Display label
-  signed?: boolean // Signature status
+  id: string; // Unique identifier
+  x: number; // Percentage from left (0-100)
+  y: number; // Percentage from top (0-100)
+  width: number; // Percentage width (0-100)
+  height: number; // Percentage height (0-100)
+  page?: number; // Page number (default 1)
+  label?: string; // Display label
+  signed?: boolean; // Signature status
 }
 ```
 
@@ -390,14 +390,14 @@ The system now provides a complete workflow for task completion that generates, 
 ```typescript
 const generateFilledPDF = async (taskTitle: string): Promise<Blob> => {
   const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'letter',
-  })
+    orientation: "portrait",
+    unit: "mm",
+    format: "letter",
+  });
 
   // Add header, form fields, signatures, and timestamp
   // Returns PDF as blob for storage
-}
+};
 ```
 
 #### 2. Storage Upload (`TaskDrawer.tsx:354-367`)
@@ -409,11 +409,11 @@ const generateFilledPDF = async (taskTitle: string): Promise<Blob> => {
 
 ```typescript
 const { data: uploadData, error: uploadError } = await supabase.storage
-  .from('documents')
+  .from("documents")
   .upload(filePath, pdfBlob, {
-    contentType: 'application/pdf',
+    contentType: "application/pdf",
     upsert: false,
-  })
+  });
 ```
 
 #### 3. Database Record (`TaskDrawer.tsx:369-385`)
@@ -478,8 +478,8 @@ Main interface for task management with complete document integration.
 ```typescript
 // PDF form state structure
 interface PdfFormState {
-  formFields: Record<string, string> // Text/date field values
-  signatures: Record<string, string> // Signature area data
+  formFields: Record<string, string>; // Text/date field values
+  signatures: Record<string, string>; // Signature area data
 }
 ```
 

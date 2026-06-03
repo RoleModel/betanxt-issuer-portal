@@ -1,30 +1,28 @@
-import { useRouter } from 'next/navigation'
-import { useCallback } from 'react'
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 
-import buildApiClient from '@/domain-models/apiClient'
+import type { components } from "@/types/api";
 
-import type { components } from '@/types/api'
-import { COMPLETED_STATUSES, calculateOverallCompletion } from '@/utils/taskControl'
+import buildApiClient from "@/domain-models/apiClient";
+import { COMPLETED_STATUSES, calculateOverallCompletion } from "@/utils/taskControl";
 
-type Task = components['schemas']['Task']
+type Task = components["schemas"]["Task"];
 
 interface Meeting {
-  id?: string
-  title?: string
+  id?: string;
+  title?: string;
 }
 
 interface Session {
   user?: {
-    name?: string | null
-  }
+    name?: string | null;
+  };
 }
 
 interface UsePhaseCompletionProps {
-  currentMeeting: Meeting | null
-  session: Session | null
-  refreshContext:
-    | (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>)
-    | undefined
+  currentMeeting: Meeting | null;
+  session: Session | null;
+  refreshContext: (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>) | undefined;
 }
 
 export const usePhaseCompletion = ({
@@ -32,35 +30,34 @@ export const usePhaseCompletion = ({
   session,
   refreshContext,
 }: UsePhaseCompletionProps) => {
-  const router = useRouter()
+  const router = useRouter();
 
   const checkAndCompletePhase = useCallback(
     async (taskWithPhase: Task | null): Promise<boolean> => {
       if (!taskWithPhase?.phaseNumber || taskWithPhase.phaseNumber <= 0) {
-        return false
+        return false;
       }
 
       if (!refreshContext) {
-        return false
+        return false;
       }
 
-      const currentPhaseNumber = taskWithPhase.phaseNumber
+      const currentPhaseNumber = taskWithPhase.phaseNumber;
 
       // Delay to ensure database is fully updated
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Refresh tasks from context to get latest status
-      const refreshedData = await refreshContext()
-      const freshTasks = refreshedData?.tasks || []
+      const refreshedData = await refreshContext();
+      const freshTasks = refreshedData?.tasks || [];
 
       // Get all tasks for the current phase (excluding BetaNXT and DFIN owned tasks)
       const currentPhaseTasks = freshTasks.filter(
         (t: Task) =>
-          t.phaseNumber === currentPhaseNumber &&
-          !['BetaNXT', 'DFIN'].includes(t.owner ?? '')
-      )
+          t.phaseNumber === currentPhaseNumber && !["BetaNXT", "DFIN"].includes(t.owner ?? ""),
+      );
 
-      console.log('Phase advancement check:', {
+      console.log("Phase advancement check:", {
         currentPhaseNumber,
         totalTasks: freshTasks.length,
         currentPhaseTasks: currentPhaseTasks.length,
@@ -69,79 +66,75 @@ export const usePhaseCompletion = ({
           status: t.status,
           owner: t.owner,
         })),
-      })
+      });
 
       // Check if all phase tasks have been initiated
       const allPhaseTasksInitiated =
         currentPhaseTasks.length > 0 &&
-        currentPhaseTasks.every((t: Task) =>
-          COMPLETED_STATUSES.includes(t.status as never)
-        )
+        currentPhaseTasks.every((t: Task) => COMPLETED_STATUSES.includes(t.status as never));
 
-      console.log('All phase tasks initiated?', allPhaseTasksInitiated)
+      console.log("All phase tasks initiated?", allPhaseTasksInitiated);
 
       if (allPhaseTasksInitiated) {
         // Update meeting to next phase and calculate completion percentage
         if (currentMeeting?.id) {
           try {
-            const client = await buildApiClient()
+            const client = await buildApiClient();
 
             // Calculate overall completion
-            const overallCompletion = calculateOverallCompletion(freshTasks)
+            const overallCompletion = calculateOverallCompletion(freshTasks);
 
-            const nextPhaseNumber = currentPhaseNumber + 1
+            const nextPhaseNumber = currentPhaseNumber + 1;
 
             const updatePayload = {
               currentPhase: `Phase ${nextPhaseNumber}`,
               overallCompletion: overallCompletion,
-            }
+            };
 
             // Update meeting phase and completion
-            await client.PUT('/meetings/{meetingId}', {
+            await client.PUT("/meetings/{meetingId}", {
               params: {
                 path: { meetingId: currentMeeting.id },
               },
               body: updatePayload,
-            })
+            });
 
             // Refresh meeting data to update the context with new phase
-            await refreshContext()
+            await refreshContext();
           } catch (error) {
-            console.error('Error advancing phase:', error)
-            return false
+            console.error("Error advancing phase:", error);
+            return false;
           }
         }
 
         // Get user name and meeting title for personalized message
-        const userName = session?.user?.name ?? 'User'
-        const meetingTitle = currentMeeting?.title ?? 'Shareholder Meeting'
-        const nextPhaseNumber = currentPhaseNumber + 1
+        const userName = session?.user?.name ?? "User";
+        const meetingTitle = currentMeeting?.title ?? "Shareholder Meeting";
+        const nextPhaseNumber = currentPhaseNumber + 1;
 
         // Dispatch global phase complete event for Layout to show snackbar
-        const message = `Congratulations, ${userName}! 🎉 All tasks for Phase ${currentPhaseNumber} of "${meetingTitle}" are complete! You're now advancing to Phase ${nextPhaseNumber}.`
+        const message = `Congratulations, ${userName}! 🎉 All tasks for Phase ${currentPhaseNumber} of "${meetingTitle}" are complete! You're now advancing to Phase ${nextPhaseNumber}.`;
         window.dispatchEvent(
-          new CustomEvent('phaseComplete', {
+          new CustomEvent("phaseComplete", {
             detail: { message },
-          })
-        )
+          }),
+        );
 
         // Navigate to next phase dashboard after 3 seconds
         setTimeout(() => {
-          const pathParts = window.location.pathname.split('/')
-          const clientTicker = pathParts[1]
-          const meetingId = pathParts[3]
-          router.push(
-            `/${clientTicker}/meeting/${meetingId}/dashboard/${nextPhaseNumber}`
-          )
-        }, 3000)
+          const pathParts = window.location.pathname.split("/");
+          const clientTicker = pathParts[1];
+          const meetingId = pathParts[3];
+          router.push(`/${clientTicker}/meeting/${meetingId}/dashboard/${nextPhaseNumber}`);
+        }, 3000);
 
-        return true
+        return true;
       }
 
-      return false
+      return false;
     },
-    [currentMeeting, session, refreshContext, router]
-  )
+    [currentMeeting, session, refreshContext, router],
+  );
 
-  return { checkAndCompletePhase }
-}
+  return { checkAndCompletePhase };
+};

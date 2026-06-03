@@ -89,19 +89,19 @@ The seed data creates notifications for test users:
    Add to your test:
 
    ```typescript
-   await page.screenshot({ path: 'test-failure.png' })
+   await page.screenshot({ path: "test-failure.png" });
    ```
 
 2. **Check console logs:**
 
    ```typescript
-   page.on('console', (msg) => console.log('Browser log:', msg.text()))
+   page.on("console", (msg) => console.log("Browser log:", msg.text()));
    ```
 
 3. **Slow down tests:**
 
    ```typescript
-   await page.waitForTimeout(1000) // Add pauses to see what's happening
+   await page.waitForTimeout(1000); // Add pauses to see what's happening
    ```
 
 4. **Use Playwright Inspector:**

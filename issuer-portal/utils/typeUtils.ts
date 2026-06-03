@@ -9,8 +9,8 @@
  * @returns Array or empty array if cast fails
  */
 export function asArray<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[]
-  return []
+  if (Array.isArray(value)) return value as T[];
+  return [];
 }
 
 /**
@@ -19,10 +19,10 @@ export function asArray<T>(value: unknown): T[] {
  * @returns Record object or null if cast fails
  */
 export function asRecord(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
   }
-  return null
+  return null;
 }
 
 /**
@@ -31,7 +31,7 @@ export function asRecord(value: unknown): Record<string, unknown> | null {
  * @returns String or null if cast fails
  */
 export function asString(value: unknown): string | null {
-  return typeof value === 'string' ? value : null
+  return typeof value === "string" ? value : null;
 }
 
 /**
@@ -40,7 +40,7 @@ export function asString(value: unknown): string | null {
  * @returns Number or null if cast fails
  */
 export function asNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 /**
@@ -51,10 +51,10 @@ export function asNumber(value: unknown): number | null {
  */
 export function getStr(obj: Record<string, unknown>, keys: string[]): string | null {
   for (const k of keys) {
-    const v = asString(obj[k])
-    if (v !== null) return v
+    const v = asString(obj[k]);
+    if (v !== null) return v;
   }
-  return null
+  return null;
 }
 
 /**
@@ -65,8 +65,8 @@ export function getStr(obj: Record<string, unknown>, keys: string[]): string | n
  */
 export function getNum(obj: Record<string, unknown>, keys: string[]): number | null {
   for (const k of keys) {
-    const v = asNumber(obj[k])
-    if (v !== null) return v
+    const v = asNumber(obj[k]);
+    if (v !== null) return v;
   }
-  return null
+  return null;
 }

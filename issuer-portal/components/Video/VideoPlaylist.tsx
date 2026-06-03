@@ -1,26 +1,25 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box, Divider, Stack } from "@mui/material";
+import React from "react";
 
-import { Box, Divider, Stack } from '@mui/material'
-
-import VideoThumbnail from './VideoThumbnail'
+import VideoThumbnail from "./VideoThumbnail";
 
 export interface VideoItem {
-  id: string
-  title: string
-  description: string
-  seriesNumber: string
-  thumbnail?: string
-  duration?: string
-  src?: string
+  id: string;
+  title: string;
+  description: string;
+  seriesNumber: string;
+  thumbnail?: string;
+  duration?: string;
+  src?: string;
 }
 
 interface VideoPlaylistProps {
-  videos: VideoItem[]
-  activeVideoId?: string
-  playingVideoId?: string
-  onVideoSelect: (video: VideoItem) => void
+  videos: VideoItem[];
+  activeVideoId?: string;
+  playingVideoId?: string;
+  onVideoSelect: (video: VideoItem) => void;
 }
 
 export default function VideoPlaylist({
@@ -32,7 +31,7 @@ export default function VideoPlaylist({
   return (
     <Box
       sx={{
-        width: '100%',
+        width: "100%",
         // Calculate aspect ratio to match video player height
         // Video player: 8/12 columns with 16:9 ratio
         // Playlist: 4/12 columns, so needs 8:9 ratio to match height
@@ -41,16 +40,16 @@ export default function VideoPlaylist({
         borderRadius: 1,
         border: 1,
         borderColor: (theme) => theme.vars.palette.divider,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Box
         sx={{
           flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          overflowY: "auto",
+          overflowX: "hidden",
           px: 2,
           py: 2,
         }}
@@ -72,5 +71,5 @@ export default function VideoPlaylist({
         </Stack>
       </Box>
     </Box>
-  )
+  );
 }

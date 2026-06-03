@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,123 +23,121 @@ export interface CreateClientRequest {
    * @type {string}
    * @memberof CreateClientRequest
    */
-  ticker: string
+  ticker: string;
   /**
    * Full legal name of the company
    * @type {string}
    * @memberof CreateClientRequest
    */
-  companyName: string
+  companyName: string;
   /**
    * Short display name for the company
    * @type {string}
    * @memberof CreateClientRequest
    */
-  shortName: string
+  shortName: string;
   /**
    * Industry sector
    * @type {string}
    * @memberof CreateClientRequest
    */
-  industry?: string
+  industry?: string;
   /**
    * Company description
    * @type {string}
    * @memberof CreateClientRequest
    */
-  description?: string
+  description?: string;
   /**
    * Company website URL
    * @type {string}
    * @memberof CreateClientRequest
    */
-  website?: string
+  website?: string;
   /**
    * Primary contact person
    * @type {string}
    * @memberof CreateClientRequest
    */
-  primaryContact?: string
+  primaryContact?: string;
   /**
    * Primary contact email
    * @type {string}
    * @memberof CreateClientRequest
    */
-  primaryContactEmail?: string
+  primaryContactEmail?: string;
   /**
    * Whether the client is active
    * @type {boolean}
    * @memberof CreateClientRequest
    */
-  isActive?: boolean
+  isActive?: boolean;
   /**
    * Unique branding identifier for document hosting site URLs
    * @type {number}
    * @memberof CreateClientRequest
    */
-  brandingId?: number | null
+  brandingId?: number | null;
 }
 
 /**
  * Check if a given object implements the CreateClientRequest interface.
  */
-export function instanceOfCreateClientRequest(
-  value: object
-): value is CreateClientRequest {
-  if (!('ticker' in value) || value['ticker'] === undefined) return false
-  if (!('companyName' in value) || value['companyName'] === undefined) return false
-  if (!('shortName' in value) || value['shortName'] === undefined) return false
-  return true
+export function instanceOfCreateClientRequest(value: object): value is CreateClientRequest {
+  if (!("ticker" in value) || value["ticker"] === undefined) return false;
+  if (!("companyName" in value) || value["companyName"] === undefined) return false;
+  if (!("shortName" in value) || value["shortName"] === undefined) return false;
+  return true;
 }
 
 export function CreateClientRequestFromJSON(json: any): CreateClientRequest {
-  return CreateClientRequestFromJSONTyped(json, false)
+  return CreateClientRequestFromJSONTyped(json, false);
 }
 
 export function CreateClientRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateClientRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    ticker: json['ticker'],
-    companyName: json['companyName'],
-    shortName: json['shortName'],
-    industry: json['industry'] == null ? undefined : json['industry'],
-    description: json['description'] == null ? undefined : json['description'],
-    website: json['website'] == null ? undefined : json['website'],
-    primaryContact: json['primaryContact'] == null ? undefined : json['primaryContact'],
+    ticker: json["ticker"],
+    companyName: json["companyName"],
+    shortName: json["shortName"],
+    industry: json["industry"] == null ? undefined : json["industry"],
+    description: json["description"] == null ? undefined : json["description"],
+    website: json["website"] == null ? undefined : json["website"],
+    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json['primaryContactEmail'] == null ? undefined : json['primaryContactEmail'],
-    isActive: json['isActive'] == null ? undefined : json['isActive'],
-    brandingId: json['brandingId'] == null ? undefined : json['brandingId'],
-  }
+      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+    isActive: json["isActive"] == null ? undefined : json["isActive"],
+    brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
+  };
 }
 
 export function CreateClientRequestToJSON(json: any): CreateClientRequest {
-  return CreateClientRequestToJSONTyped(json, false)
+  return CreateClientRequestToJSONTyped(json, false);
 }
 
 export function CreateClientRequestToJSONTyped(
   value?: CreateClientRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    ticker: value['ticker'],
-    companyName: value['companyName'],
-    shortName: value['shortName'],
-    industry: value['industry'],
-    description: value['description'],
-    website: value['website'],
-    primaryContact: value['primaryContact'],
-    primaryContactEmail: value['primaryContactEmail'],
-    isActive: value['isActive'],
-    brandingId: value['brandingId'],
-  }
+    ticker: value["ticker"],
+    companyName: value["companyName"],
+    shortName: value["shortName"],
+    industry: value["industry"],
+    description: value["description"],
+    website: value["website"],
+    primaryContact: value["primaryContact"],
+    primaryContactEmail: value["primaryContactEmail"],
+    isActive: value["isActive"],
+    brandingId: value["brandingId"],
+  };
 }

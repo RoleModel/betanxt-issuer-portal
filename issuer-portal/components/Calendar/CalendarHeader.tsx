@@ -3,9 +3,7 @@
  * Provides controls for switching between month and list views
  */
 
-'use client'
-
-import React, { useState } from 'react'
+"use client";
 
 import {
   AddOutlined as AddIcon,
@@ -17,7 +15,7 @@ import {
   ShareOutlined as ShareIcon,
   ZoomInMapOutlined as ZoomInMapOutlinedIcon,
   ZoomOutMapOutlined as ZoomOutMapOutlinedIcon,
-} from '@mui/icons-material'
+} from "@mui/icons-material";
 import {
   Box,
   Collapse,
@@ -32,7 +30,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React, { useState } from "react";
 
 /**
  * CalendarHeader component with view toggle, filters, and search functionality
@@ -69,26 +68,26 @@ import {
  * Provides controls for switching between month and list views
  */
 
-export type CalendarViewType = 'month' | 'list'
+export type CalendarViewType = "month" | "list";
 
 interface CalendarHeaderProps {
-  view: CalendarViewType
-  onViewChange: (view: CalendarViewType) => void
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  statusFilter: string
-  onStatusFilterChange: (status: string) => void
-  phaseFilter: number | null
-  onPhaseFilterChange: (phase: number | null) => void
+  view: CalendarViewType;
+  onViewChange: (view: CalendarViewType) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
+  phaseFilter: number | null;
+  onPhaseFilterChange: (phase: number | null) => void;
 }
 
 interface CalendarHeaderPropsInternal extends CalendarHeaderProps {
-  isFullscreen?: boolean
-  onFullscreenToggle?: () => void
-  onAddClick?: () => void
-  onPrint?: () => void
-  onExportIcs?: () => void
-  onExportPdf?: () => void
+  isFullscreen?: boolean;
+  onFullscreenToggle?: () => void;
+  onAddClick?: () => void;
+  onPrint?: () => void;
+  onExportIcs?: () => void;
+  onExportPdf?: () => void;
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
@@ -103,39 +102,39 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
   onExportIcs,
   onExportPdf,
 }) => {
-  const [searchExpanded, setSearchExpanded] = useState(false)
-  const [shareMenuAnchor, setShareMenuAnchor] = useState<null | HTMLElement>(null)
-  const shareMenuOpen = Boolean(shareMenuAnchor)
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [shareMenuAnchor, setShareMenuAnchor] = useState<null | HTMLElement>(null);
+  const shareMenuOpen = Boolean(shareMenuAnchor);
 
   const handleSearchToggle = () => {
-    setSearchExpanded(!searchExpanded)
+    setSearchExpanded(!searchExpanded);
     if (searchExpanded && searchQuery) {
-      onSearchChange('')
+      onSearchChange("");
     }
-  }
+  };
 
   const handleShareMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setShareMenuAnchor(event.currentTarget)
-  }
+    setShareMenuAnchor(event.currentTarget);
+  };
 
   const handleShareMenuClose = () => {
-    setShareMenuAnchor(null)
-  }
+    setShareMenuAnchor(null);
+  };
 
   const handlePrint = () => {
-    handleShareMenuClose()
-    onPrint?.()
-  }
+    handleShareMenuClose();
+    onPrint?.();
+  };
 
   const handleExportIcs = () => {
-    handleShareMenuClose()
-    onExportIcs?.()
-  }
+    handleShareMenuClose();
+    onExportIcs?.();
+  };
 
   const handleExportPdf = () => {
-    handleShareMenuClose()
-    onExportPdf?.()
-  }
+    handleShareMenuClose();
+    onExportPdf?.();
+  };
 
   return (
     <Paper
@@ -146,7 +145,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
         background: theme.vars?.palette?.appSwitcher?.background,
         color: theme.vars?.palette?.appSwitcher?.contrastText,
         borderRadius: 0,
-        position: isFullscreen ? 'relative' : 'sticky',
+        position: isFullscreen ? "relative" : "sticky",
         borderBottom: (theme) => `1px solid ${theme.vars?.palette?.divider}`,
         top: isFullscreen ? 0 : undefined,
         zIndex: 1000,
@@ -156,9 +155,9 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
       <Box
         display="flex"
         gap={1}
-        flexDirection={{ xs: 'column', sm: 'row' }}
-        alignItems={{ xs: 'stretch', sm: 'center' }}
-        justifyContent={{ xs: 'stretch', sm: 'space-between' }}
+        flexDirection={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        justifyContent={{ xs: "stretch", sm: "space-between" }}
       >
         <Box flex="1">
           <Typography variant="h3" fontWeight={700} color="inherit">
@@ -169,24 +168,17 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           </Typography>
         </Box>
 
-        <Box
-          display="flex"
-          flex="1"
-          justifyContent="flex-end"
-          alignItems="center"
-          gap={1.5}
-        >
+        <Box display="flex" flex="1" justifyContent="flex-end" alignItems="center" gap={1.5}>
           {/* Search */}
-          <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
             <IconButton
               onClick={handleSearchToggle}
-              aria-label={searchExpanded ? 'Close search' : 'Open search'}
+              aria-label={searchExpanded ? "Close search" : "Open search"}
               sx={{
                 color: (theme) => theme.vars?.palette?.common.white,
                 p: 1,
-                '&:hover': {
-                  background: (theme) =>
-                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                "&:hover": {
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -197,7 +189,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               in={searchExpanded}
               orientation="horizontal"
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 right: 0,
                 zIndex: 10,
               }}
@@ -210,7 +202,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 autoFocus={searchExpanded}
                 onBlur={() => {
                   if (!searchQuery) {
-                    setSearchExpanded(false)
+                    setSearchExpanded(false);
                   }
                 }}
                 slotProps={{
@@ -230,20 +222,19 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 sx={{
                   width: 250,
                   ml: 1,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: (theme) =>
-                      theme.vars?.palette?.appSwitcher?.background,
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: (theme) => theme.vars?.palette?.appSwitcher?.background,
                     color: (theme) => theme.vars?.palette?.common.white,
-                    fontSize: '0.875rem',
+                    fontSize: "0.875rem",
                     height: 40,
-                    '& fieldset': {
-                      borderColor: 'rgba(255,255,255,0.5)',
+                    "& fieldset": {
+                      borderColor: "rgba(255,255,255,0.5)",
                       borderWidth: 1,
                     },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255,255,255,0.5)',
+                    "&:hover fieldset": {
+                      borderColor: "rgba(255,255,255,0.5)",
                     },
-                    '&.Mui-focused fieldset': {
+                    "&.Mui-focused fieldset": {
                       borderColor: (theme) => theme.vars?.palette?.primary.light,
                       borderWidth: 2,
                     },
@@ -258,25 +249,25 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
             value={view}
             exclusive
             onChange={(_, newView: CalendarViewType | null) => {
-              if (newView) onViewChange(newView)
+              if (newView) onViewChange(newView);
             }}
             aria-label="calendar view"
             size="small"
             sx={{
-              display: { xs: 'none', sm: 'flex' },
+              display: { xs: "none", sm: "flex" },
               height: 40,
-              '& .MuiToggleButton-root': {
+              "& .MuiToggleButton-root": {
                 color: (theme) => theme.vars?.palette?.common.white,
                 borderColor: (theme) => theme.vars?.palette?.primary.light,
-                '&.Mui-selected': {
+                "&.Mui-selected": {
                   background: (theme) => theme.vars?.palette?.primary.light,
                   color: (theme) => theme.vars?.palette?.common.white,
-                  '&:hover': {
+                  "&:hover": {
                     background: (theme) => theme.vars?.palette?.primary.light,
                   },
                 },
-                '&:hover': {
-                  background: 'rgba(255,255,255,0.1)',
+                "&:hover": {
+                  background: "rgba(255,255,255,0.1)",
                   color: (theme) => theme.vars?.palette?.primary.light,
                 },
               },
@@ -298,17 +289,16 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               aria-label="Add new task"
               sx={{
                 p: 1,
-                borderRadius: '50%',
-                background: 'transparent',
-                border: 'none',
+                borderRadius: "50%",
+                background: "transparent",
+                border: "none",
                 color: (theme) => theme.vars?.palette?.common.white,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  background: (theme) =>
-                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&:hover": {
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -318,22 +308,21 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
               component="button"
               onClick={handleShareMenuOpen}
               aria-label="Share calendar"
-              aria-controls={shareMenuOpen ? 'share-menu' : undefined}
+              aria-controls={shareMenuOpen ? "share-menu" : undefined}
               aria-haspopup="true"
-              aria-expanded={shareMenuOpen ? 'true' : undefined}
+              aria-expanded={shareMenuOpen ? "true" : undefined}
               sx={{
                 p: 1,
-                borderRadius: '50%',
-                background: 'transparent',
-                border: 'none',
+                borderRadius: "50%",
+                background: "transparent",
+                border: "none",
                 color: (theme) => theme.vars?.palette?.common.white,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  background: (theme) =>
-                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&:hover": {
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -342,20 +331,19 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
             <Box
               component="button"
               onClick={onFullscreenToggle}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               sx={{
                 p: 1,
-                borderRadius: '50%',
-                background: 'transparent',
-                border: 'none',
+                borderRadius: "50%",
+                background: "transparent",
+                border: "none",
                 color: (theme) => theme.vars?.palette?.common.white,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  background: (theme) =>
-                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&:hover": {
+                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -376,15 +364,15 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
         open={shareMenuOpen}
         onClose={handleShareMenuClose}
         MenuListProps={{
-          'aria-labelledby': 'share-button',
+          "aria-labelledby": "share-button",
         }}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
       >
         <MenuItem onClick={handlePrint}>
@@ -407,7 +395,7 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
         </MenuItem>
       </Menu>
     </Paper>
-  )
-}
+  );
+};
 
-export default CalendarHeader
+export default CalendarHeader;

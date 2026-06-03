@@ -1,26 +1,27 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from "crypto";
 
-import type { components } from '@/types/api'
-import { supabase } from '@/utils/supabase/client'
-import type { Database } from '@/utils/supabase/database.types'
+import type { components } from "@/types/api";
+import type { Database } from "@/utils/supabase/database.types";
+
+import { supabase } from "@/utils/supabase/client";
 
 // Helper function to convert null to undefined
 function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value
+  return value === null ? undefined : value;
 }
 
 // Use generated types from OpenAPI schema
-type DSMConfig = components['schemas']['DSMConfig']
-type DSMConfigRow = Database['public']['Tables']['dsm_config']['Row']
-type DSMConfigInsert = Database['public']['Tables']['dsm_config']['Insert']
+type DSMConfig = components["schemas"]["DSMConfig"];
+type DSMConfigRow = Database["public"]["Tables"]["dsm_config"]["Row"];
+type DSMConfigInsert = Database["public"]["Tables"]["dsm_config"]["Insert"];
 
 // Helper type for backend responses
 interface ApiResponse<T> {
-  data?: T
+  data?: T;
   error?: {
-    message: string
-    statusCode?: number
-  }
+    message: string;
+    statusCode?: number;
+  };
 }
 
 // Transform snake_case database fields to camelCase API fields
@@ -50,13 +51,13 @@ export function transformDSMConfig(dbConfig: DSMConfigRow): DSMConfig {
     guestLinkRegistrationDocId: nullToUndefined(dbConfig.guest_link_registration_doc_id),
     createdAt: nullToUndefined(dbConfig.created_at),
     updatedAt: nullToUndefined(dbConfig.updated_at),
-  }
+  };
 }
 
 // Transform camelCase API fields to snake_case database fields
 export function transformToDSMConfigInsert(
   config: Partial<DSMConfig>,
-  meetingId: string
+  meetingId: string,
 ): DSMConfigInsert {
   return {
     id: config.id || randomUUID(),
@@ -81,22 +82,22 @@ export function transformToDSMConfigInsert(
     inspector_email: config.inspectorEmail,
     speaker_list_doc_id: config.speakerListDocId,
     guest_link_registration_doc_id: config.guestLinkRegistrationDocId,
-  }
+  };
 }
 
 export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMConfig>> {
   try {
     const { data, error } = await supabase
-      .from('dsm_config')
-      .select('*')
-      .eq('meeting_id', meetingId)
-      .single()
+      .from("dsm_config")
+      .select("*")
+      .eq("meeting_id", meetingId)
+      .single();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== "PGRST116") {
       // PGRST116 = no rows returned
       return {
-        error: { message: error.message ?? 'Failed to fetch DSM config' },
-      }
+        error: { message: error.message ?? "Failed to fetch DSM config" },
+      };
     }
 
     if (!data) {
@@ -109,82 +110,82 @@ export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMCo
           meetingRecording: false,
           isConfirmed: false,
         } as DSMConfig,
-      }
+      };
     }
 
     return {
       data: transformDSMConfig(data),
-    }
+    };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Failed to fetch DSM config',
+        message: error instanceof Error ? error.message : "Failed to fetch DSM config",
       },
-    }
+    };
   }
 }
 
 export async function createOrUpdateDSMConfig(
   meetingId: string,
-  config: Partial<DSMConfig>
+  config: Partial<DSMConfig>,
 ): Promise<ApiResponse<DSMConfig>> {
   try {
-    const dbRecord = transformToDSMConfigInsert(config, meetingId)
+    const dbRecord = transformToDSMConfigInsert(config, meetingId);
 
     const { data, error } = await supabase
-      .from('dsm_config')
+      .from("dsm_config")
       .upsert(dbRecord, {
-        onConflict: 'meeting_id',
+        onConflict: "meeting_id",
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
       return {
-        error: { message: error.message ?? 'Failed to save DSM config' },
-      }
+        error: { message: error.message ?? "Failed to save DSM config" },
+      };
     }
 
     return {
       data: transformDSMConfig(data),
-    }
+    };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Failed to save DSM config',
+        message: error instanceof Error ? error.message : "Failed to save DSM config",
       },
-    }
+    };
   }
 }
 
 export async function updateDSMConfig(
   meetingId: string,
-  config: Partial<DSMConfig>
+  config: Partial<DSMConfig>,
 ): Promise<ApiResponse<DSMConfig>> {
   try {
-    const dbRecord = transformToDSMConfigInsert(config, meetingId)
+    const dbRecord = transformToDSMConfigInsert(config, meetingId);
 
     const { data, error } = await supabase
-      .from('dsm_config')
+      .from("dsm_config")
       .update(dbRecord)
-      .eq('meeting_id', meetingId)
+      .eq("meeting_id", meetingId)
       .select()
-      .single()
+      .single();
 
     if (error) {
       return {
-        error: { message: error.message ?? 'Failed to update DSM config' },
-      }
+        error: { message: error.message ?? "Failed to update DSM config" },
+      };
     }
 
     return {
       data: transformDSMConfig(data),
-    }
+    };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Failed to update DSM config',
+        message: error instanceof Error ? error.message : "Failed to update DSM config",
       },
-    }
+    };
   }
 }

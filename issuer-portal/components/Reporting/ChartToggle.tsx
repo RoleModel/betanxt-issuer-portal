@@ -1,27 +1,23 @@
-'use client'
+"use client";
 
-import React from 'react'
+import GroupsIcon from "@mui/icons-material/Groups";
+import PersonIcon from "@mui/icons-material/Person";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import React from "react";
 
-import GroupsIcon from '@mui/icons-material/Groups'
-import PersonIcon from '@mui/icons-material/Person'
-import { ToggleButton, ToggleButtonGroup } from '@mui/material'
-
-export type ChartView = 'aggregate' | 'individual'
+export type ChartView = "aggregate" | "individual";
 
 interface ChartToggleProps {
-  value: ChartView
-  onChange: (value: ChartView) => void
+  value: ChartView;
+  onChange: (value: ChartView) => void;
 }
 
 const ChartToggle: React.FC<ChartToggleProps> = ({ value, onChange }) => {
-  const handleChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newValue: ChartView | null
-  ) => {
+  const handleChange = (_event: React.MouseEvent<HTMLElement>, newValue: ChartView | null) => {
     if (newValue !== null) {
-      onChange(newValue)
+      onChange(newValue);
     }
-  }
+  };
 
   return (
     <ToggleButtonGroup value={value} exclusive onChange={handleChange} size="small">
@@ -32,7 +28,7 @@ const ChartToggle: React.FC<ChartToggleProps> = ({ value, onChange }) => {
         <PersonIcon />
       </ToggleButton>
     </ToggleButtonGroup>
-  )
-}
+  );
+};
 
-export default ChartToggle
+export default ChartToggle;

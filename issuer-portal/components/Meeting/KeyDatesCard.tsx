@@ -1,42 +1,32 @@
-'use client'
+"use client";
 
-import React, { useRef } from 'react'
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { Box, Card, CardContent, CardHeader, Typography, styled, useTheme } from "@mui/material";
+import React, { useRef } from "react";
 
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  styled,
-  useTheme,
-} from '@mui/material'
-
-import { getPhaseColor } from '@/components/mui-styling/theme'
-
-import { calculateDaysUntil, formatDaysUntil, parseLocalDate } from '@/utils/dateUtils'
+import { getPhaseColor } from "@/components/mui-styling/theme";
+import { calculateDaysUntil, formatDaysUntil, parseLocalDate } from "@/utils/dateUtils";
 
 interface TransformedKeyDate {
-  title: string
-  date: string
-  dateString: string // Original date string for calculations
-  phase: number
-  phaseColor: string
-  isMeeting: boolean
+  title: string;
+  date: string;
+  dateString: string; // Original date string for calculations
+  phase: number;
+  phaseColor: string;
+  isMeeting: boolean;
 }
 
 interface KeyDatesCardProps {
-  loading?: boolean
-  transformedKeyDates?: TransformedKeyDate[]
-  className?: string
+  loading?: boolean;
+  transformedKeyDates?: TransformedKeyDate[];
+  className?: string;
   meeting?: {
-    id?: string
-    recordDate?: string | null
-    mailingDate?: string | null
-    meetingDate?: string | null
-    brokerSearchDate?: string | null
-  }
+    id?: string;
+    recordDate?: string | null;
+    mailingDate?: string | null;
+    meetingDate?: string | null;
+    brokerSearchDate?: string | null;
+  };
 }
 
 const LoadingBox = styled(Box)(({ theme }) => ({
@@ -46,20 +36,19 @@ const LoadingBox = styled(Box)(({ theme }) => ({
   background: theme.vars.palette.background.default,
   borderRadius: 1.5,
   p: 1.5,
-}))
+}));
 
 interface KeyDateBoxProps {
-  isMeeting?: boolean
-  isPast?: boolean
-  phaseColor: string
+  isMeeting?: boolean;
+  isPast?: boolean;
+  phaseColor: string;
 }
 
 const KeyDateBox = styled(Box, {
-  shouldForwardProp: (prop) =>
-    !['isMeeting', 'isPast', 'phaseColor'].includes(prop as string),
+  shouldForwardProp: (prop) => !["isMeeting", "isPast", "phaseColor"].includes(prop as string),
 })<KeyDateBoxProps>(({ theme, isMeeting, isPast, phaseColor }) => ({
   flexGrow: 1,
-  scrollSnapAlign: 'start',
+  scrollSnapAlign: "start",
   background: isMeeting
     ? theme.vars.palette.keydate.contrastText
     : theme.vars.palette.background.default,
@@ -67,88 +56,87 @@ const KeyDateBox = styled(Box, {
   borderLeft: `6px solid ${isPast ? theme.vars.palette.complete : phaseColor}`,
   boxShadow: `0px 0px 0px 1px inset ${theme.vars.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
-  boxSizing: 'content-box',
+  boxSizing: "content-box",
   paddingInline: theme.spacing(1.5),
   paddingBlock: theme.spacing(1),
-  display: 'grid',
-  gridTemplateColumns: isPast ? 'auto 1fr auto' : '1fr 1fr',
+  display: "grid",
+  gridTemplateColumns: isPast ? "auto 1fr auto" : "1fr 1fr",
   gap: isPast ? theme.spacing(1) : 0,
-  placeItems: 'start end',
-}))
+  placeItems: "start end",
+}));
 
 const KeyDateTypography = styled(Typography, {
-  shouldForwardProp: (prop) => prop !== 'isPast',
+  shouldForwardProp: (prop) => prop !== "isPast",
 })<{ isPast?: boolean }>(({ isPast }) => ({
   fontWeight: 500,
   opacity: isPast ? 0.5 : 1,
-}))
+}));
 
 const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   loading = false,
   transformedKeyDates = [],
   meeting,
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const theme = useTheme()
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   // Use meeting dates directly
-  const meetingKeyDates = []
+  const meetingKeyDates = [];
 
   if (meeting?.brokerSearchDate) {
     meetingKeyDates.push({
-      title: 'Broker Search',
-      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+      title: "Broker Search",
+      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
       dateString: meeting.brokerSearchDate,
       phase: 2,
       phaseColor: getPhaseColor(2),
       isMeeting: false,
-    })
+    });
   }
   if (meeting?.recordDate) {
     meetingKeyDates.push({
-      title: 'Record Date',
-      date: parseLocalDate(meeting.recordDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+      title: "Record Date",
+      date: parseLocalDate(meeting.recordDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
       dateString: meeting.recordDate,
       phase: 3,
       phaseColor: getPhaseColor(3),
       isMeeting: false,
-    })
+    });
   }
   if (meeting?.mailingDate) {
     meetingKeyDates.push({
-      title: 'Mailing Date',
-      date: parseLocalDate(meeting.mailingDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+      title: "Mailing Date",
+      date: parseLocalDate(meeting.mailingDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
       dateString: meeting.mailingDate,
       phase: 4,
       phaseColor: getPhaseColor(4),
       isMeeting: false,
-    })
+    });
   }
   if (meeting?.meetingDate) {
     meetingKeyDates.push({
-      title: 'Meeting Date',
-      date: parseLocalDate(meeting.meetingDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+      title: "Meeting Date",
+      date: parseLocalDate(meeting.meetingDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
       dateString: meeting.meetingDate,
       phase: 7,
-      phaseColor: 'var(--mui-palette-keydate-light)',
+      phaseColor: "var(--mui-palette-keydate-light)",
       isMeeting: true,
-    })
+    });
   }
 
-  const displayKeyDates =
-    transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates
+  const displayKeyDates = transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates;
 
   return (
     <Card>
@@ -158,14 +146,14 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
           component="ul"
           ref={scrollContainerRef}
           sx={{
-            display: 'grid',
-            width: '100%',
-            height: '100%',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            transition: 'grid-template-columns 0.3s ease, gap 0.3s ease',
+            display: "grid",
+            width: "100%",
+            height: "100%",
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            transition: "grid-template-columns 0.3s ease, gap 0.3s ease",
             gridTemplateColumns: {
-              xs: '1fr',
+              xs: "1fr",
             },
             gap: 1,
             p: 0,
@@ -176,8 +164,8 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
             ? // Skeleton loading for key dates
               Array.from({ length: 4 }, (_, index) => <LoadingBox key={index} />)
             : displayKeyDates.map((phaseItem, index) => {
-                const daysUntil = calculateDaysUntil(phaseItem.dateString)
-                const isPast = daysUntil < 0
+                const daysUntil = calculateDaysUntil(phaseItem.dateString);
+                const isPast = daysUntil < 0;
                 return (
                   <KeyDateBox
                     key={index}
@@ -205,7 +193,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                             color: phaseItem.isMeeting
                               ? theme.vars.palette.keydate.light
                               : theme.vars.palette.text.primary,
-                          }
+                          };
                         }}
                       >
                         {phaseItem.title}
@@ -220,7 +208,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                             color: phaseItem.isMeeting
                               ? theme.vars.palette.keydate.light
                               : theme.vars.palette.text.primary,
-                          }
+                          };
                         }}
                       >
                         {phaseItem.date}
@@ -234,22 +222,22 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                       sx={(theme) => {
                         return {
                           flexGrow: 1,
-                          alignSelf: 'end',
+                          alignSelf: "end",
                           color: phaseItem.isMeeting
                             ? theme.vars.palette.keydate.light
                             : theme.vars.palette.text.secondary,
-                        }
+                        };
                       }}
                     >
                       {formatDaysUntil(daysUntil)}
                     </Typography>
                   </KeyDateBox>
-                )
+                );
               })}
         </Box>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default KeyDatesCard
+export default KeyDatesCard;

@@ -1,8 +1,6 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { ArrowDropDownOutlined } from '@mui/icons-material'
+import { ArrowDropDownOutlined } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -15,27 +13,28 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface MeetingAccessItem {
-  label: string
-  type: 'confirm' | 'string' | 'upload'
-  value?: boolean
-  string?: string
-  fileFormat?: string
-  fileDescription?: string
+  label: string;
+  type: "confirm" | "string" | "upload";
+  value?: boolean;
+  string?: string;
+  fileFormat?: string;
+  fileDescription?: string;
 }
 
 interface MeetingRolesCardProps {
-  meetingId: string
-  className?: string
+  meetingId: string;
+  className?: string;
 }
 
 const handleConfirm = (label: string) => {
-  alert(`Confirm action for ${label}`)
-}
+  alert(`Confirm action for ${label}`);
+};
 
 const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   className,
@@ -44,49 +43,49 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   // Mock data matching the Figma design
   const accessItems: MeetingAccessItem[] = [
     {
-      label: 'Shares Listed In Proxy Statement',
-      type: 'string',
-      string: '100,000,00',
+      label: "Shares Listed In Proxy Statement",
+      type: "string",
+      string: "100,000,00",
     },
 
     {
-      label: 'Shares from the Files Received',
-      type: 'confirm',
-      string: '100,000,00',
+      label: "Shares from the Files Received",
+      type: "confirm",
+      string: "100,000,00",
     },
     {
-      label: 'Proxy Statement Shares in Balance',
-      type: 'confirm',
+      label: "Proxy Statement Shares in Balance",
+      type: "confirm",
     },
     {
-      label: 'Registered Shares',
-      type: 'string',
-      string: '100,000,00',
+      label: "Registered Shares",
+      type: "string",
+      string: "100,000,00",
     },
     {
-      label: 'Beneficial Shares',
-      type: 'string',
-      string: '100,000,00',
+      label: "Beneficial Shares",
+      type: "string",
+      string: "100,000,00",
     },
     {
-      label: 'Plan File 1 Shares',
-      type: 'string',
-      string: '100,000,00',
+      label: "Plan File 1 Shares",
+      type: "string",
+      string: "100,000,00",
     },
     {
-      label: 'Plan File 2 Shares',
-      type: 'string',
-      string: '100,000,00',
+      label: "Plan File 2 Shares",
+      type: "string",
+      string: "100,000,00",
     },
-  ]
+  ];
 
   return (
     <Card className={className}>
       <CardHeader title="Voting Shares" />
-      <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+      <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Table>
           <SROnlyTableCaption>Voting shares for the meeting.</SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: 'hidden', display: 'none' }}>
+          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
             <TableRow>
               <TableCell>Item</TableCell>
               <TableCell align="right">Value/Action</TableCell>
@@ -97,8 +96,8 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
               <TableRow
                 key={index}
                 sx={{
-                  '&:not(:last-child)': {
-                    borderBottom: '1px solid rgba(31,30,28,0.12)',
+                  "&:not(:last-child)": {
+                    borderBottom: "1px solid rgba(31,30,28,0.12)",
                   },
                 }}
               >
@@ -113,7 +112,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  {item.type === 'confirm' && (
+                  {item.type === "confirm" && (
                     <Button
                       endIcon={<ArrowDropDownOutlined />}
                       variant="text"
@@ -123,8 +122,8 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
                     </Button>
                   )}
 
-                  {item.type === 'string' && item.string && (
-                    <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
+                  {item.type === "string" && item.string && (
+                    <Typography variant="body3" sx={{ fontWeight: "medium" }}>
                       {item.string}
                     </Typography>
                   )}
@@ -135,7 +134,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
         </Table>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default MeetingRolesCard
+export default MeetingRolesCard;

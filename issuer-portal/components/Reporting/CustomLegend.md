@@ -15,7 +15,7 @@ A reusable custom legend component that uses LineMarker symbols for MUI X Charts
 The component is already available in the Reporting components directory:
 
 ```tsx
-import CustomLegend from '@/components/Reporting/CustomLegend'
+import CustomLegend from "@/components/Reporting/CustomLegend";
 ```
 
 ## Basic Usage
@@ -48,17 +48,17 @@ Then add the CustomLegend component after your chart:
 
 ```tsx
 const legendItems = [
-  { label: 'Line Series', color: 'var(--mui-palette-chartSeries-1-main)', type: 'line' },
-  { label: 'Bar Series', color: 'var(--mui-palette-chartSeries-2-main)', type: 'bar' },
-  { label: 'Another Line', color: 'var(--mui-palette-chartSeries-3-main)', type: 'line' },
-]
+  { label: "Line Series", color: "var(--mui-palette-chartSeries-1-main)", type: "line" },
+  { label: "Bar Series", color: "var(--mui-palette-chartSeries-2-main)", type: "bar" },
+  { label: "Another Line", color: "var(--mui-palette-chartSeries-3-main)", type: "line" },
+];
 
 return (
   <Box>
     <LineChart /* ... */ />
     <CustomLegend items={legendItems} />
   </Box>
-)
+);
 ```
 
 ## API Reference
@@ -77,9 +77,9 @@ return (
 
 ```tsx
 interface LegendItem {
-  label: string
-  color: string
-  type?: 'line' | 'bar' | 'area' // Determines legend symbol type
+  label: string;
+  color: string;
+  type?: "line" | "bar" | "area"; // Determines legend symbol type
 }
 ```
 
@@ -96,21 +96,21 @@ The `type` property determines which symbol is shown in the legend:
 ### Example 1: IndividualDirectorChart (Current Implementation)
 
 ```tsx
-import React from 'react'
+import React from "react";
 
-import { Box, CircularProgress, Typography } from '@mui/material'
-import { LineChart } from '@mui/x-charts'
+import { Box, CircularProgress, Typography } from "@mui/material";
+import { LineChart } from "@mui/x-charts";
 
-import CustomLegend from './CustomLegend'
+import CustomLegend from "./CustomLegend";
 
 const IndividualDirectorChart = ({ data, directorName, loading }) => {
   // ... loading and empty state handling
 
   const legendItems = [
-    { label: 'For', color: 'var(--mui-palette-chartSeries-1-main)', type: 'line' },
-    { label: 'Against', color: 'var(--mui-palette-chartSeries-5-main)', type: 'line' },
-    { label: 'Abstain', color: 'var(--mui-palette-chartSeries-2-main)', type: 'line' },
-  ]
+    { label: "For", color: "var(--mui-palette-chartSeries-1-main)", type: "line" },
+    { label: "Against", color: "var(--mui-palette-chartSeries-5-main)", type: "line" },
+    { label: "Abstain", color: "var(--mui-palette-chartSeries-2-main)", type: "line" },
+  ];
 
   return (
     <Box>
@@ -119,9 +119,9 @@ const IndividualDirectorChart = ({ data, directorName, loading }) => {
         series={[
           {
             data: forVotes,
-            label: 'For',
-            color: 'var(--mui-palette-chartSeries-1-main)',
-            curve: 'catmullRom',
+            label: "For",
+            color: "var(--mui-palette-chartSeries-1-main)",
+            curve: "catmullRom",
             showMark: false, // Important: keep false to hide markers on lines
           },
           // ... other series
@@ -133,8 +133,8 @@ const IndividualDirectorChart = ({ data, directorName, loading }) => {
       />
       <CustomLegend items={legendItems} />
     </Box>
-  )
-}
+  );
+};
 ```
 
 ### Example 2: Mixed Chart (Bars + Lines)
@@ -142,14 +142,14 @@ const IndividualDirectorChart = ({ data, directorName, loading }) => {
 ```tsx
 const VotingPerformanceChart = ({ data }) => {
   const legendItems = [
-    { label: 'Positions', color: 'var(--mui-palette-chartSeries-1-main)', type: 'bar' },
-    { label: 'Shares', color: 'var(--mui-palette-chartSeries-2-main)', type: 'bar' },
+    { label: "Positions", color: "var(--mui-palette-chartSeries-1-main)", type: "bar" },
+    { label: "Shares", color: "var(--mui-palette-chartSeries-2-main)", type: "bar" },
     {
-      label: 'Percent Voted',
-      color: 'var(--mui-palette-chartSeries-3-main)',
-      type: 'line',
+      label: "Percent Voted",
+      color: "var(--mui-palette-chartSeries-3-main)",
+      type: "line",
     },
-  ]
+  ];
 
   return (
     <Card>
@@ -157,22 +157,22 @@ const VotingPerformanceChart = ({ data }) => {
         <ChartDataProvider
           series={[
             {
-              type: 'bar',
+              type: "bar",
               data: positions,
-              label: 'Positions',
-              color: 'var(--mui-palette-chartSeries-1-main)',
+              label: "Positions",
+              color: "var(--mui-palette-chartSeries-1-main)",
             },
             {
-              type: 'bar',
+              type: "bar",
               data: shares,
-              label: 'Shares',
-              color: 'var(--mui-palette-chartSeries-2-main)',
+              label: "Shares",
+              color: "var(--mui-palette-chartSeries-2-main)",
             },
             {
-              type: 'line',
+              type: "line",
               data: percentVoted,
-              label: 'Percent Voted',
-              color: 'var(--mui-palette-chartSeries-3-main)',
+              label: "Percent Voted",
+              color: "var(--mui-palette-chartSeries-3-main)",
             },
           ]}
         >
@@ -185,8 +185,8 @@ const VotingPerformanceChart = ({ data }) => {
         </ChartDataProvider>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 ```
 
 ### Example 3: Custom Configuration

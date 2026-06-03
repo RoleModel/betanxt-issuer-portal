@@ -1,11 +1,9 @@
-import React from 'react'
-
 import {
   Check as CheckIcon,
   Delete as DeleteIcon,
   Error as ErrorIcon,
   UploadFile as UploadFileIcon,
-} from '@mui/icons-material'
+} from "@mui/icons-material";
 import {
   Avatar,
   Box,
@@ -17,9 +15,10 @@ import {
   Select,
   Stack,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import type { FilePreviewProps } from './types'
+import type { FilePreviewProps } from "./types";
 
 const BNFilePreview: React.FC<FilePreviewProps> = ({
   file,
@@ -29,36 +28,36 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
   onAssociationChange,
 }) => {
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-  }
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
 
   const handleRemoveClick = (event: React.MouseEvent) => {
-    event.stopPropagation()
-    onRemove(file.id)
-  }
+    event.stopPropagation();
+    onRemove(file.id);
+  };
 
   const handleAssociationChange = (documentId: string) => {
     if (onAssociationChange) {
-      onAssociationChange(file.id, documentId)
+      onAssociationChange(file.id, documentId);
     }
-  }
+  };
 
   const getStatusIcon = () => {
     switch (file.status) {
-      case 'uploading':
+      case "uploading":
         return (
           <CircularProgress
             size={32}
             sx={(theme) => ({ color: theme.vars.palette.primary.main })}
             value={file.progress ?? 0}
-            variant={file.progress !== undefined ? 'determinate' : 'indeterminate'}
+            variant={file.progress !== undefined ? "determinate" : "indeterminate"}
           />
-        )
-      case 'complete':
+        );
+      case "complete":
         return (
           <Avatar
             sx={(theme) => ({
@@ -75,8 +74,8 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
               })}
             />
           </Avatar>
-        )
-      case 'error':
+        );
+      case "error":
         return (
           <Avatar
             sx={(theme) => ({
@@ -93,31 +92,31 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
               })}
             />
           </Avatar>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const getStatusText = () => {
     switch (file.status) {
-      case 'uploading':
-        return 'Uploading'
-      case 'complete':
-        return 'Complete'
-      case 'error':
-        return file.error ?? 'Error'
+      case "uploading":
+        return "Uploading";
+      case "complete":
+        return "Complete";
+      case "error":
+        return file.error ?? "Error";
       default:
-        return ''
+        return "";
     }
-  }
+  };
 
   return (
     <Paper
       variant="outlined"
       sx={{
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         gap: 2,
         p: 2,
         opacity: disabled ? 0.5 : 1,
@@ -128,8 +127,8 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
         sx={{
           width: 40,
           height: 40,
-          background: 'transparent',
-          border: 'none',
+          background: "transparent",
+          border: "none",
         }}
       >
         <UploadFileIcon
@@ -144,25 +143,25 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           variant="body3"
           sx={{
             fontWeight: 500,
-            color: 'text.primary',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            color: "text.primary",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {file.file.name}
         </Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-          <Typography variant="body3" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body3" sx={{ color: "text.secondary" }}>
             {formatFileSize(file.file.size)}
           </Typography>
-          <Typography variant="body3" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body3" sx={{ color: "text.secondary" }}>
             •
           </Typography>
           <Typography
             variant="body3"
             sx={{
-              color: file.status === 'error' ? 'error.main' : 'text.secondary',
+              color: file.status === "error" ? "error.main" : "text.secondary",
             }}
           >
             {getStatusText()}
@@ -174,14 +173,14 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           <Box sx={{ mt: 1 }}>
             <FormControl size="small" fullWidth>
               <Select
-                value={file.associatedDocumentId ?? ''}
+                value={file.associatedDocumentId ?? ""}
                 onChange={(e) => handleAssociationChange(e.target.value)}
                 displayEmpty
                 aria-label="Select DSM Document"
                 disabled={disabled}
               >
                 <MenuItem value="">
-                  <Typography variant="body3" sx={{ color: 'text.secondary' }}>
+                  <Typography variant="body3" sx={{ color: "text.secondary" }}>
                     Select DSM Document
                   </Typography>
                 </MenuItem>
@@ -199,14 +198,14 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
       {/* Status Icon and Progress */}
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
+          display: "flex",
+          alignItems: "center",
           gap: 1,
         }}
       >
-        {file.status === 'uploading' && <Box position="relative">{getStatusIcon()}</Box>}
+        {file.status === "uploading" && <Box position="relative">{getStatusIcon()}</Box>}
 
-        {(file.status === 'complete' || file.status === 'error') && getStatusIcon()}
+        {(file.status === "complete" || file.status === "error") && getStatusIcon()}
 
         {/* Delete Button */}
         <IconButton
@@ -216,7 +215,7 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           size="small"
           sx={(theme) => ({
             color: theme.vars.palette.action.active,
-            '&:hover': {
+            "&:hover": {
               color: theme.vars.palette.error.main,
             },
           })}
@@ -225,7 +224,7 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
         </IconButton>
       </Box>
     </Paper>
-  )
-}
+  );
+};
 
-export default BNFilePreview
+export default BNFilePreview;

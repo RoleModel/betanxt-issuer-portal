@@ -1,14 +1,14 @@
 ---
 applyTo:
-  - 'mock-api-server/domain-models/**/*'
-  - 'mock-api-server/app/api/**/*'
-  - 'mock-api-server/openapi-schema/**/*'
-  - 'supabase/**/*'
-  - 'issuer-portal/domain-models/**/*'
-  - 'issuer-portal/hooks/**/*'
-  - '**/*seed*'
-  - '**/*migration*'
-  - '**/*database*'
+  - "mock-api-server/domain-models/**/*"
+  - "mock-api-server/app/api/**/*"
+  - "mock-api-server/openapi-schema/**/*"
+  - "supabase/**/*"
+  - "issuer-portal/domain-models/**/*"
+  - "issuer-portal/hooks/**/*"
+  - "**/*seed*"
+  - "**/*migration*"
+  - "**/*database*"
 ---
 
 # Data and API Instructions
@@ -90,7 +90,7 @@ function transformTask(dbTask: DatabaseRow): Task {
     // Timestamps
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
-  }
+  };
 }
 ```
 
@@ -143,7 +143,7 @@ export function transformEntity(dbEntity: DatabaseRow): ApiEntity {
 
     // 5. Computed/derived fields
     displayName: `${dbEntity.first_name} ${dbEntity.last_name}`,
-  }
+  };
 }
 ```
 
@@ -154,34 +154,34 @@ export function transformEntity(dbEntity: DatabaseRow): ApiEntity {
 ```typescript
 // All domain model functions return this format
 type ApiResponse<T> = {
-  data?: T
+  data?: T;
   error?: {
-    message: string
-    statusCode?: number
-  }
-}
+    message: string;
+    statusCode?: number;
+  };
+};
 
 // Implementation pattern
 export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
   try {
     const { data, error } = await supabase
-      .from('task')
-      .select('*')
-      .eq('meeting_id', meetingId)
-      .order('created_at', { ascending: false })
+      .from("task")
+      .select("*")
+      .eq("meeting_id", meetingId)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      return { error: { message: error.message, statusCode: 500 } }
+      return { error: { message: error.message, statusCode: 500 } };
     }
 
-    return { data: data.map(transformTask) }
+    return { data: data.map(transformTask) };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 ```
@@ -191,30 +191,32 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
 ```typescript
 // 1. Simple list with filtering
 const { data, error } = await supabase
-  .from('task')
-  .select('*')
-  .eq('meeting_id', meetingId)
-  .in('status', ['PENDING', 'IN_PROGRESS'])
-  .order('due_date', { ascending: true })
+  .from("task")
+  .select("*")
+  .eq("meeting_id", meetingId)
+  .in("status", ["PENDING", "IN_PROGRESS"])
+  .order("due_date", { ascending: true });
 
 // 2. Join queries for related data
 const { data, error } = await supabase
-  .from('meeting')
-  .select(`
+  .from("meeting")
+  .select(
+    `
     *,
     phases:phase(*),
     tasks:task(*),
     documents:document(*)
-  `)
-  .eq('id', meetingId)
-  .single()
+  `,
+  )
+  .eq("id", meetingId)
+  .single();
 
 // 3. Aggregation queries
 const { data, error } = await supabase
-  .from('position_vote')
-  .select('vote, shares_voting.sum()')
-  .eq('proposal_id', proposalId)
-  .group('vote')
+  .from("position_vote")
+  .select("vote, shares_voting.sum()")
+  .eq("proposal_id", proposalId)
+  .group("vote");
 ```
 
 ## Seed Data Patterns
@@ -223,31 +225,31 @@ const { data, error } = await supabase
 
 ```typescript
 // File: supabase/seed.ts
-import { copycat } from '@snaplet/copycat'
+import { copycat } from "@snaplet/copycat";
 
 // Use copycat for consistent, realistic test data
 const clients = Array.from({ length: 4 }, (_, i) => ({
   id: copycat.uuid(i),
   ticker: copycat.word(i).slice(0, 4).toUpperCase(),
   company_name: copycat.companyName(i),
-  industry: copycat.oneOf(i, ['Technology', 'Healthcare', 'Finance']),
+  industry: copycat.oneOf(i, ["Technology", "Healthcare", "Finance"]),
   created_at: copycat.dateRecent(i).toISOString(),
-}))
+}));
 
 // Generate related data with foreign key relationships
 const meetings = clients.flatMap((client, clientIndex) =>
   Array.from({ length: 3 }, (_, meetingIndex) => {
-    const seedValue = clientIndex * 100 + meetingIndex
+    const seedValue = clientIndex * 100 + meetingIndex;
     return {
       id: `${client.ticker.toLowerCase()}-annual-meeting-${2023 + meetingIndex}`,
       ticker: client.ticker,
       title: `${client.company_name} Annual Meeting ${2023 + meetingIndex}`,
       meeting_date: copycat.dateRecent(seedValue).toISOString(),
-      status: copycat.oneOf(seedValue, ['PLANNING', 'ACTIVE', 'COMPLETED']),
+      status: copycat.oneOf(seedValue, ["PLANNING", "ACTIVE", "COMPLETED"]),
       // ... other fields
-    }
-  })
-)
+    };
+  }),
+);
 ```
 
 ### Task Link Generation
@@ -255,32 +257,32 @@ const meetings = clients.flatMap((client, clientIndex) =>
 ```typescript
 // Generate task links based on task type and title
 function generateTaskLinks(title: string, type: string): TaskLink[] {
-  const links: TaskLink[] = []
+  const links: TaskLink[] = [];
 
   // Broadridge ICC Access tasks get specific links
-  if (title.includes('Broadridge') && title.includes('Access')) {
+  if (title.includes("Broadridge") && title.includes("Access")) {
     links.push({
-      label: 'Download Form',
-      action: 'download',
-      url: '',
-    })
+      label: "Download Form",
+      action: "download",
+      url: "",
+    });
     links.push({
-      label: 'Sign Form',
-      action: 'signature',
-      url: '',
-    })
+      label: "Sign Form",
+      action: "signature",
+      url: "",
+    });
   }
 
   // Document preparation tasks
-  if (type === 'document' || title.includes('Document')) {
+  if (type === "document" || title.includes("Document")) {
     links.push({
-      label: 'Upload Document',
-      action: 'upload',
-      url: '',
-    })
+      label: "Upload Document",
+      action: "upload",
+      url: "",
+    });
   }
 
-  return links
+  return links;
 }
 ```
 
@@ -338,32 +340,32 @@ UPDATE task SET priority = 'HIGH' WHERE due_date < NOW() + INTERVAL '1 day';
 
 ```typescript
 // File: issuer-portal/hooks/useTasks.ts
-import useSWR from 'swr'
+import useSWR from "swr";
 
-import { apiClient } from '@/domain-models/apiClient'
+import { apiClient } from "@/domain-models/apiClient";
 
 export function useTasks(meetingId: string, phaseId?: string) {
   const { data, error, mutate } = useSWR(
-    meetingId ? ['tasks', meetingId, phaseId] : null,
+    meetingId ? ["tasks", meetingId, phaseId] : null,
     async () => {
-      const { data, error } = await apiClient.GET('/meetings/{meetingId}/tasks', {
+      const { data, error } = await apiClient.GET("/meetings/{meetingId}/tasks", {
         params: {
           path: { meetingId },
           query: phaseId ? { phaseId } : {},
         },
-      })
+      });
 
-      if (error) throw new Error('Failed to fetch tasks')
-      return data
-    }
-  )
+      if (error) throw new Error("Failed to fetch tasks");
+      return data;
+    },
+  );
 
   return {
     tasks: data,
     isLoading: !error && !data,
     error,
     mutate,
-  }
+  };
 }
 ```
 
@@ -371,21 +373,21 @@ export function useTasks(meetingId: string, phaseId?: string) {
 
 ```typescript
 // File: issuer-portal/domain-models/apiClient.ts
-import createClient from 'openapi-fetch'
+import createClient from "openapi-fetch";
 
-import type { paths } from './generated-schema'
+import type { paths } from "./generated-schema";
 
 export const apiClient = createClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
-})
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+});
 
 // Usage in components
-const { data: tasks } = await apiClient.GET('/meetings/{meetingId}/tasks', {
+const { data: tasks } = await apiClient.GET("/meetings/{meetingId}/tasks", {
   params: {
-    path: { meetingId: 'meeting-123' },
-    query: { status: 'INCOMPLETE', phaseId: 'phase-1' },
+    path: { meetingId: "meeting-123" },
+    query: { status: "INCOMPLETE", phaseId: "phase-1" },
   },
-})
+});
 // tasks is automatically typed as Task[]
 ```
 
@@ -395,44 +397,42 @@ const { data: tasks } = await apiClient.GET('/meetings/{meetingId}/tasks', {
 
 ```typescript
 // Handle Supabase errors consistently
-export async function createTask(
-  taskData: CreateTaskRequest
-): Promise<ApiResponse<Task>> {
+export async function createTask(taskData: CreateTaskRequest): Promise<ApiResponse<Task>> {
   try {
     const { data, error } = await supabase
-      .from('task')
+      .from("task")
       .insert({
         meeting_id: taskData.meetingId,
         title: taskData.title,
         // ... other fields
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
       // Handle specific error types
-      if (error.code === '23505') {
+      if (error.code === "23505") {
         // Unique violation
         return {
-          error: { message: 'Task with this title already exists', statusCode: 409 },
-        }
+          error: { message: "Task with this title already exists", statusCode: 409 },
+        };
       }
-      if (error.code === '23503') {
+      if (error.code === "23503") {
         // Foreign key violation
-        return { error: { message: 'Invalid meeting or phase ID', statusCode: 400 } }
+        return { error: { message: "Invalid meeting or phase ID", statusCode: 400 } };
       }
 
-      return { error: { message: error.message, statusCode: 500 } }
+      return { error: { message: error.message, statusCode: 500 } };
     }
 
-    return { data: transformTask(data) }
+    return { data: transformTask(data) };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 ```
@@ -444,41 +444,43 @@ export async function createTask(
 ```typescript
 // 1. Use select() to limit returned columns
 const { data } = await supabase
-  .from('task')
-  .select('id, title, status, due_date') // Only needed columns
-  .eq('meeting_id', meetingId)
+  .from("task")
+  .select("id, title, status, due_date") // Only needed columns
+  .eq("meeting_id", meetingId);
 
 // 2. Use pagination for large datasets
 const { data } = await supabase
-  .from('position')
-  .select('*')
-  .eq('meeting_id', meetingId)
+  .from("position")
+  .select("*")
+  .eq("meeting_id", meetingId)
   .range(0, 49) // First 50 records
-  .order('created_at', { ascending: false })
+  .order("created_at", { ascending: false });
 
 // 3. Use joins instead of multiple queries
 const { data } = await supabase
-  .from('meeting')
-  .select(`
+  .from("meeting")
+  .select(
+    `
     id,
     title,
     status,
     tasks:task(id, title, status),
     phases:phase(id, name, status)
-  `)
-  .eq('id', meetingId)
-  .single()
+  `,
+  )
+  .eq("id", meetingId)
+  .single();
 ```
 
 ### Frontend Caching Strategy
 
 ```typescript
 // Use SWR with appropriate cache keys and revalidation
-const { data: meeting } = useSWR(['meeting', meetingId], () => fetchMeeting(meetingId), {
+const { data: meeting } = useSWR(["meeting", meetingId], () => fetchMeeting(meetingId), {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
   dedupingInterval: 60000, // 1 minute
-})
+});
 ```
 
 ## Critical Rules

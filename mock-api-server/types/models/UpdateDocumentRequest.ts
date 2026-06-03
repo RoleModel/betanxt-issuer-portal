@@ -1,3 +1,5 @@
+import type { DocumentStatus } from "./DocumentStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { DocumentStatus } from './DocumentStatus'
+import { mapValues } from "../runtime";
 import {
   DocumentStatusFromJSON,
   DocumentStatusFromJSONTyped,
   DocumentStatusToJSON,
   DocumentStatusToJSONTyped,
-} from './DocumentStatus'
+} from "./DocumentStatus";
 
 /**
  *
@@ -30,63 +31,61 @@ export interface UpdateDocumentRequest {
    * @type {string}
    * @memberof UpdateDocumentRequest
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateDocumentRequest
    */
-  description?: string
+  description?: string;
   /**
    *
    * @type {DocumentStatus}
    * @memberof UpdateDocumentRequest
    */
-  status?: DocumentStatus
+  status?: DocumentStatus;
 }
 
 /**
  * Check if a given object implements the UpdateDocumentRequest interface.
  */
-export function instanceOfUpdateDocumentRequest(
-  value: object
-): value is UpdateDocumentRequest {
-  return true
+export function instanceOfUpdateDocumentRequest(value: object): value is UpdateDocumentRequest {
+  return true;
 }
 
 export function UpdateDocumentRequestFromJSON(json: any): UpdateDocumentRequest {
-  return UpdateDocumentRequestFromJSONTyped(json, false)
+  return UpdateDocumentRequestFromJSONTyped(json, false);
 }
 
 export function UpdateDocumentRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateDocumentRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    title: json['title'] == null ? undefined : json['title'],
-    description: json['description'] == null ? undefined : json['description'],
-    status: json['status'] == null ? undefined : DocumentStatusFromJSON(json['status']),
-  }
+    title: json["title"] == null ? undefined : json["title"],
+    description: json["description"] == null ? undefined : json["description"],
+    status: json["status"] == null ? undefined : DocumentStatusFromJSON(json["status"]),
+  };
 }
 
 export function UpdateDocumentRequestToJSON(json: any): UpdateDocumentRequest {
-  return UpdateDocumentRequestToJSONTyped(json, false)
+  return UpdateDocumentRequestToJSONTyped(json, false);
 }
 
 export function UpdateDocumentRequestToJSONTyped(
   value?: UpdateDocumentRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    title: value['title'],
-    description: value['description'],
-    status: DocumentStatusToJSON(value['status']),
-  }
+    title: value["title"],
+    description: value["description"],
+    status: DocumentStatusToJSON(value["status"]),
+  };
 }

@@ -1,13 +1,13 @@
-import React from 'react'
+import React from "react";
 
-import DocumentsSection from '@/components/Documents/DocumentsSection'
+import DocumentsSection from "@/components/Documents/DocumentsSection";
 
-export const revalidate = 60
+export const revalidate = 60;
 
 interface PageProps {
-  params: Promise<{ clientTicker: string; meetingId: string }>
+  params: Promise<{ clientTicker: string; meetingId: string }>;
 }
 
 export default function DocumentsPage({ params }: PageProps) {
-  return <DocumentsSection params={params} />
+  return <DocumentsSection params={params} />;
 }

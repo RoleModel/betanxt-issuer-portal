@@ -1,7 +1,4 @@
-'use client'
-
-import NextLink from 'next/link'
-import React from 'react'
+"use client";
 
 import {
   Alert,
@@ -19,47 +16,48 @@ import {
   TableRow,
   TableSortLabel,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import NextLink from "next/link";
+import React from "react";
 
-import CusipValue from '@/components/ui/CusipValue'
-import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
-import SkeletonTable from '@/components/ui/SkeletonTable'
+import type { components } from "@/domain-models/generated-schema";
 
-import type { components } from '@/domain-models/generated-schema'
+import CusipValue from "@/components/ui/CusipValue";
+import SkeletonTable from "@/components/ui/SkeletonTable";
+import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
+import { truncateNumber } from "@/utils/numberUtils";
 
-import { truncateNumber } from '@/utils/numberUtils'
-
-type Meeting = components['schemas']['Meeting']
+type Meeting = components["schemas"]["Meeting"];
 
 export interface PastMeetingData extends Meeting {
-  participationPercent: number
-  totalVotes: number
-  votingShares: number
+  participationPercent: number;
+  totalVotes: number;
+  votingShares: number;
 }
 
-type Order = 'asc' | 'desc'
+type Order = "asc" | "desc";
 
 interface PastMeetingsTableProps {
-  clientTicker: string
-  order?: Order
-  orderBy?: keyof PastMeetingData
-  onRequestSort?: (property: keyof PastMeetingData) => void
-  meetings: PastMeetingData[]
-  rawMeetingsCount?: number
-  loading: boolean
-  formatDate: (dateString: string) => string
-  error?: string | null
-  onRetry?: () => void
+  clientTicker: string;
+  order?: Order;
+  orderBy?: keyof PastMeetingData;
+  onRequestSort?: (property: keyof PastMeetingData) => void;
+  meetings: PastMeetingData[];
+  rawMeetingsCount?: number;
+  loading: boolean;
+  formatDate: (dateString: string) => string;
+  error?: string | null;
+  onRetry?: () => void;
   // Display options
-  showSorting?: boolean
-  showHeader?: boolean
-  maxHeight?: number | string
+  showSorting?: boolean;
+  showHeader?: boolean;
+  maxHeight?: number | string;
 }
 
 export default function PastMeetingsTable({
   clientTicker,
-  order = 'desc',
-  orderBy = 'meetingDate',
+  order = "desc",
+  orderBy = "meetingDate",
   onRequestSort,
   meetings,
   rawMeetingsCount: _rawMeetingsCount = meetings.length,
@@ -73,31 +71,27 @@ export default function PastMeetingsTable({
 }: PastMeetingsTableProps) {
   const handleSort = (property: keyof PastMeetingData) => {
     if (onRequestSort) {
-      onRequestSort(property)
+      onRequestSort(property);
     }
-  }
+  };
 
-  const renderHeaderCell = (
-    label: string,
-    property: keyof PastMeetingData,
-    sortable = true
-  ) => {
+  const renderHeaderCell = (label: string, property: keyof PastMeetingData, sortable = true) => {
     if (!showSorting || !sortable) {
-      return <TableCell sx={{ fontWeight: 600, py: 2 }}>{label}</TableCell>
+      return <TableCell sx={{ fontWeight: 600, py: 2 }}>{label}</TableCell>;
     }
 
     return (
       <TableCell sx={{ fontWeight: 600, py: 2 }}>
         <TableSortLabel
           active={orderBy === property}
-          direction={orderBy === property ? order : 'asc'}
+          direction={orderBy === property ? order : "asc"}
           onClick={() => handleSort(property)}
         >
           {label}
         </TableSortLabel>
       </TableCell>
-    )
-  }
+    );
+  };
 
   if (loading) {
     return (
@@ -107,7 +101,7 @@ export default function PastMeetingsTable({
           <SkeletonTable columns={5} rows={6} />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (error) {
@@ -125,7 +119,7 @@ export default function PastMeetingsTable({
           )}
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -137,10 +131,10 @@ export default function PastMeetingsTable({
             <SROnlyTableCaption>Past meetings</SROnlyTableCaption>
             <TableHead>
               <TableRow>
-                {renderHeaderCell('Meeting', 'title')}
-                {renderHeaderCell('CUSIP', 'cusip')}
-                {renderHeaderCell('Date', 'meetingDate')}
-                {renderHeaderCell('Participation', 'participationPercent')}
+                {renderHeaderCell("Meeting", "title")}
+                {renderHeaderCell("CUSIP", "cusip")}
+                {renderHeaderCell("Date", "meetingDate")}
+                {renderHeaderCell("Participation", "participationPercent")}
                 <TableCell align="right" sx={{ fontWeight: 600, py: 2 }}>
                   Reports
                 </TableCell>
@@ -150,9 +144,7 @@ export default function PastMeetingsTable({
               {meetings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      No past meetings found.
-                    </Typography>
+                    <Typography color="text.secondary">No past meetings found.</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -175,16 +167,16 @@ export default function PastMeetingsTable({
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3">
-                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
+                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : "TBD"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ minWidth: 200 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                         <Box sx={{ flex: 1 }}>
                           <Box
                             sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
+                              display: "flex",
+                              justifyContent: "space-between",
                               mb: 0.5,
                             }}
                           >
@@ -202,14 +194,14 @@ export default function PastMeetingsTable({
                               height: 6,
                               borderRadius: 3,
                               backgroundColor: `var(--mui-palette-divider)`,
-                              '& .MuiLinearProgress-bar': {
+                              "& .MuiLinearProgress-bar": {
                                 borderRadius: 3,
                                 backgroundColor: (theme) => {
                                   if (meeting.participationPercent >= 50)
-                                    return theme.vars.palette.success.main
+                                    return theme.vars.palette.success.main;
                                   if (meeting.participationPercent < 10)
-                                    return theme.vars.palette.warning.main
-                                  return theme.vars.palette.primary.main
+                                    return theme.vars.palette.warning.main;
+                                  return theme.vars.palette.primary.main;
                                 },
                               },
                             }}
@@ -235,8 +227,8 @@ export default function PastMeetingsTable({
         </TableContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Export types for external use
-export type { Order }
+export type { Order };

@@ -1,3 +1,6 @@
+import type { Pagination } from "./Pagination";
+import type { User } from "./User";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,16 +13,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Pagination } from './Pagination'
+import { mapValues } from "../runtime";
 import {
   PaginationFromJSON,
   PaginationFromJSONTyped,
   PaginationToJSON,
   PaginationToJSONTyped,
-} from './Pagination'
-import type { User } from './User'
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from './User'
+} from "./Pagination";
+import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
 
 /**
  *
@@ -32,62 +33,55 @@ export interface ListAccountUsers200Response {
    * @type {Array<User>}
    * @memberof ListAccountUsers200Response
    */
-  users?: Array<User>
+  users?: Array<User>;
   /**
    *
    * @type {Pagination}
    * @memberof ListAccountUsers200Response
    */
-  pagination?: Pagination
+  pagination?: Pagination;
 }
 
 /**
  * Check if a given object implements the ListAccountUsers200Response interface.
  */
 export function instanceOfListAccountUsers200Response(
-  value: object
+  value: object,
 ): value is ListAccountUsers200Response {
-  return true
+  return true;
 }
 
-export function ListAccountUsers200ResponseFromJSON(
-  json: any
-): ListAccountUsers200Response {
-  return ListAccountUsers200ResponseFromJSONTyped(json, false)
+export function ListAccountUsers200ResponseFromJSON(json: any): ListAccountUsers200Response {
+  return ListAccountUsers200ResponseFromJSONTyped(json, false);
 }
 
 export function ListAccountUsers200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): ListAccountUsers200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    users:
-      json['users'] == null ? undefined : (json['users'] as Array<any>).map(UserFromJSON),
-    pagination:
-      json['pagination'] == null ? undefined : PaginationFromJSON(json['pagination']),
-  }
+    users: json["users"] == null ? undefined : (json["users"] as Array<any>).map(UserFromJSON),
+    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+  };
 }
 
-export function ListAccountUsers200ResponseToJSON(
-  json: any
-): ListAccountUsers200Response {
-  return ListAccountUsers200ResponseToJSONTyped(json, false)
+export function ListAccountUsers200ResponseToJSON(json: any): ListAccountUsers200Response {
+  return ListAccountUsers200ResponseToJSONTyped(json, false);
 }
 
 export function ListAccountUsers200ResponseToJSONTyped(
   value?: ListAccountUsers200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    users:
-      value['users'] == null ? undefined : (value['users'] as Array<any>).map(UserToJSON),
-    pagination: PaginationToJSON(value['pagination']),
-  }
+    users: value["users"] == null ? undefined : (value["users"] as Array<any>).map(UserToJSON),
+    pagination: PaginationToJSON(value["pagination"]),
+  };
 }

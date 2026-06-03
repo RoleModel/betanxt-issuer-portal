@@ -1,3 +1,5 @@
+import type { TaskStatus } from "./TaskStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { TaskStatus } from './TaskStatus'
+import { mapValues } from "../runtime";
 import {
   TaskStatusFromJSON,
   TaskStatusFromJSONTyped,
   TaskStatusToJSON,
   TaskStatusToJSONTyped,
-} from './TaskStatus'
+} from "./TaskStatus";
 
 /**
  *
@@ -30,157 +31,152 @@ export interface Task {
    * @type {string}
    * @memberof Task
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  taskId?: string
+  taskId?: string;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  phaseId?: string
+  phaseId?: string;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {number}
    * @memberof Task
    */
-  phaseNumber?: number
+  phaseNumber?: number;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  description?: string | null
+  description?: string | null;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  type?: string
+  type?: string;
   /**
    *
    * @type {TaskStatus}
    * @memberof Task
    */
-  status?: TaskStatus
+  status?: TaskStatus;
   /**
    *
    * @type {Date}
    * @memberof Task
    */
-  dueDate?: Date | null
+  dueDate?: Date | null;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  owner?: string
+  owner?: string;
   /**
    *
    * @type {string}
    * @memberof Task
    */
-  documentId?: string | null
+  documentId?: string | null;
   /**
    *
    * @type {object}
    * @memberof Task
    */
-  links?: object | null
+  links?: object | null;
   /**
    *
    * @type {Date}
    * @memberof Task
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Task
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * Check if a given object implements the Task interface.
  */
 export function instanceOfTask(value: object): value is Task {
-  return true
+  return true;
 }
 
 export function TaskFromJSON(json: any): Task {
-  return TaskFromJSONTyped(json, false)
+  return TaskFromJSONTyped(json, false);
 }
 
 export function TaskFromJSONTyped(json: any, ignoreDiscriminator: boolean): Task {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    taskId: json['taskId'] == null ? undefined : json['taskId'],
-    phaseId: json['phaseId'] == null ? undefined : json['phaseId'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    phaseNumber: json['phaseNumber'] == null ? undefined : json['phaseNumber'],
-    title: json['title'] == null ? undefined : json['title'],
-    description: json['description'] == null ? undefined : json['description'],
-    type: json['type'] == null ? undefined : json['type'],
-    status: json['status'] == null ? undefined : TaskStatusFromJSON(json['status']),
-    dueDate: json['dueDate'] == null ? undefined : new Date(json['dueDate']),
-    owner: json['owner'] == null ? undefined : json['owner'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    links: json['links'] == null ? undefined : json['links'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    taskId: json["taskId"] == null ? undefined : json["taskId"],
+    phaseId: json["phaseId"] == null ? undefined : json["phaseId"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    phaseNumber: json["phaseNumber"] == null ? undefined : json["phaseNumber"],
+    title: json["title"] == null ? undefined : json["title"],
+    description: json["description"] == null ? undefined : json["description"],
+    type: json["type"] == null ? undefined : json["type"],
+    status: json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
+    dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
+    owner: json["owner"] == null ? undefined : json["owner"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    links: json["links"] == null ? undefined : json["links"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function TaskToJSON(json: any): Task {
-  return TaskToJSONTyped(json, false)
+  return TaskToJSONTyped(json, false);
 }
 
-export function TaskToJSONTyped(
-  value?: Task | null,
-  ignoreDiscriminator: boolean = false
-): any {
+export function TaskToJSONTyped(value?: Task | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    taskId: value['taskId'],
-    phaseId: value['phaseId'],
-    meetingId: value['meetingId'],
-    phaseNumber: value['phaseNumber'],
-    title: value['title'],
-    description: value['description'],
-    type: value['type'],
-    status: TaskStatusToJSON(value['status']),
+    id: value["id"],
+    taskId: value["taskId"],
+    phaseId: value["phaseId"],
+    meetingId: value["meetingId"],
+    phaseNumber: value["phaseNumber"],
+    title: value["title"],
+    description: value["description"],
+    type: value["type"],
+    status: TaskStatusToJSON(value["status"]),
     dueDate:
-      value['dueDate'] === null
-        ? null
-        : (value['dueDate'] as any)?.toISOString().substring(0, 10),
-    owner: value['owner'],
-    documentId: value['documentId'],
-    links: value['links'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+      value["dueDate"] === null ? null : (value["dueDate"] as any)?.toISOString().substring(0, 10),
+    owner: value["owner"],
+    documentId: value["documentId"],
+    links: value["links"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

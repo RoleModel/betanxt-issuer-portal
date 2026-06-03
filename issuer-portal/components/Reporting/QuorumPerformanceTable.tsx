@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import React from 'react'
+"use client";
 
 import {
   Button,
@@ -15,37 +12,39 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import Link from "next/link";
+import React from "react";
 
-import SkeletonTable from '@/components/ui/SkeletonTable'
+import SkeletonTable from "@/components/ui/SkeletonTable";
 
 interface QuorumData {
-  meetingId: string
-  meetingTitle: string
-  requiredShares: number
-  actualShares: number
-  quorumMet: boolean
-  participationRate: number
-  daysToQuorum: number | null
-  earlyVotesPct: number
-  lateVotesPct: number
+  meetingId: string;
+  meetingTitle: string;
+  requiredShares: number;
+  actualShares: number;
+  quorumMet: boolean;
+  participationRate: number;
+  daysToQuorum: number | null;
+  earlyVotesPct: number;
+  lateVotesPct: number;
 }
 
 interface QuorumPerformanceTableProps {
-  data: QuorumData[]
-  loading?: boolean
-  title?: string
-  clientTicker?: string
+  data: QuorumData[];
+  loading?: boolean;
+  title?: string;
+  clientTicker?: string;
 }
 
 const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   data,
   loading = false,
-  title = 'Quorum Performance',
-  clientTicker = '',
+  title = "Quorum Performance",
+  clientTicker = "",
 }) => {
   if (loading) {
-    return <SkeletonTable rows={4} columns={4} />
+    return <SkeletonTable rows={4} columns={4} />;
   }
 
   if (!data || data.length === 0) {
@@ -58,7 +57,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
           </Typography>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // no-op helpers removed
@@ -81,7 +80,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
             </TableHead>
             <TableBody>
               {data.map((row, index) => {
-                const displayTitle = row.meetingTitle
+                const displayTitle = row.meetingTitle;
 
                 return (
                   <TableRow key={`${row.meetingId}-${index}`}>
@@ -102,7 +101,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                       )}
                     </TableCell>
                     <TableCell size="small" align="right">
-                      {row.daysToQuorum ?? '--'}
+                      {row.daysToQuorum ?? "--"}
                     </TableCell>
                     <TableCell size="small" align="right">
                       {row.earlyVotesPct.toFixed(1)}%
@@ -111,14 +110,14 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                       {row.lateVotesPct.toFixed(1)}%
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>
         </TableContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default QuorumPerformanceTable
+export default QuorumPerformanceTable;

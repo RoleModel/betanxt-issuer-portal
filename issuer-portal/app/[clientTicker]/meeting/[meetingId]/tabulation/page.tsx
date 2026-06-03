@@ -1,22 +1,21 @@
-'use client'
+"use client";
 
-import { Container } from '@mui/material'
-import Grid from '@mui/material/Grid'
+import { Container } from "@mui/material";
+import Grid from "@mui/material/Grid";
 
-import QuorumGaugeCard from '@/components/Meeting/QuorumGaugeCard'
-import BeneficialVsRegisteredCard from '@/components/Tabulation/BeneficialVsRegisteredCard'
-import ProposalDetailsCard from '@/components/Tabulation/ProposalDetailsCard'
-import SharesVotedCard from '@/components/Tabulation/SharesVotedCard'
-import { TabulationDistributionDrawer } from '@/components/Tabulation/TabulationDistributionDrawer'
-import TabulationReportCard from '@/components/Tabulation/TabulationReportCard'
-import VotingActivityCard from '@/components/Tabulation/VotingActivityCard'
-
-import { useMeeting } from '@/contexts/MeetingContext'
-import { useTabulationInsights } from '@/hooks/useTabulationInsights'
+import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
+import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
+import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
+import SharesVotedCard from "@/components/Tabulation/SharesVotedCard";
+import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
+import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
+import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
+import { useMeeting } from "@/contexts/MeetingContext";
+import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 export default function TabulationPage() {
-  const { currentMeeting, isLoading: meetingLoading } = useMeeting()
-  const meetingId = currentMeeting?.id ?? ''
+  const { currentMeeting, isLoading: meetingLoading } = useMeeting();
+  const meetingId = currentMeeting?.id ?? "";
   const {
     proposals,
     filteredPositions,
@@ -31,10 +30,10 @@ export default function TabulationPage() {
     loading: tabulationLoading,
     meetingTitle,
     clientTicker,
-  } = useTabulationInsights(currentMeeting?.id, currentMeeting)
+  } = useTabulationInsights(currentMeeting?.id, currentMeeting);
 
   if (meetingLoading) {
-    return null
+    return null;
   }
 
   return (
@@ -85,8 +84,8 @@ export default function TabulationPage() {
             loading={tabulationLoading}
             proposals={proposals}
             positions={filteredPositions}
-            meetingTitle={meetingTitle || currentMeeting?.title || 'Meeting Positions'}
-            clientTicker={clientTicker || currentMeeting?.ticker || ''}
+            meetingTitle={meetingTitle || currentMeeting?.title || "Meeting Positions"}
+            clientTicker={clientTicker || currentMeeting?.ticker || ""}
             filters={filters}
             onFiltersChange={(nextFilters) => setFilters(nextFilters)}
             accountTypes={accountTypes.map((accountType) => ({
@@ -105,5 +104,5 @@ export default function TabulationPage() {
         </Grid>
       </Grid>
     </Container>
-  )
+  );
 }

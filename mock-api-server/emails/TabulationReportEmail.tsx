@@ -1,91 +1,81 @@
-import {
-  Button,
-  Column,
-  Container,
-  Hr,
-  Row,
-  Section,
-  Text,
-} from '@react-email/components'
-import React from 'react'
+import { Button, Column, Container, Hr, Row, Section, Text } from "@react-email/components";
+import React from "react";
 
-import BNLogo from './components/BNLogo'
-import { Footer } from './components/Footer'
-import { Layout } from './components/Layout'
-import { COLORS, CONTAINER_WIDTH, FONTS } from './styles'
-import type { TabulationReportEmailProps, TabulationReportProposal } from './types'
+import type { TabulationReportEmailProps, TabulationReportProposal } from "./types";
+
+import BNLogo from "./components/BNLogo";
+import { Footer } from "./components/Footer";
+import { Layout } from "./components/Layout";
+import { COLORS, CONTAINER_WIDTH, FONTS } from "./styles";
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return new Date(date).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function formatNumber(n: number): string {
-  return n.toLocaleString('en-US')
+  return n.toLocaleString("en-US");
 }
 
 function pct(votes: number, total: number): number {
-  if (total === 0) return 0
-  return Math.round((votes / total) * 100)
+  if (total === 0) return 0;
+  return Math.round((votes / total) * 100);
 }
 
 interface ProgressBarProps {
-  percent: number
-  color: string
+  percent: number;
+  color: string;
 }
 
 function ProgressBar({ percent, color }: ProgressBarProps) {
-  const clamped = Math.min(100, Math.max(0, percent))
+  const clamped = Math.min(100, Math.max(0, percent));
   return (
     <div
       style={{
-        width: '100%',
-        height: '6px',
-        backgroundColor: '#E5E7EB',
-        borderRadius: '3px',
-        overflow: 'hidden',
-        margin: '4px 0 0',
+        width: "100%",
+        height: "6px",
+        backgroundColor: "#E5E7EB",
+        borderRadius: "3px",
+        overflow: "hidden",
+        margin: "4px 0 0",
       }}
     >
       <div
         style={{
           width: `${clamped}%`,
-          height: '100%',
+          height: "100%",
           backgroundColor: color,
-          borderRadius: '3px',
+          borderRadius: "3px",
         }}
       />
     </div>
-  )
+  );
 }
 
 interface ProposalRowProps {
-  proposal: TabulationReportProposal
-  index: number
+  proposal: TabulationReportProposal;
+  index: number;
 }
 
 function ProposalRow({ proposal, index }: ProposalRowProps) {
-  const total = proposal.totalShares
-  const forPct = pct(proposal.votesFor, total)
-  const againstPct = pct(proposal.votesAgainst, total)
-  const abstainPct = pct(proposal.votesAbstain, total)
-  const notCastPct = pct(proposal.votesNotCast, total)
-  const votedPct = pct(
-    proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain,
-    total
-  )
+  const total = proposal.totalShares;
+  const forPct = pct(proposal.votesFor, total);
+  const againstPct = pct(proposal.votesAgainst, total);
+  const abstainPct = pct(proposal.votesAbstain, total);
+  const notCastPct = pct(proposal.votesNotCast, total);
+  const votedPct = pct(proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain, total);
 
-  const isEven = index % 2 === 0
+  const isEven = index % 2 === 0;
 
   return (
     <Section
       style={{
-        backgroundColor: isEven ? COLORS.white : '#F9FAFB',
-        padding: '16px 32px',
+        backgroundColor: isEven ? COLORS.white : "#F9FAFB",
+        padding: "16px 32px",
         borderBottom: `1px solid ${COLORS.border}`,
       }}
     >
@@ -95,11 +85,11 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '12px',
+              fontSize: "12px",
               color: COLORS.muted,
-              margin: '0 0 2px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              margin: "0 0 2px",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
             }}
           >
             Proposal {proposal.number}
@@ -107,21 +97,21 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '14px',
-              fontWeight: '600',
+              fontSize: "14px",
+              fontWeight: "600",
               color: COLORS.text,
-              margin: '0 0 12px',
-              lineHeight: '1.4',
+              margin: "0 0 12px",
+              lineHeight: "1.4",
             }}
           >
             {proposal.title}
           </Text>
         </Column>
-        <Column align="right" style={{ verticalAlign: 'top', paddingTop: '4px' }}>
+        <Column align="right" style={{ verticalAlign: "top", paddingTop: "4px" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '12px',
+              fontSize: "12px",
               color: COLORS.muted,
               margin: 0,
             }}
@@ -132,15 +122,15 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
       </Row>
 
       {/* Vote bars */}
-      <Row style={{ marginBottom: '6px' }}>
-        <Column style={{ width: '25%', paddingRight: '8px' }}>
+      <Row style={{ marginBottom: "6px" }}>
+        <Column style={{ width: "25%", paddingRight: "8px" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
-              color: '#447A44',
-              fontWeight: '600',
-              margin: '0 0 2px',
+              fontSize: "11px",
+              color: "#447A44",
+              fontWeight: "600",
+              margin: "0 0 2px",
             }}
           >
             FOR {forPct}%
@@ -149,22 +139,22 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '10px',
+              fontSize: "10px",
               color: COLORS.muted,
-              margin: '2px 0 0',
+              margin: "2px 0 0",
             }}
           >
             {formatNumber(proposal.votesFor)}
           </Text>
         </Column>
-        <Column style={{ width: '25%', paddingRight: '8px' }}>
+        <Column style={{ width: "25%", paddingRight: "8px" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
-              color: '#B91C1C',
-              fontWeight: '600',
-              margin: '0 0 2px',
+              fontSize: "11px",
+              color: "#B91C1C",
+              fontWeight: "600",
+              margin: "0 0 2px",
             }}
           >
             AGAINST {againstPct}%
@@ -173,22 +163,22 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '10px',
+              fontSize: "10px",
               color: COLORS.muted,
-              margin: '2px 0 0',
+              margin: "2px 0 0",
             }}
           >
             {formatNumber(proposal.votesAgainst)}
           </Text>
         </Column>
-        <Column style={{ width: '25%', paddingRight: '8px' }}>
+        <Column style={{ width: "25%", paddingRight: "8px" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
-              color: '#92400E',
-              fontWeight: '600',
-              margin: '0 0 2px',
+              fontSize: "11px",
+              color: "#92400E",
+              fontWeight: "600",
+              margin: "0 0 2px",
             }}
           >
             ABSTAIN {abstainPct}%
@@ -197,22 +187,22 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '10px',
+              fontSize: "10px",
               color: COLORS.muted,
-              margin: '2px 0 0',
+              margin: "2px 0 0",
             }}
           >
             {formatNumber(proposal.votesAbstain)}
           </Text>
         </Column>
-        <Column style={{ width: '25%' }}>
+        <Column style={{ width: "25%" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
+              fontSize: "11px",
               color: COLORS.muted,
-              fontWeight: '600',
-              margin: '0 0 2px',
+              fontWeight: "600",
+              margin: "0 0 2px",
             }}
           >
             NOT CAST {notCastPct}%
@@ -221,9 +211,9 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '10px',
+              fontSize: "10px",
               color: COLORS.muted,
-              margin: '2px 0 0',
+              margin: "2px 0 0",
             }}
           >
             {formatNumber(proposal.votesNotCast)}
@@ -231,7 +221,7 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
         </Column>
       </Row>
     </Section>
-  )
+  );
 }
 
 export function TabulationReportEmail({
@@ -249,19 +239,19 @@ export function TabulationReportEmail({
   viewTabulationUrl,
   portalBaseUrl,
 }: TabulationReportEmailProps) {
-  const quorumPct = pct(totalSharesVoted, totalSharesEligible)
+  const quorumPct = pct(totalSharesVoted, totalSharesEligible);
   const quorumColor = quorumMet
-    ? '#447A44'
+    ? "#447A44"
     : quorumPct >= quorumRequired - 10
-      ? '#D97706'
-      : '#DC2626'
+      ? "#D97706"
+      : "#DC2626";
 
   const urgencyLabel =
     daysUntilMeeting <= 3
-      ? '⚠️ Meeting in 3 days or less — final push required'
+      ? "⚠️ Meeting in 3 days or less — final push required"
       : daysUntilMeeting <= 7
         ? `${daysUntilMeeting} days remaining — increase solicitation efforts`
-        : `${daysUntilMeeting} days until meeting`
+        : `${daysUntilMeeting} days until meeting`;
 
   return (
     <Layout
@@ -270,38 +260,38 @@ export function TabulationReportEmail({
       <Container
         style={{
           maxWidth: CONTAINER_WIDTH,
-          margin: '0 auto',
-          border: '1px solid #CCCCCC',
+          margin: "0 auto",
+          border: "1px solid #CCCCCC",
         }}
       >
         {/* Header */}
-        <Section style={{ backgroundColor: COLORS.navy, padding: '20px 32px' }}>
+        <Section style={{ backgroundColor: COLORS.navy, padding: "20px 32px" }}>
           <Row>
             <Column>
               <Text
                 style={{
                   color: COLORS.white,
                   fontFamily: FONTS.sans,
-                  fontSize: '15px',
-                  fontWeight: '700',
-                  margin: '0 0 2px',
-                  lineHeight: '1.3',
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  margin: "0 0 2px",
+                  lineHeight: "1.3",
                 }}
               >
                 {companyName}
               </Text>
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.75)',
+                  color: "rgba(255,255,255,0.75)",
                   fontFamily: FONTS.sans,
-                  fontSize: '12px',
+                  fontSize: "12px",
                   margin: 0,
                 }}
               >
                 {meetingType} &bull; Daily Tabulation Report
               </Text>
             </Column>
-            <Column align="right" style={{ verticalAlign: 'middle' }}>
+            <Column align="right" style={{ verticalAlign: "middle" }}>
               <BNLogo />
             </Column>
           </Row>
@@ -311,27 +301,19 @@ export function TabulationReportEmail({
         <Section
           style={{
             backgroundColor:
-              daysUntilMeeting <= 3
-                ? '#FEF2F2'
-                : daysUntilMeeting <= 7
-                  ? '#FFFBEB'
-                  : '#EFF6FF',
-            borderBottom: `1px solid ${daysUntilMeeting <= 3 ? '#FECACA' : daysUntilMeeting <= 7 ? '#FDE68A' : '#BFDBFE'}`,
-            padding: '10px 32px',
+              daysUntilMeeting <= 3 ? "#FEF2F2" : daysUntilMeeting <= 7 ? "#FFFBEB" : "#EFF6FF",
+            borderBottom: `1px solid ${daysUntilMeeting <= 3 ? "#FECACA" : daysUntilMeeting <= 7 ? "#FDE68A" : "#BFDBFE"}`,
+            padding: "10px 32px",
           }}
         >
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '12px',
+              fontSize: "12px",
               color:
-                daysUntilMeeting <= 3
-                  ? '#991B1B'
-                  : daysUntilMeeting <= 7
-                    ? '#92400E'
-                    : '#1E40AF',
+                daysUntilMeeting <= 3 ? "#991B1B" : daysUntilMeeting <= 7 ? "#92400E" : "#1E40AF",
               margin: 0,
-              fontWeight: '500',
+              fontWeight: "500",
             }}
           >
             {urgencyLabel} &bull; Meeting date: {formatDate(meetingDate)}
@@ -339,13 +321,13 @@ export function TabulationReportEmail({
         </Section>
 
         {/* Greeting */}
-        <Section style={{ backgroundColor: COLORS.white, padding: '24px 32px 0' }}>
+        <Section style={{ backgroundColor: COLORS.white, padding: "24px 32px 0" }}>
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '14px',
+              fontSize: "14px",
               color: COLORS.text,
-              margin: '0 0 6px',
+              margin: "0 0 6px",
             }}
           >
             Hello {recipientName},
@@ -353,38 +335,38 @@ export function TabulationReportEmail({
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '14px',
+              fontSize: "14px",
               color: COLORS.textLight,
-              margin: '0 0 0',
-              lineHeight: '1.6',
+              margin: "0 0 0",
+              lineHeight: "1.6",
             }}
           >
-            Here is your automated daily vote tabulation summary for{' '}
-            <strong>{companyName}</strong>, as of {formatDate(reportDate)}.
+            Here is your automated daily vote tabulation summary for <strong>{companyName}</strong>,
+            as of {formatDate(reportDate)}.
           </Text>
         </Section>
 
         {/* Quorum status */}
-        <Section style={{ backgroundColor: COLORS.white, padding: '20px 32px' }}>
+        <Section style={{ backgroundColor: COLORS.white, padding: "20px 32px" }}>
           <div
             style={{
-              border: `1px solid ${quorumMet ? '#447A44' : '#FEE2E2'}`,
-              borderRadius: '8px',
-              backgroundColor: quorumMet ? '#f0faf0' : '#FFF5F5',
-              padding: '16px 20px',
+              border: `1px solid ${quorumMet ? "#447A44" : "#FEE2E2"}`,
+              borderRadius: "8px",
+              backgroundColor: quorumMet ? "#f0faf0" : "#FFF5F5",
+              padding: "16px 20px",
             }}
           >
             <Row>
-              <Column style={{ width: '60%' }}>
+              <Column style={{ width: "60%" }}>
                 <Text
                   style={{
                     fontFamily: FONTS.sans,
-                    fontSize: '11px',
+                    fontSize: "11px",
                     color: COLORS.muted,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    margin: '0 0 4px',
-                    fontWeight: '600',
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    margin: "0 0 4px",
+                    fontWeight: "600",
                   }}
                 >
                   Quorum Status
@@ -392,18 +374,18 @@ export function TabulationReportEmail({
                 <Text
                   style={{
                     fontFamily: FONTS.sans,
-                    fontSize: '22px',
-                    fontWeight: '700',
+                    fontSize: "22px",
+                    fontWeight: "700",
                     color: quorumColor,
-                    margin: '0 0 2px',
-                    lineHeight: '1.2',
+                    margin: "0 0 2px",
+                    lineHeight: "1.2",
                   }}
                 >
-                  {quorumPct}%{' '}
+                  {quorumPct}%{" "}
                   <span
                     style={{
-                      fontSize: '13px',
-                      fontWeight: '400',
+                      fontSize: "13px",
+                      fontWeight: "400",
                       color: COLORS.muted,
                     }}
                   >
@@ -414,53 +396,51 @@ export function TabulationReportEmail({
                 <Text
                   style={{
                     fontFamily: FONTS.sans,
-                    fontSize: '11px',
+                    fontSize: "11px",
                     color: COLORS.muted,
-                    margin: '4px 0 0',
+                    margin: "4px 0 0",
                   }}
                 >
-                  {formatNumber(totalSharesVoted)} of {formatNumber(totalSharesEligible)}{' '}
-                  shares &bull; {quorumRequired}% threshold required
+                  {formatNumber(totalSharesVoted)} of {formatNumber(totalSharesEligible)} shares
+                  &bull; {quorumRequired}% threshold required
                 </Text>
               </Column>
-              <Column style={{ width: '40%' }} align="right">
+              <Column style={{ width: "40%" }} align="right">
                 <div
                   style={{
-                    display: 'inline-block',
-                    backgroundColor: quorumMet ? '#16A34A' : '#DC2626',
-                    borderRadius: '6px',
-                    padding: '6px 14px',
-                    marginTop: '8px',
+                    display: "inline-block",
+                    backgroundColor: quorumMet ? "#16A34A" : "#DC2626",
+                    borderRadius: "6px",
+                    padding: "6px 14px",
+                    marginTop: "8px",
                   }}
                 >
                   <Text
                     style={{
                       fontFamily: FONTS.sans,
-                      fontSize: '12px',
-                      fontWeight: '700',
+                      fontSize: "12px",
+                      fontWeight: "700",
                       color: COLORS.white,
                       margin: 0,
                     }}
                   >
-                    {quorumMet ? '✓ Quorum Met' : '✗ Below Quorum'}
+                    {quorumMet ? "✓ Quorum Met" : "✗ Below Quorum"}
                   </Text>
                 </div>
                 {!quorumMet && (
                   <Text
                     style={{
                       fontFamily: FONTS.sans,
-                      fontSize: '11px',
-                      color: '#DC2626',
-                      margin: '6px 0 0',
-                      textAlign: 'right',
+                      fontSize: "11px",
+                      color: "#DC2626",
+                      margin: "6px 0 0",
+                      textAlign: "right",
                     }}
                   >
-                    Need{' '}
+                    Need{" "}
                     {formatNumber(
-                      Math.ceil(
-                        (quorumRequired / 100) * totalSharesEligible - totalSharesVoted
-                      )
-                    )}{' '}
+                      Math.ceil((quorumRequired / 100) * totalSharesEligible - totalSharesVoted),
+                    )}{" "}
                     more shares
                   </Text>
                 )}
@@ -472,8 +452,8 @@ export function TabulationReportEmail({
         {/* Proposals section header */}
         <Section
           style={{
-            backgroundColor: '#F3F4F6',
-            padding: '10px 32px',
+            backgroundColor: "#F3F4F6",
+            padding: "10px 32px",
             borderTop: `1px solid ${COLORS.border}`,
             borderBottom: `1px solid ${COLORS.border}`,
           }}
@@ -481,11 +461,11 @@ export function TabulationReportEmail({
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
-              fontWeight: '700',
+              fontSize: "11px",
+              fontWeight: "700",
               color: COLORS.muted,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
               margin: 0,
             }}
           >
@@ -504,20 +484,20 @@ export function TabulationReportEmail({
         <Section
           style={{
             backgroundColor: COLORS.white,
-            padding: '24px 32px',
-            textAlign: 'center',
+            padding: "24px 32px",
+            textAlign: "center",
           }}
         >
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '13px',
+              fontSize: "13px",
               color: COLORS.textLight,
-              margin: '0 0 16px',
+              margin: "0 0 16px",
             }}
           >
-            View full tabulation details, position-level breakdowns, and manage
-            distribution settings in the portal.
+            View full tabulation details, position-level breakdowns, and manage distribution
+            settings in the portal.
           </Text>
           <Button
             href={viewTabulationUrl}
@@ -525,12 +505,12 @@ export function TabulationReportEmail({
               backgroundColor: COLORS.navy,
               color: COLORS.white,
               fontFamily: FONTS.sans,
-              fontSize: '14px',
-              fontWeight: '600',
-              padding: '12px 28px',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              display: 'inline-block',
+              fontSize: "14px",
+              fontWeight: "600",
+              padding: "12px 28px",
+              borderRadius: "6px",
+              textDecoration: "none",
+              display: "inline-block",
             }}
           >
             View Full Tabulation Report →
@@ -540,22 +520,22 @@ export function TabulationReportEmail({
         {/* Automated notice */}
         <Section
           style={{
-            backgroundColor: '#F9FAFB',
+            backgroundColor: "#F9FAFB",
             borderTop: `1px solid ${COLORS.border}`,
-            padding: '12px 32px',
+            padding: "12px 32px",
           }}
         >
           <Text
             style={{
               fontFamily: FONTS.sans,
-              fontSize: '11px',
+              fontSize: "11px",
               color: COLORS.muted,
               margin: 0,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
-            This is an automated daily report. Distribution begins 15 days before the
-            meeting date. To manage recipients or pause delivery, visit your{' '}
+            This is an automated daily report. Distribution begins 15 days before the meeting date.
+            To manage recipients or pause delivery, visit your{" "}
             <a href={viewTabulationUrl} style={{ color: COLORS.link }}>
               tabulation settings
             </a>
@@ -566,7 +546,7 @@ export function TabulationReportEmail({
         <Footer portalBaseUrl={portalBaseUrl} />
       </Container>
     </Layout>
-  )
+  );
 }
 
-export default TabulationReportEmail
+export default TabulationReportEmail;

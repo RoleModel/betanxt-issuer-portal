@@ -1,42 +1,40 @@
-import type { SWRConfiguration } from 'swr'
+import type { SWRConfiguration } from "swr";
 
-import { buildApiClient } from '@/domain-models/apiClient'
+import { buildApiClient } from "@/domain-models/apiClient";
 
 // Custom fetcher for API calls
 export const apiFetcher = async (url: string) => {
-  const client = await buildApiClient()
+  const client = await buildApiClient();
 
   // Parse the URL to extract the path and params
-  const [path, queryString] = url.split('?')
-  const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {}
+  const [path, queryString] = url.split("?");
+  const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {};
 
   // Make the API call based on the path
-  let response: { data?: unknown; error?: unknown }
+  let response: { data?: unknown; error?: unknown };
 
-  if (path === '/notifications') {
+  if (path === "/notifications") {
     response = await client.GET(
-      '/notifications',
-      params.read !== undefined
-        ? { params: { query: { read: params.read === 'true' } } }
-        : {}
-    )
-  } else if (path === '/clients') {
-    response = await client.GET('/clients')
+      "/notifications",
+      params.read !== undefined ? { params: { query: { read: params.read === "true" } } } : {},
+    );
+  } else if (path === "/clients") {
+    response = await client.GET("/clients");
   } else {
     // For other endpoints, we'll need to handle them specifically as they're added
-    throw new Error(`Unsupported API path for SWR: ${path}`)
+    throw new Error(`Unsupported API path for SWR: ${path}`);
   }
 
   if (response.error) {
     const errorMessage =
-      typeof response.error === 'object' && 'message' in response.error
+      typeof response.error === "object" && "message" in response.error
         ? String(response.error.message)
-        : 'API Error'
-    throw new Error(errorMessage)
+        : "API Error";
+    throw new Error(errorMessage);
   }
 
-  return response.data
-}
+  return response.data;
+};
 
 // Global SWR configuration
 export const swrConfig: SWRConfiguration = {
@@ -60,28 +58,28 @@ export const swrConfig: SWRConfiguration = {
 
   // Comparison function to determine if data has changed
   compare: (a, b) => {
-    return JSON.stringify(a) === JSON.stringify(b)
+    return JSON.stringify(a) === JSON.stringify(b);
   },
 
   // Keep previous data while revalidating
   keepPreviousData: true,
-}
+};
 
 // Hook-specific configurations
 export const notificationSWRConfig: SWRConfiguration = {
   ...swrConfig,
   refreshInterval: 60000, // Poll every 60 seconds
   revalidateOnMount: true,
-}
+};
 
 export const clientsSWRConfig: SWRConfiguration = {
   ...swrConfig,
   refreshInterval: 0, // Don't poll - clients rarely change
   dedupingInterval: 60000, // 1 minute - clients are static
-}
+};
 
 export const meetingDataSWRConfig: SWRConfiguration = {
   ...swrConfig,
   refreshInterval: 30000, // Poll every 30 seconds for live data
   dedupingInterval: 10000, // 10 seconds
-}
+};

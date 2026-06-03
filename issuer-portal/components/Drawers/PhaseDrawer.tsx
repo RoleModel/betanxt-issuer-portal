@@ -1,12 +1,7 @@
-'use client'
+"use client";
 
-import { Global } from '@emotion/react'
-import { jsPDF } from 'jspdf'
-import { useSession } from 'next-auth/react'
-import { useParams, useRouter } from 'next/navigation'
-import React, { useCallback, useMemo, useState } from 'react'
-
-import { Close as CloseIcon } from '@mui/icons-material'
+import { Global } from "@emotion/react";
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -25,142 +20,138 @@ import {
   SwipeableDrawer,
   Typography,
   useMediaQuery,
-} from '@mui/material'
-import { styled, useTheme } from '@mui/material/styles'
+} from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
+import { jsPDF } from "jspdf";
+import { useSession } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useCallback, useMemo, useState } from "react";
 
-import TaskEditDialog from '@/components/Dialogs/TaskEditDialog'
-import DocumentViewer from '@/components/Documents/DocumentViewer'
-import ApprovalDrawer from '@/components/Drawers/ApprovalDrawer'
-import DrawerTaskItem from '@/components/Drawers/DrawerTaskItem'
-import DrawerHeader from '@/components/Drawers/shared/DrawerHeader'
-import { useDrawerDocuments } from '@/components/Drawers/shared/hooks/useDrawerDocuments'
-import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
-import BNFilePreview from '@/components/FileUpload/BNFilePreview'
-import TaskContextMenu from '@/components/ui/TaskContextMenu'
+import type { components } from "@/domain-models/generated-schema";
+import type { KeyDate, Task } from "@/types/api-exports";
+import type { ContextMenuPosition } from "@/types/common";
+import type { TaskLink } from "@/utils/taskLinks";
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
-
-import { useMeeting } from '@/contexts/MeetingContext'
-import { usePhaseCompletion } from '@/hooks/taskDrawer/usePhaseCompletion'
-import { useClients } from '@/hooks/useClients'
-import { useDocuments } from '@/hooks/useDocuments'
-import { usePhases } from '@/hooks/usePhases'
-import { useTasks } from '@/hooks/useTasks'
-import { getBrowserSupabase } from '@/lib/browserSupabase'
-import type { KeyDate, Task } from '@/types/api-exports'
-import type { ContextMenuPosition } from '@/types/common'
-import { handleFormDownload, handleFormSign } from '@/utils/broadridgeFormHandler'
-import { calculateDaysUntil, formatDaysUntil, friendlyDate } from '@/utils/dateUtils'
+import TaskEditDialog from "@/components/Dialogs/TaskEditDialog";
+import DocumentViewer from "@/components/Documents/DocumentViewer";
+import ApprovalDrawer from "@/components/Drawers/ApprovalDrawer";
+import DrawerTaskItem from "@/components/Drawers/DrawerTaskItem";
+import DrawerHeader from "@/components/Drawers/shared/DrawerHeader";
+import { useDrawerDocuments } from "@/components/Drawers/shared/hooks/useDrawerDocuments";
+import BNFileDropzone from "@/components/FileUpload/BNFileDropzone";
+import BNFilePreview from "@/components/FileUpload/BNFilePreview";
+import TaskContextMenu from "@/components/ui/TaskContextMenu";
+import { useMeeting } from "@/contexts/MeetingContext";
+import buildApiClient from "@/domain-models/apiClient";
+import { usePhaseCompletion } from "@/hooks/taskDrawer/usePhaseCompletion";
+import { useClients } from "@/hooks/useClients";
+import { useDocuments } from "@/hooks/useDocuments";
+import { usePhases } from "@/hooks/usePhases";
+import { useTasks } from "@/hooks/useTasks";
+import { getBrowserSupabase } from "@/lib/browserSupabase";
+import { handleFormDownload, handleFormSign } from "@/utils/broadridgeFormHandler";
+import { calculateDaysUntil, formatDaysUntil, friendlyDate } from "@/utils/dateUtils";
 import {
   handleFormDownload as handlePlanFormDownload,
   handleFormSign as handlePlanFormSign,
-} from '@/utils/planFileRequestForm'
-import { getDocumentTypeFromTask } from '@/utils/taskControl'
-import { determineTaskStatus } from '@/utils/taskControl'
-import type { TaskLink } from '@/utils/taskLinks'
+} from "@/utils/planFileRequestForm";
+import { getDocumentTypeFromTask } from "@/utils/taskControl";
+import { determineTaskStatus } from "@/utils/taskControl";
 import {
   handleFormDownload as handleTransferAgentDownload,
   handleFormSign as handleTransferAgentSign,
-} from '@/utils/transferAgentRequestForm'
+} from "@/utils/transferAgentRequestForm";
 
-import { getPhaseColor } from '../mui-styling/theme'
+import { getPhaseColor } from "../mui-styling/theme";
 
 // Phase URL type for UI
 interface PhaseUrl {
-  title: string
-  description?: string
-  url?: string
+  title: string;
+  description?: string;
+  url?: string;
 }
 
 // Swipeable drawer constants
-const drawerBleeding = 60
+const drawerBleeding = 60;
 
 // Styled components for swipeable drawer
-const StyledBox = styled('div')(({ theme }) => ({
+const StyledBox = styled("div")(({ theme }) => ({
   backgroundColor: theme.vars?.palette.background.default,
-}))
+}));
 
-const Puller = styled('div')(({ theme }) => ({
+const Puller = styled("div")(({ theme }) => ({
   width: 30,
   height: 6,
-  backgroundColor: theme.vars?.palette.divider ?? '#e0e0e0',
+  backgroundColor: theme.vars?.palette.divider ?? "#e0e0e0",
   borderRadius: 3,
-  position: 'absolute',
+  position: "absolute",
   top: 8,
-  left: 'calc(50% - 15px)',
-}))
+  left: "calc(50% - 15px)",
+}));
 
 // Remove duplicate SignatureArea - use from DocumentViewer if needed
 
 interface PhaseDrawerProps {
-  open: boolean
-  onClose: () => void
-  phase: number
-  onPhaseChange?: (newPhase: number) => void
-  onTaskClick?: (taskId: string) => void
+  open: boolean;
+  onClose: () => void;
+  phase: number;
+  onPhaseChange?: (newPhase: number) => void;
+  onTaskClick?: (taskId: string) => void;
 }
 
 const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
-  const { open, onClose, phase = 1, onPhaseChange } = props
+  const { open, onClose, phase = 1, onPhaseChange } = props;
 
   // Get active meeting and tasks from context (or defaults if no provider)
-  let meetingContextValue = null
+  let meetingContextValue = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    meetingContextValue = useMeeting()
+    meetingContextValue = useMeeting();
   } catch {
     // No MeetingProvider available
   }
 
-  const currentMeeting = meetingContextValue?.currentMeeting ?? null
-  const tasks = React.useMemo(
-    () => meetingContextValue?.tasks ?? [],
-    [meetingContextValue?.tasks]
-  )
-  const tasksLoading = meetingContextValue?.tasksLoading ?? false
-  const refreshMeetingData = meetingContextValue?.refreshMeetingData
+  const currentMeeting = meetingContextValue?.currentMeeting ?? null;
+  const tasks = React.useMemo(() => meetingContextValue?.tasks ?? [], [meetingContextValue?.tasks]);
+  const tasksLoading = meetingContextValue?.tasksLoading ?? false;
+  const refreshMeetingData = meetingContextValue?.refreshMeetingData;
   const meetingKeyDates = React.useMemo(
     () => meetingContextValue?.keyDates ?? [],
-    [meetingContextValue?.keyDates]
-  )
-  const setCurrentMeeting = meetingContextValue?.setCurrentMeeting
+    [meetingContextValue?.keyDates],
+  );
+  const setCurrentMeeting = meetingContextValue?.setCurrentMeeting;
 
   // Session and routing
-  const { data: session } = useSession()
-  const _router = useRouter()
+  const { data: session } = useSession();
+  const _router = useRouter();
 
   // Tasks and documents hooks
-  const { updateTaskById, refetch } = useTasks(currentMeeting?.id)
+  const { updateTaskById, refetch } = useTasks(currentMeeting?.id);
   const { createNewDocument, addDocumentHistory, getDocumentsByMeeting, uploadDocument } =
-    useDocuments()
+    useDocuments();
 
   // Mobile detection
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // Get phases using the proper hook
-  const {
-    phases,
-    loading: phaseLoading,
-    error: phaseError,
-  } = usePhases(currentMeeting?.id)
+  const { phases, loading: phaseLoading, error: phaseError } = usePhases(currentMeeting?.id);
 
   // Get client data for form generation
-  const params = useParams()
-  const clientTicker = params?.clientTicker as string
+  const params = useParams();
+  const clientTicker = params?.clientTicker as string;
 
-  const { clients } = useClients()
-  const currentClient = clients.find((client) => client.ticker === clientTicker)
+  const { clients } = useClients();
+  const currentClient = clients.find((client) => client.ticker === clientTicker);
 
-  const [currentView, setCurrentView] = useState<'overview' | 'upload'>('overview')
+  const [currentView, setCurrentView] = useState<"overview" | "upload">("overview");
 
   // Determine current phase from MeetingContext, fallback to prop, then 1
   const currentPhaseNumber = React.useMemo(() => {
-    const label = currentMeeting?.currentPhase ?? `Phase ${phase ?? 1}`
-    const parsed = parseInt(label.replace('Phase ', ''))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : (phase ?? 1)
-  }, [currentMeeting?.currentPhase, phase])
+    const label = currentMeeting?.currentPhase ?? `Phase ${phase ?? 1}`;
+    const parsed = parseInt(label.replace("Phase ", ""));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : (phase ?? 1);
+  }, [currentMeeting?.currentPhase, phase]);
 
   // Use shared document management hook
   const {
@@ -191,82 +182,82 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     clearUploadFiles,
     handlePdfStateChange,
     setUploadFiles,
-  } = useDrawerDocuments()
+  } = useDrawerDocuments();
 
-  const [uploadTaskTitle, setUploadTaskTitle] = useState('')
-  const [currentTaskForUpload, setCurrentTaskForUpload] = useState<Task | null>(null)
-  const [isSubmittingUpload, setIsSubmittingUpload] = useState(false)
-  const [mobileUploadOpen, setMobileUploadOpen] = useState(false)
-  const [currentTaskForDocument, setCurrentTaskForDocument] = useState<Task | null>(null)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [uploadTaskTitle, setUploadTaskTitle] = useState("");
+  const [currentTaskForUpload, setCurrentTaskForUpload] = useState<Task | null>(null);
+  const [isSubmittingUpload, setIsSubmittingUpload] = useState(false);
+  const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
+  const [currentTaskForDocument, setCurrentTaskForDocument] = useState<Task | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Context menu states
-  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [TaskEditDialogOpen, setTaskEditDialogOpen] = useState(false)
-  const [tasksWithSignedDocs, setTasksWithSignedDocs] = useState<Set<string>>(new Set())
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [TaskEditDialogOpen, setTaskEditDialogOpen] = useState(false);
+  const [tasksWithSignedDocs, setTasksWithSignedDocs] = useState<Set<string>>(new Set());
 
   // Initialize phase completion hook
   const { checkAndCompletePhase } = usePhaseCompletion({
     currentMeeting,
     session,
     refreshContext: refreshMeetingData,
-  })
+  });
 
   // Get theme and phase color using theme palette
-  const phaseColor = theme.vars.palette.phase[currentPhaseNumber - 1].main
-  const phaseContrast = theme.vars.palette.phase[currentPhaseNumber - 1].contrastText
+  const phaseColor = theme.vars.palette.phase[currentPhaseNumber - 1].main;
+  const phaseContrast = theme.vars.palette.phase[currentPhaseNumber - 1].contrastText;
 
   // Find the current phase data
-  const currentPhaseData = phases.find((p) => p.orderIndex === currentPhaseNumber)
-  const phaseTitle = currentPhaseData?.name ?? `Phase ${currentPhaseNumber}`
+  const currentPhaseData = phases.find((p) => p.orderIndex === currentPhaseNumber);
+  const phaseTitle = currentPhaseData?.name ?? `Phase ${currentPhaseNumber}`;
 
   // Filter tasks for the current phase from context and cast to TaskWithLinks
   // Memoize filtered tasks for performance
   const phaseTasks = useMemo(
     () => tasks.filter((task) => task.phaseNumber === currentPhaseNumber),
-    [tasks, currentPhaseNumber]
-  )
+    [tasks, currentPhaseNumber],
+  );
 
   // Check for signed documents for all phase tasks (moved outside useEffect for reuse)
   const checkSignedDocuments = useCallback(async () => {
-    if (!currentMeeting?.id || phaseTasks.length === 0) return
+    if (!currentMeeting?.id || phaseTasks.length === 0) return;
 
     try {
-      const meetingDocuments = await getDocumentsByMeeting(currentMeeting.id)
+      const meetingDocuments = await getDocumentsByMeeting(currentMeeting.id);
 
-      const taskIdsWithSignedDocs = new Set<string>()
+      const taskIdsWithSignedDocs = new Set<string>();
 
       phaseTasks.forEach((task) => {
         const matchingDocs = meetingDocuments.filter(
-          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === 'signed-form'
-        )
+          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+        );
 
         if (matchingDocs.length > 0) {
           if (task.id) {
-            taskIdsWithSignedDocs.add(task.id)
+            taskIdsWithSignedDocs.add(task.id);
           }
         } else if (
-          task.status === 'SUBMITTED_AWAITING_RECORD_DATE' ||
-          task.status === 'PENDING_AUTHORIZATION'
+          task.status === "SUBMITTED_AWAITING_RECORD_DATE" ||
+          task.status === "PENDING_AUTHORIZATION"
         ) {
           // No signed documents required for these statuses
         }
-      })
+      });
 
-      setTasksWithSignedDocs(taskIdsWithSignedDocs)
+      setTasksWithSignedDocs(taskIdsWithSignedDocs);
     } catch (error) {
-      console.error('Failed to check for signed documents:', error)
+      console.error("Failed to check for signed documents:", error);
     }
-  }, [currentMeeting?.id, phaseTasks, getDocumentsByMeeting])
+  }, [currentMeeting?.id, phaseTasks, getDocumentsByMeeting]);
 
   // Run check when drawer opens or dependencies change
   React.useEffect(() => {
     if (open) {
-      void checkSignedDocuments()
+      void checkSignedDocuments();
     }
-  }, [open, checkSignedDocuments])
+  }, [open, checkSignedDocuments]);
 
   // Get key dates for current phase from MeetingContext
   const keyDates: KeyDate[] = React.useMemo(() => {
@@ -277,260 +268,256 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         .filter(([, value]) => value)
         .map(([key, value]) => ({
           id: key,
-          title: key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase()),
+          title: key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()),
           phaseNumber: currentPhaseNumber,
           date: value!,
-        }))
+        }));
       if (result.length > 0) {
-        return result
+        return result;
       }
     }
 
     // Use key dates from MeetingContext (with correct phase assignments)
     // Exclude pre-filing dates
     const filtered = meetingKeyDates.filter((kd) => {
-      const title = kd.title?.toLowerCase() ?? ''
+      const title = kd.title?.toLowerCase() ?? "";
       const isPreFiling =
-        title.includes('pre-fil') ||
-        title.includes('prefil') ||
-        title === 'pre filing date' ||
-        title === 'pre-filing date'
-      return kd.phaseNumber === currentPhaseNumber && !isPreFiling
-    })
+        title.includes("pre-fil") ||
+        title.includes("prefil") ||
+        title === "pre filing date" ||
+        title === "pre-filing date";
+      return kd.phaseNumber === currentPhaseNumber && !isPreFiling;
+    });
 
     // If no dates found for the current phase, show dates without phase assignment for debugging
     if (filtered.length === 0 && meetingKeyDates.length > 0) {
       // For phase 1, show only filing date (not pre-filing)
       if (currentPhaseNumber === 1) {
         const phase1Dates = meetingKeyDates.filter((kd) => {
-          const title = kd.title?.toLowerCase() ?? ''
+          const title = kd.title?.toLowerCase() ?? "";
           return (
-            title.includes('filing') &&
-            !title.includes('pre-filing') &&
-            !title.includes('pre filing') &&
-            !title.includes('prefiling')
-          )
-        })
+            title.includes("filing") &&
+            !title.includes("pre-filing") &&
+            !title.includes("pre filing") &&
+            !title.includes("prefiling")
+          );
+        });
         if (phase1Dates.length > 0) {
-          return phase1Dates
+          return phase1Dates;
         }
       }
     }
-    return filtered
-  }, [currentPhaseData, meetingKeyDates, currentPhaseNumber])
+    return filtered;
+  }, [currentPhaseData, meetingKeyDates, currentPhaseNumber]);
 
   // URLs would come from phase data if available (currently not in our schema)
-  const urls: PhaseUrl[] = []
+  const urls: PhaseUrl[] = [];
 
   const handleUploadSubmit = async () => {
     if (!currentTaskForUpload || !currentMeeting?.id || uploadFiles.length === 0) {
-      return
+      return;
     }
 
     try {
-      setIsSubmittingUpload(true)
+      setIsSubmittingUpload(true);
 
       // Upload each file to document repository
       for (const uploadFile of uploadFiles) {
         // Update file status to uploading
         setUploadFiles((prev) =>
           prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: 'uploading' as const, progress: 0 }
-              : f
-          )
-        )
+            f.id === uploadFile.id ? { ...f, status: "uploading" as const, progress: 0 } : f,
+          ),
+        );
 
-        const documentType = getDocumentTypeFromTask(currentTaskForUpload)
+        const documentType = getDocumentTypeFromTask(currentTaskForUpload);
         const uploadPath = await uploadDocument(
           uploadFile.file,
           documentType,
           currentMeeting.id,
           uploadFile.file.name,
-          currentTaskForUpload.id
-        )
+          currentTaskForUpload.id,
+        );
 
         if (uploadPath === null) {
           // Mark file as error
           setUploadFiles((prev) =>
             prev.map((f) =>
               f.id === uploadFile.id
-                ? { ...f, status: 'error' as const, error: 'Upload failed' }
-                : f
-            )
-          )
-          throw new Error(`Failed to upload file: ${uploadFile.file.name}`)
+                ? { ...f, status: "error" as const, error: "Upload failed" }
+                : f,
+            ),
+          );
+          throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
         }
 
         // Mark file as complete
         setUploadFiles((prev) =>
           prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: 'complete' as const, progress: 100 }
-              : f
-          )
-        )
+            f.id === uploadFile.id ? { ...f, status: "complete" as const, progress: 100 } : f,
+          ),
+        );
       }
 
       // Determine appropriate status based on task type
-      const newStatus = determineTaskStatus(currentTaskForUpload.title ?? '')
+      const newStatus = determineTaskStatus(currentTaskForUpload.title ?? "");
 
       // Update task status
       if (currentTaskForUpload.id) {
-        await updateTaskById(currentTaskForUpload.id, { status: newStatus })
+        await updateTaskById(currentTaskForUpload.id, { status: newStatus });
       }
 
       // Update meeting completion percentage
       if (currentMeeting.id) {
         try {
-          const client = await buildApiClient()
+          const client = await buildApiClient();
 
-          refetch()
+          refetch();
 
           const completedStatuses = [
-            'COMPLETE',
-            'AUTHORIZED',
-            'SUBMITTED_AWAITING_RECORD_DATE',
-            'WAITING_FOR_FORM_RETURN',
-            'REQUEST_FORM_TO_FOLLOW',
-            'PENDING_AUTHORIZATION',
-          ]
+            "COMPLETE",
+            "AUTHORIZED",
+            "SUBMITTED_AWAITING_RECORD_DATE",
+            "WAITING_FOR_FORM_RETURN",
+            "REQUEST_FORM_TO_FOLLOW",
+            "PENDING_AUTHORIZATION",
+          ];
 
-          const allTasks = tasks
+          const allTasks = tasks;
           const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status ?? '')
-          ).length
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
+            completedStatuses.includes(t.status ?? ""),
+          ).length;
+          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100);
 
-          await client.PUT('/meetings/{meetingId}', {
+          await client.PUT("/meetings/{meetingId}", {
             params: {
               path: { meetingId: currentMeeting.id },
             },
             body: {
               overallCompletion: overallCompletion,
             },
-          })
+          });
         } catch (error) {
-          console.error('Failed to update meeting completion', error)
+          console.error("Failed to update meeting completion", error);
         }
       }
 
       // Check if all tasks in the current phase are complete
-      await checkAndCompletePhase(currentTaskForUpload)
+      await checkAndCompletePhase(currentTaskForUpload);
 
       // Clear state and close upload view
-      clearUploadFiles()
-      setCurrentTaskForUpload(null)
-      setUploadTaskTitle('')
-      void refreshMeetingData?.()
+      clearUploadFiles();
+      setCurrentTaskForUpload(null);
+      setUploadTaskTitle("");
+      void refreshMeetingData?.();
 
       if (isMobile) {
-        handleMobileUploadClose()
+        handleMobileUploadClose();
       } else {
         // Return to overview of current phase, not switching phases
-        setCurrentView('overview')
+        setCurrentView("overview");
       }
     } catch (error) {
-      console.error('Failed to submit upload', error)
-      setSnackbarMessage('Failed to upload files. Please try again.')
-      setSnackbarOpen(true)
+      console.error("Failed to submit upload", error);
+      setSnackbarMessage("Failed to upload files. Please try again.");
+      setSnackbarOpen(true);
     } finally {
-      setIsSubmittingUpload(false)
+      setIsSubmittingUpload(false);
     }
-  }
+  };
 
   // Generate filled PDF with form data and signatures
   const generateFilledPDF = (taskTitle: string): Blob => {
     const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'letter',
-    })
+      orientation: "portrait",
+      unit: "mm",
+      format: "letter",
+    });
 
     // Add header
-    doc.setFontSize(16)
-    doc.setTextColor(0, 0, 0)
-    doc.text(`${taskTitle} - Completed`, 20, 20)
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${taskTitle} - Completed`, 20, 20);
 
     // Add form fields data
-    let yPosition = 40
-    doc.setFontSize(12)
-    doc.text('Form Fields:', 20, yPosition)
-    yPosition += 10
+    let yPosition = 40;
+    doc.setFontSize(12);
+    doc.text("Form Fields:", 20, yPosition);
+    yPosition += 10;
 
     Object.entries(pdfFormState.formFields).forEach(([fieldId, value]) => {
       if (value) {
-        doc.text(`${fieldId}: ${value}`, 25, yPosition)
-        yPosition += 8
+        doc.text(`${fieldId}: ${value}`, 25, yPosition);
+        yPosition += 8;
       }
-    })
+    });
 
     // Add signatures data
     if (Object.keys(pdfFormState.signatures).length > 0) {
-      yPosition += 10
-      doc.text('Signatures:', 20, yPosition)
-      yPosition += 10
+      yPosition += 10;
+      doc.text("Signatures:", 20, yPosition);
+      yPosition += 10;
 
       Object.entries(pdfFormState.signatures).forEach(([areaId, signature]) => {
         if (signature) {
-          doc.text(`${areaId}: [Signed]`, 25, yPosition)
-          yPosition += 8
+          doc.text(`${areaId}: [Signed]`, 25, yPosition);
+          yPosition += 8;
         }
-      })
+      });
     }
 
     // Add completion timestamp
-    yPosition += 10
-    doc.text(`Completed: ${new Date().toLocaleString()}`, 20, yPosition)
+    yPosition += 10;
+    doc.text(`Completed: ${new Date().toLocaleString()}`, 20, yPosition);
 
-    return doc.output('blob')
-  }
+    return doc.output("blob");
+  };
 
   // Handle task submission with PDF state
   const handleTaskSubmit = async (task: Task) => {
     if (!task) {
-      return
+      return;
     }
 
     try {
       // Generate filled PDF
-      const pdfBlob = generateFilledPDF(task.title ?? 'Task')
+      const pdfBlob = generateFilledPDF(task.title ?? "Task");
 
       // Upload PDF to Supabase storage
-      const fileName = `${task.id}-completed-${Date.now()}.pdf`
-      const filePath = `task-completions/${fileName}`
+      const fileName = `${task.id}-completed-${Date.now()}.pdf`;
+      const filePath = `task-completions/${fileName}`;
 
-      const supabase = getBrowserSupabase()
+      const supabase = getBrowserSupabase();
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('documents')
+        .from("documents")
         .upload(filePath, pdfBlob, {
-          contentType: 'application/pdf',
+          contentType: "application/pdf",
           upsert: false,
-        })
+        });
 
       if (uploadError) {
-        throw new Error(`Failed to upload PDF: ${uploadError.message}`)
+        throw new Error(`Failed to upload PDF: ${uploadError.message}`);
       }
 
       // Determine appropriate status based on task type
-      let newStatus: components['schemas']['TaskStatus'] = 'COMPLETE'
-      const taskTitle = task.title?.toLowerCase() ?? ''
+      let newStatus: components["schemas"]["TaskStatus"] = "COMPLETE";
+      const taskTitle = task.title?.toLowerCase() ?? "";
 
-      if (taskTitle.includes('broadridge') || taskTitle.includes('ics access')) {
-        newStatus = 'PENDING_AUTHORIZATION'
-      } else if (taskTitle.includes('transfer agent')) {
-        newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
-      } else if (taskTitle.includes('plan file request')) {
-        newStatus = 'SUBMITTED_AWAITING_RECORD_DATE'
+      if (taskTitle.includes("broadridge") || taskTitle.includes("ics access")) {
+        newStatus = "PENDING_AUTHORIZATION";
+      } else if (taskTitle.includes("transfer agent")) {
+        newStatus = "SUBMITTED_AWAITING_RECORD_DATE";
+      } else if (taskTitle.includes("plan file request")) {
+        newStatus = "SUBMITTED_AWAITING_RECORD_DATE";
       }
 
       // Check if signed document already exists for this task
-      let existingSignedDocument = null
+      let existingSignedDocument = null;
       if (task.meetingId) {
-        const meetingDocuments = await getDocumentsByMeeting(task.meetingId)
+        const meetingDocuments = await getDocumentsByMeeting(task.meetingId);
         existingSignedDocument = meetingDocuments.find(
-          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === 'signed-form'
-        )
+          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+        );
       }
 
       // Only create signed document if it doesn't already exist
@@ -538,84 +525,84 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         const documentData = {
           title: `${task.title} - Signed`,
           description: `Signed document for task: ${task.title}`,
-          type: 'signed-form',
+          type: "signed-form",
           file: uploadData.path,
           taskId: task.taskId ?? task.id,
           status: newStatus,
-        }
+        };
 
         if (task.meetingId) {
-          const newDocument = await createNewDocument(task.meetingId, documentData)
+          const newDocument = await createNewDocument(task.meetingId, documentData);
           if (newDocument?.id) {
-            await addDocumentHistory(newDocument.id, 'UPDATED')
+            await addDocumentHistory(newDocument.id, "UPDATED");
           }
 
           // Refresh signed documents list to update button labels
-          await checkSignedDocuments()
+          await checkSignedDocuments();
         }
       }
 
       // Update task status
       if (task.id) {
         try {
-          await updateTaskById(task.id, { status: newStatus })
+          await updateTaskById(task.id, { status: newStatus });
         } catch (error) {
-          console.error('Failed to update task status', error)
-          throw error
+          console.error("Failed to update task status", error);
+          throw error;
         }
       }
 
       // Update meeting completion percentage
       if (currentMeeting?.id) {
         try {
-          const client = await buildApiClient()
+          const client = await buildApiClient();
 
-          refetch()
+          refetch();
 
           const completedStatuses = [
-            'COMPLETE',
-            'AUTHORIZED',
-            'SUBMITTED_AWAITING_RECORD_DATE',
-            'WAITING_FOR_FORM_RETURN',
-            'REQUEST_FORM_TO_FOLLOW',
-            'PENDING_AUTHORIZATION',
-          ]
+            "COMPLETE",
+            "AUTHORIZED",
+            "SUBMITTED_AWAITING_RECORD_DATE",
+            "WAITING_FOR_FORM_RETURN",
+            "REQUEST_FORM_TO_FOLLOW",
+            "PENDING_AUTHORIZATION",
+          ];
 
-          const allTasks = tasks
+          const allTasks = tasks;
           const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status ?? '')
-          ).length
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100)
+            completedStatuses.includes(t.status ?? ""),
+          ).length;
+          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100);
 
-          await client.PUT('/meetings/{meetingId}', {
+          await client.PUT("/meetings/{meetingId}", {
             params: {
               path: { meetingId: currentMeeting.id },
             },
             body: {
               overallCompletion: overallCompletion,
             },
-          })
+          });
         } catch (error) {
-          console.error('Failed to update meeting completion', error)
+          console.error("Failed to update meeting completion", error);
         }
       }
 
       // Check if all tasks in the current phase are complete
-      await checkAndCompletePhase(task)
+      await checkAndCompletePhase(task);
 
       // Clear state and close
-      clearUploadFiles()
-      void refreshMeetingData?.()
+      clearUploadFiles();
+      void refreshMeetingData?.();
     } catch (error) {
-      console.error('Failed to submit task', error)
+      console.error("Failed to submit task", error);
     }
-  }
+  };
 
   const handleTaskLinkClick = useCallback(
     async (link: TaskLink, taskTitle: string, task?: Task) => {
       // Store the task for document submission
       if (task) {
-        setCurrentTaskForDocument(task)
+        setCurrentTaskForDocument(task);
       }
 
       // Ensure required setters are available
@@ -625,119 +612,116 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         !setSignatureAreas ||
         !setDocumentViewerOpen
       ) {
-        return
+        return;
       }
 
       // Create client data inside the handler to ensure latest meeting data (following TaskDrawer pattern)
       const clientData = currentClient
         ? {
-            issuerName: currentClient.company_name ?? currentClient.short_name ?? '',
+            issuerName: currentClient.company_name ?? currentClient.short_name ?? "",
             cusipNumber: currentMeeting?.cusip ?? undefined,
-            contactName: currentClient.primary_contact ?? '',
-            email: currentClient.primary_contact_email ?? '',
+            contactName: currentClient.primary_contact ?? "",
+            email: currentClient.primary_contact_email ?? "",
             meetingDate: currentMeeting?.meetingDate ?? undefined,
             ticker: currentClient.ticker ?? undefined,
           }
-        : undefined
+        : undefined;
 
       console.log(
-        '[PhaseDrawer] handleTaskLinkClick clientData:',
+        "[PhaseDrawer] handleTaskLinkClick clientData:",
         clientData,
-        'currentClient:',
-        currentClient
-      )
+        "currentClient:",
+        currentClient,
+      );
 
       // Check which type of form task this is
-      const isPlanFileRequestTask = taskTitle?.includes('Plan File Request')
-      const isTransferAgentTask = taskTitle?.includes('Transfer Agent')
+      const isPlanFileRequestTask = taskTitle?.includes("Plan File Request");
+      const isTransferAgentTask = taskTitle?.includes("Transfer Agent");
 
       switch (link.action) {
-        case 'signature':
+        case "signature":
           if (link.url) {
             // Generic signature link with URL - open for viewing only (no signature areas)
-            setDocumentUrl(link.url)
-            setDocumentTitle(taskTitle)
-            setCurrentDocumentId(
-              `doc-${Date.now()}-${link.url.replace(/[^a-zA-Z0-9]/g, '-')}`
-            )
-            setSignatureAreas([]) // No signature areas for generic links
-            setDocumentViewerOpen(true)
-          } else if (link.label === 'View Form') {
+            setDocumentUrl(link.url);
+            setDocumentTitle(taskTitle);
+            setCurrentDocumentId(`doc-${Date.now()}-${link.url.replace(/[^a-zA-Z0-9]/g, "-")}`);
+            setSignatureAreas([]); // No signature areas for generic links
+            setDocumentViewerOpen(true);
+          } else if (link.label === "View Form") {
             // View signed form document
             if (task?.meetingId && task?.id) {
               try {
-                const meetingDocuments = await getDocumentsByMeeting(task.meetingId)
+                const meetingDocuments = await getDocumentsByMeeting(task.meetingId);
                 const signedDoc = meetingDocuments.find(
-                  (doc) =>
-                    doc.taskId === (task.taskId ?? task.id) && doc.type === 'signed-form'
-                )
+                  (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+                );
 
                 if (signedDoc?.filePath) {
-                  const { getStoragePublicUrl } = await import('@/utils/documentUtils')
-                  const documentUrl = getStoragePublicUrl(signedDoc.filePath)
+                  const { getStoragePublicUrl } = await import("@/utils/documentUtils");
+                  const documentUrl = getStoragePublicUrl(signedDoc.filePath);
 
-                  setDocumentUrl(documentUrl)
-                  setDocumentTitle(taskTitle)
-                  setCurrentDocumentId(signedDoc.id ?? '')
-                  setSignatureAreas([]) // No signature areas for view-only
-                  setDocumentViewerOpen(true)
+                  setDocumentUrl(documentUrl);
+                  setDocumentTitle(taskTitle);
+                  setCurrentDocumentId(signedDoc.id ?? "");
+                  setSignatureAreas([]); // No signature areas for view-only
+                  setDocumentViewerOpen(true);
                 }
               } catch (error) {
-                console.error('Failed to load signed form:', error)
+                console.error("Failed to load signed form:", error);
               }
             }
-          } else if (link.label === 'Sign Form') {
+          } else if (link.label === "Sign Form") {
             // Use appropriate handler based on task type
             const signHandler = isPlanFileRequestTask
               ? handlePlanFormSign
               : isTransferAgentTask
                 ? handleTransferAgentSign
-                : handleFormSign
+                : handleFormSign;
             await signHandler({
               onDocumentOpen: (documentUrl, documentId, signatureAreas) => {
-                setDocumentUrl(documentUrl)
-                setDocumentTitle(taskTitle)
-                setCurrentDocumentId(documentId)
-                setSignatureAreas(signatureAreas)
-                setDocumentViewerOpen(true)
+                setDocumentUrl(documentUrl);
+                setDocumentTitle(taskTitle);
+                setCurrentDocumentId(documentId);
+                setSignatureAreas(signatureAreas);
+                setDocumentViewerOpen(true);
               },
               clientData,
-            })
+            });
           }
-          break
+          break;
 
-        case 'upload':
-          setUploadTaskTitle(taskTitle)
-          setCurrentTaskForUpload(task ?? null)
+        case "upload":
+          setUploadTaskTitle(taskTitle);
+          setCurrentTaskForUpload(task ?? null);
           if (isMobile) {
-            setMobileUploadOpen(true)
+            setMobileUploadOpen(true);
           } else {
-            setCurrentView('upload')
+            setCurrentView("upload");
           }
-          break
+          break;
 
-        case 'download':
+        case "download":
           if (link.url) {
-            window.open(link.url, '_blank')
-          } else if (link.label === 'Download') {
+            window.open(link.url, "_blank");
+          } else if (link.label === "Download") {
             // Use appropriate handler based on task type
             if (isPlanFileRequestTask) {
-              await handlePlanFormDownload(clientData)
+              await handlePlanFormDownload(clientData);
             } else if (isTransferAgentTask) {
-              await handleTransferAgentDownload(clientData)
+              await handleTransferAgentDownload(clientData);
             } else {
-              await handleFormDownload(clientData)
+              await handleFormDownload(clientData);
             }
           }
-          break
+          break;
 
-        case 'authorize':
-        case 'external':
+        case "authorize":
+        case "external":
         default:
           if (link.url) {
-            window.open(link.url, '_blank')
+            window.open(link.url, "_blank");
           }
-          break
+          break;
       }
     },
     [
@@ -750,114 +734,114 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       setCurrentDocumentId,
       setSignatureAreas,
       setDocumentViewerOpen,
-    ]
-  )
+    ],
+  );
 
   const handleTaskApprovalClick = useCallback(
     (task: Task) => {
-      if (task.type === 'approve' && Array.isArray(task.links) && task.links[0]) {
-        const firstLink = task.links[0] as { url?: string }
+      if (task.type === "approve" && Array.isArray(task.links) && task.links[0]) {
+        const firstLink = task.links[0] as { url?: string };
         if (firstLink.url) {
-          setApprovalDocumentUrl(firstLink.url)
-          setApprovalTitle(task.title ?? 'Approval Task')
-          setApprovalDrawerOpen(true)
+          setApprovalDocumentUrl(firstLink.url);
+          setApprovalTitle(task.title ?? "Approval Task");
+          setApprovalDrawerOpen(true);
         }
       }
     },
-    [setApprovalDocumentUrl, setApprovalTitle, setApprovalDrawerOpen]
-  )
+    [setApprovalDocumentUrl, setApprovalTitle, setApprovalDrawerOpen],
+  );
 
   const handleBackToOverview = () => {
-    setCurrentView('overview')
-    clearUploadFiles()
-    setUploadTaskTitle('')
-    setCurrentTaskForUpload(null)
-    setMobileUploadOpen(false)
-  }
+    setCurrentView("overview");
+    clearUploadFiles();
+    setUploadTaskTitle("");
+    setCurrentTaskForUpload(null);
+    setMobileUploadOpen(false);
+  };
 
   const handleMobileUploadClose = () => {
-    setMobileUploadOpen(false)
-    clearUploadFiles()
-    setUploadTaskTitle('')
-    setCurrentTaskForUpload(null)
-  }
+    setMobileUploadOpen(false);
+    clearUploadFiles();
+    setUploadTaskTitle("");
+    setCurrentTaskForUpload(null);
+  };
 
   const toggleMobileUpload = (newOpen: boolean) => () => {
-    setMobileUploadOpen(newOpen)
-  }
+    setMobileUploadOpen(newOpen);
+  };
 
   const handleMainDrawerClose = () => {
-    setCurrentView('overview')
-    clearUploadFiles()
-    setUploadTaskTitle('')
-    setCurrentTaskForUpload(null)
-    onClose()
-  }
+    setCurrentView("overview");
+    clearUploadFiles();
+    setUploadTaskTitle("");
+    setCurrentTaskForUpload(null);
+    onClose();
+  };
 
   const handleApprove = useCallback(() => {
     // Handle approval logic here
-    handleApprovalDrawerClose()
-  }, [handleApprovalDrawerClose])
+    handleApprovalDrawerClose();
+  }, [handleApprovalDrawerClose]);
 
   // Context menu handlers - memoized for performance
   const handleTaskRightClick = useCallback((event: React.MouseEvent, task: Task) => {
-    event.preventDefault()
-    setSelectedTask(task)
+    event.preventDefault();
+    setSelectedTask(task);
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
-    })
-  }, [])
+    });
+  }, []);
 
   const handleContextMenuClose = useCallback(() => {
-    setContextMenu(null)
-    setSelectedTask(null)
-  }, [])
+    setContextMenu(null);
+    setSelectedTask(null);
+  }, []);
 
   const handleTaskEdit = useCallback(() => {
     if (selectedTask) {
-      setTaskEditDialogOpen(true)
-      handleContextMenuClose()
+      setTaskEditDialogOpen(true);
+      handleContextMenuClose();
     }
-  }, [selectedTask, handleContextMenuClose])
+  }, [selectedTask, handleContextMenuClose]);
 
   const handleTaskEditDialogClose = useCallback(() => {
-    setTaskEditDialogOpen(false)
-  }, [])
+    setTaskEditDialogOpen(false);
+  }, []);
 
   const handleTaskUpdated = useCallback(() => {
     // Refresh meeting data (including tasks) after task update
-    void refreshMeetingData?.()
-  }, [refreshMeetingData])
+    void refreshMeetingData?.();
+  }, [refreshMeetingData]);
 
   const handlePhaseNavigation = useCallback(
-    (direction: 'prev' | 'next') => {
-      const maxPhase = 8 // We have 8 phases
+    (direction: "prev" | "next") => {
+      const maxPhase = 8; // We have 8 phases
       const next =
-        direction === 'prev'
+        direction === "prev"
           ? Math.max(1, currentPhaseNumber - 1)
-          : Math.min(maxPhase, currentPhaseNumber + 1)
+          : Math.min(maxPhase, currentPhaseNumber + 1);
 
       // Update MeetingContext.currentMeeting.currentPhase so all openers stay in sync
       if (currentMeeting && setCurrentMeeting) {
         setCurrentMeeting({
           ...currentMeeting,
           currentPhase: `Phase ${next}`,
-        })
+        });
       }
 
-      onPhaseChange?.(next)
+      onPhaseChange?.(next);
     },
-    [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange]
-  )
+    [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange],
+  );
 
   const renderMobileUploadDrawer = () => (
     <>
       <Global
         styles={{
-          '.MuiDrawer-root > .MuiPaper-root': {
+          ".MuiDrawer-root > .MuiPaper-root": {
             height: `100%`,
-            overflow: 'visible',
+            overflow: "visible",
           },
         }}
       />
@@ -878,58 +862,56 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       >
         <StyledBox
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: -drawerBleeding,
             borderTopLeftRadius: 8,
             borderTopRightRadius: 8,
-            visibility: 'visible',
+            visibility: "visible",
 
-            border: '1px solid',
+            border: "1px solid",
             borderColor: theme.vars.palette.divider,
             right: 0,
             left: 0,
             height: drawerBleeding,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Puller />
         </StyledBox>
-        <StyledBox sx={{ height: '100%', overflow: 'hidden' }}>
-          {renderUploadContent()}
-        </StyledBox>
+        <StyledBox sx={{ height: "100%", overflow: "hidden" }}>{renderUploadContent()}</StyledBox>
       </SwipeableDrawer>
     </>
-  )
+  );
 
   const renderUploadContent = () => (
-    <Stack sx={{ height: '100%' }}>
+    <Stack sx={{ height: "100%" }}>
       {/* Header */}
       <Box
         sx={(theme) => ({
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid",
           borderColor: theme.vars.palette.divider,
           p: 2,
           height: 60,
         })}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Typography
             noWrap
             variant="h6"
             sx={{
-              fontSize: '18px',
+              fontSize: "18px",
               fontWeight: 500,
               maxWidth: 300,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            {uploadTaskTitle ?? 'Upload Form'}
+            {uploadTaskTitle ?? "Upload Form"}
           </Typography>
         </Box>
         <IconButton
@@ -949,7 +931,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             onFileRejections={handleFileRejections}
             maxFiles={5}
             maxSize={25 * 1024 * 1024} // 25MB to match API limit
-            acceptedFileTypes={['.docx', '.doc', '.xlsx', '.pdf']}
+            acceptedFileTypes={[".docx", ".doc", ".xlsx", ".pdf"]}
             multiple={true}
             linkText="Browse files"
             hasUnsupportedFiles={hasUnsupportedFiles}
@@ -966,7 +948,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                   file={{
                     id: uploadFile.id,
                     file: uploadFile.file,
-                    status: uploadFile.status as 'uploading' | 'complete' | 'error',
+                    status: uploadFile.status,
                     progress: uploadFile.progress,
                     error: uploadFile.error,
                   }}
@@ -982,9 +964,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       <Box
         sx={{
           p: 3,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          borderTop: '1px solid rgba(31, 30, 28, 0.12)',
+          display: "flex",
+          justifyContent: "flex-end",
+          borderTop: "1px solid rgba(31, 30, 28, 0.12)",
         }}
       >
         <Button
@@ -992,18 +974,16 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           disabled={uploadFiles.length === 0 || isSubmittingUpload}
           onClick={handleUploadSubmit}
         >
-          {isSubmittingUpload
-            ? 'Submitting...'
-            : `Submit File${uploadFiles.length > 1 ? 's' : ''}`}
+          {isSubmittingUpload ? "Submitting..." : `Submit File${uploadFiles.length > 1 ? "s" : ""}`}
         </Button>
       </Box>
     </Stack>
-  )
+  );
 
-  const renderUploadSection = () => renderUploadContent()
+  const renderUploadSection = () => renderUploadContent();
 
   const renderOverviewSection = () => (
-    <Stack sx={{ height: '100%' }}>
+    <Stack sx={{ height: "100%" }}>
       {/* Header */}
       <DrawerHeader
         title={`Phase ${currentPhaseNumber} Overview`}
@@ -1011,8 +991,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         navigation={{
           current: currentPhaseNumber,
           total: 8,
-          onPrevious: () => handlePhaseNavigation('prev'),
-          onNext: () => handlePhaseNavigation('next'),
+          onPrevious: () => handlePhaseNavigation("prev"),
+          onNext: () => handlePhaseNavigation("next"),
         }}
       />
 
@@ -1023,9 +1003,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           color: phaseContrast,
           px: 2,
           py: 1,
-          fontSize: '14px',
+          fontSize: "14px",
           fontWeight: 500,
-          textAlign: 'left',
+          textAlign: "left",
         }}
       >
         Phase {currentPhaseNumber}: {phaseTitle}
@@ -1034,7 +1014,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       {(phaseLoading || tasksLoading) && (
         <LinearProgress
           aria-label="Loading phase data"
-          color={`phase[${currentPhaseNumber}].main` as 'primary'}
+          color={`phase[${currentPhaseNumber}].main` as "primary"}
           sx={{
             height: 4,
           }}
@@ -1043,7 +1023,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
       {/* Content */}
       <Box
-        sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}
+        sx={{ p: 2, flexGrow: 1, overflow: "auto" }}
         tabIndex={0}
         role="region"
         aria-label={`Phase ${currentPhaseNumber} content`}
@@ -1051,9 +1031,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         {phaseError ? (
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
               height: 200,
             }}
           >
@@ -1068,8 +1048,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             {/* Key Dates */}
             {keyDates.length > 0 && (
               <>
-                <Typography variant="body3" fontWeight={500} sx={{ fontSize: '14px' }}>
-                  {currentPhaseNumber === 7 ? 'Tabulation Reports' : 'Key Dates'}
+                <Typography variant="body3" fontWeight={500} sx={{ fontSize: "14px" }}>
+                  {currentPhaseNumber === 7 ? "Tabulation Reports" : "Key Dates"}
                 </Typography>
 
                 {keyDates.map((keyDate: KeyDate) => (
@@ -1083,17 +1063,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     })}
                   >
                     <CardContent sx={{ p: 2 }}>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: '#CCE5FF', fontWeight: 500 }}
-                      >
-                        {friendlyDate(keyDate.date ?? '')}
+                      <Typography variant="caption" sx={{ color: "#CCE5FF", fontWeight: 500 }}>
+                        {friendlyDate(keyDate.date ?? "")}
                       </Typography>
                       <Typography variant="h6" sx={{ fontWeight: 700, my: 0.5 }}>
                         {keyDate.title}
                       </Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                        {formatDaysUntil(calculateDaysUntil(keyDate.date ?? ''))}
+                        {formatDaysUntil(calculateDaysUntil(keyDate.date ?? ""))}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -1104,41 +1081,38 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                   <Typography
                     variant="body3"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                    sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    The Broker Search distribution signals the start of Phase 2 in your
-                    proxy meeting project. The search ensures all necessary parties are
-                    aware of the upcoming record date. Additionally, BetaNXT is now fully
-                    authorized to receive all pertinent files related to shareholder
-                    mailings and tabulations.
+                    The Broker Search distribution signals the start of Phase 2 in your proxy
+                    meeting project. The search ensures all necessary parties are aware of the
+                    upcoming record date. Additionally, BetaNXT is now fully authorized to receive
+                    all pertinent files related to shareholder mailings and tabulations.
                   </Typography>
                 )}
                 {currentPhaseNumber === 4 && (
                   <Typography
                     variant="body3"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                    sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Once the Record Date is reached, we will need to collect the required
-                    files listed below. Final print quantities can only be confirmed after
-                    all files are securely uploaded to our system. Typically, these tasks
-                    take approximately 3–4 business days to complete. The urgency of these
-                    tasks will depend on the proximity to your Mailing Date. As that date
-                    approaches, you may experience an increased need for timely responses
-                    and actions.
+                    Once the Record Date is reached, we will need to collect the required files
+                    listed below. Final print quantities can only be confirmed after all files are
+                    securely uploaded to our system. Typically, these tasks take approximately 3–4
+                    business days to complete. The urgency of these tasks will depend on the
+                    proximity to your Mailing Date. As that date approaches, you may experience an
+                    increased need for timely responses and actions.
                   </Typography>
                 )}
                 {currentPhaseNumber === 5 && (
                   <Typography
                     variant="body3"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                    sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    As your mailing date approaches, you will notice an increase in
-                    automated emails from broker intermediary firms as we update their
-                    portal. You may disregard these emails, regardless of their frequency.
-                    We have direct access to their systems and already possess the
-                    information they are providing to you.
+                    As your mailing date approaches, you will notice an increase in automated emails
+                    from broker intermediary firms as we update their portal. You may disregard
+                    these emails, regardless of their frequency. We have direct access to their
+                    systems and already possess the information they are providing to you.
                   </Typography>
                 )}
                 {/* Phase-specific description after key dates */}
@@ -1146,25 +1120,24 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                   <Typography
                     variant="body3"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                    sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Once the mailing process is finalized, mailing affidavits will be
-                    delivered shortly thereafter for your legal and record-keeping
-                    purposes. Please note, mailing affidavits are not provided for
-                    beneficial holder distributions; however, we proactively confirm that
-                    these beneficial mailings have been completed by the relevant
-                    intermediaries according to applicable guidelines.
+                    Once the mailing process is finalized, mailing affidavits will be delivered
+                    shortly thereafter for your legal and record-keeping purposes. Please note,
+                    mailing affidavits are not provided for beneficial holder distributions;
+                    however, we proactively confirm that these beneficial mailings have been
+                    completed by the relevant intermediaries according to applicable guidelines.
                   </Typography>
                 )}
                 {currentPhaseNumber === 7 && (
                   <Typography
                     variant="body3"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                    sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Tabulation reports will be sent to you daily beginning 10-15 days
-                    prior to your meeting. Please keep in mind you can always log in to
-                    our online portal to view real-time results on demand.
+                    Tabulation reports will be sent to you daily beginning 10-15 days prior to your
+                    meeting. Please keep in mind you can always log in to our online portal to view
+                    real-time results on demand.
                   </Typography>
                 )}
               </>
@@ -1173,8 +1146,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             {/* Tasks */}
             <Stack spacing={2}>
               {phaseTasks.map((task) => {
-                const isCompleted = task.status === 'COMPLETE'
-                const hasSignedDoc = task.id ? tasksWithSignedDocs.has(task.id) : false
+                const isCompleted = task.status === "COMPLETE";
+                const hasSignedDoc = task.id ? tasksWithSignedDocs.has(task.id) : false;
 
                 // Modify task links if signed document exists
                 const modifiedTask: Task =
@@ -1182,13 +1155,13 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     ? {
                         ...task,
                         links: (task.links as TaskLink[]).map((link: TaskLink) => {
-                          if (link.action === 'signature' && link.label === 'Sign Form') {
-                            return { ...link, label: 'View Form' }
+                          if (link.action === "signature" && link.label === "Sign Form") {
+                            return { ...link, label: "View Form" };
                           }
-                          return link
+                          return link;
                         }) as unknown as Record<string, unknown>,
                       }
-                    : task
+                    : task;
 
                 return (
                   <DrawerTaskItem
@@ -1198,16 +1171,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     isCompleted={isCompleted}
                     onContextMenu={(e) => handleTaskRightClick(e, task)}
                     onClick={
-                      task.type === 'approve'
-                        ? () => handleTaskApprovalClick(task)
-                        : undefined
+                      task.type === "approve" ? () => handleTaskApprovalClick(task) : undefined
                     }
                     onStatusUpdate={handleTaskUpdated}
-                    onLinkClick={(link, taskTitle) =>
-                      handleTaskLinkClick(link, taskTitle, task)
-                    }
+                    onLinkClick={(link, taskTitle) => handleTaskLinkClick(link, taskTitle, task)}
                   />
-                )
+                );
               })}
             </Stack>
 
@@ -1223,7 +1192,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     <Typography
                       variant="body3"
                       color="text.secondary"
-                      sx={{ display: 'block', mb: 1 }}
+                      sx={{ display: "block", mb: 1 }}
                     >
                       {urlItem.description}
                     </Typography>
@@ -1240,13 +1209,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
               <Typography
                 variant="body3"
                 color="text.secondary"
-                sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
               >
-                IMPORTANT: As master tabulator, we do our due diligence to make sure that
-                the shares we&apos;ve received from your transfer agent match the total
-                outstanding shares presented in your proxy statement. Once you have that
-                final number please provide it to your BetaNXT contact at your earliest
-                convenience.
+                IMPORTANT: As master tabulator, we do our due diligence to make sure that the shares
+                we&apos;ve received from your transfer agent match the total outstanding shares
+                presented in your proxy statement. Once you have that final number please provide it
+                to your BetaNXT contact at your earliest convenience.
               </Typography>
             )}
             {currentPhaseNumber === 6 && (
@@ -1257,11 +1225,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 <Typography
                   variant="body3"
                   color="text.secondary"
-                  sx={{ mt: 1, fontSize: '14px', lineHeight: 1.6 }}
+                  sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                 >
-                  IMPORTANT: Confirmed company representatives should have access to
-                  BetaNXT&apos;s Online Voting Portal (MIC) to view real-time voting and
-                  other reports.
+                  IMPORTANT: Confirmed company representatives should have access to BetaNXT&apos;s
+                  Online Voting Portal (MIC) to view real-time voting and other reports.
                 </Typography>
                 <Link
                   href="https://www.mediantonline.com/mic/login"
@@ -1276,7 +1243,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         )}
       </Box>
     </Stack>
-  )
+  );
 
   return (
     <Drawer
@@ -1291,12 +1258,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       slotProps={{
         paper: {
           sx: {
-            height: '100%',
-            borderRadius: '0px 4px 4px 0px',
+            height: "100%",
+            borderRadius: "0px 4px 4px 0px",
             boxShadow:
-              '0px 8px 10px -5px rgba(0, 0, 0, 0.08), 0px 16px 24px 2px rgba(0, 0, 0, 0.05), 0px 6px 30px 5px rgba(0, 0, 0, 0.04)',
-            overflow: 'hidden',
-            alignItems: 'center',
+              "0px 8px 10px -5px rgba(0, 0, 0, 0.08), 0px 16px 24px 2px rgba(0, 0, 0, 0.05), 0px 6px 30px 5px rgba(0, 0, 0, 0.04)",
+            overflow: "hidden",
+            alignItems: "center",
           },
         },
       }}
@@ -1307,24 +1274,21 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         BackdropProps: {
           sx: {
             zIndex: -1,
-            background: 'rgba(0, 0, 0, 0.5)',
+            background: "rgba(0, 0, 0, 0.5)",
           },
         },
       }}
     >
       <Box
         sx={{
-          position: 'relative',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'row',
+          position: "relative",
+          height: "100%",
+          display: "flex",
+          flexDirection: "row",
         }}
       >
         {/* Overview Content */}
-        <Box
-          className="overview-content"
-          sx={{ height: '100%', width: isMobile ? '100%' : 600 }}
-        >
+        <Box className="overview-content" sx={{ height: "100%", width: isMobile ? "100%" : 600 }}>
           {renderOverviewSection()}
         </Box>
 
@@ -1332,14 +1296,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         {!isMobile && (
           <Collapse
             orientation="horizontal"
-            in={currentView === 'upload'}
+            in={currentView === "upload"}
             mountOnEnter
             unmountOnExit
           >
             <Paper
               sx={(theme) => ({
                 width: 450,
-                height: '100%',
+                height: "100%",
                 borderLeft: `1px solid ${theme.vars.palette.divider}`,
               })}
             >
@@ -1361,9 +1325,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         task={
           currentTaskForDocument
             ? {
-                id: currentTaskForDocument.id ?? '',
+                id: currentTaskForDocument.id ?? "",
                 task_id: currentTaskForDocument.taskId ?? currentTaskForDocument.id,
-                title: currentTaskForDocument.title ?? 'Document',
+                title: currentTaskForDocument.title ?? "Document",
                 type: currentTaskForDocument.type,
                 meeting_id: currentTaskForDocument.meetingId,
               }
@@ -1372,13 +1336,13 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         documentType="signature"
         onPdfStateChange={handlePdfStateChange}
         onSubmitSuccess={async () => {
-          if (!currentTaskForDocument) return
+          if (!currentTaskForDocument) return;
 
           // Handle task submission with the current task
-          await handleTaskSubmit(currentTaskForDocument)
+          await handleTaskSubmit(currentTaskForDocument);
 
           // Close the document viewer
-          handleDocumentViewerClose()
+          handleDocumentViewerClose();
         }}
       />
 
@@ -1422,14 +1386,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
           severity="success"
           sx={{
-            width: '100%',
-            maxWidth: '600px',
+            width: "100%",
+            maxWidth: "600px",
             boxShadow: 3,
           }}
         >
@@ -1437,7 +1401,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         </Alert>
       </Snackbar>
     </Drawer>
-  )
-}
+  );
+};
 
-export default PhaseDrawer
+export default PhaseDrawer;

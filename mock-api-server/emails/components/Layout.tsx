@@ -1,11 +1,11 @@
-import { Body, Html, Preview } from '@react-email/components'
-import React from 'react'
+import { Body, Html, Preview } from "@react-email/components";
+import React from "react";
 
-import { COLORS, FONTS } from '../styles'
+import { COLORS, FONTS } from "../styles";
 
 interface LayoutProps {
-  preview: string
-  children: React.ReactNode
+  preview: string;
+  children: React.ReactNode;
 }
 
 export function Layout({ preview, children }: LayoutProps) {
@@ -23,5 +23,5 @@ export function Layout({ preview, children }: LayoutProps) {
         {children}
       </Body>
     </Html>
-  )
+  );
 }

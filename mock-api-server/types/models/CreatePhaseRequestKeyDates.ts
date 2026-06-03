@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,74 +23,64 @@ export interface CreatePhaseRequestKeyDates {
    * @type {Date}
    * @memberof CreatePhaseRequestKeyDates
    */
-  startDate?: Date
+  startDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof CreatePhaseRequestKeyDates
    */
-  endDate?: Date
+  endDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof CreatePhaseRequestKeyDates
    */
-  dueDate?: Date
+  dueDate?: Date;
 }
 
 /**
  * Check if a given object implements the CreatePhaseRequestKeyDates interface.
  */
 export function instanceOfCreatePhaseRequestKeyDates(
-  value: object
+  value: object,
 ): value is CreatePhaseRequestKeyDates {
-  return true
+  return true;
 }
 
-export function CreatePhaseRequestKeyDatesFromJSON(
-  json: any
-): CreatePhaseRequestKeyDates {
-  return CreatePhaseRequestKeyDatesFromJSONTyped(json, false)
+export function CreatePhaseRequestKeyDatesFromJSON(json: any): CreatePhaseRequestKeyDates {
+  return CreatePhaseRequestKeyDatesFromJSONTyped(json, false);
 }
 
 export function CreatePhaseRequestKeyDatesFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreatePhaseRequestKeyDates {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    startDate: json['startDate'] == null ? undefined : new Date(json['startDate']),
-    endDate: json['endDate'] == null ? undefined : new Date(json['endDate']),
-    dueDate: json['dueDate'] == null ? undefined : new Date(json['dueDate']),
-  }
+    startDate: json["startDate"] == null ? undefined : new Date(json["startDate"]),
+    endDate: json["endDate"] == null ? undefined : new Date(json["endDate"]),
+    dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
+  };
 }
 
 export function CreatePhaseRequestKeyDatesToJSON(json: any): CreatePhaseRequestKeyDates {
-  return CreatePhaseRequestKeyDatesToJSONTyped(json, false)
+  return CreatePhaseRequestKeyDatesToJSONTyped(json, false);
 }
 
 export function CreatePhaseRequestKeyDatesToJSONTyped(
   value?: CreatePhaseRequestKeyDates | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
     startDate:
-      value['startDate'] == null
-        ? undefined
-        : value['startDate'].toISOString().substring(0, 10),
-    endDate:
-      value['endDate'] == null
-        ? undefined
-        : value['endDate'].toISOString().substring(0, 10),
-    dueDate:
-      value['dueDate'] == null
-        ? undefined
-        : value['dueDate'].toISOString().substring(0, 10),
-  }
+      value["startDate"] == null ? undefined : value["startDate"].toISOString().substring(0, 10),
+    endDate: value["endDate"] == null ? undefined : value["endDate"].toISOString().substring(0, 10),
+    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+  };
 }

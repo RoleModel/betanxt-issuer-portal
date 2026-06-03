@@ -1,53 +1,38 @@
-'use client'
+"use client";
 
-import React from 'react'
+import type { MarkElementProps } from "@mui/x-charts";
 
-import type { MarkElementProps } from '@mui/x-charts'
+import React from "react";
 
 interface LineMarkerProps extends MarkElementProps {
-  size?: number
+  size?: number;
 }
 
 /**
  * Custom marker component based on LineMarker.svg
  * Used as a custom MarkElement in MUI X Charts
  */
-export default function LineMarker({
-  x,
-  y,
-  color = '#EB6333',
-  size = 32,
-}: LineMarkerProps) {
+export default function LineMarker({ x, y, color = "#EB6333", size = 32 }: LineMarkerProps) {
   // Convert x and y to numbers, with fallbacks
-  const numX = typeof x === 'number' ? x : typeof x === 'string' ? parseFloat(x) : 0
-  const numY = typeof y === 'number' ? y : typeof y === 'string' ? parseFloat(y) : 0
+  const numX = typeof x === "number" ? x : typeof x === "string" ? parseFloat(x) : 0;
+  const numY = typeof y === "number" ? y : typeof y === "string" ? parseFloat(y) : 0;
 
-  const scale = size / 16 // Original SVG is 32px high
-  const adjustedWidth = 30 * scale
-  const adjustedHeight = 30 * scale
+  const scale = size / 16; // Original SVG is 32px high
+  const adjustedWidth = 30 * scale;
+  const adjustedHeight = 30 * scale;
 
   return (
     <g transform={`translate(${numX - adjustedWidth / 2}, ${numY - adjustedHeight / 2})`}>
       <svg width={adjustedWidth} height={adjustedHeight} viewBox="0 0 25 24" fill="none">
         {/* Left line */}
-        <path
-          d="M2.23438 12H7.23438"
-          stroke={color}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <path d="M2.23438 12H7.23438" stroke={color} strokeWidth="2" strokeLinecap="round" />
         {/* Right line */}
-        <path
-          d="M17.2344 12H22.2344"
-          stroke={color}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <path d="M17.2344 12H22.2344" stroke={color} strokeWidth="2" strokeLinecap="round" />
         {/* Center circle */}
         <circle cx="12.2344" cy="12" r="5" stroke={color} strokeWidth="2" fill="none" />
       </svg>
     </g>
-  )
+  );
 }
 
 /**
@@ -55,17 +40,9 @@ export default function LineMarker({
  */
 export function createLineMarkerElement(options: { color?: string; size?: number } = {}) {
   return function LineMarkerElement(props: MarkElementProps) {
-    const { x, y, color: seriesColor, ...restProps } = props
-    const finalColor = options.color ?? seriesColor ?? '#EB6333'
+    const { x, y, color: seriesColor, ...restProps } = props;
+    const finalColor = options.color ?? seriesColor ?? "#EB6333";
 
-    return (
-      <LineMarker
-        x={x}
-        y={y}
-        color={finalColor}
-        size={options.size || 24}
-        {...restProps}
-      />
-    )
-  }
+    return <LineMarker x={x} y={y} color={finalColor} size={options.size || 24} {...restProps} />;
+  };
 }

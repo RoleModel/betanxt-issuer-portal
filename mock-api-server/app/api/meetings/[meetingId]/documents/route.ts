@@ -1,105 +1,106 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import type { NextRequest } from "next/server";
 
-import { createDocument, listDocuments } from '@/domain-models/api/documents'
+import { NextResponse } from "next/server";
 
-import type { components } from '@/types/api'
-import { handleCors, withCors } from '@/utils/cors'
+import type { components } from "@/types/api";
+
+import { createDocument, listDocuments } from "@/domain-models/api/documents";
+import { handleCors, withCors } from "@/utils/cors";
 
 interface RouteParams {
-  meetingId: string
+  meetingId: string;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params
-    const meetingId = resolvedParams.meetingId
+    const resolvedParams = await params;
+    const meetingId = resolvedParams.meetingId;
 
     // Extract query parameters
-    const { searchParams } = new URL(request.url)
-    const statusParam = searchParams.get('status') || undefined
-    const status: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined =
-      statusParam && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(statusParam)
-        ? (statusParam as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED')
-        : undefined
-    const typeParam = searchParams.get('type') || undefined
+    const { searchParams } = new URL(request.url);
+    const statusParam = searchParams.get("status") || undefined;
+    const status: "ACTIVE" | "COMPLETE" | "ADJOURNED" | undefined =
+      statusParam && ["ACTIVE", "COMPLETE", "ADJOURNED"].includes(statusParam)
+        ? (statusParam as "ACTIVE" | "COMPLETE" | "ADJOURNED")
+        : undefined;
+    const typeParam = searchParams.get("type") || undefined;
 
-    console.log('listDocuments query:', {
+    console.log("listDocuments query:", {
       meetingId,
       status: statusParam,
       type: typeParam,
-    })
+    });
 
     // Use existing domain model function
-    const { data, error } = await listDocuments(meetingId, { status, type: typeParam })
+    const { data, error } = await listDocuments(meetingId, { status, type: typeParam });
 
-    console.log('listDocuments result:', { dataCount: data?.length, error })
+    console.log("listDocuments result:", { dataCount: data?.length, error });
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
-      )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+      );
     }
 
-    return withCors(NextResponse.json(data))
+    return withCors(NextResponse.json(data));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listDocuments',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "listDocuments",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params
-    const meetingId = resolvedParams.meetingId
+    const resolvedParams = await params;
+    const meetingId = resolvedParams.meetingId;
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['CreateDocumentRequest']
+    const body = (await request.json()) as components["schemas"]["CreateDocumentRequest"];
 
     // Use existing domain model function
-    const { data, error } = await createDocument(meetingId, body)
+    const { data, error } = await createDocument(meetingId, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
-      )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+      );
     }
 
-    return withCors(NextResponse.json(data, { status: 201 }))
+    return withCors(NextResponse.json(data, { status: 201 }));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createDocument',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "createDocument",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 // Handle preflight requests
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }

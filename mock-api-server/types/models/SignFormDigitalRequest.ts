@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,75 +23,71 @@ export interface SignFormDigitalRequest {
    * @type {string}
    * @memberof SignFormDigitalRequest
    */
-  meetingId: string
+  meetingId: string;
   /**
    * User performing the digital signature
    * @type {string}
    * @memberof SignFormDigitalRequest
    */
-  signerUserId: string
+  signerUserId: string;
   /**
    * Optional reason or context for the signature
    * @type {string}
    * @memberof SignFormDigitalRequest
    */
-  signatureReason?: string
+  signatureReason?: string;
   /**
    * If true, replaces any existing signature artifact
    * @type {boolean}
    * @memberof SignFormDigitalRequest
    */
-  replaceExisting?: boolean
+  replaceExisting?: boolean;
 }
 
 /**
  * Check if a given object implements the SignFormDigitalRequest interface.
  */
-export function instanceOfSignFormDigitalRequest(
-  value: object
-): value is SignFormDigitalRequest {
-  if (!('meetingId' in value) || value['meetingId'] === undefined) return false
-  if (!('signerUserId' in value) || value['signerUserId'] === undefined) return false
-  return true
+export function instanceOfSignFormDigitalRequest(value: object): value is SignFormDigitalRequest {
+  if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
+  if (!("signerUserId" in value) || value["signerUserId"] === undefined) return false;
+  return true;
 }
 
 export function SignFormDigitalRequestFromJSON(json: any): SignFormDigitalRequest {
-  return SignFormDigitalRequestFromJSONTyped(json, false)
+  return SignFormDigitalRequestFromJSONTyped(json, false);
 }
 
 export function SignFormDigitalRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): SignFormDigitalRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    meetingId: json['meetingId'],
-    signerUserId: json['signerUserId'],
-    signatureReason:
-      json['signatureReason'] == null ? undefined : json['signatureReason'],
-    replaceExisting:
-      json['replaceExisting'] == null ? undefined : json['replaceExisting'],
-  }
+    meetingId: json["meetingId"],
+    signerUserId: json["signerUserId"],
+    signatureReason: json["signatureReason"] == null ? undefined : json["signatureReason"],
+    replaceExisting: json["replaceExisting"] == null ? undefined : json["replaceExisting"],
+  };
 }
 
 export function SignFormDigitalRequestToJSON(json: any): SignFormDigitalRequest {
-  return SignFormDigitalRequestToJSONTyped(json, false)
+  return SignFormDigitalRequestToJSONTyped(json, false);
 }
 
 export function SignFormDigitalRequestToJSONTyped(
   value?: SignFormDigitalRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    meetingId: value['meetingId'],
-    signerUserId: value['signerUserId'],
-    signatureReason: value['signatureReason'],
-    replaceExisting: value['replaceExisting'],
-  }
+    meetingId: value["meetingId"],
+    signerUserId: value["signerUserId"],
+    signatureReason: value["signatureReason"],
+    replaceExisting: value["replaceExisting"],
+  };
 }

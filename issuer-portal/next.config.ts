@@ -2,11 +2,11 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   reactStrictMode: false,
   transpilePackages: [
-    '@rolemodel/betanxt-design-system',
-    '@mui/x-data-grid',
-    '@mui/x-data-grid-pro',
-    '@mui/x-date-pickers',
+    "@rolemodel/betanxt-design-system",
+    "@mui/x-data-grid",
+    "@mui/x-data-grid-pro",
+    "@mui/x-date-pickers",
   ],
-}
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
-import { EmailPreviewClient } from './EmailPreviewClient'
+import { EmailPreviewClient } from "./EmailPreviewClient";
 
 export default function EmailPreviewPage() {
-  if (process.env.NODE_ENV === 'production') {
-    redirect('/')
+  if (process.env.NODE_ENV === "production") {
+    redirect("/");
   }
 
-  return <EmailPreviewClient />
+  return <EmailPreviewClient />;
 }

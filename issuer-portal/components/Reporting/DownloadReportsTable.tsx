@@ -1,7 +1,4 @@
-'use client'
-
-import { IconForFileType } from '@rolemodel/betanxt-design-system/components/icons/IconForFileType'
-import React, { useEffect, useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -15,112 +12,109 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material'
+} from "@mui/material";
+import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
+import React, { useEffect, useState } from "react";
 
-import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
-
-import { getBrowserSupabase } from '@/lib/browserSupabase'
+import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
+import { getBrowserSupabase } from "@/lib/browserSupabase";
 
 interface ReportItem {
-  name: string
-  path?: string
-  isMock?: boolean
-  isHeader?: boolean
-  indent?: boolean
+  name: string;
+  path?: string;
+  isMock?: boolean;
+  isHeader?: boolean;
+  indent?: boolean;
 }
 
 interface StorageFile {
-  name: string
-  id: string
-  updated_at: string
-  created_at: string
-  last_accessed_at: string
-  metadata: Record<string, unknown>
+  name: string;
+  id: string;
+  updated_at: string;
+  created_at: string;
+  last_accessed_at: string;
+  metadata: Record<string, unknown>;
 }
 
 const MOCK_REPORTS: ReportItem[] = [
-  { name: 'Ballot Comments', isMock: true },
-  { name: 'Change of Address Report', isMock: true },
-  { name: 'Meeting Attendance', isMock: true },
-  { name: 'Vote Report by Source and Day', isMock: true },
-  { name: 'Paper Election Statistics by Source and Day', isMock: true },
-  { name: 'Paper Elections Detailed Report', isMock: true },
-  { name: 'DTC/CDS Participant Vote Report', isMock: true },
-  { name: 'Registered Accounts Voted Report', isMock: true },
-  { name: 'Account Report', isHeader: true },
-  { name: 'Voted', isMock: true, indent: true },
-  { name: 'Unvoted', isMock: true, indent: true },
-  { name: 'All Accounts', isMock: true, indent: true },
-  { name: 'DTC/CDS Participant Account Report', isHeader: true },
-  { name: 'Voted', isMock: true, indent: true },
-  { name: 'Unvoted', isMock: true, indent: true },
-  { name: 'All Accounts', isMock: true, indent: true },
-]
+  { name: "Ballot Comments", isMock: true },
+  { name: "Change of Address Report", isMock: true },
+  { name: "Meeting Attendance", isMock: true },
+  { name: "Vote Report by Source and Day", isMock: true },
+  { name: "Paper Election Statistics by Source and Day", isMock: true },
+  { name: "Paper Elections Detailed Report", isMock: true },
+  { name: "DTC/CDS Participant Vote Report", isMock: true },
+  { name: "Registered Accounts Voted Report", isMock: true },
+  { name: "Account Report", isHeader: true },
+  { name: "Voted", isMock: true, indent: true },
+  { name: "Unvoted", isMock: true, indent: true },
+  { name: "All Accounts", isMock: true, indent: true },
+  { name: "DTC/CDS Participant Account Report", isHeader: true },
+  { name: "Voted", isMock: true, indent: true },
+  { name: "Unvoted", isMock: true, indent: true },
+  { name: "All Accounts", isMock: true, indent: true },
+];
 
 export default function DownloadReportsTable({ meetingId }: { meetingId: string }) {
-  const [reports, setReports] = useState<ReportItem[]>([])
-  const supabase = getBrowserSupabase()
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const supabase = getBrowserSupabase();
 
   useEffect(() => {
     async function fetchReports() {
       // Only fetch real reports for Wendy's 2025 annual meeting
-      if (meetingId === 'wen-annual-meeting-2025') {
+      if (meetingId === "wen-annual-meeting-2025") {
         const { data, error } = await supabase.storage
-          .from('documents')
-          .list(`${meetingId}/reports`)
+          .from("documents")
+          .list(`${meetingId}/reports`);
 
         if (error) {
-          console.error('Error fetching reports:', error)
-          setReports(MOCK_REPORTS)
-          return
+          console.error("Error fetching reports:", error);
+          setReports(MOCK_REPORTS);
+          return;
         }
 
         if (data) {
           const reportItems = (data as StorageFile[])
-            .filter((file: StorageFile) => file.name.endsWith('.xls'))
+            .filter((file: StorageFile) => file.name.endsWith(".xls"))
             .map((file: StorageFile) => ({
-              name: file.name.replace('.xls', ''),
+              name: file.name.replace(".xls", ""),
               path: `${meetingId}/reports/${file.name}`,
               isMock: false,
-            }))
-          setReports(reportItems.length > 0 ? reportItems : MOCK_REPORTS)
+            }));
+          setReports(reportItems.length > 0 ? reportItems : MOCK_REPORTS);
         }
       } else {
         // Use mock reports for all other meetings
-        setReports(MOCK_REPORTS)
+        setReports(MOCK_REPORTS);
       }
     }
 
-    void fetchReports()
-  }, [meetingId, supabase])
+    void fetchReports();
+  }, [meetingId, supabase]);
 
-  const handleDownload = async (
-    path: string | undefined,
-    fileName: string,
-    isMock: boolean
-  ) => {
+  const handleDownload = async (path: string | undefined, fileName: string, isMock: boolean) => {
     if (isMock || !path) {
-      return
+      return;
     }
 
-    const { data, error } = await supabase.storage.from('documents').download(path)
+    const { data, error } = await supabase.storage.from("documents").download(path);
 
     if (error) {
-      console.error('Error downloading report:', error)
-      return
+      console.error("Error downloading report:", error);
+      return;
     }
 
     if (data) {
-      const url = URL.createObjectURL(data)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fileName
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
-  }
+  };
 
   return (
     <Card>
@@ -128,9 +122,7 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
       <CardContent sx={{ p: 0 }}>
         <TableContainer>
           <Table size="small" stickyHeader>
-            <SROnlyTableCaption>
-              List of available meeting reports for download
-            </SROnlyTableCaption>
+            <SROnlyTableCaption>List of available meeting reports for download</SROnlyTableCaption>
             <TableHead>
               <TableRow>
                 <TableCell>Report Name</TableCell>
@@ -145,16 +137,16 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
                   </TableCell>
                   <TableCell align="right">
                     {!report.isHeader && (
-                      <Box component="span" sx={{ display: 'inline-flex', gap: 1 }}>
+                      <Box component="span" sx={{ display: "inline-flex", gap: 1 }}>
                         <IconButton
                           aria-label={`Download ${report.name} as PDF`}
                           title={`Download ${report.name} as PDF`}
                           disabled={report.isMock}
                           onClick={() =>
                             handleDownload(
-                              report.path?.replace('.xls', '.pdf'),
+                              report.path?.replace(".xls", ".pdf"),
                               `${report.name}.pdf`,
-                              report.isMock ?? false
+                              report.isMock ?? false,
                             )
                           }
                         >
@@ -168,7 +160,7 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
                             handleDownload(
                               report.path,
                               `${report.name}.xls`,
-                              report.isMock ?? false
+                              report.isMock ?? false,
                             )
                           }
                         >
@@ -184,5 +176,5 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
         </TableContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

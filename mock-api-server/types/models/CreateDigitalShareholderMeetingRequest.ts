@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,109 +23,109 @@ export interface CreateDigitalShareholderMeetingRequest {
    * @type {string}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  registrantType: CreateDigitalShareholderMeetingRequestRegistrantTypeEnum
+  registrantType: CreateDigitalShareholderMeetingRequestRegistrantTypeEnum;
   /**
    *
    * @type {string}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  firstName: string
+  firstName: string;
   /**
    *
    * @type {string}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  lastName: string
+  lastName: string;
   /**
    *
    * @type {string}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  emailAddress: string
+  emailAddress: string;
   /**
    *
    * @type {string}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  registrationQuestions?: string | null
+  registrationQuestions?: string | null;
   /**
    *
    * @type {number}
    * @memberof CreateDigitalShareholderMeetingRequest
    */
-  minutesAttendedMeeting?: number | null
+  minutesAttendedMeeting?: number | null;
 }
 
 /**
  * @export
  */
 export const CreateDigitalShareholderMeetingRequestRegistrantTypeEnum = {
-  Shareholder: 'Shareholder',
-  Guest: 'Guest',
-  Proxy: 'Proxy',
-  Other: 'Other',
-} as const
+  Shareholder: "Shareholder",
+  Guest: "Guest",
+  Proxy: "Proxy",
+  Other: "Other",
+} as const;
 export type CreateDigitalShareholderMeetingRequestRegistrantTypeEnum =
-  (typeof CreateDigitalShareholderMeetingRequestRegistrantTypeEnum)[keyof typeof CreateDigitalShareholderMeetingRequestRegistrantTypeEnum]
+  (typeof CreateDigitalShareholderMeetingRequestRegistrantTypeEnum)[keyof typeof CreateDigitalShareholderMeetingRequestRegistrantTypeEnum];
 
 /**
  * Check if a given object implements the CreateDigitalShareholderMeetingRequest interface.
  */
 export function instanceOfCreateDigitalShareholderMeetingRequest(
-  value: object
+  value: object,
 ): value is CreateDigitalShareholderMeetingRequest {
-  if (!('registrantType' in value) || value['registrantType'] === undefined) return false
-  if (!('firstName' in value) || value['firstName'] === undefined) return false
-  if (!('lastName' in value) || value['lastName'] === undefined) return false
-  if (!('emailAddress' in value) || value['emailAddress'] === undefined) return false
-  return true
+  if (!("registrantType" in value) || value["registrantType"] === undefined) return false;
+  if (!("firstName" in value) || value["firstName"] === undefined) return false;
+  if (!("lastName" in value) || value["lastName"] === undefined) return false;
+  if (!("emailAddress" in value) || value["emailAddress"] === undefined) return false;
+  return true;
 }
 
 export function CreateDigitalShareholderMeetingRequestFromJSON(
-  json: any
+  json: any,
 ): CreateDigitalShareholderMeetingRequest {
-  return CreateDigitalShareholderMeetingRequestFromJSONTyped(json, false)
+  return CreateDigitalShareholderMeetingRequestFromJSONTyped(json, false);
 }
 
 export function CreateDigitalShareholderMeetingRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateDigitalShareholderMeetingRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    registrantType: json['registrantType'],
-    firstName: json['firstName'],
-    lastName: json['lastName'],
-    emailAddress: json['emailAddress'],
+    registrantType: json["registrantType"],
+    firstName: json["firstName"],
+    lastName: json["lastName"],
+    emailAddress: json["emailAddress"],
     registrationQuestions:
-      json['registrationQuestions'] == null ? undefined : json['registrationQuestions'],
+      json["registrationQuestions"] == null ? undefined : json["registrationQuestions"],
     minutesAttendedMeeting:
-      json['minutesAttendedMeeting'] == null ? undefined : json['minutesAttendedMeeting'],
-  }
+      json["minutesAttendedMeeting"] == null ? undefined : json["minutesAttendedMeeting"],
+  };
 }
 
 export function CreateDigitalShareholderMeetingRequestToJSON(
-  json: any
+  json: any,
 ): CreateDigitalShareholderMeetingRequest {
-  return CreateDigitalShareholderMeetingRequestToJSONTyped(json, false)
+  return CreateDigitalShareholderMeetingRequestToJSONTyped(json, false);
 }
 
 export function CreateDigitalShareholderMeetingRequestToJSONTyped(
   value?: CreateDigitalShareholderMeetingRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    registrantType: value['registrantType'],
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    emailAddress: value['emailAddress'],
-    registrationQuestions: value['registrationQuestions'],
-    minutesAttendedMeeting: value['minutesAttendedMeeting'],
-  }
+    registrantType: value["registrantType"],
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    emailAddress: value["emailAddress"],
+    registrationQuestions: value["registrationQuestions"],
+    minutesAttendedMeeting: value["minutesAttendedMeeting"],
+  };
 }

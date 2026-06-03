@@ -1,46 +1,37 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
+import { Card, CardContent, Container, LinearProgress, Skeleton, Stack } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import React, { useEffect, useState } from "react";
 
-import {
-  Card,
-  CardContent,
-  Container,
-  LinearProgress,
-  Skeleton,
-  Stack,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
+import type { components } from "@/domain-models/generated-schema";
 
-import FeatureTile from '@/components/FeatureTile'
-import MailingDataCard from '@/components/Meeting/MailingDataCard'
-import MailingTimelineCard from '@/components/Meeting/MailingTimelineCard'
+import FeatureTile from "@/components/FeatureTile";
+import MailingDataCard from "@/components/Meeting/MailingDataCard";
+import MailingTimelineCard from "@/components/Meeting/MailingTimelineCard";
+import { useMeeting } from "@/contexts/MeetingContext";
+import { useMailing } from "@/hooks/useMailing";
 
-import type { components } from '@/domain-models/generated-schema'
-
-import { useMeeting } from '@/contexts/MeetingContext'
-import { useMailing } from '@/hooks/useMailing'
-
-type MailingData = components['schemas']['Mailing']
+type MailingData = components["schemas"]["Mailing"];
 
 const formatNumber = (num: number | null | undefined): string => {
-  if (num === null || num === undefined) return '0'
-  return num.toLocaleString('en-US')
-}
+  if (num === null || num === undefined) return "0";
+  return num.toLocaleString("en-US");
+};
 
 export default function MailingPage() {
-  const { currentMeeting, isLoading: meetingLoading } = useMeeting()
-  const meetingId = currentMeeting?.id
-  const { getMailingByMeetingId, loading: mailingLoading } = useMailing()
-  const [mailingData, setMailingData] = useState<MailingData | null>(null)
+  const { currentMeeting, isLoading: meetingLoading } = useMeeting();
+  const meetingId = currentMeeting?.id;
+  const { getMailingByMeetingId, loading: mailingLoading } = useMailing();
+  const [mailingData, setMailingData] = useState<MailingData | null>(null);
 
   useEffect(() => {
     if (meetingId) {
       void getMailingByMeetingId(meetingId).then((data) => {
-        setMailingData(data)
-      })
+        setMailingData(data);
+      });
     }
-  }, [meetingId, getMailingByMeetingId])
+  }, [meetingId, getMailingByMeetingId]);
 
   // Show loading state while data is being fetched
   if (meetingLoading || (meetingId && !currentMeeting)) {
@@ -50,19 +41,19 @@ export default function MailingPage() {
           height: 4,
         }}
       />
-    )
+    );
   }
 
   return (
     <Container
       maxWidth="xl"
-      sx={{ my: { xs: 2, md: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}
+      sx={{ my: { xs: 2, md: 3 }, display: "flex", flexDirection: "column", gap: 3 }}
     >
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 12, lg: 9 }}>
           <Stack spacing={2}>
             <Card>
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, md: 4 }}>
                     {mailingLoading ? (
@@ -110,7 +101,7 @@ export default function MailingPage() {
           <MailingTimelineCard
             currentStatus={
               currentMeeting?.mailingStatus as
-                | React.ComponentProps<typeof MailingTimelineCard>['currentStatus']
+                | React.ComponentProps<typeof MailingTimelineCard>["currentStatus"]
                 | undefined
             }
             statusDate={currentMeeting?.updatedAt}
@@ -119,5 +110,5 @@ export default function MailingPage() {
         </Grid>
       </Grid>
     </Container>
-  )
+  );
 }

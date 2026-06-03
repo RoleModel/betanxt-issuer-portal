@@ -1,11 +1,9 @@
-'use client'
+"use client";
 
-import React, { useMemo, useState } from 'react'
-
-import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import MailOutlineIcon from '@mui/icons-material/MailOutline'
+import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import {
   Box,
   Collapse,
@@ -20,90 +18,86 @@ import {
   TablePagination,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React, { useMemo, useState } from "react";
 
-import type { TabulationPosition } from '@/hooks/useTabulationInsights'
+import type { TabulationPosition } from "@/hooks/useTabulationInsights";
 
-import NoWrapTableCell from '../ui/NoWrapTableCell'
-import SROnlyTableCaption from '../ui/SROnlyTableCaption'
-import SortableHeaderCell, { useSortableTable } from '../ui/SortableHeaderCell'
+import NoWrapTableCell from "../ui/NoWrapTableCell";
+import SortableHeaderCell, { useSortableTable } from "../ui/SortableHeaderCell";
+import SROnlyTableCaption from "../ui/SROnlyTableCaption";
 
 interface PositionsTableProps {
-  positions: TabulationPosition[]
-  loading?: boolean
+  positions: TabulationPosition[];
+  loading?: boolean;
 }
 
-export default function PositionsTable({
-  positions,
-  loading = false,
-}: PositionsTableProps) {
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+export default function PositionsTable({ positions, loading = false }: PositionsTableProps) {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const { sortColumn, sortDirection, handleSort, sortData } =
-    useSortableTable<TabulationPosition>()
+    useSortableTable<TabulationPosition>();
 
-  const sortedPositions = useMemo(() => sortData(positions), [positions, sortData])
+  const sortedPositions = useMemo(() => sortData(positions), [positions, sortData]);
 
   const paginatedPositions = sortedPositions.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  )
+    page * rowsPerPage + rowsPerPage,
+  );
 
   const toggleRowExpansion = (index: number) => {
-    const nextExpanded = new Set(expandedRows)
+    const nextExpanded = new Set(expandedRows);
 
     if (nextExpanded.has(index)) {
-      nextExpanded.delete(index)
+      nextExpanded.delete(index);
     } else {
-      nextExpanded.add(index)
+      nextExpanded.add(index);
     }
 
-    setExpandedRows(nextExpanded)
-  }
+    setExpandedRows(nextExpanded);
+  };
 
   const formatNumber = (num: number): string => {
-    return num.toLocaleString('en-US')
-  }
+    return num.toLocaleString("en-US");
+  };
 
   const formatAccountType = (accountType: string): string => {
-    if (accountType === 'DTC/CDS') {
-      return 'CEDE & CO / CDS & CO'
+    if (accountType === "DTC/CDS") {
+      return "CEDE & CO / CDS & CO";
     }
-    if (accountType === 'Non-DTC') {
-      return 'Registered Account'
+    if (accountType === "Non-DTC") {
+      return "Registered Account";
     }
-    return accountType
-  }
+    return accountType;
+  };
 
   const formatDate = (date: string | null): string => {
-    if (!date) return ''
+    if (!date) return "";
 
     try {
-      const sanitizedDate = date.includes(' 12:00AM')
-        ? date.replace(' 12:00AM', '')
-        : date
-      const parsedDate = new Date(sanitizedDate)
+      const sanitizedDate = date.includes(" 12:00AM") ? date.replace(" 12:00AM", "") : date;
+      const parsedDate = new Date(sanitizedDate);
 
       if (Number.isNaN(parsedDate.getTime())) {
-        return ''
+        return "";
       }
 
-      return parsedDate.toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-      })
+      return parsedDate.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
     } catch (_error) {
-      return ''
+      return "";
     }
-  }
+  };
 
   return (
     <Box>
       <TableContainer>
-        <Table sx={{ tableLayout: 'auto' }}>
+        <Table sx={{ tableLayout: "auto" }}>
           <SROnlyTableCaption>Positions Table</SROnlyTableCaption>
           <TableHead>
             <TableRow>
@@ -220,42 +214,30 @@ export default function PositionsTable({
               </TableRow>
             ) : (
               paginatedPositions.map((position, index) => {
-                const rowKey = page * rowsPerPage + index
-                const isExpanded = expandedRows.has(rowKey)
+                const rowKey = page * rowsPerPage + index;
+                const isExpanded = expandedRows.has(rowKey);
 
                 return (
                   <React.Fragment key={`${position.accountNumber}-${rowKey}`}>
-                    <TableRow sx={{ '&:hover': { backgroundColor: 'action.hover' } }}>
+                    <TableRow sx={{ "&:hover": { backgroundColor: "action.hover" } }}>
                       <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
-                      <NoWrapTableCell>
-                        {formatAccountType(position.accountType)}
-                      </NoWrapTableCell>
+                      <NoWrapTableCell>{formatAccountType(position.accountType)}</NoWrapTableCell>
                       <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
-                      <NoWrapTableCell sx={{ width: 180 }}>
-                        {position.name}
-                      </NoWrapTableCell>
+                      <NoWrapTableCell sx={{ width: 180 }}>{position.name}</NoWrapTableCell>
                       <TableCell
                         onClick={() => toggleRowExpansion(rowKey)}
-                        sx={{ cursor: 'pointer', minWidth: 220 }}
+                        sx={{ cursor: "pointer", minWidth: 220 }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            color="primary"
-                          >
-                            {isExpanded ? (
-                              <KeyboardArrowUpIcon />
-                            ) : (
-                              <KeyboardArrowDownIcon />
-                            )}
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <IconButton aria-label="expand row" size="small" color="primary">
+                            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                           </IconButton>
                           <Box
                             sx={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              color: 'primary.main',
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              color: "primary.main",
                             }}
                           >
                             {position.accountNumber}
@@ -289,10 +271,9 @@ export default function PositionsTable({
                                 mx: 2,
                                 p: 3,
                                 border: 1,
-                                borderColor: 'divider',
+                                borderColor: "divider",
                                 borderRadius: 1,
-                                backgroundColor:
-                                  'var(--mui-palette-Datagrid-defaultFill)',
+                                backgroundColor: "var(--mui-palette-Datagrid-defaultFill)",
                               }}
                             >
                               <Grid container spacing={2}>
@@ -300,9 +281,7 @@ export default function PositionsTable({
                                   <Typography variant="body2" color="text.secondary">
                                     CUSIP:
                                   </Typography>
-                                  <Typography variant="body2">
-                                    {position.cusip}
-                                  </Typography>
+                                  <Typography variant="body2">{position.cusip}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
@@ -314,17 +293,13 @@ export default function PositionsTable({
                                   <Typography variant="body2" color="text.secondary">
                                     Set Key:
                                   </Typography>
-                                  <Typography variant="body2">
-                                    {position.setKey}
-                                  </Typography>
+                                  <Typography variant="body2">{position.setKey}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
                                     Account Number:
                                   </Typography>
-                                  <Typography variant="body2">
-                                    {position.accountNumber}
-                                  </Typography>
+                                  <Typography variant="body2">{position.accountNumber}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
@@ -339,24 +314,20 @@ export default function PositionsTable({
                                     Account Email:
                                   </Typography>
                                   <Typography variant="body2">
-                                    {position.accountEmail || ''}
+                                    {position.accountEmail || ""}
                                   </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
                                     Control Number:
                                   </Typography>
-                                  <Typography variant="body2">
-                                    {position.controlNumber}
-                                  </Typography>
+                                  <Typography variant="body2">{position.controlNumber}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
                                     Last Vote Method:
                                   </Typography>
-                                  <Typography variant="body2">
-                                    {position.source || ''}
-                                  </Typography>
+                                  <Typography variant="body2">{position.source || ""}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <Typography variant="body2" color="text.secondary">
@@ -373,7 +344,7 @@ export default function PositionsTable({
                       </TableRow>
                     )}
                   </React.Fragment>
-                )
+                );
               })
             )}
           </TableBody>
@@ -387,11 +358,11 @@ export default function PositionsTable({
         onPageChange={(_, newPage) => setPage(newPage)}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={(event) => {
-          setRowsPerPage(parseInt(event.target.value, 25))
-          setPage(0)
+          setRowsPerPage(parseInt(event.target.value, 25));
+          setPage(0);
         }}
         rowsPerPageOptions={[10, 25, 50]}
       />
     </Box>
-  )
+  );
 }

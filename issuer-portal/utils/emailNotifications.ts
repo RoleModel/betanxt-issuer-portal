@@ -1,16 +1,16 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 interface DocumentUploadEmailParams {
-  meetingType: string
-  issuerAccountName: string
-  documentName: string
-  uploaderName: string
-  uploaderAvatarUrl?: string
-  documentDescription: string
-  uploadDate: string
-  viewDocumentUrl: string
-  portalBaseUrl: string
-  recipients: string[]
+  meetingType: string;
+  issuerAccountName: string;
+  documentName: string;
+  uploaderName: string;
+  uploaderAvatarUrl?: string;
+  documentDescription: string;
+  uploadDate: string;
+  viewDocumentUrl: string;
+  portalBaseUrl: string;
+  recipients: string[];
 }
 
 /**
@@ -20,10 +20,10 @@ interface DocumentUploadEmailParams {
 export async function sendDocumentUploadEmail(params: DocumentUploadEmailParams): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/emails/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        templateKey: 'document-update-notification',
+        templateKey: "document-update-notification",
         to: params.recipients,
         props: {
           meetingType: params.meetingType,
@@ -37,7 +37,7 @@ export async function sendDocumentUploadEmail(params: DocumentUploadEmailParams)
           portalBaseUrl: params.portalBaseUrl,
         },
       }),
-    })
+    });
   } catch {
     // Fire-and-forget: silently swallow network errors in prototype
   }

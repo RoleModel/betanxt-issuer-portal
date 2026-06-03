@@ -1,49 +1,41 @@
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
 
-type DigitalShareholderMeeting = components['schemas']['DigitalShareholderMeeting']
+type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
 
 export interface ExportOptions {
-  format: 'csv' | 'excel' | 'pdf'
-  filename?: string
-  includeHeaders?: boolean
+  format: "csv" | "excel" | "pdf";
+  filename?: string;
+  includeHeaders?: boolean;
 }
 
 /**
  * Export attendees to CSV format
  */
 function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): void {
-  const headers = [
-    'Type',
-    'First Name',
-    'Last Name',
-    'Email',
-    'Minutes Attended',
-    'Created At',
-  ]
+  const headers = ["Type", "First Name", "Last Name", "Email", "Minutes Attended", "Created At"];
 
   const csvRows = [
-    headers.join(','),
+    headers.join(","),
     ...attendees.map((attendee) => {
       // Determine the display type
       const displayType =
-        attendee.registrantType === 'Other' &&
-        attendee.registrationQuestions?.includes('Presenter')
-          ? 'Presenter'
-          : (attendee.registrantType ?? '')
+        attendee.registrantType === "Other" && attendee.registrationQuestions?.includes("Presenter")
+          ? "Presenter"
+          : (attendee.registrantType ?? "");
 
       return [
         displayType,
-        attendee.firstName ?? '',
-        attendee.lastName ?? '',
-        attendee.emailAddress ?? '',
-        attendee.minutesAttendedMeeting?.toString() || '',
-        attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
-      ].join(',')
+        attendee.firstName ?? "",
+        attendee.lastName ?? "",
+        attendee.emailAddress ?? "",
+        attendee.minutesAttendedMeeting?.toString() || "",
+        attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : "",
+      ].join(",");
     }),
-  ]
+  ];
 
-  const csvContent = csvRows.join('\n')
-  downloadFile(csvContent, filename, 'text/csv;charset=utf-8;')
+  const csvContent = csvRows.join("\n");
+  downloadFile(csvContent, filename, "text/csv;charset=utf-8;");
 }
 
 /**
@@ -52,40 +44,32 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
  * For full XLSX support, would need a library like xlsx/exceljs
  */
 function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string): void {
-  const headers = [
-    'Type',
-    'First Name',
-    'Last Name',
-    'Email',
-    'Minutes Attended',
-    'Created At',
-  ]
+  const headers = ["Type", "First Name", "Last Name", "Email", "Minutes Attended", "Created At"];
 
   const rows = [
-    headers.join('\t'),
+    headers.join("\t"),
     ...attendees.map((attendee) => {
       // Determine the display type
       const displayType =
-        attendee.registrantType === 'Other' &&
-        attendee.registrationQuestions?.includes('Presenter')
-          ? 'Presenter'
-          : (attendee.registrantType ?? '')
+        attendee.registrantType === "Other" && attendee.registrationQuestions?.includes("Presenter")
+          ? "Presenter"
+          : (attendee.registrantType ?? "");
 
       return [
         displayType,
-        attendee.firstName ?? '',
-        attendee.lastName ?? '',
-        attendee.emailAddress ?? '',
-        attendee.minutesAttendedMeeting?.toString() || '',
-        attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '',
-      ].join('\t')
+        attendee.firstName ?? "",
+        attendee.lastName ?? "",
+        attendee.emailAddress ?? "",
+        attendee.minutesAttendedMeeting?.toString() || "",
+        attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : "",
+      ].join("\t");
     }),
-  ]
+  ];
 
-  const content = rows.join('\n')
+  const content = rows.join("\n");
   // Use .xls extension for better Excel compatibility
-  const xlsFilename = filename.replace(/\.xlsx?$/, '.xls')
-  downloadFile(content, xlsFilename, 'application/vnd.ms-excel;charset=utf-8;')
+  const xlsFilename = filename.replace(/\.xlsx?$/, ".xls");
+  downloadFile(content, xlsFilename, "application/vnd.ms-excel;charset=utf-8;");
 }
 
 /**
@@ -144,7 +128,7 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
   <h1>Digital Shareholder Meeting Attendees</h1>
   <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
   <p><strong>Total Attendees:</strong> ${attendees.length}</p>
-  
+
   <table>
     <thead>
       <tr>
@@ -160,41 +144,41 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
               .map((attendee) => {
                 // Determine the display type
                 const displayType =
-                  attendee.registrantType === 'Other' &&
-                  attendee.registrationQuestions?.includes('Presenter')
-                    ? 'Presenter'
-                    : (attendee.registrantType ?? '-')
+                  attendee.registrantType === "Other" &&
+                  attendee.registrationQuestions?.includes("Presenter")
+                    ? "Presenter"
+                    : (attendee.registrantType ?? "-");
 
                 return `
         <tr>
           <td>${displayType}</td>
-          <td>${attendee.firstName ?? ''} ${attendee.lastName ?? ''}</td>
-          <td>${attendee.emailAddress ?? '-'}</td>
-          <td>${attendee.minutesAttendedMeeting?.toString() || '-'}</td>
-          <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : '-'}</td>
+          <td>${attendee.firstName ?? ""} ${attendee.lastName ?? ""}</td>
+          <td>${attendee.emailAddress ?? "-"}</td>
+          <td>${attendee.minutesAttendedMeeting?.toString() || "-"}</td>
+          <td>${attendee.createdAt ? new Date(attendee.createdAt).toLocaleString() : "-"}</td>
         </tr>
-      `
+      `;
               })
-              .join('')}
+              .join("")}
     </tbody>
   </table>
-  
+
   <div class="footer">
     <p>This report was generated automatically. For questions, contact your administrator.</p>
   </div>
 </body>
 </html>
-  `
+  `;
 
   // Open in new window for printing to PDF
-  const printWindow = window.open('', '_blank')
+  const printWindow = window.open("", "_blank");
   if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
+    printWindow.document.write(html);
+    printWindow.document.close();
     // Small delay to ensure content is loaded before print dialog
     setTimeout(() => {
-      printWindow.print()
-    }, 250)
+      printWindow.print();
+    }, 250);
   }
 }
 
@@ -202,15 +186,15 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
  * Helper function to trigger file download
  */
 function downloadFile(content: string, filename: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -218,24 +202,24 @@ function downloadFile(content: string, filename: string, mimeType: string): void
  */
 export function exportAttendees(
   attendees: DigitalShareholderMeeting[],
-  options: ExportOptions
+  options: ExportOptions,
 ): void {
-  const timestamp = new Date().toISOString().split('T')[0]
-  const defaultFilename = `attendees-${timestamp}`
-  const filename = options.filename || defaultFilename
+  const timestamp = new Date().toISOString().split("T")[0];
+  const defaultFilename = `attendees-${timestamp}`;
+  const filename = options.filename || defaultFilename;
 
   switch (options.format) {
-    case 'csv':
-      exportToCSV(attendees, `${filename}.csv`)
-      break
-    case 'excel':
-      exportToExcel(attendees, `${filename}.xlsx`)
-      break
-    case 'pdf':
-      exportToPDF(attendees, filename)
-      break
+    case "csv":
+      exportToCSV(attendees, `${filename}.csv`);
+      break;
+    case "excel":
+      exportToExcel(attendees, `${filename}.xlsx`);
+      break;
+    case "pdf":
+      exportToPDF(attendees, filename);
+      break;
     default:
-      throw new Error(`Unsupported export format: ${String(options.format)}`)
+      throw new Error(`Unsupported export format: ${String(options.format)}`);
   }
 }
 
@@ -244,18 +228,18 @@ export function exportAttendees(
  */
 export function filterAttendeesByType(
   attendees: DigitalShareholderMeeting[],
-  type: 'Shareholder' | 'Guest' | 'Proxy' | 'Other'
+  type: "Shareholder" | "Guest" | "Proxy" | "Other",
 ): DigitalShareholderMeeting[] {
-  return attendees.filter((attendee) => attendee.registrantType === type)
+  return attendees.filter((attendee) => attendee.registrantType === type);
 }
 
 /**
  * Filter attendees who actually attended (have minutes > 0)
  */
 export function filterActualAttendees(
-  attendees: DigitalShareholderMeeting[]
+  attendees: DigitalShareholderMeeting[],
 ): DigitalShareholderMeeting[] {
-  return attendees.filter((attendee) => (attendee.minutesAttendedMeeting ?? 0) > 0)
+  return attendees.filter((attendee) => (attendee.minutesAttendedMeeting ?? 0) > 0);
 }
 
 /**
@@ -263,18 +247,18 @@ export function filterActualAttendees(
  */
 export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
   const byType = {
-    Shareholder: filterAttendeesByType(attendees, 'Shareholder').length,
-    Guest: filterAttendeesByType(attendees, 'Guest').length,
-    Proxy: filterAttendeesByType(attendees, 'Proxy').length,
-    Other: filterAttendeesByType(attendees, 'Other').length,
-  }
+    Shareholder: filterAttendeesByType(attendees, "Shareholder").length,
+    Guest: filterAttendeesByType(attendees, "Guest").length,
+    Proxy: filterAttendeesByType(attendees, "Proxy").length,
+    Other: filterAttendeesByType(attendees, "Other").length,
+  };
 
-  const actualAttendees = filterActualAttendees(attendees)
+  const actualAttendees = filterActualAttendees(attendees);
   const avgMinutesAttended =
     actualAttendees.length > 0
       ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
         actualAttendees.length
-      : 0
+      : 0;
 
   return {
     total: attendees.length,
@@ -282,5 +266,5 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
     actualAttendees: actualAttendees.length,
     registeredOnly: attendees.length - actualAttendees.length,
     avgMinutesAttended: Math.round(avgMinutesAttended),
-  }
+  };
 }

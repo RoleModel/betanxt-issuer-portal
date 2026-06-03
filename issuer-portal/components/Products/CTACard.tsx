@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   Box,
   Button,
@@ -9,39 +7,40 @@ import {
   Grid,
   Typography,
   useTheme,
-} from '@mui/material'
-import TextareaAutosize from '@mui/material/TextareaAutosize'
+} from "@mui/material";
+import TextareaAutosize from "@mui/material/TextareaAutosize";
+import { useState } from "react";
 
 interface ContactFormData {
-  name: string
-  email: string
-  message: string
+  name: string;
+  email: string;
+  message: string;
 }
 
 const AutoAreasizeStyles = {
-  padding: '8px',
-  width: '100%',
-  border: '1px solid',
-  backgroundColor: 'var(--mui-palette-inputOutlinedEnabledFill)',
-  borderColor: 'var(--mui-palette-inputOutlinedEnabledBorder)',
-  borderRadius: '4px',
-  fontSize: '1rem',
+  padding: "8px",
+  width: "100%",
+  border: "1px solid",
+  backgroundColor: "var(--mui-palette-inputOutlinedEnabledFill)",
+  borderColor: "var(--mui-palette-inputOutlinedEnabledBorder)",
+  borderRadius: "4px",
+  fontSize: "1rem",
   lineHeight: 1.3,
-  fontFamily: 'var(--font-roboto)',
-} as React.CSSProperties
+  fontFamily: "var(--font-roboto)",
+} as React.CSSProperties;
 
 export function CTACard() {
-  const theme = useTheme()
+  const theme = useTheme();
   const [contactForm, setContactForm] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    message: '',
-  })
+    name: "",
+    email: "",
+    message: "",
+  });
 
   const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Handle form submission
-  }
+  };
 
   return (
     <Card
@@ -52,7 +51,7 @@ export function CTACard() {
     >
       <CardHeader
         title={
-          <Typography variant="h1" component="p" fontFamily={'var(--font-tungsten)'}>
+          <Typography variant="h1" component="p" fontFamily={"var(--font-tungsten)"}>
             Let&apos;s Talk
           </Typography>
         }
@@ -61,9 +60,9 @@ export function CTACard() {
         <Grid container spacing={{ xs: 2, md: 3 }}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="body1">
-              Connect with one of our specialists to learn more about our expertise for
-              proxies, shareholder processes, and the shareholder experience. Send us a
-              message and we&apos;ll respond to your proxy advisory inquiry right away.
+              Connect with one of our specialists to learn more about our expertise for proxies,
+              shareholder processes, and the shareholder experience. Send us a message and
+              we&apos;ll respond to your proxy advisory inquiry right away.
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
@@ -71,16 +70,16 @@ export function CTACard() {
               component="form"
               onSubmit={handleContactSubmit}
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'end',
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "end",
                 gap: 1,
               }}
             >
               <Box
                 sx={{
-                  '& textarea:focusVisible': {
-                    outline: '2px solid var(--mui-palette-primary-main) !important',
+                  "& textarea:focusVisible": {
+                    outline: "2px solid var(--mui-palette-primary-main) !important",
                   },
                 }}
               >
@@ -91,9 +90,7 @@ export function CTACard() {
                   placeholder="How can we help you this proxy season?"
                   minRows={5}
                   value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, message: e.target.value })
-                  }
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   required
                 />
               </Box>
@@ -101,7 +98,7 @@ export function CTACard() {
                 type="submit"
                 variant="contained"
                 size="large"
-                sx={{ alignSelf: 'flex-start' }}
+                sx={{ alignSelf: "flex-start" }}
               >
                 Submit
               </Button>
@@ -110,11 +107,11 @@ export function CTACard() {
         </Grid>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Export types for external use
-export type { ContactFormData }
+export type { ContactFormData };
 
 // Also export as default for backward compatibility
-export default CTACard
+export default CTACard;

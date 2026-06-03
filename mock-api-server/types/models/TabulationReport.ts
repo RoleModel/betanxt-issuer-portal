@@ -1,3 +1,7 @@
+import type { TabulationReportBrokerVotingInner } from "./TabulationReportBrokerVotingInner";
+import type { TabulationReportNonDtcVoteStatus } from "./TabulationReportNonDtcVoteStatus";
+import type { TabulationReportShareRangePerformanceInner } from "./TabulationReportShareRangePerformanceInner";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,28 +14,25 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { TabulationReportBrokerVotingInner } from './TabulationReportBrokerVotingInner'
+import { mapValues } from "../runtime";
 import {
   TabulationReportBrokerVotingInnerFromJSON,
   TabulationReportBrokerVotingInnerFromJSONTyped,
   TabulationReportBrokerVotingInnerToJSON,
   TabulationReportBrokerVotingInnerToJSONTyped,
-} from './TabulationReportBrokerVotingInner'
-import type { TabulationReportNonDtcVoteStatus } from './TabulationReportNonDtcVoteStatus'
+} from "./TabulationReportBrokerVotingInner";
 import {
   TabulationReportNonDtcVoteStatusFromJSON,
   TabulationReportNonDtcVoteStatusFromJSONTyped,
   TabulationReportNonDtcVoteStatusToJSON,
   TabulationReportNonDtcVoteStatusToJSONTyped,
-} from './TabulationReportNonDtcVoteStatus'
-import type { TabulationReportShareRangePerformanceInner } from './TabulationReportShareRangePerformanceInner'
+} from "./TabulationReportNonDtcVoteStatus";
 import {
   TabulationReportShareRangePerformanceInnerFromJSON,
   TabulationReportShareRangePerformanceInnerFromJSONTyped,
   TabulationReportShareRangePerformanceInnerToJSON,
   TabulationReportShareRangePerformanceInnerToJSONTyped,
-} from './TabulationReportShareRangePerformanceInner'
+} from "./TabulationReportShareRangePerformanceInner";
 
 /**
  *
@@ -44,163 +45,156 @@ export interface TabulationReport {
    * @type {string}
    * @memberof TabulationReport
    */
-  id: string
+  id: string;
   /**
    * Foreign key to meeting table
    * @type {string}
    * @memberof TabulationReport
    */
-  meetingId: string
+  meetingId: string;
   /**
    * Unique set keys from position records
    * @type {Array<string>}
    * @memberof TabulationReport
    */
-  setKeys?: Array<string>
+  setKeys?: Array<string>;
   /**
    * Top 6 brokers by total shares
    * @type {Array<TabulationReportBrokerVotingInner>}
    * @memberof TabulationReport
    */
-  brokerVoting?: Array<TabulationReportBrokerVotingInner>
+  brokerVoting?: Array<TabulationReportBrokerVotingInner>;
   /**
    * Performance metrics across 18 share ranges
    * @type {Array<TabulationReportShareRangePerformanceInner>}
    * @memberof TabulationReport
    */
-  shareRangePerformance?: Array<TabulationReportShareRangePerformanceInner>
+  shareRangePerformance?: Array<TabulationReportShareRangePerformanceInner>;
   /**
    *
    * @type {TabulationReportNonDtcVoteStatus}
    * @memberof TabulationReport
    */
-  nonDtcVoteStatus?: TabulationReportNonDtcVoteStatus
+  nonDtcVoteStatus?: TabulationReportNonDtcVoteStatus;
   /**
    * DTC/CDS shareholder vote status breakdown
    * @type {object}
    * @memberof TabulationReport
    */
-  dtcVoteStatus?: object
+  dtcVoteStatus?: object;
   /**
    * Overall vote distribution by account type
    * @type {object}
    * @memberof TabulationReport
    */
-  voteDistribution?: object
+  voteDistribution?: object;
   /**
    * Positions voted by shareholder type
    * @type {object}
    * @memberof TabulationReport
    */
-  positionsVoted?: object
+  positionsVoted?: object;
   /**
    * Timestamp of last statistics calculation
    * @type {Date}
    * @memberof TabulationReport
    */
-  lastCalculatedAt?: Date
+  lastCalculatedAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof TabulationReport
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof TabulationReport
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * Check if a given object implements the TabulationReport interface.
  */
 export function instanceOfTabulationReport(value: object): value is TabulationReport {
-  if (!('id' in value) || value['id'] === undefined) return false
-  if (!('meetingId' in value) || value['meetingId'] === undefined) return false
-  return true
+  if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
+  return true;
 }
 
 export function TabulationReportFromJSON(json: any): TabulationReport {
-  return TabulationReportFromJSONTyped(json, false)
+  return TabulationReportFromJSONTyped(json, false);
 }
 
 export function TabulationReportFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): TabulationReport {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'],
-    meetingId: json['meetingId'],
-    setKeys: json['setKeys'] == null ? undefined : json['setKeys'],
+    id: json["id"],
+    meetingId: json["meetingId"],
+    setKeys: json["setKeys"] == null ? undefined : json["setKeys"],
     brokerVoting:
-      json['brokerVoting'] == null
+      json["brokerVoting"] == null
         ? undefined
-        : (json['brokerVoting'] as Array<any>).map(
-            TabulationReportBrokerVotingInnerFromJSON
-          ),
+        : (json["brokerVoting"] as Array<any>).map(TabulationReportBrokerVotingInnerFromJSON),
     shareRangePerformance:
-      json['shareRangePerformance'] == null
+      json["shareRangePerformance"] == null
         ? undefined
-        : (json['shareRangePerformance'] as Array<any>).map(
-            TabulationReportShareRangePerformanceInnerFromJSON
+        : (json["shareRangePerformance"] as Array<any>).map(
+            TabulationReportShareRangePerformanceInnerFromJSON,
           ),
     nonDtcVoteStatus:
-      json['nonDtcVoteStatus'] == null
+      json["nonDtcVoteStatus"] == null
         ? undefined
-        : TabulationReportNonDtcVoteStatusFromJSON(json['nonDtcVoteStatus']),
-    dtcVoteStatus: json['dtcVoteStatus'] == null ? undefined : json['dtcVoteStatus'],
-    voteDistribution:
-      json['voteDistribution'] == null ? undefined : json['voteDistribution'],
-    positionsVoted: json['positionsVoted'] == null ? undefined : json['positionsVoted'],
+        : TabulationReportNonDtcVoteStatusFromJSON(json["nonDtcVoteStatus"]),
+    dtcVoteStatus: json["dtcVoteStatus"] == null ? undefined : json["dtcVoteStatus"],
+    voteDistribution: json["voteDistribution"] == null ? undefined : json["voteDistribution"],
+    positionsVoted: json["positionsVoted"] == null ? undefined : json["positionsVoted"],
     lastCalculatedAt:
-      json['lastCalculatedAt'] == null ? undefined : new Date(json['lastCalculatedAt']),
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+      json["lastCalculatedAt"] == null ? undefined : new Date(json["lastCalculatedAt"]),
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function TabulationReportToJSON(json: any): TabulationReport {
-  return TabulationReportToJSONTyped(json, false)
+  return TabulationReportToJSONTyped(json, false);
 }
 
 export function TabulationReportToJSONTyped(
   value?: TabulationReport | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    setKeys: value['setKeys'],
+    id: value["id"],
+    meetingId: value["meetingId"],
+    setKeys: value["setKeys"],
     brokerVoting:
-      value['brokerVoting'] == null
+      value["brokerVoting"] == null
         ? undefined
-        : (value['brokerVoting'] as Array<any>).map(
-            TabulationReportBrokerVotingInnerToJSON
-          ),
+        : (value["brokerVoting"] as Array<any>).map(TabulationReportBrokerVotingInnerToJSON),
     shareRangePerformance:
-      value['shareRangePerformance'] == null
+      value["shareRangePerformance"] == null
         ? undefined
-        : (value['shareRangePerformance'] as Array<any>).map(
-            TabulationReportShareRangePerformanceInnerToJSON
+        : (value["shareRangePerformance"] as Array<any>).map(
+            TabulationReportShareRangePerformanceInnerToJSON,
           ),
-    nonDtcVoteStatus: TabulationReportNonDtcVoteStatusToJSON(value['nonDtcVoteStatus']),
-    dtcVoteStatus: value['dtcVoteStatus'],
-    voteDistribution: value['voteDistribution'],
-    positionsVoted: value['positionsVoted'],
+    nonDtcVoteStatus: TabulationReportNonDtcVoteStatusToJSON(value["nonDtcVoteStatus"]),
+    dtcVoteStatus: value["dtcVoteStatus"],
+    voteDistribution: value["voteDistribution"],
+    positionsVoted: value["positionsVoted"],
     lastCalculatedAt:
-      value['lastCalculatedAt'] == null
-        ? undefined
-        : value['lastCalculatedAt'].toISOString(),
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+      value["lastCalculatedAt"] == null ? undefined : value["lastCalculatedAt"].toISOString(),
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

@@ -1,9 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import React from 'react'
-
-import { Container, Link as MuiLink, Typography } from '@mui/material'
+import { Container, Link as MuiLink, Typography } from "@mui/material";
+import Link from "next/link";
+import React from "react";
 
 export default function NotFound() {
   return (
@@ -11,30 +10,30 @@ export default function NotFound() {
       maxWidth="md"
       sx={{
         p: 3,
-        position: 'relative',
-        height: '80vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: "relative",
+        height: "80vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <Typography
         variant="pageTitle"
         data-error="404"
         sx={{
-          fontSize: '76px',
-          '&:before': {
-            color: 'rgba(var(--mui-palette-primary-mainChannel) / 0.2)', // Using default primary color with opacity
-            content: 'attr(data-error)',
-            fontSize: '40vw',
+          fontSize: "76px",
+          "&:before": {
+            color: "rgba(var(--mui-palette-primary-mainChannel) / 0.2)", // Using default primary color with opacity
+            content: "attr(data-error)",
+            fontSize: "40vw",
             fontWeight: 700,
-            textAlign: 'center',
-            left: '50%',
-            position: 'absolute',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
+            textAlign: "center",
+            left: "50%",
+            position: "absolute",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "100%",
             zIndex: 0,
           },
         }}
@@ -46,5 +45,5 @@ export default function NotFound() {
         Return Home
       </MuiLink>
     </Container>
-  )
+  );
 }

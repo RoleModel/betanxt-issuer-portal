@@ -1,12 +1,11 @@
 {
   "name": "issuer-portal",
   "version": "1.0.0",
-  "description": "Frontend application for proxy voting and shareholder meeting management",
   "private": true,
+  "description": "Frontend application for proxy voting and shareholder meeting management",
   "type": "module",
   "scripts": {
-    "preinstall": "echo '//npm.pkg.github.com/:_authToken='${GITHUB_TOKEN} >> .npmrc",
-    "vercel-install": "echo 'Installing dependencies...' && npm install",
+    "vercel-install": "echo 'Installing dependencies...' && pnpm install",
     "build": "next build",
     "dev": "next dev",
     "dev:inspect": "NODE_OPTIONS='--inspect' next dev",
@@ -16,7 +15,7 @@
     "type-check": "tsc --noEmit",
     "generate:types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o domain-models/generated-schema.ts",
     "generate:api-types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o types/api.ts",
-    "generate:all-types": "npm run generate:types && npm run generate:api-types && cd ../mock-api-server && npm run generate:db-types",
+    "generate:all-types": "pnpm run generate:types && pnpm run generate:api-types && cd ../mock-api-server && pnpm run generate:db-types",
     "format": "prettier --write .",
     "clean": "rm -rf .next node_modules/.cache"
   },

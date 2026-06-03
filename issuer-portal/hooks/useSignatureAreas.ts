@@ -1,38 +1,35 @@
-'use client'
+"use client";
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState } from "react";
 
 export interface SignatureArea {
-  id: string
-  document_id: string
-  x_position: number
-  y_position: number
-  width: number
-  height: number
-  page_number: number
-  label?: string
-  required: boolean
-  signed_at?: string
-  signed_by?: string
+  id: string;
+  document_id: string;
+  x_position: number;
+  y_position: number;
+  width: number;
+  height: number;
+  page_number: number;
+  label?: string;
+  required: boolean;
+  signed_at?: string;
+  signed_by?: string;
 }
 
 export interface UseSignatureAreasResult {
-  loading: boolean
-  error: string | null
+  loading: boolean;
+  error: string | null;
   createSignatureArea: (
     documentId: string,
-    area: Partial<SignatureArea>
-  ) => Promise<SignatureArea | null>
-  updateSignatureArea: (
-    areaId: string,
-    updates: Partial<SignatureArea>
-  ) => SignatureArea | null
-  checkDocumentExists: (documentId: string) => Promise<boolean>
+    area: Partial<SignatureArea>,
+  ) => Promise<SignatureArea | null>;
+  updateSignatureArea: (areaId: string, updates: Partial<SignatureArea>) => SignatureArea | null;
+  checkDocumentExists: (documentId: string) => Promise<boolean>;
 }
 
 export const useSignatureAreas = (): UseSignatureAreasResult => {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const checkDocumentExists = useCallback(
     // Mock implementation - will use await when connected to real API
@@ -42,27 +39,24 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         // This would need to call a document API endpoint
         // For now, we'll return true to avoid breaking functionality
         // In production, this should call: await getDocumentById(documentId)
-        return true
+        return true;
       } catch {
-        return false
+        return false;
       }
     },
-    []
-  )
+    [],
+  );
 
   const createSignatureArea = useCallback(
-    async (
-      documentId: string,
-      area: Partial<SignatureArea>
-    ): Promise<SignatureArea | null> => {
+    async (documentId: string, area: Partial<SignatureArea>): Promise<SignatureArea | null> => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         // Check if document exists first
-        const exists = await checkDocumentExists(documentId)
+        const exists = await checkDocumentExists(documentId);
         if (!exists) {
-          throw new Error('Document not found')
+          throw new Error("Document not found");
         }
 
         // In a real implementation, this would call an API endpoint like:
@@ -79,26 +73,25 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
           page_number: area.page_number || 1,
           label: area.label,
           required: area.required ?? true,
-        }
+        };
 
-        return newArea
+        return newArea;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to create signature area'
-        setError(errorMessage)
-        return null
+        const errorMessage = err instanceof Error ? err.message : "Failed to create signature area";
+        setError(errorMessage);
+        return null;
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [checkDocumentExists]
-  )
+    [checkDocumentExists],
+  );
 
   const updateSignatureArea = useCallback(
     (areaId: string, updates: Partial<SignatureArea>): SignatureArea | null => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         // In a real implementation, this would call an API endpoint like:
         // const result = await updateSignatureAreaAPI(areaId, updates)
@@ -106,7 +99,7 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         // For now, return the updated area to avoid breaking the component
         const updatedArea: SignatureArea = {
           id: areaId,
-          document_id: updates.document_id ?? '',
+          document_id: updates.document_id ?? "",
           x_position: updates.x_position ?? 0,
           y_position: updates.y_position ?? 0,
           width: updates.width || 15,
@@ -114,20 +107,19 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
           page_number: updates.page_number || 1,
           label: updates.label,
           required: updates.required ?? true,
-        }
+        };
 
-        return updatedArea
+        return updatedArea;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to update signature area'
-        setError(errorMessage)
-        return null
+        const errorMessage = err instanceof Error ? err.message : "Failed to update signature area";
+        setError(errorMessage);
+        return null;
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    []
-  )
+    [],
+  );
 
   return {
     loading,
@@ -135,5 +127,5 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
     createSignatureArea,
     updateSignatureArea,
     checkDocumentExists,
-  }
-}
+  };
+};

@@ -2,12 +2,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
+  output: "standalone",
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

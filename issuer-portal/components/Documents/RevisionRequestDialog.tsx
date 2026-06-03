@@ -1,8 +1,6 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-
-import { CheckCircleOutline, Close as CloseIcon } from '@mui/icons-material'
+import { CheckCircleOutline, Close as CloseIcon } from "@mui/icons-material";
 import {
   Alert,
   Button,
@@ -14,58 +12,59 @@ import {
   Snackbar,
   TextField,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React, { useState } from "react";
 
 interface RevisionRequestDialogProps {
-  open: boolean
-  onClose: () => void
-  onSubmit: (revisionRequest: string) => Promise<void>
-  title?: string
-  description?: string
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (revisionRequest: string) => Promise<void>;
+  title?: string;
+  description?: string;
 }
 
 const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
   open,
   onClose,
   onSubmit,
-  title = 'Request Revision',
-  description = 'Please describe the revisions needed for this document hosting site.',
+  title = "Request Revision",
+  description = "Please describe the revisions needed for this document hosting site.",
 }) => {
-  const [revisionText, setRevisionText] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [revisionText, setRevisionText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const handleSubmit = async () => {
     if (!revisionText.trim()) {
-      setError('Please provide revision details.')
-      return
+      setError("Please provide revision details.");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      await onSubmit(revisionText.trim())
+      await onSubmit(revisionText.trim());
       // Reset form on successful submission
-      setRevisionText('')
-      setShowSuccessToast(true)
-      onClose()
+      setRevisionText("");
+      setShowSuccessToast(true);
+      onClose();
     } catch (err) {
-      console.error('Error submitting revision request:', err)
-      setError(err instanceof Error ? err.message : 'Failed to submit revision request')
+      console.error("Error submitting revision request:", err);
+      setError(err instanceof Error ? err.message : "Failed to submit revision request");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
     if (!loading) {
-      setRevisionText('')
-      setError(null)
-      onClose()
+      setRevisionText("");
+      setError(null);
+      onClose();
     }
-  }
+  };
 
   return (
     <>
@@ -73,9 +72,9 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
         <DialogTitle sx={{ pb: 1 }}>
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
             {title}
@@ -83,7 +82,7 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
               onClick={handleClose}
               disabled={loading}
               size="small"
-              sx={{ color: 'text.secondary' }}
+              sx={{ color: "text.secondary" }}
             >
               <CloseIcon />
             </IconButton>
@@ -121,7 +120,7 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
             variant="contained"
             color="primary"
           >
-            {loading ? 'Submitting...' : 'Submit Request'}
+            {loading ? "Submitting..." : "Submit Request"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -130,20 +129,20 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
         open={showSuccessToast}
         autoHideDuration={6000}
         onClose={() => setShowSuccessToast(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
           onClose={() => setShowSuccessToast(false)}
           severity="success"
           icon={<CheckCircleOutline />}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
-          We received your revision request and will review it promptly. You will be
-          notified once the updates are complete.
+          We received your revision request and will review it promptly. You will be notified once
+          the updates are complete.
         </Alert>
       </Snackbar>
     </>
-  )
-}
+  );
+};
 
-export default RevisionRequestDialog
+export default RevisionRequestDialog;

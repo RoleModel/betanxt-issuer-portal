@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   Box,
@@ -13,15 +11,16 @@ import {
   TableRow,
   Typography,
   styled,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import { useMeeting } from '@/contexts/MeetingContext'
-import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import { formatNumber } from '@/utils/numberUtils'
-import { getVotingOptions } from '@/utils/votingOptions'
+import { useMeeting } from "@/contexts/MeetingContext";
+import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { formatNumber } from "@/utils/numberUtils";
+import { getVotingOptions } from "@/utils/votingOptions";
 
 interface DetailedTabulationTableProps {
-  meetingId: string
+  meetingId: string;
 }
 
 function StyledTableContainer({ children }: { children: React.ReactNode }) {
@@ -30,19 +29,19 @@ function StyledTableContainer({ children }: { children: React.ReactNode }) {
       sx={[
         (theme) => ({
           maxHeight: 900,
-          '& .MuiTableCell-root': {
+          "& .MuiTableCell-root": {
             padding: theme.spacing(1, 2),
-            fontSize: '0.875rem',
+            fontSize: "0.875rem",
           },
-          '& .MuiTableCell-head': {
+          "& .MuiTableCell-head": {
             fontWeight: 600,
             backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
           },
         }),
         (theme) =>
-          theme.applyStyles('dark', {
+          theme.applyStyles("dark", {
             backgroundColor: theme.palette.common.black,
-            '& .MuiTableCell-head': {
+            "& .MuiTableCell-head": {
               fontWeight: 600,
               backgroundColor: theme.palette.common.black,
             },
@@ -51,19 +50,19 @@ function StyledTableContainer({ children }: { children: React.ReactNode }) {
     >
       {children}
     </TableContainer>
-  )
+  );
 }
 
 const ProposalHeaderCell = styled(TableCell)(({ theme }) => ({
   backgroundColor: theme.vars.palette.action.hover,
   fontWeight: 600,
   borderBottom: `1px solid ${theme.palette.divider}`,
-}))
+}));
 
 const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   paddingLeft: theme.spacing(4),
   fontWeight: 500,
-}))
+}));
 
 function TotalsRow({ children }: { children: React.ReactNode }) {
   return (
@@ -74,33 +73,31 @@ function TotalsRow({ children }: { children: React.ReactNode }) {
           // boxShadow: `0 1px 0px 0px inset ${theme.palette.divider}`,
         }),
         (theme) =>
-          theme.applyStyles('dark', {
+          theme.applyStyles("dark", {
             backgroundColor: theme.palette.common.black,
           }),
       ]}
     >
       {children}
     </TableRow>
-  )
+  );
 }
 
 const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
   paddingLeft: theme.spacing(2),
-}))
+}));
 
-export default function DetailedTabulationTable({
-  meetingId,
-}: DetailedTabulationTableProps) {
-  const { currentMeeting } = useMeeting()
-  const { proposals, votingSummary, loading } = useVotingTabulation(meetingId)
+export default function DetailedTabulationTable({ meetingId }: DetailedTabulationTableProps) {
+  const { currentMeeting } = useMeeting();
+  const { proposals, votingSummary, loading } = useVotingTabulation(meetingId);
 
   if (loading) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography>Loading tabulation data...</Typography>
       </Box>
-    )
+    );
   }
 
   if (!proposals.length) {
@@ -108,13 +105,13 @@ export default function DetailedTabulationTable({
       <Box sx={{ p: 3 }}>
         <Typography>No proposal data available</Typography>
       </Box>
-    )
+    );
   }
 
-  const formatPercentage = (value: number) => `${value.toFixed(2)}%`
+  const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
 
   // Calculate totals for percentage calculations
-  const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0
+  const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0;
 
   return (
     <StyledTableContainer>
@@ -142,14 +139,14 @@ export default function DetailedTabulationTable({
               proposal.proposalType,
               proposal.proposalNumber,
               currentMeeting?.ticker,
-              proposal.directorName
-            )
+              proposal.directorName,
+            );
 
             // Calculate total votes for this proposal
             const proposalTotal =
               proposal.votingResults.for.shares +
               proposal.votingResults.against.shares +
-              proposal.votingResults.abstain.shares
+              proposal.votingResults.abstain.shares;
 
             return (
               <React.Fragment key={proposal.proposalId}>
@@ -177,7 +174,7 @@ export default function DetailedTabulationTable({
                     {formatPercentage(
                       totalOutstanding > 0
                         ? (proposal.votingResults.for.shares / totalOutstanding) * 100
-                        : 0
+                        : 0,
                     )}
                   </TableCell>
                   <TableCell align="right">
@@ -195,7 +192,7 @@ export default function DetailedTabulationTable({
                     {formatPercentage(
                       totalOutstanding > 0
                         ? (proposal.votingResults.against.shares / totalOutstanding) * 100
-                        : 0
+                        : 0,
                     )}
                   </TableCell>
                   <TableCell align="right">
@@ -213,7 +210,7 @@ export default function DetailedTabulationTable({
                     {formatPercentage(
                       totalOutstanding > 0
                         ? (proposal.votingResults.abstain.shares / totalOutstanding) * 100
-                        : 0
+                        : 0,
                     )}
                   </TableCell>
                   <TableCell align="right">
@@ -227,16 +224,12 @@ export default function DetailedTabulationTable({
                     <Typography variant="dataHeader">Total</Typography>
                   </TotalsHeaderCell>
                   <TableCell align="right">
-                    <Typography variant="dataHeader">
-                      {formatNumber(proposalTotal)}
-                    </Typography>
+                    <Typography variant="dataHeader">{formatNumber(proposalTotal)}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="dataHeader">
                       {formatPercentage(
-                        totalOutstanding > 0
-                          ? (proposalTotal / totalOutstanding) * 100
-                          : 0
+                        totalOutstanding > 0 ? (proposalTotal / totalOutstanding) * 100 : 0,
                       )}
                     </Typography>
                   </TableCell>
@@ -245,10 +238,10 @@ export default function DetailedTabulationTable({
                   </TableCell>
                 </TotalsRow>
               </React.Fragment>
-            )
+            );
           })}
         </TableBody>
       </Table>
     </StyledTableContainer>
-  )
+  );
 }

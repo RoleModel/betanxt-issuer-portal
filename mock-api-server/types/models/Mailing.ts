@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,191 +23,184 @@ export interface Mailing {
    * @type {string}
    * @memberof Mailing
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Mailing
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {string}
    * @memberof Mailing
    */
-  ticker?: string
+  ticker?: string;
   /**
    * Total number of accounts
    * @type {number}
    * @memberof Mailing
    */
-  totalAccounts?: number
+  totalAccounts?: number;
   /**
    * Total number of positions
    * @type {number}
    * @memberof Mailing
    */
-  totalPositions?: number
+  totalPositions?: number;
   /**
    * Number of retransmissions
    * @type {number}
    * @memberof Mailing
    */
-  totalRetransmissions?: number | null
+  totalRetransmissions?: number | null;
   /**
    * Number of rollups
    * @type {number}
    * @memberof Mailing
    */
-  totalRollups?: number | null
+  totalRollups?: number | null;
   /**
    * Number of fullset mail positions
    * @type {number}
    * @memberof Mailing
    */
-  fullsetMailPositions?: number
+  fullsetMailPositions?: number;
   /**
    * Number of NAA mail positions
    * @type {number}
    * @memberof Mailing
    */
-  naaMailPositions?: number
+  naaMailPositions?: number;
   /**
    * Number of courtesy/other mail positions
    * @type {number}
    * @memberof Mailing
    */
-  courtesyOtherMailPositions?: number | null
+  courtesyOtherMailPositions?: number | null;
   /**
    * Number of electronic suppressed positions
    * @type {number}
    * @memberof Mailing
    */
-  electronicSuppressedPositions?: number
+  electronicSuppressedPositions?: number;
   /**
    * Number of household suppressed positions
    * @type {number}
    * @memberof Mailing
    */
-  householdSuppressedPositions?: number
+  householdSuppressedPositions?: number;
   /**
    * Number of managed suppressed positions
    * @type {number}
    * @memberof Mailing
    */
-  managedSuppressedPositions?: number | null
+  managedSuppressedPositions?: number | null;
   /**
    * Number of consolidated suppressed positions
    * @type {number}
    * @memberof Mailing
    */
-  consolidatedSuppressedPositions?: number | null
+  consolidatedSuppressedPositions?: number | null;
   /**
    * Number of canceled suppressed positions
    * @type {number}
    * @memberof Mailing
    */
-  canceledSuppressedPositions?: number
+  canceledSuppressedPositions?: number;
   /**
    *
    * @type {Date}
    * @memberof Mailing
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Mailing
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * Check if a given object implements the Mailing interface.
  */
 export function instanceOfMailing(value: object): value is Mailing {
-  return true
+  return true;
 }
 
 export function MailingFromJSON(json: any): Mailing {
-  return MailingFromJSONTyped(json, false)
+  return MailingFromJSONTyped(json, false);
 }
 
 export function MailingFromJSONTyped(json: any, ignoreDiscriminator: boolean): Mailing {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    ticker: json['ticker'] == null ? undefined : json['ticker'],
-    totalAccounts: json['totalAccounts'] == null ? undefined : json['totalAccounts'],
-    totalPositions: json['totalPositions'] == null ? undefined : json['totalPositions'],
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    ticker: json["ticker"] == null ? undefined : json["ticker"],
+    totalAccounts: json["totalAccounts"] == null ? undefined : json["totalAccounts"],
+    totalPositions: json["totalPositions"] == null ? undefined : json["totalPositions"],
     totalRetransmissions:
-      json['totalRetransmissions'] == null ? undefined : json['totalRetransmissions'],
-    totalRollups: json['totalRollups'] == null ? undefined : json['totalRollups'],
+      json["totalRetransmissions"] == null ? undefined : json["totalRetransmissions"],
+    totalRollups: json["totalRollups"] == null ? undefined : json["totalRollups"],
     fullsetMailPositions:
-      json['fullsetMailPositions'] == null ? undefined : json['fullsetMailPositions'],
-    naaMailPositions:
-      json['naaMailPositions'] == null ? undefined : json['naaMailPositions'],
+      json["fullsetMailPositions"] == null ? undefined : json["fullsetMailPositions"],
+    naaMailPositions: json["naaMailPositions"] == null ? undefined : json["naaMailPositions"],
     courtesyOtherMailPositions:
-      json['courtesyOtherMailPositions'] == null
-        ? undefined
-        : json['courtesyOtherMailPositions'],
+      json["courtesyOtherMailPositions"] == null ? undefined : json["courtesyOtherMailPositions"],
     electronicSuppressedPositions:
-      json['electronicSuppressedPositions'] == null
+      json["electronicSuppressedPositions"] == null
         ? undefined
-        : json['electronicSuppressedPositions'],
+        : json["electronicSuppressedPositions"],
     householdSuppressedPositions:
-      json['householdSuppressedPositions'] == null
+      json["householdSuppressedPositions"] == null
         ? undefined
-        : json['householdSuppressedPositions'],
+        : json["householdSuppressedPositions"],
     managedSuppressedPositions:
-      json['managedSuppressedPositions'] == null
-        ? undefined
-        : json['managedSuppressedPositions'],
+      json["managedSuppressedPositions"] == null ? undefined : json["managedSuppressedPositions"],
     consolidatedSuppressedPositions:
-      json['consolidatedSuppressedPositions'] == null
+      json["consolidatedSuppressedPositions"] == null
         ? undefined
-        : json['consolidatedSuppressedPositions'],
+        : json["consolidatedSuppressedPositions"],
     canceledSuppressedPositions:
-      json['canceledSuppressedPositions'] == null
-        ? undefined
-        : json['canceledSuppressedPositions'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+      json["canceledSuppressedPositions"] == null ? undefined : json["canceledSuppressedPositions"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function MailingToJSON(json: any): Mailing {
-  return MailingToJSONTyped(json, false)
+  return MailingToJSONTyped(json, false);
 }
 
 export function MailingToJSONTyped(
   value?: Mailing | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    ticker: value['ticker'],
-    totalAccounts: value['totalAccounts'],
-    totalPositions: value['totalPositions'],
-    totalRetransmissions: value['totalRetransmissions'],
-    totalRollups: value['totalRollups'],
-    fullsetMailPositions: value['fullsetMailPositions'],
-    naaMailPositions: value['naaMailPositions'],
-    courtesyOtherMailPositions: value['courtesyOtherMailPositions'],
-    electronicSuppressedPositions: value['electronicSuppressedPositions'],
-    householdSuppressedPositions: value['householdSuppressedPositions'],
-    managedSuppressedPositions: value['managedSuppressedPositions'],
-    consolidatedSuppressedPositions: value['consolidatedSuppressedPositions'],
-    canceledSuppressedPositions: value['canceledSuppressedPositions'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+    id: value["id"],
+    meetingId: value["meetingId"],
+    ticker: value["ticker"],
+    totalAccounts: value["totalAccounts"],
+    totalPositions: value["totalPositions"],
+    totalRetransmissions: value["totalRetransmissions"],
+    totalRollups: value["totalRollups"],
+    fullsetMailPositions: value["fullsetMailPositions"],
+    naaMailPositions: value["naaMailPositions"],
+    courtesyOtherMailPositions: value["courtesyOtherMailPositions"],
+    electronicSuppressedPositions: value["electronicSuppressedPositions"],
+    householdSuppressedPositions: value["householdSuppressedPositions"],
+    managedSuppressedPositions: value["managedSuppressedPositions"],
+    consolidatedSuppressedPositions: value["consolidatedSuppressedPositions"],
+    canceledSuppressedPositions: value["canceledSuppressedPositions"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

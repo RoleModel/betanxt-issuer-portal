@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,60 +23,56 @@ export interface ApproveDocumentVersionRequest {
    * @type {string}
    * @memberof ApproveDocumentVersionRequest
    */
-  meetingId: string
+  meetingId: string;
   /**
    * Optional approval comment
    * @type {string}
    * @memberof ApproveDocumentVersionRequest
    */
-  comment?: string
+  comment?: string;
 }
 
 /**
  * Check if a given object implements the ApproveDocumentVersionRequest interface.
  */
 export function instanceOfApproveDocumentVersionRequest(
-  value: object
+  value: object,
 ): value is ApproveDocumentVersionRequest {
-  if (!('meetingId' in value) || value['meetingId'] === undefined) return false
-  return true
+  if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
+  return true;
 }
 
-export function ApproveDocumentVersionRequestFromJSON(
-  json: any
-): ApproveDocumentVersionRequest {
-  return ApproveDocumentVersionRequestFromJSONTyped(json, false)
+export function ApproveDocumentVersionRequestFromJSON(json: any): ApproveDocumentVersionRequest {
+  return ApproveDocumentVersionRequestFromJSONTyped(json, false);
 }
 
 export function ApproveDocumentVersionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): ApproveDocumentVersionRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    meetingId: json['meetingId'],
-    comment: json['comment'] == null ? undefined : json['comment'],
-  }
+    meetingId: json["meetingId"],
+    comment: json["comment"] == null ? undefined : json["comment"],
+  };
 }
 
-export function ApproveDocumentVersionRequestToJSON(
-  json: any
-): ApproveDocumentVersionRequest {
-  return ApproveDocumentVersionRequestToJSONTyped(json, false)
+export function ApproveDocumentVersionRequestToJSON(json: any): ApproveDocumentVersionRequest {
+  return ApproveDocumentVersionRequestToJSONTyped(json, false);
 }
 
 export function ApproveDocumentVersionRequestToJSONTyped(
   value?: ApproveDocumentVersionRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    meetingId: value['meetingId'],
-    comment: value['comment'],
-  }
+    meetingId: value["meetingId"],
+    comment: value["comment"],
+  };
 }

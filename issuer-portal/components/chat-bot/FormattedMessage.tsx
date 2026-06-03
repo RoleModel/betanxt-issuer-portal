@@ -1,27 +1,24 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { Box, Typography } from '@mui/material'
+import { Box, Typography } from "@mui/material";
+import React from "react";
 
 interface FormattedMessageProps {
-  content: string
-  variant?: 'body1' | 'body2'
+  content: string;
+  variant?: "body1" | "body2";
 }
 
-export function FormattedMessage({ content, variant = 'body2' }: FormattedMessageProps) {
-  const sanitizedContent = content.replaceAll('**', '').replaceAll('##', '')
-  const paragraphs = sanitizedContent
-    .split(/\n\s*\n/)
-    .filter((paragraph) => paragraph.trim())
+export function FormattedMessage({ content, variant = "body2" }: FormattedMessageProps) {
+  const sanitizedContent = content.replaceAll("**", "").replaceAll("##", "");
+  const paragraphs = sanitizedContent.split(/\n\s*\n/).filter((paragraph) => paragraph.trim());
 
   const renderParagraph = (paragraph: string) => {
     const bulletLines = paragraph
-      .split('\n')
+      .split("\n")
       .map((line) => line.trim())
-      .filter(Boolean)
+      .filter(Boolean);
 
-    if (bulletLines.every((line) => line.startsWith('- ') || line.startsWith('* '))) {
+    if (bulletLines.every((line) => line.startsWith("- ") || line.startsWith("* "))) {
       return (
         <Box component="ul" sx={{ m: 0, pl: 2 }}>
           {bulletLines.map((line) => (
@@ -30,7 +27,7 @@ export function FormattedMessage({ content, variant = 'body2' }: FormattedMessag
             </Typography>
           ))}
         </Box>
-      )
+      );
     }
 
     return (
@@ -41,21 +38,16 @@ export function FormattedMessage({ content, variant = 'body2' }: FormattedMessag
           </Typography>
         ))}
       </Box>
-    )
-  }
+    );
+  };
 
   return (
     <Box>
-      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map(
-        (paragraph, index) => (
-          <Box
-            key={`${paragraph}-${index}`}
-            sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}
-          >
-            {renderParagraph(paragraph)}
-          </Box>
-        )
-      )}
+      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map((paragraph, index) => (
+        <Box key={`${paragraph}-${index}`} sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}>
+          {renderParagraph(paragraph)}
+        </Box>
+      ))}
     </Box>
-  )
+  );
 }

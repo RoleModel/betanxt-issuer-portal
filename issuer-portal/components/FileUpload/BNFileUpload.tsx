@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import type { FileRejection } from 'react-dropzone'
-import { v4 as uuidv4 } from 'uuid'
+import type { FileRejection } from "react-dropzone";
 
-import { Stack } from '@mui/material'
+import { Stack } from "@mui/material";
+import React, { useCallback, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
-import BNFilePreview from '@/components/FileUpload/BNFilePreview'
+import BNFileDropzone from "@/components/FileUpload/BNFileDropzone";
+import BNFilePreview from "@/components/FileUpload/BNFilePreview";
 
-import type { FileUploadProps, UploadFile } from './types'
-import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from './types'
+import type { FileUploadProps, UploadFile } from "./types";
+
+import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from "./types";
 
 const BNFileUpload: React.FC<FileUploadProps> = ({
   maxFiles = 5,
@@ -24,38 +25,36 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
   dsmDocumentOptions = [],
   onFileAssociationChange,
 }) => {
-  const [files, setFiles] = useState<UploadFile[]>(uploadedFiles)
-  const [hasUnsupportedFiles, setHasUnsupportedFiles] = useState(false)
+  const [files, setFiles] = useState<UploadFile[]>(uploadedFiles);
+  const [hasUnsupportedFiles, setHasUnsupportedFiles] = useState(false);
 
   // Notify parent when files state changes
   useEffect(() => {
     if (onFileStateChange) {
-      onFileStateChange(files)
+      onFileStateChange(files);
     }
-  }, [files, onFileStateChange])
+  }, [files, onFileStateChange]);
 
   const simulateUpload = useCallback(
     async (fileId: string, file: File) => {
       try {
         // DEMO: Simulated upload progress - replace with actual upload
         for (let progress = 0; progress <= 100; progress += 10) {
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, 100));
 
-          setFiles((prevFiles) =>
-            prevFiles.map((f) => (f.id === fileId ? { ...f, progress } : f))
-          )
+          setFiles((prevFiles) => prevFiles.map((f) => (f.id === fileId ? { ...f, progress } : f)));
         }
 
         // Mark as complete
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
-            f.id === fileId ? { ...f, status: 'complete' as const, progress: 100 } : f
-          )
-        )
+            f.id === fileId ? { ...f, status: "complete" as const, progress: 100 } : f,
+          ),
+        );
 
         // Call custom upload function if provided
         if (onUpload) {
-          await onUpload([file])
+          await onUpload([file]);
         }
       } catch (error) {
         // Mark as error
@@ -64,92 +63,90 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
             f.id === fileId
               ? {
                   ...f,
-                  status: 'error' as const,
-                  error: error instanceof Error ? error.message : 'Upload failed',
+                  status: "error" as const,
+                  error: error instanceof Error ? error.message : "Upload failed",
                 }
-              : f
-          )
-        )
+              : f,
+          ),
+        );
       }
     },
-    [onUpload]
-  )
+    [onUpload],
+  );
 
   const handleFilesSelected = useCallback(
     (newFiles: File[]) => {
       // Clear unsupported files state when new files are successfully selected
-      setHasUnsupportedFiles(false)
+      setHasUnsupportedFiles(false);
 
       const uploadFiles: UploadFile[] = newFiles.map((file) => ({
         id: uuidv4(),
         file,
-        status: 'uploading' as const,
+        status: "uploading" as const,
         progress: 0,
-      }))
+      }));
 
       setFiles((prevFiles) => {
-        const updatedFiles = [...prevFiles, ...uploadFiles]
+        const updatedFiles = [...prevFiles, ...uploadFiles];
         // Limit to maxFiles if specified
-        return maxFiles ? updatedFiles.slice(0, maxFiles) : updatedFiles
-      })
+        return maxFiles ? updatedFiles.slice(0, maxFiles) : updatedFiles;
+      });
 
       // Notify parent component
       if (onFilesSelected) {
-        onFilesSelected(newFiles)
+        onFilesSelected(newFiles);
       }
 
       // Auto-upload if onUpload function is provided
       if (onUpload) {
         uploadFiles.forEach((uploadFile) => {
-          void simulateUpload(uploadFile.id, uploadFile.file)
-        })
+          void simulateUpload(uploadFile.id, uploadFile.file);
+        });
       }
     },
-    [maxFiles, onFilesSelected, onUpload, simulateUpload]
-  )
+    [maxFiles, onFilesSelected, onUpload, simulateUpload],
+  );
 
   const handleFileRejections = useCallback((fileRejections: FileRejection[]) => {
     // Check if any rejections are due to unsupported file types
     const hasUnsupportedType = fileRejections.some((rejection) =>
-      rejection.errors.some((error) => error.code === 'file-invalid-type')
-    )
+      rejection.errors.some((error) => error.code === "file-invalid-type"),
+    );
 
     if (hasUnsupportedType) {
-      setHasUnsupportedFiles(true)
+      setHasUnsupportedFiles(true);
     }
-  }, [])
+  }, []);
 
   const handleFileRemove = useCallback(
     (fileId: string) => {
       setFiles((prevFiles) => {
-        const updatedFiles = prevFiles.filter((f) => f.id !== fileId)
-        return updatedFiles
-      })
+        const updatedFiles = prevFiles.filter((f) => f.id !== fileId);
+        return updatedFiles;
+      });
 
       if (onFileRemove) {
-        onFileRemove(fileId)
+        onFileRemove(fileId);
       }
     },
-    [onFileRemove]
-  )
+    [onFileRemove],
+  );
 
   const handleFileAssociationChange = useCallback(
     (fileId: string, documentId: string) => {
       setFiles((prevFiles) =>
-        prevFiles.map((f) =>
-          f.id === fileId ? { ...f, associatedDocumentId: documentId } : f
-        )
-      )
+        prevFiles.map((f) => (f.id === fileId ? { ...f, associatedDocumentId: documentId } : f)),
+      );
 
       if (onFileAssociationChange) {
-        onFileAssociationChange(fileId, documentId)
+        onFileAssociationChange(fileId, documentId);
       }
     },
-    [onFileAssociationChange]
-  )
+    [onFileAssociationChange],
+  );
 
-  const hasFiles = files.length > 0
-  const canAddMore = !maxFiles || files.length < maxFiles
+  const hasFiles = files.length > 0;
+  const canAddMore = !maxFiles || files.length < maxFiles;
 
   return (
     <Stack spacing={2}>
@@ -183,7 +180,7 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
         </Stack>
       )}
     </Stack>
-  )
-}
+  );
+};
 
-export default BNFileUpload
+export default BNFileUpload;

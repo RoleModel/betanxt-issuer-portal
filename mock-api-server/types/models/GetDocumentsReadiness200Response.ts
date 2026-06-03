@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,85 +23,83 @@ export interface GetDocumentsReadiness200Response {
    * @type {boolean}
    * @memberof GetDocumentsReadiness200Response
    */
-  phase1Ready?: boolean
+  phase1Ready?: boolean;
   /**
    *
    * @type {boolean}
    * @memberof GetDocumentsReadiness200Response
    */
-  phase2Ready?: boolean
+  phase2Ready?: boolean;
   /**
    *
    * @type {boolean}
    * @memberof GetDocumentsReadiness200Response
    */
-  overallReady?: boolean
+  overallReady?: boolean;
   /**
    *
    * @type {Array<object>}
    * @memberof GetDocumentsReadiness200Response
    */
-  outstandingPhase1?: Array<object>
+  outstandingPhase1?: Array<object>;
   /**
    *
    * @type {Array<object>}
    * @memberof GetDocumentsReadiness200Response
    */
-  outstandingPhase2?: Array<object>
+  outstandingPhase2?: Array<object>;
 }
 
 /**
  * Check if a given object implements the GetDocumentsReadiness200Response interface.
  */
 export function instanceOfGetDocumentsReadiness200Response(
-  value: object
+  value: object,
 ): value is GetDocumentsReadiness200Response {
-  return true
+  return true;
 }
 
 export function GetDocumentsReadiness200ResponseFromJSON(
-  json: any
+  json: any,
 ): GetDocumentsReadiness200Response {
-  return GetDocumentsReadiness200ResponseFromJSONTyped(json, false)
+  return GetDocumentsReadiness200ResponseFromJSONTyped(json, false);
 }
 
 export function GetDocumentsReadiness200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): GetDocumentsReadiness200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    phase1Ready: json['phase1Ready'] == null ? undefined : json['phase1Ready'],
-    phase2Ready: json['phase2Ready'] == null ? undefined : json['phase2Ready'],
-    overallReady: json['overallReady'] == null ? undefined : json['overallReady'],
-    outstandingPhase1:
-      json['outstandingPhase1'] == null ? undefined : json['outstandingPhase1'],
-    outstandingPhase2:
-      json['outstandingPhase2'] == null ? undefined : json['outstandingPhase2'],
-  }
+    phase1Ready: json["phase1Ready"] == null ? undefined : json["phase1Ready"],
+    phase2Ready: json["phase2Ready"] == null ? undefined : json["phase2Ready"],
+    overallReady: json["overallReady"] == null ? undefined : json["overallReady"],
+    outstandingPhase1: json["outstandingPhase1"] == null ? undefined : json["outstandingPhase1"],
+    outstandingPhase2: json["outstandingPhase2"] == null ? undefined : json["outstandingPhase2"],
+  };
 }
 
 export function GetDocumentsReadiness200ResponseToJSON(
-  json: any
+  json: any,
 ): GetDocumentsReadiness200Response {
-  return GetDocumentsReadiness200ResponseToJSONTyped(json, false)
+  return GetDocumentsReadiness200ResponseToJSONTyped(json, false);
 }
 
 export function GetDocumentsReadiness200ResponseToJSONTyped(
   value?: GetDocumentsReadiness200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    phase1Ready: value['phase1Ready'],
-    phase2Ready: value['phase2Ready'],
-    overallReady: value['overallReady'],
-    outstandingPhase1: value['outstandingPhase1'],
-    outstandingPhase2: value['outstandingPhase2'],
-  }
+    phase1Ready: value["phase1Ready"],
+    phase2Ready: value["phase2Ready"],
+    overallReady: value["overallReady"],
+    outstandingPhase1: value["outstandingPhase1"],
+    outstandingPhase2: value["outstandingPhase2"],
+  };
 }

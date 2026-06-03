@@ -1,35 +1,35 @@
 export interface ChatbotAction {
-  type: 'NAVIGATE' | 'OPEN_SUPPORT_CONTACTS'
+  type: "NAVIGATE" | "OPEN_SUPPORT_CONTACTS";
   payload?: {
-    path?: string
-  }
+    path?: string;
+  };
 }
 
 interface PendingChatbotAction {
-  id: string
-  action: ChatbotAction
-  timestamp: number
+  id: string;
+  action: ChatbotAction;
+  timestamp: number;
 }
 
-let pendingActions: PendingChatbotAction[] = []
+let pendingActions: PendingChatbotAction[] = [];
 
 export const enqueueChatbotAction = (action: ChatbotAction): string => {
-  const actionId = `action_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const actionId = `action_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
   pendingActions.push({
     id: actionId,
     action,
     timestamp: Date.now(),
-  })
+  });
 
-  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
-  pendingActions = pendingActions.filter((item) => item.timestamp > fiveMinutesAgo)
+  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+  pendingActions = pendingActions.filter((item) => item.timestamp > fiveMinutesAgo);
 
-  return actionId
-}
+  return actionId;
+};
 
 export const drainChatbotActions = (): PendingChatbotAction[] => {
-  const actions = [...pendingActions]
-  pendingActions = []
-  return actions
-}
+  const actions = [...pendingActions];
+  pendingActions = [];
+  return actions;
+};

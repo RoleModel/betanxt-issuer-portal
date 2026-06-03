@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,82 +23,74 @@ export interface PhaseKeyDates {
    * @type {Date}
    * @memberof PhaseKeyDates
    */
-  startDate?: Date | null
+  startDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof PhaseKeyDates
    */
-  endDate?: Date | null
+  endDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof PhaseKeyDates
    */
-  dueDate?: Date | null
+  dueDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof PhaseKeyDates
    */
-  completionDate?: Date | null
+  completionDate?: Date | null;
 }
 
 /**
  * Check if a given object implements the PhaseKeyDates interface.
  */
 export function instanceOfPhaseKeyDates(value: object): value is PhaseKeyDates {
-  return true
+  return true;
 }
 
 export function PhaseKeyDatesFromJSON(json: any): PhaseKeyDates {
-  return PhaseKeyDatesFromJSONTyped(json, false)
+  return PhaseKeyDatesFromJSONTyped(json, false);
 }
 
-export function PhaseKeyDatesFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): PhaseKeyDates {
+export function PhaseKeyDatesFromJSONTyped(json: any, ignoreDiscriminator: boolean): PhaseKeyDates {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    startDate: json['startDate'] == null ? undefined : new Date(json['startDate']),
-    endDate: json['endDate'] == null ? undefined : new Date(json['endDate']),
-    dueDate: json['dueDate'] == null ? undefined : new Date(json['dueDate']),
-    completionDate:
-      json['completionDate'] == null ? undefined : new Date(json['completionDate']),
-  }
+    startDate: json["startDate"] == null ? undefined : new Date(json["startDate"]),
+    endDate: json["endDate"] == null ? undefined : new Date(json["endDate"]),
+    dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
+    completionDate: json["completionDate"] == null ? undefined : new Date(json["completionDate"]),
+  };
 }
 
 export function PhaseKeyDatesToJSON(json: any): PhaseKeyDates {
-  return PhaseKeyDatesToJSONTyped(json, false)
+  return PhaseKeyDatesToJSONTyped(json, false);
 }
 
 export function PhaseKeyDatesToJSONTyped(
   value?: PhaseKeyDates | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
     startDate:
-      value['startDate'] === null
+      value["startDate"] === null
         ? null
-        : (value['startDate'] as any)?.toISOString().substring(0, 10),
+        : (value["startDate"] as any)?.toISOString().substring(0, 10),
     endDate:
-      value['endDate'] === null
-        ? null
-        : (value['endDate'] as any)?.toISOString().substring(0, 10),
+      value["endDate"] === null ? null : (value["endDate"] as any)?.toISOString().substring(0, 10),
     dueDate:
-      value['dueDate'] === null
-        ? null
-        : (value['dueDate'] as any)?.toISOString().substring(0, 10),
+      value["dueDate"] === null ? null : (value["dueDate"] as any)?.toISOString().substring(0, 10),
     completionDate:
-      value['completionDate'] === null
+      value["completionDate"] === null
         ? null
-        : (value['completionDate'] as any)?.toISOString().substring(0, 10),
-  }
+        : (value["completionDate"] as any)?.toISOString().substring(0, 10),
+  };
 }

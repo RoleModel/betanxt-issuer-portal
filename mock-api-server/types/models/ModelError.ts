@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,61 +23,58 @@ export interface ModelError {
    * @type {string}
    * @memberof ModelError
    */
-  message?: string
+  message?: string;
   /**
    *
    * @type {string}
    * @memberof ModelError
    */
-  code?: string
+  code?: string;
   /**
    *
    * @type {object}
    * @memberof ModelError
    */
-  details?: object
+  details?: object;
 }
 
 /**
  * Check if a given object implements the ModelError interface.
  */
 export function instanceOfModelError(value: object): value is ModelError {
-  return true
+  return true;
 }
 
 export function ModelErrorFromJSON(json: any): ModelError {
-  return ModelErrorFromJSONTyped(json, false)
+  return ModelErrorFromJSONTyped(json, false);
 }
 
-export function ModelErrorFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): ModelError {
+export function ModelErrorFromJSONTyped(json: any, ignoreDiscriminator: boolean): ModelError {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    message: json['message'] == null ? undefined : json['message'],
-    code: json['code'] == null ? undefined : json['code'],
-    details: json['details'] == null ? undefined : json['details'],
-  }
+    message: json["message"] == null ? undefined : json["message"],
+    code: json["code"] == null ? undefined : json["code"],
+    details: json["details"] == null ? undefined : json["details"],
+  };
 }
 
 export function ModelErrorToJSON(json: any): ModelError {
-  return ModelErrorToJSONTyped(json, false)
+  return ModelErrorToJSONTyped(json, false);
 }
 
 export function ModelErrorToJSONTyped(
   value?: ModelError | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    message: value['message'],
-    code: value['code'],
-    details: value['details'],
-  }
+    message: value["message"],
+    code: value["code"],
+    details: value["details"],
+  };
 }

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,55 +23,55 @@ export interface LoginUserRequest {
    * @type {string}
    * @memberof LoginUserRequest
    */
-  username: string
+  username: string;
   /**
    *
    * @type {string}
    * @memberof LoginUserRequest
    */
-  password: string
+  password: string;
 }
 
 /**
  * Check if a given object implements the LoginUserRequest interface.
  */
 export function instanceOfLoginUserRequest(value: object): value is LoginUserRequest {
-  if (!('username' in value) || value['username'] === undefined) return false
-  if (!('password' in value) || value['password'] === undefined) return false
-  return true
+  if (!("username" in value) || value["username"] === undefined) return false;
+  if (!("password" in value) || value["password"] === undefined) return false;
+  return true;
 }
 
 export function LoginUserRequestFromJSON(json: any): LoginUserRequest {
-  return LoginUserRequestFromJSONTyped(json, false)
+  return LoginUserRequestFromJSONTyped(json, false);
 }
 
 export function LoginUserRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): LoginUserRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    username: json['username'],
-    password: json['password'],
-  }
+    username: json["username"],
+    password: json["password"],
+  };
 }
 
 export function LoginUserRequestToJSON(json: any): LoginUserRequest {
-  return LoginUserRequestToJSONTyped(json, false)
+  return LoginUserRequestToJSONTyped(json, false);
 }
 
 export function LoginUserRequestToJSONTyped(
   value?: LoginUserRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    username: value['username'],
-    password: value['password'],
-  }
+    username: value["username"],
+    password: value["password"],
+  };
 }

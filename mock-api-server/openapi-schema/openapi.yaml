@@ -11,8 +11,8 @@ info:
     url: https://opensource.org/licenses/MIT
   x-logo:
     url: https://main--682680c71a469fb00d7bc855.chromatic.com/betanxt-logo-light.svg
-    backgroundColor: '#FFFFFF'
-    altText: 'BetaNXT Issuer Portal Logo'
+    backgroundColor: "#FFFFFF"
+    altText: "BetaNXT Issuer Portal Logo"
     href: https://betanxt.com
 
 servers:
@@ -57,7 +57,7 @@ paths:
                   minLength: 8
                   example: SecurePass123
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
@@ -65,14 +65,14 @@ paths:
                 type: object
                 properties:
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: "#/components/schemas/User"
                   token:
                     type: string
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /auth/logout:
     post:
@@ -80,7 +80,7 @@ paths:
       summary: User logout
       tags: [Authentication]
       responses:
-        '200':
+        "200":
           description: Logout successful
           content:
             application/json:
@@ -90,8 +90,8 @@ paths:
                   message:
                     type: string
                     example: Logged out successfully
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /auth/me:
     get:
@@ -99,14 +99,14 @@ paths:
       summary: Get current user profile
       tags: [Authentication]
       responses:
-        '200':
+        "200":
           description: User profile retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # Account Management Endpoints
   /accounts:
@@ -115,10 +115,10 @@ paths:
       summary: List accounts
       tags: [Accounts]
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
-        '200':
+        "200":
           description: Accounts retrieved successfully
           content:
             application/json:
@@ -128,13 +128,13 @@ paths:
                   accounts:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Account'
+                      $ref: "#/components/schemas/Account"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     post:
       operationId: createAccount
@@ -145,20 +145,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAccountRequest'
+              $ref: "#/components/schemas/CreateAccountRequest"
       responses:
-        '201':
+        "201":
           description: Account created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Account"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /accounts/{accountId}:
     get:
@@ -173,16 +173,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Account retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Account"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateAccount
@@ -200,22 +200,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateAccountRequest'
+              $ref: "#/components/schemas/UpdateAccountRequest"
       responses:
-        '200':
+        "200":
           description: Account updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Account"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     delete:
       operationId: deleteAccount
@@ -229,14 +229,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Account deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /accounts/{accountId}/users:
     get:
@@ -250,14 +250,14 @@ paths:
           schema:
             type: string
             format: uuid
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
         - name: type
           in: query
           schema:
-            $ref: '#/components/schemas/UserType'
+            $ref: "#/components/schemas/UserType"
       responses:
-        '200':
+        "200":
           description: Account users retrieved successfully
           content:
             application/json:
@@ -267,15 +267,15 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createAccountUser
@@ -293,22 +293,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAccountUserRequest'
+              $ref: "#/components/schemas/CreateAccountUserRequest"
       responses:
-        '201':
+        "201":
           description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # Client Management Endpoints
   /clients:
@@ -317,15 +317,15 @@ paths:
       summary: List clients
       tags: [Clients]
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
         - name: ticker
           in: query
           schema:
             type: string
           description: Filter by client ticker
       responses:
-        '200':
+        "200":
           description: Clients retrieved successfully
           content:
             application/json:
@@ -335,13 +335,13 @@ paths:
                   clients:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Clients'
+                      $ref: "#/components/schemas/Clients"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     post:
       operationId: createClient
@@ -352,20 +352,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateClientRequest'
+              $ref: "#/components/schemas/CreateClientRequest"
       responses:
-        '201':
+        "201":
           description: Client created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Clients'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Clients"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /clients/{ticker}:
     get:
@@ -380,16 +380,16 @@ paths:
             type: string
           description: The client ticker symbol
       responses:
-        '200':
+        "200":
           description: Client retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Clients'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Clients"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateClient
@@ -407,22 +407,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateClientRequest'
+              $ref: "#/components/schemas/UpdateClientRequest"
       responses:
-        '200':
+        "200":
           description: Client updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Clients'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Clients"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     delete:
       operationId: deleteClient
@@ -436,14 +436,14 @@ paths:
             type: string
           description: The client ticker symbol
       responses:
-        '204':
+        "204":
           description: Client deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /clients/{ticker}/accounts:
     get:
@@ -457,10 +457,10 @@ paths:
           schema:
             type: string
           description: The client ticker symbol
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
-        '200':
+        "200":
           description: Client accounts retrieved successfully
           content:
             application/json:
@@ -470,15 +470,15 @@ paths:
                   accounts:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Account'
+                      $ref: "#/components/schemas/Account"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # User Management Endpoints
   /users:
@@ -487,19 +487,19 @@ paths:
       summary: List users
       tags: [Users]
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
         - name: type
           in: query
           schema:
-            $ref: '#/components/schemas/UserType'
+            $ref: "#/components/schemas/UserType"
         - name: accountId
           in: query
           schema:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Users retrieved successfully
           content:
             application/json:
@@ -509,13 +509,13 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     post:
       operationId: createUser
@@ -526,20 +526,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
-        '201':
+        "201":
           description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /users/{id}:
     get:
@@ -554,16 +554,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: User retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateUser
@@ -581,22 +581,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: "#/components/schemas/UpdateUserRequest"
       responses:
-        '200':
+        "200":
           description: User updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     delete:
       operationId: deleteUser
@@ -610,14 +610,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: User deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /users/{id}/accounts:
     get:
@@ -634,7 +634,7 @@ paths:
             format: uuid
           description: The ID of the user
       responses:
-        '200':
+        "200":
           description: User accounts retrieved successfully
           content:
             application/json:
@@ -644,19 +644,19 @@ paths:
                   accounts:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Account'
+                      $ref: "#/components/schemas/Account"
                   total:
                     type: integer
                     description: Total number of accounts
                 required:
                   - accounts
                   - total
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # User Profile Photo Endpoints
   /users/{id}/avatar:
@@ -692,7 +692,7 @@ paths:
                   default: 1.0
                   description: Scale factor for cropping (0.5x to 2x zoom)
       responses:
-        '201':
+        "201":
           description: Avatar uploaded successfully
           content:
             application/json:
@@ -705,25 +705,25 @@ paths:
                     description: Public URL of the uploaded avatar
                   message:
                     type: string
-                    example: 'Avatar uploaded successfully'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '413':
+                    example: "Avatar uploaded successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
           description: File too large
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '415':
+                $ref: "#/components/schemas/Error"
+        "415":
           description: Unsupported media type
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
     delete:
       operationId: deleteUserAvatar
@@ -738,7 +738,7 @@ paths:
             format: uuid
           description: The ID of the user
       responses:
-        '200':
+        "200":
           description: Avatar removed successfully
           content:
             application/json:
@@ -747,13 +747,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Avatar removed successfully'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                    example: "Avatar removed successfully"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /users/{id}/avatar/url:
     get:
@@ -769,7 +769,7 @@ paths:
             format: uuid
           description: The ID of the user
       responses:
-        '200':
+        "200":
           description: Avatar URL retrieved successfully
           content:
             application/json:
@@ -781,12 +781,12 @@ paths:
                     format: uri
                     nullable: true
                     description: Public URL of the user's avatar, null if no avatar set
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Meeting Management Endpoints
   /meetings:
@@ -811,7 +811,7 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/MeetingStatus'
+            $ref: "#/components/schemas/MeetingStatus"
         - name: clientId
           in: query
           schema:
@@ -831,7 +831,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Meetings retrieved successfully
           content:
             application/json:
@@ -841,11 +841,11 @@ paths:
                   meetings:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Meeting'
+                      $ref: "#/components/schemas/Meeting"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     post:
       operationId: createMeeting
@@ -856,20 +856,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateMeetingRequest'
+              $ref: "#/components/schemas/CreateMeetingRequest"
       responses:
-        '201':
+        "201":
           description: Meeting created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Meeting'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Meeting"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /meetings/{meetingId}:
     get:
@@ -883,16 +883,16 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Meeting retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Meeting'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Meeting"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateMeeting
@@ -909,22 +909,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateMeetingRequest'
+              $ref: "#/components/schemas/UpdateMeetingRequest"
       responses:
-        '200':
+        "200":
           description: Meeting updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Meeting'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Meeting"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     delete:
       operationId: deleteMeeting
@@ -937,14 +937,14 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: Meeting deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Phase Management Endpoints
   /meetings/{meetingId}/phases:
@@ -961,20 +961,20 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/PhaseStatus'
+            $ref: "#/components/schemas/PhaseStatus"
       responses:
-        '200':
+        "200":
           description: Phases retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Phase'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/Phase"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createPhase
@@ -991,20 +991,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePhaseRequest'
+              $ref: "#/components/schemas/CreatePhaseRequest"
       responses:
-        '201':
+        "201":
           description: Phase created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Phase'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Phase"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /phases/{id}:
     get:
@@ -1019,16 +1019,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Phase retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Phase'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Phase"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updatePhase
@@ -1046,22 +1046,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePhaseRequest'
+              $ref: "#/components/schemas/UpdatePhaseRequest"
       responses:
-        '200':
+        "200":
           description: Phase updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Phase'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Phase"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Task Management Endpoints
   /meetings/{meetingId}/tasks:
@@ -1083,24 +1083,24 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/TaskStatus'
+            $ref: "#/components/schemas/TaskStatus"
         - name: owner
           in: query
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Tasks retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Task'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createTask
@@ -1117,20 +1117,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTaskRequest'
+              $ref: "#/components/schemas/CreateTaskRequest"
       responses:
-        '201':
+        "201":
           description: Task created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /tasks/{id}:
     get:
@@ -1145,16 +1145,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Task retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Task"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateTask
@@ -1172,22 +1172,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTaskRequest'
+              $ref: "#/components/schemas/UpdateTaskRequest"
       responses:
-        '200':
+        "200":
           description: Task updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Document Management Endpoints
   /meetings/{meetingId}/documents:
@@ -1204,27 +1204,27 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/DocumentStatus'
+            $ref: "#/components/schemas/DocumentStatus"
         - name: type
           in: query
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Documents retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Document'
+                  $ref: "#/components/schemas/Document"
                   meetingId:
                     type: string
                     description: Meeting identifier (redundant with path but useful for backend validation)
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createDocument
@@ -1241,20 +1241,20 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CreateDocumentRequest'
+              $ref: "#/components/schemas/CreateDocumentRequest"
       responses:
-        '201':
+        "201":
           description: Document created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /documents/{id}:
     get:
@@ -1269,16 +1269,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Document retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Document"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateDocument
@@ -1296,22 +1296,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDocumentRequest'
+              $ref: "#/components/schemas/UpdateDocumentRequest"
       responses:
-        '200':
+        "200":
           description: Document updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /documents/{id}/download:
     get:
@@ -1326,17 +1326,17 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Document file
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # Phase 1 & 2 Document Workflow Endpoints
   /documents/forms/{formType}/sign-digital:
@@ -1371,16 +1371,16 @@ paths:
                   type: boolean
                   description: If true, replaces any existing signature artifact
       responses:
-        '200':
+        "200":
           description: Form executed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /documents/forms/{formType}/upload-executed:
     post:
@@ -1412,15 +1412,15 @@ paths:
                   type: string
                   description: If provided, links the upload to a previously generated draft form
       responses:
-        '201':
+        "201":
           description: Form executed via upload
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '413':
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "413":
           description: File too large
 
   /documents/types/{documentType}/upload:
@@ -1453,15 +1453,15 @@ paths:
                   type: string
                   description: Optional notes describing the changes or purpose of this version
       responses:
-        '201':
+        "201":
           description: Version uploaded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '413':
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "413":
           description: File too large
 
   /documents/types/{documentType}/{versionId}/approve:
@@ -1495,15 +1495,15 @@ paths:
                   type: string
                   description: Optional approval comment
       responses:
-        '200':
+        "200":
           description: Version approved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Invalid state transition
 
   /documents/types/{documentType}/{versionId}/replace:
@@ -1540,15 +1540,15 @@ paths:
                   format: binary
                   description: Replacement document file content
       responses:
-        '201':
+        "201":
           description: Replacement version uploaded (previous approved retained)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Document'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Invalid state transition
 
   /documents/readiness:
@@ -1563,7 +1563,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Readiness status
           content:
             application/json:
@@ -1584,8 +1584,8 @@ paths:
                     type: array
                     items:
                       type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /documents/types/{documentType}/history:
     get:
@@ -1604,16 +1604,16 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Version history
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Document'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/Document"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # DSM Configuration Endpoints
   /meetings/{meetingId}/dsm-config:
@@ -1628,14 +1628,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: DSM configuration retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DSMConfig'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/DSMConfig"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createOrUpdateDSMConfig
@@ -1652,16 +1652,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DSMConfig'
+              $ref: "#/components/schemas/DSMConfig"
       responses:
-        '200':
+        "200":
           description: DSM configuration saved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DSMConfig'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/DSMConfig"
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
     put:
       operationId: updateDSMConfig
@@ -1678,18 +1678,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DSMConfig'
+              $ref: "#/components/schemas/DSMConfig"
       responses:
-        '200':
+        "200":
           description: DSM configuration updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DSMConfig'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/DSMConfig"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # Position Management Endpoints (Supabase PostgREST)
   /positions:
@@ -1746,18 +1746,18 @@ paths:
             type: integer
           description: Number of results to skip for pagination
       responses:
-        '200':
+        "200":
           description: Positions retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Position'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/Position"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createPosition
@@ -1768,20 +1768,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePositionRequest'
+              $ref: "#/components/schemas/CreatePositionRequest"
       responses:
-        '201':
+        "201":
           description: Position created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Position'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Position"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /positions/{id}:
     get:
@@ -1796,16 +1796,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Position retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Position'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Position"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updatePosition
@@ -1823,22 +1823,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePositionRequest'
+              $ref: "#/components/schemas/UpdatePositionRequest"
       responses:
-        '200':
+        "200":
           description: Position updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Position'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Position"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Proposal Management Endpoints
   /meetings/{meetingId}/tabulation-report:
@@ -1853,16 +1853,16 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Tabulation report retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TabulationReport'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/TabulationReport"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /meetings/{meetingId}/mailing:
     get:
@@ -1877,16 +1877,16 @@ paths:
             type: string
           description: Meeting ID to get mailing statistics for
       responses:
-        '200':
+        "200":
           description: Mailing statistics retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Mailing'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Mailing"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /meetings/{meetingId}/digital-shareholder-meeting:
     get:
@@ -1901,18 +1901,18 @@ paths:
             type: string
           description: Meeting ID
       responses:
-        '200':
+        "200":
           description: Digital shareholder meeting data retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DigitalShareholderMeeting'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/DigitalShareholderMeeting"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createDigitalShareholderMeetingAttendees
@@ -1931,20 +1931,20 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/CreateDigitalShareholderMeetingRequest'
+                $ref: "#/components/schemas/CreateDigitalShareholderMeetingRequest"
       responses:
-        '201':
+        "201":
           description: Attendees created successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DigitalShareholderMeeting'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  $ref: "#/components/schemas/DigitalShareholderMeeting"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /meetings/{meetingId}/proposals:
     get:
@@ -1962,18 +1962,18 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Proposals retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Proposal'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  $ref: "#/components/schemas/Proposal"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       operationId: createProposal
@@ -1990,20 +1990,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProposalRequest'
+              $ref: "#/components/schemas/CreateProposalRequest"
       responses:
-        '201':
+        "201":
           description: Proposal created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Proposal'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Proposal"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /proposals/{id}:
     get:
@@ -2018,16 +2018,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Proposal retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Proposal'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Proposal"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     put:
       operationId: updateProposal
@@ -2045,22 +2045,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProposalRequest'
+              $ref: "#/components/schemas/UpdateProposalRequest"
       responses:
-        '200':
+        "200":
           description: Proposal updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Proposal'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Proposal"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Voting Endpoints (Supabase PostgREST)
   # Note: Supabase auto-generates endpoints based on table names
@@ -2133,21 +2133,21 @@ paths:
             type: integer
           description: Number of results to skip for pagination
       responses:
-        '200':
+        "200":
           description: Position votes retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PositionVote'
+                  $ref: "#/components/schemas/PositionVote"
           headers:
             Content-Range:
               description: Pagination info (e.g., `0-9/100`)
               schema:
                 type: string
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     post:
       operationId: createPositionVote
@@ -2163,20 +2163,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CastVoteRequest'
+              $ref: "#/components/schemas/CastVoteRequest"
       responses:
-        '201':
+        "201":
           description: Vote cast successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PositionVote'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/PositionVote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   # Comments Endpoints
   /documents/{id}/comments:
@@ -2192,18 +2192,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Comments retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Comment'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  $ref: "#/components/schemas/Comment"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     post:
       operationId: addComment
@@ -2221,20 +2221,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCommentRequest'
+              $ref: "#/components/schemas/CreateCommentRequest"
       responses:
-        '201':
+        "201":
           description: Comment added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /documents/{id}/events:
     get:
@@ -2249,18 +2249,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Event history retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DocumentHistory'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  $ref: "#/components/schemas/DocumentHistory"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
     post:
       operationId: addDocumentEvent
@@ -2301,16 +2301,16 @@ paths:
                   type: object
                   additionalProperties: true
       responses:
-        '201':
+        "201":
           description: Event added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentHistory'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/DocumentHistory"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # Notification Management Endpoints
   /notifications:
@@ -2324,13 +2324,13 @@ paths:
           description: Filter notifications by client ticker
           schema:
             type: string
-            example: 'WEN'
+            example: "WEN"
         - name: meetingId
           in: query
           description: Filter notifications by meeting ID
           schema:
             type: string
-            example: 'wen-annual-meeting-2026'
+            example: "wen-annual-meeting-2026"
         - name: read
           in: query
           description: Filter by read status
@@ -2348,19 +2348,19 @@ paths:
           schema:
             type: string
             enum: [low, medium, high, critical]
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
-        '200':
+        "200":
           description: Notifications retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Notification'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       operationId: createNotification
       summary: Create an in-app notification
@@ -2370,18 +2370,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateNotificationInput'
+              $ref: "#/components/schemas/CreateNotificationInput"
       responses:
-        '201':
+        "201":
           description: Notification created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Notification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /cron/tabulation-distribute:
     post:
@@ -2394,15 +2394,15 @@ paths:
         but can also be triggered manually from the distribution settings drawer.
       tags: [Cron]
       responses:
-        '200':
+        "200":
           description: Distribution run completed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TabulationDistributeResult'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
+                $ref: "#/components/schemas/TabulationDistributeResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
           description: Internal server error
 
   /notifications/{notificationId}/mark-read:
@@ -2418,16 +2418,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Notification marked as read
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/Notification"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
 components:
   securitySchemes:
@@ -2518,7 +2518,7 @@ components:
           type: string
           format: date-time
         client:
-          $ref: '#/components/schemas/Clients'
+          $ref: "#/components/schemas/Clients"
           description: The client this account belongs to (relationship)
 
     Clients:
@@ -2527,11 +2527,11 @@ components:
         id:
           type: string
           format: uuid
-          example: '291cdbe5-192b-50ec-b3ae-3197c9c5103c'
+          example: "291cdbe5-192b-50ec-b3ae-3197c9c5103c"
         ticker:
           type: string
           description: Unique ticker symbol for the client
-          example: 'WEN'
+          example: "WEN"
         companyName:
           type: string
           description: Full legal name of the company
@@ -2544,28 +2544,28 @@ components:
           type: string
           nullable: true
           description: Industry sector
-          example: 'Restaurants'
+          example: "Restaurants"
         description:
           type: string
           nullable: true
           description: Company description
-          example: 'Leading fast food hamburger chain'
+          example: "Leading fast food hamburger chain"
         website:
           type: string
           nullable: true
           description: Company website URL
-          example: 'https://www.wendys.com'
+          example: "https://www.wendys.com"
         primaryContact:
           type: string
           nullable: true
           description: Primary contact person
-          example: 'Mike Chen'
+          example: "Mike Chen"
         primaryContactEmail:
           type: string
           format: email
           nullable: true
           description: Primary contact email
-          example: 'mike.chen@wendys.com'
+          example: "mike.chen@wendys.com"
         isActive:
           type: boolean
           default: true
@@ -2588,7 +2588,7 @@ components:
               - fileTransfer
               - agenda
           description: Feature modules enabled for this client
-          example: ['documents', 'mailing', 'tabulation', 'reports', 'fileTransfer', 'agenda']
+          example: ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"]
         createdAt:
           type: string
           format: date-time
@@ -2602,34 +2602,34 @@ components:
         id:
           type: string
           format: uuid
-          example: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab'
+          example: "b1f5062a-09b6-5dc1-b18c-3800c5930eab"
         username:
           type: string
-          example: 'lisa.rodriguez'
+          example: "lisa.rodriguez"
         firstName:
           type: string
-          example: 'Lisa'
+          example: "Lisa"
         lastName:
           type: string
-          example: 'Rodriguez'
+          example: "Rodriguez"
         email:
           type: string
           format: email
-          example: 'lisa.rodriguez@paycom.com'
+          example: "lisa.rodriguez@paycom.com"
         password:
           type: string
           nullable: true
-          description: 'Legacy password field for seed data - not used with NextAuth'
+          description: "Legacy password field for seed data - not used with NextAuth"
         type:
-          $ref: '#/components/schemas/UserType'
-          example: 'ISSUER'
+          $ref: "#/components/schemas/UserType"
+          example: "ISSUER"
         accountId:
           type: string
           format: uuid
           nullable: true
-          example: 'fe3ad07a-80a7-59a0-a253-9083d6d4c02c'
+          example: "fe3ad07a-80a7-59a0-a253-9083d6d4c02c"
         account:
-          $ref: '#/components/schemas/Account'
+          $ref: "#/components/schemas/Account"
         avatar_url:
           type: string
           format: uri
@@ -2642,43 +2642,43 @@ components:
       properties:
         id:
           type: string
-          example: 'wen-annual-meeting-2026'
+          example: "wen-annual-meeting-2026"
         title:
           type: string
-          example: 'Annual Meeting'
+          example: "Annual Meeting"
         cusip:
           type: string
-          example: '95058W100'
+          example: "95058W100"
         ticker:
           type: string
-          example: 'WEN'
+          example: "WEN"
         preFilingDate:
           type: string
           format: date
           nullable: true
-          example: '2025-02-15'
+          example: "2025-02-15"
         filingDate:
           type: string
           format: date
           nullable: true
-          example: '2025-03-01'
+          example: "2025-03-01"
         brokerSearchDate:
           type: string
           format: date
           nullable: true
-          example: '2025-03-15'
+          example: "2025-03-15"
         recordDate:
           type: string
           format: date
-          example: '2025-04-01'
+          example: "2025-04-01"
         mailingDate:
           type: string
           format: date
-          example: '2025-04-15'
+          example: "2025-04-15"
         meetingDate:
           type: string
           format: date
-          example: '2025-05-15'
+          example: "2025-05-15"
         cutoffDate:
           type: string
           format: date
@@ -2690,10 +2690,10 @@ components:
           type: integer
           example: 2025
         status:
-          $ref: '#/components/schemas/MeetingStatus'
+          $ref: "#/components/schemas/MeetingStatus"
         currentPhase:
           type: string
-          example: 'Notice & Access'
+          example: "Notice & Access"
         overallCompletion:
           type: integer
           minimum: 0
@@ -2701,10 +2701,10 @@ components:
           example: 75
         distributionType:
           type: string
-          example: 'Notice & Access'
+          example: "Notice & Access"
         transferAgent:
           type: string
-          example: 'Computershare Trust Company'
+          example: "Computershare Trust Company"
         transferAgentConfirmed:
           type: boolean
           nullable: true
@@ -2746,7 +2746,7 @@ components:
         brokerNonVote:
           type: number
           nullable: true
-          description: 'Total broker non-votes for this meeting'
+          description: "Total broker non-votes for this meeting"
           example: 22480600.00
         mailingStatus:
           type: string
@@ -2763,11 +2763,11 @@ components:
           type: string
           format: date-time
         tabulationDistribution:
-          $ref: '#/components/schemas/TabulationDistribution'
+          $ref: "#/components/schemas/TabulationDistribution"
           nullable: true
           description: Prototype config for automated daily tabulation report delivery
         client:
-          $ref: '#/components/schemas/Clients'
+          $ref: "#/components/schemas/Clients"
           description: The client this meeting belongs to (relationship)
 
     TabulationDistribution:
@@ -2804,20 +2804,20 @@ components:
         id:
           type: string
           format: uuid
-          example: '11111111-2222-3333-4444-555555555555'
+          example: "11111111-2222-3333-4444-555555555555"
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: "01234567-89ab-cdef-0123-456789abcdef"
         name:
           type: string
-          example: 'Notice & Access'
+          example: "Notice & Access"
         orderIndex:
           type: integer
           example: 1
         status:
-          $ref: '#/components/schemas/PhaseStatus'
+          $ref: "#/components/schemas/PhaseStatus"
         keyDates:
           type: object
           nullable: true
@@ -2826,22 +2826,22 @@ components:
               type: string
               format: date
               nullable: true
-              example: '2025-03-01'
+              example: "2025-03-01"
             endDate:
               type: string
               format: date
               nullable: true
-              example: '2025-03-31'
+              example: "2025-03-31"
             dueDate:
               type: string
               format: date
               nullable: true
-              example: '2025-03-25'
+              example: "2025-03-25"
             completionDate:
               type: string
               format: date
               nullable: true
-              example: '2025-03-20'
+              example: "2025-03-20"
         createdAt:
           type: string
           format: date-time
@@ -2855,38 +2855,38 @@ components:
         id:
           type: string
           format: uuid
-          example: '81c351e9-36cd-5528-b5a4-f48b2fe05bd6'
+          example: "81c351e9-36cd-5528-b5a4-f48b2fe05bd6"
         taskId:
           type: string
-          example: 'wen-annual-meeting-2026-P1-1'
+          example: "wen-annual-meeting-2026-P1-1"
         phaseId:
           type: string
           format: uuid
-          example: '11111111-2222-3333-4444-555555555555'
+          example: "11111111-2222-3333-4444-555555555555"
         meetingId:
           type: string
-          example: 'wen-annual-meeting-2026'
+          example: "wen-annual-meeting-2026"
         phaseNumber:
           type: integer
           example: 1
         title:
           type: string
-          example: 'DTCC (SPR) Authorization Status'
+          example: "DTCC (SPR) Authorization Status"
         description:
           type: string
           nullable: true
-          example: 'Check and confirm authorization status with DTCC for shareholder proxy record access.'
+          example: "Check and confirm authorization status with DTCC for shareholder proxy record access."
         type:
           type: string
-          example: 'Authorization'
+          example: "Authorization"
         status:
-          $ref: '#/components/schemas/TaskStatus'
-          example: 'NEEDS_AUTHORIZATION'
+          $ref: "#/components/schemas/TaskStatus"
+          example: "NEEDS_AUTHORIZATION"
         dueDate:
           type: string
           format: date
           nullable: true
-          example: '2025-12-22'
+          example: "2025-12-22"
         owner:
           type: string
           example: "The Wendy's Company"
@@ -2894,7 +2894,7 @@ components:
           type: string
           format: uuid
           nullable: true
-          example: '33333333-4444-5555-6666-777777777777'
+          example: "33333333-4444-5555-6666-777777777777"
         links:
           type: object
           additionalProperties: {}
@@ -2937,7 +2937,7 @@ components:
         fileSize:
           type: integer
         status:
-          $ref: '#/components/schemas/DocumentStatus'
+          $ref: "#/components/schemas/DocumentStatus"
         uploadDate:
           type: string
           format: date-time
@@ -3022,15 +3022,15 @@ components:
             - post-meeting
             - internal
         meeting:
-          $ref: '#/components/schemas/Meeting'
+          $ref: "#/components/schemas/Meeting"
         comments:
           type: array
           items:
-            $ref: '#/components/schemas/Comment'
+            $ref: "#/components/schemas/Comment"
         signatures:
           type: array
           items:
-            $ref: '#/components/schemas/Signature'
+            $ref: "#/components/schemas/Signature"
 
     Position:
       type: object
@@ -3038,24 +3038,24 @@ components:
         id:
           type: string
           format: uuid
-          example: '90953927-6e41-5c55-be8b-a690299746ad'
+          example: "90953927-6e41-5c55-be8b-a690299746ad"
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: "01234567-89ab-cdef-0123-456789abcdef"
         cusip:
           type: string
-          example: '95058W100'
+          example: "95058W100"
         accountType:
           type: string
-          example: 'DTC/CDS'
+          example: "DTC/CDS"
         setKey:
           type: string
-          example: 'WEN12026'
+          example: "WEN12026"
         name:
           type: string
-          example: 'CEDE & CO M C/O DTCC'
+          example: "CEDE & CO M C/O DTCC"
         accountNumber:
           type: string
           nullable: true
@@ -3067,7 +3067,7 @@ components:
         voteStatus:
           type: string
           enum: [Voted, Unvoted]
-          example: 'Unvoted'
+          example: "Unvoted"
         shares:
           type: number
           format: double
@@ -3096,22 +3096,22 @@ components:
         id:
           type: string
           format: uuid
-          example: 'be601464-c593-5d74-b6f6-c14152132103'
+          example: "be601464-c593-5d74-b6f6-c14152132103"
         meetingId:
           type: string
           format: uuid
           x-foreign-key: meeting.id
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: "01234567-89ab-cdef-0123-456789abcdef"
         proposalNumber:
           type: number
           format: double
           example: 1.01
         proposalTitle:
           type: string
-          example: 'Arthur B. Winkleblack'
+          example: "Arthur B. Winkleblack"
         proposalType:
           type: string
-          example: 'Director Election'
+          example: "Director Election"
         proposalSubtype:
           type: string
           nullable: true
@@ -3119,7 +3119,7 @@ components:
         directorName:
           type: string
           nullable: true
-          example: 'Arthur B. Winkleblack'
+          example: "Arthur B. Winkleblack"
         directorTermYears:
           type: integer
           nullable: true
@@ -3139,62 +3139,62 @@ components:
         finalResult:
           type: string
           nullable: true
-          enum: ['PASSED', 'FAILED', 'PENDING']
-          description: 'Final result of the proposal voting'
-          example: 'PASSED'
+          enum: ["PASSED", "FAILED", "PENDING"]
+          description: "Final result of the proposal voting"
+          example: "PASSED"
         totalVotesFor:
           type: number
           nullable: true
-          description: 'Total number of votes in favor'
+          description: "Total number of votes in favor"
           example: 150000000.19
         totalVotesAgainst:
           type: number
           nullable: true
-          description: 'Total number of votes against'
+          description: "Total number of votes against"
           example: 25000000.39
         totalVotesAbstain:
           type: number
           nullable: true
-          description: 'Total number of abstained votes'
+          description: "Total number of abstained votes"
           example: 5000000.21
         totalSharesEligible:
           type: number
           nullable: true
-          description: 'Total number of shares eligible to vote'
+          description: "Total number of shares eligible to vote"
           example: 200000000
         forPercentage:
           type: number
           format: float
           nullable: true
-          description: 'Percentage of votes in favor'
+          description: "Percentage of votes in favor"
           example: 85.7
         againstPercentage:
           type: number
           format: float
           nullable: true
-          description: 'Percentage of votes against'
+          description: "Percentage of votes against"
           example: 12.5
         abstainPercentage:
           type: number
           format: float
           nullable: true
-          description: 'Percentage of abstained votes'
+          description: "Percentage of abstained votes"
           example: 2.5
         participationRate:
           type: number
           format: float
           nullable: true
-          description: 'Overall participation rate'
+          description: "Overall participation rate"
           example: 90.0
         votingCompleted:
           type: boolean
           default: false
-          description: 'Whether voting on this proposal has been completed'
+          description: "Whether voting on this proposal has been completed"
         votingCompletedAt:
           type: string
           format: date-time
           nullable: true
-          description: 'When voting was completed'
+          description: "When voting was completed"
         createdAt:
           type: string
           format: date-time
@@ -3208,24 +3208,24 @@ components:
         id:
           type: string
           format: uuid
-          example: '55555555-6666-7777-8888-999999999999'
+          example: "55555555-6666-7777-8888-999999999999"
         positionId:
           type: string
           format: uuid
           x-foreign-key: position.id
-          example: '44444444-5555-6666-7777-888888888888'
+          example: "44444444-5555-6666-7777-888888888888"
         proposalId:
           type: string
           format: uuid
           x-foreign-key: proposal.id
-          example: '66666666-7777-8888-9999-aaaaaaaaaaaa'
+          example: "66666666-7777-8888-9999-aaaaaaaaaaaa"
         vote:
           type: string
-          example: 'FOR'
+          example: "FOR"
         sharesVoting:
           type: string
           format: int64
-          example: '1000000'
+          example: "1000000"
         createdAt:
           type: string
           format: date-time
@@ -3252,9 +3252,9 @@ components:
           type: string
           format: date-time
         document:
-          $ref: '#/components/schemas/Document'
+          $ref: "#/components/schemas/Document"
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     Signature:
       type: object
@@ -3290,7 +3290,7 @@ components:
           type: string
           format: date-time
         document:
-          $ref: '#/components/schemas/Document'
+          $ref: "#/components/schemas/Document"
 
     DocumentHistory:
       type: object
@@ -3328,9 +3328,9 @@ components:
           type: string
           format: date-time
         document:
-          $ref: '#/components/schemas/Document'
+          $ref: "#/components/schemas/Document"
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     # Request/Response Models
     CreateAccountRequest:
@@ -3495,7 +3495,7 @@ components:
           type: string
           minLength: 8
         type:
-          $ref: '#/components/schemas/UserType'
+          $ref: "#/components/schemas/UserType"
         accountId:
           type: string
           format: uuid
@@ -3523,7 +3523,7 @@ components:
           type: string
           minLength: 8
         type:
-          $ref: '#/components/schemas/UserType'
+          $ref: "#/components/schemas/UserType"
 
     UpdateUserRequest:
       type: object
@@ -3540,7 +3540,7 @@ components:
           type: string
           format: email
         type:
-          $ref: '#/components/schemas/UserType'
+          $ref: "#/components/schemas/UserType"
         accountId:
           type: string
           format: uuid
@@ -3663,7 +3663,7 @@ components:
         meetingType:
           type: string
         status:
-          $ref: '#/components/schemas/MeetingStatus'
+          $ref: "#/components/schemas/MeetingStatus"
         currentPhase:
           type: string
         overallCompletion:
@@ -3705,14 +3705,14 @@ components:
         brokerNonVote:
           type: number
           nullable: true
-          description: 'Total broker non-votes for this meeting'
+          description: "Total broker non-votes for this meeting"
           example: 22480600.00
         mailingStatus:
           type: string
           nullable: true
           description: Current status of the mailing process
         tabulationDistribution:
-          $ref: '#/components/schemas/TabulationDistribution'
+          $ref: "#/components/schemas/TabulationDistribution"
           nullable: true
           description: Prototype config for automated daily tabulation report delivery
 
@@ -3751,7 +3751,7 @@ components:
           type: integer
           minimum: 1
         status:
-          $ref: '#/components/schemas/PhaseStatus'
+          $ref: "#/components/schemas/PhaseStatus"
         keyDates:
           type: object
           properties:
@@ -3810,7 +3810,7 @@ components:
         type:
           type: string
         status:
-          $ref: '#/components/schemas/TaskStatus'
+          $ref: "#/components/schemas/TaskStatus"
         phaseNumber:
           type: integer
           minimum: 1
@@ -3867,7 +3867,7 @@ components:
         description:
           type: string
         status:
-          $ref: '#/components/schemas/DocumentStatus'
+          $ref: "#/components/schemas/DocumentStatus"
 
     CreatePositionRequest:
       type: object
@@ -4021,21 +4021,21 @@ components:
         id:
           type: string
           format: uuid
-          example: '389e5e4b-10e5-5eed-8047-3da0e36f051b'
+          example: "389e5e4b-10e5-5eed-8047-3da0e36f051b"
         title:
           type: string
-          example: 'Your Event Has Been Created'
+          example: "Your Event Has Been Created"
         message:
           type: string
-          example: 'Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.'
+          example: "Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started."
         type:
           type: string
           enum: [info, warning, error, success]
-          example: 'success'
+          example: "success"
         priority:
           type: string
           enum: [low, medium, high, critical]
-          example: 'high'
+          example: "high"
         read:
           type: boolean
           default: false
@@ -4043,12 +4043,12 @@ components:
         userId:
           type: string
           format: uuid
-          example: 'b1f5062a-09b6-5dc1-b18c-3800c5930eab'
+          example: "b1f5062a-09b6-5dc1-b18c-3800c5930eab"
         meetingId:
           type: string
           format: uuid
           nullable: true
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: "01234567-89ab-cdef-0123-456789abcdef"
         taskId:
           type: string
           format: uuid
@@ -4057,11 +4057,11 @@ components:
         actionUrl:
           type: string
           nullable: true
-          example: '/WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201'
+          example: "/WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201"
         createdAt:
           type: string
           format: date-time
-          example: '2025-10-01T21:48:48.724Z'
+          example: "2025-10-01T21:48:48.724Z"
         readAt:
           type: string
           format: date-time
@@ -4088,7 +4088,7 @@ components:
         title:
           type: string
           description: Short notification title
-          example: 'Daily Tabulation Report Available'
+          example: "Daily Tabulation Report Available"
         message:
           type: string
           description: Full notification message body
@@ -4143,7 +4143,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/TabulationDistributeMeetingResult'
+            $ref: "#/components/schemas/TabulationDistributeMeetingResult"
 
     Mailing:
       type: object
@@ -4153,10 +4153,10 @@ components:
           format: uuid
         meetingId:
           type: string
-          example: '01234567-89ab-cdef-0123-456789abcdef'
+          example: "01234567-89ab-cdef-0123-456789abcdef"
         ticker:
           type: string
-          example: 'PAYC'
+          example: "PAYC"
         totalAccounts:
           type: integer
           description: Total number of accounts
@@ -4215,7 +4215,7 @@ components:
           type: string
         registrantType:
           type: string
-          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+          enum: ["Shareholder", "Guest", "Proxy", "Other"]
         firstName:
           type: string
         lastName:
@@ -4323,7 +4323,7 @@ components:
       properties:
         registrantType:
           type: string
-          enum: ['Shareholder', 'Guest', 'Proxy', 'Other']
+          enum: ["Shareholder", "Guest", "Proxy", "Other"]
         firstName:
           type: string
         lastName:
@@ -4500,25 +4500,25 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
 
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
 
     Forbidden:
       description: Forbidden
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
 
     NotFound:
       description: Not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"

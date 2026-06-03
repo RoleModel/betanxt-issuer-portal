@@ -1,54 +1,54 @@
-import * as React from 'react'
+import type { SpeedDialProps } from "@mui/material/SpeedDial";
 
 import {
   Close as CloseIcon,
   ContactSupportOutlined,
   SmartToyOutlined,
   TopicOutlined,
-} from '@mui/icons-material'
-import { Typography, styled } from '@mui/material'
-import Box from '@mui/material/Box'
-import SpeedDial from '@mui/material/SpeedDial'
-import type { SpeedDialProps } from '@mui/material/SpeedDial'
-import SpeedDialAction from '@mui/material/SpeedDialAction'
-import SpeedDialIcon from '@mui/material/SpeedDialIcon'
+} from "@mui/icons-material";
+import { Typography, styled } from "@mui/material";
+import Box from "@mui/material/Box";
+import SpeedDial from "@mui/material/SpeedDial";
+import SpeedDialAction from "@mui/material/SpeedDialAction";
+import SpeedDialIcon from "@mui/material/SpeedDialIcon";
+import * as React from "react";
 
 interface IssuerSpeedDialProps {
-  ariaLabel?: string
-  icon?: React.ReactElement
-  closeIcon?: React.ReactElement
-  tooltipTitle?: string
-  placement?: 'top' | 'bottom' | 'left' | 'right'
-  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
-  onGlossaryClick?: () => void
-  onContactsClick?: () => void
-  onAssistantClick?: () => void
+  ariaLabel?: string;
+  icon?: React.ReactElement;
+  closeIcon?: React.ReactElement;
+  tooltipTitle?: string;
+  placement?: "top" | "bottom" | "left" | "right";
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onGlossaryClick?: () => void;
+  onContactsClick?: () => void;
+  onAssistantClick?: () => void;
 }
 
 export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => ({
-  position: 'absolute',
+  position: "absolute",
   bottom: 0,
-  right: '24px',
+  right: "24px",
   zIndex: 2500,
-  alignItems: 'end',
-  '& .MuiSpeedDial-actions': {
+  alignItems: "end",
+  "& .MuiSpeedDial-actions": {
     marginLeft: theme.spacing(6.25),
-    '& .MuiButtonBase-root': {
+    "& .MuiButtonBase-root": {
       color: theme.vars.palette.primary.contrastText,
-      width: 'fit-content',
-      alignSelf: 'flex-end',
+      width: "fit-content",
+      alignSelf: "flex-end",
       padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
       borderRadius: 20,
       marginRight: 0,
-      '& .MuiBox-root': {
-        alignItems: 'center',
+      "& .MuiBox-root": {
+        alignItems: "center",
       },
     },
   },
-}))
+}));
 
 export default function IssuerSpeedDial({
-  ariaLabel = 'Issuer Support Tools',
+  ariaLabel = "Issuer Support Tools",
   icon = <ContactSupportOutlined />,
   closeIcon = <CloseIcon />,
   tooltipTitle: _tooltipTitle,
@@ -68,7 +68,7 @@ export default function IssuerSpeedDial({
           </Typography>
         </Box>
       ),
-      name: 'AI Assistant',
+      name: "AI Assistant",
     },
     {
       icon: (
@@ -79,7 +79,7 @@ export default function IssuerSpeedDial({
           </Typography>
         </Box>
       ),
-      name: 'Glossary of Terms',
+      name: "Glossary of Terms",
     },
     {
       icon: (
@@ -90,37 +90,37 @@ export default function IssuerSpeedDial({
           </Typography>
         </Box>
       ),
-      name: 'Contacts',
+      name: "Contacts",
     },
-  ]
+  ];
 
   const handleActionClick = (actionName: string) => {
     switch (actionName) {
-      case 'AI Assistant':
-        onAssistantClick?.()
-        break
-      case 'Glossary of Terms':
-        onGlossaryClick?.()
-        break
-      case 'Contacts':
-        onContactsClick?.()
-        break
+      case "AI Assistant":
+        onAssistantClick?.();
+        break;
+      case "Glossary of Terms":
+        onGlossaryClick?.();
+        break;
+      case "Contacts":
+        onContactsClick?.();
+        break;
       default:
-        break
+        break;
     }
-  }
+  };
 
   return (
     <Box
       sx={(theme) => ({
-        position: 'fixed',
+        position: "fixed",
         bottom: theme.spacing(5.5),
         right: theme.spacing(2),
         zIndex: 500,
-        transform: 'translateZ(0px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
+        transform: "translateZ(0px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
       })}
     >
       <StyledSpeedDial
@@ -131,8 +131,8 @@ export default function IssuerSpeedDial({
           bottom: theme.spacing(3),
           right: 0,
           gap: 1,
-          '& .MuiSpeedDial-actions': {
-            alignItems: 'flex-end !important',
+          "& .MuiSpeedDial-actions": {
+            alignItems: "flex-end !important",
           },
         })}
       >
@@ -143,15 +143,15 @@ export default function IssuerSpeedDial({
             onClick={() => handleActionClick(action.name)}
             slotProps={{
               fab: {
-                size: 'medium',
-                variant: 'extended',
-                color: 'primary',
-                'aria-label': action.name,
+                size: "medium",
+                variant: "extended",
+                color: "primary",
+                "aria-label": action.name,
                 sx: {
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '&:hover': {
-                    backgroundColor: 'primary.dark',
+                  backgroundColor: "primary.main",
+                  color: "primary.contrastText",
+                  "&:hover": {
+                    backgroundColor: "primary.dark",
                   },
                 },
                 children: <Typography variant="body3">{action.name}</Typography>,
@@ -161,5 +161,5 @@ export default function IssuerSpeedDial({
         ))}
       </StyledSpeedDial>
     </Box>
-  )
+  );
 }

@@ -1,52 +1,51 @@
-import { useState } from 'react'
+import { useState } from "react";
 
 interface ResetStats {
-  meetings: number
-  phases: number
-  tasks: number
-  signatures: number
-  documents: number
-  dsmConfigs: number
+  meetings: number;
+  phases: number;
+  tasks: number;
+  signatures: number;
+  documents: number;
+  dsmConfigs: number;
 }
 
 interface ResetResponse {
-  success: boolean
-  message?: string
-  error?: string
-  stats?: ResetStats
-  timestamp?: string
+  success: boolean;
+  message?: string;
+  error?: string;
+  stats?: ResetStats;
+  timestamp?: string;
 }
 
 export function useResetDemoData() {
-  const [isResetting, setIsResetting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isResetting, setIsResetting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const resetDemoData = async (): Promise<void> => {
-    setIsResetting(true)
-    setError(null)
+    setIsResetting(true);
+    setError(null);
 
     try {
-      const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
       const response = await fetch(`${apiBaseUrl}/admin/reset-demo-data`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
-      const data: ResetResponse = await response.json()
+      const data: ResetResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error ?? 'Reset failed')
+        throw new Error(data.error ?? "Reset failed");
       }
 
       // Reload page to reflect changes
-      window.location.reload()
+      window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Reset failed')
-      setIsResetting(false)
+      setError(err instanceof Error ? err.message : "Reset failed");
+      setIsResetting(false);
     }
-  }
+  };
 
-  return { resetDemoData, isResetting, error }
+  return { resetDemoData, isResetting, error };
 }

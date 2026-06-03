@@ -1,30 +1,24 @@
-import { Column, Link, Row, Section, Text } from '@react-email/components'
-import React from 'react'
+import { Column, Link, Row, Section, Text } from "@react-email/components";
+import React from "react";
 
-import { COLORS, FONTS } from '../styles'
+import { COLORS, FONTS } from "../styles";
 
 interface DocumentCardProps {
-  uploaderName: string
-  uploaderAvatarUrl?: string
-  documentName: string
-  documentDescription: string
-  uploadDate: string
-  viewDocumentUrl: string
+  uploaderName: string;
+  uploaderAvatarUrl?: string;
+  documentName: string;
+  documentDescription: string;
+  uploadDate: string;
+  viewDocumentUrl: string;
 }
 
-function UploaderAvatar({
-  name,
-  avatarUrl,
-}: {
-  name: string
-  avatarUrl?: string
-}) {
+function UploaderAvatar({ name, avatarUrl }: { name: string; avatarUrl?: string }) {
   const initials = name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .slice(0, 2)
-    .toUpperCase()
+    .toUpperCase();
 
   if (avatarUrl) {
     return (
@@ -35,34 +29,34 @@ function UploaderAvatar({
         width="32"
         height="32"
         style={{
-          borderRadius: '50%',
-          display: 'block',
+          borderRadius: "50%",
+          display: "block",
         }}
       />
-    )
+    );
   }
 
   return (
     <div
       style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
+        width: "32px",
+        height: "32px",
+        borderRadius: "50%",
         backgroundColor: COLORS.navyLight,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         color: COLORS.white,
-        fontSize: '12px',
-        fontWeight: '600',
+        fontSize: "12px",
+        fontWeight: "600",
         fontFamily: FONTS.sans,
-        lineHeight: '32px',
-        textAlign: 'center',
+        lineHeight: "32px",
+        textAlign: "center",
       }}
     >
       {initials}
     </div>
-  )
+  );
 }
 
 export function DocumentCard({
@@ -79,36 +73,36 @@ export function DocumentCard({
         backgroundColor: COLORS.white,
         border: `1px solid ${COLORS.border}`,
         borderLeft: `4px solid ${COLORS.accentGreen}`,
-        borderRadius: '6px',
-        padding: '16px 20px',
-        margin: '0 0 24px',
+        borderRadius: "6px",
+        padding: "16px 20px",
+        margin: "0 0 24px",
       }}
     >
-      <Row style={{ marginBottom: '12px' }}>
-        <Column style={{ width: '40px', verticalAlign: 'top' }}>
+      <Row style={{ marginBottom: "12px" }}>
+        <Column style={{ width: "40px", verticalAlign: "top" }}>
           <UploaderAvatar name={uploaderName} avatarUrl={uploaderAvatarUrl} />
         </Column>
-        <Column style={{ verticalAlign: 'top', paddingLeft: '10px' }}>
+        <Column style={{ verticalAlign: "top", paddingLeft: "10px" }}>
           <Text
             style={{
               color: COLORS.muted,
               fontFamily: FONTS.sans,
-              fontSize: '12px',
+              fontSize: "12px",
               margin: 0,
-              lineHeight: '1.4',
+              lineHeight: "1.4",
             }}
           >
             {uploaderName}
           </Text>
         </Column>
-        <Column align="right" style={{ verticalAlign: 'top' }}>
+        <Column align="right" style={{ verticalAlign: "top" }}>
           <Text
             style={{
               color: COLORS.muted,
               fontFamily: FONTS.sans,
-              fontSize: '12px',
+              fontSize: "12px",
               margin: 0,
-              lineHeight: '1.4',
+              lineHeight: "1.4",
             }}
           >
             {uploadDate}
@@ -119,10 +113,10 @@ export function DocumentCard({
         style={{
           color: COLORS.text,
           fontFamily: FONTS.sans,
-          fontSize: '15px',
-          fontWeight: '600',
-          margin: '0 0 6px',
-          lineHeight: '1.3',
+          fontSize: "15px",
+          fontWeight: "600",
+          margin: "0 0 6px",
+          lineHeight: "1.3",
         }}
       >
         {documentName}
@@ -131,9 +125,9 @@ export function DocumentCard({
         style={{
           color: COLORS.textLight,
           fontFamily: FONTS.sans,
-          fontSize: '14px',
-          margin: '0 0 14px',
-          lineHeight: '1.5',
+          fontSize: "14px",
+          margin: "0 0 14px",
+          lineHeight: "1.5",
         }}
       >
         {documentDescription}
@@ -143,13 +137,13 @@ export function DocumentCard({
         style={{
           color: COLORS.link,
           fontFamily: FONTS.sans,
-          fontSize: '14px',
-          fontWeight: '500',
-          textDecoration: 'none',
+          fontSize: "14px",
+          fontWeight: "500",
+          textDecoration: "none",
         }}
       >
         View Document →
       </Link>
     </Section>
-  )
+  );
 }

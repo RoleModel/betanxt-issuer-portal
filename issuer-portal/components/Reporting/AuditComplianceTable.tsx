@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import React from 'react'
+"use client";
 
 import {
   Button,
@@ -15,34 +12,36 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import Link from "next/link";
+import React from "react";
 
-import SkeletonTable from '@/components/ui/SkeletonTable'
+import SkeletonTable from "@/components/ui/SkeletonTable";
 
 interface AuditComplianceData {
-  event: string
-  meetingId?: string
-  materialsSent: string
-  inspectorCertified: string
-  universalProxy: string
-  finalCertified: string
+  event: string;
+  meetingId?: string;
+  materialsSent: string;
+  inspectorCertified: string;
+  universalProxy: string;
+  finalCertified: string;
 }
 
 interface AuditComplianceTableProps {
-  data: AuditComplianceData[]
-  loading?: boolean
-  title?: string
-  clientTicker?: string
+  data: AuditComplianceData[];
+  loading?: boolean;
+  title?: string;
+  clientTicker?: string;
 }
 
 const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
   data,
   loading = false,
-  title = 'Audit & Compliance',
-  clientTicker = '',
+  title = "Audit & Compliance",
+  clientTicker = "",
 }) => {
   if (loading) {
-    return <SkeletonTable rows={4} columns={5} />
+    return <SkeletonTable rows={4} columns={5} />;
   }
 
   if (!data || data.length === 0) {
@@ -55,7 +54,7 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
           </Typography>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -103,7 +102,7 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
         </TableContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default AuditComplianceTable
+export default AuditComplianceTable;

@@ -1,8 +1,4 @@
-'use client'
-
-import { BNTypographyPair } from '@rolemodel/betanxt-design-system/components/BNTypographyPair'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+"use client";
 
 import {
   Button,
@@ -13,94 +9,92 @@ import {
   Container,
   Grid,
   TextField,
-} from '@mui/material'
+} from "@mui/material";
+import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
-import ProfilePhotoModal from '@/components/Profile/ProfilePhotoModal'
-import EditAvatarButton from '@/components/ui/EditAvatarButton'
+import ProfilePhotoModal from "@/components/Profile/ProfilePhotoModal";
+import EditAvatarButton from "@/components/ui/EditAvatarButton";
 
 const ProfilePage = () => {
-  const { data: session } = useSession()
-  const [isEditing, setIsEditing] = useState(false)
-  const [photoModalOpen, setPhotoModalOpen] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const { data: session } = useSession();
+  const [isEditing, setIsEditing] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: session?.user?.email ?? '',
-    password: '',
-  })
+    firstName: "",
+    lastName: "",
+    email: session?.user?.email ?? "",
+    password: "",
+  });
 
   // Update form data and avatar when session loads
   useEffect(() => {
     if (session?.user) {
-      const nameParts = session.user.name?.split(' ') || []
+      const nameParts = session.user.name?.split(" ") || [];
       setFormData({
-        firstName: nameParts[0] ?? '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email ?? '',
-        password: '',
-      })
+        firstName: nameParts[0] ?? "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        email: session.user.email ?? "",
+        password: "",
+      });
       // Only update avatar URL from session if we don't have one locally,
       // or if the session image is different from our current avatar URL
       // Don't overwrite a valid avatar URL with null from session
-      const sessionImage = session.user.image || null
+      const sessionImage = session.user.image || null;
       setAvatarUrl((prevAvatarUrl) => {
         // If we have no avatar URL, use whatever the session has
         if (prevAvatarUrl === null) {
-          return sessionImage
+          return sessionImage;
         }
         // If session has a valid image URL and it's different, use it
         if (sessionImage && prevAvatarUrl !== sessionImage) {
-          return sessionImage
+          return sessionImage;
         }
         // Don't overwrite valid avatar URL with null session image
-        return prevAvatarUrl
-      })
+        return prevAvatarUrl;
+      });
     }
-  }, [session])
+  }, [session]);
 
-  const handleInputChange =
-    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: event.target.value }))
-    }
+  const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
+  };
 
   const handleToggleEdit = () => {
     if (isEditing) {
       // Save logic would go here - in a real app this would call an API
       // For now, just toggle back to view mode
     }
-    setIsEditing(!isEditing)
-  }
+    setIsEditing(!isEditing);
+  };
 
   const handleCancelEdit = () => {
     // Reset form data to session values
     if (session?.user) {
-      const nameParts = session.user.name?.split(' ') || []
+      const nameParts = session.user.name?.split(" ") || [];
       setFormData({
-        firstName: nameParts[0] ?? '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        email: session.user.email ?? '',
-        password: '',
-      })
+        firstName: nameParts[0] ?? "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        email: session.user.email ?? "",
+        password: "",
+      });
     }
-    setIsEditing(false)
-  }
+    setIsEditing(false);
+  };
 
   const handlePhotoEdit = () => {
-    setPhotoModalOpen(true)
-  }
+    setPhotoModalOpen(true);
+  };
 
   const handlePhotoUpdate = (photoUrl: string | null) => {
     // Update local state immediately for instant UI feedback
-    setAvatarUrl(photoUrl)
+    setAvatarUrl(photoUrl);
     // The session will be updated by the modal as well
-  }
+  };
   return (
-    <Container
-      maxWidth="md"
-      className="profile-container"
-      sx={{ mt: 4, mb: 4, flexGrow: 1 }}
-    >
+    <Container maxWidth="md" className="profile-container" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
       <Card>
         <CardHeader
           title={`${formData.firstName} ${formData.lastName}`}
@@ -123,20 +117,20 @@ const ProfilePage = () => {
               {!isEditing ? (
                 <BNTypographyPair
                   primary={{
-                    text: 'First Name',
-                    variant: 'caption',
-                    color: 'text.secondary',
+                    text: "First Name",
+                    variant: "caption",
+                    color: "text.secondary",
                   }}
                   secondary={{
                     text: formData.firstName,
-                    variant: 'body2',
+                    variant: "body2",
                   }}
                 />
               ) : (
                 <TextField
                   label="First Name"
                   value={formData.firstName}
-                  onChange={handleInputChange('firstName')}
+                  onChange={handleInputChange("firstName")}
                   fullWidth
                   margin="dense"
                 />
@@ -146,20 +140,20 @@ const ProfilePage = () => {
               {!isEditing ? (
                 <BNTypographyPair
                   primary={{
-                    text: 'Last Name',
-                    variant: 'caption',
-                    color: 'text.secondary',
+                    text: "Last Name",
+                    variant: "caption",
+                    color: "text.secondary",
                   }}
                   secondary={{
                     text: formData.lastName,
-                    variant: 'body2',
+                    variant: "body2",
                   }}
                 />
               ) : (
                 <TextField
                   label="Last Name"
                   value={formData.lastName}
-                  onChange={handleInputChange('lastName')}
+                  onChange={handleInputChange("lastName")}
                   fullWidth
                   type="text"
                   margin="dense"
@@ -171,20 +165,20 @@ const ProfilePage = () => {
               {!isEditing ? (
                 <BNTypographyPair
                   primary={{
-                    text: 'Email Address',
-                    variant: 'caption',
-                    color: 'text.secondary',
+                    text: "Email Address",
+                    variant: "caption",
+                    color: "text.secondary",
                   }}
                   secondary={{
                     text: formData.email,
-                    variant: 'body2',
+                    variant: "body2",
                   }}
                 />
               ) : (
                 <TextField
                   label="Email Address"
                   value={formData.email}
-                  onChange={handleInputChange('email')}
+                  onChange={handleInputChange("email")}
                   fullWidth
                   autoComplete="email"
                   type="email"
@@ -197,26 +191,26 @@ const ProfilePage = () => {
               {!isEditing ? (
                 <BNTypographyPair
                   primary={{
-                    text: 'Password',
-                    variant: 'caption',
-                    color: 'text.secondary',
+                    text: "Password",
+                    variant: "caption",
+                    color: "text.secondary",
                   }}
                   secondary={{
-                    text: '***********',
-                    variant: 'body2',
+                    text: "***********",
+                    variant: "body2",
                   }}
                 />
               ) : (
                 <TextField
                   label="Password"
                   value={formData.password}
-                  onChange={handleInputChange('password')}
+                  onChange={handleInputChange("password")}
                   fullWidth
                   type="password"
                   autoComplete="new-password"
                   margin="dense"
                   disabled={!isEditing}
-                  placeholder={isEditing ? 'Enter new password' : '••••••••'}
+                  placeholder={isEditing ? "Enter new password" : "••••••••"}
                 />
               )}
             </Grid>
@@ -226,16 +220,16 @@ const ProfilePage = () => {
           <Button
             variant="outlined"
             onClick={handleCancelEdit}
-            sx={{ display: isEditing ? 'inline-flex' : 'none' }}
+            sx={{ display: isEditing ? "inline-flex" : "none" }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
-            color={isEditing ? 'success' : 'primary'}
+            color={isEditing ? "success" : "primary"}
             onClick={handleToggleEdit}
           >
-            {isEditing ? 'Save Changes' : 'Edit Profile'}
+            {isEditing ? "Save Changes" : "Edit Profile"}
           </Button>
         </CardActions>
       </Card>
@@ -250,7 +244,7 @@ const ProfilePage = () => {
         onPhotoUpdate={handlePhotoUpdate}
       />
     </Container>
-  )
-}
+  );
+};
 
-export default ProfilePage
+export default ProfilePage;

@@ -1,97 +1,97 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-test.describe('Reporting Data Verification', () => {
+test.describe("Reporting Data Verification", () => {
   test.beforeEach(async () => {
     // Mock auth is enabled, so we can go directly to the pages
     // The auth context should be handled by the mock provider
-  })
+  });
 
-  test('should load reporting page with CSV data', async ({ page }) => {
+  test("should load reporting page with CSV data", async ({ page }) => {
     // Navigate to Wendy's reporting page
-    await page.goto('http://localhost:3000/WEN/reporting')
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for reporting page to load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Check for key reporting sections
-    await expect(page.locator('text=Event Summary')).toBeVisible()
-    await expect(page.locator('text=Year Over Year')).toBeVisible()
+    await expect(page.locator("text=Event Summary")).toBeVisible();
+    await expect(page.locator("text=Year Over Year")).toBeVisible();
 
     // Verify that data is loaded (not just empty placeholders)
     // Check for meeting data
-    const eventRows = page.locator('table').first().locator('tbody tr')
-    const eventCount = await eventRows.count()
-    expect(eventCount).toBeGreaterThan(0)
+    const eventRows = page.locator("table").first().locator("tbody tr");
+    const eventCount = await eventRows.count();
+    expect(eventCount).toBeGreaterThan(0);
 
     // Check for actual meeting data from CSV
-    await expect(page.locator('text=Annual Meeting 2025')).toBeVisible()
+    await expect(page.locator("text=Annual Meeting 2025")).toBeVisible();
 
     // Check participation data exists
-    await expect(page.locator('text=%').first()).toBeVisible()
-  })
+    await expect(page.locator("text=%").first()).toBeVisible();
+  });
 
-  test('should show director performance data', async ({ page }) => {
-    await page.goto('http://localhost:3000/WEN/reporting')
+  test("should show director performance data", async ({ page }) => {
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Look for director names from CSV data
-    const directorNames = ['Arthur B. Winkleblack', 'Peter W. May', 'Wendy C. Arlin']
+    const directorNames = ["Arthur B. Winkleblack", "Peter W. May", "Wendy C. Arlin"];
 
     // Check if at least one director is visible
-    let foundDirector = false
+    let foundDirector = false;
     for (const name of directorNames) {
       const isVisible = await page
         .locator(`text=${name}`)
         .isVisible()
-        .catch(() => false)
+        .catch(() => false);
       if (isVisible) {
-        foundDirector = true
-        break
+        foundDirector = true;
+        break;
       }
     }
 
     // If directors aren't immediately visible, they might be in a chart or different section
     if (!foundDirector) {
       // Check for director election proposals in the data
-      const proposalSection = page.locator('text=Director Election')
+      const proposalSection = page.locator("text=Director Election");
       if (await proposalSection.isVisible().catch(() => false)) {
-        foundDirector = true
+        foundDirector = true;
       }
     }
 
-    expect(foundDirector).toBeTruthy()
-  })
+    expect(foundDirector).toBeTruthy();
+  });
 
-  test('should display vote statistics', async ({ page }) => {
-    await page.goto('http://localhost:3000/WEN/reporting')
+  test("should display vote statistics", async ({ page }) => {
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Check for vote-related metrics
     const metricsToCheck = [
-      'Passed', // Proposal outcomes
-      'Quorum', // Quorum status
-      'Participation', // Participation rate
-    ]
+      "Passed", // Proposal outcomes
+      "Quorum", // Quorum status
+      "Participation", // Participation rate
+    ];
 
     for (const metric of metricsToCheck) {
-      const metricElement = page.locator(`text=/${metric}/i`).first()
-      await expect(metricElement).toBeVisible({ timeout: 10000 })
+      const metricElement = page.locator(`text=/${metric}/i`).first();
+      await expect(metricElement).toBeVisible({ timeout: 10000 });
     }
-  })
+  });
 
-  test('should show year-over-year data for completed meetings', async ({ page }) => {
-    await page.goto('http://localhost:3000/WEN/reporting')
+  test("should show year-over-year data for completed meetings", async ({ page }) => {
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Check for year indicators
-    const years = ['2025', '2024', '2023', '2022']
-    let foundYear = false
+    const years = ["2025", "2024", "2023", "2022"];
+    let foundYear = false;
 
     for (const year of years) {
       if (
@@ -100,35 +100,35 @@ test.describe('Reporting Data Verification', () => {
           .isVisible()
           .catch(() => false)
       ) {
-        foundYear = true
-        break
+        foundYear = true;
+        break;
       }
     }
 
-    expect(foundYear).toBeTruthy()
-  })
+    expect(foundYear).toBeTruthy();
+  });
 
-  test('should load proposal performance data', async ({ page }) => {
-    await page.goto('http://localhost:3000/WEN/reporting')
+  test("should load proposal performance data", async ({ page }) => {
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Check for proposal types
-    const proposalTypes = ['Director Election', 'Say on Pay', 'Auditor']
+    const proposalTypes = ["Director Election", "Say on Pay", "Auditor"];
 
-    let foundProposalType = false
+    let foundProposalType = false;
     for (const type of proposalTypes) {
-      const typeElement = page.locator(`text=/${type}/i`).first()
+      const typeElement = page.locator(`text=/${type}/i`).first();
       if (await typeElement.isVisible().catch(() => false)) {
-        foundProposalType = true
-        break
+        foundProposalType = true;
+        break;
       }
     }
 
     // Alternative: Check for proposal-related headers
     if (!foundProposalType) {
-      const proposalHeaders = ['Proposal', 'Support', 'Outcome']
+      const proposalHeaders = ["Proposal", "Support", "Outcome"];
       for (const header of proposalHeaders) {
         if (
           await page
@@ -136,30 +136,30 @@ test.describe('Reporting Data Verification', () => {
             .isVisible()
             .catch(() => false)
         ) {
-          foundProposalType = true
-          break
+          foundProposalType = true;
+          break;
         }
       }
     }
 
-    expect(foundProposalType).toBeTruthy()
-  })
+    expect(foundProposalType).toBeTruthy();
+  });
 
-  test('should show actual vote counts from CSV data', async ({ page }) => {
-    await page.goto('http://localhost:3000/WEN/reporting')
+  test("should show actual vote counts from CSV data", async ({ page }) => {
+    await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector('text=Reporting', { timeout: 15000 })
+    await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Look for large vote numbers that would indicate real data
     // Wendy's has millions of shares, so we should see large numbers
-    const pageContent = await page.content()
+    const pageContent = await page.content();
 
     // Check for numbers in millions (CSV has values like 146,659,348)
     const hasLargeNumbers =
       /\d{1,3}(,\d{3})+/.test(pageContent) || // Formatted numbers
-      /\d{6,}/.test(pageContent) // Unformatted large numbers
+      /\d{6,}/.test(pageContent); // Unformatted large numbers
 
-    expect(hasLargeNumbers).toBeTruthy()
-  })
-})
+    expect(hasLargeNumbers).toBeTruthy();
+  });
+});

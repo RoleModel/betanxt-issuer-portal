@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import SharesVotedChart from '@/components/Meeting/SharesVotedChart'
+import type { VotingSummary } from "@/types/phases";
 
-import type { VotingSummary } from '@/types/phases'
+import SharesVotedChart from "@/components/Meeting/SharesVotedChart";
 
 interface SharesVotedCardProps {
-  meetingId: string
-  loading?: boolean
-  votingSummaryOverride?: VotingSummary | null
+  meetingId: string;
+  loading?: boolean;
+  votingSummaryOverride?: VotingSummary | null;
 }
 
 export default function SharesVotedCard({
@@ -21,5 +21,5 @@ export default function SharesVotedCard({
       loading={loading}
       votingSummaryOverride={votingSummaryOverride}
     />
-  )
+  );
 }

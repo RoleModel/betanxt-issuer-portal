@@ -16,48 +16,42 @@
  * @export
  */
 export const TaskStatus = {
-  Incomplete: 'INCOMPLETE',
-  Complete: 'COMPLETE',
-  Cancelled: 'CANCELLED',
-  NeedsAuthorization: 'NEEDS_AUTHORIZATION',
-  Authorized: 'AUTHORIZED',
-  PendingAuthorization: 'PENDING_AUTHORIZATION',
-  WaitingForFormReturn: 'WAITING_FOR_FORM_RETURN',
-  AuthorizationNeeded: 'AUTHORIZATION_NEEDED',
-  SubmittedAwaitingRecordDate: 'SUBMITTED_AWAITING_RECORD_DATE',
-  RequestFormToFollow: 'REQUEST_FORM_TO_FOLLOW',
-} as const
-export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus]
+  Incomplete: "INCOMPLETE",
+  Complete: "COMPLETE",
+  Cancelled: "CANCELLED",
+  NeedsAuthorization: "NEEDS_AUTHORIZATION",
+  Authorized: "AUTHORIZED",
+  PendingAuthorization: "PENDING_AUTHORIZATION",
+  WaitingForFormReturn: "WAITING_FOR_FORM_RETURN",
+  AuthorizationNeeded: "AUTHORIZATION_NEEDED",
+  SubmittedAwaitingRecordDate: "SUBMITTED_AWAITING_RECORD_DATE",
+  RequestFormToFollow: "REQUEST_FORM_TO_FOLLOW",
+} as const;
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 export function instanceOfTaskStatus(value: any): boolean {
   for (const key in TaskStatus) {
     if (Object.prototype.hasOwnProperty.call(TaskStatus, key)) {
       if (TaskStatus[key as keyof typeof TaskStatus] === value) {
-        return true
+        return true;
       }
     }
   }
-  return false
+  return false;
 }
 
 export function TaskStatusFromJSON(json: any): TaskStatus {
-  return TaskStatusFromJSONTyped(json, false)
+  return TaskStatusFromJSONTyped(json, false);
 }
 
-export function TaskStatusFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): TaskStatus {
-  return json as TaskStatus
+export function TaskStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): TaskStatus {
+  return json as TaskStatus;
 }
 
 export function TaskStatusToJSON(value?: TaskStatus | null): any {
-  return value as any
+  return value as any;
 }
 
-export function TaskStatusToJSONTyped(
-  value: any,
-  ignoreDiscriminator: boolean
-): TaskStatus {
-  return value as TaskStatus
+export function TaskStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): TaskStatus {
+  return value as TaskStatus;
 }

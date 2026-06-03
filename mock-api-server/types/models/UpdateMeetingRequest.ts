@@ -1,3 +1,5 @@
+import type { MeetingStatus } from "./MeetingStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { MeetingStatus } from './MeetingStatus'
+import { mapValues } from "../runtime";
 import {
   MeetingStatusFromJSON,
   MeetingStatusFromJSONTyped,
   MeetingStatusToJSON,
   MeetingStatusToJSONTyped,
-} from './MeetingStatus'
+} from "./MeetingStatus";
 
 /**
  *
@@ -30,244 +31,230 @@ export interface UpdateMeetingRequest {
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  cusip?: string
+  cusip?: string;
   /**
    *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
-  brokerSearchDate?: Date | null
+  brokerSearchDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
-  recordDate?: Date
+  recordDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
-  mailingDate?: Date
+  mailingDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
-  meetingDate?: Date
+  meetingDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof UpdateMeetingRequest
    */
-  cutoffDate?: Date
+  cutoffDate?: Date;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  meetingType?: string
+  meetingType?: string;
   /**
    *
    * @type {MeetingStatus}
    * @memberof UpdateMeetingRequest
    */
-  status?: MeetingStatus
+  status?: MeetingStatus;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  currentPhase?: string
+  currentPhase?: string;
   /**
    *
    * @type {number}
    * @memberof UpdateMeetingRequest
    */
-  overallCompletion?: number
+  overallCompletion?: number;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  distributionType?: string
+  distributionType?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  transferAgent?: string
+  transferAgent?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  employeeStockPlans?: string
+  employeeStockPlans?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  planAdministrator?: string
+  planAdministrator?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  planAdministratorContact?: string
+  planAdministratorContact?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  planAdministratorContactEmail?: string
+  planAdministratorContactEmail?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  solicitor?: string
+  solicitor?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  solicitorEmail?: string
+  solicitorEmail?: string;
   /**
    * IVR dial-in voting number
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  ivrDialInNumber?: string
+  ivrDialInNumber?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateMeetingRequest
    */
-  totalSharesOutstanding?: string
+  totalSharesOutstanding?: string;
   /**
    *
    * @type {number}
    * @memberof UpdateMeetingRequest
    */
-  quorumRequirement?: number
+  quorumRequirement?: number;
 }
 
 /**
  * Check if a given object implements the UpdateMeetingRequest interface.
  */
-export function instanceOfUpdateMeetingRequest(
-  value: object
-): value is UpdateMeetingRequest {
-  return true
+export function instanceOfUpdateMeetingRequest(value: object): value is UpdateMeetingRequest {
+  return true;
 }
 
 export function UpdateMeetingRequestFromJSON(json: any): UpdateMeetingRequest {
-  return UpdateMeetingRequestFromJSONTyped(json, false)
+  return UpdateMeetingRequestFromJSONTyped(json, false);
 }
 
 export function UpdateMeetingRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateMeetingRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    title: json['title'] == null ? undefined : json['title'],
-    cusip: json['cusip'] == null ? undefined : json['cusip'],
+    title: json["title"] == null ? undefined : json["title"],
+    cusip: json["cusip"] == null ? undefined : json["cusip"],
     brokerSearchDate:
-      json['brokerSearchDate'] == null ? undefined : new Date(json['brokerSearchDate']),
-    recordDate: json['recordDate'] == null ? undefined : new Date(json['recordDate']),
-    mailingDate: json['mailingDate'] == null ? undefined : new Date(json['mailingDate']),
-    meetingDate: json['meetingDate'] == null ? undefined : new Date(json['meetingDate']),
-    cutoffDate: json['cutoffDate'] == null ? undefined : new Date(json['cutoffDate']),
-    meetingType: json['meetingType'] == null ? undefined : json['meetingType'],
-    status: json['status'] == null ? undefined : MeetingStatusFromJSON(json['status']),
-    currentPhase: json['currentPhase'] == null ? undefined : json['currentPhase'],
-    overallCompletion:
-      json['overallCompletion'] == null ? undefined : json['overallCompletion'],
-    distributionType:
-      json['distributionType'] == null ? undefined : json['distributionType'],
-    transferAgent: json['transferAgent'] == null ? undefined : json['transferAgent'],
-    employeeStockPlans:
-      json['employeeStockPlans'] == null ? undefined : json['employeeStockPlans'],
-    planAdministrator:
-      json['planAdministrator'] == null ? undefined : json['planAdministrator'],
+      json["brokerSearchDate"] == null ? undefined : new Date(json["brokerSearchDate"]),
+    recordDate: json["recordDate"] == null ? undefined : new Date(json["recordDate"]),
+    mailingDate: json["mailingDate"] == null ? undefined : new Date(json["mailingDate"]),
+    meetingDate: json["meetingDate"] == null ? undefined : new Date(json["meetingDate"]),
+    cutoffDate: json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
+    meetingType: json["meetingType"] == null ? undefined : json["meetingType"],
+    status: json["status"] == null ? undefined : MeetingStatusFromJSON(json["status"]),
+    currentPhase: json["currentPhase"] == null ? undefined : json["currentPhase"],
+    overallCompletion: json["overallCompletion"] == null ? undefined : json["overallCompletion"],
+    distributionType: json["distributionType"] == null ? undefined : json["distributionType"],
+    transferAgent: json["transferAgent"] == null ? undefined : json["transferAgent"],
+    employeeStockPlans: json["employeeStockPlans"] == null ? undefined : json["employeeStockPlans"],
+    planAdministrator: json["planAdministrator"] == null ? undefined : json["planAdministrator"],
     planAdministratorContact:
-      json['planAdministratorContact'] == null
-        ? undefined
-        : json['planAdministratorContact'],
+      json["planAdministratorContact"] == null ? undefined : json["planAdministratorContact"],
     planAdministratorContactEmail:
-      json['planAdministratorContactEmail'] == null
+      json["planAdministratorContactEmail"] == null
         ? undefined
-        : json['planAdministratorContactEmail'],
-    solicitor: json['solicitor'] == null ? undefined : json['solicitor'],
-    solicitorEmail: json['solicitorEmail'] == null ? undefined : json['solicitorEmail'],
-    ivrDialInNumber:
-      json['ivrDialInNumber'] == null ? undefined : json['ivrDialInNumber'],
+        : json["planAdministratorContactEmail"],
+    solicitor: json["solicitor"] == null ? undefined : json["solicitor"],
+    solicitorEmail: json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
+    ivrDialInNumber: json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
     totalSharesOutstanding:
-      json['totalSharesOutstanding'] == null ? undefined : json['totalSharesOutstanding'],
-    quorumRequirement:
-      json['quorumRequirement'] == null ? undefined : json['quorumRequirement'],
-  }
+      json["totalSharesOutstanding"] == null ? undefined : json["totalSharesOutstanding"],
+    quorumRequirement: json["quorumRequirement"] == null ? undefined : json["quorumRequirement"],
+  };
 }
 
 export function UpdateMeetingRequestToJSON(json: any): UpdateMeetingRequest {
-  return UpdateMeetingRequestToJSONTyped(json, false)
+  return UpdateMeetingRequestToJSONTyped(json, false);
 }
 
 export function UpdateMeetingRequestToJSONTyped(
   value?: UpdateMeetingRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    title: value['title'],
-    cusip: value['cusip'],
+    title: value["title"],
+    cusip: value["cusip"],
     brokerSearchDate:
-      value['brokerSearchDate'] == null
+      value["brokerSearchDate"] == null
         ? undefined
-        : value['brokerSearchDate'].toISOString().substring(0, 10),
+        : value["brokerSearchDate"].toISOString().substring(0, 10),
     recordDate:
-      value['recordDate'] == null
-        ? undefined
-        : value['recordDate'].toISOString().substring(0, 10),
+      value["recordDate"] == null ? undefined : value["recordDate"].toISOString().substring(0, 10),
     mailingDate:
-      value['mailingDate'] == null
+      value["mailingDate"] == null
         ? undefined
-        : value['mailingDate'].toISOString().substring(0, 10),
+        : value["mailingDate"].toISOString().substring(0, 10),
     meetingDate:
-      value['meetingDate'] == null
+      value["meetingDate"] == null
         ? undefined
-        : value['meetingDate'].toISOString().substring(0, 10),
+        : value["meetingDate"].toISOString().substring(0, 10),
     cutoffDate:
-      value['cutoffDate'] == null
-        ? undefined
-        : value['cutoffDate'].toISOString().substring(0, 10),
-    meetingType: value['meetingType'],
-    status: MeetingStatusToJSON(value['status']),
-    currentPhase: value['currentPhase'],
-    overallCompletion: value['overallCompletion'],
-    distributionType: value['distributionType'],
-    transferAgent: value['transferAgent'],
-    employeeStockPlans: value['employeeStockPlans'],
-    planAdministrator: value['planAdministrator'],
-    planAdministratorContact: value['planAdministratorContact'],
-    planAdministratorContactEmail: value['planAdministratorContactEmail'],
-    solicitor: value['solicitor'],
-    solicitorEmail: value['solicitorEmail'],
-    ivrDialInNumber: value['ivrDialInNumber'],
-    totalSharesOutstanding: value['totalSharesOutstanding'],
-    quorumRequirement: value['quorumRequirement'],
-  }
+      value["cutoffDate"] == null ? undefined : value["cutoffDate"].toISOString().substring(0, 10),
+    meetingType: value["meetingType"],
+    status: MeetingStatusToJSON(value["status"]),
+    currentPhase: value["currentPhase"],
+    overallCompletion: value["overallCompletion"],
+    distributionType: value["distributionType"],
+    transferAgent: value["transferAgent"],
+    employeeStockPlans: value["employeeStockPlans"],
+    planAdministrator: value["planAdministrator"],
+    planAdministratorContact: value["planAdministratorContact"],
+    planAdministratorContactEmail: value["planAdministratorContactEmail"],
+    solicitor: value["solicitor"],
+    solicitorEmail: value["solicitorEmail"],
+    ivrDialInNumber: value["ivrDialInNumber"],
+    totalSharesOutstanding: value["totalSharesOutstanding"],
+    quorumRequirement: value["quorumRequirement"],
+  };
 }

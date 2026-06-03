@@ -1,24 +1,23 @@
-import { useRouter } from 'next/navigation'
-
-import { Card, CardActionArea, CardContent, Paper, Typography } from '@mui/material'
+import { Card, CardActionArea, CardContent, Paper, Typography } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 interface PreviewLinksCardProps {
-  url1?: string | null
-  url2?: string | null
+  url1?: string | null;
+  url2?: string | null;
 }
 
 export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) {
-  url1 = 'https://dsm.preview.url'
-  url2 = 'https://dsm.preview.url'
-  const router = useRouter()
+  url1 = "https://dsm.preview.url";
+  url2 = "https://dsm.preview.url";
+  const router = useRouter();
   return (
     <Card>
       <CardContent
         sx={{
-          display: 'flex',
+          display: "flex",
           gap: 2,
           p: 2,
-          '&:last-child': {
+          "&:last-child": {
             p: 2,
           },
         }}
@@ -26,7 +25,7 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
         <Paper variant="outlined" sx={{ flex: 1 }}>
           <CardActionArea
             onClick={() => {
-              if (url1) router.push(url1)
+              if (url1) router.push(url1);
             }}
           >
             <CardContent>
@@ -40,7 +39,7 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
         <Paper variant="outlined" sx={{ flex: 1 }}>
           <CardActionArea
             onClick={() => {
-              if (url2) router.push(url2)
+              if (url2) router.push(url2);
             }}
           >
             <CardContent>
@@ -53,5 +52,5 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
         </Paper>
       </CardContent>
     </Card>
-  )
+  );
 }

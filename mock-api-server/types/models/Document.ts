@@ -1,3 +1,8 @@
+import type { Comment } from "./Comment";
+import type { DocumentStatus } from "./DocumentStatus";
+import type { Meeting } from "./Meeting";
+import type { Signature } from "./Signature";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,35 +15,31 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Comment } from './Comment'
+import { mapValues } from "../runtime";
 import {
   CommentFromJSON,
   CommentFromJSONTyped,
   CommentToJSON,
   CommentToJSONTyped,
-} from './Comment'
-import type { DocumentStatus } from './DocumentStatus'
+} from "./Comment";
 import {
   DocumentStatusFromJSON,
   DocumentStatusFromJSONTyped,
   DocumentStatusToJSON,
   DocumentStatusToJSONTyped,
-} from './DocumentStatus'
-import type { Meeting } from './Meeting'
+} from "./DocumentStatus";
 import {
   MeetingFromJSON,
   MeetingFromJSONTyped,
   MeetingToJSON,
   MeetingToJSONTyped,
-} from './Meeting'
-import type { Signature } from './Signature'
+} from "./Meeting";
 import {
   SignatureFromJSON,
   SignatureFromJSONTyped,
   SignatureToJSON,
   SignatureToJSONTyped,
-} from './Signature'
+} from "./Signature";
 
 /**
  *
@@ -51,289 +52,268 @@ export interface Document {
    * @type {string}
    * @memberof Document
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  taskId?: string | null
+  taskId?: string | null;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  description?: string | null
+  description?: string | null;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  type?: string
+  type?: string;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  filePath?: string
+  filePath?: string;
   /**
    *
    * @type {string}
    * @memberof Document
    */
-  fileType?: string
+  fileType?: string;
   /**
    *
    * @type {number}
    * @memberof Document
    */
-  fileSize?: number
+  fileSize?: number;
   /**
    *
    * @type {DocumentStatus}
    * @memberof Document
    */
-  status?: DocumentStatus
+  status?: DocumentStatus;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  uploadDate?: Date | null
+  uploadDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  uploadedDate?: Date | null
+  uploadedDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  signedDate?: Date | null
+  signedDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  authorizedDate?: Date | null
+  authorizedDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  completedDate?: Date | null
+  completedDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  inProgressDate?: Date | null
+  inProgressDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  deadline?: Date | null
+  deadline?: Date | null;
   /**
    *
    * @type {object}
    * @memberof Document
    */
-  history?: object | null
+  history?: object | null;
   /**
    * User who approved the document
    * @type {string}
    * @memberof Document
    */
-  approvedBy?: string | null
+  approvedBy?: string | null;
   /**
    * When the document was approved
    * @type {Date}
    * @memberof Document
    */
-  approvedAt?: Date | null
+  approvedAt?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Document
    */
-  updatedAt?: Date
+  updatedAt?: Date;
   /**
    * Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
    * @type {string}
    * @memberof Document
    */
-  displayCategory?: DocumentDisplayCategoryEnum | null
+  displayCategory?: DocumentDisplayCategoryEnum | null;
   /**
    *
    * @type {Meeting}
    * @memberof Document
    */
-  meeting?: Meeting
+  meeting?: Meeting;
   /**
    *
    * @type {Array<Comment>}
    * @memberof Document
    */
-  comments?: Array<Comment>
+  comments?: Array<Comment>;
   /**
    *
    * @type {Array<Signature>}
    * @memberof Document
    */
-  signatures?: Array<Signature>
+  signatures?: Array<Signature>;
 }
 
 /**
  * @export
  */
 export const DocumentDisplayCategoryEnum = {
-  General: 'general',
-  Dsm: 'dsm',
-  ProxyMaterials: 'proxy-materials',
-  MeetingMaterials: 'meeting-materials',
-  PostMeeting: 'post-meeting',
-  Internal: 'internal',
-} as const
+  General: "general",
+  Dsm: "dsm",
+  ProxyMaterials: "proxy-materials",
+  MeetingMaterials: "meeting-materials",
+  PostMeeting: "post-meeting",
+  Internal: "internal",
+} as const;
 export type DocumentDisplayCategoryEnum =
-  (typeof DocumentDisplayCategoryEnum)[keyof typeof DocumentDisplayCategoryEnum]
+  (typeof DocumentDisplayCategoryEnum)[keyof typeof DocumentDisplayCategoryEnum];
 
 /**
  * Check if a given object implements the Document interface.
  */
 export function instanceOfDocument(value: object): value is Document {
-  return true
+  return true;
 }
 
 export function DocumentFromJSON(json: any): Document {
-  return DocumentFromJSONTyped(json, false)
+  return DocumentFromJSONTyped(json, false);
 }
 
 export function DocumentFromJSONTyped(json: any, ignoreDiscriminator: boolean): Document {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    taskId: json['taskId'] == null ? undefined : json['taskId'],
-    title: json['title'] == null ? undefined : json['title'],
-    description: json['description'] == null ? undefined : json['description'],
-    type: json['type'] == null ? undefined : json['type'],
-    filePath: json['filePath'] == null ? undefined : json['filePath'],
-    fileType: json['fileType'] == null ? undefined : json['fileType'],
-    fileSize: json['fileSize'] == null ? undefined : json['fileSize'],
-    status: json['status'] == null ? undefined : DocumentStatusFromJSON(json['status']),
-    uploadDate: json['uploadDate'] == null ? undefined : new Date(json['uploadDate']),
-    uploadedDate:
-      json['uploadedDate'] == null ? undefined : new Date(json['uploadedDate']),
-    signedDate: json['signedDate'] == null ? undefined : new Date(json['signedDate']),
-    authorizedDate:
-      json['authorizedDate'] == null ? undefined : new Date(json['authorizedDate']),
-    completedDate:
-      json['completedDate'] == null ? undefined : new Date(json['completedDate']),
-    inProgressDate:
-      json['inProgressDate'] == null ? undefined : new Date(json['inProgressDate']),
-    deadline: json['deadline'] == null ? undefined : new Date(json['deadline']),
-    history: json['history'] == null ? undefined : json['history'],
-    approvedBy: json['approvedBy'] == null ? undefined : json['approvedBy'],
-    approvedAt: json['approvedAt'] == null ? undefined : new Date(json['approvedAt']),
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-    displayCategory:
-      json['displayCategory'] == null ? undefined : json['displayCategory'],
-    meeting: json['meeting'] == null ? undefined : MeetingFromJSON(json['meeting']),
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    taskId: json["taskId"] == null ? undefined : json["taskId"],
+    title: json["title"] == null ? undefined : json["title"],
+    description: json["description"] == null ? undefined : json["description"],
+    type: json["type"] == null ? undefined : json["type"],
+    filePath: json["filePath"] == null ? undefined : json["filePath"],
+    fileType: json["fileType"] == null ? undefined : json["fileType"],
+    fileSize: json["fileSize"] == null ? undefined : json["fileSize"],
+    status: json["status"] == null ? undefined : DocumentStatusFromJSON(json["status"]),
+    uploadDate: json["uploadDate"] == null ? undefined : new Date(json["uploadDate"]),
+    uploadedDate: json["uploadedDate"] == null ? undefined : new Date(json["uploadedDate"]),
+    signedDate: json["signedDate"] == null ? undefined : new Date(json["signedDate"]),
+    authorizedDate: json["authorizedDate"] == null ? undefined : new Date(json["authorizedDate"]),
+    completedDate: json["completedDate"] == null ? undefined : new Date(json["completedDate"]),
+    inProgressDate: json["inProgressDate"] == null ? undefined : new Date(json["inProgressDate"]),
+    deadline: json["deadline"] == null ? undefined : new Date(json["deadline"]),
+    history: json["history"] == null ? undefined : json["history"],
+    approvedBy: json["approvedBy"] == null ? undefined : json["approvedBy"],
+    approvedAt: json["approvedAt"] == null ? undefined : new Date(json["approvedAt"]),
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    displayCategory: json["displayCategory"] == null ? undefined : json["displayCategory"],
+    meeting: json["meeting"] == null ? undefined : MeetingFromJSON(json["meeting"]),
     comments:
-      json['comments'] == null
-        ? undefined
-        : (json['comments'] as Array<any>).map(CommentFromJSON),
+      json["comments"] == null ? undefined : (json["comments"] as Array<any>).map(CommentFromJSON),
     signatures:
-      json['signatures'] == null
+      json["signatures"] == null
         ? undefined
-        : (json['signatures'] as Array<any>).map(SignatureFromJSON),
-  }
+        : (json["signatures"] as Array<any>).map(SignatureFromJSON),
+  };
 }
 
 export function DocumentToJSON(json: any): Document {
-  return DocumentToJSONTyped(json, false)
+  return DocumentToJSONTyped(json, false);
 }
 
 export function DocumentToJSONTyped(
   value?: Document | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    taskId: value['taskId'],
-    title: value['title'],
-    description: value['description'],
-    type: value['type'],
-    filePath: value['filePath'],
-    fileType: value['fileType'],
-    fileSize: value['fileSize'],
-    status: DocumentStatusToJSON(value['status']),
-    uploadDate:
-      value['uploadDate'] === null ? null : (value['uploadDate'] as any)?.toISOString(),
+    id: value["id"],
+    meetingId: value["meetingId"],
+    taskId: value["taskId"],
+    title: value["title"],
+    description: value["description"],
+    type: value["type"],
+    filePath: value["filePath"],
+    fileType: value["fileType"],
+    fileSize: value["fileSize"],
+    status: DocumentStatusToJSON(value["status"]),
+    uploadDate: value["uploadDate"] === null ? null : (value["uploadDate"] as any)?.toISOString(),
     uploadedDate:
-      value['uploadedDate'] === null
-        ? null
-        : (value['uploadedDate'] as any)?.toISOString(),
-    signedDate:
-      value['signedDate'] === null ? null : (value['signedDate'] as any)?.toISOString(),
+      value["uploadedDate"] === null ? null : (value["uploadedDate"] as any)?.toISOString(),
+    signedDate: value["signedDate"] === null ? null : (value["signedDate"] as any)?.toISOString(),
     authorizedDate:
-      value['authorizedDate'] === null
-        ? null
-        : (value['authorizedDate'] as any)?.toISOString(),
+      value["authorizedDate"] === null ? null : (value["authorizedDate"] as any)?.toISOString(),
     completedDate:
-      value['completedDate'] === null
-        ? null
-        : (value['completedDate'] as any)?.toISOString(),
+      value["completedDate"] === null ? null : (value["completedDate"] as any)?.toISOString(),
     inProgressDate:
-      value['inProgressDate'] === null
-        ? null
-        : (value['inProgressDate'] as any)?.toISOString(),
-    deadline:
-      value['deadline'] === null ? null : (value['deadline'] as any)?.toISOString(),
-    history: value['history'],
-    approvedBy: value['approvedBy'],
-    approvedAt:
-      value['approvedAt'] === null ? null : (value['approvedAt'] as any)?.toISOString(),
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-    displayCategory: value['displayCategory'],
-    meeting: MeetingToJSON(value['meeting']),
+      value["inProgressDate"] === null ? null : (value["inProgressDate"] as any)?.toISOString(),
+    deadline: value["deadline"] === null ? null : (value["deadline"] as any)?.toISOString(),
+    history: value["history"],
+    approvedBy: value["approvedBy"],
+    approvedAt: value["approvedAt"] === null ? null : (value["approvedAt"] as any)?.toISOString(),
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    displayCategory: value["displayCategory"],
+    meeting: MeetingToJSON(value["meeting"]),
     comments:
-      value['comments'] == null
-        ? undefined
-        : (value['comments'] as Array<any>).map(CommentToJSON),
+      value["comments"] == null ? undefined : (value["comments"] as Array<any>).map(CommentToJSON),
     signatures:
-      value['signatures'] == null
+      value["signatures"] == null
         ? undefined
-        : (value['signatures'] as Array<any>).map(SignatureToJSON),
-  }
+        : (value["signatures"] as Array<any>).map(SignatureToJSON),
+  };
 }

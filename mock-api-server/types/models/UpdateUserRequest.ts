@@ -1,3 +1,5 @@
+import type { UserType } from "./UserType";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { UserType } from './UserType'
+import { mapValues } from "../runtime";
 import {
   UserTypeFromJSON,
   UserTypeFromJSONTyped,
   UserTypeToJSON,
   UserTypeToJSONTyped,
-} from './UserType'
+} from "./UserType";
 
 /**
  *
@@ -30,77 +31,77 @@ export interface UpdateUserRequest {
    * @type {string}
    * @memberof UpdateUserRequest
    */
-  firstName?: string
+  firstName?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateUserRequest
    */
-  lastName?: string
+  lastName?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateUserRequest
    */
-  email?: string
+  email?: string;
   /**
    *
    * @type {UserType}
    * @memberof UpdateUserRequest
    */
-  type?: UserType
+  type?: UserType;
   /**
    *
    * @type {string}
    * @memberof UpdateUserRequest
    */
-  accountId?: string
+  accountId?: string;
 }
 
 /**
  * Check if a given object implements the UpdateUserRequest interface.
  */
 export function instanceOfUpdateUserRequest(value: object): value is UpdateUserRequest {
-  return true
+  return true;
 }
 
 export function UpdateUserRequestFromJSON(json: any): UpdateUserRequest {
-  return UpdateUserRequestFromJSONTyped(json, false)
+  return UpdateUserRequestFromJSONTyped(json, false);
 }
 
 export function UpdateUserRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateUserRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    firstName: json['firstName'] == null ? undefined : json['firstName'],
-    lastName: json['lastName'] == null ? undefined : json['lastName'],
-    email: json['email'] == null ? undefined : json['email'],
-    type: json['type'] == null ? undefined : UserTypeFromJSON(json['type']),
-    accountId: json['accountId'] == null ? undefined : json['accountId'],
-  }
+    firstName: json["firstName"] == null ? undefined : json["firstName"],
+    lastName: json["lastName"] == null ? undefined : json["lastName"],
+    email: json["email"] == null ? undefined : json["email"],
+    type: json["type"] == null ? undefined : UserTypeFromJSON(json["type"]),
+    accountId: json["accountId"] == null ? undefined : json["accountId"],
+  };
 }
 
 export function UpdateUserRequestToJSON(json: any): UpdateUserRequest {
-  return UpdateUserRequestToJSONTyped(json, false)
+  return UpdateUserRequestToJSONTyped(json, false);
 }
 
 export function UpdateUserRequestToJSONTyped(
   value?: UpdateUserRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    email: value['email'],
-    type: UserTypeToJSON(value['type']),
-    accountId: value['accountId'],
-  }
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    email: value["email"],
+    type: UserTypeToJSON(value["type"]),
+    accountId: value["accountId"],
+  };
 }

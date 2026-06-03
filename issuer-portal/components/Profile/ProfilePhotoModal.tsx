@@ -1,14 +1,11 @@
-'use client'
-
-import { useSession } from 'next-auth/react'
-import React, { useCallback, useRef, useState } from 'react'
+"use client";
 
 import {
   Close as CloseIcon,
   CropFree as CropIcon,
   Delete as DeleteIcon,
   CloudUpload as UploadIcon,
-} from '@mui/icons-material'
+} from "@mui/icons-material";
 import {
   Alert,
   Avatar,
@@ -22,15 +19,17 @@ import {
   IconButton,
   Slider,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import { useSession } from "next-auth/react";
+import React, { useCallback, useRef, useState } from "react";
 
 interface ProfilePhotoModalProps {
-  open: boolean
-  onClose: () => void
-  currentAvatarUrl?: string | null
-  userName?: string
-  userEmail?: string
-  onPhotoUpdate?: (photoUrl: string | null) => void
+  open: boolean;
+  onClose: () => void;
+  currentAvatarUrl?: string | null;
+  userName?: string;
+  userEmail?: string;
+  onPhotoUpdate?: (photoUrl: string | null) => void;
 }
 
 const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
@@ -41,188 +40,186 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
   userEmail,
   onPhotoUpdate,
 }) => {
-  const { data: session, update: updateSession } = useSession()
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [cropScale, setCropScale] = useState(1)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { data: session, update: updateSession } = useSession();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cropScale, setCropScale] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Generate initials like in EditAvatarButton
   const getInitials = useCallback(() => {
     if (userName) {
       return userName
-        .split(' ')
+        .split(" ")
         .map((name) => name[0])
-        .join('')
+        .join("")
         .toUpperCase()
-        .slice(0, 2)
+        .slice(0, 2);
     }
     if (userEmail) {
-      return userEmail.substring(0, 2).toUpperCase()
+      return userEmail.substring(0, 2).toUpperCase();
     }
-    return 'U'
-  }, [userName, userEmail])
+    return "U";
+  }, [userName, userEmail]);
 
   const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (!file) {
-      return
+      return;
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file')
-      return
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
+      return;
     }
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      setError('File size must be less than 5MB')
-      return
+      setError("File size must be less than 5MB");
+      return;
     }
 
-    setError(null)
-    setSelectedFile(file)
+    setError(null);
+    setSelectedFile(file);
 
     // Create preview URL
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string)
-    }
+      setPreviewUrl(e.target?.result as string);
+    };
     reader.onerror = (e) => {
-      console.error('FileReader error:', e)
-    }
-    reader.readAsDataURL(file)
-  }, [])
+      console.error("FileReader error:", e);
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.click()
+      fileInputRef.current.click();
     }
-  }
+  };
 
   const handleRemovePhoto = async () => {
-    if (!session?.user?.id) return
+    if (!session?.user?.id) return;
 
     try {
-      setIsUploading(true)
-      setError(null)
+      setIsUploading(true);
+      setError(null);
 
       // Update user profile via API to remove avatar
       const updateResponse = await fetch(`/api/users/${session.user.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           avatar_url: null,
         }),
-      })
+      });
 
       if (!updateResponse.ok) {
-        throw new Error('Failed to update user profile')
+        throw new Error("Failed to update user profile");
       }
 
       // First update session to ensure all components get the updated data
       if (updateSession) {
-        await updateSession({ image: null })
+        await updateSession({ image: null });
       }
 
       // Then update the parent component
-      onPhotoUpdate?.(null)
+      onPhotoUpdate?.(null);
 
-      setSelectedFile(null)
-      setPreviewUrl(null)
-      onClose()
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      onClose();
     } catch (_err) {
-      setError('Failed to remove photo. Please try again.')
+      setError("Failed to remove photo. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleSavePhoto = async () => {
     if (!selectedFile || !session?.user?.id) {
-      setError('Please select a file and make sure you are logged in.')
-      return
+      setError("Please select a file and make sure you are logged in.");
+      return;
     }
 
     try {
-      setIsUploading(true)
-      setError(null)
+      setIsUploading(true);
+      setError(null);
 
       // Create FormData for upload
-      const formData = new FormData()
-      formData.append('avatar', selectedFile)
-      formData.append('scale', cropScale.toString())
+      const formData = new FormData();
+      formData.append("avatar", selectedFile);
+      formData.append("scale", cropScale.toString());
 
       // Upload to Supabase Storage
-      const uploadResponse = await fetch('/api/upload/avatar', {
-        method: 'POST',
+      const uploadResponse = await fetch("/api/upload/avatar", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.text()
-        throw new Error(`Failed to upload image: ${uploadResponse.status} - ${errorData}`)
+        const errorData = await uploadResponse.text();
+        throw new Error(`Failed to upload image: ${uploadResponse.status} - ${errorData}`);
       }
 
-      const uploadData = (await uploadResponse.json()) as { url: string }
-      const uploadedUrl = uploadData.url
+      const uploadData = (await uploadResponse.json()) as { url: string };
+      const uploadedUrl = uploadData.url;
 
       // Update user profile via API
       const updateResponse = await fetch(`/api/users/${session.user.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           avatar_url: uploadedUrl,
         }),
-      })
+      });
 
       if (!updateResponse.ok) {
-        const errorData = await updateResponse.text()
-        throw new Error(
-          `Failed to update user profile: ${updateResponse.status} - ${errorData}`
-        )
+        const errorData = await updateResponse.text();
+        throw new Error(`Failed to update user profile: ${updateResponse.status} - ${errorData}`);
       }
 
       const updatedUserResponse = (await updateResponse.json()) as {
-        data: { avatarUrl?: string }
-      }
-      const updatedUser = updatedUserResponse.data
+        data: { avatarUrl?: string };
+      };
+      const updatedUser = updatedUserResponse.data;
 
       // First update session to ensure all components get the updated data
       if (updateSession) {
         // Force session refresh by calling update with new image data
-        await updateSession({ image: updatedUser.avatarUrl ?? null })
+        await updateSession({ image: updatedUser.avatarUrl ?? null });
       }
 
       // Then update the parent component immediately for faster UI feedback
-      onPhotoUpdate?.(updatedUser.avatarUrl ?? null)
+      onPhotoUpdate?.(updatedUser.avatarUrl ?? null);
 
-      onClose()
+      onClose();
     } catch (_err) {
-      setError('Failed to upload photo. Please try again.')
+      setError("Failed to upload photo. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    if (isUploading) return
-    setSelectedFile(null)
-    setPreviewUrl(null)
-    setError(null)
-    setCropScale(1)
-    onClose()
-  }
+    if (isUploading) return;
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setError(null);
+    setCropScale(1);
+    onClose();
+  };
 
-  const displayUrl = previewUrl || currentAvatarUrl
-  const hasCurrentPhoto = Boolean(currentAvatarUrl || previewUrl)
+  const displayUrl = previewUrl || currentAvatarUrl;
+  const hasCurrentPhoto = Boolean(currentAvatarUrl || previewUrl);
 
   return (
     <>
@@ -231,10 +228,10 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
         type="file"
         accept="image/*"
         onChange={handleFileSelect}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onClick={(e) => {
           // Reset the input value to allow selecting the same file again
-          e.currentTarget.value = ''
+          e.currentTarget.value = "";
         }}
       />
 
@@ -258,8 +255,8 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
                   width: 150,
                   height: 150,
                   fontSize: 48,
-                  transform: previewUrl ? `scale(${cropScale})` : 'scale(1)',
-                  transition: 'transform 0.2s ease-in-out',
+                  transform: previewUrl ? `scale(${cropScale})` : "scale(1)",
+                  transition: "transform 0.2s ease-in-out",
                 }}
               >
                 {!displayUrl && getInitials()}
@@ -277,9 +274,9 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
                   <IconButton
                     size="small"
                     onClick={() => {
-                      setSelectedFile(null)
-                      setPreviewUrl(null)
-                      setCropScale(1)
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                      setCropScale(1);
                     }}
                     disabled={isUploading}
                   >
@@ -293,7 +290,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
             {previewUrl && (
               <Box width="100%" maxWidth={200}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  <CropIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  <CropIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
                   Zoom
                 </Typography>
                 <Slider
@@ -311,7 +308,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
             {/* Error Message */}
             {error && (
-              <Alert severity="error" sx={{ width: '100%' }}>
+              <Alert severity="error" sx={{ width: "100%" }}>
                 {error}
               </Alert>
             )}
@@ -324,7 +321,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
               disabled={isUploading}
               size="large"
             >
-              {selectedFile ? 'Choose Different Photo' : 'Upload Photo'}
+              {selectedFile ? "Choose Different Photo" : "Upload Photo"}
             </Button>
 
             {/* Current Photo Info */}
@@ -359,7 +356,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
                 onClick={handleRemovePhoto}
                 disabled={isUploading}
               >
-                {isUploading ? <CircularProgress size={20} /> : 'Remove Photo'}
+                {isUploading ? <CircularProgress size={20} /> : "Remove Photo"}
               </Button>
             )}
 
@@ -369,18 +366,14 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
               </Button>
 
               {selectedFile && (
-                <Button
-                  variant="contained"
-                  onClick={handleSavePhoto}
-                  disabled={isUploading}
-                >
+                <Button variant="contained" onClick={handleSavePhoto} disabled={isUploading}>
                   {isUploading ? (
                     <>
                       <CircularProgress size={20} sx={{ mr: 1 }} />
                       Uploading...
                     </>
                   ) : (
-                    'Save Photo'
+                    "Save Photo"
                   )}
                 </Button>
               )}
@@ -389,7 +382,7 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
         </DialogActions>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default ProfilePhotoModal
+export default ProfilePhotoModal;

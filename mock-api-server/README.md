@@ -57,13 +57,13 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Task'
+                  $ref: "#/components/schemas/Task"
 ```
 
 ### 2. Database Schema Generation
@@ -112,10 +112,10 @@ Domain models provide the business logic layer between the database and API rout
 
 ```typescript
 // domain-models/api/tasks.ts
-import type { components } from '@/types/api'
-import { supabase } from '@/utils/supabase/client'
+import type { components } from "@/types/api";
+import { supabase } from "@/utils/supabase/client";
 
-type Task = components['schemas']['Task']
+type Task = components["schemas"]["Task"];
 
 // Manual field mapping ensures all OpenAPI fields are included
 function transformTask(dbTask: any): Task {
@@ -143,20 +143,17 @@ function transformTask(dbTask: any): Task {
     // Timestamps
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
-  }
+  };
 }
 
 export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
-  const { data, error } = await supabase
-    .from('task')
-    .select('*')
-    .eq('meeting_id', meetingId)
+  const { data, error } = await supabase.from("task").select("*").eq("meeting_id", meetingId);
 
   if (error) {
-    return { error: { message: error.message, statusCode: 500 } }
+    return { error: { message: error.message, statusCode: 500 } };
   }
 
-  return { data: data.map(transformTask) }
+  return { data: data.map(transformTask) };
 }
 ```
 
@@ -173,20 +170,20 @@ Next.js API routes are automatically generated from the OpenAPI specification:
 
 ```typescript
 // app/api/meetings/[meetingId]/tasks/route.ts (AUTO-GENERATED)
-import { listTasks } from '@/domain-models/api/tasks'
+import { listTasks } from "@/domain-models/api/tasks";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ meetingId: string }> }
+  { params }: { params: Promise<{ meetingId: string }> },
 ): Promise<NextResponse> {
-  const { meetingId } = await params
-  const { data, error } = await listTasks(meetingId)
+  const { meetingId } = await params;
+  const { data, error } = await listTasks(meetingId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
 ```
 
@@ -196,19 +193,19 @@ The frontend uses `openapi-fetch` for type-safe API calls:
 
 ```typescript
 // Frontend usage (issuer-portal)
-import createClient from 'openapi-fetch'
+import createClient from "openapi-fetch";
 
-import type { paths } from '@/domain-models/generated-schema'
+import type { paths } from "@/domain-models/generated-schema";
 
-const client = createClient<paths>({ baseUrl: 'http://localhost:3001' })
+const client = createClient<paths>({ baseUrl: "http://localhost:3001" });
 
 // Fully type-safe API calls
-const { data, error } = await client.GET('/meetings/{meetingId}/tasks', {
+const { data, error } = await client.GET("/meetings/{meetingId}/tasks", {
   params: {
-    path: { meetingId: 'meeting-123' },
-    query: { status: 'INCOMPLETE' },
+    path: { meetingId: "meeting-123" },
+    query: { status: "INCOMPLETE" },
   },
-})
+});
 
 // data is typed as Task[] automatically
 ```
@@ -369,20 +366,20 @@ All endpoints follow RESTful conventions and return JSON responses. Authenticati
 
 ```typescript
 // Get all clients
-GET / api / client
+GET / api / client;
 // Response: Client[]
 
 // Get client by ticker
-GET / api / client / { ticker }
+GET / api / client / { ticker };
 // Response: Client
 
 // List accounts
-GET / api / accounts
+GET / api / accounts;
 // Response: Account[]
 
 // Get account with users
-GET / api / accounts / { accountId }
-GET / api / accounts / { accountId } / users
+GET / api / accounts / { accountId };
+GET / api / accounts / { accountId } / users;
 ```
 
 ### 📋 **Meeting Management**
@@ -495,11 +492,11 @@ POST /api/position_votes
 
 ```typescript
 // Get user notifications
-GET / api / notifications
+GET / api / notifications;
 // Response: Notification[]
 
 // Mark notification as read
-POST / api / notifications / { notificationId } / mark - read
+POST / api / notifications / { notificationId } / mark - read;
 // Response: Notification
 ```
 
@@ -507,11 +504,11 @@ POST / api / notifications / { notificationId } / mark - read
 
 ```typescript
 // List phases for meeting
-GET / api / meetings / { meetingId } / phases
+GET / api / meetings / { meetingId } / phases;
 // Response: Phase[]
 
 // Get phase details
-GET / api / phases / { phaseId }
+GET / api / phases / { phaseId };
 // Response: Phase
 ```
 
@@ -583,7 +580,7 @@ function transformTask(dbTask: DatabaseTask): Task {
     // Timestamps
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
-  }
+  };
 }
 ```
 
@@ -593,33 +590,30 @@ All domain models return a consistent error format:
 
 ```typescript
 type ApiResponse<T> = {
-  data?: T
+  data?: T;
   error?: {
-    message: string
-    statusCode?: number
-  }
-}
+    message: string;
+    statusCode?: number;
+  };
+};
 
 // Usage in domain models
 export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
   try {
-    const { data, error } = await supabase
-      .from('task')
-      .select('*')
-      .eq('meeting_id', meetingId)
+    const { data, error } = await supabase.from("task").select("*").eq("meeting_id", meetingId);
 
     if (error) {
-      return { error: { message: error.message, statusCode: 500 } }
+      return { error: { message: error.message, statusCode: 500 } };
     }
 
-    return { data: data.map(transformTask) }
+    return { data: data.map(transformTask) };
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         statusCode: 500,
       },
-    }
+    };
   }
 }
 ```
@@ -630,32 +624,32 @@ export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>>
 
 ```typescript
 // 1. Import generated types
-import createClient from 'openapi-fetch'
+import createClient from "openapi-fetch";
 
-import type { paths } from '@/domain-models/generated-schema'
+import type { paths } from "@/domain-models/generated-schema";
 
 // 2. Create client with base URL
 const client = createClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
-})
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+});
 
 // 3. Make type-safe requests
-const { data, error } = await client.GET('/meetings/{meetingId}/tasks', {
+const { data, error } = await client.GET("/meetings/{meetingId}/tasks", {
   params: {
     path: { meetingId },
     query: {
-      phaseId: 'phase-1',
-      status: 'INCOMPLETE',
+      phaseId: "phase-1",
+      status: "INCOMPLETE",
     },
   },
-})
+});
 
 // data is automatically typed as Task[]
 if (data) {
   data.forEach((task) => {
-    console.log(task.title) // TypeScript knows this exists
-    console.log(task.links) // TypeScript knows this is TaskLink[]
-  })
+    console.log(task.title); // TypeScript knows this exists
+    console.log(task.links); // TypeScript knows this is TaskLink[]
+  });
 }
 ```
 
@@ -703,28 +697,28 @@ function TaskList({ meetingId }: { meetingId: string }) {
 // Update task with links
 const updateTask = useMutation({
   mutationFn: async (params: { taskId: string; updates: UpdateTaskRequest }) => {
-    const { data, error } = await client.PUT('/tasks/{id}', {
+    const { data, error } = await client.PUT("/tasks/{id}", {
       params: { path: { id: params.taskId } },
       body: params.updates,
-    })
+    });
 
-    if (error) throw new Error(error.message)
-    return data
+    if (error) throw new Error(error.message);
+    return data;
   },
   onSuccess: () => {
     // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
   },
-})
+});
 
 // Usage
 updateTask.mutate({
-  taskId: 'task-123',
+  taskId: "task-123",
   updates: {
-    status: 'COMPLETE',
-    links: [{ label: 'Download Report', action: 'download', url: '/reports/final.pdf' }],
+    status: "COMPLETE",
+    links: [{ label: "Download Report", action: "download", url: "/reports/final.pdf" }],
   },
-})
+});
 ```
 
 # Seed Data System
@@ -735,36 +729,36 @@ The seed system uses **Snaplet Copycat** to generate consistent, realistic test 
 
 ```typescript
 // supabase/seed.ts
-import { copycat } from '@snaplet/copycat'
+import { copycat } from "@snaplet/copycat";
 
 // Generate consistent data based on seed value
 const clients = Array.from({ length: 4 }, (_, i) => ({
   id: copycat.uuid(i),
   ticker: copycat.word(i).slice(0, 4).toUpperCase(),
   company_name: copycat.companyName(i),
-  industry: copycat.oneOf(i, ['Technology', 'Healthcare', 'Finance']),
+  industry: copycat.oneOf(i, ["Technology", "Healthcare", "Finance"]),
   created_at: copycat.dateRecent(i).toISOString(),
-}))
+}));
 
 // Generate task links for specific scenarios
 function generateTaskLinks(title: string, type: string): TaskLink[] {
-  const links: TaskLink[] = []
+  const links: TaskLink[] = [];
 
   // Broadridge ICC Access tasks get specific links
-  if (title.includes('Broadridge') && title.includes('Access')) {
+  if (title.includes("Broadridge") && title.includes("Access")) {
     links.push({
-      label: 'Download Form',
-      action: 'download',
-      url: '',
-    })
+      label: "Download Form",
+      action: "download",
+      url: "",
+    });
     links.push({
-      label: 'Sign Form',
-      action: 'signature',
-      url: '',
-    })
+      label: "Sign Form",
+      action: "signature",
+      url: "",
+    });
   }
 
-  return links
+  return links;
 }
 ```
 
@@ -782,57 +776,57 @@ function generateTaskLinks(title: string, type: string): TaskLink[] {
 
 ```typescript
 // tests/integration/test_api_comprehensive.spec.ts
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-test.describe('Task Management API', () => {
-  test('should list tasks with links', async ({ request }) => {
-    const response = await request.get('/api/meetings/wen-annual-meeting-2025/tasks')
-    expect(response.ok()).toBeTruthy()
+test.describe("Task Management API", () => {
+  test("should list tasks with links", async ({ request }) => {
+    const response = await request.get("/api/meetings/wen-annual-meeting-2025/tasks");
+    expect(response.ok()).toBeTruthy();
 
-    const tasks = await response.json()
-    const broadridgeTask = tasks.find((t) => t.title.includes('Broadridge'))
+    const tasks = await response.json();
+    const broadridgeTask = tasks.find((t) => t.title.includes("Broadridge"));
 
-    expect(broadridgeTask).toBeDefined()
-    expect(broadridgeTask.links).toHaveLength(2)
-    expect(broadridgeTask.links[0].action).toBe('download')
-    expect(broadridgeTask.links[1].action).toBe('signature')
-  })
+    expect(broadridgeTask).toBeDefined();
+    expect(broadridgeTask.links).toHaveLength(2);
+    expect(broadridgeTask.links[0].action).toBe("download");
+    expect(broadridgeTask.links[1].action).toBe("signature");
+  });
 
-  test('should update task links', async ({ request }) => {
-    const updateResponse = await request.put('/api/tasks/task-123', {
+  test("should update task links", async ({ request }) => {
+    const updateResponse = await request.put("/api/tasks/task-123", {
       data: {
-        links: [{ label: 'New Link', action: 'external', url: 'https://example.com' }],
+        links: [{ label: "New Link", action: "external", url: "https://example.com" }],
       },
-    })
+    });
 
-    expect(updateResponse.ok()).toBeTruthy()
-    const updatedTask = await updateResponse.json()
-    expect(updatedTask.links).toHaveLength(1)
-  })
-})
+    expect(updateResponse.ok()).toBeTruthy();
+    const updatedTask = await updateResponse.json();
+    expect(updatedTask.links).toHaveLength(1);
+  });
+});
 ```
 
 ### Database Schema Testing
 
 ```typescript
-test.describe('Database Schema Validation', () => {
-  test('should maintain referential integrity', async ({ request }) => {
+test.describe("Database Schema Validation", () => {
+  test("should maintain referential integrity", async ({ request }) => {
     // Test foreign key constraints
-    const invalidTask = await request.post('/api/meetings/invalid-id/tasks', {
-      data: { title: 'Test Task', phaseId: 'nonexistent-phase' },
-    })
+    const invalidTask = await request.post("/api/meetings/invalid-id/tasks", {
+      data: { title: "Test Task", phaseId: "nonexistent-phase" },
+    });
 
-    expect(invalidTask.status()).toBe(400)
-  })
+    expect(invalidTask.status()).toBe(400);
+  });
 
-  test('should validate enum constraints', async ({ request }) => {
-    const invalidStatus = await request.put('/api/tasks/task-123', {
-      data: { status: 'INVALID_STATUS' },
-    })
+  test("should validate enum constraints", async ({ request }) => {
+    const invalidStatus = await request.put("/api/tasks/task-123", {
+      data: { status: "INVALID_STATUS" },
+    });
 
-    expect(invalidStatus.status()).toBe(400)
-  })
-})
+    expect(invalidStatus.status()).toBe(400);
+  });
+});
 ```
 
 # Advanced Patterns
@@ -845,23 +839,23 @@ test.describe('Database Schema Validation', () => {
 // domain-models/api/tasks.ts
 export async function completeTask(taskId: string): Promise<ApiResponse<Task>> {
   // Business logic: Auto-complete phase when all tasks done
-  const task = await getTaskById(taskId)
-  if (!task.data) return { error: { message: 'Task not found' } }
+  const task = await getTaskById(taskId);
+  if (!task.data) return { error: { message: "Task not found" } };
 
   // Update task status
-  const updatedTask = await updateTask(taskId, { status: 'COMPLETE' })
+  const updatedTask = await updateTask(taskId, { status: "COMPLETE" });
 
   // Check if phase is complete
   const phaseTasks = await listTasks(task.data.meetingId, {
     phaseId: task.data.phaseId,
-  })
+  });
 
-  const allComplete = phaseTasks.data?.every((t) => t.status === 'COMPLETE')
+  const allComplete = phaseTasks.data?.every((t) => t.status === "COMPLETE");
   if (allComplete) {
-    await updatePhase(task.data.phaseId, { status: 'COMPLETE' })
+    await updatePhase(task.data.phaseId, { status: "COMPLETE" });
   }
 
-  return updatedTask
+  return updatedTask;
 }
 ```
 
@@ -869,16 +863,14 @@ export async function completeTask(taskId: string): Promise<ApiResponse<Task>> {
 
 ```typescript
 // domain-models/api/voting.ts
-export async function castVotes(
-  votes: CastVoteRequest[]
-): Promise<ApiResponse<PositionVote[]>> {
-  const { data, error } = await supabase.rpc('cast_votes_transaction', {
+export async function castVotes(votes: CastVoteRequest[]): Promise<ApiResponse<PositionVote[]>> {
+  const { data, error } = await supabase.rpc("cast_votes_transaction", {
     votes_data: votes,
-  })
+  });
 
   // PostgreSQL function handles atomicity
-  if (error) return { error: { message: error.message } }
-  return { data: data.map(transformPositionVote) }
+  if (error) return { error: { message: error.message } };
+  return { data: data.map(transformPositionVote) };
 }
 ```
 
@@ -890,7 +882,7 @@ export async function castVotes(
 // Efficient nested queries with joins
 export async function getMeetingWithDetails(meetingId: string) {
   const { data, error } = await supabase
-    .from('meeting')
+    .from("meeting")
     .select(
       `
       *,
@@ -898,28 +890,28 @@ export async function getMeetingWithDetails(meetingId: string) {
       tasks:task(*),
       proposals:proposal(*),
       documents:document(*)
-    `
+    `,
     )
-    .eq('id', meetingId)
-    .single()
+    .eq("id", meetingId)
+    .single();
 
-  return { data: transformMeetingWithDetails(data) }
+  return { data: transformMeetingWithDetails(data) };
 }
 
 // Pagination with cursor-based approach
 export async function listMeetingsPaginated(cursor?: string, limit = 20) {
   let query = supabase
-    .from('meeting')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit)
+    .from("meeting")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (cursor) {
-    query = query.lt('created_at', cursor)
+    query = query.lt("created_at", cursor);
   }
 
-  const { data, error } = await query
-  return { data: data?.map(transformMeeting) }
+  const { data, error } = await query;
+  return { data: data?.map(transformMeeting) };
 }
 ```
 
@@ -927,28 +919,28 @@ export async function listMeetingsPaginated(cursor?: string, limit = 20) {
 
 ```typescript
 // domain-models/api/cache.ts
-const cache = new Map<string, { data: any; expiry: number }>()
+const cache = new Map<string, { data: any; expiry: number }>();
 
 export function withCache<T>(key: string, ttl: number) {
   return function (fn: () => Promise<T>) {
     return async (): Promise<T> => {
-      const cached = cache.get(key)
+      const cached = cache.get(key);
       if (cached && Date.now() < cached.expiry) {
-        return cached.data
+        return cached.data;
       }
 
-      const result = await fn()
-      cache.set(key, { data: result, expiry: Date.now() + ttl })
-      return result
-    }
-  }
+      const result = await fn();
+      cache.set(key, { data: result, expiry: Date.now() + ttl });
+      return result;
+    };
+  };
 }
 
 // Usage
 export const getCachedClients = withCache(
-  'clients',
-  5 * 60 * 1000
-)(() => supabase.from('clients').select('*'))
+  "clients",
+  5 * 60 * 1000,
+)(() => supabase.from("clients").select("*"));
 ```
 
 # Troubleshooting Guide
@@ -967,7 +959,7 @@ function transformTask(dbTask: any): Task {
   return {
     // ... other fields
     links: dbTask.links, // ← Must be included
-  }
+  };
 }
 ```
 
@@ -1054,14 +1046,14 @@ WHERE tablename IN ('task', 'meeting', 'position');
 ```typescript
 // middleware/performance.ts
 export function performanceMiddleware(req: NextRequest) {
-  const start = Date.now()
+  const start = Date.now();
 
   return new Response(JSON.stringify(data), {
     headers: {
-      'X-Response-Time': `${Date.now() - start}ms`,
-      'Content-Type': 'application/json',
+      "X-Response-Time": `${Date.now() - start}ms`,
+      "Content-Type": "application/json",
     },
-  })
+  });
 }
 ```
 

@@ -1,55 +1,52 @@
-'use client'
+"use client";
 
-import { BNLogo } from '@rolemodel/betanxt-design-system/components/BNLogo'
-import { BNAppBar } from '@rolemodel/betanxt-design-system/components/app-bar/BNAppBar'
-import type { User } from 'next-auth'
-import Image from 'next/image'
-import React, { Suspense, useCallback, useMemo, useRef } from 'react'
+import type { User } from "next-auth";
 
-import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
-import { Badge, IconButton, Typography } from '@mui/material'
-import { Box } from '@mui/material'
+import NotificationsOutlined from "@mui/icons-material/NotificationsOutlined";
+import { Badge, IconButton, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { BNAppBar } from "@rolemodel/betanxt-design-system/components/app-bar/BNAppBar";
+import { BNLogo } from "@rolemodel/betanxt-design-system/components/BNLogo";
+import Image from "next/image";
+import React, { Suspense, useCallback, useMemo, useRef } from "react";
 
-import { ClientAppSwitcher } from '@/components/Navigation/ClientAppSwitcher'
-import NotificationPopper from '@/components/Notifications/NotificationPopper'
-
-import { useAppBar } from '@/hooks/useAppBar'
+import { ClientAppSwitcher } from "@/components/Navigation/ClientAppSwitcher";
+import NotificationPopper from "@/components/Notifications/NotificationPopper";
+import { useAppBar } from "@/hooks/useAppBar";
 
 // Next.js Image component wrapper for BNAppBar logo
-const NextImageComponent = React.memo(
-  (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
-    const { src, alt, style } = props
+const NextImageComponent = React.memo((props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+  const { src, alt, style } = props;
 
-    if (!src) {
-      return null
-    }
-
-    return (
-      <Image
-        src={src}
-        alt={alt ?? 'Logo'}
-        width={120}
-        height={44}
-        style={style}
-        loading="eager"
-        priority
-        blurDataURL={src}
-        sizes="(max-width: 600px) 120px, 120px"
-      />
-    )
+  if (!src) {
+    return null;
   }
-)
-NextImageComponent.displayName = 'NextImageComponent'
+
+  return (
+    <Image
+      src={src}
+      alt={alt ?? "Logo"}
+      width={120}
+      height={44}
+      style={style}
+      loading="eager"
+      priority
+      blurDataURL={src}
+      sizes="(max-width: 600px) 120px, 120px"
+    />
+  );
+});
+NextImageComponent.displayName = "NextImageComponent";
 
 interface BNAppBarWrapperProps {
-  title?: string
-  logoImg?: React.ReactNode
-  logoSrc?: string
-  logoImgStyles?: React.CSSProperties
-  color?: 'primary' | 'secondary'
-  tabPermissions?: Record<string, boolean>
-  user?: User
-  appSwitcher?: boolean
+  title?: string;
+  logoImg?: React.ReactNode;
+  logoSrc?: string;
+  logoImgStyles?: React.CSSProperties;
+  color?: "primary" | "secondary";
+  tabPermissions?: Record<string, boolean>;
+  user?: User;
+  appSwitcher?: boolean;
 }
 
 export function BNAppBarClient(props: BNAppBarWrapperProps) {
@@ -57,13 +54,13 @@ export function BNAppBarClient(props: BNAppBarWrapperProps) {
     <Suspense fallback={null}>
       <BNAppBarClientMemo {...props} />
     </Suspense>
-  )
+  );
 }
 
 const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
-  props: BNAppBarWrapperProps
+  props: BNAppBarWrapperProps,
 ) {
-  const notificationButtonRef = useRef<HTMLButtonElement>(null)
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
     logoSlotProps,
@@ -85,7 +82,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     handleNotificationClick,
     handleNotificationClose,
     isReady,
-  } = useAppBar({ logoSrc: props.logoSrc, user: props.user })
+  } = useAppBar({ logoSrc: props.logoSrc, user: props.user });
 
   const endSlot = useCallback(
     () => (
@@ -114,31 +111,30 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       notificationAnchor,
       handleNotificationClick,
       handleNotificationClose,
-    ]
-  )
+    ],
+  );
 
   // CSM logo component wrapper that renders BNLogo instead of a client image
   // Only used when CSM is NOT in a client context
-  const showCSMBrandLogo = isCSM && !isInClientContext
+  const showCSMBrandLogo = isCSM && !isInClientContext;
   const CSMLogoComponent = useMemo(() => {
-    if (!showCSMBrandLogo) return null
+    if (!showCSMBrandLogo) return null;
     const CSMLogo = () => (
-      <Box sx={{ display: 'flex', alignItems: 'center', height: 44 }}>
+      <Box sx={{ display: "flex", alignItems: "center", height: 44 }}>
         <BNLogo height={28} />
       </Box>
-    )
-    CSMLogo.displayName = 'CSMLogo'
-    return CSMLogo
-  }, [showCSMBrandLogo])
+    );
+    CSMLogo.displayName = "CSMLogo";
+    return CSMLogo;
+  }, [showCSMBrandLogo]);
 
   const appBarProps = {
     slots: {
-      logoImg:
-        showCSMBrandLogo && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
+      logoImg: showCSMBrandLogo && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
       end: endSlot,
     },
     slotProps: showCSMBrandLogo ? undefined : logoSlotProps,
-    color: 'secondary' as const,
+    color: "secondary" as const,
     tabs: shouldHideTabs ? [] : tabs,
     avatar,
     menuItems,
@@ -147,10 +143,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     selectedTabValue: selectedTabValue as string | undefined,
     meetingStatus,
     onTabChange: handleTabChange,
-  }
+  };
 
   if (!isReady) {
-    return null
+    return null;
   }
 
   return (
@@ -169,12 +165,12 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
             paddingBlock: 0.5,
             borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
             backgroundColor: (theme) =>
-              !meetingStatus || meetingStatus === 'ACTIVE'
-                ? 'transparent'
-                : meetingStatus === 'COMPLETE'
+              !meetingStatus || meetingStatus === "ACTIVE"
+                ? "transparent"
+                : meetingStatus === "COMPLETE"
                   ? theme.vars.palette.warning.main
                   : theme.vars.palette.warning.main,
-            transition: 'background-color 120ms ease',
+            transition: "background-color 120ms ease",
           }}
         >
           <Typography
@@ -182,23 +178,23 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
             fontWeight={500}
             sx={{
               color: (theme) =>
-                !meetingStatus || meetingStatus === 'ACTIVE'
-                  ? 'text.primary'
-                  : meetingStatus === 'COMPLETE'
+                !meetingStatus || meetingStatus === "ACTIVE"
+                  ? "text.primary"
+                  : meetingStatus === "COMPLETE"
                     ? theme.vars.palette.warning.contrastText
                     : theme.vars.palette.warning.contrastText,
             }}
           >
-            {meetingStatus === 'COMPLETE' && meetingDateLabel
+            {meetingStatus === "COMPLETE" && meetingDateLabel
               ? `You are viewing a past meeting from ${meetingDateLabel}.`
-              : !meetingStatus || meetingStatus === 'ACTIVE'
-                ? 'You are viewing an active meeting.'
-                : 'You are viewing a meeting with unknown status.'}
+              : !meetingStatus || meetingStatus === "ACTIVE"
+                ? "You are viewing an active meeting."
+                : "You are viewing a meeting with unknown status."}
           </Typography>
         </Box>
       )}
     </Box>
-  )
-})
+  );
+});
 
-export { BNAppBar }
+export { BNAppBar };

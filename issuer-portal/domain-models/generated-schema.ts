@@ -3,7 +3,6 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
   "/auth/login": {
     /** User login */
@@ -292,9 +291,29 @@ export interface components {
     /** @enum {string} */
     PhaseStatus: "IN_PROGRESS" | "COMPLETE";
     /** @enum {string} */
-    TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW" | "AWAITING_REVIEW";
+    TaskStatus:
+      | "INCOMPLETE"
+      | "COMPLETE"
+      | "CANCELLED"
+      | "NEEDS_AUTHORIZATION"
+      | "AUTHORIZED"
+      | "PENDING_AUTHORIZATION"
+      | "WAITING_FOR_FORM_RETURN"
+      | "AUTHORIZATION_NEEDED"
+      | "SUBMITTED_AWAITING_RECORD_DATE"
+      | "REQUEST_FORM_TO_FOLLOW"
+      | "AWAITING_REVIEW";
     /** @enum {string} */
-    DocumentStatus: "DRAFT" | "AWAITING_DRAFT" | "AWAITING_REVIEW" | "APPROVED" | "UPLOADED" | "IN_PROGRESS" | "SIGNED" | "AUTHORIZED" | "COMPLETED";
+    DocumentStatus:
+      | "DRAFT"
+      | "AWAITING_DRAFT"
+      | "AWAITING_REVIEW"
+      | "APPROVED"
+      | "UPLOADED"
+      | "IN_PROGRESS"
+      | "SIGNED"
+      | "AUTHORIZED"
+      | "COMPLETED";
     Account: {
       /** Format: uuid */
       id?: string;
@@ -379,7 +398,14 @@ export interface components {
        *   "agenda"
        * ]
        */
-      enabledFeatures?: ("documents" | "mailing" | "tabulation" | "reports" | "fileTransfer" | "agenda")[];
+      enabledFeatures?: (
+        | "documents"
+        | "mailing"
+        | "tabulation"
+        | "reports"
+        | "fileTransfer"
+        | "agenda"
+      )[];
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -556,7 +582,7 @@ export interface components {
       /** @example 1 */
       orderIndex?: number;
       status?: components["schemas"]["PhaseStatus"];
-      keyDates?: ({
+      keyDates?: {
         /**
          * Format: date
          * @example 2025-03-01
@@ -577,7 +603,7 @@ export interface components {
          * @example 2025-03-20
          */
         completionDate?: string | null;
-      }) | null;
+      } | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -694,7 +720,14 @@ export interface components {
        * @description Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
        * @enum {string|null}
        */
-      displayCategory?: "general" | "dsm" | "proxy-materials" | "meeting-materials" | "post-meeting" | "internal" | null;
+      displayCategory?:
+        | "general"
+        | "dsm"
+        | "proxy-materials"
+        | "meeting-materials"
+        | "post-meeting"
+        | "internal"
+        | null;
       meeting?: components["schemas"]["Meeting"];
       comments?: components["schemas"]["Comment"][];
       signatures?: components["schemas"]["Signature"][];
@@ -909,7 +942,17 @@ export interface components {
       /** Format: uuid */
       documentId?: string;
       /** @enum {string} */
-      eventType?: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+      eventType?:
+        | "CREATED"
+        | "UPLOADED"
+        | "VIEWED"
+        | "DOWNLOADED"
+        | "SIGNED"
+        | "APPROVED"
+        | "REJECTED"
+        | "COMMENTED"
+        | "UPDATED"
+        | "DELETED";
       /** Format: uuid */
       userId?: string;
       userName?: string;
@@ -1002,7 +1045,14 @@ export interface components {
        */
       brandingId?: number | null;
       /** @description Feature modules enabled for this client */
-      enabledFeatures?: ("documents" | "mailing" | "tabulation" | "reports" | "fileTransfer" | "agenda")[];
+      enabledFeatures?: (
+        | "documents"
+        | "mailing"
+        | "tabulation"
+        | "reports"
+        | "fileTransfer"
+        | "agenda"
+      )[];
     };
     CreateUserRequest: {
       username: string;
@@ -1452,18 +1502,18 @@ export interface components {
       setKeys?: string[];
       /** @description Top 6 brokers by total shares */
       brokerVoting?: {
-          broker?: string;
-          sharesFor?: number;
-          sharesAgainst?: number;
-          sharesAbstain?: number;
-        }[];
+        broker?: string;
+        sharesFor?: number;
+        sharesAgainst?: number;
+        sharesAbstain?: number;
+      }[];
       /** @description Performance metrics across 18 share ranges */
       shareRangePerformance?: {
-          rangeLabel?: string;
-          positionCount?: number;
-          totalShares?: number;
-          percentVoted?: number;
-        }[];
+        rangeLabel?: string;
+        positionCount?: number;
+        totalShares?: number;
+        percentVoted?: number;
+      }[];
       /** @description Non-DTC shareholder vote status breakdown */
       nonDtcVoteStatus?: {
         unvotedShareholders?: number;
@@ -1564,7 +1614,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /** User login */
   loginUser: {
     requestBody: {
@@ -3228,7 +3277,18 @@ export interface operations {
       content: {
         "application/json": {
           /** @enum {string} */
-          eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "NOT_UPLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
+          eventType:
+            | "CREATED"
+            | "UPLOADED"
+            | "VIEWED"
+            | "DOWNLOADED"
+            | "NOT_UPLOADED"
+            | "SIGNED"
+            | "APPROVED"
+            | "REJECTED"
+            | "COMMENTED"
+            | "UPDATED"
+            | "DELETED";
           metadata?: {
             [key: string]: unknown;
           };

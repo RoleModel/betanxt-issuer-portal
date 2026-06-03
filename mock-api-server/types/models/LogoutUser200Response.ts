@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,47 +23,45 @@ export interface LogoutUser200Response {
    * @type {string}
    * @memberof LogoutUser200Response
    */
-  message?: string
+  message?: string;
 }
 
 /**
  * Check if a given object implements the LogoutUser200Response interface.
  */
-export function instanceOfLogoutUser200Response(
-  value: object
-): value is LogoutUser200Response {
-  return true
+export function instanceOfLogoutUser200Response(value: object): value is LogoutUser200Response {
+  return true;
 }
 
 export function LogoutUser200ResponseFromJSON(json: any): LogoutUser200Response {
-  return LogoutUser200ResponseFromJSONTyped(json, false)
+  return LogoutUser200ResponseFromJSONTyped(json, false);
 }
 
 export function LogoutUser200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): LogoutUser200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    message: json['message'] == null ? undefined : json['message'],
-  }
+    message: json["message"] == null ? undefined : json["message"],
+  };
 }
 
 export function LogoutUser200ResponseToJSON(json: any): LogoutUser200Response {
-  return LogoutUser200ResponseToJSONTyped(json, false)
+  return LogoutUser200ResponseToJSONTyped(json, false);
 }
 
 export function LogoutUser200ResponseToJSONTyped(
   value?: LogoutUser200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    message: value['message'],
-  }
+    message: value["message"],
+  };
 }

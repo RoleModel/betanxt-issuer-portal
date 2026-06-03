@@ -1,88 +1,89 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import type { NextRequest } from "next/server";
 
-import { createPhase, listPhases } from '@/domain-models/api/phases'
+import { NextResponse } from "next/server";
 
-import type { components } from '@/types/api'
-import { handleCors, withCors } from '@/utils/cors'
+import type { components } from "@/types/api";
+
+import { createPhase, listPhases } from "@/domain-models/api/phases";
+import { handleCors, withCors } from "@/utils/cors";
 
 interface RouteParams {
-  meetingId: string
+  meetingId: string;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params
-    const meetingId = resolvedParams.meetingId
+    const resolvedParams = await params;
+    const meetingId = resolvedParams.meetingId;
 
     // Use existing domain model function
-    const { data, error } = await listPhases(meetingId)
+    const { data, error } = await listPhases(meetingId);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 })
-      )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+      );
     }
 
-    return withCors(NextResponse.json(data))
+    return withCors(NextResponse.json(data));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listPhases',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "listPhases",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParams> },
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params
-    const meetingId = resolvedParams.meetingId
+    const resolvedParams = await params;
+    const meetingId = resolvedParams.meetingId;
 
     // Parse request body
-    const body = (await request.json()) as components['schemas']['CreatePhaseRequest']
+    const body = (await request.json()) as components["schemas"]["CreatePhaseRequest"];
 
     // Use existing domain model function
-    const { data, error } = await createPhase(meetingId, body)
+    const { data, error } = await createPhase(meetingId, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 })
-      )
+        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+      );
     }
 
-    return withCors(NextResponse.json(data, { status: 201 }))
+    return withCors(NextResponse.json(data, { status: 201 }));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createPhase',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "createPhase",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 // Handle preflight requests
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }

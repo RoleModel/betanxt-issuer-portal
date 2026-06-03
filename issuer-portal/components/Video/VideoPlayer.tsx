@@ -1,142 +1,140 @@
-'use client'
+"use client";
 
-import React, { useRef, useState } from 'react'
-
-import { Pause, PlayArrow, VolumeOff, VolumeUp } from '@mui/icons-material'
-import { Box, IconButton, Slider, Stack, Typography } from '@mui/material'
+import { Pause, PlayArrow, VolumeOff, VolumeUp } from "@mui/icons-material";
+import { Box, IconButton, Slider, Stack, Typography } from "@mui/material";
+import React, { useRef, useState } from "react";
 
 interface VideoPlayerProps {
-  src?: string
-  title?: string
-  description?: string
-  poster?: string
-  seriesNumber?: string
-  showSeries?: boolean
-  showPlayButton?: boolean
-  onVideoEnd?: () => void
+  src?: string;
+  title?: string;
+  description?: string;
+  poster?: string;
+  seriesNumber?: string;
+  showSeries?: boolean;
+  showPlayButton?: boolean;
+  onVideoEnd?: () => void;
 }
 
 export default function VideoPlayer({
   src,
-  title = 'Welcome to Your Issuer Portal',
-  description = 'Overview tour of main navigation and dashboard',
+  title = "Welcome to Your Issuer Portal",
+  description = "Overview tour of main navigation and dashboard",
   poster,
-  seriesNumber = '#1',
+  seriesNumber = "#1",
   showSeries = false,
   onVideoEnd,
   showPlayButton = true,
 }: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [isMuted, setIsMuted] = useState(false)
-  const [showControls, setShowControls] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const togglePlay = () => {
-    if (!videoRef.current) return
+    if (!videoRef.current) return;
 
     if (isPlaying) {
-      videoRef.current.pause()
+      videoRef.current.pause();
     } else {
-      void videoRef.current.play()
+      void videoRef.current.play();
     }
-    setIsPlaying(!isPlaying)
-  }
+    setIsPlaying(!isPlaying);
+  };
 
   const handleTimeUpdate = () => {
-    if (!videoRef.current) return
-    setCurrentTime(videoRef.current.currentTime)
-  }
+    if (!videoRef.current) return;
+    setCurrentTime(videoRef.current.currentTime);
+  };
 
   const handleLoadedMetadata = () => {
-    if (!videoRef.current) return
-    setDuration(videoRef.current.duration)
-  }
+    if (!videoRef.current) return;
+    setDuration(videoRef.current.duration);
+  };
 
   const handleSeek = (_: Event, newValue: number | number[]) => {
-    if (!videoRef.current || Array.isArray(newValue)) return
-    videoRef.current.currentTime = newValue
-    setCurrentTime(newValue)
-  }
+    if (!videoRef.current || Array.isArray(newValue)) return;
+    videoRef.current.currentTime = newValue;
+    setCurrentTime(newValue);
+  };
 
   const handleVolumeChange = (_: Event, newValue: number | number[]) => {
-    if (!videoRef.current || Array.isArray(newValue)) return
-    const volumeValue = newValue / 100
-    videoRef.current.volume = volumeValue
-    setVolume(volumeValue)
-    setIsMuted(volumeValue === 0)
-  }
+    if (!videoRef.current || Array.isArray(newValue)) return;
+    const volumeValue = newValue / 100;
+    videoRef.current.volume = volumeValue;
+    setVolume(volumeValue);
+    setIsMuted(volumeValue === 0);
+  };
 
   const toggleMute = () => {
-    if (!videoRef.current) return
-    const newMutedState = !isMuted
-    setIsMuted(newMutedState)
-    videoRef.current.muted = newMutedState
-  }
+    if (!videoRef.current) return;
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    videoRef.current.muted = newMutedState;
+  };
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const handleVideoEnd = () => {
-    setIsPlaying(false)
-    onVideoEnd?.()
-  }
+    setIsPlaying(false);
+    onVideoEnd?.();
+  };
 
   return (
     <Box
       sx={{
-        position: 'relative',
-        width: '100%',
+        position: "relative",
+        width: "100%",
         // height: 403,
         aspectRatio: 16 / 9,
         borderRadius: 1,
-        overflow: 'hidden',
+        overflow: "hidden",
         backgroundColor: (theme) => theme.vars.palette.common.white,
         backgroundImage: poster
           ? `url(${poster})`
           : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 717 403"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23032f3f"/><stop offset="100%" style="stop-color:%23307987"/></linearGradient></defs><rect width="717" height="403" fill="url(%23bg)"/></svg>')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: src ? 'pointer' : 'default',
-        '&:hover .video-controls': {
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: src ? "pointer" : "default",
+        "&:hover .video-controls": {
           opacity: 1,
         },
-        '&:hover .video-play-button': {
-          transform: 'translate(-50%, -50%) scale(1.2)',
-          transformOrigin: 'center',
-          transition: 'transform 0.2s ease-in-out',
+        "&:hover .video-play-button": {
+          transform: "translate(-50%, -50%) scale(1.2)",
+          transformOrigin: "center",
+          transition: "transform 0.2s ease-in-out",
         },
       }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(isPlaying ? false : true)}
       onClick={src ? togglePlay : undefined}
-      role={src ? 'button' : 'presentation'}
-      aria-label={src ? 'Play video' : undefined}
+      role={src ? "button" : "presentation"}
+      aria-label={src ? "Play video" : undefined}
     >
       {/* Background overlay */}
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
-          background:
-            'linear-gradient(to bottom, rgba(3, 47, 63, 0) 0%, rgba(3, 47, 63, 1) 100%)',
+          background: "linear-gradient(to bottom, rgba(3, 47, 63, 0) 0%, rgba(3, 47, 63, 1) 100%)",
         }}
       />
 
       {/* Additional opacity layer to match Figma */}
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.15)',
+          backgroundColor: "rgba(0, 0, 0, 0.15)",
         }}
       />
 
@@ -150,11 +148,11 @@ export default function VideoPlayer({
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleVideoEnd}
           style={{
-            position: 'absolute',
+            position: "absolute",
             inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
           }}
           muted={isMuted}
           playsInline
@@ -166,12 +164,12 @@ export default function VideoPlayer({
         <Box
           className="video-play-button"
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
             zIndex: 2,
-            cursor: 'pointer',
+            cursor: "pointer",
           }}
         >
           <IconButton
@@ -183,11 +181,11 @@ export default function VideoPlayer({
               backgroundColor: (theme) =>
                 `rgb(${theme.vars.palette.common.backgroundChannel} / 0.9)`,
               color: (theme) => theme.vars.palette.primary.main,
-              '&:hover': {
+              "&:hover": {
                 backgroundColor: (theme) => theme.vars.palette.common.white,
-                transform: 'scale(1.2)',
+                transform: "scale(1.2)",
               },
-              '&:disabled': {
+              "&:disabled": {
                 backgroundColor: (theme) =>
                   `rgba(${theme.vars.palette.common.backgroundChannel} / 0.5)`,
                 color: (theme) => theme.vars.palette.text.disabled,
@@ -205,14 +203,14 @@ export default function VideoPlayer({
         <Box
           className="video-controls"
           sx={{
-            position: 'absolute',
+            position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
-            background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)',
+            background: "linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)",
             padding: 2,
             opacity: showControls || !isPlaying ? 1 : 0,
-            transition: 'opacity 0.3s ease',
+            transition: "opacity 0.3s ease",
             zIndex: 3,
           }}
         >
@@ -225,14 +223,14 @@ export default function VideoPlayer({
               onChange={handleSeek}
               sx={{
                 color: (theme) => theme.vars.palette.primary.main,
-                '& .MuiSlider-thumb': {
+                "& .MuiSlider-thumb": {
                   width: 12,
                   height: 12,
                 },
-                '& .MuiSlider-track': {
+                "& .MuiSlider-track": {
                   height: 4,
                 },
-                '& .MuiSlider-rail': {
+                "& .MuiSlider-rail": {
                   height: 4,
                   backgroundColor: (theme) =>
                     `rgba(${theme.vars.palette.common.backgroundChannel} / 0.3)`,
@@ -246,16 +244,16 @@ export default function VideoPlayer({
               <Stack direction="row" alignItems="center" spacing={1}>
                 <IconButton
                   onClick={(e) => {
-                    e.stopPropagation()
-                    togglePlay()
+                    e.stopPropagation();
+                    togglePlay();
                   }}
-                  sx={{ color: 'white' }}
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                  sx={{ color: "white" }}
+                  aria-label={isPlaying ? "Pause" : "Play"}
                 >
                   {isPlaying ? <Pause /> : <PlayArrow />}
                 </IconButton>
 
-                <Typography variant="caption" sx={{ color: 'white', minWidth: 80 }}>
+                <Typography variant="caption" sx={{ color: "white", minWidth: 80 }}>
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </Typography>
               </Stack>
@@ -263,11 +261,11 @@ export default function VideoPlayer({
               <Stack direction="row" alignItems="center" spacing={1}>
                 <IconButton
                   onClick={(e) => {
-                    e.stopPropagation()
-                    toggleMute()
+                    e.stopPropagation();
+                    toggleMute();
                   }}
-                  sx={{ color: 'white' }}
-                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  sx={{ color: "white" }}
+                  aria-label={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <VolumeOff /> : <VolumeUp />}
                 </IconButton>
@@ -278,14 +276,14 @@ export default function VideoPlayer({
                   sx={{
                     width: 80,
                     color: (theme) => theme.vars.palette.primary.main,
-                    '& .MuiSlider-thumb': {
+                    "& .MuiSlider-thumb": {
                       width: 8,
                       height: 8,
                     },
-                    '& .MuiSlider-track': {
+                    "& .MuiSlider-track": {
                       height: 2,
                     },
-                    '& .MuiSlider-rail': {
+                    "& .MuiSlider-rail": {
                       height: 2,
                       backgroundColor: (theme) =>
                         `rgba(${theme.vars.palette.common.backgroundChannel} / 0.3)`,
@@ -301,20 +299,20 @@ export default function VideoPlayer({
 
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 24,
           left: 24,
           right: 24,
           zIndex: 1,
           ...(src && isPlaying && { opacity: 0 }),
-          transition: 'opacity 0.3s ease',
+          transition: "opacity 0.3s ease",
         }}
       >
         <Typography
           variant="h3"
           sx={{
             color: (theme) => theme.vars.palette.common.white,
-            fontFamily: 'Roboto Condensed',
+            fontFamily: "Roboto Condensed",
             fontWeight: 500,
             fontSize: { xs: 24, sm: 32 },
             lineHeight: 1.1,
@@ -338,7 +336,7 @@ export default function VideoPlayer({
       {showSeries && (
         <Box
           sx={(theme) => ({
-            position: 'absolute',
+            position: "absolute",
             top: 6.58,
             left: 8.22,
             backgroundColor: theme.vars.palette.secondary.main,
@@ -346,10 +344,10 @@ export default function VideoPlayer({
             px: theme.spacing(1),
             py: theme.spacing(1),
             zIndex: 2,
-            boxShadow: '0px 0.506px 1.012px 0px rgba(68, 100, 214, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1.403px',
+            boxShadow: "0px 0.506px 1.012px 0px rgba(68, 100, 214, 0.08)",
+            display: "flex",
+            alignItems: "center",
+            gap: "1.403px",
           })}
         >
           <Typography
@@ -365,5 +363,5 @@ export default function VideoPlayer({
         </Box>
       )}
     </Box>
-  )
+  );
 }

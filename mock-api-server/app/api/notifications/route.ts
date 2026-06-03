@@ -1,41 +1,46 @@
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import type { NextRequest } from "next/server";
 
-import type { components } from '@/types/api'
-import { supabase } from '@/utils/supabase/client'
-import { handleCors, withCors } from '@/utils/cors'
+import { NextResponse } from "next/server";
 
-type CreateNotificationInput = components['schemas']['CreateNotificationInput']
+import type { components } from "@/types/api";
+
+import { handleCors, withCors } from "@/utils/cors";
+import { supabase } from "@/utils/supabase/client";
+
+type CreateNotificationInput = components["schemas"]["CreateNotificationInput"];
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url)
-    const clientTicker = searchParams.get('clientTicker')
-    const meetingId = searchParams.get('meetingId')
-    const type = searchParams.get('type')
-    const userId = searchParams.get('userId')
+    const { searchParams } = new URL(request.url);
+    const clientTicker = searchParams.get("clientTicker");
+    const meetingId = searchParams.get("meetingId");
+    const type = searchParams.get("type");
+    const userId = searchParams.get("userId");
 
     let query = supabase
-      .from('notification')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50)
+      .from("notification")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    type NotificationType = 'info' | 'warning' | 'error' | 'success'
-    const validQueryTypes: NotificationType[] = ['info', 'warning', 'error', 'success']
+    type NotificationType = "info" | "warning" | "error" | "success";
+    const validQueryTypes: NotificationType[] = ["info", "warning", "error", "success"];
 
-    if (userId) query = query.eq('user_id', userId)
-    if (meetingId) query = query.eq('meeting_id', meetingId)
+    if (userId) query = query.eq("user_id", userId);
+    if (meetingId) query = query.eq("meeting_id", meetingId);
     if (type && validQueryTypes.includes(type as NotificationType))
-      query = query.eq('type', type as NotificationType)
-    if (clientTicker) query = query.ilike('action_url', `%/${clientTicker}/%`)
+      query = query.eq("type", type as NotificationType);
+    if (clientTicker) query = query.ilike("action_url", `%/${clientTicker}/%`);
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: 'Failed to fetch notifications', message: error.message }, { status: 500 })
-      )
+        NextResponse.json(
+          { error: "Failed to fetch notifications", message: error.message },
+          { status: 500 },
+        ),
+      );
     }
 
     const notifications = (data ?? []).map((n) => ({
@@ -52,46 +57,44 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       createdAt: n.created_at,
       readAt: n.read_at,
       expiresAt: n.expires_at,
-    }))
+    }));
 
-    return withCors(NextResponse.json(notifications))
+    return withCors(NextResponse.json(notifications));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'listNotifications',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "listNotifications",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as CreateNotificationInput
+    const body = (await request.json()) as CreateNotificationInput;
 
     if (!body.userId || !body.title || !body.message) {
       return withCors(
-        NextResponse.json({ error: 'userId, title, and message are required' }, { status: 400 })
-      )
+        NextResponse.json({ error: "userId, title, and message are required" }, { status: 400 }),
+      );
     }
 
-    type NotificationType = 'info' | 'success' | 'warning' | 'error'
-    type NotificationPriority = 'low' | 'medium' | 'high' | 'critical'
-    const validTypes: NotificationType[] = ['info', 'success', 'warning', 'error']
-    const validPriorities: NotificationPriority[] = ['low', 'medium', 'high', 'critical']
-    const type: NotificationType = validTypes.includes(body.type as NotificationType)
-      ? (body.type as NotificationType)
-      : 'info'
-    const priority: NotificationPriority = validPriorities.includes(body.priority as NotificationPriority)
-      ? (body.priority as NotificationPriority)
-      : 'medium'
+    type NotificationType = "info" | "success" | "warning" | "error";
+    type NotificationPriority = "low" | "medium" | "high" | "critical";
+    const validTypes: NotificationType[] = ["info", "success", "warning", "error"];
+    const validPriorities: NotificationPriority[] = ["low", "medium", "high", "critical"];
+    const type: NotificationType = validTypes.includes(body.type) ? body.type : "info";
+    const priority: NotificationPriority = validPriorities.includes(body.priority)
+      ? body.priority
+      : "medium";
 
     const { data, error } = await supabase
-      .from('notification')
+      .from("notification")
       .insert({
         user_id: body.userId,
         meeting_id: body.meetingId ?? null,
@@ -103,12 +106,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         read: false,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: 'Failed to create notification', message: error.message }, { status: 500 })
-      )
+        NextResponse.json(
+          { error: "Failed to create notification", message: error.message },
+          { status: 500 },
+        ),
+      );
     }
 
     return withCors(
@@ -125,19 +131,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           actionUrl: data.action_url,
           createdAt: data.created_at,
         },
-        { status: 201 }
-      )
-    )
+        { status: 201 },
+      ),
+    );
   } catch (error) {
     return withCors(
       NextResponse.json(
-        { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
-        { status: 500 }
-      )
-    )
+        {
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 500 },
+      ),
+    );
   }
 }
 
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }

@@ -1,4 +1,4 @@
-import { unstable_cache as nextUnstableCache, revalidateTag } from 'next/cache'
+import { unstable_cache as nextUnstableCache, revalidateTag } from "next/cache";
 
 /**
  * Cache tag constants. Use these to group related cached fetches so we can
@@ -10,7 +10,7 @@ export const CACHE_TAGS = {
   CLIENT: (clientTicker: string) => `client:${clientTicker.toLowerCase()}`,
   TASKS_BY_MEETING: (meetingId: string) => `tasks:meeting:${meetingId}`,
   POSITIONS_BY_MEETING: (meetingId: string) => `positions:meeting:${meetingId}`,
-} as const
+} as const;
 
 /**
  * Helper to wrap an async function with Next's server data cache while assigning tags.
@@ -24,22 +24,22 @@ export const CACHE_TAGS = {
 export function cacheFn<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
   tagBuilder: (...args: TArgs) => string[],
-  options: { revalidate?: number } = {}
+  options: { revalidate?: number } = {},
 ): (...args: TArgs) => Promise<TReturn> {
   return async (...args: TArgs): Promise<TReturn> => {
-    const builtTags = tagBuilder(...args)
-    const key = JSON.stringify(['cacheFn', fn.name ?? 'anon', args])
+    const builtTags = tagBuilder(...args);
+    const key = JSON.stringify(["cacheFn", fn.name ?? "anon", args]);
     const cached = nextUnstableCache(async () => fn(...args), [key], {
       tags: builtTags,
       revalidate: options.revalidate ?? 60,
-    })
-    return cached()
-  }
+    });
+    return cached();
+  };
 }
 
 /**
  * Invalidate a set of cache tags.
  */
 export function invalidateTags(tags: string[]) {
-  for (const tag of tags) revalidateTag(tag, 'default')
+  for (const tag of tags) revalidateTag(tag, "default");
 }

@@ -1,12 +1,13 @@
-import React from 'react'
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import type { NextRequest } from "next/server";
 
-import { DocumentUpdateNotification } from '@/emails/DocumentUpdateNotification'
-import { TabulationReportEmail } from '@/emails/TabulationReportEmail'
-import { getEmailService } from '@/lib/email/EmailService'
-import { handleCors, withCors } from '@/utils/cors'
+import { NextResponse } from "next/server";
+import React from "react";
+import { z } from "zod";
+
+import { DocumentUpdateNotification } from "@/emails/DocumentUpdateNotification";
+import { TabulationReportEmail } from "@/emails/TabulationReportEmail";
+import { getEmailService } from "@/lib/email/EmailService";
+import { handleCors, withCors } from "@/utils/cors";
 
 const DocumentUpdateNotificationSchema = z.object({
   meetingType: z.string().min(1),
@@ -18,7 +19,7 @@ const DocumentUpdateNotificationSchema = z.object({
   uploadDate: z.string().min(1),
   viewDocumentUrl: z.string().url(),
   portalBaseUrl: z.string().url(),
-})
+});
 
 const TabulationReportProposalSchema = z.object({
   number: z.string(),
@@ -28,7 +29,7 @@ const TabulationReportProposalSchema = z.object({
   votesAgainst: z.number().int().nonnegative(),
   votesAbstain: z.number().int().nonnegative(),
   votesNotCast: z.number().int().nonnegative(),
-})
+});
 
 const TabulationReportSchema = z.object({
   companyName: z.string().min(1),
@@ -44,85 +45,93 @@ const TabulationReportSchema = z.object({
   quorumMet: z.boolean(),
   viewTabulationUrl: z.string().url(),
   portalBaseUrl: z.string().url(),
-})
+});
 
-const SendEmailSchema = z.discriminatedUnion('templateKey', [
+const SendEmailSchema = z.discriminatedUnion("templateKey", [
   z.object({
-    templateKey: z.literal('document-update-notification'),
+    templateKey: z.literal("document-update-notification"),
     to: z.array(z.string().email()).min(1),
     props: DocumentUpdateNotificationSchema,
   }),
   z.object({
-    templateKey: z.literal('tabulation-daily-report'),
+    templateKey: z.literal("tabulation-daily-report"),
     to: z.array(z.string().email()).min(1),
     props: TabulationReportSchema,
   }),
-])
+]);
 
-type SendEmailPayload = z.infer<typeof SendEmailSchema>
+type SendEmailPayload = z.infer<typeof SendEmailSchema>;
 
 const TEMPLATE_REGISTRY: Record<string, (props: unknown) => React.ReactElement> = {
-  'document-update-notification': (props) =>
-    React.createElement(DocumentUpdateNotification, props as React.ComponentProps<typeof DocumentUpdateNotification>),
-  'tabulation-daily-report': (props) =>
-    React.createElement(TabulationReportEmail, props as React.ComponentProps<typeof TabulationReportEmail>),
-}
+  "document-update-notification": (props) =>
+    React.createElement(
+      DocumentUpdateNotification,
+      props as React.ComponentProps<typeof DocumentUpdateNotification>,
+    ),
+  "tabulation-daily-report": (props) =>
+    React.createElement(
+      TabulationReportEmail,
+      props as React.ComponentProps<typeof TabulationReportEmail>,
+    ),
+};
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  if (process.env.ENABLE_EMAILS !== 'true') {
+  if (process.env.ENABLE_EMAILS !== "true") {
     return withCors(
       NextResponse.json(
-        { error: 'Email sending is disabled. Set ENABLE_EMAILS=true in mock-api-server/.env.local' },
-        { status: 503 }
-      )
-    )
+        {
+          error: "Email sending is disabled. Set ENABLE_EMAILS=true in mock-api-server/.env.local",
+        },
+        { status: 503 },
+      ),
+    );
   }
 
   try {
-    const body: unknown = await request.json()
-    const parsed = SendEmailSchema.safeParse(body)
+    const body: unknown = await request.json();
+    const parsed = SendEmailSchema.safeParse(body);
 
     if (!parsed.success) {
       return withCors(
         NextResponse.json(
-          { error: 'Invalid payload', details: parsed.error.flatten() },
-          { status: 400 }
-        )
-      )
+          { error: "Invalid payload", details: parsed.error.flatten() },
+          { status: 400 },
+        ),
+      );
     }
 
-    const { templateKey, to, props } = parsed.data
-    const renderTemplate = TEMPLATE_REGISTRY[templateKey]
+    const { templateKey, to, props } = parsed.data;
+    const renderTemplate = TEMPLATE_REGISTRY[templateKey];
 
-    const subject = buildSubject(parsed.data)
-    const element = renderTemplate(props)
-    const service = getEmailService()
-    const result = await service.send({ to, subject, react: element })
+    const subject = buildSubject(parsed.data);
+    const element = renderTemplate(props);
+    const service = getEmailService();
+    const result = await service.send({ to, subject, react: element });
 
-    return withCors(NextResponse.json({ data: { id: result.id } }))
+    return withCors(NextResponse.json({ data: { id: result.id } }));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 function buildSubject(payload: SendEmailPayload): string {
-  if (payload.templateKey === 'document-update-notification') {
-    return `Document Update: ${payload.props.documentName} — ${payload.props.meetingType}`
+  if (payload.templateKey === "document-update-notification") {
+    return `Document Update: ${payload.props.documentName} — ${payload.props.meetingType}`;
   }
-  if (payload.templateKey === 'tabulation-daily-report') {
-    return `Daily Tabulation Report — ${payload.props.companyName} · ${payload.props.daysUntilMeeting}d until meeting`
+  if (payload.templateKey === "tabulation-daily-report") {
+    return `Daily Tabulation Report — ${payload.props.companyName} · ${payload.props.daysUntilMeeting}d until meeting`;
   }
-  return 'BetaNXT Issuer Portal Notification'
+  return "BetaNXT Issuer Portal Notification";
 }
 
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }
