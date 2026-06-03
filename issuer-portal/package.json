@@ -41,6 +41,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "ai": "^6.0.116",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.23.22",
     "mammoth": "^1.11.0",
     "motion": "^12.23.12",
