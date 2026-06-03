@@ -5,7 +5,8 @@
       "WebFetch(domain:docs.brandfetch.com)",
       "mcp__figma__get_design_context",
       "mcp__figma__get_screenshot",
-      "Bash(supabase db reset --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres)"
+      "Bash(supabase db reset --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres)",
+      "Bash(vercel env *)"
     ]
   }
 }
