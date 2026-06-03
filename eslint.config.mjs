@@ -92,6 +92,9 @@ export default [
       "react/prop-types": "off", // TypeScript handles this
       "react/react-in-jsx-scope": "off", // Not needed in React 17+
 
+      // App Router project — no root pages/ dir, so this rule only emits noise
+      "@next/next/no-html-link-for-pages": "off",
+
       // TypeScript rules
       "@typescript-eslint/no-unused-vars": [
         "warn",
