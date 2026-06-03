@@ -1071,7 +1071,7 @@ async function validateSeedData() {
     if (totalErrors > 0) {
       process.exit(1);
     }
-  } catch (_error) {
+  } catch {
     process.exit(1);
   }
 }

@@ -81,7 +81,7 @@ export default function ProductLayout({
           {rightColumnContent}
         </Box>
       </Box>
-      {documentViewer && documentViewer}
+      {documentViewer}
     </Container>
   );
 }

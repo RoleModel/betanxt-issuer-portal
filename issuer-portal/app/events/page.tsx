@@ -61,7 +61,6 @@ export default function EventsPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllClients, setShowAllClients] = useState(false);
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   const userType = session?.user?.type ?? "PARENT_CLIENT";
   const isCSM = userType === "CSM";
@@ -91,10 +90,8 @@ export default function EventsPage() {
       filtered = filtered.filter((row) => assignedTickers.has(row.clientTicker.toUpperCase()));
     }
 
-    // Active-only filter: hide COMPLETE meetings unless the user opts in
-    if (showActiveOnly) {
-      filtered = filtered.filter((row) => row.meetingStatus === "ACTIVE");
-    }
+    // Events page only lists upcoming/active meetings. Completed meetings live in Past Events.
+    filtered = filtered.filter((row) => row.meetingStatus === "ACTIVE");
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -129,7 +126,7 @@ export default function EventsPage() {
 
       return 0;
     });
-  }, [events, searchQuery, order, orderBy, isFiltered, assignedTickers, showActiveOnly]);
+  }, [events, searchQuery, order, orderBy, isFiltered, assignedTickers]);
 
   const paginatedEvents = useMemo(
     () => filteredAndSortedEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
@@ -157,33 +154,6 @@ export default function EventsPage() {
           title={"Events"}
           action={
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Tooltip
-                title={
-                  showActiveOnly
-                    ? "Showing upcoming meetings only. Click to include past meetings."
-                    : "Showing all meetings including past. Click to show upcoming only."
-                }
-              >
-                <Chip
-                  label={showActiveOnly ? "Upcoming" : "All meetings"}
-                  size="small"
-                  color={showActiveOnly ? "success" : "default"}
-                  variant={showActiveOnly ? "filled" : "outlined"}
-                  onClick={() => {
-                    setShowActiveOnly((v) => !v);
-                    setPage(0);
-                  }}
-                  onDelete={
-                    showActiveOnly
-                      ? () => {
-                          setShowActiveOnly(false);
-                          setPage(0);
-                        }
-                      : undefined
-                  }
-                  sx={{ cursor: "pointer" }}
-                />
-              </Tooltip>
               {isCSM && assignedTickers && (
                 <Tooltip
                   title={
@@ -333,11 +303,9 @@ export default function EventsPage() {
                           <Typography color="text.secondary">
                             {searchQuery
                               ? "No events match your search."
-                              : showActiveOnly
-                                ? 'No upcoming events found. Click "Upcoming" to show all meetings.'
-                                : isFiltered
-                                  ? "No events for your assigned clients."
-                                  : "No events found."}
+                              : isFiltered
+                                ? "No upcoming events for your assigned clients."
+                                : "No upcoming events found."}
                           </Typography>
                         </TableCell>
                       </TableRow>

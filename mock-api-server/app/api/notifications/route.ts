@@ -12,7 +12,7 @@ type CreateNotificationInput = components["schemas"]["CreateNotificationInput"];
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
-    const clientTicker = searchParams.get("clientTicker");
+    const clientTicker = searchParams.get("ticker");
     const meetingId = searchParams.get("meetingId");
     const type = searchParams.get("type");
     const userId = searchParams.get("userId");

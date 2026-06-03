@@ -89,7 +89,7 @@ export default function PositionsTable({ positions, loading = false }: Positions
         day: "2-digit",
         year: "numeric",
       });
-    } catch (_error) {
+    } catch {
       return "";
     }
   };

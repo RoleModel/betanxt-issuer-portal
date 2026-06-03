@@ -314,24 +314,15 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
 export const useMeetingData = (meetingId?: string, meeting?: Meeting): UseMeetingDataResult => {
   const swrKey = meetingId ? `/meeting-data/${meetingId}` : null;
 
-  const { data, error, isLoading, mutate } = useSWR(
-    swrKey,
-    () => {
-      return fetchMeetingData(meetingId!);
-    },
-    {
-      // Disable all caching for debugging
-      revalidateOnFocus: false,
-      revalidateOnMount: true,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
-      dedupingInterval: 0,
-      shouldRetryOnError: false,
-      errorRetryCount: 0,
-    },
-  );
+  const { data, error, isLoading, mutate } = useSWR(swrKey, () => fetchMeetingData(meetingId!), {
+    revalidateOnFocus: false,
+    revalidateOnMount: true,
+    revalidateOnReconnect: true,
+    refreshInterval: 30000,
+    dedupingInterval: 10000,
+    errorRetryCount: 2,
+    keepPreviousData: true,
+  });
 
   return {
     data: data ? { ...data, meeting } : { phases: [], proposals: [], votingSummary: null, meeting },

@@ -9,6 +9,8 @@ import { TabulationReportEmail } from "@/emails/TabulationReportEmail";
 import { getEmailService } from "@/lib/email/EmailService";
 import { handleCors, withCors } from "@/utils/cors";
 
+export const runtime = "nodejs";
+
 const DocumentUpdateNotificationSchema = z.object({
   meetingType: z.string().min(1),
   issuerAccountName: z.string().min(1),

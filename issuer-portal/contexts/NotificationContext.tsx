@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import type { components } from "@/types/api";
@@ -84,6 +85,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { currentClient } = useClient();
+  const { data: session } = useSession();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -92,8 +94,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       setLoading(true);
       setError(null);
 
-      // Only fetch if we have a current client
-      if (!currentClient?.ticker) {
+      // Only fetch if we have a current client and a logged-in user
+      if (!currentClient?.ticker || !session?.user?.id) {
         setNotifications([]);
         setLoading(false);
         return;
@@ -103,6 +105,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       const { data, error } = await apiClient.GET("/notifications", {
         params: {
           query: {
+            userId: session.user.id,
             ticker: currentClient.ticker,
           },
         },
@@ -123,7 +126,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } finally {
       setLoading(false);
     }
-  }, [currentClient?.ticker]);
+  }, [currentClient?.ticker, session?.user?.id]);
 
   const markAsRead = useCallback(
     async (notificationId: string) => {

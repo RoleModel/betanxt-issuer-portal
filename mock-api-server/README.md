@@ -356,6 +356,161 @@ We are using custom TypeScript seed files to generate our seed data to populate 
    SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
    ```
 
+## Email System
+
+The mock API server includes a local email system for previewing and testing transactional emails without depending on the production backend. Email templates are built with React Email, rendered on the server, and sent through a pluggable provider selected by environment variables.
+
+### How the flow works
+
+```text
+Email preview UI or frontend feature
+  -> POST /api/emails/send
+  -> validate payload with the template-specific Zod schema
+  -> find the React Email template in TEMPLATE_REGISTRY
+  -> build the email subject from the template payload
+  -> getEmailService selects noop, Resend, or SMTP
+  -> render HTML and plain text with @react-email/render
+  -> provider sends the message or writes a local preview file
+```
+
+The main send endpoint is `POST /api/emails/send`. It is intentionally disabled unless `ENABLE_EMAILS=true` is set, so local development cannot accidentally send messages.
+
+### Templates
+
+| Template key                     | Component                                | Purpose                                                      |
+| -------------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| `document-update-notification`   | `emails/DocumentUpdateNotification.tsx`  | Notifies an issuer account when a workflow document changes. |
+| `tabulation-daily-report`        | `emails/TabulationReportEmail.tsx`       | Sends a daily tabulation progress summary before a meeting.  |
+
+Each template has:
+
+- Props defined in `emails/types.ts`
+- Runtime validation in `app/api/emails/send/route.ts`
+- Preview fixture data in `app/api/emails/preview/route.ts`
+- Shared layout, header, footer, logo, and style primitives under `emails/components/`
+
+### Local preview
+
+Use the built-in preview page while the mock API server is running:
+
+```bash
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3001/email-preview
+```
+
+The preview UI renders fixture data through `GET /api/emails/preview?template={templateKey}` and can send a test email through `POST /api/emails/send`.
+
+You can also run the standalone React Email preview server:
+
+```bash
+cd mock-api-server
+npm run email:dev
+```
+
+This opens the React Email preview app on `http://localhost:3030`.
+
+### Provider modes
+
+The provider is selected in `lib/email/EmailService.ts`.
+
+| Mode     | Required environment variables                                | Behavior                                                                 |
+| -------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `noop`   | None                                                          | Local fallback. Renders HTML to a temp file and logs a preview URL.      |
+| `resend` | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`       | Sends with Resend using rendered HTML and plain-text output.             |
+| `smtp`   | `EMAIL_PROVIDER=smtp`, `EMAIL_SMTP_HOST`, SMTP auth, `EMAIL_FROM` | Sends with Nodemailer and verifies the SMTP connection on initialization. |
+
+Example `.env.local` for SMTP/Gmail:
+
+```bash
+ENABLE_EMAILS=true
+EMAIL_PROVIDER=smtp
+EMAIL_FROM="BetaNXT Issuer Portal <noreply@betanxt.com>"
+EMAIL_SMTP_HOST=smtp.gmail.com
+EMAIL_SMTP_PORT=587
+EMAIL_SMTP_SECURE=false
+EMAIL_SMTP_USER=your-smtp-user
+EMAIL_SMTP_PASS=your-smtp-password
+PORTAL_BASE_URL=https://your-portal.example.com
+```
+
+For Gmail SMTP, `EMAIL_FROM` should use the same address as `EMAIL_SMTP_USER`, or a Gmail/Google Workspace alias that the authenticated account is explicitly allowed to send from. Gmail may rewrite or reject messages when the `From` address is not authorized for the SMTP account.
+
+For local development, if `EMAIL_PROVIDER` is missing, unsupported, or missing its required credentials, the server falls back to noop mode. Noop mode still returns an id that starts with `noop-`, but no external email is sent.
+
+For Vercel deployments, `ENABLE_EMAILS=true` requires a real provider configuration. If email sending is enabled on Vercel but the provider or credentials are missing, the API returns a clear provider configuration error instead of silently returning a noop id.
+
+### Vercel deployment checklist
+
+Use the same Gmail SMTP provider in Vercel that is used locally.
+
+Set these environment variables on the Vercel project that deploys `mock-api-server`:
+
+- `ENABLE_EMAILS=true`
+- `EMAIL_PROVIDER=smtp`
+- `EMAIL_FROM` using the same Gmail account as `EMAIL_SMTP_USER`, or an authorized Gmail/Workspace send-as alias
+- `EMAIL_SMTP_HOST=smtp.gmail.com`
+- `EMAIL_SMTP_PORT=587`
+- `EMAIL_SMTP_SECURE=false`
+- `EMAIL_SMTP_USER`
+- `EMAIL_SMTP_PASS`
+- `PORTAL_BASE_URL`
+- `CRON_SECRET` if using the scheduled tabulation distribution cron
+
+The cron job in `vercel.json` calls `GET /api/cron/tabulation-distribute` daily at 8:00 UTC. The route also supports `POST` for the manual send-now flow in the issuer portal.
+
+### Send API shape
+
+```http
+POST /api/emails/send
+Content-Type: application/json
+```
+
+```json
+{
+  "templateKey": "document-update-notification",
+  "to": ["issuer@example.com"],
+  "props": {
+    "meetingType": "Annual Meeting",
+    "issuerAccountName": "Wendy's",
+    "documentName": "Proxy Notice",
+    "uploaderName": "Sarah Chen",
+    "documentDescription": "Sarah Chen has uploaded the first draft of the Proxy Notice.",
+    "uploadDate": "2026-06-02T12:00:00.000Z",
+    "viewDocumentUrl": "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/documents",
+    "portalBaseUrl": "http://localhost:3000"
+  }
+}
+```
+
+Successful responses return:
+
+```json
+{
+  "data": {
+    "id": "provider-message-id"
+  }
+}
+```
+
+Validation failures return `400`, disabled sending returns `503`, and provider failures return `500` with the provider error message.
+
+### Adding a template
+
+1. Create the React Email component under `emails/`.
+2. Add its prop interface to `emails/types.ts`.
+3. Add a template-specific Zod schema to `app/api/emails/send/route.ts`.
+4. Register the template in `TEMPLATE_REGISTRY`.
+5. Add subject handling in `buildSubject`.
+6. Add fixture props and preview routing in `app/api/emails/preview/route.ts`.
+7. Add the template option to `app/email-preview/EmailPreviewClient.tsx`.
+
+See `emails/README.md` for template-specific notes.
+
 # API Documentation
 
 ## Core Endpoints

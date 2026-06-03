@@ -11,6 +11,8 @@ import { getEmailService } from "@/lib/email/EmailService";
 import { handleCors, withCors } from "@/utils/cors";
 import { supabase } from "@/utils/supabase/client";
 
+export const runtime = "nodejs";
+
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 type MeetingRow = Database["public"]["Tables"]["meeting"]["Row"];
 type TabulationDistributeResult = components["schemas"]["TabulationDistributeResult"];
@@ -68,7 +70,7 @@ interface MeetingEmailData {
 
 async function getMeetingEmailData(
   meetingId: string,
-  meetingTotalSharesOutstanding: number | null | undefined,
+  meetingTotalSharesOutstanding: number | string | null | undefined,
   meetingQuorumRequirement: number | null | undefined,
 ): Promise<MeetingEmailData> {
   const { data: rows } = await supabase
@@ -121,7 +123,7 @@ async function getMeetingEmailData(
   };
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
     const authHeader = request.headers.get("authorization");
@@ -302,6 +304,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ),
     );
   }
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return handleDistribute(request);
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  return handleDistribute(request);
 }
 
 export function OPTIONS() {

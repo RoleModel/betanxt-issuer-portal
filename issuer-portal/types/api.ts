@@ -3383,6 +3383,8 @@ export interface operations {
   listNotifications: {
     parameters: {
       query?: {
+        /** @description Filter notifications by user ID (scopes results to a specific user) */
+        userId?: string;
         /** @description Filter notifications by client ticker */
         ticker?: string;
         /** @description Filter notifications by meeting ID */

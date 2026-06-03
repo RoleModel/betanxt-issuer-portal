@@ -21,10 +21,20 @@ export function handleCors() {
 }
 
 /**
- * Add CORS headers to a NextResponse
+ * Add CORS headers to a NextResponse.
+ * Pass `revalidate` (seconds) on GET responses to enable browser-level HTTP caching
+ * with stale-while-revalidate so clients never block on a cache miss.
  */
-export function withCors(response: NextResponse, origin = "*") {
+export function withCors(response: NextResponse, origin = "*", revalidate?: number) {
   response.headers.set("Access-Control-Allow-Origin", origin);
   response.headers.set("Access-Control-Allow-Credentials", "true");
+
+  if (revalidate !== undefined) {
+    response.headers.set(
+      "Cache-Control",
+      `private, max-age=${revalidate}, stale-while-revalidate=${revalidate * 2}`,
+    );
+  }
+
   return response;
 }

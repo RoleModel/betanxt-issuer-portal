@@ -77,27 +77,6 @@ function fixNullishCoalescing(content) {
 }
 
 /**
- * Fix require-await: Remove async keyword from functions with no await
- */
-function fixRequireAwait(content) {
-  // This is tricky to do safely with regex, so we'll rely on ESLint --fix for this
-  return content;
-}
-
-/**
- * Fix prefer-promise-reject-errors: Ensure rejections use Error objects
- */
-function fixPromiseRejectErrors(content) {
-  // Pattern: reject(something) where something is not 'new Error'
-  let fixed = content;
-
-  // reject(variable) -> reject(variable instanceof Error ? variable : new Error(...))
-  // This is complex, better handled case-by-case
-
-  return fixed;
-}
-
-/**
  * Process a single file
  */
 function processFile(filePath) {
@@ -158,14 +137,14 @@ function main() {
   console.log("🏃 Running ESLint with --fix...\n");
   try {
     execSync("npm run lint -- --fix", { stdio: "inherit", cwd: __dirname });
-  } catch (error) {
+  } catch {
     // ESLint exits with error code if there are unfixed errors, which is expected
   }
 
   console.log("\n📊 Final lint status:\n");
   try {
     execSync("npm run lint 2>&1 | tail -20", { stdio: "inherit", cwd: __dirname });
-  } catch (error) {
+  } catch {
     // Expected if there are still errors
   }
 }

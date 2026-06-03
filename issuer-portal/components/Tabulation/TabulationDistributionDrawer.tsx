@@ -80,7 +80,6 @@ export function TabulationDistributionDrawer({
 }: TabulationDistributionDrawerProps) {
   const { data: session } = useSession();
   const isCSM = session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
-
   const [open, setOpen] = useState(false);
   const [distribution, setDistribution] = useState<TabulationDistribution>(() => ({
     enabled: false,

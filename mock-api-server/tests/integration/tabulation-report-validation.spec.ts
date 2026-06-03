@@ -14,7 +14,7 @@ test.describe("Tabulation Report Fix Validation", () => {
     console.warn("✅ 2025 Wendy's Annual Meeting Data:");
     console.warn(`📊 Meeting ID: ${data.meetingId}`);
     console.warn(
-      `📈 Total positions: ${data.positionsVoted?.voted + data.positionsVoted?.unvoted ?? "N/A"}`,
+      `📈 Total positions: ${data.positionsVoted != null ? data.positionsVoted.voted + data.positionsVoted.unvoted : "N/A"}`,
     );
     console.warn(`🗳️  Voted positions: ${data.positionsVoted?.voted ?? "N/A"}`);
     console.warn(`💰 Total shares: ${data.positionsVoted?.totalShares ?? "N/A"}`);

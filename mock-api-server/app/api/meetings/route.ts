@@ -10,6 +10,8 @@ import type { components } from "@/types/api";
 import { createMeeting, listMeetings } from "@/domain-models/api/meetings";
 import { handleCors, withCors } from "@/utils/cors";
 
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters

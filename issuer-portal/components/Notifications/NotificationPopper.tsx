@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   ClickAwayListener,
-  Fade,
   Paper,
   Popover,
   Stack,
@@ -16,7 +15,7 @@ import {
   styled,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -180,23 +179,18 @@ export function NotificationPopper({
     onClose?.();
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) {
       setPos(null);
       return;
     }
 
     const computePos = () => {
-      // Try to find the MUI AppBar in the DOM
       const appBar = document.querySelector("header.MuiAppBar-root");
       const appBarBottom = appBar?.getBoundingClientRect().bottom ?? 0;
-
-      // Fallback: if no app bar found, align to the anchorEl bottom
       const anchorBottom = anchorEl?.getBoundingClientRect().bottom ?? 0;
-
-      const top = Math.max(appBarBottom, anchorBottom) + 8; // 8px gap below bar
-      const left = window.innerWidth; // right edge of viewport
-
+      const top = Math.max(appBarBottom, anchorBottom) + 8;
+      const left = window.innerWidth;
       setPos({ top, left });
     };
 
@@ -211,17 +205,14 @@ export function NotificationPopper({
 
   return (
     <Popover
-      open={open && !!pos}
+      open={open}
       onClose={onClose}
       anchorReference="anchorPosition"
-      anchorPosition={pos ?? { top: 0, left: 0 }}
+      anchorPosition={
+        pos ?? { top: 64, left: typeof window !== "undefined" ? window.innerWidth : 0 }
+      }
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
-      slotProps={{
-        transition: {
-          component: Fade,
-        },
-      }}
     >
       <Paper
         elevation={12}
@@ -231,6 +222,7 @@ export function NotificationPopper({
           minWidth: { xs: "100%", sm: 400, md: 500 },
           overflow: "hidden",
           borderRadius: 2,
+          visibility: "visible !important",
           border: "1px solid",
           borderColor: (theme) => theme.vars?.palette?.divider,
         }}

@@ -13,6 +13,7 @@ import localFont from "next/font/local";
 import React from "react";
 
 import RootLayoutClient from "@/components/Layout/RootLayoutClient";
+import SWRProvider from "@/components/Layout/SWRProvider";
 import GlobalStyle from "@/components/mui-styling/GlobalStyles";
 import ThemeRegistry from "@/components/mui-styling/ThemeRegistry";
 import { ChatbotProvider } from "@/contexts/ChatbotContext";
@@ -66,20 +67,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
+        )}
+      </head>
       <body>
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider options={{ key: "mui", enableCssLayer: true }}>
           <SessionProvider>
-            <ClientProvider>
-              <NotificationProvider>
-                <ChatbotProvider>
-                  <ThemeRegistry>
-                    <GlobalStyle />
-                    <RootLayoutClient>{children}</RootLayoutClient>
-                  </ThemeRegistry>
-                </ChatbotProvider>
-              </NotificationProvider>
-            </ClientProvider>
+            <SWRProvider>
+              <ClientProvider>
+                <NotificationProvider>
+                  <ChatbotProvider>
+                    <ThemeRegistry>
+                      <GlobalStyle />
+                      <RootLayoutClient>{children}</RootLayoutClient>
+                    </ThemeRegistry>
+                  </ChatbotProvider>
+                </NotificationProvider>
+              </ClientProvider>
+            </SWRProvider>
           </SessionProvider>
         </AppRouterCacheProvider>
         <SpeedInsights />

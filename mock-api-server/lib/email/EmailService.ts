@@ -42,7 +42,7 @@ class ResendEmailService implements EmailService {
       subject: input.subject,
       html,
       text,
-      reply_to: input.replyTo,
+      replyTo: input.replyTo,
       cc: input.cc,
       bcc: input.bcc,
     });
@@ -62,14 +62,13 @@ class NoopEmailService implements EmailService {
     fs.writeFileSync(tmpFile, html, "utf-8");
 
     console.log("\n╔══════════════════════════════════════════════════════════════╗");
-    console.log("║  📧  EMAIL (no RESEND_API_KEY — not actually sent)           ║");
+    console.log("║  📧  EMAIL (noop provider — not actually sent)               ║");
     console.log("╠══════════════════════════════════════════════════════════════╣");
     console.log(`║  To:      ${input.to.join(", ").padEnd(52)}║`);
     console.log(`║  Subject: ${input.subject.substring(0, 52).padEnd(52)}║`);
     console.log(`║  Preview: file://${tmpFile.substring(0, 44).padEnd(44)}║`);
     console.log("╠══════════════════════════════════════════════════════════════╣");
-    console.log("║  Add RESEND_API_KEY to mock-api-server/.env.local to send   ║");
-    console.log("║  real emails → https://resend.com/api-keys                  ║");
+    console.log("║  Configure EMAIL_PROVIDER and credentials to send real mail ║");
     console.log("╚══════════════════════════════════════════════════════════════╝\n");
 
     return Promise.resolve({ id });
@@ -121,7 +120,7 @@ class SmtpEmailService implements EmailService {
       console.log(
         `[EmailService] Sent to ${input.to.join(", ")} — messageId: ${String(info.messageId)}`,
       );
-      return { id: info.messageId as string };
+      return { id: String(info.messageId) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[EmailService] SMTP send failed: ${msg}`);
@@ -134,8 +133,20 @@ let _instance: EmailService | null = null;
 let _instanceProvider: string | null = null;
 let _instanceFrom: string | null = null;
 
+function requiresConfiguredProvider(provider: string): boolean {
+  return process.env.VERCEL === "1" && process.env.ENABLE_EMAILS === "true" && provider !== "noop";
+}
+
+function createMissingProviderError(provider: string, missingKeys: string[]): Error {
+  const missing = missingKeys.join(", ");
+  return new Error(
+    `Email provider "${provider}" is not configured for Vercel. Missing: ${missing}. ` +
+      "Set these environment variables in the Vercel project before enabling emails.",
+  );
+}
+
 export function getEmailService(): EmailService {
-  const provider = process.env.EMAIL_PROVIDER ?? "noop";
+  const provider = (process.env.EMAIL_PROVIDER ?? "noop").toLowerCase();
   const from = process.env.EMAIL_FROM ?? "BetaNXT Issuer Portal <noreply@example.com>";
 
   // Re-create if provider or from address changed (e.g. after .env.local edit)
@@ -143,11 +154,30 @@ export function getEmailService(): EmailService {
     return _instance;
   }
 
-  if (provider === "resend" && process.env.RESEND_API_KEY) {
-    _instance = new ResendEmailService(process.env.RESEND_API_KEY, from);
-  } else if (provider === "smtp" && process.env.EMAIL_SMTP_HOST) {
-    _instance = new SmtpEmailService(from);
+  if (provider === "resend") {
+    if (!process.env.RESEND_API_KEY && requiresConfiguredProvider(provider)) {
+      throw createMissingProviderError(provider, ["RESEND_API_KEY"]);
+    }
+
+    _instance = process.env.RESEND_API_KEY
+      ? new ResendEmailService(process.env.RESEND_API_KEY, from)
+      : new NoopEmailService();
+  } else if (provider === "smtp") {
+    const missingKeys: string[] = [];
+    if (!process.env.EMAIL_SMTP_HOST) missingKeys.push("EMAIL_SMTP_HOST");
+    if (!process.env.EMAIL_SMTP_USER) missingKeys.push("EMAIL_SMTP_USER");
+    if (!process.env.EMAIL_SMTP_PASS) missingKeys.push("EMAIL_SMTP_PASS");
+
+    if (missingKeys.length > 0 && requiresConfiguredProvider(provider)) {
+      throw createMissingProviderError(provider, missingKeys);
+    }
+
+    _instance = missingKeys.length === 0 ? new SmtpEmailService(from) : new NoopEmailService();
   } else {
+    if (process.env.VERCEL === "1" && process.env.ENABLE_EMAILS === "true") {
+      throw createMissingProviderError("unknown", ["EMAIL_PROVIDER"]);
+    }
+
     _instance = new NoopEmailService();
   }
 

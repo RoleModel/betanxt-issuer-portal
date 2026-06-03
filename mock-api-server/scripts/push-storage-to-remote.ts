@@ -50,7 +50,7 @@ async function pushStorageToRemote() {
     if (updateError) {
       console.log("⚠️  Could not update bucket MIME types via RPC:", updateError.message);
     }
-  } catch (_err) {
+  } catch {
     console.log("⚠️  Skipping bucket MIME type update (RPC not available on remote)");
   }
 

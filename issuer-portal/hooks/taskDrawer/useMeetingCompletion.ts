@@ -43,7 +43,7 @@ export const useMeetingCompletion = ({
           overallCompletion: overallCompletion,
         },
       });
-    } catch (_error) {
+    } catch {
       // Non-fatal error
     }
   }, [currentMeeting, tasks, refetch]);

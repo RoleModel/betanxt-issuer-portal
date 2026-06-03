@@ -1,6 +1,6 @@
 # Email Templates
 
-React Email templates for the BetaNXT Issuer Portal, sent via Resend.
+React Email templates for the BetaNXT Issuer Portal, sent via Gmail SMTP in deployed environments.
 
 ## Available Templates
 
@@ -32,15 +32,21 @@ npm run email:dev
 
 **Noop mode (default for local dev)**: emails are logged to console, not sent.
 
-**Resend mode**: set in `.env.local`:
+**SMTP/Gmail mode**: set in `.env.local`:
 
 ```
-RESEND_API_KEY=re_...
 EMAIL_FROM="BetaNXT Issuer Portal <noreply@betanxt.com>"
-EMAIL_PROVIDER=resend
+EMAIL_PROVIDER=smtp
 ENABLE_EMAILS=true
+EMAIL_SMTP_HOST=smtp.gmail.com
+EMAIL_SMTP_PORT=587
+EMAIL_SMTP_SECURE=false
+EMAIL_SMTP_USER=your-gmail-address@example.com
+EMAIL_SMTP_PASS=your-gmail-app-password
 PORTAL_BASE_URL=https://your-portal.vercel.app
 ```
+
+For Gmail SMTP, `EMAIL_FROM` should match `EMAIL_SMTP_USER` or be a Gmail/Google Workspace send-as alias that account is authorized to use. Otherwise Gmail may rewrite the sender or reject the message.
 
 ## API
 

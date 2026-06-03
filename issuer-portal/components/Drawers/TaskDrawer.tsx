@@ -221,7 +221,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
             setCheckingSignedDocument(false);
           }
         };
-        void checkSignedDocument().catch((_error) => {
+        void checkSignedDocument().catch(() => {
           // Error handled silently - we just want to check if signed document exists
           setCheckingSignedDocument(false);
         });
@@ -506,7 +506,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
       // Clear files and close drawer
       clearUploadFiles();
       onClose();
-    } catch (_error) {
+    } catch {
       // Error handled silently - task submission failed
     } finally {
       setIsSubmittingTask(false);
@@ -523,7 +523,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
           // TODO: Add user information from session
         });
       }
-    } catch (_error) {
+    } catch {
       // Error handled silently - comment addition failed
     }
   };
@@ -1012,7 +1012,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({ open, onClose, task, onTaskUpda
                               overallCompletion: overallCompletion,
                             },
                           });
-                        } catch (_error) {
+                        } catch {
                           // Error handled silently - meeting update failed
                         }
                       }

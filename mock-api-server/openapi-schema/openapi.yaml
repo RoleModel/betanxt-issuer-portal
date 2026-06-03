@@ -2319,6 +2319,11 @@ paths:
       summary: List user notifications
       tags: [Notifications]
       parameters:
+        - name: userId
+          in: query
+          description: Filter notifications by user ID (scopes results to a specific user)
+          schema:
+            type: string
         - name: ticker
           in: query
           description: Filter notifications by client ticker

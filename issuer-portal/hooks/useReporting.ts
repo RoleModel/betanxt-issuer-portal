@@ -205,7 +205,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
       });
 
       return result;
-    } catch (_error) {
+    } catch {
       return { data: [] as Position[] };
     }
   });
@@ -266,25 +266,25 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
 
   try {
     mappedEventSummary = transformEventSummaryData(completedMeetings, allProposals, allPositions);
-  } catch (_error) {
+  } catch {
     mappedEventSummary = [];
   }
 
   try {
     mappedYearOverYear = transformYearOverYearData(yearOverYearData);
-  } catch (_error) {
+  } catch {
     mappedYearOverYear = [];
   }
 
   try {
     mappedProposalPerformanceData = transformProposalPerformanceData(allProposals);
-  } catch (_error) {
+  } catch {
     mappedProposalPerformanceData = [];
   }
 
   try {
     mappedAuditComplianceData = transformAuditComplianceData(auditComplianceData);
-  } catch (_error) {
+  } catch {
     mappedAuditComplianceData = [];
   }
 

@@ -273,7 +273,7 @@ export const {
         }
 
         return token;
-      } catch (_error) {
+      } catch {
         return token;
       }
     },

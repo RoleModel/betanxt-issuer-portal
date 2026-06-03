@@ -109,7 +109,7 @@ const getCurrentPath = (request: Request): string => {
 
   try {
     return new URL(referer).pathname;
-  } catch (_error) {
+  } catch {
     return "/";
   }
 };
@@ -1144,7 +1144,7 @@ const executePortalQuery = async ({
           positionsVoted: asRecord(report.positionsVoted),
           setKeys: asStringArray(report.setKeys),
         };
-      } catch (_error) {
+      } catch {
         const positions = await fetchMeetingPositions(resolvedMeetingId);
         const fallbackReport = deriveTabulationReportSummary(positions);
 

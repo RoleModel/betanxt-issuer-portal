@@ -154,7 +154,7 @@ export function fileToBase64(file: File): Promise<string> {
  */
 export function base64ToFile(base64: string, filename: string, mimeType: string): File {
   const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
+  const byteNumbers = Array.from({ length: byteCharacters.length });
 
   for (let i = 0; i < byteCharacters.length; i++) {
     byteNumbers[i] = byteCharacters.charCodeAt(i);
