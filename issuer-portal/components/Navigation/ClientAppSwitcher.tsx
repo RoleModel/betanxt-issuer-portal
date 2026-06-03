@@ -388,23 +388,42 @@ function EventSwitchButton({ userType }: { userType: string }) {
   );
 }
 
+function IssuerClientLabel() {
+  const { currentClient } = useClient();
+  const { data: session } = useSession();
+
+  const displayName =
+    currentClient?.company_name ??
+    currentClient?.short_name ??
+    session?.user?.client_ticker ??
+    "Issuer Portal";
+
+  return (
+    <Typography variant="button" sx={{ px: 1.375 }}>
+      {displayName}
+    </Typography>
+  );
+}
+
 function SwitchButton() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { availableClients, currentClient, switchClient } = useClient();
   const { data: session } = useSession();
   const open = Boolean(anchorEl);
 
-  // Check if user has permission to switch clients
   const userType = session?.user?.type;
+  const isIssuer = userType === "ISSUER";
+
+  // Issuer logins are single-client; never show a client picker (including auth bypass).
+  if (isIssuer) {
+    return <IssuerClientLabel />;
+  }
+
   const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
   const isEventUser =
     userType === "PARENT_CLIENT" || userType === "SOLICITOR" || userType === "CSM";
   const canSwitchClients =
-    isAuthBypassed ||
-    userType === "ADMIN" ||
-    userType === "RELATIONSHIP_MANAGER" ||
-    isEventUser ||
-    userType === "CSM";
+    isAuthBypassed || userType === "ADMIN" || userType === "RELATIONSHIP_MANAGER" || isEventUser;
 
   // PARENT_CLIENT / SOLICITOR users get a special event-based switcher
   if (isEventUser && userType) {

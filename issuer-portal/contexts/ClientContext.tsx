@@ -40,6 +40,21 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Check if user can access a specific client
   const canAccessClient = useCallback(
     (clientId: string): boolean => {
+      if (session?.user?.type === "ISSUER") {
+        const userTicker = session.user.client_ticker;
+        if (!userTicker) return false;
+
+        const issuerClient = clients.find((client) => client.ticker === userTicker);
+        if (!issuerClient) return false;
+
+        return (
+          issuerClient.id === clientId ||
+          issuerClient.ticker === clientId ||
+          issuerClient.company_name === clientId ||
+          issuerClient.short_name === clientId
+        );
+      }
+
       if (bypassAuth) {
         return true; // Auth bypass allows access to all clients
       }
@@ -135,8 +150,8 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
 
-        // 2. If no URL client, check localStorage for manually selected client
-        if (!targetClient && bypassAuth) {
+        // 2. If no URL client, check localStorage for manually selected client (not for ISSUER)
+        if (!targetClient && bypassAuth && session?.user?.type !== "ISSUER") {
           try {
             const selectedClientStr =
               typeof window !== "undefined" ? localStorage.getItem("selectedClient") : null;
@@ -158,14 +173,17 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
 
-        // 4. Fallback only after auth has resolved. For single-client users,
-        // prefer the session ticker instead of briefly showing the first client.
+        // 4. Fallback only after auth has resolved.
         if (!targetClient && !tickerFromURL && clients.length > 0) {
           const userTicker = session?.user?.client_ticker ?? session?.user?.clientTickers?.[0];
-          targetClient =
-            (userTicker ? clients.find((client) => client.ticker === userTicker) : null) ??
-            clients[0] ??
-            null;
+          targetClient = userTicker
+            ? (clients.find((client) => client.ticker === userTicker) ?? null)
+            : null;
+
+          // Multi-client roles may fall back to the first client; ISSUER stays on their ticker only.
+          if (!targetClient && session?.user?.type !== "ISSUER") {
+            targetClient = clients[0] ?? null;
+          }
         }
 
         setCurrentClient(targetClient);
@@ -198,6 +216,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     clientsLoading,
     sessionStatus,
     session?.user?.accountId,
+    session?.user?.type,
     session?.user?.client_ticker,
     session?.user?.clientTickers,
     isUserSwitching,
@@ -208,6 +227,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Handle client switching
   const switchClient = (client: Client) => {
+    if (session?.user?.type === "ISSUER") {
+      return;
+    }
+
     try {
       if (!canAccessClient(client.id)) {
         setError(`Access denied to ${client.company_name ?? client.short_name}`);

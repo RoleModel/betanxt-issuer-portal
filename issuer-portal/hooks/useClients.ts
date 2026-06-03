@@ -187,7 +187,17 @@ export const useClients = (): UseClientsResult => {
   // the events list default (handled in useEvents), not which clients they may switch to.
   const userType = session?.user?.type;
   const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
-  const allowedTickers = isUnrestrictedRole ? undefined : session?.user?.clientTickers;
+  const allowedTickers = useMemo(() => {
+    if (isUnrestrictedRole) return undefined;
+
+    const sessionTickers = session?.user?.clientTickers;
+    if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
+
+    const issuerTicker = session?.user?.client_ticker;
+    if (issuerTicker) return [issuerTicker];
+
+    return undefined;
+  }, [isUnrestrictedRole, session?.user?.clientTickers, session?.user?.client_ticker]);
 
   // Custom fetcher for clients
   const clientsFetcher = async () => {
