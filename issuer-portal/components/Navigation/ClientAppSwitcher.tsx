@@ -149,13 +149,13 @@ function EventSwitchButton({ userType }: { userType: string }) {
     return null;
   }, [currentClientOption, currentClient]);
 
-  // For CSM: show the covering chip only when the URL confirms a non-assigned client.
-  // Using urlTicker exclusively avoids false positives from stale displayedClient state
-  // during navigation transitions.
+  // For CSM: show chip only when the URL ticker is not in their assigned client list.
+  // Uses clientOptions (already filtered to assigned clients) as the source of truth
+  // rather than assignedTickers directly, avoiding any case/format mismatch.
   const isCovering = useMemo(() => {
-    if (!isCsm || !assignedTickers || !urlTicker) return false;
-    return !assignedTickers.has(urlTicker.toUpperCase());
-  }, [isCsm, assignedTickers, urlTicker]);
+    if (!isCsm || !urlTicker || !assignedTickers) return false;
+    return !clientOptions.some((opt) => opt.clientTicker.toUpperCase() === urlTicker.toUpperCase());
+  }, [isCsm, urlTicker, assignedTickers, clientOptions]);
 
   // CSM needs the switcher on /events (backup client search); others show brand only there
   const hasDropdown = !isOnEventsPage || isCsm;
@@ -309,7 +309,7 @@ function EventSwitchButton({ userType }: { userType: string }) {
                 }}
               >
                 <Autocomplete<Client>
-                  options={allClients}
+                  options={allClients.filter((c) => !assignedTickers?.has(c.ticker.toUpperCase()))}
                   getOptionLabel={(option) =>
                     option.company_name ?? option.short_name ?? option.ticker
                   }

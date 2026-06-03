@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit } from "@mui/icons-material";
+import { Add, Edit } from "@mui/icons-material";
 import { SearchOutlined } from "@mui/icons-material";
 import {
   Card,
@@ -32,6 +32,7 @@ import React, { useMemo, useState } from "react";
 
 import type { EventRow } from "@/utils/eventData";
 
+import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
 import { useEvents } from "@/hooks/useEvents";
 import { getMeetingUrl } from "@/utils/eventData";
 
@@ -61,6 +62,8 @@ export default function EventsPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllClients, setShowAllClients] = useState(false);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const { revalidate } = useEvents();
 
   const userType = session?.user?.type ?? "PARENT_CLIENT";
   const isCSM = userType === "CSM";
@@ -204,6 +207,11 @@ export default function EventsPage() {
                 }}
                 sx={{ minWidth: 220 }}
               />
+              {isCSM && (
+                <IconButton onClick={() => setNewClientOpen(true)}>
+                  <Add />
+                </IconButton>
+              )}
             </Stack>
           }
         />
@@ -332,6 +340,15 @@ export default function EventsPage() {
           </TableContainer>
         </CardContent>
       </Card>
+
+      <NewClientDrawer
+        open={newClientOpen}
+        onClose={() => setNewClientOpen(false)}
+        onCreated={() => {
+          void revalidate();
+          setNewClientOpen(false);
+        }}
+      />
     </Container>
   );
 }

@@ -17,7 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import React, { useLayoutEffect, useMemo, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
+import type { components } from "@/types/api";
 
 import { useNotifications } from "@/contexts/NotificationContext";
 
@@ -116,7 +116,7 @@ const convertDbNotificationToNotificationData = (
     date: dbNotification.createdAt ? formatNotificationDate(dbNotification.createdAt) : "",
     message: dbNotification.message ?? "",
     link: dbNotification.actionUrl ?? "",
-    variant: dbNotification.read ? "read" : "unread",
+    variant: dbNotification.read === true ? "read" : "unread",
     avatar: userAvatar,
     isSystemNotification:
       !isCommentNotification &&

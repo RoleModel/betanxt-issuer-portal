@@ -1,4 +1,8 @@
+import { randomUUID } from "crypto";
+
 import type { components } from "@/types/api";
+
+import { supabase } from "@/utils/supabase/client";
 
 import { apiClient } from "../apiClient";
 
@@ -51,25 +55,39 @@ export async function listUsers(
 }
 
 export async function createUser(body: CreateUserRequest): Promise<ApiResponse<User>> {
-  const { data, error, response } = await apiClient.POST("/users", {
-    body,
-  });
+  const { data, error } = await supabase
+    .from("user")
+    .insert({
+      id: randomUUID(),
+      username: body.username,
+      first_name: body.firstName,
+      last_name: body.lastName,
+      email: body.email,
+      password: body.password,
+      type: body.type,
+      account_id: body.accountId ?? null,
+    })
+    .select()
+    .single();
+
+  const fakeResponse = new Response(null, { status: error ? 400 : 201 });
 
   if (error) {
-    return {
-      data: undefined,
-      error: {
-        message: error.message ?? "Failed to create user",
-        statusCode: response.status,
-      },
-      response,
-    };
+    return { data: undefined, error: { message: error.message }, response: fakeResponse };
   }
 
   return {
-    data,
+    data: {
+      id: data.id ?? undefined,
+      username: data.username ?? undefined,
+      firstName: data.first_name ?? undefined,
+      lastName: data.last_name ?? undefined,
+      email: data.email ?? undefined,
+      type: (data.type as User["type"]) ?? undefined,
+      accountId: data.account_id ?? undefined,
+    },
     error: undefined,
-    response,
+    response: fakeResponse,
   };
 }
 

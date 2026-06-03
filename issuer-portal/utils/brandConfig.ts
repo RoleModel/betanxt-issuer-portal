@@ -339,6 +339,15 @@ export const brandConfigs: Record<string, BrandConfig> = {
     primaryColor: "#00FFBC",
     secondaryColor: "#2d235a",
   },
+  FocalPoint: {
+    companyName: "FocalPoint",
+    ticker: "FOC",
+    domain: "focalpoint.com",
+    logoPath: "/logos/brands/focal-point.svg",
+    iconPath: "/logos/brands/focal-point.svg",
+    primaryColor: "#6E28D9",
+    secondaryColor: "#28d9b3",
+  },
   "Amerant Bancorp Inc.": {
     companyName: "Amerant Bank",
     ticker: "AMTB",

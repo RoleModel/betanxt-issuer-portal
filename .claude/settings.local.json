@@ -9,7 +9,25 @@
       "Bash(vercel env *)",
       "Bash(vercel teams *)",
       "Bash(pnpm lint *)",
-      "Bash(pnpm run *)"
+      "Bash(pnpm run *)",
+      "Bash(vercel ls *)",
+      "Bash(npx tsc *)",
+      "Bash(python3 -c ' *)",
+      "mcp__mui-mcp__fetchDocs",
+      "mcp__supabase__apply_migration",
+      "Bash(curl -s -X POST http://localhost:3001/api/users -H \"Content-Type: application/json\" -d '{\"username\":\"testuser1\",\"firstName\":\"Test\",\"lastName\":\"User\",\"email\":\"testuser1@example.com\",\"password\":\"Password123\",\"type\":\"ISSUER\"}')",
+      "Bash(curl -s -X DELETE \"http://localhost:3001/api/clients/TESTX\")",
+      "Bash(curl -s -X DELETE \"http://localhost:3001/api/users/3ac62a21-930c-4dbe-a529-db9fdf04c185\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"DELETE FROM meeting WHERE id='testx-annual-meeting-2026'; DELETE FROM \\\\\"user\\\\\" WHERE username='testuser1'; DELETE FROM clients WHERE ticker='TESTX';\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"DELETE FROM clients WHERE ticker='TESTX';\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"SELECT id, ticker FROM clients WHERE ticker='TESTX' OR company_name='Test Company Inc';\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"DELETE FROM clients WHERE id='4a5725e7-3d8c-4154-acd6-75906e278f18'; SELECT count\\(*\\) FROM meeting WHERE id='testx-annual-meeting-2026';\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"SELECT status, count\\(*\\) FROM meeting GROUP BY status; SELECT count\\(*\\) AS total_meetings FROM meeting;\")",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgres://postgres@aws-1-us-east-2.pooler.supabase.com:6543/postgres?options=reference%3Dvfgjzlcakdrpsbzuqklz&sslmode=require\" -c \"SELECT count\\(*\\) AS clients FROM clients; SELECT count\\(*\\) AS users FROM \\\\\"user\\\\\"; SELECT count\\(*\\) AS tasks FROM task; SELECT count\\(*\\) AS positions FROM \\\\\"position\\\\\";\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/admin/reset-demo-data --max-time 300)",
+      "Bash(supabase db *)",
+      "Bash(PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgresql://postgres.vfgjzlcakdrpsbzuqklz@aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require\" -v ON_ERROR_STOP=1 -c \"SELECT 1 AS connection_ok;\")",
+      "Bash(time PGPASSWORD=ZgnAkgxVLYDcf9gj psql \"postgresql://postgres.vfgjzlcakdrpsbzuqklz@aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require\" -v ON_ERROR_STOP=1 -q -f supabase/seed.sql)"
     ]
   }
 }

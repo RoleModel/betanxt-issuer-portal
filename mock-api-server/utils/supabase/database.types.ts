@@ -1,6 +1,11 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5";
+  };
   public: {
     Tables: {
       account: {
@@ -40,8 +45,11 @@ export type Database = {
           id: string | null;
           industry: string | null;
           is_active: boolean | null;
+          logo_url: string | null;
+          primary_color: string | null;
           primary_contact: string | null;
           primary_contact_email: string | null;
+          secondary_color: string | null;
           short_name: string | null;
           ticker: string | null;
           updated_at: string | null;
@@ -56,8 +64,11 @@ export type Database = {
           id?: string | null;
           industry?: string | null;
           is_active?: boolean | null;
+          logo_url?: string | null;
+          primary_color?: string | null;
           primary_contact?: string | null;
           primary_contact_email?: string | null;
+          secondary_color?: string | null;
           short_name?: string | null;
           ticker?: string | null;
           updated_at?: string | null;
@@ -72,8 +83,11 @@ export type Database = {
           id?: string | null;
           industry?: string | null;
           is_active?: boolean | null;
+          logo_url?: string | null;
+          primary_color?: string | null;
           primary_contact?: string | null;
           primary_contact_email?: string | null;
+          secondary_color?: string | null;
           short_name?: string | null;
           ticker?: string | null;
           updated_at?: string | null;

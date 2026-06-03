@@ -2610,6 +2610,20 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        logoUrl:
+          type: string
+          nullable: true
+          description: URL of the client's logo image
+        primaryColor:
+          type: string
+          nullable: true
+          description: Primary brand color as a hex string (e.g. #1A3C5E)
+          example: "#1A3C5E"
+        secondaryColor:
+          type: string
+          nullable: true
+          description: Secondary brand color as a hex string (e.g. #E8A020)
+          example: "#E8A020"
         enabledFeatures:
           type: array
           items:
@@ -3445,6 +3459,18 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        logoUrl:
+          type: string
+          nullable: true
+          description: URL of the client's logo image
+        primaryColor:
+          type: string
+          nullable: true
+          description: Primary brand color as a hex string (e.g. #1A3C5E)
+        secondaryColor:
+          type: string
+          nullable: true
+          description: Secondary brand color as a hex string (e.g. #E8A020)
         enabledFeatures:
           type: array
           items:
@@ -3494,6 +3520,18 @@ components:
           nullable: true
           description: Unique branding identifier for document hosting site URLs
           example: 966152
+        logoUrl:
+          type: string
+          nullable: true
+          description: URL of the client's logo image
+        primaryColor:
+          type: string
+          nullable: true
+          description: Primary brand color as a hex string (e.g. #1A3C5E)
+        secondaryColor:
+          type: string
+          nullable: true
+          description: Secondary brand color as a hex string (e.g. #E8A020)
         enabledFeatures:
           type: array
           items:

@@ -275,7 +275,37 @@ export async function createMeeting(
       };
     }
 
-    const { data, error } = await supabase.from("meeting").insert(meetingData).select().single();
+    const dbInsert: Record<string, unknown> = {
+      id: meetingData.id,
+      title: meetingData.title,
+      cusip: meetingData.cusip,
+      ticker: meetingData.ticker,
+      meeting_date: meetingData.meetingDate,
+      record_date: meetingData.recordDate,
+      mailing_date: meetingData.mailingDate,
+      cutoff_date: meetingData.cutoffDate ?? null,
+      meeting_type: meetingData.meetingType,
+      meeting_year: meetingData.meetingYear,
+      distribution_type: meetingData.distributionType,
+      transfer_agent: meetingData.transferAgent,
+      total_shares_outstanding: meetingData.totalSharesOutstanding,
+      quorum_requirement: meetingData.quorumRequirement,
+      client_id: meetingData.clientId,
+      status: "ACTIVE",
+      current_phase: "Phase 1",
+      overall_completion: 0,
+    };
+    if (meetingData.solicitor !== undefined) dbInsert.solicitor = meetingData.solicitor;
+    if (meetingData.solicitorEmail !== undefined)
+      dbInsert.solicitor_email = meetingData.solicitorEmail;
+    if (meetingData.transferAgent !== undefined)
+      dbInsert.transfer_agent = meetingData.transferAgent;
+    if (meetingData.employeeStockPlans !== undefined)
+      dbInsert.employee_stock_plans = meetingData.employeeStockPlans;
+    if (meetingData.ivrDialInNumber !== undefined)
+      dbInsert.ivr_dial_in_number = meetingData.ivrDialInNumber;
+
+    const { data, error } = await supabase.from("meeting").insert(dbInsert).select().single();
 
     if (error) {
       return {

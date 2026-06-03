@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+
 import type { components } from "@/types/api";
 
 import { supabase } from "@/utils/supabase/client";
@@ -28,6 +30,9 @@ interface ClientRow {
   primary_contact_email?: string | null;
   is_active?: boolean | null;
   branding_id?: number | null;
+  logo_url?: string | null;
+  primary_color?: string | null;
+  secondary_color?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   enabled_features?: unknown;
@@ -46,6 +51,9 @@ function transformClient(row: ClientRow): Client {
     primaryContactEmail: row.primary_contact_email ?? undefined,
     isActive: row.is_active ?? false,
     brandingId: row.branding_id ?? undefined,
+    logoUrl: row.logo_url ?? undefined,
+    primaryColor: row.primary_color ?? undefined,
+    secondaryColor: row.secondary_color ?? undefined,
     createdAt: row.created_at ?? undefined,
     updatedAt: row.updated_at ?? undefined,
     enabledFeatures: Array.isArray(row.enabled_features)
@@ -82,7 +90,7 @@ export async function listClients(
 }
 
 export async function createClient(clientData: CreateClientRequest): Promise<ApiResponse<Client>> {
-  const dbInsert: Record<string, unknown> = {};
+  const dbInsert: Record<string, unknown> = { id: randomUUID() };
   if (clientData.ticker !== undefined) dbInsert.ticker = clientData.ticker;
   if (clientData.companyName !== undefined) dbInsert.company_name = clientData.companyName;
   if (clientData.shortName !== undefined) dbInsert.short_name = clientData.shortName;
@@ -93,10 +101,32 @@ export async function createClient(clientData: CreateClientRequest): Promise<Api
   if (clientData.primaryContactEmail !== undefined)
     dbInsert.primary_contact_email = clientData.primaryContactEmail;
   if (clientData.isActive !== undefined) dbInsert.is_active = clientData.isActive;
+  if (clientData.logoUrl !== undefined) dbInsert.logo_url = clientData.logoUrl;
+  if (clientData.primaryColor !== undefined) dbInsert.primary_color = clientData.primaryColor;
+  if (clientData.secondaryColor !== undefined) dbInsert.secondary_color = clientData.secondaryColor;
   if (clientData.enabledFeatures !== undefined)
     dbInsert.enabled_features = clientData.enabledFeatures;
 
   const { data, error } = await supabase.from("clients").insert(dbInsert).select().single();
+
+  // If the branding columns don't exist yet (migration not applied), retry without them
+  if (
+    error?.message?.includes("column") &&
+    (dbInsert.logo_url !== undefined ||
+      dbInsert.primary_color !== undefined ||
+      dbInsert.secondary_color !== undefined)
+  ) {
+    delete dbInsert.logo_url;
+    delete dbInsert.primary_color;
+    delete dbInsert.secondary_color;
+    const { data: data2, error: error2 } = await supabase
+      .from("clients")
+      .insert(dbInsert)
+      .select()
+      .single();
+    if (error2) return { error: { message: error2.message } };
+    return { data: transformClient(data2 as ClientRow) };
+  }
 
   if (error) return { error: { message: error.message } };
 
@@ -125,6 +155,9 @@ export async function updateClient(
   if (clientData.primaryContactEmail !== undefined)
     dbUpdate.primary_contact_email = clientData.primaryContactEmail;
   if (clientData.isActive !== undefined) dbUpdate.is_active = clientData.isActive;
+  if (clientData.logoUrl !== undefined) dbUpdate.logo_url = clientData.logoUrl;
+  if (clientData.primaryColor !== undefined) dbUpdate.primary_color = clientData.primaryColor;
+  if (clientData.secondaryColor !== undefined) dbUpdate.secondary_color = clientData.secondaryColor;
   if (clientData.enabledFeatures !== undefined)
     dbUpdate.enabled_features = clientData.enabledFeatures;
 

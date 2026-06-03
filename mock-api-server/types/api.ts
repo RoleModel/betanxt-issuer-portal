@@ -936,6 +936,18 @@ export interface components {
        * @example 966152
        */
       brandingId?: number | null;
+      /** @description URL of the client's logo image */
+      logoUrl?: string | null;
+      /**
+       * @description Primary brand color as a hex string (e.g.
+       * @example #1A3C5E
+       */
+      primaryColor?: string | null;
+      /**
+       * @description Secondary brand color as a hex string (e.g.
+       * @example #E8A020
+       */
+      secondaryColor?: string | null;
       /**
        * @description Feature modules enabled for this client
        * @example [
@@ -1566,6 +1578,12 @@ export interface components {
        * @example 966152
        */
       brandingId?: number | null;
+      /** @description URL of the client's logo image */
+      logoUrl?: string | null;
+      /** @description Primary brand color as a hex string (e.g. */
+      primaryColor?: string | null;
+      /** @description Secondary brand color as a hex string (e.g. */
+      secondaryColor?: string | null;
       /**
        * @description Feature modules enabled for this client
        * @default [
@@ -1614,6 +1632,12 @@ export interface components {
        * @example 966152
        */
       brandingId?: number | null;
+      /** @description URL of the client's logo image */
+      logoUrl?: string | null;
+      /** @description Primary brand color as a hex string (e.g. */
+      primaryColor?: string | null;
+      /** @description Secondary brand color as a hex string (e.g. */
+      secondaryColor?: string | null;
       /** @description Feature modules enabled for this client */
       enabledFeatures?: (
         | "documents"

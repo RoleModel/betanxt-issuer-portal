@@ -1054,6 +1054,7 @@ const main = async () => {
     ELVN: { meetingDate: "2025-06-24", recordDate: "2025-04-25" },
     JPMR: { meetingDate: "2025-04-15", recordDate: "2025-02-14" },
     WAL: { meetingDate: "2025-04-17", recordDate: "2025-02-16" },
+    FOC: { meetingDate: "2025-04-17", recordDate: "2025-02-16" },
     ILG: { meetingDate: "2025-04-22", recordDate: "2025-02-21" },
     PHX: { meetingDate: "2025-04-24", recordDate: "2025-02-23" },
     ETWO: { meetingDate: "2025-04-29", recordDate: "2025-02-28" },
@@ -1111,6 +1112,7 @@ const main = async () => {
     PAYC: { meetingDate: "2026-05-04", recordDate: "2026-03-11" },
     WWD: { meetingDate: "2026-04-15", recordDate: "2026-02-16" },
     ELVN: { meetingDate: "2026-06-10", recordDate: "2026-04-13" },
+    FOC: { meetingDate: "2026-07-15", recordDate: "2026-05-16" },
     JPMR: { meetingDate: "2026-04-14", recordDate: "2026-02-13" },
     WAL: { meetingDate: "2026-04-16", recordDate: "2026-02-15" },
     ILG: { meetingDate: "2026-04-21", recordDate: "2026-02-20" },
@@ -1262,6 +1264,10 @@ const main = async () => {
         const currentPhase = "phase" in meeting ? meeting.phase : 8;
         // Mark meetings from 2024 and earlier as COMPLETE for reporting
         const isPastMeeting = yearConfig.year <= 2024;
+        // Past meetings get a realistic quorum result between 60-70%
+        const quorumForMeeting = isPastMeeting
+          ? Math.round((60 + Math.random() * 10) * 100) / 100
+          : account.quorumRequirement;
         const status = currentPhase === 8 || isPastMeeting ? "COMPLETE" : "ACTIVE";
         const phaseName = `Phase ${currentPhase}`;
         // Calculate completion based on phase and meeting type
@@ -1432,7 +1438,7 @@ const main = async () => {
             `${sqlValue("Sarah Mitchell")}, ` +
             `${sqlValue("1-800-" + String(Math.random()).substring(2, 5) + "-" + String(Math.random()).substring(2, 7))}, ` +
             `${account.totalSharesOutstanding}, ` +
-            `${account.quorumRequirement}, ` +
+            `${quorumForMeeting}, ` +
             `${account.brokerNonVote || "NULL"}, ` +
             `${sqlValue(mailingStatus)}, ` +
             `${sqlValue(clientIds[client.ticker])}, ` +

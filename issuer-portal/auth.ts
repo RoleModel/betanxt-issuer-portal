@@ -42,6 +42,14 @@ const mockUsers: Record<
     account_id: "acc-wen-001",
     client_ticker: "WEN",
   },
+  tim: {
+    id: "b1f5062a-09b6-5dc1-b18c-3800c5930eab",
+    username: "tim",
+    password: "password",
+    type: "ISSUER",
+    account_id: "acc-foc-001",
+    client_ticker: "FOC",
+  },
   lisa: {
     id: "c2g6173b-10c7-6ed2-c29d-4911d6041fcb",
     username: "lisa",
