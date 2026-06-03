@@ -35,18 +35,16 @@ test.describe("Past Meetings Page", () => {
     // Check for CUSIP
     await expect(annual2025Row.locator("text=95058W100")).toBeVisible();
 
-    // Check for participation percentage (should show ~8.3% based on tabulation data)
+    // Participation is seeded demo data in the 60–75% range
     const participationCell = annual2025Row.locator("td").nth(3);
     const participationText = await participationCell.textContent();
 
-    // Participation should be a percentage around 8.3%
     expect(participationText).toMatch(/\d+\.?\d*%/);
     const percentMatch = participationText?.match(/(\d+\.?\d*)%/);
     if (percentMatch) {
       const percent = parseFloat(percentMatch[1]);
-      // Should be around 8.3% (allowing for some variance)
-      expect(percent).toBeGreaterThanOrEqual(7);
-      expect(percent).toBeLessThanOrEqual(10);
+      expect(percent).toBeGreaterThanOrEqual(60);
+      expect(percent).toBeLessThanOrEqual(75);
     }
 
     // Check for vote count visualization (progress bar)
@@ -159,9 +157,8 @@ test.describe("Past Meetings Page", () => {
         const percentMatch = text.match(/(\d+\.?\d*)%/);
         if (percentMatch) {
           const percent = parseFloat(percentMatch[1]);
-          // Percentage should be between 0 and 100
-          expect(percent).toBeGreaterThanOrEqual(0);
-          expect(percent).toBeLessThanOrEqual(100);
+          expect(percent).toBeGreaterThanOrEqual(60);
+          expect(percent).toBeLessThanOrEqual(75);
         }
       }
     }

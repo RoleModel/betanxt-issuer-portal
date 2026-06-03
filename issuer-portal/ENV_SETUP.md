@@ -76,18 +76,19 @@ Planned enhancements (no action now):
 
 ## 5. Deployment (Vercel)
 
-Set the following in Vercel Project Settings → Environment Variables:
+See **[docs/VERCEL_ENV.md](../docs/VERCEL_ENV.md)** for the full checklist (correct mock API hostname, Supabase project ref, and past-meeting verification).
+
+Minimum issuer-portal production variables:
 
 ```
-NEXT_PUBLIC_API_BASE_URL=https://api.your-domain.tld
-NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_API_BASE_URL=https://bn-mock-api-server.vercel.app/api
+NEXT_PUBLIC_SUPABASE_URL=https://vfgjzlcakdrpsbzuqklz.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=***
-SUPABASE_SERVICE_ROLE_KEY=***        # Use as server-side secret only
+AUTH_TRUST_HOST=true
 NEXTAUTH_SECRET=***
-NEXTAUTH_URL=https://your-app.vercel.app
 ```
 
-Do NOT set `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` in production.
+Do **not** set `NEXTAUTH_URL` on Vercel. Do **not** set `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` in production.
 
 ## 6. Regenerating Types
 

@@ -11,6 +11,7 @@ import PastMeetingsTable, {
   type PastMeetingData,
 } from "@/components/Meeting/PastMeetingsTable";
 import buildApiClient, { type ApiClientReturnType } from "@/domain-models/apiClient";
+import { generateSeededEventParticipationPercent } from "@/utils/eventParticipation";
 import { asRecord, asString } from "@/utils/typeUtils";
 
 type Meeting = components["schemas"]["Meeting"];
@@ -21,24 +22,8 @@ type ParticipationMetrics = Pick<
   "participationPercent" | "totalVotes" | "votingShares"
 >;
 
-const PARTICIPATION_OVERRIDES_BY_MEETING_ID: Record<string, number> = {
-  "wen-annual-meeting-2025": 8.3,
-};
-
-// Generate consistent fallback participation for historical demo meetings.
-const generateSeededParticipation = (meetingId: string): number => {
-  const override = PARTICIPATION_OVERRIDES_BY_MEETING_ID[meetingId];
-  if (override !== undefined) return override;
-
-  const meetingIdHash = (meetingId ?? "")
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280;
-  return Math.round((7 + seededRandom * 42) * 10) / 10;
-};
-
 const getDefaultMetrics = (meetingId: string): ParticipationMetrics => ({
-  participationPercent: generateSeededParticipation(meetingId),
+  participationPercent: generateSeededEventParticipationPercent(meetingId),
   totalVotes: 0,
   votingShares: 0,
 });

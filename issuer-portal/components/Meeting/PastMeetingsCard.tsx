@@ -6,6 +6,7 @@ import type { components } from "@/domain-models/generated-schema";
 
 import { useClient } from "@/contexts/ClientContext";
 import buildApiClient, { type ApiClientReturnType } from "@/domain-models/apiClient";
+import { generateSeededEventParticipationPercent } from "@/utils/eventParticipation";
 import { asRecord, asString } from "@/utils/typeUtils";
 
 import PastMeetingsTable, { type PastMeetingData } from "./PastMeetingsTable";
@@ -17,18 +18,8 @@ interface PastMeetingsCardProps {
 
 type Meeting = components["schemas"]["Meeting"];
 
-// Generate consistent participation rate between 58% and 74% using meeting id as seed
-// This matches the seeded random in useReporting.ts
-const generateSeededParticipation = (meetingId: string): number => {
-  const meetingIdHash = (meetingId ?? "")
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280;
-  return Math.round((58 + seededRandom * 16) * 10) / 10;
-};
-
 const getDefaultMetrics = (meetingId: string) => ({
-  participationPercent: generateSeededParticipation(meetingId),
+  participationPercent: generateSeededEventParticipationPercent(meetingId),
   totalVotes: 0,
   votingShares: 0,
 });

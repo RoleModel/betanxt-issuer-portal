@@ -8,6 +8,7 @@ import type { paths } from "../generated-schema";
  * generated OpenAPI schema. All API calls should flow through here so we can
  * later add auth headers, logging, tracing, etc.
  */
+
 export const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:3001/api";
 
 export const apiClient = createClient<paths>({ baseUrl: apiBaseUrl });

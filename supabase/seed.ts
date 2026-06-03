@@ -172,9 +172,7 @@ const calculateParticipationTarget = (
   // For historical completed meetings (2024 and earlier), always use realistic participation
   if (year <= 2024 && phase === 8) {
     const seed = copycat.int(`${ticker}-${year}-participation`, { min: 0, max: 1000 });
-    // More realistic participation rates: 25-50% for historical meetings
-    const participation = 0.25 + seed / 4000; // 25-50% range
-    return participation;
+    return 0.6 + (seed / 1000) * 0.15; // 60–75% for completed historical meetings
   }
 
   if (phase < 6) return 0;
@@ -208,7 +206,7 @@ const calculateParticipationTarget = (
     base *= 0.7;
   }
 
-  return clamp(base, 0.25, 0.5);
+  return clamp(base, 0.6, 0.75);
 };
 
 function appendWenStyleAnnualVoteOverrides(
@@ -447,9 +445,9 @@ const generateProposalResults = (
       `proposal-participation-${proposalType}-${meetingYear}-${proposalIndex}`,
       { min: -40, max: 40 },
     );
-    participationRate = clamp(targetParticipation + participationSeed / 10000, 0.58, 0.9);
+    participationRate = clamp(targetParticipation + participationSeed / 10000, 0.6, 0.75);
   } else {
-    participationRate = 0.65 + (seed % 1000) / 10000; // 65-75% participation
+    participationRate = 0.6 + ((seed % 1000) / 1000) * 0.15; // 60–75% participation
   }
 
   const totalEligible = Math.floor(baseShares * participationRate);
