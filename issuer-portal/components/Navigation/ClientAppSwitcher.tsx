@@ -22,6 +22,7 @@ import type { EventRow } from "@/utils/eventData";
 import { useClient } from "@/contexts/ClientContext";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
+import { canUserSwitchClients, isIssuerUser } from "@/utils/isIssuerUser";
 
 /** Brand labels for multi-client user types when no event is selected */
 const USER_TYPE_BRAND_LABELS: Record<string, string> = {
@@ -389,17 +390,28 @@ function EventSwitchButton({ userType }: { userType: string }) {
 }
 
 function IssuerClientLabel() {
-  const { currentClient } = useClient();
+  const { currentClient, availableClients } = useClient();
   const { data: session } = useSession();
 
+  const issuerTicker = session?.user?.client_ticker ?? undefined;
+  const issuerClient =
+    issuerTicker && currentClient?.ticker !== issuerTicker
+      ? (availableClients.find((client) => client.ticker === issuerTicker) ?? currentClient)
+      : currentClient;
+
   const displayName =
-    currentClient?.company_name ??
-    currentClient?.short_name ??
-    session?.user?.client_ticker ??
-    "Issuer Portal";
+    issuerClient?.company_name ?? issuerClient?.short_name ?? issuerTicker ?? "Issuer Portal";
 
   return (
-    <Typography variant="button" sx={{ px: 1.375 }}>
+    <Typography
+      component="span"
+      variant="button"
+      sx={(theme) => ({
+        px: 1.375,
+        color: theme.palette.appSwitcher.contrastText,
+        display: "inline-block",
+      })}
+    >
       {displayName}
     </Typography>
   );
@@ -411,19 +423,20 @@ function SwitchButton() {
   const { data: session } = useSession();
   const open = Boolean(anchorEl);
 
-  const userType = session?.user?.type;
-  const isIssuer = userType === "ISSUER";
+  const sessionUser = session?.user;
+  const userType = sessionUser?.type;
+  const isIssuer =
+    isIssuerUser(sessionUser) ||
+    (Boolean(sessionUser?.client_ticker) && availableClients.length <= 1);
 
-  // Issuer logins are single-client; never show a client picker (including auth bypass).
+  // Issuer logins are single-client; never show a client picker.
   if (isIssuer) {
     return <IssuerClientLabel />;
   }
 
-  const isAuthBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
   const isEventUser =
     userType === "PARENT_CLIENT" || userType === "SOLICITOR" || userType === "CSM";
-  const canSwitchClients =
-    isAuthBypassed || userType === "ADMIN" || userType === "RELATIONSHIP_MANAGER" || isEventUser;
+  const canSwitchClients = canUserSwitchClients(sessionUser);
 
   // PARENT_CLIENT / SOLICITOR users get a special event-based switcher
   if (isEventUser && userType) {

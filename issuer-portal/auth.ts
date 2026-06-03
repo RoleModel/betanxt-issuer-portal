@@ -229,6 +229,7 @@ export const {
             CSM: "csm.user",
             PARENT_CLIENT: "dfin.admin",
             SOLICITOR: "morrow",
+            ISSUER: "tim",
           };
           const delegateName = roleToMockUser[bypassRole];
           if (delegateName && mockUsers[delegateName]) {

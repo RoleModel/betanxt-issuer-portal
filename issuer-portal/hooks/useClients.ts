@@ -6,6 +6,7 @@ import useSWR from "swr";
 
 import buildApiClient from "@/domain-models/apiClient";
 import { clientsSWRConfig } from "@/lib/swr-config";
+import { isIssuerUser } from "@/utils/isIssuerUser";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 export type ClientFeatureKey =
@@ -190,6 +191,11 @@ export const useClients = (): UseClientsResult => {
   const allowedTickers = useMemo(() => {
     if (isUnrestrictedRole) return undefined;
 
+    if (isIssuerUser(session?.user)) {
+      const issuerTicker = session?.user?.client_ticker;
+      return issuerTicker ? [issuerTicker] : undefined;
+    }
+
     const sessionTickers = session?.user?.clientTickers;
     if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
 
@@ -197,7 +203,7 @@ export const useClients = (): UseClientsResult => {
     if (issuerTicker) return [issuerTicker];
 
     return undefined;
-  }, [isUnrestrictedRole, session?.user?.clientTickers, session?.user?.client_ticker]);
+  }, [isUnrestrictedRole, session?.user]);
 
   // Custom fetcher for clients
   const clientsFetcher = async () => {

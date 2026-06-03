@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import { type Client, type ClientFeatureKey, useClients } from "@/hooks/useClients";
+import { isIssuerUser } from "@/utils/isIssuerUser";
 
 interface ClientContextType {
   currentClient: Client | null;
@@ -40,7 +41,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Check if user can access a specific client
   const canAccessClient = useCallback(
     (clientId: string): boolean => {
-      if (session?.user?.type === "ISSUER") {
+      if (isIssuerUser(session?.user)) {
         const userTicker = session.user.client_ticker;
         if (!userTicker) return false;
 
@@ -131,6 +132,17 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return;
         }
 
+        // Issuers are single-client: always bind context to their ticker (never URL/localStorage).
+        if (isIssuerUser(session?.user)) {
+          const issuerTicker = session.user.client_ticker;
+          const issuerClient = issuerTicker
+            ? (clients.find((client) => client.ticker === issuerTicker) ?? null)
+            : null;
+          setCurrentClient(issuerClient);
+          setLoading(false);
+          return;
+        }
+
         let targetClient: Client | null = null;
 
         // 1. First check if URL implies a specific client (takes priority for client access control)
@@ -151,7 +163,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // 2. If no URL client, check localStorage for manually selected client (not for ISSUER)
-        if (!targetClient && bypassAuth && session?.user?.type !== "ISSUER") {
+        if (!targetClient && bypassAuth && !isIssuerUser(session?.user)) {
           try {
             const selectedClientStr =
               typeof window !== "undefined" ? localStorage.getItem("selectedClient") : null;
@@ -181,7 +193,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             : null;
 
           // Multi-client roles may fall back to the first client; ISSUER stays on their ticker only.
-          if (!targetClient && session?.user?.type !== "ISSUER") {
+          if (!targetClient && !isIssuerUser(session?.user)) {
             targetClient = clients[0] ?? null;
           }
         }
@@ -227,7 +239,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Handle client switching
   const switchClient = (client: Client) => {
-    if (session?.user?.type === "ISSUER") {
+    if (isIssuerUser(session?.user)) {
       return;
     }
 
