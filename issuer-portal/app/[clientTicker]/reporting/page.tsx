@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Container,
-  Skeleton,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Card, CardContent, CardHeader, Container, Skeleton } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
@@ -35,13 +25,6 @@ export default function ReportingPage() {
   const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
   const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? [];
   const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? [];
-  const latestCompletedYear =
-    mappedEventSummary.find((item) => item.meetingYear > 0)?.meetingYear ??
-    mappedYearOverYear.find((item) => item.year > 0)?.year ??
-    mappedEventSummary
-      .map((item) => /\b(20\d{2})\b/.exec(item.event)?.[1])
-      .find((year): year is string => Boolean(year)) ??
-    (clientTicker.toUpperCase() === "WEN" ? "2025" : undefined);
 
   if (error) {
     return (
@@ -54,28 +37,6 @@ export default function ReportingPage() {
   return (
     <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
       <Grid container spacing={3}>
-        <Grid size={12}>
-          <Stack spacing={1}>
-            <Typography variant="h4">Reporting</Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-              <Typography variant="body2">
-                Passed Proposals: {reportingData?.eventSummaryData.passedProposals ?? 0}
-              </Typography>
-              <Typography variant="body2">
-                Quorum: {reportingData?.eventSummaryData.quorumAchieved ? "Met" : "Pending"}
-              </Typography>
-              <Typography variant="body2">
-                Participation: {(reportingData?.eventSummaryData.participationRate ?? 0).toFixed(1)}
-                %
-              </Typography>
-              <Typography variant="body2">Director Election</Typography>
-              {latestCompletedYear && (
-                <Typography variant="body2">{latestCompletedYear}</Typography>
-              )}
-            </Box>
-          </Stack>
-        </Grid>
-
         <Grid size={12}>
           <Suspense fallback={<ChartSkeleton />}>
             <EventSummaryTable

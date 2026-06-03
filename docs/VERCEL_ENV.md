@@ -4,22 +4,22 @@ Use this when past meetings or seed data look missing on **remote** but work loc
 
 ## Project URLs (rolemodel-software team)
 
-| Project | Production URL |
-| --- | --- |
-| issuer-portal | https://mic-issuer-portal.vercel.app |
+| Project         | Production URL                        |
+| --------------- | ------------------------------------- |
+| issuer-portal   | https://mic-issuer-portal.vercel.app  |
 | mock-api-server | https://bn-mock-api-server.vercel.app |
 
 Do **not** use `issuer-portal-mock-api-server.vercel.app` (404) or `mock-api-server.vercel.app` (404).
 
 ## issuer-portal — required variables
 
-| Variable | Correct value |
-| --- | --- |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://bn-mock-api-server.vercel.app/api` |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://vfgjzlcakdrpsbzuqklz.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key for **same** Supabase project |
-| `AUTH_TRUST_HOST` | `true` (exactly — no trailing `\n`) |
-| `NEXTAUTH_SECRET` | Strong secret (server) |
+| Variable                        | Correct value                               |
+| ------------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL`      | `https://bn-mock-api-server.vercel.app/api` |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `https://vfgjzlcakdrpsbzuqklz.supabase.co`  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key for **same** Supabase project      |
+| `AUTH_TRUST_HOST`               | `true` (exactly — no trailing `\n`)         |
+| `NEXTAUTH_SECRET`               | Strong secret (server)                      |
 
 **Do not set `NEXTAUTH_URL` on Vercel** — it breaks cookie domains. `auth.ts` uses `trustHost: true`.
 
@@ -27,10 +27,10 @@ After changing production variables, **redeploy issuer-portal** so `NEXT_PUBLIC_
 
 ## mock-api-server — required variables
 
-| Variable | Correct value |
-| --- | --- |
-| `SUPABASE_URL` | `https://vfgjzlcakdrpsbzuqklz.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role for **same** project |
+| Variable                    | Correct value                              |
+| --------------------------- | ------------------------------------------ |
+| `SUPABASE_URL`              | `https://vfgjzlcakdrpsbzuqklz.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role for **same** project          |
 
 ## Verify remote data (CLI)
 
