@@ -57,7 +57,11 @@
       "Bash(curl -s \"http://localhost:3001/api/meetings/wen-special-meeting-2025/tabulation-report\")",
       "Bash(curl -s \"http://localhost:3001/api/meetings/wen-special-meeting-2025/tabulation-report?t=$\\(date +%s\\)\")",
       "Bash(pnpm fmt *)",
-      "Bash(pnpm fmt:check)"
+      "Bash(pnpm fmt:check)",
+      "Bash(cat)",
+      "Bash(supabase gen *)",
+      "Bash(echo \"types regenerated exit:$?\")",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }

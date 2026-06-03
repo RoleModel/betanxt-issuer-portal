@@ -40,6 +40,7 @@ export type Database = {
           branding_id: number | null;
           company_name: string | null;
           created_at: string | null;
+          created_by: string | null;
           description: string | null;
           enabled_features: Json | null;
           id: string | null;
@@ -59,6 +60,7 @@ export type Database = {
           branding_id?: number | null;
           company_name?: string | null;
           created_at?: string | null;
+          created_by?: string | null;
           description?: string | null;
           enabled_features?: Json | null;
           id?: string | null;
@@ -78,6 +80,7 @@ export type Database = {
           branding_id?: number | null;
           company_name?: string | null;
           created_at?: string | null;
+          created_by?: string | null;
           description?: string | null;
           enabled_features?: Json | null;
           id?: string | null;
