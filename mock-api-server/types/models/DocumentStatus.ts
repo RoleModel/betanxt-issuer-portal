@@ -16,47 +16,47 @@
  * @export
  */
 export const DocumentStatus = {
-  Draft: 'DRAFT',
-  AwaitingDraft: 'AWAITING_DRAFT',
-  AwaitingReview: 'AWAITING_REVIEW',
-  Approved: 'APPROVED',
-  Uploaded: 'UPLOADED',
-  InProgress: 'IN_PROGRESS',
-  Signed: 'SIGNED',
-  Authorized: 'AUTHORIZED',
-  Completed: 'COMPLETED',
-} as const
-export type DocumentStatus = (typeof DocumentStatus)[keyof typeof DocumentStatus]
+  Draft: "DRAFT",
+  AwaitingDraft: "AWAITING_DRAFT",
+  AwaitingReview: "AWAITING_REVIEW",
+  Approved: "APPROVED",
+  Uploaded: "UPLOADED",
+  InProgress: "IN_PROGRESS",
+  Signed: "SIGNED",
+  Authorized: "AUTHORIZED",
+  Completed: "COMPLETED",
+} as const;
+export type DocumentStatus = (typeof DocumentStatus)[keyof typeof DocumentStatus];
 
 export function instanceOfDocumentStatus(value: any): boolean {
   for (const key in DocumentStatus) {
     if (Object.prototype.hasOwnProperty.call(DocumentStatus, key)) {
       if (DocumentStatus[key as keyof typeof DocumentStatus] === value) {
-        return true
+        return true;
       }
     }
   }
-  return false
+  return false;
 }
 
 export function DocumentStatusFromJSON(json: any): DocumentStatus {
-  return DocumentStatusFromJSONTyped(json, false)
+  return DocumentStatusFromJSONTyped(json, false);
 }
 
 export function DocumentStatusFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): DocumentStatus {
-  return json as DocumentStatus
+  return json as DocumentStatus;
 }
 
 export function DocumentStatusToJSON(value?: DocumentStatus | null): any {
-  return value as any
+  return value as any;
 }
 
 export function DocumentStatusToJSONTyped(
   value: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): DocumentStatus {
-  return value as DocumentStatus
+  return value as DocumentStatus;
 }

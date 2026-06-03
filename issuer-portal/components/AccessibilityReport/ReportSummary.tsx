@@ -1,29 +1,28 @@
-import { Card, Stack, Typography } from '@mui/material'
+import { Card, Stack, Typography } from "@mui/material";
 
 interface Violation {
-  impact: string
-  description: string
-  wcag: string
-  help: string
-  nodes: number
-  id?: string
-  helpUrl?: string
-  tags?: string[]
+  impact: string;
+  description: string;
+  wcag: string;
+  help: string;
+  nodes: number;
+  id?: string;
+  helpUrl?: string;
+  tags?: string[];
 }
 
 interface TestResult {
-  violations: Violation[]
+  violations: Violation[];
 }
 
 interface ReportSummaryProps {
-  pages: TestResult[]
-  timestamp: string
+  pages: TestResult[];
+  timestamp: string;
 }
 
 export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) {
-  const totalViolations = pages.reduce((total, test) => total + test.violations.length, 0)
-  const passedPages =
-    pages.length - pages.filter((test) => test.violations.length > 0).length
+  const totalViolations = pages.reduce((total, test) => total + test.violations.length, 0);
+  const passedPages = pages.length - pages.filter((test) => test.violations.length > 0).length;
 
   return (
     <>
@@ -33,7 +32,7 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
       </Typography>
 
       {/* Summary Stats */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 4 }}>
         <Card variant="outlined" sx={{ p: 2, flex: 1 }}>
           <Typography variant="h4" color="primary">
             {pages.length}
@@ -47,9 +46,7 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
           <Typography
             variant="h4"
             color={
-              pages.every((test) => test.violations.length === 0)
-                ? 'success.main'
-                : 'warning.dark'
+              pages.every((test) => test.violations.length === 0) ? "success.main" : "warning.dark"
             }
           >
             {passedPages}
@@ -62,11 +59,7 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
         <Card variant="outlined" sx={{ p: 2, flex: 1 }}>
           <Typography
             variant="h4"
-            color={
-              pages.some((test) => test.violations.length > 0)
-                ? 'error.dark'
-                : 'success.main'
-            }
+            color={pages.some((test) => test.violations.length > 0) ? "error.dark" : "success.main"}
           >
             {totalViolations}
           </Typography>
@@ -76,5 +69,5 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
         </Card>
       </Stack>
     </>
-  )
+  );
 }

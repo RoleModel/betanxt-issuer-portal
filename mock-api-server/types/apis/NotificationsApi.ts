@@ -10,25 +10,26 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { ListNotifications200Response, Notification } from '../models/index'
+import type { ListNotifications200Response, Notification } from "../models/index";
+
 import {
   ListNotifications200ResponseFromJSON,
   ListNotifications200ResponseToJSON,
   NotificationFromJSON,
   NotificationToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface ListNotificationsRequest {
-  read?: boolean
-  type?: ListNotificationsTypeEnum
-  priority?: ListNotificationsPriorityEnum
-  page?: number
-  limit?: number
+  read?: boolean;
+  type?: ListNotificationsTypeEnum;
+  priority?: ListNotificationsPriorityEnum;
+  page?: number;
+  limit?: number;
 }
 
 export interface MarkNotificationReadRequest {
-  notificationId: string
+  notificationId: string;
 }
 
 /**
@@ -40,56 +41,56 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async listNotificationsRaw(
     requestParameters: ListNotificationsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<ListNotifications200Response>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    if (requestParameters['read'] != null) {
-      queryParameters['read'] = requestParameters['read']
+    if (requestParameters["read"] != null) {
+      queryParameters["read"] = requestParameters["read"];
     }
 
-    if (requestParameters['type'] != null) {
-      queryParameters['type'] = requestParameters['type']
+    if (requestParameters["type"] != null) {
+      queryParameters["type"] = requestParameters["type"];
     }
 
-    if (requestParameters['priority'] != null) {
-      queryParameters['priority'] = requestParameters['priority']
+    if (requestParameters["priority"] != null) {
+      queryParameters["priority"] = requestParameters["priority"];
     }
 
-    if (requestParameters['page'] != null) {
-      queryParameters['page'] = requestParameters['page']
+    if (requestParameters["page"] != null) {
+      queryParameters["page"] = requestParameters["page"];
     }
 
-    if (requestParameters['limit'] != null) {
-      queryParameters['limit'] = requestParameters['limit']
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/notifications`
+    let urlPath = `/notifications`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ListNotifications200ResponseFromJSON(jsonValue)
-    )
+      ListNotifications200ResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -97,10 +98,10 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async listNotifications(
     requestParameters: ListNotificationsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<ListNotifications200Response> {
-    const response = await this.listNotificationsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.listNotificationsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -108,47 +109,45 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async markNotificationReadRaw(
     requestParameters: MarkNotificationReadRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Notification>> {
-    if (requestParameters['notificationId'] == null) {
+    if (requestParameters["notificationId"] == null) {
       throw new runtime.RequiredError(
-        'notificationId',
-        'Required parameter "notificationId" was null or undefined when calling markNotificationRead().'
-      )
+        "notificationId",
+        'Required parameter "notificationId" was null or undefined when calling markNotificationRead().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/notifications/{notificationId}/mark-read`
+    let urlPath = `/notifications/{notificationId}/mark-read`;
     urlPath = urlPath.replace(
-      `{${'notificationId'}}`,
-      encodeURIComponent(String(requestParameters['notificationId']))
-    )
+      `{${"notificationId"}}`,
+      encodeURIComponent(String(requestParameters["notificationId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'PATCH',
+        method: "PATCH",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      NotificationFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => NotificationFromJSON(jsonValue));
   }
 
   /**
@@ -156,10 +155,10 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async markNotificationRead(
     requestParameters: MarkNotificationReadRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Notification> {
-    const response = await this.markNotificationReadRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.markNotificationReadRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }
 
@@ -167,21 +166,21 @@ export class NotificationsApi extends runtime.BaseAPI {
  * @export
  */
 export const ListNotificationsTypeEnum = {
-  Info: 'info',
-  Warning: 'warning',
-  Error: 'error',
-  Success: 'success',
-} as const
+  Info: "info",
+  Warning: "warning",
+  Error: "error",
+  Success: "success",
+} as const;
 export type ListNotificationsTypeEnum =
-  (typeof ListNotificationsTypeEnum)[keyof typeof ListNotificationsTypeEnum]
+  (typeof ListNotificationsTypeEnum)[keyof typeof ListNotificationsTypeEnum];
 /**
  * @export
  */
 export const ListNotificationsPriorityEnum = {
-  Low: 'low',
-  Medium: 'medium',
-  High: 'high',
-  Critical: 'critical',
-} as const
+  Low: "low",
+  Medium: "medium",
+  High: "high",
+  Critical: "critical",
+} as const;
 export type ListNotificationsPriorityEnum =
-  (typeof ListNotificationsPriorityEnum)[keyof typeof ListNotificationsPriorityEnum]
+  (typeof ListNotificationsPriorityEnum)[keyof typeof ListNotificationsPriorityEnum];

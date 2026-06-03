@@ -1,35 +1,29 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box, Card, CardContent, CardHeader, Typography } from "@mui/material";
+import { PieChart as MuiPieChart } from "@mui/x-charts/PieChart";
+import React from "react";
 
-import { Box, Card, CardContent, CardHeader, Typography } from '@mui/material'
-import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart'
-
-import PieCenterLabel from '@/components/Reporting/PieChartCenterLabel'
-import SkeletonChart from '@/components/ui/SkeletonChart'
+import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
+import SkeletonChart from "@/components/ui/SkeletonChart";
 
 interface VoteDistributionData {
-  id: string
-  label: string
-  value: number
-  color: string
+  id: string;
+  label: string;
+  value: number;
+  color: string;
 }
 
 interface VoteDistributionChartProps {
-  data: VoteDistributionData[]
-  loading?: boolean
+  data: VoteDistributionData[];
+  loading?: boolean;
 }
 
-export default function VoteDistributionChart({
-  data,
-  loading,
-}: VoteDistributionChartProps) {
-  const total = data.reduce((sum, item) => sum + item.value, 0)
+export default function VoteDistributionChart({ data, loading }: VoteDistributionChartProps) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
 
   if (loading) {
-    return (
-      <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />
-    )
+    return <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />;
   }
 
   if (data.length === 0) {
@@ -44,14 +38,14 @@ export default function VoteDistributionChart({
           </Box>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Normalize ids to numeric values for components expecting number ids
   const pieChartData = data.map((item, index) => ({
     ...item,
     id: index,
-  }))
+  }));
 
   return (
     <Card>
@@ -64,21 +58,21 @@ export default function VoteDistributionChart({
                 data: pieChartData,
                 innerRadius: 75,
                 outerRadius: 100,
-                highlightScope: { fade: 'global', highlight: 'item' },
+                highlightScope: { fade: "global", highlight: "item" },
               },
             ]}
             height={300}
             slotProps={{
               legend: {
-                direction: 'horizontal',
-                position: { vertical: 'bottom', horizontal: 'center' },
+                direction: "horizontal",
+                position: { vertical: "bottom", horizontal: "center" },
               },
             }}
           >
             <PieCenterLabel
               data={{
                 total,
-                label: 'Total Votes',
+                label: "Total Votes",
                 sliceData: pieChartData,
               }}
             />
@@ -86,5 +80,5 @@ export default function VoteDistributionChart({
         </Box>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,115 +23,109 @@ export interface UpdateProposalRequest {
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  proposalTitle?: string
+  proposalTitle?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  proposalType?: string
+  proposalType?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  proposalSubtype?: string | null
+  proposalSubtype?: string | null;
   /**
    *
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  directorName?: string
+  directorName?: string;
   /**
    *
    * @type {number}
    * @memberof UpdateProposalRequest
    */
-  directorTermYears?: number
+  directorTermYears?: number;
   /**
    *
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  directorClass?: string
+  directorClass?: string;
   /**
    *
    * @type {number}
    * @memberof UpdateProposalRequest
    */
-  termExpirationYear?: number
+  termExpirationYear?: number;
   /**
    *
    * @type {object}
    * @memberof UpdateProposalRequest
    */
-  frequencyOptions?: object
+  frequencyOptions?: object;
   /**
    *
    * @type {string}
    * @memberof UpdateProposalRequest
    */
-  recommendation?: string
+  recommendation?: string;
 }
 
 /**
  * Check if a given object implements the UpdateProposalRequest interface.
  */
-export function instanceOfUpdateProposalRequest(
-  value: object
-): value is UpdateProposalRequest {
-  return true
+export function instanceOfUpdateProposalRequest(value: object): value is UpdateProposalRequest {
+  return true;
 }
 
 export function UpdateProposalRequestFromJSON(json: any): UpdateProposalRequest {
-  return UpdateProposalRequestFromJSONTyped(json, false)
+  return UpdateProposalRequestFromJSONTyped(json, false);
 }
 
 export function UpdateProposalRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateProposalRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    proposalTitle: json['proposalTitle'] == null ? undefined : json['proposalTitle'],
-    proposalType: json['proposalType'] == null ? undefined : json['proposalType'],
-    proposalSubtype:
-      json['proposalSubtype'] == null ? undefined : json['proposalSubtype'],
-    directorName: json['directorName'] == null ? undefined : json['directorName'],
-    directorTermYears:
-      json['directorTermYears'] == null ? undefined : json['directorTermYears'],
-    directorClass: json['directorClass'] == null ? undefined : json['directorClass'],
-    termExpirationYear:
-      json['termExpirationYear'] == null ? undefined : json['termExpirationYear'],
-    frequencyOptions:
-      json['frequencyOptions'] == null ? undefined : json['frequencyOptions'],
-    recommendation: json['recommendation'] == null ? undefined : json['recommendation'],
-  }
+    proposalTitle: json["proposalTitle"] == null ? undefined : json["proposalTitle"],
+    proposalType: json["proposalType"] == null ? undefined : json["proposalType"],
+    proposalSubtype: json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
+    directorName: json["directorName"] == null ? undefined : json["directorName"],
+    directorTermYears: json["directorTermYears"] == null ? undefined : json["directorTermYears"],
+    directorClass: json["directorClass"] == null ? undefined : json["directorClass"],
+    termExpirationYear: json["termExpirationYear"] == null ? undefined : json["termExpirationYear"],
+    frequencyOptions: json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
+    recommendation: json["recommendation"] == null ? undefined : json["recommendation"],
+  };
 }
 
 export function UpdateProposalRequestToJSON(json: any): UpdateProposalRequest {
-  return UpdateProposalRequestToJSONTyped(json, false)
+  return UpdateProposalRequestToJSONTyped(json, false);
 }
 
 export function UpdateProposalRequestToJSONTyped(
   value?: UpdateProposalRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    proposalTitle: value['proposalTitle'],
-    proposalType: value['proposalType'],
-    proposalSubtype: value['proposalSubtype'],
-    directorName: value['directorName'],
-    directorTermYears: value['directorTermYears'],
-    directorClass: value['directorClass'],
-    termExpirationYear: value['termExpirationYear'],
-    frequencyOptions: value['frequencyOptions'],
-    recommendation: value['recommendation'],
-  }
+    proposalTitle: value["proposalTitle"],
+    proposalType: value["proposalType"],
+    proposalSubtype: value["proposalSubtype"],
+    directorName: value["directorName"],
+    directorTermYears: value["directorTermYears"],
+    directorClass: value["directorClass"],
+    termExpirationYear: value["termExpirationYear"],
+    frequencyOptions: value["frequencyOptions"],
+    recommendation: value["recommendation"],
+  };
 }

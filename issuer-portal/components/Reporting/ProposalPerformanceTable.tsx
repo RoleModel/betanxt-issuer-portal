@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   Card,
@@ -16,82 +14,79 @@ import {
   TablePaginationActions,
   TableRow,
   TableSortLabel,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import SkeletonTable from '@/components/ui/SkeletonTable'
+import SkeletonTable from "@/components/ui/SkeletonTable";
 
 interface ProposalPerformanceData {
-  type: string
-  totalPresented: string
-  averageSupport: string
-  min: string
-  max: string
-  percentPassed: string
+  type: string;
+  totalPresented: string;
+  averageSupport: string;
+  min: string;
+  max: string;
+  percentPassed: string;
 }
 
 interface ProposalPerformanceTableProps {
-  data: ProposalPerformanceData[]
-  loading?: boolean
+  data: ProposalPerformanceData[];
+  loading?: boolean;
 }
 
-type Order = 'asc' | 'desc'
-type OrderBy = keyof ProposalPerformanceData
+type Order = "asc" | "desc";
+type OrderBy = keyof ProposalPerformanceData;
 
 const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
   data,
   loading = false,
 }) => {
-  const [page, setPage] = React.useState(0)
-  const [rowsPerPage, setRowsPerPage] = React.useState(5)
-  const [order, setOrder] = React.useState<Order>('desc')
-  const [orderBy, setOrderBy] = React.useState<OrderBy>('totalPresented')
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [order, setOrder] = React.useState<Order>("desc");
+  const [orderBy, setOrderBy] = React.useState<OrderBy>("totalPresented");
 
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
+    newPage: number,
   ) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const handleRequestSort = (property: OrderBy) => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
 
   const sortedData = React.useMemo(() => {
-    if (loading || !data) return []
+    if (loading || !data) return [];
     return [...data].sort((a, b) => {
-      let aValue: string | number = a[orderBy]
-      let bValue: string | number = b[orderBy]
+      let aValue: string | number = a[orderBy];
+      let bValue: string | number = b[orderBy];
 
       // Handle numeric sorting for values with % or numbers
-      if (
-        ['totalPresented', 'averageSupport', 'min', 'max', 'percentPassed'].includes(
-          orderBy
-        )
-      ) {
-        aValue = parseInt(aValue.replace('%', ''))
-        bValue = parseInt(bValue.replace('%', ''))
+      if (["totalPresented", "averageSupport", "min", "max", "percentPassed"].includes(orderBy)) {
+        aValue = parseInt(aValue.replace("%", ""));
+        bValue = parseInt(bValue.replace("%", ""));
       }
 
-      if (order === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      if (order === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
-    })
-  }, [data, order, orderBy, loading])
+    });
+  }, [data, order, orderBy, loading]);
 
   if (loading) {
-    return <SkeletonTable rows={5} columns={6} />
+    return <SkeletonTable rows={5} columns={6} />;
   }
 
   return (
@@ -99,59 +94,59 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
       <CardHeader title="Proposal Performance" />
       <CardContent>
         <TableContainer>
-          <Table sx={{ tableLayout: 'fixed' }}>
+          <Table sx={{ tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'type'}
-                    direction={orderBy === 'type' ? order : 'asc'}
-                    onClick={() => handleRequestSort('type')}
+                    active={orderBy === "type"}
+                    direction={orderBy === "type" ? order : "asc"}
+                    onClick={() => handleRequestSort("type")}
                   >
                     Proposal Type
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'totalPresented'}
-                    direction={orderBy === 'totalPresented' ? order : 'asc'}
-                    onClick={() => handleRequestSort('totalPresented')}
+                    active={orderBy === "totalPresented"}
+                    direction={orderBy === "totalPresented" ? order : "asc"}
+                    onClick={() => handleRequestSort("totalPresented")}
                   >
                     Total Presented
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'averageSupport'}
-                    direction={orderBy === 'averageSupport' ? order : 'asc'}
-                    onClick={() => handleRequestSort('averageSupport')}
+                    active={orderBy === "averageSupport"}
+                    direction={orderBy === "averageSupport" ? order : "asc"}
+                    onClick={() => handleRequestSort("averageSupport")}
                   >
                     Average Support
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'min'}
-                    direction={orderBy === 'min' ? order : 'asc'}
-                    onClick={() => handleRequestSort('min')}
+                    active={orderBy === "min"}
+                    direction={orderBy === "min" ? order : "asc"}
+                    onClick={() => handleRequestSort("min")}
                   >
                     Min
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'max'}
-                    direction={orderBy === 'max' ? order : 'asc'}
-                    onClick={() => handleRequestSort('max')}
+                    active={orderBy === "max"}
+                    direction={orderBy === "max" ? order : "asc"}
+                    onClick={() => handleRequestSort("max")}
                   >
                     Max
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'percentPassed'}
-                    direction={orderBy === 'percentPassed' ? order : 'asc'}
-                    onClick={() => handleRequestSort('percentPassed')}
+                    active={orderBy === "percentPassed"}
+                    direction={orderBy === "percentPassed" ? order : "asc"}
+                    onClick={() => handleRequestSort("percentPassed")}
                   >
                     Percent Passed
                   </TableSortLabel>
@@ -176,7 +171,7 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
             <TableFooter>
               <TableRow>
                 <TablePagination
-                  rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                  rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
                   colSpan={6}
                   count={sortedData.length}
                   rowsPerPage={rowsPerPage}
@@ -184,7 +179,7 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   slotProps={{
                     select: {
                       inputProps: {
-                        'aria-label': 'rows per page',
+                        "aria-label": "rows per page",
                       },
                       native: true,
                     },
@@ -199,7 +194,7 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
         </TableContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ProposalPerformanceTable
+export default ProposalPerformanceTable;

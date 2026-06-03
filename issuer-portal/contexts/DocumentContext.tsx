@@ -1,170 +1,167 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import type { ReactNode } from "react";
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-type Document = components['schemas']['Document']
+import type { components } from "@/domain-models/generated-schema";
+
+import buildApiClient from "@/domain-models/apiClient";
+
+type Document = components["schemas"]["Document"];
 
 interface DocumentContextType {
-  documents: Document[]
-  dsmDocuments: Document[]
-  loading: boolean
-  error: string | null
-  refreshDocuments: (meetingId: string) => Promise<void>
+  documents: Document[];
+  dsmDocuments: Document[];
+  loading: boolean;
+  error: string | null;
+  refreshDocuments: (meetingId: string) => Promise<void>;
   uploadDocument: (
     meetingId: string,
     files: File[],
     documentType: string,
-    associations?: Record<string, string>
-  ) => Promise<void>
+    associations?: Record<string, string>,
+  ) => Promise<void>;
 }
 
-const DocumentContext = createContext<DocumentContextType | undefined>(undefined)
+const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
 interface DocumentProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) => {
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [dsmDocuments, setDsmDocuments] = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [dsmDocuments, setDsmDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshDocuments = useCallback(async (meetingId: string) => {
-    if (!meetingId) return
+    if (!meetingId) return;
 
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
-      const apiClient = await buildApiClient()
-      const { data, error: apiError } = await apiClient.GET(
-        '/meetings/{meetingId}/documents',
-        {
-          params: { path: { meetingId } },
-        }
-      )
+      const apiClient = await buildApiClient();
+      const { data, error: apiError } = await apiClient.GET("/meetings/{meetingId}/documents", {
+        params: { path: { meetingId } },
+      });
 
       if (apiError || !data) {
-        setError('Failed to fetch documents')
-        return
+        setError("Failed to fetch documents");
+        return;
       }
 
-      const allDocuments = data as Document[]
+      const allDocuments = data as Document[];
 
       // Separate DSM documents from regular documents
       // DSM documents have type 'digital-shareholder-meeting'
       const dsm = allDocuments.filter((doc) => {
-        return doc.type === 'digital-shareholder-meeting'
-      })
+        return doc.type === "digital-shareholder-meeting";
+      });
 
       // Regular documents are everything else except HOSTING_SITE
       const regular = allDocuments.filter((doc) => {
         // Exclude HOSTING_SITE documents
-        if (doc.type === 'HOSTING_SITE') return false
+        if (doc.type === "HOSTING_SITE") return false;
 
         // Exclude DSM documents
-        if (doc.type === 'digital-shareholder-meeting') return false
+        if (doc.type === "digital-shareholder-meeting") return false;
 
         // Include everything else
-        return true
-      })
+        return true;
+      });
 
-      console.log('[DocumentContext] Total documents:', allDocuments.length)
+      console.log("[DocumentContext] Total documents:", allDocuments.length);
       console.log(
-        '[DocumentContext] DSM documents:',
+        "[DocumentContext] DSM documents:",
         dsm.length,
-        dsm.map((d) => ({ title: d.title, type: d.type }))
-      )
-      console.log('[DocumentContext] Regular documents:', regular.length)
+        dsm.map((d) => ({ title: d.title, type: d.type })),
+      );
+      console.log("[DocumentContext] Regular documents:", regular.length);
 
-      setDocuments(regular)
-      setDsmDocuments(dsm)
+      setDocuments(regular);
+      setDsmDocuments(dsm);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   const uploadDocument = useCallback(
     async (
       meetingId: string,
       files: File[],
       documentType: string,
-      associations?: Record<string, string>
+      associations?: Record<string, string>,
     ) => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         // Upload each file using the API endpoint
         const uploadPromises = files.map(async (file, index) => {
           // Try multiple association key formats:
           // 1. file_0, file_1, etc. (used by DigitalShareholderMeetingCard)
           // 2. filename-filesize (used by FileUploadDialog)
-          const fileIndexKey = `file_${index}`
-          const fileNameSizeKey = `${file.name}-${file.size}`
-          const associationId =
-            associations?.[fileIndexKey] || associations?.[fileNameSizeKey]
-          const title = associationId || file.name
+          const fileIndexKey = `file_${index}`;
+          const fileNameSizeKey = `${file.name}-${file.size}`;
+          const associationId = associations?.[fileIndexKey] || associations?.[fileNameSizeKey];
+          const title = associationId || file.name;
 
           const fileData = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader()
+            const reader = new FileReader();
             reader.onload = () => {
-              if (typeof reader.result === 'string') {
-                resolve(reader.result)
+              if (typeof reader.result === "string") {
+                resolve(reader.result);
               } else {
-                reject(new Error(`Failed to read ${file.name}`))
+                reject(new Error(`Failed to read ${file.name}`));
               }
-            }
-            reader.onerror = () => reject(new Error(`Failed to read ${file.name}`))
-            reader.readAsDataURL(file)
-          })
+            };
+            reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+            reader.readAsDataURL(file);
+          });
 
-          const apiBaseUrl =
-            process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
           const response = await fetch(
             `${apiBaseUrl}/meetings/${encodeURIComponent(meetingId)}/documents`,
             {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 title,
                 type: documentType,
                 file: fileData,
               }),
-            }
-          )
+            },
+          );
 
           if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.error ?? `Failed to upload ${file.name}`)
+            const errorData = await response.json();
+            throw new Error(errorData.error ?? `Failed to upload ${file.name}`);
           }
 
-          const result = await response.json()
-          return result
-        })
+          const result = await response.json();
+          return result;
+        });
 
-        await Promise.all(uploadPromises)
+        await Promise.all(uploadPromises);
 
         // Refresh documents after upload
-        await refreshDocuments(meetingId)
+        await refreshDocuments(meetingId);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed')
-        throw err
+        setError(err instanceof Error ? err.message : "Upload failed");
+        throw err;
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [refreshDocuments]
-  )
+    [refreshDocuments],
+  );
 
   const value: DocumentContextType = useMemo(
     () => ({
@@ -175,16 +172,16 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       refreshDocuments,
       uploadDocument,
     }),
-    [documents, dsmDocuments, loading, error, refreshDocuments, uploadDocument]
-  )
+    [documents, dsmDocuments, loading, error, refreshDocuments, uploadDocument],
+  );
 
-  return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>
-}
+  return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
+};
 
 export const useDocuments = (): DocumentContextType => {
-  const context = useContext(DocumentContext)
+  const context = useContext(DocumentContext);
   if (!context) {
-    throw new Error('useDocuments must be used within a DocumentProvider')
+    throw new Error("useDocuments must be used within a DocumentProvider");
   }
-  return context
-}
+  return context;
+};

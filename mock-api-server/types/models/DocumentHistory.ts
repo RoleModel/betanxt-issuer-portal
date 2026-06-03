@@ -1,3 +1,6 @@
+import type { Document } from "./Document";
+import type { User } from "./User";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,16 +13,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Document } from './Document'
+import { mapValues } from "../runtime";
 import {
   DocumentFromJSON,
   DocumentFromJSONTyped,
   DocumentToJSON,
   DocumentToJSONTyped,
-} from './Document'
-import type { User } from './User'
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from './User'
+} from "./Document";
+import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
 
 /**
  *
@@ -32,127 +33,127 @@ export interface DocumentHistory {
    * @type {string}
    * @memberof DocumentHistory
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof DocumentHistory
    */
-  documentId?: string
+  documentId?: string;
   /**
    *
    * @type {string}
    * @memberof DocumentHistory
    */
-  eventType?: DocumentHistoryEventTypeEnum
+  eventType?: DocumentHistoryEventTypeEnum;
   /**
    *
    * @type {string}
    * @memberof DocumentHistory
    */
-  userId?: string
+  userId?: string;
   /**
    *
    * @type {string}
    * @memberof DocumentHistory
    */
-  userName?: string
+  userName?: string;
   /**
    *
    * @type {{ [key: string]: any; }}
    * @memberof DocumentHistory
    */
-  metadata?: { [key: string]: any }
+  metadata?: { [key: string]: any };
   /**
    *
    * @type {Date}
    * @memberof DocumentHistory
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Document}
    * @memberof DocumentHistory
    */
-  document?: Document
+  document?: Document;
   /**
    *
    * @type {User}
    * @memberof DocumentHistory
    */
-  user?: User
+  user?: User;
 }
 
 /**
  * @export
  */
 export const DocumentHistoryEventTypeEnum = {
-  Created: 'CREATED',
-  Uploaded: 'UPLOADED',
-  Viewed: 'VIEWED',
-  Downloaded: 'DOWNLOADED',
-  Signed: 'SIGNED',
-  Approved: 'APPROVED',
-  Rejected: 'REJECTED',
-  Commented: 'COMMENTED',
-  Updated: 'UPDATED',
-  Deleted: 'DELETED',
-} as const
+  Created: "CREATED",
+  Uploaded: "UPLOADED",
+  Viewed: "VIEWED",
+  Downloaded: "DOWNLOADED",
+  Signed: "SIGNED",
+  Approved: "APPROVED",
+  Rejected: "REJECTED",
+  Commented: "COMMENTED",
+  Updated: "UPDATED",
+  Deleted: "DELETED",
+} as const;
 export type DocumentHistoryEventTypeEnum =
-  (typeof DocumentHistoryEventTypeEnum)[keyof typeof DocumentHistoryEventTypeEnum]
+  (typeof DocumentHistoryEventTypeEnum)[keyof typeof DocumentHistoryEventTypeEnum];
 
 /**
  * Check if a given object implements the DocumentHistory interface.
  */
 export function instanceOfDocumentHistory(value: object): value is DocumentHistory {
-  return true
+  return true;
 }
 
 export function DocumentHistoryFromJSON(json: any): DocumentHistory {
-  return DocumentHistoryFromJSONTyped(json, false)
+  return DocumentHistoryFromJSONTyped(json, false);
 }
 
 export function DocumentHistoryFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): DocumentHistory {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    eventType: json['eventType'] == null ? undefined : json['eventType'],
-    userId: json['userId'] == null ? undefined : json['userId'],
-    userName: json['userName'] == null ? undefined : json['userName'],
-    metadata: json['metadata'] == null ? undefined : json['metadata'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    document: json['document'] == null ? undefined : DocumentFromJSON(json['document']),
-    user: json['user'] == null ? undefined : UserFromJSON(json['user']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    eventType: json["eventType"] == null ? undefined : json["eventType"],
+    userId: json["userId"] == null ? undefined : json["userId"],
+    userName: json["userName"] == null ? undefined : json["userName"],
+    metadata: json["metadata"] == null ? undefined : json["metadata"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+    user: json["user"] == null ? undefined : UserFromJSON(json["user"]),
+  };
 }
 
 export function DocumentHistoryToJSON(json: any): DocumentHistory {
-  return DocumentHistoryToJSONTyped(json, false)
+  return DocumentHistoryToJSONTyped(json, false);
 }
 
 export function DocumentHistoryToJSONTyped(
   value?: DocumentHistory | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    documentId: value['documentId'],
-    eventType: value['eventType'],
-    userId: value['userId'],
-    userName: value['userName'],
-    metadata: value['metadata'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    document: DocumentToJSON(value['document']),
-    user: UserToJSON(value['user']),
-  }
+    id: value["id"],
+    documentId: value["documentId"],
+    eventType: value["eventType"],
+    userId: value["userId"],
+    userName: value["userName"],
+    metadata: value["metadata"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    document: DocumentToJSON(value["document"]),
+    user: UserToJSON(value["user"]),
+  };
 }

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,85 +23,82 @@ export interface PositionVote {
    * @type {string}
    * @memberof PositionVote
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof PositionVote
    */
-  positionId?: string
+  positionId?: string;
   /**
    *
    * @type {string}
    * @memberof PositionVote
    */
-  proposalId?: string
+  proposalId?: string;
   /**
    *
    * @type {string}
    * @memberof PositionVote
    */
-  vote?: string
+  vote?: string;
   /**
    *
    * @type {string}
    * @memberof PositionVote
    */
-  sharesVoting?: string
+  sharesVoting?: string;
   /**
    *
    * @type {Date}
    * @memberof PositionVote
    */
-  createdAt?: Date
+  createdAt?: Date;
 }
 
 /**
  * Check if a given object implements the PositionVote interface.
  */
 export function instanceOfPositionVote(value: object): value is PositionVote {
-  return true
+  return true;
 }
 
 export function PositionVoteFromJSON(json: any): PositionVote {
-  return PositionVoteFromJSONTyped(json, false)
+  return PositionVoteFromJSONTyped(json, false);
 }
 
-export function PositionVoteFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): PositionVote {
+export function PositionVoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): PositionVote {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    positionId: json['positionId'] == null ? undefined : json['positionId'],
-    proposalId: json['proposalId'] == null ? undefined : json['proposalId'],
-    vote: json['vote'] == null ? undefined : json['vote'],
-    sharesVoting: json['sharesVoting'] == null ? undefined : json['sharesVoting'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    positionId: json["positionId"] == null ? undefined : json["positionId"],
+    proposalId: json["proposalId"] == null ? undefined : json["proposalId"],
+    vote: json["vote"] == null ? undefined : json["vote"],
+    sharesVoting: json["sharesVoting"] == null ? undefined : json["sharesVoting"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+  };
 }
 
 export function PositionVoteToJSON(json: any): PositionVote {
-  return PositionVoteToJSONTyped(json, false)
+  return PositionVoteToJSONTyped(json, false);
 }
 
 export function PositionVoteToJSONTyped(
   value?: PositionVote | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    positionId: value['positionId'],
-    proposalId: value['proposalId'],
-    vote: value['vote'],
-    sharesVoting: value['sharesVoting'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-  }
+    id: value["id"],
+    positionId: value["positionId"],
+    proposalId: value["proposalId"],
+    vote: value["vote"],
+    sharesVoting: value["sharesVoting"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+  };
 }

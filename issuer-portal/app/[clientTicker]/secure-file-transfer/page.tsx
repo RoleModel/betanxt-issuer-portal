@@ -1,15 +1,14 @@
-'use client'
+"use client";
 
-import { usePathname } from 'next/navigation'
-import React from 'react'
+import { Container } from "@mui/material";
+import { usePathname } from "next/navigation";
+import React from "react";
 
-import { Container } from '@mui/material'
-
-import SecureFileTransferTable from '@/components/Meeting/SecureFileTransferTable'
+import SecureFileTransferTable from "@/components/Meeting/SecureFileTransferTable";
 
 export default function SecureFileTransferPage() {
-  const pathname = usePathname()
-  const clientTicker = pathname.split('/')[1]
+  const pathname = usePathname();
+  const clientTicker = pathname.split("/")[1];
   return (
     <Container
       maxWidth="xl"
@@ -22,5 +21,5 @@ export default function SecureFileTransferPage() {
     >
       <SecureFileTransferTable clientTicker={clientTicker} />
     </Container>
-  )
+  );
 }

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,63 +23,61 @@ export interface UpdateAccountRequest {
    * @type {string}
    * @memberof UpdateAccountRequest
    */
-  name?: string
+  name?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateAccountRequest
    */
-  primaryContact?: string
+  primaryContact?: string;
   /**
    * The client this account belongs to
    * @type {string}
    * @memberof UpdateAccountRequest
    */
-  clientId?: string
+  clientId?: string;
 }
 
 /**
  * Check if a given object implements the UpdateAccountRequest interface.
  */
-export function instanceOfUpdateAccountRequest(
-  value: object
-): value is UpdateAccountRequest {
-  return true
+export function instanceOfUpdateAccountRequest(value: object): value is UpdateAccountRequest {
+  return true;
 }
 
 export function UpdateAccountRequestFromJSON(json: any): UpdateAccountRequest {
-  return UpdateAccountRequestFromJSONTyped(json, false)
+  return UpdateAccountRequestFromJSONTyped(json, false);
 }
 
 export function UpdateAccountRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateAccountRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    name: json['name'] == null ? undefined : json['name'],
-    primaryContact: json['primaryContact'] == null ? undefined : json['primaryContact'],
-    clientId: json['clientId'] == null ? undefined : json['clientId'],
-  }
+    name: json["name"] == null ? undefined : json["name"],
+    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    clientId: json["clientId"] == null ? undefined : json["clientId"],
+  };
 }
 
 export function UpdateAccountRequestToJSON(json: any): UpdateAccountRequest {
-  return UpdateAccountRequestToJSONTyped(json, false)
+  return UpdateAccountRequestToJSONTyped(json, false);
 }
 
 export function UpdateAccountRequestToJSONTyped(
   value?: UpdateAccountRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    name: value['name'],
-    primaryContact: value['primaryContact'],
-    clientId: value['clientId'],
-  }
+    name: value["name"],
+    primaryContact: value["primaryContact"],
+    clientId: value["clientId"],
+  };
 }

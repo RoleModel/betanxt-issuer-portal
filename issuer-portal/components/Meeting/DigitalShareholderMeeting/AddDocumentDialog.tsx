@@ -1,6 +1,4 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -15,34 +13,35 @@ import {
   MenuItem,
   Select,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import { useEffect, useState } from "react";
 
-import BNFileDropzone from '@/components/FileUpload/BNFileDropzone'
-import BNFilePreview from '@/components/FileUpload/BNFilePreview'
+import BNFileDropzone from "@/components/FileUpload/BNFileDropzone";
+import BNFilePreview from "@/components/FileUpload/BNFilePreview";
 
 interface DSMDocument {
-  id: string
-  title: string
-  status?: string
-  filePath?: string
+  id: string;
+  title: string;
+  status?: string;
+  filePath?: string;
 }
 
 interface FileWithMetadata {
-  id: string
-  file: File
-  status: 'uploading' | 'complete' | 'error'
-  progress?: number
-  error?: string
-  associatedDocumentId?: string
+  id: string;
+  file: File;
+  status: "uploading" | "complete" | "error";
+  progress?: number;
+  error?: string;
+  associatedDocumentId?: string;
 }
 
 interface AddDocumentDialogProps {
-  open: boolean
-  onClose: () => void
-  participantName: string
-  meetingId: string
-  participantId: string
-  onDocumentAdded: (documentName: string, documentStatus: string) => void
+  open: boolean;
+  onClose: () => void;
+  participantName: string;
+  meetingId: string;
+  participantId: string;
+  onDocumentAdded: (documentName: string, documentStatus: string) => void;
 }
 
 export function AddDocumentDialog({
@@ -53,182 +52,166 @@ export function AddDocumentDialog({
   participantId,
   onDocumentAdded,
 }: AddDocumentDialogProps) {
-  const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([])
-  const [selectedDocumentId, setSelectedDocumentId] = useState('')
-  const [uploadFiles, setUploadFiles] = useState<FileWithMetadata[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isUploadMode, setIsUploadMode] = useState(false)
+  const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const [uploadFiles, setUploadFiles] = useState<FileWithMetadata[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadMode, setIsUploadMode] = useState(false);
 
   // Fetch DSM documents when dialog opens
   useEffect(() => {
     if (open && meetingId) {
-      void fetchDSMDocuments()
+      void fetchDSMDocuments();
     }
     // fetchDSMDocuments is a stable function defined in this component
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, meetingId])
+  }, [open, meetingId]);
 
   const fetchDSMDocuments = async () => {
     try {
-      setIsLoading(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001/api'
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`)
+      setIsLoading(true);
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`);
 
       if (response.ok) {
         const documents = (await response.json()) as {
-          documentType?: string
-          title?: string
-          [key: string]: unknown
-        }[]
+          documentType?: string;
+          title?: string;
+          [key: string]: unknown;
+        }[];
         // Filter for DSM-related documents
         const dsmDocs = documents.filter(
           (doc) =>
-            doc.documentType === 'digital-shareholder-meeting' ||
-            doc.title?.includes('DSM') ||
-            doc.title?.includes('Digital Shareholder Meeting')
-        )
-        setDsmDocuments(dsmDocs as unknown as DSMDocument[])
-        setIsUploadMode(dsmDocs.length === 0)
+            doc.documentType === "digital-shareholder-meeting" ||
+            doc.title?.includes("DSM") ||
+            doc.title?.includes("Digital Shareholder Meeting"),
+        );
+        setDsmDocuments(dsmDocs as unknown as DSMDocument[]);
+        setIsUploadMode(dsmDocs.length === 0);
       } else {
-        setDsmDocuments([])
-        setIsUploadMode(true)
+        setDsmDocuments([]);
+        setIsUploadMode(true);
       }
     } catch (error) {
-      console.error('Failed to fetch DSM documents:', error)
-      setDsmDocuments([])
-      setIsUploadMode(true)
+      console.error("Failed to fetch DSM documents:", error);
+      setDsmDocuments([]);
+      setIsUploadMode(true);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleFilesSelected = (files: File[]) => {
     const newFiles: FileWithMetadata[] = files.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
       file,
-      status: 'complete' as const, // Set to complete initially, will change to uploading when upload starts
-    }))
-    setUploadFiles((prev) => [...prev, ...newFiles])
-  }
+      status: "complete" as const, // Set to complete initially, will change to uploading when upload starts
+    }));
+    setUploadFiles((prev) => [...prev, ...newFiles]);
+  };
 
   const handleFileRejections = (rejections: unknown[]) => {
-    console.warn('File rejections:', rejections)
+    console.warn("File rejections:", rejections);
     // Handle file rejections if needed
-  }
+  };
 
   const handleFileRemove = (fileId: string) => {
-    setUploadFiles((prev) => prev.filter((f) => f.id !== fileId))
-  }
+    setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
+  };
 
   const handleAssignExistingDocument = () => {
     if (selectedDocumentId) {
-      const selectedDoc = dsmDocuments.find((doc) => doc.id === selectedDocumentId)
+      const selectedDoc = dsmDocuments.find((doc) => doc.id === selectedDocumentId);
       if (selectedDoc) {
-        onDocumentAdded(selectedDoc.title, selectedDoc.status ?? 'uploaded')
-        handleClose()
+        onDocumentAdded(selectedDoc.title, selectedDoc.status ?? "uploaded");
+        handleClose();
       }
     }
-  }
+  };
 
   const handleUploadNewDocument = async () => {
-    if (uploadFiles.length === 0) return
+    if (uploadFiles.length === 0) return;
 
-    console.log(
-      '[AddDocumentDialog] Uploading for participant:',
-      participantId,
-      participantName
-    )
+    console.log("[AddDocumentDialog] Uploading for participant:", participantId, participantName);
 
     try {
-      const file = uploadFiles[0]
+      const file = uploadFiles[0];
       setUploadFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
-        )
-      )
+        prev.map((f) => (f.id === file.id ? { ...f, status: "uploading", progress: 0 } : f)),
+      );
 
       // Create FormData for file upload - use original file and send title separately
-      const formData = new FormData()
-      formData.append('file', file.file)
-      formData.append('meetingId', meetingId)
-      formData.append('documentType', 'digital-shareholder-meeting')
-      formData.append('title', file.file.name) // Send original filename as title
-      formData.append('participantName', participantName)
-      formData.append('participantId', participantId)
+      const formData = new FormData();
+      formData.append("file", file.file);
+      formData.append("meetingId", meetingId);
+      formData.append("documentType", "digital-shareholder-meeting");
+      formData.append("title", file.file.name); // Send original filename as title
+      formData.append("participantName", participantName);
+      formData.append("participantId", participantId);
 
-      console.log(
-        '[AddDocumentDialog] Uploading for participant:',
-        participantId,
-        participantName
-      )
-      console.log(
-        '[AddDocumentDialog] FormData participantId:',
-        formData.get('participantId')
-      )
+      console.log("[AddDocumentDialog] Uploading for participant:", participantId, participantName);
+      console.log("[AddDocumentDialog] FormData participantId:", formData.get("participantId"));
 
       // Upload via API route
-      const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
       const response = await fetch(
         `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
         {
-          method: 'POST',
+          method: "POST",
           body: formData,
-        }
-      )
+        },
+      );
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Upload failed: ${errorText}`)
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${errorText}`);
       }
 
       const result = (await response.json()) as {
-        id?: string
-        storagePath?: string
-        status?: string
-      }
+        id?: string;
+        storagePath?: string;
+        status?: string;
+      };
 
       setUploadFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id ? { ...f, status: 'complete', progress: 100 } : f
-        )
-      )
+        prev.map((f) => (f.id === file.id ? { ...f, status: "complete", progress: 100 } : f)),
+      );
 
       // Add document to participant with actual status from API
-      onDocumentAdded(file.file.name, result.status ?? 'UPLOADED')
+      onDocumentAdded(file.file.name, result.status ?? "UPLOADED");
 
       // Dispatch event to notify other components
       window.dispatchEvent(
-        new CustomEvent('documentsUploaded', {
+        new CustomEvent("documentsUploaded", {
           detail: { meetingId },
-        })
-      )
+        }),
+      );
 
       setTimeout(() => {
-        handleClose()
-      }, 1000)
+        handleClose();
+      }, 1000);
     } catch (error) {
-      console.error('Upload failed:', error)
+      console.error("Upload failed:", error);
       setUploadFiles((prev) =>
         prev.map((f) =>
           f.id === uploadFiles[0].id
             ? {
                 ...f,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Upload failed',
+                status: "error",
+                error: error instanceof Error ? error.message : "Upload failed",
               }
-            : f
-        )
-      )
+            : f,
+        ),
+      );
     }
-  }
+  };
 
   const handleClose = () => {
-    setSelectedDocumentId('')
-    setUploadFiles([])
-    setIsUploadMode(false)
-    onClose()
-  }
+    setSelectedDocumentId("");
+    setUploadFiles([]);
+    setIsUploadMode(false);
+    onClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -249,7 +232,7 @@ export function AddDocumentDialog({
                 onFileRejections={handleFileRejections}
                 maxFiles={1}
                 multiple={false}
-                acceptedFileTypes={['.pdf', '.doc', '.docx', '.ppt', '.pptx']}
+                acceptedFileTypes={[".pdf", ".doc", ".docx", ".ppt", ".pptx"]}
                 linkText="Select Document"
               />
             </Box>
@@ -278,7 +261,7 @@ export function AddDocumentDialog({
                     <Box>
                       <Typography variant="body2">{doc.title}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Status: {doc.status ?? 'Unknown'}
+                        Status: {doc.status ?? "Unknown"}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -308,10 +291,7 @@ export function AddDocumentDialog({
           <Button
             onClick={handleUploadNewDocument}
             variant="contained"
-            disabled={
-              uploadFiles.length === 0 ||
-              uploadFiles.some((f) => f.status === 'uploading')
-            }
+            disabled={uploadFiles.length === 0 || uploadFiles.some((f) => f.status === "uploading")}
           >
             Upload & Assign
           </Button>
@@ -326,5 +306,5 @@ export function AddDocumentDialog({
         )}
       </DialogActions>
     </Dialog>
-  )
+  );
 }

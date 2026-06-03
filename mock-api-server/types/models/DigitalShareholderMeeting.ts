@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,133 +23,133 @@ export interface DigitalShareholderMeeting {
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  registrantType?: DigitalShareholderMeetingRegistrantTypeEnum
+  registrantType?: DigitalShareholderMeetingRegistrantTypeEnum;
   /**
    *
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  firstName?: string
+  firstName?: string;
   /**
    *
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  lastName?: string
+  lastName?: string;
   /**
    *
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  emailAddress?: string
+  emailAddress?: string;
   /**
    * Pre-meeting questions submitted during registration
    * @type {string}
    * @memberof DigitalShareholderMeeting
    */
-  registrationQuestions?: string | null
+  registrationQuestions?: string | null;
   /**
    * Minutes attended in the meeting
    * @type {number}
    * @memberof DigitalShareholderMeeting
    */
-  minutesAttendedMeeting?: number | null
+  minutesAttendedMeeting?: number | null;
   /**
    *
    * @type {Date}
    * @memberof DigitalShareholderMeeting
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof DigitalShareholderMeeting
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * @export
  */
 export const DigitalShareholderMeetingRegistrantTypeEnum = {
-  Shareholder: 'Shareholder',
-  Guest: 'Guest',
-  Proxy: 'Proxy',
-  Other: 'Other',
-} as const
+  Shareholder: "Shareholder",
+  Guest: "Guest",
+  Proxy: "Proxy",
+  Other: "Other",
+} as const;
 export type DigitalShareholderMeetingRegistrantTypeEnum =
-  (typeof DigitalShareholderMeetingRegistrantTypeEnum)[keyof typeof DigitalShareholderMeetingRegistrantTypeEnum]
+  (typeof DigitalShareholderMeetingRegistrantTypeEnum)[keyof typeof DigitalShareholderMeetingRegistrantTypeEnum];
 
 /**
  * Check if a given object implements the DigitalShareholderMeeting interface.
  */
 export function instanceOfDigitalShareholderMeeting(
-  value: object
+  value: object,
 ): value is DigitalShareholderMeeting {
-  return true
+  return true;
 }
 
 export function DigitalShareholderMeetingFromJSON(json: any): DigitalShareholderMeeting {
-  return DigitalShareholderMeetingFromJSONTyped(json, false)
+  return DigitalShareholderMeetingFromJSONTyped(json, false);
 }
 
 export function DigitalShareholderMeetingFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): DigitalShareholderMeeting {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    registrantType: json['registrantType'] == null ? undefined : json['registrantType'],
-    firstName: json['firstName'] == null ? undefined : json['firstName'],
-    lastName: json['lastName'] == null ? undefined : json['lastName'],
-    emailAddress: json['emailAddress'] == null ? undefined : json['emailAddress'],
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    registrantType: json["registrantType"] == null ? undefined : json["registrantType"],
+    firstName: json["firstName"] == null ? undefined : json["firstName"],
+    lastName: json["lastName"] == null ? undefined : json["lastName"],
+    emailAddress: json["emailAddress"] == null ? undefined : json["emailAddress"],
     registrationQuestions:
-      json['registrationQuestions'] == null ? undefined : json['registrationQuestions'],
+      json["registrationQuestions"] == null ? undefined : json["registrationQuestions"],
     minutesAttendedMeeting:
-      json['minutesAttendedMeeting'] == null ? undefined : json['minutesAttendedMeeting'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+      json["minutesAttendedMeeting"] == null ? undefined : json["minutesAttendedMeeting"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function DigitalShareholderMeetingToJSON(json: any): DigitalShareholderMeeting {
-  return DigitalShareholderMeetingToJSONTyped(json, false)
+  return DigitalShareholderMeetingToJSONTyped(json, false);
 }
 
 export function DigitalShareholderMeetingToJSONTyped(
   value?: DigitalShareholderMeeting | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    registrantType: value['registrantType'],
-    firstName: value['firstName'],
-    lastName: value['lastName'],
-    emailAddress: value['emailAddress'],
-    registrationQuestions: value['registrationQuestions'],
-    minutesAttendedMeeting: value['minutesAttendedMeeting'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+    id: value["id"],
+    meetingId: value["meetingId"],
+    registrantType: value["registrantType"],
+    firstName: value["firstName"],
+    lastName: value["lastName"],
+    emailAddress: value["emailAddress"],
+    registrationQuestions: value["registrationQuestions"],
+    minutesAttendedMeeting: value["minutesAttendedMeeting"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

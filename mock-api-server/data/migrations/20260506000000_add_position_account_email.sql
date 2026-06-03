@@ -1,2 +1,2 @@
--- Add account_email column to position table (added to seed but missing from initial schema)
-ALTER TABLE public."position" ADD COLUMN IF NOT EXISTS account_email TEXT DEFAULT NULL;
+-- Intentionally empty. Contents moved to 20260512202154_post_schema_alterations.sql
+-- to ensure it runs after the initial schema is created.

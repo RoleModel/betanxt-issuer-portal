@@ -1,3 +1,5 @@
+import type { Document } from "./Document";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Document } from './Document'
+import { mapValues } from "../runtime";
 import {
   DocumentFromJSON,
   DocumentFromJSONTyped,
   DocumentToJSON,
   DocumentToJSONTyped,
-} from './Document'
+} from "./Document";
 
 /**
  *
@@ -30,133 +31,130 @@ export interface Signature {
    * @type {string}
    * @memberof Signature
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Signature
    */
-  documentId?: string
+  documentId?: string;
   /**
    *
    * @type {number}
    * @memberof Signature
    */
-  pageNumber?: number
+  pageNumber?: number;
   /**
    *
    * @type {number}
    * @memberof Signature
    */
-  xPosition?: number
+  xPosition?: number;
   /**
    *
    * @type {number}
    * @memberof Signature
    */
-  yPosition?: number
+  yPosition?: number;
   /**
    *
    * @type {number}
    * @memberof Signature
    */
-  width?: number
+  width?: number;
   /**
    *
    * @type {number}
    * @memberof Signature
    */
-  height?: number
+  height?: number;
   /**
    *
    * @type {string}
    * @memberof Signature
    */
-  signatureType?: string
+  signatureType?: string;
   /**
    *
    * @type {boolean}
    * @memberof Signature
    */
-  required?: boolean
+  required?: boolean;
   /**
    *
    * @type {Date}
    * @memberof Signature
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Signature
    */
-  updatedAt?: Date
+  updatedAt?: Date;
   /**
    *
    * @type {Document}
    * @memberof Signature
    */
-  document?: Document
+  document?: Document;
 }
 
 /**
  * Check if a given object implements the Signature interface.
  */
 export function instanceOfSignature(value: object): value is Signature {
-  return true
+  return true;
 }
 
 export function SignatureFromJSON(json: any): Signature {
-  return SignatureFromJSONTyped(json, false)
+  return SignatureFromJSONTyped(json, false);
 }
 
-export function SignatureFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): Signature {
+export function SignatureFromJSONTyped(json: any, ignoreDiscriminator: boolean): Signature {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    pageNumber: json['pageNumber'] == null ? undefined : json['pageNumber'],
-    xPosition: json['xPosition'] == null ? undefined : json['xPosition'],
-    yPosition: json['yPosition'] == null ? undefined : json['yPosition'],
-    width: json['width'] == null ? undefined : json['width'],
-    height: json['height'] == null ? undefined : json['height'],
-    signatureType: json['signatureType'] == null ? undefined : json['signatureType'],
-    required: json['required'] == null ? undefined : json['required'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-    document: json['document'] == null ? undefined : DocumentFromJSON(json['document']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    pageNumber: json["pageNumber"] == null ? undefined : json["pageNumber"],
+    xPosition: json["xPosition"] == null ? undefined : json["xPosition"],
+    yPosition: json["yPosition"] == null ? undefined : json["yPosition"],
+    width: json["width"] == null ? undefined : json["width"],
+    height: json["height"] == null ? undefined : json["height"],
+    signatureType: json["signatureType"] == null ? undefined : json["signatureType"],
+    required: json["required"] == null ? undefined : json["required"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+  };
 }
 
 export function SignatureToJSON(json: any): Signature {
-  return SignatureToJSONTyped(json, false)
+  return SignatureToJSONTyped(json, false);
 }
 
 export function SignatureToJSONTyped(
   value?: Signature | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    documentId: value['documentId'],
-    pageNumber: value['pageNumber'],
-    xPosition: value['xPosition'],
-    yPosition: value['yPosition'],
-    width: value['width'],
-    height: value['height'],
-    signatureType: value['signatureType'],
-    required: value['required'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-    document: DocumentToJSON(value['document']),
-  }
+    id: value["id"],
+    documentId: value["documentId"],
+    pageNumber: value["pageNumber"],
+    xPosition: value["xPosition"],
+    yPosition: value["yPosition"],
+    width: value["width"],
+    height: value["height"],
+    signatureType: value["signatureType"],
+    required: value["required"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    document: DocumentToJSON(value["document"]),
+  };
 }

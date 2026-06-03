@@ -1,25 +1,21 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { useParams } from 'next/navigation'
+import { Box, Container } from "@mui/material";
+import dynamic from "next/dynamic";
+import { useParams } from "next/navigation";
 
-import { Box, Container } from '@mui/material'
-
-import { useMeeting } from '@/contexts/MeetingContext'
+import { useMeeting } from "@/contexts/MeetingContext";
 
 // Dynamically load layout & tracker to reduce initial JS bundle
-const Phase1Layout = dynamic(() => import('@/components/Meeting/Phase1Layout'), {})
-const TabulationTracker = dynamic(
-  () => import('@/components/Meeting/TabulationTracker'),
-  {}
-)
+const Phase1Layout = dynamic(() => import("@/components/Meeting/Phase1Layout"), {});
+const TabulationTracker = dynamic(() => import("@/components/Meeting/TabulationTracker"), {});
 
 export default function PhasePage() {
-  const params = useParams()
-  const meetingId = params.meetingId as string
-  const phase = params.phase as string
-  const { getMeetingById } = useMeeting()
-  const meeting = getMeetingById(meetingId)
+  const params = useParams();
+  const meetingId = params.meetingId as string;
+  const phase = params.phase as string;
+  const { getMeetingById } = useMeeting();
+  const meeting = getMeetingById(meetingId);
 
   const meetingForPhase = meeting
     ? {
@@ -31,7 +27,7 @@ export default function PhasePage() {
             }
           : meeting.client,
       }
-    : meeting
+    : meeting;
 
   return (
     <Container component="main" maxWidth="xl" data-testid="meeting-dashboard">
@@ -47,5 +43,5 @@ export default function PhasePage() {
         <Phase1Layout meeting={meetingForPhase} />
       </Box>
     </Container>
-  )
+  );
 }

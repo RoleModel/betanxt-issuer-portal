@@ -1,23 +1,23 @@
-import type { AxeResults as AxeCoreResults, ImpactValue, NodeResult } from 'axe-core'
+import type { AxeResults as AxeCoreResults, ImpactValue, NodeResult } from "axe-core";
 
 interface GroupedViolation {
-  impact: ImpactValue | undefined
-  description: string
-  help: string
-  helpUrl: string
-  type: 'violation' | 'incomplete'
+  impact: ImpactValue | undefined;
+  description: string;
+  help: string;
+  helpUrl: string;
+  type: "violation" | "incomplete";
   occurrences: {
-    target: string
-    failureSummary: string
-  }[]
+    target: string;
+    failureSummary: string;
+  }[];
 }
 
 interface ViolationSummary {
-  totalViolations: number
-  totalCriticalIncomplete: number
-  totalSeriousIncomplete: number
-  impactBreakdown: Record<string, number>
-  ruleBreakdown: Record<string, number>
+  totalViolations: number;
+  totalCriticalIncomplete: number;
+  totalSeriousIncomplete: number;
+  impactBreakdown: Record<string, number>;
+  ruleBreakdown: Record<string, number>;
 }
 
 /**
@@ -26,7 +26,7 @@ interface ViolationSummary {
  * @returns Whether the incomplete issue should be treated as a violation
  */
 function isBlockingIncomplete(impact: ImpactValue | undefined): boolean {
-  return impact === 'critical' || impact === 'serious'
+  return impact === "critical" || impact === "serious";
 }
 
 /**
@@ -34,8 +34,8 @@ function isBlockingIncomplete(impact: ImpactValue | undefined): boolean {
  * @param target The target selector from axe-core
  * @returns A string representation of the target
  */
-function targetToString(target: NodeResult['target']): string {
-  return Array.isArray(target) ? target.join(' ') : String(target)
+function targetToString(target: NodeResult["target"]): string {
+  return Array.isArray(target) ? target.join(" ") : String(target);
 }
 
 /**
@@ -47,9 +47,7 @@ function targetToString(target: NodeResult['target']): string {
 export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults): string {
   const groupedViolations = [
     ...accessibilityScanResults.violations,
-    ...accessibilityScanResults.incomplete.filter((issue) =>
-      isBlockingIncomplete(issue.impact)
-    ),
+    ...accessibilityScanResults.incomplete.filter((issue) => isBlockingIncomplete(issue.impact)),
   ].reduce<Record<string, GroupedViolation>>((acc, violation) => {
     if (!acc[violation.id]) {
       acc[violation.id] = {
@@ -57,24 +55,22 @@ export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults):
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
-        type: accessibilityScanResults.violations.includes(violation)
-          ? 'violation'
-          : 'incomplete',
+        type: accessibilityScanResults.violations.includes(violation) ? "violation" : "incomplete",
         occurrences: [],
-      }
+      };
     }
 
     acc[violation.id].occurrences.push(
       ...violation.nodes.map((node) => ({
         target: targetToString(node.target),
-        failureSummary: node.failureSummary ?? 'No failure summary available',
-      }))
-    )
+        failureSummary: node.failureSummary ?? "No failure summary available",
+      })),
+    );
 
-    return acc
-  }, {})
+    return acc;
+  }, {});
 
-  return JSON.stringify(groupedViolations, null, 2)
+  return JSON.stringify(groupedViolations, null, 2);
 }
 
 /**
@@ -85,17 +81,17 @@ export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults):
  */
 export function createViolationSummary(accessibilityScanResults: AxeCoreResults): string {
   const criticalIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === 'critical'
-  )
+    (i) => i.impact === "critical",
+  );
   const seriousIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === 'serious'
-  )
+    (i) => i.impact === "serious",
+  );
 
   const allIssues = [
     ...accessibilityScanResults.violations,
     ...criticalIncomplete,
     ...seriousIncomplete,
-  ]
+  ];
 
   const summary: ViolationSummary = {
     totalViolations: accessibilityScanResults.violations.length,
@@ -103,15 +99,15 @@ export function createViolationSummary(accessibilityScanResults: AxeCoreResults)
     totalSeriousIncomplete: seriousIncomplete.length,
     impactBreakdown: allIssues.reduce<Record<string, number>>((acc, issue) => {
       if (issue.impact) {
-        acc[issue.impact] = (acc[issue.impact] ?? 0) + 1
+        acc[issue.impact] = (acc[issue.impact] ?? 0) + 1;
       }
-      return acc
+      return acc;
     }, {}),
     ruleBreakdown: allIssues.reduce<Record<string, number>>((acc, issue) => {
-      acc[issue.id] = issue.nodes.length
-      return acc
+      acc[issue.id] = issue.nodes.length;
+      return acc;
     }, {}),
-  }
+  };
 
-  return JSON.stringify(summary, null, 2)
+  return JSON.stringify(summary, null, 2);
 }

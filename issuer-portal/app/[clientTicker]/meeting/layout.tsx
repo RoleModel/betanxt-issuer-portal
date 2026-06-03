@@ -1,18 +1,17 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box } from "@mui/material";
+import React from "react";
 
-import { Box } from '@mui/material'
+import type { LayoutProps } from "@/types/next-layout";
 
-import { EventTabs } from '@/components/Navigation/EventTabs'
-
-import { DocumentProvider } from '@/contexts/DocumentContext'
-import { MeetingProvider } from '@/contexts/MeetingContext'
-import type { LayoutProps } from '@/types/next-layout'
+import { EventTabs } from "@/components/Navigation/EventTabs";
+import { DocumentProvider } from "@/contexts/DocumentContext";
+import { MeetingProvider } from "@/contexts/MeetingContext";
 
 // Main meeting layout with normal nested routes
 // EventTabs stay mounted while nested routes change
-export default function MeetingLayout(props: LayoutProps<'/[clientTicker]/meeting'>) {
+export default function MeetingLayout(props: LayoutProps<"/[clientTicker]/meeting">) {
   return (
     <MeetingProvider>
       <DocumentProvider>
@@ -22,5 +21,5 @@ export default function MeetingLayout(props: LayoutProps<'/[clientTicker]/meetin
         <Box sx={{ flexGrow: 1, flex: 1 }}>{props.children}</Box>
       </DocumentProvider>
     </MeetingProvider>
-  )
+  );
 }

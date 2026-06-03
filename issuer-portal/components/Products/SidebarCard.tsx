@@ -1,21 +1,22 @@
-import type { CardProps } from '@mui/material'
-import { Button, Card, CardContent, CardHeader, Typography } from '@mui/material'
+import type { CardProps } from "@mui/material";
+
+import { Button, Card, CardContent, CardHeader, Typography } from "@mui/material";
 
 interface SidebarCardProps extends CardProps {
-  title: string
-  button?: boolean
-  buttonText?: string
-  icon?: React.ReactNode
-  onClick?: () => void
+  title: string;
+  button?: boolean;
+  buttonText?: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
 }
 
 export const SidebarCard = (props: SidebarCardProps) => {
-  const { children, title, sx: sxProps, button, buttonText, onClick, icon } = props
+  const { children, title, sx: sxProps, button, buttonText, onClick, icon } = props;
   return (
     <Card
       sx={{
         ...sxProps,
-        height: 'fit-content',
+        height: "fit-content",
         backgroundColor: (theme) => theme.vars.palette.aquaLight,
       }}
     >
@@ -52,5 +53,5 @@ export const SidebarCard = (props: SidebarCardProps) => {
         )}
       </CardContent>
     </Card>
-  )
-}
+  );
+};

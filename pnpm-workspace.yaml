@@ -1,0 +1,23 @@
+packages:
+  - "issuer-portal"
+  - "mock-api-server"
+
+minimumReleaseAge: 0
+
+onlyBuiltDependencies:
+  - "@mui/x-telemetry"
+  - "@nestjs/core"
+  - "@openapitools/openapi-generator-cli"
+  - core-js
+  - esbuild
+  - sharp
+  - unrs-resolver
+
+allowBuilds:
+  "@mui/x-telemetry": true
+  "@nestjs/core": true
+  "@openapitools/openapi-generator-cli": true
+  core-js: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,260 +23,250 @@ export interface Proposal {
    * @type {string}
    * @memberof Proposal
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {number}
    * @memberof Proposal
    */
-  proposalNumber?: number
+  proposalNumber?: number;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  proposalTitle?: string
+  proposalTitle?: string;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  proposalType?: string
+  proposalType?: string;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  proposalSubtype?: string | null
+  proposalSubtype?: string | null;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  directorName?: string | null
+  directorName?: string | null;
   /**
    *
    * @type {number}
    * @memberof Proposal
    */
-  directorTermYears?: number | null
+  directorTermYears?: number | null;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  directorClass?: string | null
+  directorClass?: string | null;
   /**
    *
    * @type {number}
    * @memberof Proposal
    */
-  termExpirationYear?: number | null
+  termExpirationYear?: number | null;
   /**
    *
    * @type {object}
    * @memberof Proposal
    */
-  frequencyOptions?: object | null
+  frequencyOptions?: object | null;
   /**
    *
    * @type {string}
    * @memberof Proposal
    */
-  recommendation?: string
+  recommendation?: string;
   /**
    * Final result of the proposal voting
    * @type {string}
    * @memberof Proposal
    */
-  finalResult?: ProposalFinalResultEnum | null
+  finalResult?: ProposalFinalResultEnum | null;
   /**
    * Total number of votes in favor
    * @type {number}
    * @memberof Proposal
    */
-  totalVotesFor?: number | null
+  totalVotesFor?: number | null;
   /**
    * Total number of votes against
    * @type {number}
    * @memberof Proposal
    */
-  totalVotesAgainst?: number | null
+  totalVotesAgainst?: number | null;
   /**
    * Total number of abstained votes
    * @type {number}
    * @memberof Proposal
    */
-  totalVotesAbstain?: number | null
+  totalVotesAbstain?: number | null;
   /**
    * Total number of shares eligible to vote
    * @type {number}
    * @memberof Proposal
    */
-  totalSharesEligible?: number | null
+  totalSharesEligible?: number | null;
   /**
    * Percentage of votes in favor
    * @type {number}
    * @memberof Proposal
    */
-  forPercentage?: number | null
+  forPercentage?: number | null;
   /**
    * Percentage of votes against
    * @type {number}
    * @memberof Proposal
    */
-  againstPercentage?: number | null
+  againstPercentage?: number | null;
   /**
    * Percentage of abstained votes
    * @type {number}
    * @memberof Proposal
    */
-  abstainPercentage?: number | null
+  abstainPercentage?: number | null;
   /**
    * Overall participation rate
    * @type {number}
    * @memberof Proposal
    */
-  participationRate?: number | null
+  participationRate?: number | null;
   /**
    * Whether voting on this proposal has been completed
    * @type {boolean}
    * @memberof Proposal
    */
-  votingCompleted?: boolean
+  votingCompleted?: boolean;
   /**
    * When voting was completed
    * @type {Date}
    * @memberof Proposal
    */
-  votingCompletedAt?: Date | null
+  votingCompletedAt?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Proposal
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Proposal
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * @export
  */
 export const ProposalFinalResultEnum = {
-  Passed: 'PASSED',
-  Failed: 'FAILED',
-  Pending: 'PENDING',
-} as const
+  Passed: "PASSED",
+  Failed: "FAILED",
+  Pending: "PENDING",
+} as const;
 export type ProposalFinalResultEnum =
-  (typeof ProposalFinalResultEnum)[keyof typeof ProposalFinalResultEnum]
+  (typeof ProposalFinalResultEnum)[keyof typeof ProposalFinalResultEnum];
 
 /**
  * Check if a given object implements the Proposal interface.
  */
 export function instanceOfProposal(value: object): value is Proposal {
-  return true
+  return true;
 }
 
 export function ProposalFromJSON(json: any): Proposal {
-  return ProposalFromJSONTyped(json, false)
+  return ProposalFromJSONTyped(json, false);
 }
 
 export function ProposalFromJSONTyped(json: any, ignoreDiscriminator: boolean): Proposal {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    proposalNumber: json['proposalNumber'] == null ? undefined : json['proposalNumber'],
-    proposalTitle: json['proposalTitle'] == null ? undefined : json['proposalTitle'],
-    proposalType: json['proposalType'] == null ? undefined : json['proposalType'],
-    proposalSubtype:
-      json['proposalSubtype'] == null ? undefined : json['proposalSubtype'],
-    directorName: json['directorName'] == null ? undefined : json['directorName'],
-    directorTermYears:
-      json['directorTermYears'] == null ? undefined : json['directorTermYears'],
-    directorClass: json['directorClass'] == null ? undefined : json['directorClass'],
-    termExpirationYear:
-      json['termExpirationYear'] == null ? undefined : json['termExpirationYear'],
-    frequencyOptions:
-      json['frequencyOptions'] == null ? undefined : json['frequencyOptions'],
-    recommendation: json['recommendation'] == null ? undefined : json['recommendation'],
-    finalResult: json['finalResult'] == null ? undefined : json['finalResult'],
-    totalVotesFor: json['totalVotesFor'] == null ? undefined : json['totalVotesFor'],
-    totalVotesAgainst:
-      json['totalVotesAgainst'] == null ? undefined : json['totalVotesAgainst'],
-    totalVotesAbstain:
-      json['totalVotesAbstain'] == null ? undefined : json['totalVotesAbstain'],
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    proposalNumber: json["proposalNumber"] == null ? undefined : json["proposalNumber"],
+    proposalTitle: json["proposalTitle"] == null ? undefined : json["proposalTitle"],
+    proposalType: json["proposalType"] == null ? undefined : json["proposalType"],
+    proposalSubtype: json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
+    directorName: json["directorName"] == null ? undefined : json["directorName"],
+    directorTermYears: json["directorTermYears"] == null ? undefined : json["directorTermYears"],
+    directorClass: json["directorClass"] == null ? undefined : json["directorClass"],
+    termExpirationYear: json["termExpirationYear"] == null ? undefined : json["termExpirationYear"],
+    frequencyOptions: json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
+    recommendation: json["recommendation"] == null ? undefined : json["recommendation"],
+    finalResult: json["finalResult"] == null ? undefined : json["finalResult"],
+    totalVotesFor: json["totalVotesFor"] == null ? undefined : json["totalVotesFor"],
+    totalVotesAgainst: json["totalVotesAgainst"] == null ? undefined : json["totalVotesAgainst"],
+    totalVotesAbstain: json["totalVotesAbstain"] == null ? undefined : json["totalVotesAbstain"],
     totalSharesEligible:
-      json['totalSharesEligible'] == null ? undefined : json['totalSharesEligible'],
-    forPercentage: json['forPercentage'] == null ? undefined : json['forPercentage'],
-    againstPercentage:
-      json['againstPercentage'] == null ? undefined : json['againstPercentage'],
-    abstainPercentage:
-      json['abstainPercentage'] == null ? undefined : json['abstainPercentage'],
-    participationRate:
-      json['participationRate'] == null ? undefined : json['participationRate'],
-    votingCompleted:
-      json['votingCompleted'] == null ? undefined : json['votingCompleted'],
+      json["totalSharesEligible"] == null ? undefined : json["totalSharesEligible"],
+    forPercentage: json["forPercentage"] == null ? undefined : json["forPercentage"],
+    againstPercentage: json["againstPercentage"] == null ? undefined : json["againstPercentage"],
+    abstainPercentage: json["abstainPercentage"] == null ? undefined : json["abstainPercentage"],
+    participationRate: json["participationRate"] == null ? undefined : json["participationRate"],
+    votingCompleted: json["votingCompleted"] == null ? undefined : json["votingCompleted"],
     votingCompletedAt:
-      json['votingCompletedAt'] == null ? undefined : new Date(json['votingCompletedAt']),
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+      json["votingCompletedAt"] == null ? undefined : new Date(json["votingCompletedAt"]),
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function ProposalToJSON(json: any): Proposal {
-  return ProposalToJSONTyped(json, false)
+  return ProposalToJSONTyped(json, false);
 }
 
 export function ProposalToJSONTyped(
   value?: Proposal | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    proposalNumber: value['proposalNumber'],
-    proposalTitle: value['proposalTitle'],
-    proposalType: value['proposalType'],
-    proposalSubtype: value['proposalSubtype'],
-    directorName: value['directorName'],
-    directorTermYears: value['directorTermYears'],
-    directorClass: value['directorClass'],
-    termExpirationYear: value['termExpirationYear'],
-    frequencyOptions: value['frequencyOptions'],
-    recommendation: value['recommendation'],
-    finalResult: value['finalResult'],
-    totalVotesFor: value['totalVotesFor'],
-    totalVotesAgainst: value['totalVotesAgainst'],
-    totalVotesAbstain: value['totalVotesAbstain'],
-    totalSharesEligible: value['totalSharesEligible'],
-    forPercentage: value['forPercentage'],
-    againstPercentage: value['againstPercentage'],
-    abstainPercentage: value['abstainPercentage'],
-    participationRate: value['participationRate'],
-    votingCompleted: value['votingCompleted'],
+    id: value["id"],
+    meetingId: value["meetingId"],
+    proposalNumber: value["proposalNumber"],
+    proposalTitle: value["proposalTitle"],
+    proposalType: value["proposalType"],
+    proposalSubtype: value["proposalSubtype"],
+    directorName: value["directorName"],
+    directorTermYears: value["directorTermYears"],
+    directorClass: value["directorClass"],
+    termExpirationYear: value["termExpirationYear"],
+    frequencyOptions: value["frequencyOptions"],
+    recommendation: value["recommendation"],
+    finalResult: value["finalResult"],
+    totalVotesFor: value["totalVotesFor"],
+    totalVotesAgainst: value["totalVotesAgainst"],
+    totalVotesAbstain: value["totalVotesAbstain"],
+    totalSharesEligible: value["totalSharesEligible"],
+    forPercentage: value["forPercentage"],
+    againstPercentage: value["againstPercentage"],
+    abstainPercentage: value["abstainPercentage"],
+    participationRate: value["participationRate"],
+    votingCompleted: value["votingCompleted"],
     votingCompletedAt:
-      value['votingCompletedAt'] === null
+      value["votingCompletedAt"] === null
         ? null
-        : (value['votingCompletedAt'] as any)?.toISOString(),
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+        : (value["votingCompletedAt"] as any)?.toISOString(),
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

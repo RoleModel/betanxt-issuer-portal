@@ -1,15 +1,11 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import React, { useEffect, useMemo, useState } from 'react'
-
-import { TabContext, TabPanel } from '@mui/lab'
+import { TabContext, TabPanel } from "@mui/lab";
 import {
   Badge,
   Box,
   Button,
   ClickAwayListener,
-  Fade,
   Paper,
   Popover,
   Stack,
@@ -17,116 +13,116 @@ import {
   Tabs,
   Typography,
   styled,
-} from '@mui/material'
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
 
-import { useNotifications } from '@/contexts/NotificationContext'
+import { useNotifications } from "@/contexts/NotificationContext";
 
-import Notification from './Notification'
+import Notification from "./Notification";
 
-type DbNotification = components['schemas']['Notification']
+type DbNotification = components["schemas"]["Notification"];
 
 interface NotificationData {
-  id: string
-  user: string
-  title: string
-  date: string
-  message: string
-  link: string
-  variant: 'read' | 'unread'
-  avatar?: string
-  isSystemNotification?: boolean
+  id: string;
+  user: string;
+  title: string;
+  date: string;
+  message: string;
+  link: string;
+  variant: "read" | "unread";
+  avatar?: string;
+  isSystemNotification?: boolean;
 }
 
 interface NotificationPopperProps {
-  anchorEl: HTMLElement | null
-  open: boolean
-  onClose: () => void
-  onNotificationClick?: (notification: NotificationData) => void
+  anchorEl: HTMLElement | null;
+  open: boolean;
+  onClose: () => void;
+  onNotificationClick?: (notification: NotificationData) => void;
 }
 
 const StyledTabs = styled(Tabs)({
-  '&.MuiTabs-root': {
+  "&.MuiTabs-root": {
     height: 36,
     minHeight: 36,
     maxHeight: 36,
   },
-  '& .MuiTabs-flexContainer': {
-    height: '100%',
+  "& .MuiTabs-flexContainer": {
+    height: "100%",
     flexGrow: 1,
     minHeight: 36,
     maxHeight: 36,
   },
-  '& .MuiTab-root': {
+  "& .MuiTab-root": {
     height: 36,
     flexGrow: 1,
     minHeight: 36,
     maxHeight: 36,
   },
-  '& .MuiBadge-root': {
+  "& .MuiBadge-root": {
     left: 0,
     top: 0,
   },
-})
+});
 
 const formatNotificationDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) {
-    return 'Today'
+    return "Today";
   } else if (diffDays === 1) {
-    return 'Yesterday'
+    return "Yesterday";
   } else if (diffDays < 7) {
-    return `${diffDays} days ago`
+    return `${diffDays} days ago`;
   } else {
-    const month = date.toLocaleString('en-US', { month: 'short' })
-    const day = date.getDate()
-    return `${month} ${day}`
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const day = date.getDate();
+    return `${month} ${day}`;
   }
-}
+};
 
 const convertDbNotificationToNotificationData = (
-  dbNotification: DbNotification
+  dbNotification: DbNotification,
 ): NotificationData => {
   // Check if this is a comment notification (from a user, not system)
-  const isCommentNotification = dbNotification.title?.includes('Comment')
+  const isCommentNotification = dbNotification.title?.includes("Comment");
 
   // Extract user name from message for comment notifications
   // Example: "Michael Chen left a comment..." -> "Michael Chen"
-  let userName = 'System'
-  let userAvatar: string | undefined = undefined
+  let userName = "System";
+  let userAvatar: string | undefined = undefined;
 
   if (isCommentNotification && dbNotification.message) {
     const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(
-      dbNotification.message
-    )
+      dbNotification.message,
+    );
     if (match) {
-      userName = match[1].trim()
+      userName = match[1].trim();
       // Don't set userAvatar - let MUI Avatar use the username for initials
-      userAvatar = undefined
+      userAvatar = undefined;
     }
   }
 
   return {
-    id: dbNotification.id ?? '',
+    id: dbNotification.id ?? "",
     user: userName,
-    title: dbNotification.title ?? '',
-    date: dbNotification.createdAt
-      ? formatNotificationDate(dbNotification.createdAt)
-      : '',
-    message: dbNotification.message ?? '',
-    link: dbNotification.actionUrl ?? '',
-    variant: dbNotification.read ? 'read' : 'unread',
+    title: dbNotification.title ?? "",
+    date: dbNotification.createdAt ? formatNotificationDate(dbNotification.createdAt) : "",
+    message: dbNotification.message ?? "",
+    link: dbNotification.actionUrl ?? "",
+    variant: dbNotification.read ? "read" : "unread",
     avatar: userAvatar,
     isSystemNotification:
       !isCommentNotification &&
-      (dbNotification.type === 'info' || dbNotification.type === 'success'),
-  }
-}
+      (dbNotification.type === "info" || dbNotification.type === "success"),
+  };
+};
 
 export function NotificationPopper({
   anchorEl,
@@ -134,107 +130,100 @@ export function NotificationPopper({
   onClose,
   onNotificationClick,
 }: NotificationPopperProps) {
-  const router = useRouter()
+  const router = useRouter();
   const {
     notifications: dbNotifications,
     loading: _loading,
     markAsRead,
     markAllAsRead,
-  } = useNotifications()
-  const [tabValue, setTabValue] = useState('0')
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  } = useNotifications();
+  const [tabValue, setTabValue] = useState("0");
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   // Convert DB notifications to UI format
   const notifications = useMemo(
     () => dbNotifications.map(convertDbNotificationToNotificationData),
-    [dbNotifications]
-  )
+    [dbNotifications],
+  );
 
-  const unreadNotifications = notifications.filter((n) => n.variant === 'unread')
-  const unreadCount = unreadNotifications.length
+  const unreadNotifications = notifications.filter((n) => n.variant === "unread");
+  const unreadCount = unreadNotifications.length;
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue)
-  }
+    setTabValue(newValue);
+  };
 
   // No need to fetch notifications here - they're already available from context
 
   const handleNotificationClick = async (notification: NotificationData) => {
     // Mark as read using context
-    await markAsRead(notification.id)
+    await markAsRead(notification.id);
 
     // Navigate to the notification's link if it exists
     if (notification.link) {
-      router.push(notification.link)
-      onClose?.() // Close the popover after navigation
+      router.push(notification.link);
+      onClose?.(); // Close the popover after navigation
     }
 
     if (onNotificationClick) {
-      onNotificationClick(notification)
+      onNotificationClick(notification);
     }
-  }
+  };
 
   const handleMarkAllRead = async () => {
-    await markAllAsRead()
-  }
+    await markAllAsRead();
+  };
 
   const handleClearAll = () => {
     // Just close the popover - notifications remain in backend
-    onClose?.()
-  }
+    onClose?.();
+  };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) {
-      setPos(null)
-      return
+      setPos(null);
+      return;
     }
 
     const computePos = () => {
-      // Try to find the MUI AppBar in the DOM
-      const appBar = document.querySelector('header.MuiAppBar-root')
-      const appBarBottom = appBar?.getBoundingClientRect().bottom ?? 0
+      const appBar = document.querySelector("header.MuiAppBar-root");
+      const appBarBottom = appBar?.getBoundingClientRect().bottom ?? 0;
+      const anchorBottom = anchorEl?.getBoundingClientRect().bottom ?? 0;
+      const top = Math.max(appBarBottom, anchorBottom) + 8;
+      const left = window.innerWidth;
+      setPos({ top, left });
+    };
 
-      // Fallback: if no app bar found, align to the anchorEl bottom
-      const anchorBottom = anchorEl?.getBoundingClientRect().bottom ?? 0
-
-      const top = Math.max(appBarBottom, anchorBottom) + 8 // 8px gap below bar
-      const left = window.innerWidth // right edge of viewport
-
-      setPos({ top, left })
-    }
-
-    computePos()
-    window.addEventListener('resize', computePos)
-    window.addEventListener('scroll', computePos, true)
+    computePos();
+    window.addEventListener("resize", computePos);
+    window.addEventListener("scroll", computePos, true);
     return () => {
-      window.removeEventListener('resize', computePos)
-      window.removeEventListener('scroll', computePos, true)
-    }
-  }, [open, anchorEl])
+      window.removeEventListener("resize", computePos);
+      window.removeEventListener("scroll", computePos, true);
+    };
+  }, [open, anchorEl]);
 
   return (
     <Popover
-      open={open && !!pos}
+      open={open}
       onClose={onClose}
       anchorReference="anchorPosition"
-      anchorPosition={pos ?? { top: 0, left: 0 }}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      slotProps={{
-        transition: {
-          component: Fade,
-        },
-      }}
+      anchorPosition={
+        pos ?? { top: 64, left: typeof window !== "undefined" ? window.innerWidth : 0 }
+      }
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
       <Paper
         elevation={12}
         sx={{
           maxWidth: 500,
           maxHeight: 700,
-          minWidth: { xs: '100%', sm: 400, md: 500 },
-          overflow: 'hidden',
+          minWidth: { xs: "100%", sm: 400, md: 500 },
+          overflow: "hidden",
           borderRadius: 2,
-          border: '1px solid',
+          visibility: "visible !important",
+          border: "1px solid",
           borderColor: (theme) => theme.vars?.palette?.divider,
         }}
       >
@@ -246,16 +235,16 @@ export function NotificationPopper({
                 sx={{
                   px: 2,
                   py: 1,
-                  borderBottom: '1px solid',
+                  borderBottom: "1px solid",
                   borderColor: (theme) => theme.vars?.palette?.divider,
                 }}
               >
                 <Box
                   sx={{
                     height: 40,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     mb: 1,
                   }}
                 >
@@ -285,7 +274,7 @@ export function NotificationPopper({
                       aria-controls="notification-tabpanel-1"
                     />
                   </StyledTabs>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1 }}>
                     {unreadCount > 0 && (
                       <Button variant="text" onClick={handleMarkAllRead}>
                         Mark all read
@@ -300,9 +289,9 @@ export function NotificationPopper({
                 </Box>
               </Box>
               <TabPanel value="0" sx={{ p: 0 }}>
-                <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
+                <Box sx={{ maxHeight: 600, overflow: "auto" }}>
                   {unreadNotifications.length === 0 ? (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Box sx={{ p: 4, textAlign: "center" }}>
                       <Typography variant="body3" color="text.secondary">
                         No unread notifications
                       </Typography>
@@ -329,9 +318,9 @@ export function NotificationPopper({
               </TabPanel>
 
               <TabPanel value="1" sx={{ p: 0 }}>
-                <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
+                <Box sx={{ maxHeight: 600, overflow: "auto" }}>
                   {notifications.length === 0 ? (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Box sx={{ p: 4, textAlign: "center" }}>
                       <Typography variant="body3" color="text.secondary">
                         No notifications
                       </Typography>
@@ -361,11 +350,11 @@ export function NotificationPopper({
         </ClickAwayListener>
       </Paper>
     </Popover>
-  )
+  );
 }
 
 // Export types for external use
-export type { NotificationPopperProps, NotificationData }
+export type { NotificationPopperProps, NotificationData };
 
 // Also export as default for backward compatibility
-export default NotificationPopper
+export default NotificationPopper;

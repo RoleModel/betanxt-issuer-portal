@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   Alert,
   Button,
@@ -8,29 +6,25 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import { useResetDemoData } from '@/hooks/useResetDemoData'
+import { useResetDemoData } from "@/hooks/useResetDemoData";
 
 interface ResetDemoDataDialogProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 export function ResetDemoDataDialog({ open, onClose }: ResetDemoDataDialogProps) {
-  const { resetDemoData, isResetting, error } = useResetDemoData()
+  const { resetDemoData, isResetting, error } = useResetDemoData();
 
   const handleConfirm = async () => {
-    await resetDemoData()
-  }
+    await resetDemoData();
+  };
 
   return (
-    <Dialog
-      open={open}
-      onClose={isResetting ? undefined : onClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={isResetting ? undefined : onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Reset</DialogTitle>
       <DialogContent>
         {error && (
@@ -41,10 +35,7 @@ export function ResetDemoDataDialog({ open, onClose }: ResetDemoDataDialogProps)
         <Typography variant="body1" gutterBottom>
           This will reset all meeting data.
         </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mt: 2, fontWeight: 'bold', color: 'warning.main' }}
-        >
+        <Typography variant="body2" sx={{ mt: 2, fontWeight: "bold", color: "warning.main" }}>
           This action cannot be undone. The page will reload after reset. Continue?
         </Typography>
       </DialogContent>
@@ -52,15 +43,10 @@ export function ResetDemoDataDialog({ open, onClose }: ResetDemoDataDialogProps)
         <Button onClick={onClose} disabled={isResetting} variant="outlined">
           Cancel
         </Button>
-        <Button
-          onClick={handleConfirm}
-          variant="contained"
-          color="warning"
-          disabled={isResetting}
-        >
-          {isResetting ? 'Resetting...' : 'Reset'}
+        <Button onClick={handleConfirm} variant="contained" color="warning" disabled={isResetting}>
+          {isResetting ? "Resetting..." : "Reset"}
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }

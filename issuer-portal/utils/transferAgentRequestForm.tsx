@@ -7,83 +7,83 @@ import {
   Text,
   View,
   pdf,
-} from '@react-pdf/renderer'
-import React from 'react'
+} from "@react-pdf/renderer";
+import React from "react";
 
 // Register Roboto font
 Font.register({
-  family: 'Roboto',
+  family: "Roboto",
   fonts: [
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-300-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-300-normal.woff",
       fontWeight: 300,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-400-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-400-normal.woff",
       fontWeight: 400,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-500-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-500-normal.woff",
       fontWeight: 500,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-700-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-700-normal.woff",
       fontWeight: 700,
     },
   ],
-})
+});
 
 interface SignatureArea {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  page?: number
-  label?: string
-  signed?: boolean
-  type?: 'signature' | 'text' | 'date'
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  page?: number;
+  label?: string;
+  signed?: boolean;
+  type?: "signature" | "text" | "date";
 }
 
 interface ClientData {
-  issuerName?: string
-  cusipNumber?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  exchange?: string
-  contactName?: string
-  telephone?: string
-  email?: string
-  contactName2?: string
-  emailAddress2?: string
-  faxNumber?: string
-  meetingDate?: string
-  ticker?: string
+  issuerName?: string;
+  cusipNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  exchange?: string;
+  contactName?: string;
+  telephone?: string;
+  email?: string;
+  contactName2?: string;
+  emailAddress2?: string;
+  faxNumber?: string;
+  meetingDate?: string;
+  ticker?: string;
 }
 
 interface FormHandlerProps {
   onDocumentOpen: (
     documentUrl: string,
     documentId: string,
-    signatureAreas: SignatureArea[]
-  ) => void
-  clientData?: ClientData
+    signatureAreas: SignatureArea[],
+  ) => void;
+  clientData?: ClientData;
 }
 
 // Create styles
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
     padding: 36,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 0,
   },
   logo: {
@@ -93,20 +93,20 @@ const styles = StyleSheet.create({
   logoPlaceholder: {
     width: 72,
     height: 72,
-    backgroundColor: '#F0F0F0',
-    borderColor: '#C8C8C8',
+    backgroundColor: "#F0F0F0",
+    borderColor: "#C8C8C8",
     borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   logoText: {
     fontSize: 8,
-    color: '#969696',
-    fontFamily: 'Roboto',
+    color: "#969696",
+    fontFamily: "Roboto",
   },
   date: {
     fontSize: 10,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   recipient: {
     marginBottom: 20,
@@ -114,68 +114,68 @@ const styles = StyleSheet.create({
   recipientText: {
     fontSize: 10,
     marginBottom: 4,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   mainText: {
     fontSize: 10,
     marginBottom: 10,
     lineHeight: 1.5,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   table: {
     marginBottom: 10,
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 4,
   },
   tableLabel: {
     width: 108,
     fontSize: 10,
     fontWeight: 700,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   tableValue: {
     flex: 1,
     fontSize: 10,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   noticeText: {
     fontSize: 10,
     lineHeight: 1.5,
     marginBottom: 8,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   sectionHeader: {
     fontSize: 10,
     fontWeight: 700,
     marginTop: 20,
     marginBottom: 10,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   bulletList: {
     marginBottom: 10,
   },
   bulletRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 4,
   },
   bullet: {
     width: 20,
     fontSize: 10,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   bulletText: {
     flex: 1,
     fontSize: 10,
     lineHeight: 1.5,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   deliveryText: {
     fontSize: 10,
     lineHeight: 1.5,
     marginBottom: 4,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   signature: {
     marginTop: 10,
@@ -183,18 +183,18 @@ const styles = StyleSheet.create({
   signatureThankYou: {
     fontSize: 10,
     marginBottom: 50,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   signatureName: {
     fontSize: 10,
     marginBottom: 4,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
-})
+});
 
 interface TransferAgentPDFDocumentProps {
-  clientData?: ClientData
-  logoBase64?: string
+  clientData?: ClientData;
+  logoBase64?: string;
 }
 
 // Transfer Agent PDF Document Component
@@ -202,27 +202,27 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
   clientData,
   logoBase64,
 }) => {
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const meetingDateStr = clientData?.meetingDate
-    ? new Date(clientData.meetingDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+    ? new Date(clientData.meetingDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       })
     : (() => {
-        const fallbackDate = new Date()
-        fallbackDate.setDate(fallbackDate.getDate() + 60)
-        return fallbackDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      })()
+        const fallbackDate = new Date();
+        fallbackDate.setDate(fallbackDate.getDate() + 60);
+        return fallbackDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      })();
 
   return (
     <Document>
@@ -233,7 +233,7 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
             <PDFImage style={styles.logo} src={logoBase64} />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>{clientData?.ticker ?? 'LOGO'}</Text>
+              <Text style={styles.logoText}>{clientData?.ticker ?? "LOGO"}</Text>
             </View>
           )}
           <Text style={styles.date}>{currentDate}</Text>
@@ -241,32 +241,26 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
 
         {/* Recipient information */}
         <View style={styles.recipient}>
-          <Text style={styles.recipientText}>
-            Dan Spengel (daniel.spengel@equiniti.com)
-          </Text>
+          <Text style={styles.recipientText}>Dan Spengel (daniel.spengel@equiniti.com)</Text>
           <Text style={styles.recipientText}>EQ (AST &amp; Equiniti)</Text>
-          <Text style={styles.recipientText}>
-            Re: {clientData?.issuerName ?? '[COMPANY NAME]'}
-          </Text>
+          <Text style={styles.recipientText}>Re: {clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
         </View>
 
         {/* Main letter text */}
         <Text style={styles.mainText}>
-          Please use this letter as authorization and instruction to send our 401k and
-          Pilot Plan Shareholder files as of our Proxy Record Date as stated below.
+          Please use this letter as authorization and instruction to send our 401k and Pilot Plan
+          Shareholder files as of our Proxy Record Date as stated below.
         </Text>
 
         {/* Meeting details table */}
         <View style={styles.table}>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Issuer:</Text>
-            <Text style={styles.tableValue}>
-              {clientData?.issuerName ?? '[COMPANY NAME]'}
-            </Text>
+            <Text style={styles.tableValue}>{clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>CUSIP:</Text>
-            <Text style={styles.tableValue}>{clientData?.cusipNumber ?? '[CUSIP]'}</Text>
+            <Text style={styles.tableValue}>{clientData?.cusipNumber ?? "[CUSIP]"}</Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Date:</Text>
@@ -280,33 +274,31 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
 
         {/* Important notice text */}
         <Text style={styles.noticeText}>
-          Please ensure that the share total of the file extract matches the Proxy Record
-          Date balance that is provided to us for inclusion into the Proxy Statement.
+          Please ensure that the share total of the file extract matches the Proxy Record Date
+          balance that is provided to us for inclusion into the Proxy Statement.
         </Text>
 
         <Text style={styles.noticeText}>
-          An appropriate and adjusted file (if necessary) MUST be provided to BetaNXT so
-          that the file as of the Record Date would MATCH the number you indicate that is
-          to appear in our Proxy Statement.
+          An appropriate and adjusted file (if necessary) MUST be provided to BetaNXT so that the
+          file as of the Record Date would MATCH the number you indicate that is to appear in our
+          Proxy Statement.
         </Text>
 
         <Text style={styles.noticeText}>
-          You will be contacted if adjustments must be made by BetaNXT in order to match
-          or balance the file you deliver with the figure you provide to us as appearing
-          in the Proxy Statement in order to maintain the integrity and accuracy of the
-          shareholder record file.
+          You will be contacted if adjustments must be made by BetaNXT in order to match or balance
+          the file you deliver with the figure you provide to us as appearing in the Proxy Statement
+          in order to maintain the integrity and accuracy of the shareholder record file.
         </Text>
 
         <Text style={styles.noticeText}>
-          If there are any registered shareholder email addresses who have consented to
-          receive electronic delivery of proxy material, please indicate and include on
-          the record date file.
+          If there are any registered shareholder email addresses who have consented to receive
+          electronic delivery of proxy material, please indicate and include on the record date
+          file.
         </Text>
 
         {/* File requirements section */}
         <Text style={styles.sectionHeader}>
-          In preparation for receiving the files, BetaNXT&#39;s file requirements are as
-          follows:
+          In preparation for receiving the files, BetaNXT&#39;s file requirements are as follows:
         </Text>
 
         <View style={styles.bulletList}>
@@ -319,8 +311,8 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
           <View style={styles.bulletRow}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.bulletText}>
-              Please provide a file layout if not identical to prescribed or
-              pre-established standards
+              Please provide a file layout if not identical to prescribed or pre-established
+              standards
             </Text>
           </View>
           <View style={styles.bulletRow}>
@@ -333,118 +325,102 @@ const TransferAgentPDFDocument: React.FC<TransferAgentPDFDocumentProps> = ({
 
         {/* Delivery instructions */}
         <Text style={styles.deliveryText}>
-          As is customary, BetaNXT will accept the files through their secure portal ONLY,
-          or, password protected file through a secure, encrypted, and/or otherwise secure
-          format as pre-established. Please note that the Relationship Manager assigned to
-          handle my account is Robert Anderson robert.anderson@betanxt.com of Mediant
-          Communications, and can also be reached at Mediant.Gold.Team@Betanxt.com
+          As is customary, BetaNXT will accept the files through their secure portal ONLY, or,
+          password protected file through a secure, encrypted, and/or otherwise secure format as
+          pre-established. Please note that the Relationship Manager assigned to handle my account
+          is Robert Anderson robert.anderson@betanxt.com of Mediant Communications, and can also be
+          reached at Mediant.Gold.Team@Betanxt.com
         </Text>
 
         {/* Signature section */}
         <View style={styles.signature}>
           <Text style={styles.signatureThankYou}>Thank you,</Text>
-          <Text style={styles.signatureName}>
-            {clientData?.contactName ?? '[AUTHORITY NAME]'}
-          </Text>
-          <Text style={styles.signatureName}>
-            {clientData?.issuerName ?? '[COMPANY NAME]'}
-          </Text>
+          <Text style={styles.signatureName}>{clientData?.contactName ?? "[AUTHORITY NAME]"}</Text>
+          <Text style={styles.signatureName}>{clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
         </View>
       </Page>
     </Document>
-  )
-}
+  );
+};
 
 const generateTransferAgentPDF = async (clientData?: ClientData): Promise<string> => {
   // Try to load client logo
-  let logoBase64: string | undefined
+  let logoBase64: string | undefined;
 
   if (clientData?.ticker) {
     try {
-      const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`
+      const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`;
 
-      console.log(
-        '[TransferAgentForm] Loading logo from:',
-        logoPath,
-        'clientData:',
-        clientData
-      )
-      const response = await fetch(logoPath)
+      console.log("[TransferAgentForm] Loading logo from:", logoPath, "clientData:", clientData);
+      const response = await fetch(logoPath);
 
-      console.log(
-        '[TransferAgentForm] Logo fetch response:',
-        response.ok,
-        response.status
-      )
+      console.log("[TransferAgentForm] Logo fetch response:", response.ok, response.status);
       if (response.ok) {
-        const blob = await response.blob()
-        const reader = new FileReader()
+        const blob = await response.blob();
+        const reader = new FileReader();
         logoBase64 = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.onerror = reject
-          reader.readAsDataURL(blob)
-        })
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
 
         console.log(
-          '[TransferAgentForm] Logo loaded successfully, base64 length:',
-          logoBase64?.length
-        )
+          "[TransferAgentForm] Logo loaded successfully, base64 length:",
+          logoBase64?.length,
+        );
       }
     } catch (error) {
-      console.error('[TransferAgentForm] Logo loading failed:', error)
+      console.error("[TransferAgentForm] Logo loading failed:", error);
     }
   } else {
-    console.log('[TransferAgentForm] No ticker in clientData:', clientData)
+    console.log("[TransferAgentForm] No ticker in clientData:", clientData);
   }
 
   // Generate the PDF
   const pdfBlob = await pdf(
-    <TransferAgentPDFDocument clientData={clientData} logoBase64={logoBase64} />
-  ).toBlob()
+    <TransferAgentPDFDocument clientData={clientData} logoBase64={logoBase64} />,
+  ).toBlob();
 
   // Convert blob to data URI
   return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onloadend = () => resolve(reader.result as string)
-    reader.readAsDataURL(pdfBlob)
-  })
-}
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(pdfBlob);
+  });
+};
 
 export const handleFormDownload = async (clientData?: ClientData) => {
-  const pdfDataUri = await generateTransferAgentPDF(clientData)
-  const downloadLink = document.createElement('a')
-  downloadLink.href = pdfDataUri
-  downloadLink.download = 'Transfer_Agent_Request_Form.pdf'
-  downloadLink.click()
-}
+  const pdfDataUri = await generateTransferAgentPDF(clientData);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = pdfDataUri;
+  downloadLink.download = "Transfer_Agent_Request_Form.pdf";
+  downloadLink.click();
+};
 
-export const handleFormSign = async ({
-  onDocumentOpen,
-  clientData,
-}: FormHandlerProps) => {
+export const handleFormSign = async ({ onDocumentOpen, clientData }: FormHandlerProps) => {
   // Generate the PDF form
-  const pdfDataUri = await generateTransferAgentPDF(clientData)
+  const pdfDataUri = await generateTransferAgentPDF(clientData);
 
   // Create unique document ID
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).slice(2, 11)
-  const documentId = `transfer-agent-request-${timestamp}-${random}`
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).slice(2, 11);
+  const documentId = `transfer-agent-request-${timestamp}-${random}`;
 
   // Define signature areas
   const signatureAreas: SignatureArea[] = [
     {
-      id: 'signature-1',
+      id: "signature-1",
       x: 6,
       y: 82.5,
       width: 35,
       height: 5,
       page: 1,
-      label: 'Signature',
-      type: 'signature',
+      label: "Signature",
+      type: "signature",
       signed: false,
     },
-  ]
+  ];
 
   // Call the callback to open the document viewer
-  onDocumentOpen(pdfDataUri, documentId, signatureAreas)
-}
+  onDocumentOpen(pdfDataUri, documentId, signatureAreas);
+};

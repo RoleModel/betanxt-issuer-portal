@@ -1,23 +1,23 @@
 ---
-description: 'Description of the custom chat mode.'
+description: "Description of the custom chat mode."
 tools:
   [
-    'edit',
-    'new',
-    'runCommands',
-    'runTasks',
-    'usages',
-    'vscodeAPI',
-    'problems',
-    'changes',
-    'testFailure',
-    'fetch',
-    'githubRepo',
-    'todos',
-    'runTests',
-    'supabase',
-    'mui-mcp',
-    'playwright',
+    "edit",
+    "new",
+    "runCommands",
+    "runTasks",
+    "usages",
+    "vscodeAPI",
+    "problems",
+    "changes",
+    "testFailure",
+    "fetch",
+    "githubRepo",
+    "todos",
+    "runTests",
+    "supabase",
+    "mui-mcp",
+    "playwright",
   ]
 ---
 

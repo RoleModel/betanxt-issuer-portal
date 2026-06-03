@@ -1,4 +1,4 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
   AccordionDetails,
@@ -8,82 +8,78 @@ import {
   Link,
   Stack,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
 
-import { extractWcagCriteria } from '@/utils/wcagMapping'
+import { extractWcagCriteria } from "@/utils/wcagMapping";
 
 interface ViolationElement {
-  target: string | string[]
-  html: string
-  failureSummary: string
+  target: string | string[];
+  html: string;
+  failureSummary: string;
   relatedNodes?: {
-    target: string | string[]
-    html: string
-    failureSummary: string
-  }[]
+    target: string | string[];
+    html: string;
+    failureSummary: string;
+  }[];
 }
 
 interface Violation {
-  impact: string
-  description: string
-  wcag: string
-  help: string
-  helpUrl?: string
-  tags?: string[]
-  id?: string
-  elements?: ViolationElement[]
+  impact: string;
+  description: string;
+  wcag: string;
+  help: string;
+  helpUrl?: string;
+  tags?: string[];
+  id?: string;
+  elements?: ViolationElement[];
 }
 
 interface ViolationCardProps {
-  violation: Violation
-  page: string
-  index: number
+  violation: Violation;
+  page: string;
+  index: number;
 }
 
 // Helper functions
 const getImpactColorScheme = (impact: string) => {
   switch (impact.toUpperCase()) {
-    case 'CRITICAL':
-      return { chipColor: 'error' as const, textColor: 'error.dark' }
-    case 'SERIOUS':
-      return { chipColor: 'warning' as const, textColor: 'warning.dark' }
-    case 'INCOMPLETE':
-      return { chipColor: 'info' as const, textColor: 'info.dark' }
+    case "CRITICAL":
+      return { chipColor: "error" as const, textColor: "error.dark" };
+    case "SERIOUS":
+      return { chipColor: "warning" as const, textColor: "warning.dark" };
+    case "INCOMPLETE":
+      return { chipColor: "info" as const, textColor: "info.dark" };
     default:
-      return { chipColor: 'default' as const, textColor: 'text.secondary' }
+      return { chipColor: "default" as const, textColor: "text.secondary" };
   }
-}
+};
 
 const getImpactDisplayText = (impact: string, description: string) => {
-  if (impact.toUpperCase() === 'INCOMPLETE') {
+  if (impact.toUpperCase() === "INCOMPLETE") {
     return {
-      impact: 'Needs Review',
-      description: `Review Required: ${description.replace(/^Incomplete:\s*/i, '').trim()}`,
-      prefix: '⚠️',
-    }
+      impact: "Needs Review",
+      description: `Review Required: ${description.replace(/^Incomplete:\s*/i, "").trim()}`,
+      prefix: "⚠️",
+    };
   }
   return {
     impact: impact.toUpperCase(),
     description,
     prefix:
-      impact.toUpperCase() === 'CRITICAL'
-        ? '🚨'
-        : impact.toUpperCase() === 'SERIOUS'
-          ? '⚠️'
-          : '❓',
-  }
-}
+      impact.toUpperCase() === "CRITICAL" ? "🚨" : impact.toUpperCase() === "SERIOUS" ? "⚠️" : "❓",
+  };
+};
 
 export default function ViolationCard({ violation, page }: ViolationCardProps) {
-  const displayInfo = getImpactDisplayText(violation.impact, violation.description)
-  const colorScheme = getImpactColorScheme(violation.impact)
+  const displayInfo = getImpactDisplayText(violation.impact, violation.description);
+  const colorScheme = getImpactColorScheme(violation.impact);
 
   return (
     <Box
       sx={{
         p: 2,
-        border: '1px solid',
-        borderColor: 'divider',
+        border: "1px solid",
+        borderColor: "divider",
         borderRadius: 2,
       }}
     >
@@ -95,11 +91,7 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           <Chip label={displayInfo.impact} color={colorScheme.chipColor} size="small" />
           <Chip
-            label={
-              violation.tags
-                ? extractWcagCriteria(violation.tags)
-                : 'No WCAG criteria mapped'
-            }
+            label={violation.tags ? extractWcagCriteria(violation.tags) : "No WCAG criteria mapped"}
             size="small"
           />
           {violation.id && <Chip label={violation.id} variant="outlined" size="small" />}
@@ -145,23 +137,21 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
                   key={elemIndex}
                   sx={{
                     p: 1.5,
-                    backgroundColor: 'action.hover',
+                    backgroundColor: "action.hover",
                     borderRadius: 1,
                   }}
                 >
                   <Typography variant="body3" sx={{ mb: 1 }}>
-                    <strong>Selector:</strong>{' '}
+                    <strong>Selector:</strong>{" "}
                     <code
                       style={{
-                        backgroundColor: 'var(--mui-palette-action-selected)',
-                        padding: '2px 4px',
-                        borderRadius: '3px',
-                        fontSize: '0.85em',
+                        backgroundColor: "var(--mui-palette-action-selected)",
+                        padding: "2px 4px",
+                        borderRadius: "3px",
+                        fontSize: "0.85em",
                       }}
                     >
-                      {Array.isArray(element.target)
-                        ? element.target.join(', ')
-                        : element.target}
+                      {Array.isArray(element.target) ? element.target.join(", ") : element.target}
                     </code>
                   </Typography>
 
@@ -179,14 +169,14 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
                       <Box
                         component="pre"
                         sx={{
-                          backgroundColor: 'action.selected',
+                          backgroundColor: "action.selected",
                           p: 1,
                           borderRadius: 1,
-                          overflow: 'auto',
-                          fontSize: '0.75em',
-                          fontFamily: 'monospace',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-all',
+                          overflow: "auto",
+                          fontSize: "0.75em",
+                          fontFamily: "monospace",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-all",
                         }}
                       >
                         {element.html}
@@ -200,5 +190,5 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
         </Accordion>
       )}
     </Box>
-  )
+  );
 }

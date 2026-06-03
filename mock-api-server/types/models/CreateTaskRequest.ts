@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,126 +23,123 @@ export interface CreateTaskRequest {
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  taskId: string
+  taskId: string;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  phaseId: string
+  phaseId: string;
   /**
    *
    * @type {number}
    * @memberof CreateTaskRequest
    */
-  phaseNumber: number
+  phaseNumber: number;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  title: string
+  title: string;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  description?: string
+  description?: string;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  type: string
+  type: string;
   /**
    *
    * @type {Date}
    * @memberof CreateTaskRequest
    */
-  dueDate?: Date
+  dueDate?: Date;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  owner: string
+  owner: string;
   /**
    *
    * @type {string}
    * @memberof CreateTaskRequest
    */
-  documentId?: string
+  documentId?: string;
   /**
    *
    * @type {object}
    * @memberof CreateTaskRequest
    */
-  links?: object
+  links?: object;
 }
 
 /**
  * Check if a given object implements the CreateTaskRequest interface.
  */
 export function instanceOfCreateTaskRequest(value: object): value is CreateTaskRequest {
-  if (!('taskId' in value) || value['taskId'] === undefined) return false
-  if (!('phaseId' in value) || value['phaseId'] === undefined) return false
-  if (!('phaseNumber' in value) || value['phaseNumber'] === undefined) return false
-  if (!('title' in value) || value['title'] === undefined) return false
-  if (!('type' in value) || value['type'] === undefined) return false
-  if (!('owner' in value) || value['owner'] === undefined) return false
-  return true
+  if (!("taskId" in value) || value["taskId"] === undefined) return false;
+  if (!("phaseId" in value) || value["phaseId"] === undefined) return false;
+  if (!("phaseNumber" in value) || value["phaseNumber"] === undefined) return false;
+  if (!("title" in value) || value["title"] === undefined) return false;
+  if (!("type" in value) || value["type"] === undefined) return false;
+  if (!("owner" in value) || value["owner"] === undefined) return false;
+  return true;
 }
 
 export function CreateTaskRequestFromJSON(json: any): CreateTaskRequest {
-  return CreateTaskRequestFromJSONTyped(json, false)
+  return CreateTaskRequestFromJSONTyped(json, false);
 }
 
 export function CreateTaskRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateTaskRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    taskId: json['taskId'],
-    phaseId: json['phaseId'],
-    phaseNumber: json['phaseNumber'],
-    title: json['title'],
-    description: json['description'] == null ? undefined : json['description'],
-    type: json['type'],
-    dueDate: json['dueDate'] == null ? undefined : new Date(json['dueDate']),
-    owner: json['owner'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    links: json['links'] == null ? undefined : json['links'],
-  }
+    taskId: json["taskId"],
+    phaseId: json["phaseId"],
+    phaseNumber: json["phaseNumber"],
+    title: json["title"],
+    description: json["description"] == null ? undefined : json["description"],
+    type: json["type"],
+    dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
+    owner: json["owner"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    links: json["links"] == null ? undefined : json["links"],
+  };
 }
 
 export function CreateTaskRequestToJSON(json: any): CreateTaskRequest {
-  return CreateTaskRequestToJSONTyped(json, false)
+  return CreateTaskRequestToJSONTyped(json, false);
 }
 
 export function CreateTaskRequestToJSONTyped(
   value?: CreateTaskRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    taskId: value['taskId'],
-    phaseId: value['phaseId'],
-    phaseNumber: value['phaseNumber'],
-    title: value['title'],
-    description: value['description'],
-    type: value['type'],
-    dueDate:
-      value['dueDate'] == null
-        ? undefined
-        : value['dueDate'].toISOString().substring(0, 10),
-    owner: value['owner'],
-    documentId: value['documentId'],
-    links: value['links'],
-  }
+    taskId: value["taskId"],
+    phaseId: value["phaseId"],
+    phaseNumber: value["phaseNumber"],
+    title: value["title"],
+    description: value["description"],
+    type: value["type"],
+    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+    owner: value["owner"],
+    documentId: value["documentId"],
+    links: value["links"],
+  };
 }

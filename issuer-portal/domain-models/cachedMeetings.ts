@@ -1,23 +1,23 @@
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
 
-import { CACHE_TAGS, cacheFn } from '@/lib/caching'
+import buildApiClient from "@/domain-models/apiClient";
+import { CACHE_TAGS, cacheFn } from "@/lib/caching";
 
-type Meeting = components['schemas']['Meeting']
+type Meeting = components["schemas"]["Meeting"];
 
 async function fetchMeetings(ticker?: string): Promise<Meeting[]> {
-  const api = await buildApiClient()
-  const { data } = await api.GET('/meetings', {
+  const api = await buildApiClient();
+  const { data } = await api.GET("/meetings", {
     params: { query: ticker ? { ticker } : {} },
-  })
-  if (!data) return []
+  });
+  if (!data) return [];
 
   // The API returns an array of meetings directly
-  return data as Meeting[]
+  return data;
 }
 
 export const getMeetingsCached = cacheFn(
   fetchMeetings,
-  (ticker?: string) => (ticker ? [CACHE_TAGS.CLIENT(ticker)] : ['meetings:all']),
-  { revalidate: 120 }
-)
+  (ticker?: string) => (ticker ? [CACHE_TAGS.CLIENT(ticker)] : ["meetings:all"]),
+  { revalidate: 120 },
+);

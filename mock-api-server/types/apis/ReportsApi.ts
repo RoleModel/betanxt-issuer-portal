@@ -10,21 +10,22 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { Mailing, TabulationReport } from '../models/index'
+import type { Mailing, TabulationReport } from "../models/index";
+
 import {
   MailingFromJSON,
   MailingToJSON,
   TabulationReportFromJSON,
   TabulationReportToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface GetMailingStatisticsRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 export interface GetTabulationReportRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 /**
@@ -36,47 +37,45 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getMailingStatisticsRaw(
     requestParameters: GetMailingStatisticsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Mailing>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling getMailingStatistics().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling getMailingStatistics().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/mailing`
+    let urlPath = `/meetings/{meetingId}/mailing`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      MailingFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => MailingFromJSON(jsonValue));
   }
 
   /**
@@ -84,10 +83,10 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getMailingStatistics(
     requestParameters: GetMailingStatisticsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Mailing> {
-    const response = await this.getMailingStatisticsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getMailingStatisticsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -95,47 +94,47 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getTabulationReportRaw(
     requestParameters: GetTabulationReportRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<TabulationReport>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling getTabulationReport().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling getTabulationReport().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/tabulation-report`
+    let urlPath = `/meetings/{meetingId}/tabulation-report`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      TabulationReportFromJSON(jsonValue)
-    )
+      TabulationReportFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -143,9 +142,9 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getTabulationReport(
     requestParameters: GetTabulationReportRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<TabulationReport> {
-    const response = await this.getTabulationReportRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getTabulationReportRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

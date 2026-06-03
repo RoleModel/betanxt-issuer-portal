@@ -1,22 +1,23 @@
-'use client'
+"use client";
 
-import { usePathname } from 'next/navigation'
-import type { PropsWithChildren } from 'react'
+import type { PropsWithChildren } from "react";
 
-import IssuerChatbot from '@/components/chat-bot/IssuerChatbot'
+import { usePathname } from "next/navigation";
 
-import Layout from './Layout'
+import IssuerChatbot from "@/components/chat-bot/IssuerChatbot";
+
+import Layout from "./Layout";
 
 export default function RootLayoutClient({ children }: PropsWithChildren) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   // Don't show navbar on login page
-  const showNavBar = !pathname.startsWith('/login')
+  const showNavBar = !pathname.startsWith("/login");
 
   return (
     <>
       <Layout navBar={showNavBar}>{children}</Layout>
       {showNavBar ? <IssuerChatbot /> : null}
     </>
-  )
+  );
 }

@@ -3,22 +3,22 @@
  * Upload seed.sql to Supabase storage as backup.sql
  * This file is used by the reset-demo-data API endpoint
  */
-import { createClient } from '@supabase/supabase-js'
-import { config } from 'dotenv'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { createClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 // Load environment variables from .env.local
-config({ path: join(process.cwd(), '.env.local') })
+config({ path: join(process.cwd(), ".env.local") });
 
 const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vfgjzlcakdrpsbzuqklz.supabase.co'
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vfgjzlcakdrpsbzuqklz.supabase.co";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required')
-  console.error('Make sure it is set in .env.local')
-  process.exit(1)
+  console.error("Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required");
+  console.error("Make sure it is set in .env.local");
+  process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -26,36 +26,36 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     autoRefreshToken: false,
     persistSession: false,
   },
-})
+});
 
 async function uploadSeed() {
   try {
-    console.log('Reading seed.sql...')
-    const seedPath = join(process.cwd(), '..', 'supabase', 'seed.sql')
-    const seedContent = readFileSync(seedPath, 'utf-8')
+    console.log("Reading seed.sql...");
+    const seedPath = join(process.cwd(), "..", "supabase", "seed.sql");
+    const seedContent = readFileSync(seedPath, "utf-8");
 
-    console.log(`Seed file size: ${(seedContent.length / 1024 / 1024).toFixed(2)} MB`)
+    console.log(`Seed file size: ${(seedContent.length / 1024 / 1024).toFixed(2)} MB`);
 
     // Upload to Supabase storage
-    console.log('Uploading to Supabase storage...')
+    console.log("Uploading to Supabase storage...");
     const { data, error } = await supabase.storage
-      .from('documents')
-      .upload('backup.sql', seedContent, {
-        contentType: 'text/plain',
+      .from("documents")
+      .upload("backup.sql", seedContent, {
+        contentType: "text/plain",
         upsert: true, // Overwrite if exists
-      })
+      });
 
     if (error) {
-      throw error
+      throw error;
     }
 
-    console.log('✅ Successfully uploaded backup.sql to Supabase storage')
-    console.log('Path:', data.path)
-    console.log('URL:', `${SUPABASE_URL}/storage/v1/object/public/documents/${data.path}`)
+    console.log("✅ Successfully uploaded backup.sql to Supabase storage");
+    console.log("Path:", data.path);
+    console.log("URL:", `${SUPABASE_URL}/storage/v1/object/public/documents/${data.path}`);
   } catch (error) {
-    console.error('❌ Upload failed:', error)
-    process.exit(1)
+    console.error("❌ Upload failed:", error);
+    process.exit(1);
   }
 }
 
-void uploadSeed()
+void uploadSeed();

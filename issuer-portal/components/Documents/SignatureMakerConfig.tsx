@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { SignatureMaker } from '@docuseal/signature-maker-react'
-import React from 'react'
+import { SignatureMaker } from "@docuseal/signature-maker-react";
+import React from "react";
 
-import './signature-maker.css'
+import "./signature-maker.css";
 
 /**
  * SignatureMakerConfig Component
@@ -15,10 +15,10 @@ import './signature-maker.css'
  */
 
 interface SignatureMakerConfigProps {
-  onSave?: (signature: string) => void
-  withTyped?: boolean
-  withDrawn?: boolean
-  withUpload?: boolean
+  onSave?: (signature: string) => void;
+  withTyped?: boolean;
+  withDrawn?: boolean;
+  withUpload?: boolean;
 }
 
 const SignatureMakerConfig: React.FC<SignatureMakerConfigProps> = ({
@@ -84,14 +84,14 @@ const SignatureMakerConfig: React.FC<SignatureMakerConfigProps> = ({
       fontUrl=""
       // Root element classes and styles
       className="signature-maker-container"
-      style={{ display: 'block' }}
+      style={{ display: "block" }}
       // Event handler
       onSave={onSave}
     />
-  )
-}
+  );
+};
 
-export default SignatureMakerConfig
+export default SignatureMakerConfig;
 
 /**
  * Usage Example:

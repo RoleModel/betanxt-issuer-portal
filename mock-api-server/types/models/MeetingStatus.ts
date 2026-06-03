@@ -16,41 +16,35 @@
  * @export
  */
 export const MeetingStatus = {
-  Active: 'ACTIVE',
-  Complete: 'COMPLETE',
-  Adjourned: 'ADJOURNED',
-} as const
-export type MeetingStatus = (typeof MeetingStatus)[keyof typeof MeetingStatus]
+  Active: "ACTIVE",
+  Complete: "COMPLETE",
+  Adjourned: "ADJOURNED",
+} as const;
+export type MeetingStatus = (typeof MeetingStatus)[keyof typeof MeetingStatus];
 
 export function instanceOfMeetingStatus(value: any): boolean {
   for (const key in MeetingStatus) {
     if (Object.prototype.hasOwnProperty.call(MeetingStatus, key)) {
       if (MeetingStatus[key as keyof typeof MeetingStatus] === value) {
-        return true
+        return true;
       }
     }
   }
-  return false
+  return false;
 }
 
 export function MeetingStatusFromJSON(json: any): MeetingStatus {
-  return MeetingStatusFromJSONTyped(json, false)
+  return MeetingStatusFromJSONTyped(json, false);
 }
 
-export function MeetingStatusFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): MeetingStatus {
-  return json as MeetingStatus
+export function MeetingStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): MeetingStatus {
+  return json as MeetingStatus;
 }
 
 export function MeetingStatusToJSON(value?: MeetingStatus | null): any {
-  return value as any
+  return value as any;
 }
 
-export function MeetingStatusToJSONTyped(
-  value: any,
-  ignoreDiscriminator: boolean
-): MeetingStatus {
-  return value as MeetingStatus
+export function MeetingStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): MeetingStatus {
+  return value as MeetingStatus;
 }

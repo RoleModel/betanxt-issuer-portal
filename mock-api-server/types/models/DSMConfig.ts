@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,120 +23,114 @@ export interface DSMConfig {
    * @type {string}
    * @memberof DSMConfig
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof DSMConfig
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {boolean}
    * @memberof DSMConfig
    */
-  liveQa?: boolean
+  liveQa?: boolean;
   /**
    *
    * @type {boolean}
    * @memberof DSMConfig
    */
-  audioOnly?: boolean
+  audioOnly?: boolean;
   /**
    *
    * @type {boolean}
    * @memberof DSMConfig
    */
-  meetingRecording?: boolean
+  meetingRecording?: boolean;
   /**
    *
    * @type {string}
    * @memberof DSMConfig
    */
-  staticSlideDocId?: string | null
+  staticSlideDocId?: string | null;
   /**
    *
    * @type {string}
    * @memberof DSMConfig
    */
-  displayDocsDocId?: string | null
+  displayDocsDocId?: string | null;
   /**
    *
    * @type {boolean}
    * @memberof DSMConfig
    */
-  isConfirmed?: boolean
+  isConfirmed?: boolean;
   /**
    *
    * @type {Date}
    * @memberof DSMConfig
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof DSMConfig
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * Check if a given object implements the DSMConfig interface.
  */
 export function instanceOfDSMConfig(value: object): value is DSMConfig {
-  return true
+  return true;
 }
 
 export function DSMConfigFromJSON(json: any): DSMConfig {
-  return DSMConfigFromJSONTyped(json, false)
+  return DSMConfigFromJSONTyped(json, false);
 }
 
-export function DSMConfigFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): DSMConfig {
+export function DSMConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean): DSMConfig {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    liveQa: json['liveQa'] == null ? undefined : json['liveQa'],
-    audioOnly: json['audioOnly'] == null ? undefined : json['audioOnly'],
-    meetingRecording:
-      json['meetingRecording'] == null ? undefined : json['meetingRecording'],
-    staticSlideDocId:
-      json['staticSlideDocId'] == null ? undefined : json['staticSlideDocId'],
-    displayDocsDocId:
-      json['displayDocsDocId'] == null ? undefined : json['displayDocsDocId'],
-    isConfirmed: json['isConfirmed'] == null ? undefined : json['isConfirmed'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    liveQa: json["liveQa"] == null ? undefined : json["liveQa"],
+    audioOnly: json["audioOnly"] == null ? undefined : json["audioOnly"],
+    meetingRecording: json["meetingRecording"] == null ? undefined : json["meetingRecording"],
+    staticSlideDocId: json["staticSlideDocId"] == null ? undefined : json["staticSlideDocId"],
+    displayDocsDocId: json["displayDocsDocId"] == null ? undefined : json["displayDocsDocId"],
+    isConfirmed: json["isConfirmed"] == null ? undefined : json["isConfirmed"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function DSMConfigToJSON(json: any): DSMConfig {
-  return DSMConfigToJSONTyped(json, false)
+  return DSMConfigToJSONTyped(json, false);
 }
 
 export function DSMConfigToJSONTyped(
   value?: DSMConfig | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    liveQa: value['liveQa'],
-    audioOnly: value['audioOnly'],
-    meetingRecording: value['meetingRecording'],
-    staticSlideDocId: value['staticSlideDocId'],
-    displayDocsDocId: value['displayDocsDocId'],
-    isConfirmed: value['isConfirmed'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+    id: value["id"],
+    meetingId: value["meetingId"],
+    liveQa: value["liveQa"],
+    audioOnly: value["audioOnly"],
+    meetingRecording: value["meetingRecording"],
+    staticSlideDocId: value["staticSlideDocId"],
+    displayDocsDocId: value["displayDocsDocId"],
+    isConfirmed: value["isConfirmed"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

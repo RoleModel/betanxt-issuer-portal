@@ -1,23 +1,24 @@
-'use client'
+"use client";
 
-import type { SxProps, Theme } from '@mui/material'
-import { Avatar, Box, Typography } from '@mui/material'
+import type { SxProps, Theme } from "@mui/material";
+
+import { Avatar, Box, Typography } from "@mui/material";
 
 interface EditAvatarButtonProps {
-  avatarUrl?: string | null
-  altText?: string
-  size?: number
-  onEdit?: () => void
-  sx?: SxProps<Theme>
+  avatarUrl?: string | null;
+  altText?: string;
+  size?: number;
+  onEdit?: () => void;
+  sx?: SxProps<Theme>;
   // User info for generating initials
-  userName?: string
-  userEmail?: string
-  color?: string
+  userName?: string;
+  userEmail?: string;
+  color?: string;
 }
 
 const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
   avatarUrl,
-  altText = 'User Avatar',
+  altText = "User Avatar",
   size = 100,
   onEdit,
   sx,
@@ -29,16 +30,16 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
   const getInitials = () => {
     if (userName) {
       return userName
-        .split(' ')
+        .split(" ")
         .map((name) => name[0])
-        .join('')
+        .join("")
         .toUpperCase()
-        .slice(0, 2)
+        .slice(0, 2);
     }
     if (userEmail) {
-      return userEmail.substring(0, 2).toUpperCase()
+      return userEmail.substring(0, 2).toUpperCase();
     }
-  }
+  };
   return (
     <Box
       position="relative"
@@ -47,12 +48,12 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
       onClick={onEdit}
       sx={{
         ...sx,
-        overflow: 'hidden',
-        cursor: 'pointer',
-        borderRadius: '50%',
-        '&:hover .MuiTypography-root': {
+        overflow: "hidden",
+        cursor: "pointer",
+        borderRadius: "50%",
+        "&:hover .MuiTypography-root": {
           opacity: 1,
-          visibility: 'visible',
+          visibility: "visible",
           top: 0,
           left: 0,
           right: 0,
@@ -67,7 +68,7 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
           width: size,
           height: size,
           ontSize: size / 3,
-          backgroundColor: color ?? 'var(--mui-palette-primary-main)',
+          backgroundColor: color ?? "var(--mui-palette-primary-main)",
         }}
       >
         {!avatarUrl && getInitials()}
@@ -77,25 +78,25 @@ const EditAvatarButton: React.FC<EditAvatarButtonProps> = ({
         component="span"
         align="center"
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'absolute',
-          visibility: 'hidden',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          visibility: "hidden",
           transition: (theme) =>
-            theme.transitions.create(['transform', 'opacity'], {
+            theme.transitions.create(["transform", "opacity"], {
               duration: theme.transitions.duration.short,
             }),
-          height: '100%',
+          height: "100%",
           opacity: 0,
-          color: '#fff',
+          color: "#fff",
           backgroundColor: `rgba(0,0,0,0.6)`,
         }}
       >
         Edit
       </Typography>
     </Box>
-  )
-}
+  );
+};
 
-export default EditAvatarButton
+export default EditAvatarButton;

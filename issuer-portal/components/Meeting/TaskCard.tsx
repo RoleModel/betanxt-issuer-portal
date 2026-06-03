@@ -1,7 +1,4 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import React, { useCallback } from 'react'
+"use client";
 
 import {
   Box,
@@ -15,41 +12,37 @@ import {
   Stack,
   Typography,
   useTheme,
-} from '@mui/material'
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import React, { useCallback } from "react";
 
-import TaskDrawer from '@/components/Drawers/TaskDrawer'
-import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/theme'
-import StatusChip from '@/components/ui/StatusChip'
+import type { Task } from "@/types/api-exports";
 
-import { useMeeting } from '@/contexts/MeetingContext'
-import { usePhases } from '@/hooks/usePhases'
-import { formatDate } from '@/lib/formats'
-import type { Task } from '@/types/api-exports'
-import { exportTimelineToPdf } from '@/utils/exportTimelinePdf'
-import { getDateLabel, shouldShowStatusChip } from '@/utils/taskControl'
+import TaskDrawer from "@/components/Drawers/TaskDrawer";
+import { getPhaseColor, getStatusBorderColor } from "@/components/mui-styling/theme";
+import StatusChip from "@/components/ui/StatusChip";
+import { useMeeting } from "@/contexts/MeetingContext";
+import { usePhases } from "@/hooks/usePhases";
+import { formatDate } from "@/lib/formats";
+import { exportTimelineToPdf } from "@/utils/exportTimelinePdf";
+import { getDateLabel, shouldShowStatusChip } from "@/utils/taskControl";
 
 interface TaskItemProps {
-  meetingId?: string
-  currentPhase?: number
-  task: Task
-  isClickable: boolean
-  phaseColor: string
-  status: string
-  onClick: (taskId: string) => void
+  meetingId?: string;
+  currentPhase?: number;
+  task: Task;
+  isClickable: boolean;
+  phaseColor: string;
+  status: string;
+  onClick: (taskId: string) => void;
 }
 
-export function TaskItem({
-  task,
-  phaseColor,
-  onClick,
-  isClickable,
-  status,
-}: TaskItemProps) {
-  const theme = useTheme()
-  const isComplete = status === 'COMPLETE'
+export function TaskItem({ task, phaseColor, onClick, isClickable, status }: TaskItemProps) {
+  const theme = useTheme();
+  const isComplete = status === "COMPLETE";
   const borderColor = isComplete
     ? theme.vars.palette.complete
-    : getStatusBorderColor(task.status, phaseColor, theme)
+    : getStatusBorderColor(task.status, phaseColor, theme);
 
   return (
     <Card
@@ -57,19 +50,17 @@ export function TaskItem({
       key={task.id}
       data-testid={`task-card-${task.id}`}
       sx={{
-        height: '100%',
-        gridArea: 'tasks',
+        height: "100%",
+        gridArea: "tasks",
         gridColumn: {
-          xs: '1',
-          sm: '1',
-          md: '1 / span 2',
-          lg: '1 / span 3',
-          xl: '1 / span 4',
+          xs: "1",
+          sm: "1",
+          md: "1 / span 2",
+          lg: "1 / span 3",
+          xl: "1 / span 4",
         },
         background: (theme) =>
-          isComplete
-            ? theme.vars.palette.background.default
-            : theme.vars.palette.tableCellRow.fill,
+          isComplete ? theme.vars.palette.background.default : theme.vars.palette.tableCellRow.fill,
         borderLeft: `6px solid`,
         borderLeftColor: borderColor,
         borderTop: 0,
@@ -77,21 +68,21 @@ export function TaskItem({
         borderRight: 0,
         boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
         p: 0,
-        textAlign: 'left',
-        width: '100%',
-        '&:hover': {
+        textAlign: "left",
+        width: "100%",
+        "&:hover": {
           boxShadow: `0px 0px 0px 1px inset ${borderColor}`,
         },
       }}
     >
-      <CardActionArea onClick={() => onClick(task.id ?? '')} disabled={!isClickable}>
+      <CardActionArea onClick={() => onClick(task.id ?? "")} disabled={!isClickable}>
         <CardContent sx={{ p: 1.5 }}>
           <Box
             sx={{
-              display: 'flex',
+              display: "flex",
               gap: 0.5,
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -100,14 +91,14 @@ export function TaskItem({
                 fontWeight={600}
                 data-testid="task-title"
                 sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                   mb: 0.25,
                   opacity: isComplete ? 0.5 : 1,
-                  textDecoration: isComplete ? 'line-through' : 'none',
-                  textDecorationColor: 'inherit',
-                  textDecorationThickness: '2px',
+                  textDecoration: isComplete ? "line-through" : "none",
+                  textDecorationColor: "inherit",
+                  textDecorationThickness: "2px",
                 }}
               >
                 {task.title}
@@ -116,29 +107,27 @@ export function TaskItem({
                 variant="caption"
                 sx={{
                   opacity: isComplete ? 0.5 : 1,
-                  textDecoration: isComplete ? 'line-through' : 'none',
-                  textDecorationColor: 'inherit',
-                  textDecorationThickness: '2px',
+                  textDecoration: isComplete ? "line-through" : "none",
+                  textDecorationColor: "inherit",
+                  textDecorationThickness: "2px",
                 }}
               >
                 {task.owner}
               </Typography>
             </Box>
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
               <Typography
                 variant="body3"
                 fontWeight={600}
                 sx={{
                   mb: 0.25,
                   opacity: isComplete ? 0.5 : 1,
-                  textDecoration: isComplete ? 'line-through' : 'none',
-                  textDecorationColor: 'inherit',
-                  textDecorationThickness: '2px',
+                  textDecoration: isComplete ? "line-through" : "none",
+                  textDecorationColor: "inherit",
+                  textDecorationThickness: "2px",
                 }}
               >
-                {getDateLabel(task, formatDate(task.dueDate ?? ''))}
+                {getDateLabel(task, formatDate(task.dueDate ?? ""))}
               </Typography>
               {shouldShowStatusChip(task) && (
                 <StatusChip status={task.status ?? null} size="small" />
@@ -148,14 +137,14 @@ export function TaskItem({
         </CardContent>
       </CardActionArea>
     </Card>
-  )
+  );
 }
 
 interface TaskCardProps {
-  meetingId?: string
-  currentPhase?: number
-  currentPhaseTitle?: string
-  onClick?: (taskId: string) => void
+  meetingId?: string;
+  currentPhase?: number;
+  currentPhaseTitle?: string;
+  onClick?: (taskId: string) => void;
 }
 
 export default function TaskCard({
@@ -164,115 +153,112 @@ export default function TaskCard({
   currentPhaseTitle,
   onClick,
 }: TaskCardProps) {
-  const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } =
-    useMeeting()
-  const { phases } = usePhases(meetingId ?? currentMeeting?.id ?? '')
+  const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } = useMeeting();
+  const { phases } = usePhases(meetingId ?? currentMeeting?.id ?? "");
 
   // Determine the current phase from meeting data or prop, default to 1
   const resolvedCurrentPhase =
     currentPhase ??
     (currentMeeting?.currentPhase
-      ? parseInt(currentMeeting.currentPhase.replace('Phase ', '')) || 1
-      : 1)
+      ? parseInt(currentMeeting.currentPhase.replace("Phase ", "")) || 1
+      : 1);
 
   // Get the current phase title from phases data
-  const currentPhaseFromData = phases.find(
-    (phase) => phase.orderIndex === resolvedCurrentPhase
-  )
+  const currentPhaseFromData = phases.find((phase) => phase.orderIndex === resolvedCurrentPhase);
   const dynamicPhaseTitle =
-    currentPhaseTitle ?? currentPhaseFromData?.name ?? `Phase ${resolvedCurrentPhase}`
+    currentPhaseTitle ?? currentPhaseFromData?.name ?? `Phase ${resolvedCurrentPhase}`;
 
   const displayTasks = tasks.filter((task) => {
     // For Phase 4, include BetaNXT delivery tasks
     if (resolvedCurrentPhase === 4) {
-      if (task.owner === 'BetaNXT' && task.phaseNumber === 4) {
-        return true
+      if (task.owner === "BetaNXT" && task.phaseNumber === 4) {
+        return true;
       }
     }
 
     // Exclude BetaNXT and DFIN tasks for other phases
-    if (['BetaNXT', 'DFIN'].includes(task.owner ?? '')) {
-      return false
+    if (["BetaNXT", "DFIN"].includes(task.owner ?? "")) {
+      return false;
     }
 
     // For Phase 2, include incomplete Phase 1 carry-over tasks
     if (resolvedCurrentPhase === 2) {
       // Include Phase 2 tasks
-      if (task.phaseNumber === 2) return true
+      if (task.phaseNumber === 2) return true;
 
       // Include incomplete Phase 1 tasks that carry over
       const carryOverTitles = [
-        'DTCC authorization',
-        'Plan File Request form',
-        'Transfer Agent Registered File Request Form',
-        'Broadridge/ICS Access',
-        'Draft Proxy Statement',
-        'Proxy Card',
-      ]
+        "DTCC authorization",
+        "Plan File Request form",
+        "Transfer Agent Registered File Request Form",
+        "Broadridge/ICS Access",
+        "Draft Proxy Statement",
+        "Proxy Card",
+      ];
 
-      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title ?? '')) {
+      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title ?? "")) {
         // Only show if not complete
         const incompleteStatuses = [
-          'INCOMPLETE',
-          'NEEDS_AUTHORIZATION',
-          'PENDING_AUTHORIZATION',
-          'AUTHORIZED',
-          'SUBMITTED_AWAITING_RECORD_DATE',
-        ]
-        return incompleteStatuses.includes(task.status ?? 'INCOMPLETE')
+          "INCOMPLETE",
+          "NEEDS_AUTHORIZATION",
+          "PENDING_AUTHORIZATION",
+          "AUTHORIZED",
+          "SUBMITTED_AWAITING_RECORD_DATE",
+        ];
+        return incompleteStatuses.includes(task.status ?? "INCOMPLETE");
       }
 
-      return false
+      return false;
     }
 
     // For other phases, just show tasks from that phase
-    return task.phaseNumber === resolvedCurrentPhase
-  })
+    return task.phaseNumber === resolvedCurrentPhase;
+  });
 
-  const [open, setOpen] = React.useState(false)
-  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
+  const [open, setOpen] = React.useState(false);
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
 
   const toggleDrawer = (newOpen: boolean) => () => {
-    setOpen(newOpen)
-  }
+    setOpen(newOpen);
+  };
 
-  const router = useRouter()
+  const router = useRouter();
   const handleViewCalendarClick = () => {
-    router.push(`/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/calendar`)
-  }
+    router.push(`/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/calendar`);
+  };
 
   const handleTaskClick = (taskId: string) => {
     if (onClick) {
-      onClick(taskId)
-      return
+      onClick(taskId);
+      return;
     }
-    const found = tasks.find((t) => t.id === taskId) ?? null
-    setSelectedTask(found)
-    setOpen(true)
-  }
+    const found = tasks.find((t) => t.id === taskId) ?? null;
+    setSelectedTask(found);
+    setOpen(true);
+  };
 
   const handleExportTimeline = useCallback(async () => {
-    if (!currentMeeting) return
+    if (!currentMeeting) return;
 
     try {
       // Pass context data directly to exportTimelineToPdf
       await exportTimelineToPdf({
         tasks: tasks,
         keyDates: keyDates,
-        meetingTitle: currentMeeting.title ?? 'Meeting Schedule',
-        selectedPhase: 'all',
+        meetingTitle: currentMeeting.title ?? "Meeting Schedule",
+        selectedPhase: "all",
         clientTicker: currentMeeting.ticker ?? undefined,
-      })
+      });
     } catch (error) {
-      console.error('Error exporting timeline:', error)
+      console.error("Error exporting timeline:", error);
     }
-  }, [currentMeeting, tasks, keyDates])
+  }, [currentMeeting, tasks, keyDates]);
 
   return (
     <>
       <Card
         sx={{
-          gridArea: 'tasks',
+          gridArea: "tasks",
         }}
       >
         <CardHeader title={`Tasks - ${dynamicPhaseTitle}`} />
@@ -288,8 +274,8 @@ export default function TaskCard({
             <Stack spacing={1}>
               {displayTasks.map((task) => {
                 // Always allow clicking tasks for testing and re-opening purposes
-                const isClickable = true
-                const phaseColor = getPhaseColor(resolvedCurrentPhase)
+                const isClickable = true;
+                const phaseColor = getPhaseColor(resolvedCurrentPhase);
                 return (
                   <TaskItem
                     key={task.id}
@@ -299,14 +285,14 @@ export default function TaskCard({
                     onClick={handleTaskClick}
                     isClickable={isClickable}
                     phaseColor={phaseColor}
-                    status={task.status ?? 'INCOMPLETE'}
+                    status={task.status ?? "INCOMPLETE"}
                   />
-                )
+                );
               })}
             </Stack>
           )}
         </CardContent>
-        <CardActions sx={{ p: 1, justifyContent: 'flex-end', gap: 1 }}>
+        <CardActions sx={{ p: 1, justifyContent: "flex-end", gap: 1 }}>
           <Button variant="outlined" onClick={handleViewCalendarClick}>
             View Calendar
           </Button>
@@ -321,11 +307,11 @@ export default function TaskCard({
         task={selectedTask}
         onTaskUpdate={async (updatedTask) => {
           // Update the selected task
-          setSelectedTask(updatedTask)
+          setSelectedTask(updatedTask);
           // Refresh meeting data to update all tasks in the UI
-          await refreshMeetingData()
+          await refreshMeetingData();
         }}
       />
     </>
-  )
+  );
 }

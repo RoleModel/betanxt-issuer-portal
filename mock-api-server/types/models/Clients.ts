@@ -1,3 +1,6 @@
+import type { Account } from "./Account";
+import type { Meeting } from "./Meeting";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Account } from './Account'
+import { mapValues } from "../runtime";
 import {
   AccountFromJSON,
   AccountFromJSONTyped,
   AccountToJSON,
   AccountToJSONTyped,
-} from './Account'
-import type { Meeting } from './Meeting'
+} from "./Account";
 import {
   MeetingFromJSON,
   MeetingFromJSONTyped,
   MeetingToJSON,
   MeetingToJSONTyped,
-} from './Meeting'
+} from "./Meeting";
 
 /**
  *
@@ -37,167 +38,159 @@ export interface Clients {
    * @type {string}
    * @memberof Clients
    */
-  id?: string
+  id?: string;
   /**
    * Unique ticker symbol for the client
    * @type {string}
    * @memberof Clients
    */
-  ticker?: string
+  ticker?: string;
   /**
    * Full legal name of the company
    * @type {string}
    * @memberof Clients
    */
-  companyName?: string
+  companyName?: string;
   /**
    * Short display name for the company
    * @type {string}
    * @memberof Clients
    */
-  shortName?: string
+  shortName?: string;
   /**
    * Industry sector
    * @type {string}
    * @memberof Clients
    */
-  industry?: string | null
+  industry?: string | null;
   /**
    * Company description
    * @type {string}
    * @memberof Clients
    */
-  description?: string | null
+  description?: string | null;
   /**
    * Company website URL
    * @type {string}
    * @memberof Clients
    */
-  website?: string | null
+  website?: string | null;
   /**
    * Primary contact person
    * @type {string}
    * @memberof Clients
    */
-  primaryContact?: string | null
+  primaryContact?: string | null;
   /**
    * Primary contact email
    * @type {string}
    * @memberof Clients
    */
-  primaryContactEmail?: string | null
+  primaryContactEmail?: string | null;
   /**
    * Whether the client is active
    * @type {boolean}
    * @memberof Clients
    */
-  isActive?: boolean
+  isActive?: boolean;
   /**
    * Unique branding identifier for document hosting site URLs
    * @type {number}
    * @memberof Clients
    */
-  brandingId?: number | null
+  brandingId?: number | null;
   /**
    *
    * @type {Date}
    * @memberof Clients
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Clients
    */
-  updatedAt?: Date
+  updatedAt?: Date;
   /**
    * Array of related accounts
    * @type {Array<Account>}
    * @memberof Clients
    */
-  accounts?: Array<Account> | null
+  accounts?: Array<Account> | null;
   /**
    * Array of related meetings
    * @type {Array<Meeting>}
    * @memberof Clients
    */
-  meetings?: Array<Meeting> | null
+  meetings?: Array<Meeting> | null;
 }
 
 /**
  * Check if a given object implements the Clients interface.
  */
 export function instanceOfClients(value: object): value is Clients {
-  return true
+  return true;
 }
 
 export function ClientsFromJSON(json: any): Clients {
-  return ClientsFromJSONTyped(json, false)
+  return ClientsFromJSONTyped(json, false);
 }
 
 export function ClientsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Clients {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    ticker: json['ticker'] == null ? undefined : json['ticker'],
-    companyName: json['companyName'] == null ? undefined : json['companyName'],
-    shortName: json['shortName'] == null ? undefined : json['shortName'],
-    industry: json['industry'] == null ? undefined : json['industry'],
-    description: json['description'] == null ? undefined : json['description'],
-    website: json['website'] == null ? undefined : json['website'],
-    primaryContact: json['primaryContact'] == null ? undefined : json['primaryContact'],
+    id: json["id"] == null ? undefined : json["id"],
+    ticker: json["ticker"] == null ? undefined : json["ticker"],
+    companyName: json["companyName"] == null ? undefined : json["companyName"],
+    shortName: json["shortName"] == null ? undefined : json["shortName"],
+    industry: json["industry"] == null ? undefined : json["industry"],
+    description: json["description"] == null ? undefined : json["description"],
+    website: json["website"] == null ? undefined : json["website"],
+    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json['primaryContactEmail'] == null ? undefined : json['primaryContactEmail'],
-    isActive: json['isActive'] == null ? undefined : json['isActive'],
-    brandingId: json['brandingId'] == null ? undefined : json['brandingId'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
+      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+    isActive: json["isActive"] == null ? undefined : json["isActive"],
+    brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
     accounts:
-      json['accounts'] == null
-        ? undefined
-        : (json['accounts'] as Array<any>).map(AccountFromJSON),
+      json["accounts"] == null ? undefined : (json["accounts"] as Array<any>).map(AccountFromJSON),
     meetings:
-      json['meetings'] == null
-        ? undefined
-        : (json['meetings'] as Array<any>).map(MeetingFromJSON),
-  }
+      json["meetings"] == null ? undefined : (json["meetings"] as Array<any>).map(MeetingFromJSON),
+  };
 }
 
 export function ClientsToJSON(json: any): Clients {
-  return ClientsToJSONTyped(json, false)
+  return ClientsToJSONTyped(json, false);
 }
 
 export function ClientsToJSONTyped(
   value?: Clients | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    ticker: value['ticker'],
-    companyName: value['companyName'],
-    shortName: value['shortName'],
-    industry: value['industry'],
-    description: value['description'],
-    website: value['website'],
-    primaryContact: value['primaryContact'],
-    primaryContactEmail: value['primaryContactEmail'],
-    isActive: value['isActive'],
-    brandingId: value['brandingId'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
+    id: value["id"],
+    ticker: value["ticker"],
+    companyName: value["companyName"],
+    shortName: value["shortName"],
+    industry: value["industry"],
+    description: value["description"],
+    website: value["website"],
+    primaryContact: value["primaryContact"],
+    primaryContactEmail: value["primaryContactEmail"],
+    isActive: value["isActive"],
+    brandingId: value["brandingId"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
     accounts:
-      value['accounts'] == null
-        ? undefined
-        : (value['accounts'] as Array<any>).map(AccountToJSON),
+      value["accounts"] == null ? undefined : (value["accounts"] as Array<any>).map(AccountToJSON),
     meetings:
-      value['meetings'] == null
-        ? undefined
-        : (value['meetings'] as Array<any>).map(MeetingToJSON),
-  }
+      value["meetings"] == null ? undefined : (value["meetings"] as Array<any>).map(MeetingToJSON),
+  };
 }

@@ -1,9 +1,9 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.941Z
 // Source: openapi-schema/openapi.yaml
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 
-import { handleCors, withCors } from '@/utils/cors'
+import { handleCors, withCors } from "@/utils/cors";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -17,18 +17,18 @@ export async function GET(): Promise<NextResponse> {
     //   .select('*')
     //   .eq('meetingId', meetingId)
 
-    return withCors(NextResponse.json([]))
+    return withCors(NextResponse.json([]));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getDSMConfig',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "getDSMConfig",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
@@ -47,18 +47,18 @@ export async function POST(): Promise<NextResponse> {
     //   .insert(body)
     //   .select()
 
-    return withCors(NextResponse.json({}, { status: 201 }))
+    return withCors(NextResponse.json({}, { status: 201 }));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'createOrUpdateDSMConfig',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "createOrUpdateDSMConfig",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
@@ -78,22 +78,22 @@ export async function PUT(): Promise<NextResponse> {
     //   .eq('meetingId', meetingId)
     //   .select()
 
-    return withCors(NextResponse.json({}))
+    return withCors(NextResponse.json({}));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'updateDSMConfig',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "updateDSMConfig",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 // Handle preflight requests
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }

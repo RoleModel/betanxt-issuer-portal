@@ -1,34 +1,32 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
+import { Card, CardContent, CardHeader, MenuItem, TextField } from "@mui/material";
+import { BarChart } from "@mui/x-charts/BarChart";
+import React, { useState } from "react";
 
-import { Card, CardContent, CardHeader, MenuItem, TextField } from '@mui/material'
-import { BarChart } from '@mui/x-charts/BarChart'
-
-import { EmptyState } from '@/components/EmptyState'
-import SkeletonChart from '@/components/ui/SkeletonChart'
-
-import { truncateNumber } from '@/utils/numberUtils'
+import { EmptyState } from "@/components/EmptyState";
+import SkeletonChart from "@/components/ui/SkeletonChart";
+import { truncateNumber } from "@/utils/numberUtils";
 
 interface BrokerVotingData {
-  broker: string
-  for: number
-  against: number
-  abstain: number
-  total: number
+  broker: string;
+  for: number;
+  against: number;
+  abstain: number;
+  total: number;
 }
 
 interface Proposal {
-  id: string
-  proposalNumber: string
-  proposalTitle: string
+  id: string;
+  proposalNumber: string;
+  proposalTitle: string;
 }
 
 interface BrokerVotingChartProps {
-  meetingId?: string
-  proposals?: Proposal[]
-  brokerData?: Record<string, BrokerVotingData[]>
-  loading?: boolean
+  meetingId?: string;
+  proposals?: Proposal[];
+  brokerData?: Record<string, BrokerVotingData[]>;
+  loading?: boolean;
 }
 
 export default function BrokerVotingChart({
@@ -37,59 +35,59 @@ export default function BrokerVotingChart({
   brokerData = {},
   loading = false,
 }: BrokerVotingChartProps) {
-  const [selectedProposalId, setSelectedProposalId] = useState<string>('')
+  const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
   // Reset selectedProposalId when meetingId changes or when current selection is invalid
   React.useEffect(() => {
     if (proposals.length > 0) {
-      const currentProposalExists = proposals.some((p) => p.id === selectedProposalId)
+      const currentProposalExists = proposals.some((p) => p.id === selectedProposalId);
       if (!currentProposalExists) {
-        setSelectedProposalId(proposals[0].id)
+        setSelectedProposalId(proposals[0].id);
       }
     } else {
-      setSelectedProposalId('')
+      setSelectedProposalId("");
     }
-  }, [proposals, selectedProposalId, meetingId])
+  }, [proposals, selectedProposalId, meetingId]);
 
   // Map generic proposal keys (proposal1, proposal2) to actual proposal IDs based on order
   const mappedBrokerData = React.useMemo(() => {
-    const mapped: Record<string, BrokerVotingData[]> = {}
+    const mapped: Record<string, BrokerVotingData[]> = {};
 
     // Sort proposals by proposal number to get consistent order
     const sortedProposals = [...proposals].sort((a, b) => {
-      const numA = parseFloat(a.proposalNumber.toString()) || 0
-      const numB = parseFloat(b.proposalNumber.toString()) || 0
-      return numA - numB
-    })
+      const numA = parseFloat(a.proposalNumber.toString()) || 0;
+      const numB = parseFloat(b.proposalNumber.toString()) || 0;
+      return numA - numB;
+    });
 
     Object.entries(brokerData).forEach(([key, data]) => {
       // Map "proposal1" -> first proposal, "proposal2" -> second proposal, etc.
-      const proposalIndex = parseInt(key.replace('proposal', '')) - 1
+      const proposalIndex = parseInt(key.replace("proposal", "")) - 1;
       if (proposalIndex >= 0 && proposalIndex < sortedProposals.length) {
-        const proposalId = sortedProposals[proposalIndex]?.id
+        const proposalId = sortedProposals[proposalIndex]?.id;
         if (proposalId) {
-          mapped[proposalId] = data
+          mapped[proposalId] = data;
         }
       }
-    })
+    });
 
-    return mapped
-  }, [brokerData, proposals])
+    return mapped;
+  }, [brokerData, proposals]);
 
   // Get broker data for selected proposal
   const data =
     selectedProposalId && mappedBrokerData[selectedProposalId]
       ? mappedBrokerData[selectedProposalId]
-      : []
-  const hasData = Object.keys(mappedBrokerData).length > 0
+      : [];
+  const hasData = Object.keys(mappedBrokerData).length > 0;
 
   // Early return for loading state - like other charts on the page
   if (loading) {
-    return <SkeletonChart title="Broker Voting by Proposal" height={350} showLegend />
+    return <SkeletonChart title="Broker Voting by Proposal" height={350} showLegend />;
   }
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: "100%" }}>
       <CardHeader
         title="Broker Voting by Proposal"
         action={
@@ -125,40 +123,40 @@ export default function BrokerVotingChart({
             layout="horizontal"
             xAxis={[
               {
-                scaleType: 'linear',
+                scaleType: "linear",
                 tickMinStep: 6,
                 valueFormatter: (value) => {
-                  if (value == null) return '0'
-                  return String(truncateNumber(value))
+                  if (value == null) return "0";
+                  return String(truncateNumber(value));
                 },
               },
             ]}
             yAxis={[
               {
-                scaleType: 'band',
+                scaleType: "band",
                 // Ensure all broker names are strings to prevent chart rendering errors
-                data: data.map((d) => String(d.broker || 'Unknown')),
+                data: data.map((d) => String(d.broker || "Unknown")),
                 width: 100,
               },
             ]}
             series={[
               {
                 data: data.map((d) => d.for),
-                label: 'For',
-                stack: 'total',
-                color: 'var(--mui-palette-chartSeries-1-main)',
+                label: "For",
+                stack: "total",
+                color: "var(--mui-palette-chartSeries-1-main)",
               },
               {
                 data: data.map((d) => d.against),
-                label: 'Against',
-                stack: 'total',
-                color: 'var(--mui-palette-chartSeries-5-main)',
+                label: "Against",
+                stack: "total",
+                color: "var(--mui-palette-chartSeries-5-main)",
               },
               {
                 data: data.map((d) => d.abstain),
-                label: 'Abstain',
-                stack: 'total',
-                color: 'var(--mui-palette-action-active)',
+                label: "Abstain",
+                stack: "total",
+                color: "var(--mui-palette-action-active)",
               },
             ]}
             height={Math.max(330, data.length * 50 + 80)}
@@ -166,13 +164,13 @@ export default function BrokerVotingChart({
             grid={{ vertical: true, horizontal: false }}
             slotProps={{
               legend: {
-                direction: 'horizontal',
-                position: { vertical: 'bottom', horizontal: 'center' },
+                direction: "horizontal",
+                position: { vertical: "bottom", horizontal: "center" },
               },
             }}
           />
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

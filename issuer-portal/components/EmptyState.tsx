@@ -1,18 +1,17 @@
-'use client'
+"use client";
 
-import HandTouchIcon from '@rolemodel/betanxt-design-system/components/icons/brand/HandTouchIcon'
-import React from 'react'
-
-import { Box, Paper, Stack, Typography } from '@mui/material'
+import { Box, Paper, Stack, Typography } from "@mui/material";
+import HandTouchIcon from "@rolemodel/betanxt-design-system/components/icons/brand/HandTouchIcon";
+import React from "react";
 
 interface EmptyStateProps {
-  icon?: React.ReactNode
-  title: string
-  minHeight?: number | string
-  description?: string | React.ReactNode
-  action?: React.ReactNode
-  children?: React.ReactNode
-  dangerouslySetInnerHTML?: boolean
+  icon?: React.ReactNode;
+  title: string;
+  minHeight?: number | string;
+  description?: string | React.ReactNode;
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+  dangerouslySetInnerHTML?: boolean;
 }
 
 export function EmptyState({
@@ -29,33 +28,29 @@ export function EmptyState({
         elevation={0}
         sx={(theme) => ({
           background: theme.vars.palette.tableCellRow.fill,
-          border: '1px solid',
-          borderColor: 'divider',
+          border: "1px solid",
+          borderColor: "divider",
           borderRadius: 1,
           p: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           minHeight: minHeight || 400,
         })}
       >
-        <Stack
-          spacing={1}
-          alignItems="center"
-          sx={{ maxWidth: 600, textAlign: 'center' }}
-        >
+        <Stack spacing={1} alignItems="center" sx={{ maxWidth: 600, textAlign: "center" }}>
           <Box
             sx={{
-              display: 'flex',
+              display: "flex",
               fontSize: 64,
-              '& .MuiSvgIcon-root': {
+              "& .MuiSvgIcon-root": {
                 fontSize: 64,
-                height: '64px !important',
-                width: '64px !important',
+                height: "64px !important",
+                width: "64px !important",
               },
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {icon}
@@ -65,10 +60,10 @@ export function EmptyState({
             variant="body1"
             sx={{
               fontWeight: 500,
-              fontSize: '14px',
+              fontSize: "14px",
               lineHeight: 1.43,
-              letterSpacing: '1.07%',
-              color: 'text.primary',
+              letterSpacing: "1.07%",
+              color: "text.primary",
               mt: 1,
             }}
           >
@@ -79,11 +74,11 @@ export function EmptyState({
             variant="body3"
             sx={{
               fontWeight: 400,
-              fontSize: '14px',
+              fontSize: "14px",
               lineHeight: 1.43,
-              letterSpacing: '1.07%',
-              color: 'text.secondary',
-              textAlign: 'center',
+              letterSpacing: "1.07%",
+              color: "text.secondary",
+              textAlign: "center",
             }}
           >
             {description}
@@ -93,11 +88,11 @@ export function EmptyState({
         </Stack>
       </Paper>
     </Box>
-  )
+  );
 }
 
 // Export types for external use
-export type { EmptyStateProps }
+export type { EmptyStateProps };
 
 // Also export as default for backward compatibility
-export default EmptyState
+export default EmptyState;

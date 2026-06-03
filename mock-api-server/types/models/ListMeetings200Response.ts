@@ -1,3 +1,6 @@
+import type { Meeting } from "./Meeting";
+import type { Pagination } from "./Pagination";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Meeting } from './Meeting'
+import { mapValues } from "../runtime";
 import {
   MeetingFromJSON,
   MeetingFromJSONTyped,
   MeetingToJSON,
   MeetingToJSONTyped,
-} from './Meeting'
-import type { Pagination } from './Pagination'
+} from "./Meeting";
 import {
   PaginationFromJSON,
   PaginationFromJSONTyped,
   PaginationToJSON,
   PaginationToJSONTyped,
-} from './Pagination'
+} from "./Pagination";
 
 /**
  *
@@ -37,62 +38,55 @@ export interface ListMeetings200Response {
    * @type {Array<Meeting>}
    * @memberof ListMeetings200Response
    */
-  meetings?: Array<Meeting>
+  meetings?: Array<Meeting>;
   /**
    *
    * @type {Pagination}
    * @memberof ListMeetings200Response
    */
-  pagination?: Pagination
+  pagination?: Pagination;
 }
 
 /**
  * Check if a given object implements the ListMeetings200Response interface.
  */
-export function instanceOfListMeetings200Response(
-  value: object
-): value is ListMeetings200Response {
-  return true
+export function instanceOfListMeetings200Response(value: object): value is ListMeetings200Response {
+  return true;
 }
 
 export function ListMeetings200ResponseFromJSON(json: any): ListMeetings200Response {
-  return ListMeetings200ResponseFromJSONTyped(json, false)
+  return ListMeetings200ResponseFromJSONTyped(json, false);
 }
 
 export function ListMeetings200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): ListMeetings200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
     meetings:
-      json['meetings'] == null
-        ? undefined
-        : (json['meetings'] as Array<any>).map(MeetingFromJSON),
-    pagination:
-      json['pagination'] == null ? undefined : PaginationFromJSON(json['pagination']),
-  }
+      json["meetings"] == null ? undefined : (json["meetings"] as Array<any>).map(MeetingFromJSON),
+    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+  };
 }
 
 export function ListMeetings200ResponseToJSON(json: any): ListMeetings200Response {
-  return ListMeetings200ResponseToJSONTyped(json, false)
+  return ListMeetings200ResponseToJSONTyped(json, false);
 }
 
 export function ListMeetings200ResponseToJSONTyped(
   value?: ListMeetings200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
     meetings:
-      value['meetings'] == null
-        ? undefined
-        : (value['meetings'] as Array<any>).map(MeetingToJSON),
-    pagination: PaginationToJSON(value['pagination']),
-  }
+      value["meetings"] == null ? undefined : (value["meetings"] as Array<any>).map(MeetingToJSON),
+    pagination: PaginationToJSON(value["pagination"]),
+  };
 }

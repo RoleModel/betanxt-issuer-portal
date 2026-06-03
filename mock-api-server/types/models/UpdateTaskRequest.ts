@@ -1,3 +1,5 @@
+import type { TaskStatus } from "./TaskStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { TaskStatus } from './TaskStatus'
+import { mapValues } from "../runtime";
 import {
   TaskStatusFromJSON,
   TaskStatusFromJSONTyped,
   TaskStatusToJSON,
   TaskStatusToJSONTyped,
-} from './TaskStatus'
+} from "./TaskStatus";
 
 /**
  *
@@ -30,112 +31,109 @@ export interface UpdateTaskRequest {
    * @type {string}
    * @memberof UpdateTaskRequest
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateTaskRequest
    */
-  description?: string
+  description?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateTaskRequest
    */
-  type?: string
+  type?: string;
   /**
    *
    * @type {TaskStatus}
    * @memberof UpdateTaskRequest
    */
-  status?: TaskStatus
+  status?: TaskStatus;
   /**
    *
    * @type {number}
    * @memberof UpdateTaskRequest
    */
-  phaseNumber?: number
+  phaseNumber?: number;
   /**
    *
    * @type {Date}
    * @memberof UpdateTaskRequest
    */
-  dueDate?: Date
+  dueDate?: Date;
   /**
    *
    * @type {string}
    * @memberof UpdateTaskRequest
    */
-  owner?: string
+  owner?: string;
   /**
    *
    * @type {string}
    * @memberof UpdateTaskRequest
    */
-  documentId?: string
+  documentId?: string;
   /**
    *
    * @type {object}
    * @memberof UpdateTaskRequest
    */
-  links?: object
+  links?: object;
 }
 
 /**
  * Check if a given object implements the UpdateTaskRequest interface.
  */
 export function instanceOfUpdateTaskRequest(value: object): value is UpdateTaskRequest {
-  return true
+  return true;
 }
 
 export function UpdateTaskRequestFromJSON(json: any): UpdateTaskRequest {
-  return UpdateTaskRequestFromJSONTyped(json, false)
+  return UpdateTaskRequestFromJSONTyped(json, false);
 }
 
 export function UpdateTaskRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): UpdateTaskRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    title: json['title'] == null ? undefined : json['title'],
-    description: json['description'] == null ? undefined : json['description'],
-    type: json['type'] == null ? undefined : json['type'],
-    status: json['status'] == null ? undefined : TaskStatusFromJSON(json['status']),
-    phaseNumber: json['phaseNumber'] == null ? undefined : json['phaseNumber'],
-    dueDate: json['dueDate'] == null ? undefined : new Date(json['dueDate']),
-    owner: json['owner'] == null ? undefined : json['owner'],
-    documentId: json['documentId'] == null ? undefined : json['documentId'],
-    links: json['links'] == null ? undefined : json['links'],
-  }
+    title: json["title"] == null ? undefined : json["title"],
+    description: json["description"] == null ? undefined : json["description"],
+    type: json["type"] == null ? undefined : json["type"],
+    status: json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
+    phaseNumber: json["phaseNumber"] == null ? undefined : json["phaseNumber"],
+    dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
+    owner: json["owner"] == null ? undefined : json["owner"],
+    documentId: json["documentId"] == null ? undefined : json["documentId"],
+    links: json["links"] == null ? undefined : json["links"],
+  };
 }
 
 export function UpdateTaskRequestToJSON(json: any): UpdateTaskRequest {
-  return UpdateTaskRequestToJSONTyped(json, false)
+  return UpdateTaskRequestToJSONTyped(json, false);
 }
 
 export function UpdateTaskRequestToJSONTyped(
   value?: UpdateTaskRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    title: value['title'],
-    description: value['description'],
-    type: value['type'],
-    status: TaskStatusToJSON(value['status']),
-    phaseNumber: value['phaseNumber'],
-    dueDate:
-      value['dueDate'] == null
-        ? undefined
-        : value['dueDate'].toISOString().substring(0, 10),
-    owner: value['owner'],
-    documentId: value['documentId'],
-    links: value['links'],
-  }
+    title: value["title"],
+    description: value["description"],
+    type: value["type"],
+    status: TaskStatusToJSON(value["status"]),
+    phaseNumber: value["phaseNumber"],
+    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+    owner: value["owner"],
+    documentId: value["documentId"],
+    links: value["links"],
+  };
 }

@@ -1,8 +1,8 @@
-import React from 'react'
+import type { SxProps, TableCellProps } from "@mui/material";
 
-import type { SxProps, TableCellProps } from '@mui/material'
-import { TableCell } from '@mui/material'
-import { Tooltip } from '@mui/material'
+import { TableCell } from "@mui/material";
+import { Tooltip } from "@mui/material";
+import React from "react";
 
 // A TableCell that prevents text from wrapping
 // Usage: <NoWrapTableCell>Some long text</NoWrapTableCell>
@@ -13,17 +13,17 @@ const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({ children, ...prop
       <TableCell
         {...props}
         sx={{
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          width: { xs: 150, xl: 'unset' },
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          width: { xs: 150, xl: "unset" },
           ...props.sx,
         }}
       >
         {children}
       </TableCell>
     </Tooltip>
-  )
-}
+  );
+};
 
-export default NoWrapTableCell
+export default NoWrapTableCell;

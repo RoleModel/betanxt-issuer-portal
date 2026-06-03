@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,74 +23,72 @@ export interface AddDocumentEventRequest {
    * @type {string}
    * @memberof AddDocumentEventRequest
    */
-  eventType: AddDocumentEventRequestEventTypeEnum
+  eventType: AddDocumentEventRequestEventTypeEnum;
   /**
    *
    * @type {{ [key: string]: any; }}
    * @memberof AddDocumentEventRequest
    */
-  metadata?: { [key: string]: any }
+  metadata?: { [key: string]: any };
 }
 
 /**
  * @export
  */
 export const AddDocumentEventRequestEventTypeEnum = {
-  Created: 'CREATED',
-  Uploaded: 'UPLOADED',
-  Viewed: 'VIEWED',
-  Downloaded: 'DOWNLOADED',
-  Signed: 'SIGNED',
-  Approved: 'APPROVED',
-  Rejected: 'REJECTED',
-  Commented: 'COMMENTED',
-  Updated: 'UPDATED',
-  Deleted: 'DELETED',
-} as const
+  Created: "CREATED",
+  Uploaded: "UPLOADED",
+  Viewed: "VIEWED",
+  Downloaded: "DOWNLOADED",
+  Signed: "SIGNED",
+  Approved: "APPROVED",
+  Rejected: "REJECTED",
+  Commented: "COMMENTED",
+  Updated: "UPDATED",
+  Deleted: "DELETED",
+} as const;
 export type AddDocumentEventRequestEventTypeEnum =
-  (typeof AddDocumentEventRequestEventTypeEnum)[keyof typeof AddDocumentEventRequestEventTypeEnum]
+  (typeof AddDocumentEventRequestEventTypeEnum)[keyof typeof AddDocumentEventRequestEventTypeEnum];
 
 /**
  * Check if a given object implements the AddDocumentEventRequest interface.
  */
-export function instanceOfAddDocumentEventRequest(
-  value: object
-): value is AddDocumentEventRequest {
-  if (!('eventType' in value) || value['eventType'] === undefined) return false
-  return true
+export function instanceOfAddDocumentEventRequest(value: object): value is AddDocumentEventRequest {
+  if (!("eventType" in value) || value["eventType"] === undefined) return false;
+  return true;
 }
 
 export function AddDocumentEventRequestFromJSON(json: any): AddDocumentEventRequest {
-  return AddDocumentEventRequestFromJSONTyped(json, false)
+  return AddDocumentEventRequestFromJSONTyped(json, false);
 }
 
 export function AddDocumentEventRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): AddDocumentEventRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    eventType: json['eventType'],
-    metadata: json['metadata'] == null ? undefined : json['metadata'],
-  }
+    eventType: json["eventType"],
+    metadata: json["metadata"] == null ? undefined : json["metadata"],
+  };
 }
 
 export function AddDocumentEventRequestToJSON(json: any): AddDocumentEventRequest {
-  return AddDocumentEventRequestToJSONTyped(json, false)
+  return AddDocumentEventRequestToJSONTyped(json, false);
 }
 
 export function AddDocumentEventRequestToJSONTyped(
   value?: AddDocumentEventRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    eventType: value['eventType'],
-    metadata: value['metadata'],
-  }
+    eventType: value["eventType"],
+    metadata: value["metadata"],
+  };
 }

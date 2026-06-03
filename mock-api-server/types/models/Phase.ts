@@ -1,3 +1,6 @@
+import type { PhaseKeyDates } from "./PhaseKeyDates";
+import type { PhaseStatus } from "./PhaseStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { PhaseKeyDates } from './PhaseKeyDates'
+import { mapValues } from "../runtime";
 import {
   PhaseKeyDatesFromJSON,
   PhaseKeyDatesFromJSONTyped,
   PhaseKeyDatesToJSON,
   PhaseKeyDatesToJSONTyped,
-} from './PhaseKeyDates'
-import type { PhaseStatus } from './PhaseStatus'
+} from "./PhaseKeyDates";
 import {
   PhaseStatusFromJSON,
   PhaseStatusFromJSONTyped,
   PhaseStatusToJSON,
   PhaseStatusToJSONTyped,
-} from './PhaseStatus'
+} from "./PhaseStatus";
 
 /**
  *
@@ -37,99 +38,95 @@ export interface Phase {
    * @type {string}
    * @memberof Phase
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Phase
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {string}
    * @memberof Phase
    */
-  name?: string
+  name?: string;
   /**
    *
    * @type {number}
    * @memberof Phase
    */
-  orderIndex?: number
+  orderIndex?: number;
   /**
    *
    * @type {PhaseStatus}
    * @memberof Phase
    */
-  status?: PhaseStatus
+  status?: PhaseStatus;
   /**
    *
    * @type {PhaseKeyDates}
    * @memberof Phase
    */
-  keyDates?: PhaseKeyDates | null
+  keyDates?: PhaseKeyDates | null;
   /**
    *
    * @type {Date}
    * @memberof Phase
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Phase
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * Check if a given object implements the Phase interface.
  */
 export function instanceOfPhase(value: object): value is Phase {
-  return true
+  return true;
 }
 
 export function PhaseFromJSON(json: any): Phase {
-  return PhaseFromJSONTyped(json, false)
+  return PhaseFromJSONTyped(json, false);
 }
 
 export function PhaseFromJSONTyped(json: any, ignoreDiscriminator: boolean): Phase {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    name: json['name'] == null ? undefined : json['name'],
-    orderIndex: json['orderIndex'] == null ? undefined : json['orderIndex'],
-    status: json['status'] == null ? undefined : PhaseStatusFromJSON(json['status']),
-    keyDates:
-      json['keyDates'] == null ? undefined : PhaseKeyDatesFromJSON(json['keyDates']),
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    name: json["name"] == null ? undefined : json["name"],
+    orderIndex: json["orderIndex"] == null ? undefined : json["orderIndex"],
+    status: json["status"] == null ? undefined : PhaseStatusFromJSON(json["status"]),
+    keyDates: json["keyDates"] == null ? undefined : PhaseKeyDatesFromJSON(json["keyDates"]),
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function PhaseToJSON(json: any): Phase {
-  return PhaseToJSONTyped(json, false)
+  return PhaseToJSONTyped(json, false);
 }
 
-export function PhaseToJSONTyped(
-  value?: Phase | null,
-  ignoreDiscriminator: boolean = false
-): any {
+export function PhaseToJSONTyped(value?: Phase | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    name: value['name'],
-    orderIndex: value['orderIndex'],
-    status: PhaseStatusToJSON(value['status']),
-    keyDates: PhaseKeyDatesToJSON(value['keyDates']),
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+    id: value["id"],
+    meetingId: value["meetingId"],
+    name: value["name"],
+    orderIndex: value["orderIndex"],
+    status: PhaseStatusToJSON(value["status"]),
+    keyDates: PhaseKeyDatesToJSON(value["keyDates"]),
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

@@ -31,7 +31,17 @@
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
         "VERCEL_DEPLOY_HOOK_URL",
-        "AI_GATEWAY_API_KEY"
+        "AI_GATEWAY_API_KEY",
+        "ENABLE_EMAILS",
+        "EMAIL_PROVIDER",
+        "EMAIL_FROM",
+        "EMAIL_SMTP_HOST",
+        "EMAIL_SMTP_PORT",
+        "EMAIL_SMTP_SECURE",
+        "EMAIL_SMTP_USER",
+        "EMAIL_SMTP_PASS",
+        "RESEND_API_KEY",
+        "PORTAL_BASE_URL"
       ]
     },
     "build:test": {

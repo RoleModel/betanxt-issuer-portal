@@ -3,31 +3,31 @@
  * Converts tags like 'wcag2a', 'wcag111', 'wcag21a' to readable format
  */
 export function extractWcagCriteria(tags: string[]): string {
-  const wcagTags = tags.filter((tag) => tag.startsWith('wcag'))
+  const wcagTags = tags.filter((tag) => tag.startsWith("wcag"));
 
   if (wcagTags.length === 0) {
-    return 'No WCAG criteria mapped'
+    return "No WCAG criteria mapped";
   }
 
-  const criteria: string[] = []
+  const criteria: string[] = [];
 
   wcagTags.forEach((tag) => {
     // Remove 'wcag' prefix
-    const value = tag.replace(/^wcag/, '')
+    const value = tag.replace(/^wcag/, "");
 
     // Skip level tags (2a, 21a, 22aa, etc)
     if (/^2+[1-2]*a+$/i.test(value)) {
-      return
+      return;
     }
 
     // Convert number format to dotted format
     // e.g., '111' -> '1.1.1', '413' -> '4.1.3'
-    const digits = /\d+/.exec(value)?.[0] ?? ''
+    const digits = /\d+/.exec(value)?.[0] ?? "";
     if (digits.length >= 3) {
-      const formatted = digits.split('').join('.')
-      criteria.push(formatted)
+      const formatted = digits.split("").join(".");
+      criteria.push(formatted);
     }
-  })
+  });
 
-  return criteria.length > 0 ? criteria.join(', ') : 'No WCAG criteria mapped'
+  return criteria.length > 0 ? criteria.join(", ") : "No WCAG criteria mapped";
 }

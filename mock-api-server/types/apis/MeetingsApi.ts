@@ -19,7 +19,8 @@ import type {
   Meeting,
   MeetingStatus,
   UpdateMeetingRequest,
-} from '../models/index'
+} from "../models/index";
+
 import {
   CreateDigitalShareholderMeetingRequestFromJSON,
   CreateDigitalShareholderMeetingRequestToJSON,
@@ -37,57 +38,57 @@ import {
   MeetingToJSON,
   UpdateMeetingRequestFromJSON,
   UpdateMeetingRequestToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface CreateDigitalShareholderMeetingAttendeesRequest {
-  meetingId: string
-  createDigitalShareholderMeetingRequest: Array<CreateDigitalShareholderMeetingRequest>
+  meetingId: string;
+  createDigitalShareholderMeetingRequest: Array<CreateDigitalShareholderMeetingRequest>;
 }
 
 export interface CreateMeetingOperationRequest {
-  createMeetingRequest: CreateMeetingRequest
+  createMeetingRequest: CreateMeetingRequest;
 }
 
 export interface CreateOrUpdateDSMConfigRequest {
-  meetingId: string
-  dSMConfig: DSMConfig
+  meetingId: string;
+  dSMConfig: DSMConfig;
 }
 
 export interface DeleteMeetingRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 export interface GetDSMConfigRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 export interface GetDigitalShareholderMeetingRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 export interface GetMeetingByIdRequest {
-  meetingId: string
+  meetingId: string;
 }
 
 export interface ListMeetingsRequest {
-  page?: number
-  limit?: number
-  status?: MeetingStatus
-  clientId?: string
-  meetingYear?: number
-  cusip?: string
-  ticker?: string
+  page?: number;
+  limit?: number;
+  status?: MeetingStatus;
+  clientId?: string;
+  meetingYear?: number;
+  cusip?: string;
+  ticker?: string;
 }
 
 export interface UpdateDSMConfigRequest {
-  meetingId: string
-  dSMConfig: DSMConfig
+  meetingId: string;
+  dSMConfig: DSMConfig;
 }
 
 export interface UpdateMeetingOperationRequest {
-  meetingId: string
-  updateMeetingRequest: UpdateMeetingRequest
+  meetingId: string;
+  updateMeetingRequest: UpdateMeetingRequest;
 }
 
 /**
@@ -99,59 +100,59 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createDigitalShareholderMeetingAttendeesRaw(
     requestParameters: CreateDigitalShareholderMeetingAttendeesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<DigitalShareholderMeeting>>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling createDigitalShareholderMeetingAttendees().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling createDigitalShareholderMeetingAttendees().',
+      );
     }
 
-    if (requestParameters['createDigitalShareholderMeetingRequest'] == null) {
+    if (requestParameters["createDigitalShareholderMeetingRequest"] == null) {
       throw new runtime.RequiredError(
-        'createDigitalShareholderMeetingRequest',
-        'Required parameter "createDigitalShareholderMeetingRequest" was null or undefined when calling createDigitalShareholderMeetingAttendees().'
-      )
+        "createDigitalShareholderMeetingRequest",
+        'Required parameter "createDigitalShareholderMeetingRequest" was null or undefined when calling createDigitalShareholderMeetingAttendees().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/digital-shareholder-meeting`
+    let urlPath = `/meetings/{meetingId}/digital-shareholder-meeting`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: requestParameters['createDigitalShareholderMeetingRequest']!.map(
-          CreateDigitalShareholderMeetingRequestToJSON
+        body: requestParameters["createDigitalShareholderMeetingRequest"]!.map(
+          CreateDigitalShareholderMeetingRequestToJSON,
         ),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(DigitalShareholderMeetingFromJSON)
-    )
+      jsonValue.map(DigitalShareholderMeetingFromJSON),
+    );
   }
 
   /**
@@ -159,13 +160,13 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createDigitalShareholderMeetingAttendees(
     requestParameters: CreateDigitalShareholderMeetingAttendeesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<DigitalShareholderMeeting>> {
     const response = await this.createDigitalShareholderMeetingAttendeesRaw(
       requestParameters,
-      initOverrides
-    )
-    return await response.value()
+      initOverrides,
+    );
+    return await response.value();
   }
 
   /**
@@ -173,46 +174,44 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createMeetingRaw(
     requestParameters: CreateMeetingOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Meeting>> {
-    if (requestParameters['createMeetingRequest'] == null) {
+    if (requestParameters["createMeetingRequest"] == null) {
       throw new runtime.RequiredError(
-        'createMeetingRequest',
-        'Required parameter "createMeetingRequest" was null or undefined when calling createMeeting().'
-      )
+        "createMeetingRequest",
+        'Required parameter "createMeetingRequest" was null or undefined when calling createMeeting().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings`
+    let urlPath = `/meetings`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreateMeetingRequestToJSON(requestParameters['createMeetingRequest']),
+        body: CreateMeetingRequestToJSON(requestParameters["createMeetingRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      MeetingFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => MeetingFromJSON(jsonValue));
   }
 
   /**
@@ -220,10 +219,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createMeeting(
     requestParameters: CreateMeetingOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Meeting> {
-    const response = await this.createMeetingRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.createMeetingRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -231,57 +230,55 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createOrUpdateDSMConfigRaw(
     requestParameters: CreateOrUpdateDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<DSMConfig>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling createOrUpdateDSMConfig().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling createOrUpdateDSMConfig().',
+      );
     }
 
-    if (requestParameters['dSMConfig'] == null) {
+    if (requestParameters["dSMConfig"] == null) {
       throw new runtime.RequiredError(
-        'dSMConfig',
-        'Required parameter "dSMConfig" was null or undefined when calling createOrUpdateDSMConfig().'
-      )
+        "dSMConfig",
+        'Required parameter "dSMConfig" was null or undefined when calling createOrUpdateDSMConfig().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/dsm-config`
+    let urlPath = `/meetings/{meetingId}/dsm-config`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: DSMConfigToJSON(requestParameters['dSMConfig']),
+        body: DSMConfigToJSON(requestParameters["dSMConfig"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DSMConfigFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => DSMConfigFromJSON(jsonValue));
   }
 
   /**
@@ -289,13 +286,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async createOrUpdateDSMConfig(
     requestParameters: CreateOrUpdateDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<DSMConfig> {
-    const response = await this.createOrUpdateDSMConfigRaw(
-      requestParameters,
-      initOverrides
-    )
-    return await response.value()
+    const response = await this.createOrUpdateDSMConfigRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -303,45 +297,45 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async deleteMeetingRaw(
     requestParameters: DeleteMeetingRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<void>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling deleteMeeting().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling deleteMeeting().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}`
+    let urlPath = `/meetings/{meetingId}`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'DELETE',
+        method: "DELETE",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.VoidApiResponse(response)
+    return new runtime.VoidApiResponse(response);
   }
 
   /**
@@ -349,9 +343,9 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async deleteMeeting(
     requestParameters: DeleteMeetingRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void> {
-    await this.deleteMeetingRaw(requestParameters, initOverrides)
+    await this.deleteMeetingRaw(requestParameters, initOverrides);
   }
 
   /**
@@ -359,47 +353,45 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getDSMConfigRaw(
     requestParameters: GetDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<DSMConfig>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling getDSMConfig().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling getDSMConfig().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/dsm-config`
+    let urlPath = `/meetings/{meetingId}/dsm-config`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DSMConfigFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => DSMConfigFromJSON(jsonValue));
   }
 
   /**
@@ -407,10 +399,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getDSMConfig(
     requestParameters: GetDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<DSMConfig> {
-    const response = await this.getDSMConfigRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getDSMConfigRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -418,47 +410,47 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getDigitalShareholderMeetingRaw(
     requestParameters: GetDigitalShareholderMeetingRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<DigitalShareholderMeeting>>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling getDigitalShareholderMeeting().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling getDigitalShareholderMeeting().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/digital-shareholder-meeting`
+    let urlPath = `/meetings/{meetingId}/digital-shareholder-meeting`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(DigitalShareholderMeetingFromJSON)
-    )
+      jsonValue.map(DigitalShareholderMeetingFromJSON),
+    );
   }
 
   /**
@@ -466,13 +458,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getDigitalShareholderMeeting(
     requestParameters: GetDigitalShareholderMeetingRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<DigitalShareholderMeeting>> {
-    const response = await this.getDigitalShareholderMeetingRaw(
-      requestParameters,
-      initOverrides
-    )
-    return await response.value()
+    const response = await this.getDigitalShareholderMeetingRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -480,47 +469,45 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getMeetingByIdRaw(
     requestParameters: GetMeetingByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Meeting>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling getMeetingById().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling getMeetingById().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}`
+    let urlPath = `/meetings/{meetingId}`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      MeetingFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => MeetingFromJSON(jsonValue));
   }
 
   /**
@@ -528,10 +515,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async getMeetingById(
     requestParameters: GetMeetingByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Meeting> {
-    const response = await this.getMeetingByIdRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getMeetingByIdRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -539,64 +526,64 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async listMeetingsRaw(
     requestParameters: ListMeetingsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<ListMeetings200Response>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    if (requestParameters['page'] != null) {
-      queryParameters['page'] = requestParameters['page']
+    if (requestParameters["page"] != null) {
+      queryParameters["page"] = requestParameters["page"];
     }
 
-    if (requestParameters['limit'] != null) {
-      queryParameters['limit'] = requestParameters['limit']
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
-    if (requestParameters['status'] != null) {
-      queryParameters['status'] = requestParameters['status']
+    if (requestParameters["status"] != null) {
+      queryParameters["status"] = requestParameters["status"];
     }
 
-    if (requestParameters['clientId'] != null) {
-      queryParameters['clientId'] = requestParameters['clientId']
+    if (requestParameters["clientId"] != null) {
+      queryParameters["clientId"] = requestParameters["clientId"];
     }
 
-    if (requestParameters['meetingYear'] != null) {
-      queryParameters['meetingYear'] = requestParameters['meetingYear']
+    if (requestParameters["meetingYear"] != null) {
+      queryParameters["meetingYear"] = requestParameters["meetingYear"];
     }
 
-    if (requestParameters['cusip'] != null) {
-      queryParameters['cusip'] = requestParameters['cusip']
+    if (requestParameters["cusip"] != null) {
+      queryParameters["cusip"] = requestParameters["cusip"];
     }
 
-    if (requestParameters['ticker'] != null) {
-      queryParameters['ticker'] = requestParameters['ticker']
+    if (requestParameters["ticker"] != null) {
+      queryParameters["ticker"] = requestParameters["ticker"];
     }
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings`
+    let urlPath = `/meetings`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ListMeetings200ResponseFromJSON(jsonValue)
-    )
+      ListMeetings200ResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -604,10 +591,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async listMeetings(
     requestParameters: ListMeetingsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<ListMeetings200Response> {
-    const response = await this.listMeetingsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.listMeetingsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -615,57 +602,55 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async updateDSMConfigRaw(
     requestParameters: UpdateDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<DSMConfig>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling updateDSMConfig().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling updateDSMConfig().',
+      );
     }
 
-    if (requestParameters['dSMConfig'] == null) {
+    if (requestParameters["dSMConfig"] == null) {
       throw new runtime.RequiredError(
-        'dSMConfig',
-        'Required parameter "dSMConfig" was null or undefined when calling updateDSMConfig().'
-      )
+        "dSMConfig",
+        'Required parameter "dSMConfig" was null or undefined when calling updateDSMConfig().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/dsm-config`
+    let urlPath = `/meetings/{meetingId}/dsm-config`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'PUT',
+        method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: DSMConfigToJSON(requestParameters['dSMConfig']),
+        body: DSMConfigToJSON(requestParameters["dSMConfig"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DSMConfigFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => DSMConfigFromJSON(jsonValue));
   }
 
   /**
@@ -673,10 +658,10 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async updateDSMConfig(
     requestParameters: UpdateDSMConfigRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<DSMConfig> {
-    const response = await this.updateDSMConfigRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.updateDSMConfigRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -684,57 +669,55 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async updateMeetingRaw(
     requestParameters: UpdateMeetingOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Meeting>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling updateMeeting().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling updateMeeting().',
+      );
     }
 
-    if (requestParameters['updateMeetingRequest'] == null) {
+    if (requestParameters["updateMeetingRequest"] == null) {
       throw new runtime.RequiredError(
-        'updateMeetingRequest',
-        'Required parameter "updateMeetingRequest" was null or undefined when calling updateMeeting().'
-      )
+        "updateMeetingRequest",
+        'Required parameter "updateMeetingRequest" was null or undefined when calling updateMeeting().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}`
+    let urlPath = `/meetings/{meetingId}`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'PUT',
+        method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdateMeetingRequestToJSON(requestParameters['updateMeetingRequest']),
+        body: UpdateMeetingRequestToJSON(requestParameters["updateMeetingRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      MeetingFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => MeetingFromJSON(jsonValue));
   }
 
   /**
@@ -742,9 +725,9 @@ export class MeetingsApi extends runtime.BaseAPI {
    */
   async updateMeeting(
     requestParameters: UpdateMeetingOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Meeting> {
-    const response = await this.updateMeetingRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.updateMeetingRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

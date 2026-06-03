@@ -1,191 +1,185 @@
-'use client'
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from "react";
 
-import buildApiClient, { type ApiClientReturnType } from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
+import type { components } from "@/domain-models/generated-schema";
 
-import { useClient } from '@/contexts/ClientContext'
-import { asRecord, asString } from '@/utils/typeUtils'
+import { useClient } from "@/contexts/ClientContext";
+import buildApiClient, { type ApiClientReturnType } from "@/domain-models/apiClient";
+import { asRecord, asString } from "@/utils/typeUtils";
 
-import PastMeetingsTable, { type PastMeetingData } from './PastMeetingsTable'
+import PastMeetingsTable, { type PastMeetingData } from "./PastMeetingsTable";
 
 interface PastMeetingsCardProps {
-  maxHeight?: number | string
-  limit?: number
+  maxHeight?: number | string;
+  limit?: number;
 }
 
-type Meeting = components['schemas']['Meeting']
+type Meeting = components["schemas"]["Meeting"];
 
 // Generate consistent participation rate between 58% and 74% using meeting id as seed
 // This matches the seeded random in useReporting.ts
 const generateSeededParticipation = (meetingId: string): number => {
-  const meetingIdHash = (meetingId ?? '')
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280
-  return Math.round((58 + seededRandom * 16) * 10) / 10
-}
+  const meetingIdHash = (meetingId ?? "")
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seededRandom = ((meetingIdHash * 9301 + 49297) % 233280) / 233280;
+  return Math.round((58 + seededRandom * 16) * 10) / 10;
+};
 
 const getDefaultMetrics = (meetingId: string) => ({
   participationPercent: generateSeededParticipation(meetingId),
   totalVotes: 0,
   votingShares: 0,
-})
+});
 
 const parseNumericValue = (value: unknown): number => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
   }
 
-  if (typeof value === 'string') {
-    const normalized = value.replace(/,/g, '')
-    const parsed = Number(normalized)
-    return Number.isFinite(parsed) ? parsed : 0
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
   }
 
-  return 0
-}
+  return 0;
+};
 
-const getVoteStatus = (position: components['schemas']['Position']): string => {
+const getVoteStatus = (position: components["schemas"]["Position"]): string => {
   if (position.voteStatus) {
-    return position.voteStatus
+    return position.voteStatus;
   }
 
-  const record = asRecord(position as unknown)
-  if (!record) return ''
+  const record = asRecord(position);
+  if (!record) return "";
 
-  return asString(record.vote_status) ?? asString(record.status) ?? ''
-}
+  return asString(record.vote_status) ?? asString(record.status) ?? "";
+};
 
-const isPositionVoted = (position: components['schemas']['Position']): boolean => {
-  const status = getVoteStatus(position).toLowerCase()
-  return status === 'voted'
-}
+const isPositionVoted = (position: components["schemas"]["Position"]): boolean => {
+  const status = getVoteStatus(position).toLowerCase();
+  return status === "voted";
+};
 
 const _computeParticipationMetrics = (
   meeting: Meeting,
-  positions: components['schemas']['Position'][]
+  positions: components["schemas"]["Position"][],
 ) => {
   if (positions.length === 0) {
-    return getDefaultMetrics(meeting.id ?? '')
+    return getDefaultMetrics(meeting.id ?? "");
   }
 
-  const totalSharesOutstanding = parseNumericValue(meeting.totalSharesOutstanding)
+  const totalSharesOutstanding = parseNumericValue(meeting.totalSharesOutstanding);
   const totalSharesFromPositions = positions.reduce(
     (sum, position) => sum + parseNumericValue(position.shares),
-    0
-  )
+    0,
+  );
 
   const totalShares =
-    totalSharesOutstanding > 0 ? totalSharesOutstanding : totalSharesFromPositions
+    totalSharesOutstanding > 0 ? totalSharesOutstanding : totalSharesFromPositions;
 
   const votedShares = positions.reduce((sum, position) => {
-    if (!isPositionVoted(position)) return sum
+    if (!isPositionVoted(position)) return sum;
     const sharesValue =
-      position.sharesVoted ??
-      asRecord(position as unknown)?.shares_voted ??
-      position.shares ??
-      0
-    return sum + parseNumericValue(sharesValue)
-  }, 0)
+      position.sharesVoted ?? asRecord(position)?.shares_voted ?? position.shares ?? 0;
+    return sum + parseNumericValue(sharesValue);
+  }, 0);
 
   const totalVotes = positions.reduce(
     (count, position) => (isPositionVoted(position) ? count + 1 : count),
-    0
-  )
+    0,
+  );
 
   const participationPercent =
-    totalShares > 0 ? Math.round((votedShares / totalShares) * 100 * 10) / 10 : 0
+    totalShares > 0 ? Math.round((votedShares / totalShares) * 100 * 10) / 10 : 0;
 
   return {
     participationPercent,
     totalVotes,
     votingShares: votedShares,
-  }
-}
+  };
+};
 
-export default function PastMeetingsCard({
-  maxHeight = 400,
-  limit = 6,
-}: PastMeetingsCardProps) {
-  const { currentClient } = useClient()
-  const clientTicker = currentClient?.ticker ?? ''
+export default function PastMeetingsCard({ maxHeight = 400, limit = 6 }: PastMeetingsCardProps) {
+  const { currentClient } = useClient();
+  const clientTicker = currentClient?.ticker ?? "";
 
-  const [meetings, setMeetings] = useState<PastMeetingData[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
+  const [meetings, setMeetings] = useState<PastMeetingData[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return ''
+    if (!dateString) return "";
     try {
-      const dateParts = dateString.split('-')
-      if (dateParts.length !== 3) return 'Invalid Date'
-      const [year, month, day] = dateParts.map((part) => parseInt(part))
-      const date = new Date(year, month - 1, day)
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      const dateParts = dateString.split("-");
+      if (dateParts.length !== 3) return "Invalid Date";
+      const [year, month, day] = dateParts.map((part) => parseInt(part));
+      const date = new Date(year, month - 1, day);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
     } catch (error) {
-      console.warn('Error parsing date:', dateString, error)
-      return 'Invalid Date'
+      console.warn("Error parsing date:", dateString, error);
+      return "Invalid Date";
     }
-  }
+  };
 
   const fetchData = useCallback(async () => {
-    if (!clientTicker) return
+    if (!clientTicker) return;
 
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
-      const apiClient = await buildApiClient()
-      const meetingsResponse = (await apiClient.GET('/meetings', {
+      const apiClient = await buildApiClient();
+      const meetingsResponse = (await apiClient.GET("/meetings", {
         params: {
           query: {
             ticker: clientTicker.toUpperCase(),
-            status: 'COMPLETE',
+            status: "COMPLETE",
           },
         },
-      })) as ApiClientReturnType<unknown>
+      })) as ApiClientReturnType<unknown>;
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message ?? 'Failed to load meetings')
+        throw new Error(meetingsResponse.error.message ?? "Failed to load meetings");
       }
 
       interface MeetingsApiResponse {
-        meetings?: Meeting[]
-        pagination?: components['schemas']['Pagination']
+        meetings?: Meeting[];
+        pagination?: components["schemas"]["Pagination"];
       }
-      const typedData = meetingsResponse.data as MeetingsApiResponse | undefined
+      const typedData = meetingsResponse.data as MeetingsApiResponse | undefined;
       const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
         ? typedData.meetings.slice(0, limit)
-        : []
+        : [];
 
       // Use consistent seeded mock participation data to match Reporting page
       const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
         (meeting: Meeting): PastMeetingData => {
-          const meetingId = meeting.id ?? ''
+          const meetingId = meeting.id ?? "";
           return {
             ...meeting,
             ...getDefaultMetrics(meetingId),
-          }
-        }
-      )
+          };
+        },
+      );
 
-      setMeetings(meetingsWithParticipation)
+      setMeetings(meetingsWithParticipation);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load past meetings')
+      setError(err instanceof Error ? err.message : "Failed to load past meetings");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [clientTicker, limit])
+  }, [clientTicker, limit]);
 
   useEffect(() => {
-    void fetchData()
-  }, [fetchData])
+    void fetchData();
+  }, [fetchData]);
 
   return (
     <PastMeetingsTable
@@ -198,5 +192,5 @@ export default function PastMeetingsCard({
       showSorting={false}
       maxHeight={maxHeight}
     />
-  )
+  );
 }

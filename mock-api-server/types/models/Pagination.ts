@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,69 +23,66 @@ export interface Pagination {
    * @type {number}
    * @memberof Pagination
    */
-  page?: number
+  page?: number;
   /**
    *
    * @type {number}
    * @memberof Pagination
    */
-  limit?: number
+  limit?: number;
   /**
    *
    * @type {number}
    * @memberof Pagination
    */
-  total?: number
+  total?: number;
   /**
    *
    * @type {number}
    * @memberof Pagination
    */
-  pages?: number
+  pages?: number;
 }
 
 /**
  * Check if a given object implements the Pagination interface.
  */
 export function instanceOfPagination(value: object): value is Pagination {
-  return true
+  return true;
 }
 
 export function PaginationFromJSON(json: any): Pagination {
-  return PaginationFromJSONTyped(json, false)
+  return PaginationFromJSONTyped(json, false);
 }
 
-export function PaginationFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean
-): Pagination {
+export function PaginationFromJSONTyped(json: any, ignoreDiscriminator: boolean): Pagination {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    page: json['page'] == null ? undefined : json['page'],
-    limit: json['limit'] == null ? undefined : json['limit'],
-    total: json['total'] == null ? undefined : json['total'],
-    pages: json['pages'] == null ? undefined : json['pages'],
-  }
+    page: json["page"] == null ? undefined : json["page"],
+    limit: json["limit"] == null ? undefined : json["limit"],
+    total: json["total"] == null ? undefined : json["total"],
+    pages: json["pages"] == null ? undefined : json["pages"],
+  };
 }
 
 export function PaginationToJSON(json: any): Pagination {
-  return PaginationToJSONTyped(json, false)
+  return PaginationToJSONTyped(json, false);
 }
 
 export function PaginationToJSONTyped(
   value?: Pagination | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    page: value['page'],
-    limit: value['limit'],
-    total: value['total'],
-    pages: value['pages'],
-  }
+    page: value["page"],
+    limit: value["limit"],
+    total: value["total"],
+    pages: value["pages"],
+  };
 }

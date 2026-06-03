@@ -1,13 +1,12 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { Box, Container } from '@mui/material'
+import { Box, Container } from "@mui/material";
+import React from "react";
 
 interface ProductLayoutProps {
-  leftColumnContent: React.ReactElement
-  rightColumnContent: React.ReactElement
-  documentViewer?: React.ReactElement
+  leftColumnContent: React.ReactElement;
+  rightColumnContent: React.ReactElement;
+  documentViewer?: React.ReactElement;
 }
 
 export default function ProductLayout({
@@ -29,16 +28,16 @@ export default function ProductLayout({
           sm: 10,
         },
         display: {
-          xs: 'flex',
-          md: 'grid',
+          xs: "flex",
+          md: "grid",
         },
         gridTemplateColumns: {
-          xs: '1fr',
-          md: '1fr 0.4fr',
+          xs: "1fr",
+          md: "1fr 0.4fr",
         },
         flexGrow1: 1,
         flexDirection: {
-          xs: 'column',
+          xs: "column",
         },
         gap: 3,
       }}
@@ -69,20 +68,20 @@ export default function ProductLayout({
       >
         <Box
           sx={{
-            position: 'sticky',
+            position: "sticky",
             top: {
               sm: 2,
               md: 25,
             },
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
             gap: 3,
           }}
         >
           {rightColumnContent}
         </Box>
       </Box>
-      {documentViewer && documentViewer}
+      {documentViewer}
     </Container>
-  )
+  );
 }

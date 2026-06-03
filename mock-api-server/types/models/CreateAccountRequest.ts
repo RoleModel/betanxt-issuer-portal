@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,66 +23,64 @@ export interface CreateAccountRequest {
    * @type {string}
    * @memberof CreateAccountRequest
    */
-  name: string
+  name: string;
   /**
    *
    * @type {string}
    * @memberof CreateAccountRequest
    */
-  primaryContact: string
+  primaryContact: string;
   /**
    * The client this account belongs to
    * @type {string}
    * @memberof CreateAccountRequest
    */
-  clientId: string
+  clientId: string;
 }
 
 /**
  * Check if a given object implements the CreateAccountRequest interface.
  */
-export function instanceOfCreateAccountRequest(
-  value: object
-): value is CreateAccountRequest {
-  if (!('name' in value) || value['name'] === undefined) return false
-  if (!('primaryContact' in value) || value['primaryContact'] === undefined) return false
-  if (!('clientId' in value) || value['clientId'] === undefined) return false
-  return true
+export function instanceOfCreateAccountRequest(value: object): value is CreateAccountRequest {
+  if (!("name" in value) || value["name"] === undefined) return false;
+  if (!("primaryContact" in value) || value["primaryContact"] === undefined) return false;
+  if (!("clientId" in value) || value["clientId"] === undefined) return false;
+  return true;
 }
 
 export function CreateAccountRequestFromJSON(json: any): CreateAccountRequest {
-  return CreateAccountRequestFromJSONTyped(json, false)
+  return CreateAccountRequestFromJSONTyped(json, false);
 }
 
 export function CreateAccountRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateAccountRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    name: json['name'],
-    primaryContact: json['primaryContact'],
-    clientId: json['clientId'],
-  }
+    name: json["name"],
+    primaryContact: json["primaryContact"],
+    clientId: json["clientId"],
+  };
 }
 
 export function CreateAccountRequestToJSON(json: any): CreateAccountRequest {
-  return CreateAccountRequestToJSONTyped(json, false)
+  return CreateAccountRequestToJSONTyped(json, false);
 }
 
 export function CreateAccountRequestToJSONTyped(
   value?: CreateAccountRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    name: value['name'],
-    primaryContact: value['primaryContact'],
-    clientId: value['clientId'],
-  }
+    name: value["name"],
+    primaryContact: value["primaryContact"],
+    clientId: value["clientId"],
+  };
 }

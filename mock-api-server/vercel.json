@@ -1,7 +1,13 @@
 {
-  "installCommand": "npm install",
+  "installCommand": "cd .. && pnpm install --frozen-lockfile",
   "buildCommand": "turbo run build --filter=mock-api-server",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "ignoreCommand": "npx turbo-ignore"
+  "ignoreCommand": "npx turbo-ignore",
+  "crons": [
+    {
+      "path": "/api/cron/tabulation-distribute",
+      "schedule": "0 8 * * *"
+    }
+  ]
 }

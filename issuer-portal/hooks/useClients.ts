@@ -1,91 +1,105 @@
-'use client'
+"use client";
 
-import { useSession } from 'next-auth/react'
-import { useMemo } from 'react'
-import useSWR from 'swr'
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
+import useSWR from "swr";
 
-import buildApiClient from '@/domain-models/apiClient'
+import buildApiClient from "@/domain-models/apiClient";
+import { clientsSWRConfig } from "@/lib/swr-config";
+import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
-import { clientsSWRConfig } from '@/lib/swr-config'
-import { asArray, asRecord, asString } from '@/utils/typeUtils'
+export type ClientFeatureKey =
+  | "documents"
+  | "mailing"
+  | "tabulation"
+  | "reports"
+  | "fileTransfer"
+  | "agenda";
+
+export const ALL_FEATURE_KEYS: ClientFeatureKey[] = [
+  "documents",
+  "mailing",
+  "tabulation",
+  "reports",
+  "fileTransfer",
+  "agenda",
+];
 
 export interface Client {
-  id: string
-  name: string
-  ticker: string
-  company_name?: string
-  short_name?: string
-  industry?: string
-  description?: string
-  website?: string
-  primary_contact?: string
-  primary_contact_email?: string
-  is_active?: boolean
-  branding_id?: number
-  created_at?: string
-  updated_at?: string
-  phase?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 // Event phase for routing logic
-  meeting_id?: string // Default meeting ID for the client
+  id: string;
+  name: string;
+  ticker: string;
+  company_name?: string;
+  short_name?: string;
+  industry?: string;
+  description?: string;
+  website?: string;
+  primary_contact?: string;
+  primary_contact_email?: string;
+  is_active?: boolean;
+  branding_id?: number;
+  created_at?: string;
+  updated_at?: string;
+  enabledFeatures?: ClientFeatureKey[];
+  phase?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8; // Event phase for routing logic
+  meeting_id?: string; // Default meeting ID for the client
   // Added: accounts returned by /clients API (used for filtering meetings by accountId)
   accounts?: {
-    id: string
-    name?: string
-    primary_contact?: string
-  }[]
+    id: string;
+    name?: string;
+    primary_contact?: string;
+  }[];
 }
 
 export interface UseClientsResult {
-  clients: Client[]
-  loading: boolean
-  error: string | null
-  refetch: () => Promise<void>
+  clients: Client[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
 }
 
-const pickNumber = (
-  source: Record<string, unknown>,
-  keys: string[]
-): number | undefined => {
+const pickNumber = (source: Record<string, unknown>, keys: string[]): number | undefined => {
   for (const key of keys) {
-    const value = source[key]
-    if (typeof value === 'number' && Number.isFinite(value)) return value
-    if (typeof value === 'string') {
-      const parsed = Number(value)
-      if (Number.isFinite(parsed)) return parsed
+    const value = source[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
     }
   }
-  return undefined
-}
+  return undefined;
+};
 
 const normalizeClient = (raw: unknown): Client | null => {
-  const record = asRecord(raw)
-  if (!record) return null
+  const record = asRecord(raw);
+  if (!record) return null;
 
-  const id = asString(record.id)
-  const ticker = asString(record.ticker)
+  const id = asString(record.id);
+  const ticker = asString(record.ticker);
   const companyName =
     asString(record.companyName) ??
     asString(record.company_name) ??
     asString(record.shortName) ??
-    asString(record.short_name)
+    asString(record.short_name);
 
   if (!id || !ticker || !companyName) {
-    return null
+    return null;
   }
 
-  const accountsRaw = record.accounts
+  const accountsRaw = record.accounts;
   const accounts = Array.isArray(accountsRaw)
     ? accountsRaw
         .map((account) => asRecord(account))
         .filter((account): account is Record<string, unknown> => Boolean(account))
         .map((account) => ({
-          id: asString(account.id) ?? '',
+          id: asString(account.id) ?? "",
           name: asString(account.name) ?? undefined,
           primary_contact: asString(account.primary_contact) ?? undefined,
         }))
         .filter((account) => account.id)
-    : undefined
+    : undefined;
 
-  const phaseValue = pickNumber(record, ['phase']) ?? 2
+  const phaseValue = pickNumber(record, ["phase"]) ?? 2;
   const phase = (phaseValue >= 1 && phaseValue <= 8 ? phaseValue : 2) as
     | 1
     | 2
@@ -94,7 +108,7 @@ const normalizeClient = (raw: unknown): Client | null => {
     | 5
     | 6
     | 7
-    | 8
+    | 8;
 
   return {
     id,
@@ -108,86 +122,91 @@ const normalizeClient = (raw: unknown): Client | null => {
     primary_contact:
       asString(record.primaryContact) ?? asString(record.primary_contact) ?? undefined,
     primary_contact_email:
-      asString(record.primaryContactEmail) ??
-      asString(record.primary_contact_email) ??
-      undefined,
+      asString(record.primaryContactEmail) ?? asString(record.primary_contact_email) ?? undefined,
     is_active:
-      typeof record.isActive === 'boolean'
+      typeof record.isActive === "boolean"
         ? record.isActive
-        : typeof record.is_active === 'boolean'
+        : typeof record.is_active === "boolean"
           ? record.is_active
           : undefined,
-    branding_id: pickNumber(record, ['brandingId', 'branding_id']),
+    branding_id: pickNumber(record, ["brandingId", "branding_id"]),
     created_at: asString(record.createdAt) ?? asString(record.created_at) ?? undefined,
     updated_at: asString(record.updatedAt) ?? asString(record.updated_at) ?? undefined,
     phase,
     meeting_id: asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
     accounts,
-  }
-}
+    enabledFeatures: (() => {
+      const raw = record.enabledFeatures ?? record.enabled_features;
+      if (Array.isArray(raw)) return raw as ClientFeatureKey[];
+      return ALL_FEATURE_KEYS;
+    })(),
+  };
+};
 
 export const transformApiClients = (apiClients: unknown[]): Client[] => {
   return apiClients.reduce<Client[]>((acc, rawClient) => {
-    const client = normalizeClient(rawClient)
+    const client = normalizeClient(rawClient);
     if (client) {
-      acc.push(client)
+      acc.push(client);
     }
-    return acc
-  }, [])
-}
+    return acc;
+  }, []);
+};
 
 const extractClientPayload = (payload: unknown): unknown[] => {
   if (Array.isArray(payload)) {
-    return payload
+    return payload;
   }
 
-  const record = asRecord(payload)
+  const record = asRecord(payload);
   if (!record) {
-    return []
+    return [];
   }
 
-  return asArray(record.clients)
-}
+  return asArray(record.clients);
+};
 
 const getApiErrorMessage = (err: unknown, fallback: string): string => {
-  if (!err) return fallback
-  if (typeof err === 'string') return err
-  if (typeof err === 'object' && 'message' in err) {
-    const message = (err as { message?: unknown }).message
-    if (typeof message === 'string' && message.trim().length > 0) {
-      return message
+  if (!err) return fallback;
+  if (typeof err === "string") return err;
+  if (typeof err === "object" && "message" in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
     }
   }
-  return fallback
-}
+  return fallback;
+};
 
 export const useClients = (): UseClientsResult => {
-  const { data: session } = useSession()
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+  const { data: session } = useSession();
+  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
-  // Tickers this user is allowed to see (PARENT_CLIENT users have an explicit allow-list)
-  const allowedTickers = session?.user?.clientTickers
+  // Only PARENT_CLIENT / SOLICITOR are hard-restricted to their allow-list of tickers.
+  // CSM / ADMIN can access (cover) any client — their assigned clientTickers only scope
+  // the events list default (handled in useEvents), not which clients they may switch to.
+  const userType = session?.user?.type;
+  const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
+  const allowedTickers = isUnrestrictedRole ? undefined : session?.user?.clientTickers;
 
   // Custom fetcher for clients
   const clientsFetcher = async () => {
     // Only fetch if we have a session (non-bypass mode) or bypass is enabled
     if (!bypassAuth && !session) {
-      return []
+      return [];
     }
 
-    const apiClient = await buildApiClient()
-    const { data, error } = await apiClient.GET('/clients')
+    const apiClient = await buildApiClient();
+    const { data, error } = await apiClient.GET("/clients");
 
     if (error) {
-      throw new Error(
-        `API Error: ${getApiErrorMessage(error, 'Failed to fetch clients')}`
-      )
+      throw new Error(`API Error: ${getApiErrorMessage(error, "Failed to fetch clients")}`);
     }
 
     // Transform the API response to match our Client interface
-    const apiClients = extractClientPayload(data)
-    return transformApiClients(apiClients)
-  }
+    const apiClients = extractClientPayload(data);
+    return transformApiClients(apiClients);
+  };
 
   // Use SWR for data fetching with deduplication
   const {
@@ -197,26 +216,26 @@ export const useClients = (): UseClientsResult => {
     mutate,
   } = useSWR(
     // Key includes session info to refetch when user changes
-    session || bypassAuth ? ['/clients', session?.user?.id, bypassAuth] : null,
+    session || bypassAuth ? ["/clients", session?.user?.id, bypassAuth] : null,
     clientsFetcher,
-    clientsSWRConfig
-  )
+    clientsSWRConfig,
+  );
 
   // Filter is applied outside the fetcher so it is always reactive to the current session.
   // This prevents stale cached data from leaking through to restricted users.
   const clients = useMemo(() => {
-    if (!rawData) return []
-    if (!allowedTickers) return rawData
-    return rawData.filter((c) => allowedTickers.includes(c.ticker))
-  }, [rawData, allowedTickers])
+    if (!rawData) return [];
+    if (!allowedTickers) return rawData;
+    return rawData.filter((c) => allowedTickers.includes(c.ticker));
+  }, [rawData, allowedTickers]);
 
   // Transform error for consistent interface
-  let errorMessage: string | null = null
+  let errorMessage: string | null = null;
   if (error) {
-    errorMessage = error instanceof Error ? error.message : 'Failed to fetch clients'
+    errorMessage = error instanceof Error ? error.message : "Failed to fetch clients";
     // Add helpful context for common issues
-    if (errorMessage.includes('fetch')) {
-      errorMessage += ' (The server is restarting)'
+    if (errorMessage.includes("fetch")) {
+      errorMessage += " (The server is restarting)";
     }
   }
 
@@ -225,7 +244,7 @@ export const useClients = (): UseClientsResult => {
     loading: isLoading,
     error: errorMessage,
     refetch: async () => {
-      await mutate()
+      await mutate();
     },
-  }
-}
+  };
+};

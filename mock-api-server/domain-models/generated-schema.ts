@@ -4,511 +4,511 @@
  */
 
 export interface paths {
-  '/auth/login': {
+  "/auth/login": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** User login */
-    post: operations['loginUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/auth/logout': {
+    post: operations["loginUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/logout": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** User logout */
-    post: operations['logoutUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/auth/me': {
+    post: operations["logoutUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/me": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get current user profile */
-    get: operations['getCurrentUser']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/accounts': {
+    get: operations["getCurrentUser"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List accounts */
-    get: operations['listAccounts']
-    put?: never
+    get: operations["listAccounts"];
+    put?: never;
     /** Create new account */
-    post: operations['createAccount']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/accounts/{accountId}': {
+    post: operations["createAccount"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/{accountId}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get account by ID */
-    get: operations['getAccountById']
+    get: operations["getAccountById"];
     /** Update account */
-    put: operations['updateAccount']
-    post?: never
+    put: operations["updateAccount"];
+    post?: never;
     /** Delete account */
-    delete: operations['deleteAccount']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/accounts/{accountId}/users': {
+    delete: operations["deleteAccount"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/{accountId}/users": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List users for an account */
-    get: operations['listAccountUsers']
-    put?: never
+    get: operations["listAccountUsers"];
+    put?: never;
     /** Create new user for an account */
-    post: operations['createAccountUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/clients': {
+    post: operations["createAccountUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/clients": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List clients */
-    get: operations['listClients']
-    put?: never
+    get: operations["listClients"];
+    put?: never;
     /** Create new client */
-    post: operations['createClient']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/clients/{ticker}': {
+    post: operations["createClient"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/clients/{ticker}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get client by ticker */
-    get: operations['getClientByTicker']
+    get: operations["getClientByTicker"];
     /** Update client */
-    put: operations['updateClient']
-    post?: never
+    put: operations["updateClient"];
+    post?: never;
     /** Delete client */
-    delete: operations['deleteClient']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/clients/{ticker}/accounts': {
+    delete: operations["deleteClient"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/clients/{ticker}/accounts": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List accounts for a client */
-    get: operations['listClientAccounts']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/users': {
+    get: operations["listClientAccounts"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/users": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List users */
-    get: operations['listUsers']
-    put?: never
+    get: operations["listUsers"];
+    put?: never;
     /** Create new user */
-    post: operations['createUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/users/{id}': {
+    post: operations["createUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/users/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get user by ID */
-    get: operations['getUserById']
+    get: operations["getUserById"];
     /** Update user */
-    put: operations['updateUser']
-    post?: never
+    put: operations["updateUser"];
+    post?: never;
     /** Delete user */
-    delete: operations['deleteUser']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/users/{id}/accounts': {
+    delete: operations["deleteUser"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/users/{id}/accounts": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get accounts accessible by user
      * @description Returns accounts that a user has access to based on their role and relationships
      */
-    get: operations['listUserAccounts']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings': {
+    get: operations["listUserAccounts"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List meetings */
-    get: operations['listMeetings']
-    put?: never
+    get: operations["listMeetings"];
+    put?: never;
     /** Create new meeting */
-    post: operations['createMeeting']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings/{meetingId}': {
+    post: operations["createMeeting"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings/{meetingId}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get meeting by ID */
-    get: operations['getMeetingById']
+    get: operations["getMeetingById"];
     /** Update meeting */
-    put: operations['updateMeeting']
-    post?: never
+    put: operations["updateMeeting"];
+    post?: never;
     /** Delete meeting */
-    delete: operations['deleteMeeting']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings/{meetingId}/phases': {
+    delete: operations["deleteMeeting"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings/{meetingId}/phases": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List phases for a meeting */
-    get: operations['listPhases']
-    put?: never
+    get: operations["listPhases"];
+    put?: never;
     /** Create new phase */
-    post: operations['createPhase']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/phases/{id}': {
+    post: operations["createPhase"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/phases/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get phase by ID */
-    get: operations['getPhaseById']
+    get: operations["getPhaseById"];
     /** Update phase */
-    put: operations['updatePhase']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings/{meetingId}/tasks': {
+    put: operations["updatePhase"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings/{meetingId}/tasks": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List tasks for a meeting */
-    get: operations['listTasks']
-    put?: never
+    get: operations["listTasks"];
+    put?: never;
     /** Create new task */
-    post: operations['createTask']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/tasks/{id}': {
+    post: operations["createTask"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/tasks/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get task by ID */
-    get: operations['getTaskById']
+    get: operations["getTaskById"];
     /** Update task */
-    put: operations['updateTask']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings/{meetingId}/documents': {
+    put: operations["updateTask"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings/{meetingId}/documents": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List documents for a meeting */
-    get: operations['listDocuments']
-    put?: never
+    get: operations["listDocuments"];
+    put?: never;
     /** Create new document */
-    post: operations['createDocument']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/{id}': {
+    post: operations["createDocument"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get document by ID */
-    get: operations['getDocumentById']
+    get: operations["getDocumentById"];
     /** Update document */
-    put: operations['updateDocument']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/{id}/download': {
+    put: operations["updateDocument"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/{id}/download": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Download document file */
-    get: operations['downloadDocument']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/forms/{formType}/sign-digital': {
+    get: operations["downloadDocument"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/forms/{formType}/sign-digital": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Digitally sign a generated form */
-    post: operations['signFormDigital']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/forms/{formType}/upload-executed': {
+    post: operations["signFormDigital"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/forms/{formType}/upload-executed": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Upload executed (wet-signed) form PDF */
-    post: operations['uploadExecutedForm']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/types/{documentType}/upload': {
+    post: operations["uploadExecutedForm"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/types/{documentType}/upload": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Upload or create a new document version (proxy or supporting) */
-    post: operations['uploadDocumentVersion']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/types/{documentType}/{versionId}/approve': {
+    post: operations["uploadDocumentVersion"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/types/{documentType}/{versionId}/approve": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Approve a pending proxy material version */
-    post: operations['approveDocumentVersion']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/types/{documentType}/{versionId}/replace': {
+    post: operations["approveDocumentVersion"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/types/{documentType}/{versionId}/replace": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Replace an approved proxy material (creates new pending version) */
-    post: operations['replaceApprovedVersion']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/readiness': {
+    post: operations["replaceApprovedVersion"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/readiness": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get readiness aggregation for a meeting */
-    get: operations['getDocumentsReadiness']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/types/{documentType}/history': {
+    get: operations["getDocumentsReadiness"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/types/{documentType}/history": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get version history for a document type within a meeting */
-    get: operations['getDocumentHistory']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/positions': {
+    get: operations["getDocumentHistory"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/positions": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * List positions
      * @description List positions with Supabase PostgREST filters.
@@ -523,77 +523,77 @@ export interface paths {
      *     - Pagination: `?limit=20&offset=40`
      *
      */
-    get: operations['listPositions']
-    put?: never
+    get: operations["listPositions"];
+    put?: never;
     /** Create new position */
-    post: operations['createPosition']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/positions/{id}': {
+    post: operations["createPosition"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/positions/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get position by ID */
-    get: operations['getPositionById']
+    get: operations["getPositionById"];
     /** Update position */
-    put: operations['updatePosition']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/meetings/{meetingId}/proposals': {
+    put: operations["updatePosition"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/meetings/{meetingId}/proposals": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List proposals for a meeting */
-    get: operations['listProposals']
-    put?: never
+    get: operations["listProposals"];
+    put?: never;
     /** Create new proposal */
-    post: operations['createProposal']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/proposals/{id}': {
+    post: operations["createProposal"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/proposals/{id}": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get proposal by ID */
-    get: operations['getProposalById']
+    get: operations["getProposalById"];
     /** Update proposal */
-    put: operations['updateProposal']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/position_votes': {
+    put: operations["updateProposal"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/position_votes": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get position votes
      * @description Get position votes using Supabase PostgREST filters.
@@ -617,8 +617,8 @@ export interface paths {
      *     - `is` - checking for null/not null
      *
      */
-    get: operations['getPositionVotes']
-    put?: never
+    get: operations["getPositionVotes"];
+    put?: never;
     /**
      * Create a position vote
      * @description Create a new position vote record.
@@ -627,2704 +627,2704 @@ export interface paths {
      *     The positionId should be included in the request body, not the URL path.
      *
      */
-    post: operations['createPositionVote']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/{id}/comments': {
+    post: operations["createPositionVote"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/{id}/comments": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get comments for a document */
-    get: operations['getDocumentComments']
-    put?: never
+    get: operations["getDocumentComments"];
+    put?: never;
     /** Add comment to a document */
-    post: operations['addComment']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/documents/{id}/events': {
+    post: operations["addComment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/documents/{id}/events": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Get event history for a specific document */
-    get: operations['getDocumentEvents']
-    put?: never
+    get: operations["getDocumentEvents"];
+    put?: never;
     /** Add event to document history */
-    post: operations['addDocumentEvent']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/notifications': {
+    post: operations["addDocumentEvent"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** List user notifications */
-    get: operations['listNotifications']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/notifications/{notificationId}/mark-read': {
+    get: operations["listNotifications"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/{notificationId}/mark-read": {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
     /** Mark notification as read */
-    patch: operations['markNotificationRead']
-    trace?: never
-  }
+    patch: operations["markNotificationRead"];
+    trace?: never;
+  };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /** @enum {string} */
-    UserType: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'
+    UserType: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER";
     /** @enum {string} */
-    MeetingStatus: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'
+    MeetingStatus: "ACTIVE" | "COMPLETE" | "ADJOURNED";
     /** @enum {string} */
-    PhaseStatus: 'IN_PROGRESS' | 'COMPLETE'
+    PhaseStatus: "IN_PROGRESS" | "COMPLETE";
     /** @enum {string} */
     TaskStatus:
-      | 'INCOMPLETE'
-      | 'COMPLETE'
-      | 'CANCELLED'
-      | 'NEEDS_AUTHORIZATION'
-      | 'AUTHORIZED'
-      | 'PENDING_AUTHORIZATION'
-      | 'WAITING_FOR_FORM_RETURN'
-      | 'AUTHORIZATION_NEEDED'
-      | 'SUBMITTED_AWAITING_RECORD_DATE'
-      | 'REQUEST_FORM_TO_FOLLOW'
+      | "INCOMPLETE"
+      | "COMPLETE"
+      | "CANCELLED"
+      | "NEEDS_AUTHORIZATION"
+      | "AUTHORIZED"
+      | "PENDING_AUTHORIZATION"
+      | "WAITING_FOR_FORM_RETURN"
+      | "AUTHORIZATION_NEEDED"
+      | "SUBMITTED_AWAITING_RECORD_DATE"
+      | "REQUEST_FORM_TO_FOLLOW";
     /** @enum {string} */
     DocumentStatus:
-      | 'DRAFT'
-      | 'AWAITING_DRAFT'
-      | 'AWAITING_REVIEW'
-      | 'APPROVED'
-      | 'UPLOADED'
-      | 'IN_PROGRESS'
-      | 'SIGNED'
-      | 'AUTHORIZED'
-      | 'COMPLETED'
+      | "DRAFT"
+      | "AWAITING_DRAFT"
+      | "AWAITING_REVIEW"
+      | "APPROVED"
+      | "UPLOADED"
+      | "IN_PROGRESS"
+      | "SIGNED"
+      | "AUTHORIZED"
+      | "COMPLETED";
     Account: {
       /** Format: uuid */
-      id?: string
-      name?: string
-      primaryContact?: string
+      id?: string;
+      name?: string;
+      primaryContact?: string;
       /**
        * Format: uuid
        * @description The client this account belongs to
        */
-      clientId?: string
+      clientId?: string;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** @description The client this account belongs to (relationship) */
-      client?: components['schemas']['Clients']
-    }
+      client?: components["schemas"]["Clients"];
+    };
     Clients: {
       /** Format: uuid */
-      id?: string
+      id?: string;
       /** @description Unique ticker symbol for the client */
-      ticker?: string
+      ticker?: string;
       /** @description Full legal name of the company */
-      companyName?: string
+      companyName?: string;
       /** @description Short display name for the company */
-      shortName?: string
+      shortName?: string;
       /** @description Industry sector */
-      industry?: string | null
+      industry?: string | null;
       /** @description Company description */
-      description?: string | null
+      description?: string | null;
       /** @description Company website URL */
-      website?: string | null
+      website?: string | null;
       /** @description Primary contact person */
-      primaryContact?: string | null
+      primaryContact?: string | null;
       /**
        * Format: email
        * @description Primary contact email
        */
-      primaryContactEmail?: string | null
+      primaryContactEmail?: string | null;
       /**
        * @description Whether the client is active
        * @default true
        */
-      isActive: boolean
+      isActive: boolean;
       /**
        * @description Unique branding identifier for document hosting site URLs
        * @example 966152
        */
-      brandingId?: number | null
+      brandingId?: number | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
+      updatedAt?: string;
       /** @description JSON array of related account information */
-      accounts?: Record<string, never> | null
+      accounts?: Record<string, never> | null;
       /** @description JSON array of related meeting information */
-      meetings?: Record<string, never> | null
-    }
+      meetings?: Record<string, never> | null;
+    };
     User: {
       /** Format: uuid */
-      id?: string
-      username?: string
-      firstName?: string
-      lastName?: string
+      id?: string;
+      username?: string;
+      firstName?: string;
+      lastName?: string;
       /** Format: email */
-      email?: string
+      email?: string;
       /** @description Legacy password field for seed data - not used with NextAuth */
-      password?: string | null
-      type?: components['schemas']['UserType']
+      password?: string | null;
+      type?: components["schemas"]["UserType"];
       /** Format: uuid */
-      accountId?: string | null
-      account?: components['schemas']['Account']
-    }
+      accountId?: string | null;
+      account?: components["schemas"]["Account"];
+    };
     Meeting: {
       /** @example 01234567-89ab-cdef-0123-456789abcdef */
-      id?: string
+      id?: string;
       /** @example 2025 Annual Shareholder Meeting */
-      title?: string
+      title?: string;
       /** @example 12345A678 */
-      cusip?: string
+      cusip?: string;
       /** @example ACME */
-      ticker?: string
+      ticker?: string;
       /**
        * Format: date
        * @example 2025-02-15
        */
-      preFilingDate?: string | null
+      preFilingDate?: string | null;
       /**
        * Format: date
        * @example 2025-03-01
        */
-      filingDate?: string | null
+      filingDate?: string | null;
       /**
        * Format: date
        * @example 2025-03-15
        */
-      brokerSearchDate?: string | null
+      brokerSearchDate?: string | null;
       /**
        * Format: date
        * @example 2025-04-01
        */
-      recordDate?: string
+      recordDate?: string;
       /**
        * Format: date
        * @example 2025-04-15
        */
-      mailingDate?: string
+      mailingDate?: string;
       /**
        * Format: date
        * @example 2025-05-15
        */
-      meetingDate?: string
-      meetingType?: string
+      meetingDate?: string;
+      meetingType?: string;
       /** @example 2025 */
-      meetingYear?: number
-      status?: components['schemas']['MeetingStatus']
+      meetingYear?: number;
+      status?: components["schemas"]["MeetingStatus"];
       /** @example Notice & Access */
-      currentPhase?: string
+      currentPhase?: string;
       /** @example 75 */
-      overallCompletion?: number
+      overallCompletion?: number;
       /** @example Notice & Access */
-      distributionType?: string
+      distributionType?: string;
       /** @example Computershare Trust Company */
-      transferAgent?: string
-      employeeStockPlans?: string | null
-      planAdministrator?: string | null
-      planAdministratorContact?: string | null
+      transferAgent?: string;
+      employeeStockPlans?: string | null;
+      planAdministrator?: string | null;
+      planAdministratorContact?: string | null;
       /** Format: email */
-      planAdministratorContactEmail?: string | null
-      solicitor?: string | null
+      planAdministratorContactEmail?: string | null;
+      solicitor?: string | null;
       /** Format: email */
-      solicitorEmail?: string | null
-      inspector?: string | null
+      solicitorEmail?: string | null;
+      inspector?: string | null;
       /** @description IVR dial-in voting number (e.g., "1-800-555-VOTE") */
-      ivrDialInNumber?: string | null
+      ivrDialInNumber?: string | null;
       /** Format: int64 */
-      totalSharesOutstanding?: string
+      totalSharesOutstanding?: string;
       /** Format: decimal */
-      quorumRequirement?: number
+      quorumRequirement?: number;
       /**
        * Format: uuid
        * @description The client this meeting belongs to
        */
-      clientId?: string
+      clientId?: string;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
+      updatedAt?: string;
       /** @description The client this meeting belongs to (relationship) */
-      client?: components['schemas']['Clients']
-    }
+      client?: components["schemas"]["Clients"];
+    };
     Phase: {
       /**
        * Format: uuid
        * @example 11111111-2222-3333-4444-555555555555
        */
-      id?: string
+      id?: string;
       /**
        * Format: uuid
        * @example 01234567-89ab-cdef-0123-456789abcdef
        */
-      meetingId?: string
+      meetingId?: string;
       /** @example Notice & Access */
-      name?: string
+      name?: string;
       /** @example 1 */
-      orderIndex?: number
-      status?: components['schemas']['PhaseStatus']
+      orderIndex?: number;
+      status?: components["schemas"]["PhaseStatus"];
       keyDates?: {
         /**
          * Format: date
          * @example 2025-03-01
          */
-        startDate?: string | null
+        startDate?: string | null;
         /**
          * Format: date
          * @example 2025-03-31
          */
-        endDate?: string | null
+        endDate?: string | null;
         /**
          * Format: date
          * @example 2025-03-25
          */
-        dueDate?: string | null
+        dueDate?: string | null;
         /**
          * Format: date
          * @example 2025-03-20
          */
-        completionDate?: string | null
-      } | null
+        completionDate?: string | null;
+      } | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-    }
+      updatedAt?: string;
+    };
     Task: {
       /**
        * Format: uuid
        * @example 22222222-3333-4444-5555-666666666666
        */
-      id?: string
+      id?: string;
       /** @example T001 */
-      taskId?: string
+      taskId?: string;
       /**
        * Format: uuid
        * @example 11111111-2222-3333-4444-555555555555
        */
-      phaseId?: string
+      phaseId?: string;
       /** @example 01234567-89ab-cdef-0123-456789abcdef */
-      meetingId?: string
+      meetingId?: string;
       /** @example 1 */
-      phaseNumber?: number
+      phaseNumber?: number;
       /** @example Prepare proxy statement */
-      title?: string
+      title?: string;
       /** @example Draft and review the preliminary proxy statement for the annual meeting */
-      description?: string | null
+      description?: string | null;
       /** @example DOCUMENT_PREPARATION */
-      type?: string
-      status?: components['schemas']['TaskStatus']
+      type?: string;
+      status?: components["schemas"]["TaskStatus"];
       /**
        * Format: date
        * @example 2025-03-15
        */
-      dueDate?: string | null
+      dueDate?: string | null;
       /** @example Legal Team */
-      owner?: string
+      owner?: string;
       /**
        * Format: uuid
        * @example 33333333-4444-5555-6666-777777777777
        */
-      documentId?: string | null
-      links?: Record<string, never> | null
+      documentId?: string | null;
+      links?: Record<string, never> | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-    }
+      updatedAt?: string;
+    };
     Document: {
       /** Format: uuid */
-      id?: string
-      meetingId?: string
+      id?: string;
+      meetingId?: string;
       /** Format: uuid */
-      taskId?: string | null
-      title?: string
-      description?: string | null
-      type?: string
-      filePath?: string
-      fileType?: string
-      fileSize?: number
-      status?: components['schemas']['DocumentStatus']
+      taskId?: string | null;
+      title?: string;
+      description?: string | null;
+      type?: string;
+      filePath?: string;
+      fileType?: string;
+      fileSize?: number;
+      status?: components["schemas"]["DocumentStatus"];
       /** Format: date-time */
-      uploadDate?: string | null
+      uploadDate?: string | null;
       /** Format: date-time */
-      uploadedDate?: string | null
+      uploadedDate?: string | null;
       /** Format: date-time */
-      signedDate?: string | null
+      signedDate?: string | null;
       /** Format: date-time */
-      authorizedDate?: string | null
+      authorizedDate?: string | null;
       /** Format: date-time */
-      completedDate?: string | null
+      completedDate?: string | null;
       /** Format: date-time */
-      inProgressDate?: string | null
+      inProgressDate?: string | null;
       /** Format: date-time */
-      deadline?: string | null
-      history?: Record<string, never> | null
+      deadline?: string | null;
+      history?: Record<string, never> | null;
       /** @description User who approved the document */
-      approvedBy?: string | null
+      approvedBy?: string | null;
       /**
        * Format: date-time
        * @description When the document was approved
        */
-      approvedAt?: string | null
+      approvedAt?: string | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-      meeting?: components['schemas']['Meeting']
-      comments?: components['schemas']['Comment'][]
-      signatures?: components['schemas']['Signature'][]
-    }
+      updatedAt?: string;
+      meeting?: components["schemas"]["Meeting"];
+      comments?: components["schemas"]["Comment"][];
+      signatures?: components["schemas"]["Signature"][];
+    };
     Position: {
       /**
        * Format: uuid
        * @example 44444444-5555-6666-7777-888888888888
        */
-      id?: string
+      id?: string;
       /**
        * Format: uuid
        * @example 01234567-89ab-cdef-0123-456789abcdef
        */
-      meetingId?: string
+      meetingId?: string;
       /** @example 12345A678 */
-      cusip?: string
+      cusip?: string;
       /** @example BENEFICIAL */
-      accountType?: string
+      accountType?: string;
       /** @example BEN001 */
-      setKey?: string
+      setKey?: string;
       /** @example VANGUARD GROUP INC */
-      name?: string
-      accountNumber?: string | null
-      controlNumber?: string | null
+      name?: string;
+      accountNumber?: string | null;
+      controlNumber?: string | null;
       /** @enum {string} */
-      voteStatus?: 'Voted' | 'Unvoted'
+      voteStatus?: "Voted" | "Unvoted";
       /** Format: double */
-      shares?: number
+      shares?: number;
       /** Format: double */
-      sharesVoted?: number
+      sharesVoted?: number;
       /** @enum {string|null} */
-      source?: 'WEB' | 'PRINT' | 'IVR' | null
-      dateVoted?: string | null
+      source?: "WEB" | "PRINT" | "IVR" | null;
+      dateVoted?: string | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-    }
+      updatedAt?: string;
+    };
     Proposal: {
       /**
        * Format: uuid
        * @example 66666666-7777-8888-9999-aaaaaaaaaaaa
        */
-      id?: string
+      id?: string;
       /**
        * Format: uuid
        * @example 01234567-89ab-cdef-0123-456789abcdef
        */
-      meetingId?: string
+      meetingId?: string;
       /**
        * Format: double
        * @example 1.01
        */
-      proposalNumber?: number
+      proposalNumber?: number;
       /** @example Election of Directors */
-      proposalTitle?: string
+      proposalTitle?: string;
       /** @example DIRECTOR_ELECTION */
-      proposalType?: string
+      proposalType?: string;
       /** @example BOARD_MEMBER */
-      proposalSubtype?: string | null
+      proposalSubtype?: string | null;
       /** @example John A. Smith */
-      directorName?: string | null
+      directorName?: string | null;
       /** @example 3 */
-      directorTermYears?: number | null
-      directorClass?: string | null
-      termExpirationYear?: number | null
-      frequencyOptions?: Record<string, never> | null
-      recommendation?: string
+      directorTermYears?: number | null;
+      directorClass?: string | null;
+      termExpirationYear?: number | null;
+      frequencyOptions?: Record<string, never> | null;
+      recommendation?: string;
       /**
        * @description Final result of the proposal voting
        * @example PASSED
        * @enum {string|null}
        */
-      finalResult?: 'PASSED' | 'FAILED' | 'PENDING' | null
+      finalResult?: "PASSED" | "FAILED" | "PENDING" | null;
       /**
        * @description Total number of votes in favor
        * @example 150000000
        */
-      totalVotesFor?: number | null
+      totalVotesFor?: number | null;
       /**
        * @description Total number of votes against
        * @example 25000000
        */
-      totalVotesAgainst?: number | null
+      totalVotesAgainst?: number | null;
       /**
        * @description Total number of abstained votes
        * @example 5000000
        */
-      totalVotesAbstain?: number | null
+      totalVotesAbstain?: number | null;
       /**
        * @description Total number of shares eligible to vote
        * @example 200000000
        */
-      totalSharesEligible?: number | null
+      totalSharesEligible?: number | null;
       /**
        * Format: float
        * @description Percentage of votes in favor
        * @example 85.7
        */
-      forPercentage?: number | null
+      forPercentage?: number | null;
       /**
        * Format: float
        * @description Percentage of votes against
        * @example 12.5
        */
-      againstPercentage?: number | null
+      againstPercentage?: number | null;
       /**
        * Format: float
        * @description Percentage of abstained votes
        * @example 2.5
        */
-      abstainPercentage?: number | null
+      abstainPercentage?: number | null;
       /**
        * Format: float
        * @description Overall participation rate
        * @example 90
        */
-      participationRate?: number | null
+      participationRate?: number | null;
       /**
        * @description Whether voting on this proposal has been completed
        * @default false
        */
-      votingCompleted: boolean
+      votingCompleted: boolean;
       /**
        * Format: date-time
        * @description When voting was completed
        */
-      votingCompletedAt?: string | null
+      votingCompletedAt?: string | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-    }
+      updatedAt?: string;
+    };
     PositionVote: {
       /**
        * Format: uuid
        * @example 55555555-6666-7777-8888-999999999999
        */
-      id?: string
+      id?: string;
       /**
        * Format: uuid
        * @example 44444444-5555-6666-7777-888888888888
        */
-      positionId?: string
+      positionId?: string;
       /**
        * Format: uuid
        * @example 66666666-7777-8888-9999-aaaaaaaaaaaa
        */
-      proposalId?: string
+      proposalId?: string;
       /** @example FOR */
-      vote?: string
+      vote?: string;
       /**
        * Format: int64
        * @example 1000000
        */
-      sharesVoting?: string
+      sharesVoting?: string;
       /** Format: date-time */
-      createdAt?: string
-    }
+      createdAt?: string;
+    };
     Comment: {
       /** Format: int64 */
-      id?: number
+      id?: number;
       /** Format: uuid */
-      documentId?: string
+      documentId?: string;
       /** Format: uuid */
-      userId?: string
-      comment?: string
-      firstName?: string
-      lastName?: string
+      userId?: string;
+      comment?: string;
+      firstName?: string;
+      lastName?: string;
       /** Format: date-time */
-      createdAt?: string
-      document?: components['schemas']['Document']
-      user?: components['schemas']['User']
-    }
+      createdAt?: string;
+      document?: components["schemas"]["Document"];
+      user?: components["schemas"]["User"];
+    };
     Signature: {
       /** Format: uuid */
-      id?: string
+      id?: string;
       /** Format: uuid */
-      documentId?: string
-      pageNumber?: number
+      documentId?: string;
+      pageNumber?: number;
       /** Format: float */
-      xPosition?: number
+      xPosition?: number;
       /** Format: float */
-      yPosition?: number
+      yPosition?: number;
       /** Format: float */
-      width?: number
+      width?: number;
       /** Format: float */
-      height?: number
-      signatureType?: string
-      required?: boolean
+      height?: number;
+      signatureType?: string;
+      required?: boolean;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      updatedAt?: string
-      document?: components['schemas']['Document']
-    }
+      updatedAt?: string;
+      document?: components["schemas"]["Document"];
+    };
     DocumentHistory: {
       /** Format: uuid */
-      id?: string
+      id?: string;
       /** Format: uuid */
-      documentId?: string
+      documentId?: string;
       /** @enum {string} */
       eventType?:
-        | 'CREATED'
-        | 'UPLOADED'
-        | 'VIEWED'
-        | 'DOWNLOADED'
-        | 'SIGNED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'COMMENTED'
-        | 'UPDATED'
-        | 'DELETED'
+        | "CREATED"
+        | "UPLOADED"
+        | "VIEWED"
+        | "DOWNLOADED"
+        | "SIGNED"
+        | "APPROVED"
+        | "REJECTED"
+        | "COMMENTED"
+        | "UPDATED"
+        | "DELETED";
       /** Format: uuid */
-      userId?: string
-      userName?: string
-      metadata?: Record<string, unknown>
+      userId?: string;
+      userName?: string;
+      metadata?: Record<string, unknown>;
       /** Format: date-time */
-      createdAt?: string
-      document?: components['schemas']['Document']
-      user?: components['schemas']['User']
-    }
+      createdAt?: string;
+      document?: components["schemas"]["Document"];
+      user?: components["schemas"]["User"];
+    };
     CreateAccountRequest: {
-      name: string
-      primaryContact: string
+      name: string;
+      primaryContact: string;
       /**
        * Format: uuid
        * @description The client this account belongs to
        */
-      clientId: string
-    }
+      clientId: string;
+    };
     UpdateAccountRequest: {
-      name?: string
-      primaryContact?: string
+      name?: string;
+      primaryContact?: string;
       /**
        * Format: uuid
        * @description The client this account belongs to
        */
-      clientId?: string
-    }
+      clientId?: string;
+    };
     CreateClientRequest: {
       /** @description Unique ticker symbol for the client */
-      ticker: string
+      ticker: string;
       /** @description Full legal name of the company */
-      companyName: string
+      companyName: string;
       /** @description Short display name for the company */
-      shortName: string
+      shortName: string;
       /** @description Industry sector */
-      industry?: string
+      industry?: string;
       /** @description Company description */
-      description?: string
+      description?: string;
       /**
        * Format: uri
        * @description Company website URL
        */
-      website?: string
+      website?: string;
       /** @description Primary contact person */
-      primaryContact?: string
+      primaryContact?: string;
       /**
        * Format: email
        * @description Primary contact email
        */
-      primaryContactEmail?: string
+      primaryContactEmail?: string;
       /**
        * @description Whether the client is active
        * @default true
        */
-      isActive: boolean
+      isActive: boolean;
       /**
        * @description Unique branding identifier for document hosting site URLs
        * @example 966152
        */
-      brandingId?: number | null
-    }
+      brandingId?: number | null;
+    };
     UpdateClientRequest: {
       /** @description Full legal name of the company */
-      companyName?: string
+      companyName?: string;
       /** @description Short display name for the company */
-      shortName?: string
+      shortName?: string;
       /** @description Industry sector */
-      industry?: string
+      industry?: string;
       /** @description Company description */
-      description?: string
+      description?: string;
       /**
        * Format: uri
        * @description Company website URL
        */
-      website?: string
+      website?: string;
       /** @description Primary contact person */
-      primaryContact?: string
+      primaryContact?: string;
       /**
        * Format: email
        * @description Primary contact email
        */
-      primaryContactEmail?: string
+      primaryContactEmail?: string;
       /** @description Whether the client is active */
-      isActive?: boolean
+      isActive?: boolean;
       /**
        * @description Unique branding identifier for document hosting site URLs
        * @example 966152
        */
-      brandingId?: number | null
-    }
+      brandingId?: number | null;
+    };
     CreateUserRequest: {
-      username: string
-      firstName: string
-      lastName: string
+      username: string;
+      firstName: string;
+      lastName: string;
       /** Format: email */
-      email: string
-      password: string
-      type: components['schemas']['UserType']
+      email: string;
+      password: string;
+      type: components["schemas"]["UserType"];
       /** Format: uuid */
-      accountId?: string
-    }
+      accountId?: string;
+    };
     CreateAccountUserRequest: {
-      username: string
-      firstName: string
-      lastName: string
+      username: string;
+      firstName: string;
+      lastName: string;
       /** Format: email */
-      email: string
-      password: string
-      type: components['schemas']['UserType']
-    }
+      email: string;
+      password: string;
+      type: components["schemas"]["UserType"];
+    };
     UpdateUserRequest: {
-      firstName?: string
-      lastName?: string
+      firstName?: string;
+      lastName?: string;
       /** Format: email */
-      email?: string
-      type?: components['schemas']['UserType']
+      email?: string;
+      type?: components["schemas"]["UserType"];
       /** Format: uuid */
-      accountId?: string
-    }
+      accountId?: string;
+    };
     CreateMeetingRequest: {
-      id: string
-      title: string
-      cusip: string
-      ticker: string
+      id: string;
+      title: string;
+      cusip: string;
+      ticker: string;
       /** Format: date */
-      recordDate: string
+      recordDate: string;
       /** Format: date */
-      mailingDate: string
+      mailingDate: string;
       /** Format: date */
-      meetingDate: string
-      meetingType: string
-      meetingYear: number
-      distributionType: string
-      transferAgent: string
-      employeeStockPlans?: string
-      planAdministrator?: string
-      planAdministratorContact?: string
+      meetingDate: string;
+      meetingType: string;
+      meetingYear: number;
+      distributionType: string;
+      transferAgent: string;
+      employeeStockPlans?: string;
+      planAdministrator?: string;
+      planAdministratorContact?: string;
       /** Format: email */
-      planAdministratorContactEmail?: string
-      solicitor?: string
+      planAdministratorContactEmail?: string;
+      solicitor?: string;
       /** Format: email */
-      solicitorEmail?: string
+      solicitorEmail?: string;
       /** @description IVR dial-in voting number */
-      ivrDialInNumber?: string
+      ivrDialInNumber?: string;
       /** Format: int64 */
-      totalSharesOutstanding: string
+      totalSharesOutstanding: string;
       /** Format: decimal */
-      quorumRequirement: number
+      quorumRequirement: number;
       /**
        * Format: uuid
        * @description The client this meeting belongs to
        */
-      clientId: string
-    }
+      clientId: string;
+    };
     UpdateMeetingRequest: {
-      title?: string
-      cusip?: string
+      title?: string;
+      cusip?: string;
       /** Format: date */
-      brokerSearchDate?: string | null
+      brokerSearchDate?: string | null;
       /** Format: date */
-      recordDate?: string
+      recordDate?: string;
       /** Format: date */
-      mailingDate?: string
+      mailingDate?: string;
       /** Format: date */
-      meetingDate?: string
-      meetingType?: string
-      status?: components['schemas']['MeetingStatus']
-      currentPhase?: string
-      overallCompletion?: number
-      distributionType?: string
-      transferAgent?: string
-      employeeStockPlans?: string
-      planAdministrator?: string
-      planAdministratorContact?: string
+      meetingDate?: string;
+      meetingType?: string;
+      status?: components["schemas"]["MeetingStatus"];
+      currentPhase?: string;
+      overallCompletion?: number;
+      distributionType?: string;
+      transferAgent?: string;
+      employeeStockPlans?: string;
+      planAdministrator?: string;
+      planAdministratorContact?: string;
       /** Format: email */
-      planAdministratorContactEmail?: string
-      solicitor?: string
+      planAdministratorContactEmail?: string;
+      solicitor?: string;
       /** Format: email */
-      solicitorEmail?: string
+      solicitorEmail?: string;
       /** @description IVR dial-in voting number */
-      ivrDialInNumber?: string
+      ivrDialInNumber?: string;
       /** Format: int64 */
-      totalSharesOutstanding?: string
+      totalSharesOutstanding?: string;
       /** Format: decimal */
-      quorumRequirement?: number
-    }
+      quorumRequirement?: number;
+    };
     CreatePhaseRequest: {
-      name: string
-      orderIndex: number
+      name: string;
+      orderIndex: number;
       keyDates?: {
         /** Format: date */
-        startDate?: string
+        startDate?: string;
         /** Format: date */
-        endDate?: string
+        endDate?: string;
         /** Format: date */
-        dueDate?: string
-      }
-    }
+        dueDate?: string;
+      };
+    };
     UpdatePhaseRequest: {
-      name?: string
-      orderIndex?: number
-      status?: components['schemas']['PhaseStatus']
+      name?: string;
+      orderIndex?: number;
+      status?: components["schemas"]["PhaseStatus"];
       keyDates?: {
         /** Format: date */
-        startDate?: string
+        startDate?: string;
         /** Format: date */
-        endDate?: string
+        endDate?: string;
         /** Format: date */
-        dueDate?: string
+        dueDate?: string;
         /** Format: date */
-        completionDate?: string
-      }
-    }
+        completionDate?: string;
+      };
+    };
     CreateTaskRequest: {
-      taskId: string
+      taskId: string;
       /** Format: uuid */
-      phaseId: string
-      phaseNumber: number
-      title: string
-      description?: string
-      type: string
+      phaseId: string;
+      phaseNumber: number;
+      title: string;
+      description?: string;
+      type: string;
       /** Format: date */
-      dueDate?: string
-      owner: string
+      dueDate?: string;
+      owner: string;
       /** Format: uuid */
-      documentId?: string
-      links?: Record<string, never>
-    }
+      documentId?: string;
+      links?: Record<string, never>;
+    };
     UpdateTaskRequest: {
-      title?: string
-      description?: string
-      type?: string
-      status?: components['schemas']['TaskStatus']
-      phaseNumber?: number
+      title?: string;
+      description?: string;
+      type?: string;
+      status?: components["schemas"]["TaskStatus"];
+      phaseNumber?: number;
       /** Format: date */
-      dueDate?: string
-      owner?: string
+      dueDate?: string;
+      owner?: string;
       /** Format: uuid */
-      documentId?: string
-      links?: Record<string, never>
-    }
+      documentId?: string;
+      links?: Record<string, never>;
+    };
     CreateDocumentRequest: {
-      title: string
+      title: string;
       /** @description Optional human readable description for the document */
-      description?: string | null
+      description?: string | null;
       /** @description Canonical document type (proxy material or supporting) */
-      type: string
+      type: string;
       /**
        * Format: uuid
        * @description Optional task linkage identifier
        */
-      taskId?: string | null
+      taskId?: string | null;
       /**
        * Format: binary
        * @description Document file content upload
        */
-      file: string
-    }
+      file: string;
+    };
     UpdateDocumentRequest: {
-      title?: string
-      description?: string
-      status?: components['schemas']['DocumentStatus']
-    }
+      title?: string;
+      description?: string;
+      status?: components["schemas"]["DocumentStatus"];
+    };
     CreatePositionRequest: {
-      meetingId: string
-      cusip: string
-      accountType: string
-      setKey: string
-      name: string
-      accountNumber?: string | null
-      controlNumber?: string | null
+      meetingId: string;
+      cusip: string;
+      accountType: string;
+      setKey: string;
+      name: string;
+      accountNumber?: string | null;
+      controlNumber?: string | null;
       /** @enum {string} */
-      voteStatus: 'Voted' | 'Unvoted'
+      voteStatus: "Voted" | "Unvoted";
       /** Format: double */
-      shares: number
+      shares: number;
       /**
        * Format: double
        * @default 0
        */
-      sharesVoted: number
+      sharesVoted: number;
       /** @enum {string|null} */
-      source?: 'WEB' | 'PRINT' | 'IVR' | null
-      dateVoted?: string | null
-    }
+      source?: "WEB" | "PRINT" | "IVR" | null;
+      dateVoted?: string | null;
+    };
     UpdatePositionRequest: {
-      name?: string
-      accountNumber?: string | null
-      controlNumber?: string | null
+      name?: string;
+      accountNumber?: string | null;
+      controlNumber?: string | null;
       /** @enum {string} */
-      voteStatus?: 'Voted' | 'Unvoted'
+      voteStatus?: "Voted" | "Unvoted";
       /** Format: double */
-      shares?: number
+      shares?: number;
       /** Format: double */
-      sharesVoted?: number
+      sharesVoted?: number;
       /** @enum {string|null} */
-      source?: 'WEB' | 'PRINT' | 'IVR' | null
-      dateVoted?: string | null
-    }
+      source?: "WEB" | "PRINT" | "IVR" | null;
+      dateVoted?: string | null;
+    };
     CreateProposalRequest: {
       /** Format: double */
-      proposalNumber: number
-      proposalTitle: string
-      proposalType: string
-      proposalSubtype?: string | null
-      directorName?: string
-      directorTermYears?: number
-      directorClass?: string
-      termExpirationYear?: number
-      frequencyOptions?: Record<string, never>
-      recommendation: string
-    }
+      proposalNumber: number;
+      proposalTitle: string;
+      proposalType: string;
+      proposalSubtype?: string | null;
+      directorName?: string;
+      directorTermYears?: number;
+      directorClass?: string;
+      termExpirationYear?: number;
+      frequencyOptions?: Record<string, never>;
+      recommendation: string;
+    };
     UpdateProposalRequest: {
-      proposalTitle?: string
-      proposalType?: string
-      proposalSubtype?: string | null
-      directorName?: string
-      directorTermYears?: number
-      directorClass?: string
-      termExpirationYear?: number
-      frequencyOptions?: Record<string, never>
-      recommendation?: string
-    }
+      proposalTitle?: string;
+      proposalType?: string;
+      proposalSubtype?: string | null;
+      directorName?: string;
+      directorTermYears?: number;
+      directorClass?: string;
+      termExpirationYear?: number;
+      frequencyOptions?: Record<string, never>;
+      recommendation?: string;
+    };
     CastVoteRequest: {
       /** Format: uuid */
-      proposalId: string
+      proposalId: string;
       /** @enum {string} */
-      vote: 'FOR' | 'AGAINST' | 'ABSTAIN' | 'WITHHOLD'
+      vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
       /** Format: int64 */
-      sharesVoting: string
-    }
+      sharesVoting: string;
+    };
     CreateCommentRequest: {
-      comment: string
-    }
+      comment: string;
+    };
     Notification: {
       /** Format: uuid */
-      id?: string
-      title?: string
-      message?: string
+      id?: string;
+      title?: string;
+      message?: string;
       /** @enum {string} */
-      type?: 'info' | 'warning' | 'error' | 'success'
+      type?: "info" | "warning" | "error" | "success";
       /** @enum {string} */
-      priority?: 'low' | 'medium' | 'high' | 'critical'
+      priority?: "low" | "medium" | "high" | "critical";
       /** @default false */
-      read: boolean
+      read: boolean;
       /** Format: uuid */
-      userId?: string
+      userId?: string;
       /** Format: uuid */
-      meetingId?: string | null
+      meetingId?: string | null;
       /** Format: uuid */
-      taskId?: string | null
-      actionUrl?: string | null
+      taskId?: string | null;
+      actionUrl?: string | null;
       /** Format: date-time */
-      createdAt?: string
+      createdAt?: string;
       /** Format: date-time */
-      readAt?: string | null
+      readAt?: string | null;
       /** Format: date-time */
-      expiresAt?: string | null
-    }
+      expiresAt?: string | null;
+    };
     Pagination: {
-      page?: number
-      limit?: number
-      total?: number
-      pages?: number
-    }
+      page?: number;
+      limit?: number;
+      total?: number;
+      pages?: number;
+    };
     Error: {
-      message?: string
-      code?: string
-      details?: Record<string, never>
-    }
-  }
+      message?: string;
+      code?: string;
+      details?: Record<string, never>;
+    };
+  };
   responses: {
     /** @description Bad request */
     BadRequest: {
-      headers: Record<string, unknown>
+      headers: Record<string, unknown>;
       content: {
-        'application/json': components['schemas']['Error']
-      }
-    }
+        "application/json": components["schemas"]["Error"];
+      };
+    };
     /** @description Unauthorized */
     Unauthorized: {
-      headers: Record<string, unknown>
+      headers: Record<string, unknown>;
       content: {
-        'application/json': components['schemas']['Error']
-      }
-    }
+        "application/json": components["schemas"]["Error"];
+      };
+    };
     /** @description Forbidden */
     Forbidden: {
-      headers: Record<string, unknown>
+      headers: Record<string, unknown>;
       content: {
-        'application/json': components['schemas']['Error']
-      }
-    }
+        "application/json": components["schemas"]["Error"];
+      };
+    };
     /** @description Not found */
     NotFound: {
-      headers: Record<string, unknown>
+      headers: Record<string, unknown>;
       content: {
-        'application/json': components['schemas']['Error']
-      }
-    }
-  }
+        "application/json": components["schemas"]["Error"];
+      };
+    };
+  };
   parameters: {
-    PageParam: number
-    LimitParam: number
-  }
-  requestBodies: never
-  headers: never
-  pathItems: never
+    PageParam: number;
+    LimitParam: number;
+  };
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
   loginUser: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': {
+        "application/json": {
           /** @example john.doe */
-          username: string
+          username: string;
           /** @example SecurePass123 */
-          password: string
-        }
-      }
-    }
+          password: string;
+        };
+      };
+    };
     responses: {
       /** @description Login successful */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            user?: components['schemas']['User']
+          "application/json": {
+            user?: components["schemas"]["User"];
             /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-            token?: string
-          }
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-    }
-  }
+            token?: string;
+          };
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   logoutUser: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Logout successful */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
+          "application/json": {
             /** @example Logged out successfully */
-            message?: string
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-    }
-  }
+            message?: string;
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   getCurrentUser: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description User profile retrieved */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-      401: components['responses']['Unauthorized']
-    }
-  }
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   listAccounts: {
     parameters: {
       query?: {
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Accounts retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            accounts?: components['schemas']['Account'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": {
+            accounts?: components["schemas"]["Account"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   createAccount: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateAccountRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateAccountRequest"];
+      };
+    };
     responses: {
       /** @description Account created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Account']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getAccountById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        accountId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        accountId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Account retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Account']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateAccount: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        accountId: string
-      }
-      cookie?: never
-    }
+        accountId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateAccountRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateAccountRequest"];
+      };
+    };
     responses: {
       /** @description Account updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Account']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   deleteAccount: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        accountId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        accountId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Account deleted successfully */
       204: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listAccountUsers: {
     parameters: {
       query?: {
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
-        type?: components['schemas']['UserType']
-      }
-      header?: never
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
+        type?: components["schemas"]["UserType"];
+      };
+      header?: never;
       path: {
-        accountId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        accountId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Account users retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            users?: components['schemas']['User'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": {
+            users?: components["schemas"]["User"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createAccountUser: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        accountId: string
-      }
-      cookie?: never
-    }
+        accountId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateAccountUserRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateAccountUserRequest"];
+      };
+    };
     responses: {
       /** @description User created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listClients: {
     parameters: {
       query?: {
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
         /** @description Filter by client ticker */
-        ticker?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        ticker?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Clients retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            clients?: components['schemas']['Clients'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": {
+            clients?: components["schemas"]["Clients"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   createClient: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateClientRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateClientRequest"];
+      };
+    };
     responses: {
       /** @description Client created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Clients']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Clients"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getClientByTicker: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
         /** @description The client ticker symbol */
-        ticker: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Client retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Clients']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Clients"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateClient: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
         /** @description The client ticker symbol */
-        ticker: string
-      }
-      cookie?: never
-    }
+        ticker: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateClientRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateClientRequest"];
+      };
+    };
     responses: {
       /** @description Client updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Clients']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Clients"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   deleteClient: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
         /** @description The client ticker symbol */
-        ticker: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Client deleted successfully */
       204: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listClientAccounts: {
     parameters: {
       query?: {
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
-      }
-      header?: never
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
+      };
+      header?: never;
       path: {
         /** @description The client ticker symbol */
-        ticker: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Client accounts retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            accounts?: components['schemas']['Account'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": {
+            accounts?: components["schemas"]["Account"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listUsers: {
     parameters: {
       query?: {
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
-        type?: components['schemas']['UserType']
-        accountId?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
+        type?: components["schemas"]["UserType"];
+        accountId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Users retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            users?: components['schemas']['User'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": {
+            users?: components["schemas"]["User"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   createUser: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateUserRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateUserRequest"];
+      };
+    };
     responses: {
       /** @description User created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getUserById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description User retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateUser: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateUserRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateUserRequest"];
+      };
+    };
     responses: {
       /** @description User updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   deleteUser: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description User deleted successfully */
       204: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listUserAccounts: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
         /** @description The ID of the user */
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description User accounts retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            accounts: components['schemas']['Account'][]
+          "application/json": {
+            accounts: components["schemas"]["Account"][];
             /** @description Total number of accounts */
-            total: number
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+            total: number;
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listMeetings: {
     parameters: {
       query?: {
-        page?: number
-        limit?: number
-        status?: components['schemas']['MeetingStatus']
+        page?: number;
+        limit?: number;
+        status?: components["schemas"]["MeetingStatus"];
         /** @description Filter by client ID */
-        clientId?: string
-        meetingYear?: number
-        cusip?: string
-        ticker?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        clientId?: string;
+        meetingYear?: number;
+        cusip?: string;
+        ticker?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Meetings retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            meetings?: components['schemas']['Meeting'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-    }
-  }
+          "application/json": {
+            meetings?: components["schemas"]["Meeting"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   createMeeting: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateMeetingRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateMeetingRequest"];
+      };
+    };
     responses: {
       /** @description Meeting created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Meeting']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Meeting"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getMeetingById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Meeting retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Meeting']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Meeting"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateMeeting: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
+        meetingId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateMeetingRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateMeetingRequest"];
+      };
+    };
     responses: {
       /** @description Meeting updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Meeting']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Meeting"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   deleteMeeting: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Meeting deleted successfully */
       204: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listPhases: {
     parameters: {
       query?: {
-        status?: components['schemas']['PhaseStatus']
-      }
-      header?: never
+        status?: components["schemas"]["PhaseStatus"];
+      };
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Phases retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Phase'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Phase"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createPhase: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
+        meetingId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreatePhaseRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreatePhaseRequest"];
+      };
+    };
     responses: {
       /** @description Phase created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Phase']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Phase"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getPhaseById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Phase retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Phase']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Phase"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updatePhase: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdatePhaseRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdatePhaseRequest"];
+      };
+    };
     responses: {
       /** @description Phase updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Phase']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Phase"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listTasks: {
     parameters: {
       query?: {
-        phaseId?: string
-        status?: components['schemas']['TaskStatus']
-        owner?: string
-      }
-      header?: never
+        phaseId?: string;
+        status?: components["schemas"]["TaskStatus"];
+        owner?: string;
+      };
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Tasks retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Task'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Task"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createTask: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
+        meetingId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateTaskRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateTaskRequest"];
+      };
+    };
     responses: {
       /** @description Task created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Task']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Task"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getTaskById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Task retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Task']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Task"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateTask: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateTaskRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateTaskRequest"];
+      };
+    };
     responses: {
       /** @description Task updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Task']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Task"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listDocuments: {
     parameters: {
       query?: {
-        status?: components['schemas']['DocumentStatus']
-        type?: string
-      }
-      header?: never
+        status?: components["schemas"]["DocumentStatus"];
+        type?: string;
+      };
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Documents retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Document"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createDocument: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
+        meetingId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': components['schemas']['CreateDocumentRequest']
-      }
-    }
+        "multipart/form-data": components["schemas"]["CreateDocumentRequest"];
+      };
+    };
     responses: {
       /** @description Document created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getDocumentById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Document retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateDocument: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateDocumentRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateDocumentRequest"];
+      };
+    };
     responses: {
       /** @description Document updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   downloadDocument: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Document file */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/octet-stream': string
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/octet-stream": string;
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   signFormDigital: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        formType: 'FORM_OF_PROXY' | 'VIF' | 'CONTROLLED_ACCOUNT_REPORT'
-      }
-      cookie?: never
-    }
+        formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': {
-          meetingId: string
+        "application/json": {
+          meetingId: string;
           /** @description User performing the digital signature */
-          signerUserId: string
+          signerUserId: string;
           /** @description Optional reason or context for the signature */
-          signatureReason?: string
+          signatureReason?: string;
           /** @description If true, replaces any existing signature artifact */
-          replaceExisting?: boolean
-        }
-      }
-    }
+          replaceExisting?: boolean;
+        };
+      };
+    };
     responses: {
       /** @description Form executed */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   uploadExecutedForm: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        formType: 'FORM_OF_PROXY' | 'VIF' | 'CONTROLLED_ACCOUNT_REPORT'
-      }
-      cookie?: never
-    }
+        formType: "FORM_OF_PROXY" | "VIF" | "CONTROLLED_ACCOUNT_REPORT";
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': {
-          meetingId: string
+        "multipart/form-data": {
+          meetingId: string;
           /**
            * Format: binary
            * @description Executed (signed) form PDF
            */
-          file: string
+          file: string;
           /** @description If provided, links the upload to a previously generated draft form */
-          originalGeneratedId?: string
-        }
-      }
-    }
+          originalGeneratedId?: string;
+        };
+      };
+    };
     responses: {
       /** @description Form executed via upload */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
       /** @description File too large */
       413: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+    };
+  };
   uploadDocumentVersion: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        documentType: string
-      }
-      cookie?: never
-    }
+        documentType: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': {
-          meetingId: string
+        "multipart/form-data": {
+          meetingId: string;
           /**
            * Format: binary
            * @description Document file content
            */
-          file: string
+          file: string;
           /** @description Optional notes describing the changes or purpose of this version */
-          versionNotes?: string
-        }
-      }
-    }
+          versionNotes?: string;
+        };
+      };
+    };
     responses: {
       /** @description Version uploaded */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
       /** @description File too large */
       413: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+    };
+  };
   approveDocumentVersion: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        documentType: string
-        versionId: string
-      }
-      cookie?: never
-    }
+        documentType: string;
+        versionId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': {
-          meetingId: string
+        "application/json": {
+          meetingId: string;
           /** @description Optional approval comment */
-          comment?: string
-        }
-      }
-    }
+          comment?: string;
+        };
+      };
+    };
     responses: {
       /** @description Version approved */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
       /** @description Invalid state transition */
       409: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+    };
+  };
   replaceApprovedVersion: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        documentType: string
-        versionId: string
-      }
-      cookie?: never
-    }
+        documentType: string;
+        versionId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': {
-          meetingId: string
+        "multipart/form-data": {
+          meetingId: string;
           /** @description Business justification for replacement */
-          reason: string
+          reason: string;
           /**
            * Format: binary
            * @description Replacement document file content
            */
-          file: string
-        }
-      }
-    }
+          file: string;
+        };
+      };
+    };
     responses: {
       /** @description Replacement version uploaded (previous approved retained) */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document']
-        }
-      }
-      400: components['responses']['BadRequest']
+          "application/json": components["schemas"]["Document"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
       /** @description Invalid state transition */
       409: {
-        headers: Record<string, unknown>
-        content?: never
-      }
-    }
-  }
+        headers: Record<string, unknown>;
+        content?: never;
+      };
+    };
+  };
   getDocumentsReadiness: {
     parameters: {
       query: {
-        meetingId: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Readiness status */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            phase1Ready?: boolean
-            phase2Ready?: boolean
-            overallReady?: boolean
-            outstandingPhase1?: Record<string, never>[]
-            outstandingPhase2?: Record<string, never>[]
-          }
-        }
-      }
-      400: components['responses']['BadRequest']
-    }
-  }
+          "application/json": {
+            phase1Ready?: boolean;
+            phase2Ready?: boolean;
+            overallReady?: boolean;
+            outstandingPhase1?: Record<string, never>[];
+            outstandingPhase2?: Record<string, never>[];
+          };
+        };
+      };
+      400: components["responses"]["BadRequest"];
+    };
+  };
   getDocumentHistory: {
     parameters: {
       query: {
-        meetingId: string
-      }
-      header?: never
+        meetingId: string;
+      };
+      header?: never;
       path: {
-        documentType: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        documentType: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Version history */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Document'][]
-        }
-      }
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Document"][];
+        };
+      };
+      404: components["responses"]["NotFound"];
+    };
+  };
   listPositions: {
     parameters: {
       query?: {
         /** @description Filter by meeting ID (e.g., `eq.WEN-2024-AGM`) */
-        meetingId?: string
+        meetingId?: string;
         /** @description Filter by vote status (e.g., `eq.Voted`, `eq.Unvoted`) */
-        voteStatus?: string
+        voteStatus?: string;
         /** @description Filter by account type (e.g., `eq.Registered Account`) */
-        accountType?: string
+        accountType?: string;
         /** @description Specify columns to return and embed related resources */
-        select?: string
+        select?: string;
         /** @description Order results (e.g., `shares.desc`, `name.asc`) */
-        order?: string
+        order?: string;
         /** @description Limit number of results */
-        limit?: number
+        limit?: number;
         /** @description Number of results to skip for pagination */
-        offset?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Positions retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Position'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Position"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createPosition: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreatePositionRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreatePositionRequest"];
+      };
+    };
     responses: {
       /** @description Position created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Position']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Position"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getPositionById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Position retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Position']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Position"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updatePosition: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdatePositionRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdatePositionRequest"];
+      };
+    };
     responses: {
       /** @description Position updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Position']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Position"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   listProposals: {
     parameters: {
       query?: {
-        proposalType?: string
-      }
-      header?: never
+        proposalType?: string;
+      };
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        meetingId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Proposals retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Proposal'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Proposal"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   createProposal: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        meetingId: string
-      }
-      cookie?: never
-    }
+        meetingId: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateProposalRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateProposalRequest"];
+      };
+    };
     responses: {
       /** @description Proposal created successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Proposal']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Proposal"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getProposalById: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Proposal retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Proposal']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Proposal"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   updateProposal: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateProposalRequest']
-      }
-    }
+        "application/json": components["schemas"]["UpdateProposalRequest"];
+      };
+    };
     responses: {
       /** @description Proposal updated successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Proposal']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Proposal"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   getPositionVotes: {
     parameters: {
       query?: {
         /** @description Filter by position ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
-        positionId?: string
+        positionId?: string;
         /** @description Filter by proposal ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`) */
-        proposalId?: string
+        proposalId?: string;
         /** @description Filter by vote type (e.g., `eq.FOR`, `eq.AGAINST`, `eq.ABSTAIN`) */
-        vote?: string
+        vote?: string;
         /** @description Specify columns and embed related resources (e.g., `*,positions(name,cusip)`) */
-        select?: string
+        select?: string;
         /** @description Order results (e.g., `createdAt.desc`, `sharesVoting.asc`) */
-        order?: string
+        order?: string;
         /** @description Limit number of results */
-        limit?: number
+        limit?: number;
         /** @description Number of results to skip for pagination */
-        offset?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Position votes retrieved successfully */
       200: {
         headers: {
           /** @description Pagination info (e.g., `0-9/100`) */
-          'Content-Range'?: string
-          [name: string]: unknown
-        }
+          "Content-Range"?: string;
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['PositionVote'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-    }
-  }
+          "application/json": components["schemas"]["PositionVote"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   createPositionVote: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CastVoteRequest']
-      }
-    }
+        "application/json": components["schemas"]["CastVoteRequest"];
+      };
+    };
     responses: {
       /** @description Vote cast successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['PositionVote']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["PositionVote"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getDocumentComments: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Comments retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Comment'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Comment"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   addComment: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateCommentRequest']
-      }
-    }
+        "application/json": components["schemas"]["CreateCommentRequest"];
+      };
+    };
     responses: {
       /** @description Comment added successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Comment']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-      403: components['responses']['Forbidden']
-    }
-  }
+          "application/json": components["schemas"]["Comment"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+    };
+  };
   getDocumentEvents: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Event history retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['DocumentHistory'][]
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["DocumentHistory"][];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   addDocumentEvent: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': {
+        "application/json": {
           /** @enum {string} */
           eventType:
-            | 'CREATED'
-            | 'UPLOADED'
-            | 'VIEWED'
-            | 'DOWNLOADED'
-            | 'SIGNED'
-            | 'APPROVED'
-            | 'REJECTED'
-            | 'COMMENTED'
-            | 'UPDATED'
-            | 'DELETED'
-          metadata?: Record<string, unknown>
-        }
-      }
-    }
+            | "CREATED"
+            | "UPLOADED"
+            | "VIEWED"
+            | "DOWNLOADED"
+            | "SIGNED"
+            | "APPROVED"
+            | "REJECTED"
+            | "COMMENTED"
+            | "UPDATED"
+            | "DELETED";
+          metadata?: Record<string, unknown>;
+        };
+      };
+    };
     responses: {
       /** @description Event added successfully */
       201: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['DocumentHistory']
-        }
-      }
-      400: components['responses']['BadRequest']
-      401: components['responses']['Unauthorized']
-    }
-  }
+          "application/json": components["schemas"]["DocumentHistory"];
+        };
+      };
+      400: components["responses"]["BadRequest"];
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   listNotifications: {
     parameters: {
       query?: {
         /** @description Filter by read status */
-        read?: boolean
+        read?: boolean;
         /** @description Filter by notification type */
-        type?: 'info' | 'warning' | 'error' | 'success'
+        type?: "info" | "warning" | "error" | "success";
         /** @description Filter by priority level */
-        priority?: 'low' | 'medium' | 'high' | 'critical'
-        page?: components['parameters']['PageParam']
-        limit?: components['parameters']['LimitParam']
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        priority?: "low" | "medium" | "high" | "critical";
+        page?: components["parameters"]["PageParam"];
+        limit?: components["parameters"]["LimitParam"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Notifications retrieved successfully */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': {
-            data?: components['schemas']['Notification'][]
-            pagination?: components['schemas']['Pagination']
-          }
-        }
-      }
-      401: components['responses']['Unauthorized']
-    }
-  }
+          "application/json": {
+            data?: components["schemas"]["Notification"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+    };
+  };
   markNotificationRead: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        notificationId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        notificationId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Notification marked as read */
       200: {
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>;
         content: {
-          'application/json': components['schemas']['Notification']
-        }
-      }
-      401: components['responses']['Unauthorized']
-      404: components['responses']['NotFound']
-    }
-  }
+          "application/json": components["schemas"]["Notification"];
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      404: components["responses"]["NotFound"];
+    };
+  };
 }

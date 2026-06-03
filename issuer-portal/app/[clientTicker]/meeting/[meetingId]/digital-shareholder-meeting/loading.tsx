@@ -1,4 +1,4 @@
-import { Container, Skeleton, Stack } from '@mui/material'
+import { Container, Skeleton, Stack } from "@mui/material";
 
 export default function Loading() {
   return (
@@ -11,5 +11,5 @@ export default function Loading() {
         <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
       </Stack>
     </Container>
-  )
+  );
 }

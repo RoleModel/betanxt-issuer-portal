@@ -1,4 +1,4 @@
-import { OpenInNewOutlined } from '@mui/icons-material'
+import { OpenInNewOutlined } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -8,18 +8,18 @@ import {
   CardHeader,
   CardMedia,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
 
 interface IndustryTrendsCardProps {
-  title?: string
-  date?: string
-  duration?: string
-  content?: string
-  actionText?: string
-  actions?: React.ReactNode
-  url?: string
-  img?: string
-  externalLink?: boolean
+  title?: string;
+  date?: string;
+  duration?: string;
+  content?: string;
+  actionText?: string;
+  actions?: React.ReactNode;
+  url?: string;
+  img?: string;
+  externalLink?: boolean;
 }
 
 export function IndustryTrendsCard({
@@ -28,7 +28,7 @@ export function IndustryTrendsCard({
   date,
   duration,
   url,
-  actionText = 'View',
+  actionText = "View",
   img,
   externalLink,
 }: IndustryTrendsCardProps) {
@@ -63,5 +63,5 @@ export function IndustryTrendsCard({
         </CardActions>
       )}
     </Card>
-  )
+  );
 }

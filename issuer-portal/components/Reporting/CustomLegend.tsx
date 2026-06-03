@@ -1,23 +1,22 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box, Typography } from "@mui/material";
+import React from "react";
 
-import { Box, Typography } from '@mui/material'
-
-import LineMarker from './LineMarker'
+import LineMarker from "./LineMarker";
 
 interface LegendItem {
-  label: string
-  color: string
-  type?: 'line' | 'bar' | 'area' // Add type to determine symbol
+  label: string;
+  color: string;
+  type?: "line" | "bar" | "area"; // Add type to determine symbol
 }
 
 interface CustomLegendProps {
-  items: LegendItem[]
-  direction?: 'horizontal' | 'vertical'
-  markerSize?: number
-  gap?: number
-  textVariant?: 'body1' | 'body3' | 'caption'
+  items: LegendItem[];
+  direction?: "horizontal" | "vertical";
+  markerSize?: number;
+  gap?: number;
+  textVariant?: "body1" | "body3" | "caption";
 }
 
 /**
@@ -26,7 +25,7 @@ interface CustomLegendProps {
  */
 const CustomLegend: React.FC<CustomLegendProps> = ({
   items,
-  direction = 'horizontal',
+  direction = "horizontal",
   markerSize = 16,
   gap = 3,
 }) => {
@@ -34,13 +33,13 @@ const CustomLegend: React.FC<CustomLegendProps> = ({
     <Box
       display="flex"
       justifyContent="center"
-      flexDirection={direction === 'horizontal' ? 'row' : 'column'}
+      flexDirection={direction === "horizontal" ? "row" : "column"}
       gap={gap}
       mt={2}
     >
       {items.map((item, index) => {
         const renderSymbol = () => {
-          if (item.type === 'line') {
+          if (item.type === "line") {
             // Use LineMarker for line series
             return (
               <svg width={25} height={24}>
@@ -54,12 +53,12 @@ const CustomLegend: React.FC<CustomLegendProps> = ({
                   dataIndex={index}
                 />
               </svg>
-            )
+            );
           } else {
             // Use colored rectangle for bar/area series
-            return <Box width={14} height={14} bgcolor={item.color} borderRadius={0.5} />
+            return <Box width={14} height={14} bgcolor={item.color} borderRadius={0.5} />;
           }
-        }
+        };
 
         return (
           <Box key={item.label} display="flex" alignItems="center" gap={1}>
@@ -68,10 +67,10 @@ const CustomLegend: React.FC<CustomLegendProps> = ({
               {item.label}
             </Typography>
           </Box>
-        )
+        );
       })}
     </Box>
-  )
-}
+  );
+};
 
-export default CustomLegend
+export default CustomLegend;

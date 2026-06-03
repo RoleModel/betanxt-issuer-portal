@@ -1,32 +1,30 @@
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import type { NextRequest } from "next/server";
 
-import { handleCors, withCors } from '@/utils/cors'
-import { supabase } from '@/utils/supabase/client'
+import { NextResponse } from "next/server";
+
+import { handleCors, withCors } from "@/utils/cors";
+import { supabase } from "@/utils/supabase/client";
 
 interface RouteParams {
-  params: Promise<{ meetingId: string }>
+  params: Promise<{ meetingId: string }>;
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse> {
+export async function GET(_request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const { meetingId } = await params
+    const { meetingId } = await params;
 
     const { data, error } = await supabase
-      .from('mailing')
-      .select('*')
-      .eq('meeting_id', meetingId)
-      .single()
+      .from("mailing")
+      .select("*")
+      .eq("meeting_id", meetingId)
+      .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         // No mailing data found for this meeting
-        return withCors(NextResponse.json(null))
+        return withCors(NextResponse.json(null));
       }
-      throw error
+      throw error;
     }
 
     // Transform snake_case to camelCase for API response
@@ -48,24 +46,24 @@ export async function GET(
       canceledSuppressedPositions: data.canceled_suppressed_positions,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-    }
+    };
 
-    return withCors(NextResponse.json(response))
+    return withCors(NextResponse.json(response));
   } catch (error) {
     return withCors(
       NextResponse.json(
         {
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          operationId: 'getMailingStatistics',
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : "Unknown error",
+          operationId: "getMailingStatistics",
         },
-        { status: 500 }
-      )
-    )
+        { status: 500 },
+      ),
+    );
   }
 }
 
 // Handle preflight requests
 export function OPTIONS() {
-  return handleCors()
+  return handleCors();
 }

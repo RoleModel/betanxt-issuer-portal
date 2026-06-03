@@ -1,69 +1,66 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box, Button, Typography, styled, useTheme } from "@mui/material";
+import React from "react";
 
-import { Box, Button, Typography, styled, useTheme } from '@mui/material'
+import type { Task } from "@/types/api-exports";
 
-import { getPhaseColor, getStatusBorderColor } from '@/components/mui-styling/theme'
-import StatusChip from '@/components/ui/StatusChip'
-
-import type { Task } from '@/types/api-exports'
+import { getPhaseColor, getStatusBorderColor } from "@/components/mui-styling/theme";
+import StatusChip from "@/components/ui/StatusChip";
 
 interface TaskItemProps {
-  task: Task
-  onClick?: (task: Task) => void
+  task: Task;
+  onClick?: (task: Task) => void;
 }
 
-const StyledTaskButton = styled(Button)<{ bordercolor: string }>(
-  ({ theme, bordercolor }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
-    gap: theme.spacing(1),
-    width: '100%',
-    minHeight: 'unset',
-    height: 'auto',
-    color: theme.vars.palette.text.primary,
-    backgroundColor: theme.vars.palette.tableCellRow.fill,
-    boxShadow: `0px 0px 0px 1px inset ${theme.vars?.palette.divider}`,
-    borderLeft: `5px solid ${bordercolor}`,
-    borderRadius: theme.spacing(0.5),
-    cursor: 'pointer',
-    transition: theme.transitions.create(['box-shadow']),
-    '&:hover': {
-      boxShadow: `0px 0px 0px 1px inset ${bordercolor}`,
-    },
-  })
-)
+const StyledTaskButton = styled(Button)<{ bordercolor: string }>(({ theme, bordercolor }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
+  gap: theme.spacing(1),
+  width: "100%",
+  minHeight: "unset",
+  height: "auto",
+  color: theme.vars.palette.text.primary,
+  backgroundColor: theme.vars.palette.tableCellRow.fill,
+  boxShadow: `0px 0px 0px 1px inset ${theme.vars?.palette.divider}`,
+  borderLeft: `5px solid ${bordercolor}`,
+  borderRadius: theme.spacing(0.5),
+  cursor: "pointer",
+  transition: theme.transitions.create(["box-shadow"]),
+  "&:hover": {
+    boxShadow: `0px 0px 0px 1px inset ${bordercolor}`,
+  },
+}));
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
-  const theme = useTheme()
+  const theme = useTheme();
 
   const transformStatus = (status: string | null | undefined): string => {
-    if (!status) return 'Incomplete'
+    if (!status) return "Incomplete";
     return String(status)
-      .replace(/_/g, ' ')
+      .replace(/_/g, " ")
       .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase())
-  }
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+  };
 
-  const statusLabel = transformStatus(task.status)
+  const statusLabel = transformStatus(task.status);
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'No due date'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })
-  }
+    if (!dateString) return "No due date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   // Use phase color based on phaseNumber (convert to 0-based index)
-  const phaseColor = getPhaseColor((task.phaseNumber || 1) - 1)
+  const phaseColor = getPhaseColor((task.phaseNumber || 1) - 1);
 
   // Get border color based on task status
-  const borderColor = getStatusBorderColor(task.status, phaseColor, theme)
+  const borderColor = getStatusBorderColor(task.status, phaseColor, theme);
 
   return (
     <StyledTaskButton
@@ -73,9 +70,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
       tabIndex={0}
       data-testid={`task-card-${task.id}`}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.(task)
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.(task);
         }
       }}
       aria-label={`Task: ${task.title}, assigned to ${task.owner}, due ${formatDate(task.dueDate)}, status ${statusLabel}`}
@@ -83,9 +80,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
       {/* Start Content */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
           flexGrow: 1,
           minWidth: 0,
         }}
@@ -95,11 +92,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
           fontWeight={500}
           data-testid="task-title"
           sx={{
-            textAlign: 'left',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            width: '100%',
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
           }}
         >
           {task.title}
@@ -107,7 +104,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
         <Typography
           variant="caption"
           sx={{
-            color: 'text.secondary',
+            color: "text.secondary",
           }}
         >
           {task.owner}
@@ -117,9 +114,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
       {/* End Content */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
           flexShrink: 0,
         }}
       >
@@ -127,7 +124,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
           variant="body3"
           fontWeight={500}
           sx={{
-            whiteSpace: 'nowrap',
+            whiteSpace: "nowrap",
             marginBottom: (theme) => theme.spacing(0.5),
           }}
         >
@@ -136,7 +133,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
         <StatusChip status={statusLabel} size="small" />
       </Box>
     </StyledTaskButton>
-  )
-}
+  );
+};
 
-export default TaskItem
+export default TaskItem;

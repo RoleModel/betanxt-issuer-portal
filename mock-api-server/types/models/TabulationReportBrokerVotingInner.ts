@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,75 +23,75 @@ export interface TabulationReportBrokerVotingInner {
    * @type {string}
    * @memberof TabulationReportBrokerVotingInner
    */
-  broker?: string
+  broker?: string;
   /**
    *
    * @type {number}
    * @memberof TabulationReportBrokerVotingInner
    */
-  sharesFor?: number
+  sharesFor?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportBrokerVotingInner
    */
-  sharesAgainst?: number
+  sharesAgainst?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportBrokerVotingInner
    */
-  sharesAbstain?: number
+  sharesAbstain?: number;
 }
 
 /**
  * Check if a given object implements the TabulationReportBrokerVotingInner interface.
  */
 export function instanceOfTabulationReportBrokerVotingInner(
-  value: object
+  value: object,
 ): value is TabulationReportBrokerVotingInner {
-  return true
+  return true;
 }
 
 export function TabulationReportBrokerVotingInnerFromJSON(
-  json: any
+  json: any,
 ): TabulationReportBrokerVotingInner {
-  return TabulationReportBrokerVotingInnerFromJSONTyped(json, false)
+  return TabulationReportBrokerVotingInnerFromJSONTyped(json, false);
 }
 
 export function TabulationReportBrokerVotingInnerFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): TabulationReportBrokerVotingInner {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    broker: json['broker'] == null ? undefined : json['broker'],
-    sharesFor: json['sharesFor'] == null ? undefined : json['sharesFor'],
-    sharesAgainst: json['sharesAgainst'] == null ? undefined : json['sharesAgainst'],
-    sharesAbstain: json['sharesAbstain'] == null ? undefined : json['sharesAbstain'],
-  }
+    broker: json["broker"] == null ? undefined : json["broker"],
+    sharesFor: json["sharesFor"] == null ? undefined : json["sharesFor"],
+    sharesAgainst: json["sharesAgainst"] == null ? undefined : json["sharesAgainst"],
+    sharesAbstain: json["sharesAbstain"] == null ? undefined : json["sharesAbstain"],
+  };
 }
 
 export function TabulationReportBrokerVotingInnerToJSON(
-  json: any
+  json: any,
 ): TabulationReportBrokerVotingInner {
-  return TabulationReportBrokerVotingInnerToJSONTyped(json, false)
+  return TabulationReportBrokerVotingInnerToJSONTyped(json, false);
 }
 
 export function TabulationReportBrokerVotingInnerToJSONTyped(
   value?: TabulationReportBrokerVotingInner | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    broker: value['broker'],
-    sharesFor: value['sharesFor'],
-    sharesAgainst: value['sharesAgainst'],
-    sharesAbstain: value['sharesAbstain'],
-  }
+    broker: value["broker"],
+    sharesFor: value["sharesFor"],
+    sharesAgainst: value["sharesAgainst"],
+    sharesAbstain: value["sharesAbstain"],
+  };
 }

@@ -1,3 +1,5 @@
+import type { CreatePhaseRequestKeyDates } from "./CreatePhaseRequestKeyDates";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { CreatePhaseRequestKeyDates } from './CreatePhaseRequestKeyDates'
+import { mapValues } from "../runtime";
 import {
   CreatePhaseRequestKeyDatesFromJSON,
   CreatePhaseRequestKeyDatesFromJSONTyped,
   CreatePhaseRequestKeyDatesToJSON,
   CreatePhaseRequestKeyDatesToJSONTyped,
-} from './CreatePhaseRequestKeyDates'
+} from "./CreatePhaseRequestKeyDates";
 
 /**
  *
@@ -30,66 +31,64 @@ export interface CreatePhaseRequest {
    * @type {string}
    * @memberof CreatePhaseRequest
    */
-  name: string
+  name: string;
   /**
    *
    * @type {number}
    * @memberof CreatePhaseRequest
    */
-  orderIndex: number
+  orderIndex: number;
   /**
    *
    * @type {CreatePhaseRequestKeyDates}
    * @memberof CreatePhaseRequest
    */
-  keyDates?: CreatePhaseRequestKeyDates
+  keyDates?: CreatePhaseRequestKeyDates;
 }
 
 /**
  * Check if a given object implements the CreatePhaseRequest interface.
  */
 export function instanceOfCreatePhaseRequest(value: object): value is CreatePhaseRequest {
-  if (!('name' in value) || value['name'] === undefined) return false
-  if (!('orderIndex' in value) || value['orderIndex'] === undefined) return false
-  return true
+  if (!("name" in value) || value["name"] === undefined) return false;
+  if (!("orderIndex" in value) || value["orderIndex"] === undefined) return false;
+  return true;
 }
 
 export function CreatePhaseRequestFromJSON(json: any): CreatePhaseRequest {
-  return CreatePhaseRequestFromJSONTyped(json, false)
+  return CreatePhaseRequestFromJSONTyped(json, false);
 }
 
 export function CreatePhaseRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreatePhaseRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    name: json['name'],
-    orderIndex: json['orderIndex'],
+    name: json["name"],
+    orderIndex: json["orderIndex"],
     keyDates:
-      json['keyDates'] == null
-        ? undefined
-        : CreatePhaseRequestKeyDatesFromJSON(json['keyDates']),
-  }
+      json["keyDates"] == null ? undefined : CreatePhaseRequestKeyDatesFromJSON(json["keyDates"]),
+  };
 }
 
 export function CreatePhaseRequestToJSON(json: any): CreatePhaseRequest {
-  return CreatePhaseRequestToJSONTyped(json, false)
+  return CreatePhaseRequestToJSONTyped(json, false);
 }
 
 export function CreatePhaseRequestToJSONTyped(
   value?: CreatePhaseRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    name: value['name'],
-    orderIndex: value['orderIndex'],
-    keyDates: CreatePhaseRequestKeyDatesToJSON(value['keyDates']),
-  }
+    name: value["name"],
+    orderIndex: value["orderIndex"],
+    keyDates: CreatePhaseRequestKeyDatesToJSON(value["keyDates"]),
+  };
 }

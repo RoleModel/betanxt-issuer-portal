@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   Avatar,
   Box,
@@ -12,61 +10,62 @@ import {
   Paper,
   Popover,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
 interface Contact {
-  id: string
-  name: string
-  role: string
-  phone: string
-  email: string
-  avatar?: string
-  initials?: string
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+  avatar?: string;
+  initials?: string;
 }
 
 const supportContacts: Contact[] = [
   {
-    id: '1',
-    name: 'Lisa Woodrow',
-    role: 'Relationship Manager',
-    phone: '978-789-0987',
-    email: 'lisa.woodrow@betanxt.com',
+    id: "1",
+    name: "Lisa Woodrow",
+    role: "Relationship Manager",
+    phone: "978-789-0987",
+    email: "lisa.woodrow@betanxt.com",
     avatar: undefined, // Would be replaced with actual image URL
-    initials: 'LW',
+    initials: "LW",
   },
   {
-    id: '2',
-    name: 'Tina Glasgow',
-    role: 'Meeting Producer',
-    phone: '978-908-5680',
-    email: 'tina.glasgow@betanxt.com',
+    id: "2",
+    name: "Tina Glasgow",
+    role: "Meeting Producer",
+    phone: "978-908-5680",
+    email: "tina.glasgow@betanxt.com",
     avatar: undefined, // Would be replaced with actual image URL
-    initials: 'TG',
+    initials: "TG",
   },
   {
-    id: '3',
-    name: 'Bob Linquist',
-    role: 'Sales',
-    phone: '789-098-0987',
-    email: 'bob.linquist@betanxt.com',
+    id: "3",
+    name: "Bob Linquist",
+    role: "Sales",
+    phone: "789-098-0987",
+    email: "bob.linquist@betanxt.com",
     avatar: undefined, // Would be replaced with actual image URL
-    initials: 'BL',
+    initials: "BL",
   },
   {
-    id: '4',
-    name: 'Customer Service',
-    role: '',
-    phone: '789-098-0987',
-    email: 'customerservice@betanxt.com',
+    id: "4",
+    name: "Customer Service",
+    role: "",
+    phone: "789-098-0987",
+    email: "customerservice@betanxt.com",
     avatar: undefined,
-    initials: 'CS',
+    initials: "CS",
   },
-]
+];
 
 interface SupportContactsPopoverProps {
-  open: boolean
-  anchorEl: HTMLElement | null
-  onClose: () => void
+  open: boolean;
+  anchorEl: HTMLElement | null;
+  onClose: () => void;
 }
 
 export default function SupportContactsPopover({
@@ -80,19 +79,19 @@ export default function SupportContactsPopover({
       anchorEl={anchorEl}
       onClose={onClose}
       anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
+        vertical: "top",
+        horizontal: "right",
       }}
       transformOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
+        vertical: "bottom",
+        horizontal: "right",
       }}
     >
       <Paper
         elevation={8}
         sx={{
           borderRadius: 1,
-          bgcolor: 'background.paper',
+          bgcolor: "background.paper",
           minWidth: 320,
           maxWidth: 500,
         }}
@@ -106,10 +105,10 @@ export default function SupportContactsPopover({
                     src={contact.avatar}
                     variant="rounded"
                     sx={{
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
+                      bgcolor: "primary.main",
+                      color: "primary.contrastText",
                       fontWeight: 400,
-                      fontSize: '20px',
+                      fontSize: "20px",
                     }}
                   >
                     {contact.initials}
@@ -121,7 +120,7 @@ export default function SupportContactsPopover({
                       component="span"
                       variant="body3"
                       fontWeight={500}
-                      sx={{ lineHeight: '20px' }}
+                      sx={{ lineHeight: "20px" }}
                     >
                       {contact.name}
                       {contact.role && ` - ${contact.role}`}
@@ -131,9 +130,9 @@ export default function SupportContactsPopover({
                     <Box
                       component="span"
                       sx={{
-                        display: 'flex',
+                        display: "flex",
                         gap: 1.25,
-                        alignItems: 'center',
+                        alignItems: "center",
                         mt: 0.25,
                       }}
                     >
@@ -141,7 +140,7 @@ export default function SupportContactsPopover({
                         component="span"
                         variant="body3"
                         color="text.secondary"
-                        sx={{ whiteSpace: 'nowrap' }}
+                        sx={{ whiteSpace: "nowrap" }}
                       >
                         {contact.phone}
                       </Typography>
@@ -150,8 +149,8 @@ export default function SupportContactsPopover({
                         variant="body3"
                         underline="always"
                         sx={{
-                          color: 'primary.main',
-                          textDecorationColor: 'primary.main',
+                          color: "primary.main",
+                          textDecorationColor: "primary.main",
                         }}
                       >
                         {contact.email}
@@ -166,5 +165,5 @@ export default function SupportContactsPopover({
         </List>
       </Paper>
     </Popover>
-  )
+  );
 }

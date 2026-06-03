@@ -1,16 +1,15 @@
-'use client'
+"use client";
 
-import React, { Suspense } from 'react'
+import { Grid } from "@mui/material";
+import React, { Suspense } from "react";
 
-import { Grid } from '@mui/material'
+import type { Meeting } from "@/types/api-exports";
 
-import KeyDatesCard from '@/components/Meeting/KeyDatesCard'
-import MeetingDocuments from '@/components/Meeting/MeetingDocuments'
-
-import type { Meeting } from '@/types/api-exports'
+import KeyDatesCard from "@/components/Meeting/KeyDatesCard";
+import MeetingDocuments from "@/components/Meeting/MeetingDocuments";
 
 interface Phase3LayoutProps {
-  meeting?: Meeting
+  meeting?: Meeting;
 }
 
 function Phase3Layout({ meeting }: Phase3LayoutProps) {
@@ -25,6 +24,6 @@ function Phase3Layout({ meeting }: Phase3LayoutProps) {
         <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
       </Grid>
     </Grid>
-  )
+  );
 }
-export default Phase3Layout
+export default Phase3Layout;

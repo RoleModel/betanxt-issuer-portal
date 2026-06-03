@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,48 +23,46 @@ export interface CreateCommentRequest {
    * @type {string}
    * @memberof CreateCommentRequest
    */
-  comment: string
+  comment: string;
 }
 
 /**
  * Check if a given object implements the CreateCommentRequest interface.
  */
-export function instanceOfCreateCommentRequest(
-  value: object
-): value is CreateCommentRequest {
-  if (!('comment' in value) || value['comment'] === undefined) return false
-  return true
+export function instanceOfCreateCommentRequest(value: object): value is CreateCommentRequest {
+  if (!("comment" in value) || value["comment"] === undefined) return false;
+  return true;
 }
 
 export function CreateCommentRequestFromJSON(json: any): CreateCommentRequest {
-  return CreateCommentRequestFromJSONTyped(json, false)
+  return CreateCommentRequestFromJSONTyped(json, false);
 }
 
 export function CreateCommentRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreateCommentRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    comment: json['comment'],
-  }
+    comment: json["comment"],
+  };
 }
 
 export function CreateCommentRequestToJSON(json: any): CreateCommentRequest {
-  return CreateCommentRequestToJSONTyped(json, false)
+  return CreateCommentRequestToJSONTyped(json, false);
 }
 
 export function CreateCommentRequestToJSONTyped(
   value?: CreateCommentRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    comment: value['comment'],
-  }
+    comment: value["comment"],
+  };
 }

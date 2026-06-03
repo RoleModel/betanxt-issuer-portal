@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,175 +23,174 @@ export interface Position {
    * @type {string}
    * @memberof Position
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  meetingId?: string
+  meetingId?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  cusip?: string
+  cusip?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  accountType?: string
+  accountType?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  setKey?: string
+  setKey?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  name?: string
+  name?: string;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  accountNumber?: string | null
+  accountNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  controlNumber?: string | null
+  controlNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  voteStatus?: PositionVoteStatusEnum
+  voteStatus?: PositionVoteStatusEnum;
   /**
    *
    * @type {number}
    * @memberof Position
    */
-  shares?: number
+  shares?: number;
   /**
    *
    * @type {number}
    * @memberof Position
    */
-  sharesVoted?: number
+  sharesVoted?: number;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  source?: PositionSourceEnum | null
+  source?: PositionSourceEnum | null;
   /**
    *
    * @type {string}
    * @memberof Position
    */
-  dateVoted?: string | null
+  dateVoted?: string | null;
   /**
    *
    * @type {Date}
    * @memberof Position
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Position
    */
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
 /**
  * @export
  */
 export const PositionVoteStatusEnum = {
-  Voted: 'Voted',
-  Unvoted: 'Unvoted',
-} as const
+  Voted: "Voted",
+  Unvoted: "Unvoted",
+} as const;
 export type PositionVoteStatusEnum =
-  (typeof PositionVoteStatusEnum)[keyof typeof PositionVoteStatusEnum]
+  (typeof PositionVoteStatusEnum)[keyof typeof PositionVoteStatusEnum];
 
 /**
  * @export
  */
 export const PositionSourceEnum = {
-  Web: 'WEB',
-  Print: 'PRINT',
-  Ivr: 'IVR',
-} as const
-export type PositionSourceEnum =
-  (typeof PositionSourceEnum)[keyof typeof PositionSourceEnum]
+  Web: "WEB",
+  Print: "PRINT",
+  Ivr: "IVR",
+} as const;
+export type PositionSourceEnum = (typeof PositionSourceEnum)[keyof typeof PositionSourceEnum];
 
 /**
  * Check if a given object implements the Position interface.
  */
 export function instanceOfPosition(value: object): value is Position {
-  return true
+  return true;
 }
 
 export function PositionFromJSON(json: any): Position {
-  return PositionFromJSONTyped(json, false)
+  return PositionFromJSONTyped(json, false);
 }
 
 export function PositionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Position {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    meetingId: json['meetingId'] == null ? undefined : json['meetingId'],
-    cusip: json['cusip'] == null ? undefined : json['cusip'],
-    accountType: json['accountType'] == null ? undefined : json['accountType'],
-    setKey: json['setKey'] == null ? undefined : json['setKey'],
-    name: json['name'] == null ? undefined : json['name'],
-    accountNumber: json['accountNumber'] == null ? undefined : json['accountNumber'],
-    controlNumber: json['controlNumber'] == null ? undefined : json['controlNumber'],
-    voteStatus: json['voteStatus'] == null ? undefined : json['voteStatus'],
-    shares: json['shares'] == null ? undefined : json['shares'],
-    sharesVoted: json['sharesVoted'] == null ? undefined : json['sharesVoted'],
-    source: json['source'] == null ? undefined : json['source'],
-    dateVoted: json['dateVoted'] == null ? undefined : json['dateVoted'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
+    cusip: json["cusip"] == null ? undefined : json["cusip"],
+    accountType: json["accountType"] == null ? undefined : json["accountType"],
+    setKey: json["setKey"] == null ? undefined : json["setKey"],
+    name: json["name"] == null ? undefined : json["name"],
+    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    voteStatus: json["voteStatus"] == null ? undefined : json["voteStatus"],
+    shares: json["shares"] == null ? undefined : json["shares"],
+    sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
+    source: json["source"] == null ? undefined : json["source"],
+    dateVoted: json["dateVoted"] == null ? undefined : json["dateVoted"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+  };
 }
 
 export function PositionToJSON(json: any): Position {
-  return PositionToJSONTyped(json, false)
+  return PositionToJSONTyped(json, false);
 }
 
 export function PositionToJSONTyped(
   value?: Position | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    meetingId: value['meetingId'],
-    cusip: value['cusip'],
-    accountType: value['accountType'],
-    setKey: value['setKey'],
-    name: value['name'],
-    accountNumber: value['accountNumber'],
-    controlNumber: value['controlNumber'],
-    voteStatus: value['voteStatus'],
-    shares: value['shares'],
-    sharesVoted: value['sharesVoted'],
-    source: value['source'],
-    dateVoted: value['dateVoted'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-  }
+    id: value["id"],
+    meetingId: value["meetingId"],
+    cusip: value["cusip"],
+    accountType: value["accountType"],
+    setKey: value["setKey"],
+    name: value["name"],
+    accountNumber: value["accountNumber"],
+    controlNumber: value["controlNumber"],
+    voteStatus: value["voteStatus"],
+    shares: value["shares"],
+    sharesVoted: value["sharesVoted"],
+    source: value["source"],
+    dateVoted: value["dateVoted"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+  };
 }

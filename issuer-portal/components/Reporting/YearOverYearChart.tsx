@@ -1,8 +1,6 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { Box, Typography } from '@mui/material'
+import { Box, Typography } from "@mui/material";
 import {
   BarPlot,
   ChartDataProvider,
@@ -13,33 +11,34 @@ import {
   ChartsYAxis,
   LinePlot,
   MarkPlot,
-} from '@mui/x-charts'
+} from "@mui/x-charts";
+import React from "react";
 
-import SkeletonChart from '@/components/ui/SkeletonChart'
+import SkeletonChart from "@/components/ui/SkeletonChart";
 
-import { CustomLegend } from './index'
+import { CustomLegend } from "./index";
 
 interface YearOverYearData {
-  year: number
-  participationRate: number
-  registeredShares: number
-  beneficialShares: number
-  totalShares: number
+  year: number;
+  participationRate: number;
+  registeredShares: number;
+  beneficialShares: number;
+  totalShares: number;
 }
 
 interface YearOverYearChartProps {
-  data: YearOverYearData[]
-  loading?: boolean
-  title?: string
+  data: YearOverYearData[];
+  loading?: boolean;
+  title?: string;
 }
 
 const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   data,
   loading = false,
-  title: _title = 'Year over Year Registered vs Beneficial Performance',
+  title: _title = "Year over Year Registered vs Beneficial Performance",
 }) => {
   if (loading) {
-    return <SkeletonChart height={320} showLegend noCard />
+    return <SkeletonChart height={320} showLegend noCard />;
   }
 
   if (!data || data.length === 0) {
@@ -49,37 +48,37 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           No year over year data available
         </Typography>
       </Box>
-    )
+    );
   }
 
   const legendItems = [
     {
-      label: 'Registered',
-      color: 'var(--mui-palette-chartSeries-1-main)',
-      type: 'bar' as const,
+      label: "Registered",
+      color: "var(--mui-palette-chartSeries-1-main)",
+      type: "bar" as const,
     },
     {
-      label: 'Beneficial',
-      color: 'var(--mui-palette-chartSeries-4-main)',
-      type: 'bar' as const,
+      label: "Beneficial",
+      color: "var(--mui-palette-chartSeries-4-main)",
+      type: "bar" as const,
     },
     {
-      label: 'Participation %',
-      color: 'var(--mui-palette-chartSeries-8-main)',
-      type: 'line' as const,
+      label: "Participation %",
+      color: "var(--mui-palette-chartSeries-8-main)",
+      type: "line" as const,
     },
-  ]
+  ];
 
-  const years = data.map((item) => String(item.year))
-  const participationRates = data.map((item) => item.participationRate)
-  const registeredShares = data.map((item) => item.registeredShares)
-  const beneficialShares = data.map((item) => item.beneficialShares)
+  const years = data.map((item) => String(item.year));
+  const participationRates = data.map((item) => item.participationRate);
+  const registeredShares = data.map((item) => item.registeredShares);
+  const beneficialShares = data.map((item) => item.beneficialShares);
 
   // Find the maximum total shares to set the y-axis scale
-  const maxTotalShares = Math.max(...data.map((item) => item.totalShares), 1)
+  const maxTotalShares = Math.max(...data.map((item) => item.totalShares), 1);
 
   // Round up to a nice number for the y-axis max
-  const yAxisMax = Math.ceil(maxTotalShares / 1000000) * 1000000
+  const yAxisMax = Math.ceil(maxTotalShares / 1000000) * 1000000;
 
   return (
     <ChartDataProvider
@@ -87,58 +86,58 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
       series={[
         // Registered shares
         {
-          type: 'bar',
+          type: "bar",
           data: registeredShares,
-          label: 'Registered',
-          color: 'var(--mui-palette-chartSeries-1-main)',
-          yAxisId: 'leftAxis',
-          stack: 'shares',
+          label: "Registered",
+          color: "var(--mui-palette-chartSeries-1-main)",
+          yAxisId: "leftAxis",
+          stack: "shares",
         },
         // Beneficial shares
         {
-          type: 'bar',
+          type: "bar",
           data: beneficialShares,
-          label: 'Beneficial',
-          color: 'var(--mui-palette-chartSeries-4-main)',
-          yAxisId: 'leftAxis',
-          stack: 'shares',
+          label: "Beneficial",
+          color: "var(--mui-palette-chartSeries-4-main)",
+          yAxisId: "leftAxis",
+          stack: "shares",
         },
         {
-          type: 'line',
+          type: "line",
           data: participationRates,
-          label: 'Participation %',
-          color: 'var(--mui-palette-chartSeries-8-main)',
-          curve: 'catmullRom',
+          label: "Participation %",
+          color: "var(--mui-palette-chartSeries-8-main)",
+          curve: "catmullRom",
           showMark: false,
-          yAxisId: 'rightAxis',
+          yAxisId: "rightAxis",
         },
       ]}
       xAxis={[
         {
-          scaleType: 'band',
+          scaleType: "band",
           data: years,
-          id: 'x-axis-id',
+          id: "x-axis-id",
         },
       ]}
       yAxis={[
         {
-          id: 'leftAxis',
-          scaleType: 'linear',
+          id: "leftAxis",
+          scaleType: "linear",
           min: 0,
           max: yAxisMax,
           valueFormatter: (value) => {
             if (value >= 1000000) {
-              return `${(value / 1000000).toFixed(1)}M`
+              return `${(value / 1000000).toFixed(1)}M`;
             }
             if (value >= 1000) {
-              return `${(value / 1000).toFixed(0)}K`
+              return `${(value / 1000).toFixed(0)}K`;
             }
-            return value.toFixed(0)
+            return value.toFixed(0);
           },
         },
         {
-          id: 'rightAxis',
-          scaleType: 'linear',
+          id: "rightAxis",
+          scaleType: "linear",
           min: 0,
           max: 100,
           width: 100,
@@ -158,11 +157,11 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <ChartsYAxis axisId="rightAxis" />
         <ChartsTooltip />
       </ChartsSurface>
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
         <CustomLegend items={legendItems} />
       </Box>
     </ChartDataProvider>
-  )
-}
+  );
+};
 
-export default YearOverYearChart
+export default YearOverYearChart;

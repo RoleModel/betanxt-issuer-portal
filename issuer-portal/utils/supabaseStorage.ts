@@ -1,22 +1,22 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
 // Initialize Supabase client for storage operations
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const BUCKET_NAME = 'documents'
+const BUCKET_NAME = "documents";
 
 export interface StorageUploadResult {
   data: {
-    path: string
-    fullPath: string
-    publicUrl?: string
-  } | null
-  error: string | null
+    path: string;
+    fullPath: string;
+    publicUrl?: string;
+  } | null;
+  error: string | null;
 }
 
 /**
@@ -24,40 +24,40 @@ export interface StorageUploadResult {
  */
 export async function uploadFileToStorage(
   file: File,
-  folder?: string
+  folder?: string,
 ): Promise<StorageUploadResult> {
   try {
     // Generate unique filename
-    const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 15)
-    const extension = file.name.split('.').pop()
-    const filename = `${timestamp}_${randomId}.${extension}`
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const extension = file.name.split(".").pop();
+    const filename = `${timestamp}_${randomId}.${extension}`;
 
     // Create path with optional folder
-    const path = folder ? `${folder}/${filename}` : filename
+    const path = folder ? `${folder}/${filename}` : filename;
 
     // Upload file to storage
     const { data, error } = await supabase.storage.from(BUCKET_NAME).upload(path, file, {
-      cacheControl: '3600',
+      cacheControl: "3600",
       upsert: false,
-    })
+    });
 
     if (error) {
       return {
         data: null,
         error: error.message,
-      }
+      };
     }
 
     if (!data) {
       return {
         data: null,
-        error: 'Upload failed - no data returned',
-      }
+        error: "Upload failed - no data returned",
+      };
     }
 
     // Get public URL for the uploaded file
-    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path)
+    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
 
     return {
       data: {
@@ -66,33 +66,31 @@ export async function uploadFileToStorage(
         publicUrl: urlData.publicUrl,
       },
       error: null,
-    }
+    };
   } catch (err) {
     return {
       data: null,
-      error: err instanceof Error ? err.message : 'Unknown upload error',
-    }
+      error: err instanceof Error ? err.message : "Unknown upload error",
+    };
   }
 }
 
 /**
  * Delete a file from Supabase storage
  */
-export async function deleteFileFromStorage(
-  path: string
-): Promise<{ error: string | null }> {
+export async function deleteFileFromStorage(path: string): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase.storage.from(BUCKET_NAME).remove([path])
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove([path]);
 
     if (error) {
-      return { error: error.message }
+      return { error: error.message };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : 'Unknown delete error',
-    }
+      error: err instanceof Error ? err.message : "Unknown delete error",
+    };
   }
 }
 
@@ -100,9 +98,9 @@ export async function deleteFileFromStorage(
  * Get public URL for a file in storage
  */
 export function getStorageFileUrl(path: string): string {
-  const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path)
+  const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
 
-  return data.publicUrl
+  return data.publicUrl;
 }
 
 /**
@@ -113,18 +111,18 @@ export async function listStorageFiles(folder?: string) {
     const { data, error } = await supabase.storage.from(BUCKET_NAME).list(folder, {
       limit: 100,
       offset: 0,
-    })
+    });
 
     if (error) {
-      return { data: null, error: error.message }
+      return { data: null, error: error.message };
     }
 
-    return { data, error: null }
+    return { data, error: null };
   } catch (err) {
     return {
       data: null,
-      error: err instanceof Error ? err.message : 'Unknown list error',
-    }
+      error: err instanceof Error ? err.message : "Unknown list error",
+    };
   }
 }
 
@@ -133,7 +131,7 @@ export async function listStorageFiles(folder?: string) {
  */
 export function createStorageFolder(
   meetingId: string,
-  documentType: 'dsm' | 'regular' = 'regular'
+  documentType: "dsm" | "regular" = "regular",
 ): string {
-  return `${meetingId}/${documentType}`
+  return `${meetingId}/${documentType}`;
 }

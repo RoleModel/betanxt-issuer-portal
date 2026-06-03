@@ -1,7 +1,4 @@
-'use client'
-
-import { useParams } from 'next/navigation'
-import { Suspense } from 'react'
+"use client";
 
 import {
   Alert,
@@ -13,44 +10,45 @@ import {
   Skeleton,
   Stack,
   Typography,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import { useParams } from "next/navigation";
+import { Suspense } from "react";
 
-import EventSummaryTable from '@/components/Reporting/EventSummaryTable'
-import ProposalPerformanceTable from '@/components/Reporting/ProposalPerformanceTable'
-import QuorumPerformanceTable from '@/components/Reporting/QuorumPerformanceTable'
-import YearOverYearChart from '@/components/Reporting/YearOverYearChart'
-
-import { useReporting } from '@/hooks/useReporting'
+import EventSummaryTable from "@/components/Reporting/EventSummaryTable";
+import ProposalPerformanceTable from "@/components/Reporting/ProposalPerformanceTable";
+import QuorumPerformanceTable from "@/components/Reporting/QuorumPerformanceTable";
+import YearOverYearChart from "@/components/Reporting/YearOverYearChart";
+import { useReporting } from "@/hooks/useReporting";
 
 const ChartSkeleton = () => (
   <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 2 }} />
-)
+);
 
 export default function ReportingPage() {
-  const params = useParams()
-  const clientTicker = params.clientTicker as string
+  const params = useParams();
+  const clientTicker = params.clientTicker as string;
 
-  const { data: reportingData, loading, error } = useReporting(clientTicker)
+  const { data: reportingData, loading, error } = useReporting(clientTicker);
 
-  const mappedEventSummary = reportingData?.mappedEventSummary ?? []
-  const mappedYearOverYear = reportingData?.mappedYearOverYear ?? []
-  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? []
-  const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? []
+  const mappedEventSummary = reportingData?.mappedEventSummary ?? [];
+  const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
+  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? [];
+  const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? [];
   const latestCompletedYear =
     mappedEventSummary.find((item) => item.meetingYear > 0)?.meetingYear ??
     mappedYearOverYear.find((item) => item.year > 0)?.year ??
     mappedEventSummary
       .map((item) => /\b(20\d{2})\b/.exec(item.event)?.[1])
       .find((year): year is string => Boolean(year)) ??
-    (clientTicker.toUpperCase() === 'WEN' ? '2025' : undefined)
+    (clientTicker.toUpperCase() === "WEN" ? "2025" : undefined);
 
   if (error) {
     return (
       <Container component="main" maxWidth="xl" sx={{ p: 3 }}>
         <Alert severity="error">{String(error)}</Alert>
       </Container>
-    )
+    );
   }
 
   return (
@@ -59,17 +57,16 @@ export default function ReportingPage() {
         <Grid size={12}>
           <Stack spacing={1}>
             <Typography variant="h4">Reporting</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
               <Typography variant="body2">
                 Passed Proposals: {reportingData?.eventSummaryData.passedProposals ?? 0}
               </Typography>
               <Typography variant="body2">
-                Quorum:{' '}
-                {reportingData?.eventSummaryData.quorumAchieved ? 'Met' : 'Pending'}
+                Quorum: {reportingData?.eventSummaryData.quorumAchieved ? "Met" : "Pending"}
               </Typography>
               <Typography variant="body2">
-                Participation:{' '}
-                {(reportingData?.eventSummaryData.participationRate ?? 0).toFixed(1)}%
+                Participation: {(reportingData?.eventSummaryData.participationRate ?? 0).toFixed(1)}
+                %
               </Typography>
               <Typography variant="body2">Director Election</Typography>
               {latestCompletedYear && (
@@ -120,5 +117,5 @@ export default function ReportingPage() {
         </Grid>
       </Grid>
     </Container>
-  )
+  );
 }

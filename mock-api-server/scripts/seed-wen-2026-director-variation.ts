@@ -3,84 +3,81 @@
  * Adds realistic variation to WEN 2026 director election votes.
  * Institutional holders oppose specific directors based on governance concerns.
  */
-import { config } from 'dotenv'
-import pg from 'pg'
+import { config } from "dotenv";
+import pg from "pg";
 
-config({ path: '.env.local' })
+config({ path: ".env.local" });
 
-const MEETING_ID = 'wen-annual-meeting-2026'
+const MEETING_ID = "wen-annual-meeting-2026";
 
 // Which positions vote AGAINST which directors (by proposal_number)
 // Directors not listed below get unanimous FOR support
 const DIRECTOR_OPPOSITION: Record<string, string[]> = {
-  '1.02': ['TORUM CAPITAL LLC'],
-  '1.03': ['SEAMUS DANIEL III'],
-  '1.05': ['IUDICIT CAPITAL CORP', 'TORUM CAPITAL LLC'],
-  '1.07': ['T. ROWE PRICE'],
-  '1.08': ['WELLINGTON MANAGEMENT', 'T. ROWE PRICE'],
-}
+  "1.02": ["TORUM CAPITAL LLC"],
+  "1.03": ["SEAMUS DANIEL III"],
+  "1.05": ["IUDICIT CAPITAL CORP", "TORUM CAPITAL LLC"],
+  "1.07": ["T. ROWE PRICE"],
+  "1.08": ["WELLINGTON MANAGEMENT", "T. ROWE PRICE"],
+};
 
 async function run() {
   const client = new pg.Client({
-    host: 'aws-1-us-east-2.pooler.supabase.com',
+    host: "aws-1-us-east-2.pooler.supabase.com",
     port: 5432,
-    user: 'postgres.vfgjzlcakdrpsbzuqklz',
-    password: process.env.POSTGRES_PASSWORD ?? 'ZgnAkgxVLYDcf9gj',
-    database: 'postgres',
+    user: "postgres.vfgjzlcakdrpsbzuqklz",
+    password: process.env.POSTGRES_PASSWORD ?? "ZgnAkgxVLYDcf9gj",
+    database: "postgres",
     ssl: { rejectUnauthorized: false },
-  })
+  });
 
-  await client.connect()
-  console.log('✅ Connected')
+  await client.connect();
+  console.log("✅ Connected");
 
   try {
-    await client.query('BEGIN')
+    await client.query("BEGIN");
 
     const proposalsRes = await client.query(
       `SELECT id, proposal_number FROM proposal
        WHERE meeting_id = $1 AND proposal_type = 'Director Election'
        ORDER BY proposal_number`,
-      [MEETING_ID]
-    )
+      [MEETING_ID],
+    );
 
     const positionsRes = await client.query(
       `SELECT id, name, shares_voted FROM position
        WHERE meeting_id = $1 AND vote_status = 'Voted'`,
-      [MEETING_ID]
-    )
+      [MEETING_ID],
+    );
     const positionsByName = new Map<string, { id: string; shares_voted: string }>(
-      positionsRes.rows.map((r: { id: string; name: string; shares_voted: string }) => [
-        r.name,
-        r,
-      ])
-    )
+      positionsRes.rows.map((r: { id: string; name: string; shares_voted: string }) => [r.name, r]),
+    );
 
-    console.log(`\n📋 Processing ${proposalsRes.rows.length} director proposals...`)
+    console.log(`\n📋 Processing ${proposalsRes.rows.length} director proposals...`);
 
     for (const proposal of proposalsRes.rows) {
-      const propNum = Number(proposal.proposal_number).toFixed(2)
-      const opposers = DIRECTOR_OPPOSITION[propNum] ?? []
+      const propNum = Number(proposal.proposal_number).toFixed(2);
+      const opposers = DIRECTOR_OPPOSITION[propNum] ?? [];
 
-      if (opposers.length === 0) continue
+      if (opposers.length === 0) continue;
 
-      console.log(`\n  Proposal ${propNum} — ${opposers.join(', ')} voting AGAINST:`)
+      console.log(`\n  Proposal ${propNum} — ${opposers.join(", ")} voting AGAINST:`);
 
       for (const posName of opposers) {
-        const pos = positionsByName.get(posName)
+        const pos = positionsByName.get(posName);
         if (!pos) {
-          console.warn(`    ⚠️  Position not found: ${posName}`)
-          continue
+          console.warn(`    ⚠️  Position not found: ${posName}`);
+          continue;
         }
 
         const updated = await client.query(
           `UPDATE position_vote
            SET vote = 'AGAINST'
            WHERE position_id = $1 AND proposal_id = $2`,
-          [pos.id, proposal.id]
-        )
+          [pos.id, proposal.id],
+        );
         console.log(
-          `    ✓ ${posName}: ${Number(pos.shares_voted).toLocaleString()} shares → AGAINST (${updated.rowCount} row)`
-        )
+          `    ✓ ${posName}: ${Number(pos.shares_voted).toLocaleString()} shares → AGAINST (${updated.rowCount} row)`,
+        );
       }
 
       // Recalculate this proposal's totals from position_vote records
@@ -91,14 +88,14 @@ async function run() {
            SUM(CASE WHEN vote = 'ABSTAIN' THEN shares_voting::numeric ELSE 0 END) AS total_abstain
          FROM position_vote
          WHERE proposal_id = $1`,
-        [proposal.id]
-      )
-      const t = totalsRes.rows[0]
-      const totalFor = Number(t.total_for)
-      const totalAgainst = Number(t.total_against)
-      const totalAbstain = Number(t.total_abstain)
-      const totalVotes = totalFor + totalAgainst + totalAbstain
-      const totalShares = 190466246
+        [proposal.id],
+      );
+      const t = totalsRes.rows[0];
+      const totalFor = Number(t.total_for);
+      const totalAgainst = Number(t.total_against);
+      const totalAbstain = Number(t.total_abstain);
+      const totalVotes = totalFor + totalAgainst + totalAbstain;
+      const totalShares = 190466246;
 
       await client.query(
         `UPDATE proposal SET
@@ -120,22 +117,22 @@ async function run() {
           ((totalAbstain / totalShares) * 100).toFixed(4),
           ((totalVotes / totalShares) * 100).toFixed(4),
           proposal.id,
-        ]
-      )
+        ],
+      );
       console.log(
-        `    → FOR=${totalFor.toLocaleString()} AGAINST=${totalAgainst.toLocaleString()} ABSTAIN=${totalAbstain.toLocaleString()}`
-      )
+        `    → FOR=${totalFor.toLocaleString()} AGAINST=${totalAgainst.toLocaleString()} ABSTAIN=${totalAbstain.toLocaleString()}`,
+      );
     }
 
-    await client.query('COMMIT')
-    console.log('\n🎉 Done — director vote variation applied.')
+    await client.query("COMMIT");
+    console.log("\n🎉 Done — director vote variation applied.");
   } catch (err) {
-    await client.query('ROLLBACK')
-    console.error('❌ Error, rolled back:', err)
-    process.exit(1)
+    await client.query("ROLLBACK");
+    console.error("❌ Error, rolled back:", err);
+    process.exit(1);
   } finally {
-    await client.end()
+    await client.end();
   }
 }
 
-void run()
+void run();

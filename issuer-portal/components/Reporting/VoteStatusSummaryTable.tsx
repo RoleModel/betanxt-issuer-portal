@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   Card,
@@ -13,37 +11,38 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import SROnlyTableCaption from '@/components/ui/SROnlyTableCaption'
+import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface VoteStatusRow {
-  category: string
-  shareholders: number
-  shares: number
-  percentage: number
+  category: string;
+  shareholders: number;
+  shares: number;
+  percentage: number;
 }
 
 interface VoteStatusSummaryTableProps {
-  title: string
-  data: VoteStatusRow[]
-  loading?: boolean
+  title: string;
+  data: VoteStatusRow[];
+  loading?: boolean;
 }
 
 const formatNumber = (num: number): string => {
-  return num.toLocaleString('en-US', {
+  return num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })
-}
+  });
+};
 
 const isSourceRow = (category: string): boolean => {
-  return ['PRINT', 'IVR', 'WEB'].includes(category)
-}
+  return ["PRINT", "IVR", "WEB"].includes(category);
+};
 
 const isTotalRow = (category: string): boolean => {
-  return category === 'Grand Total' || category === 'Voted Sub-Total'
-}
+  return category === "Grand Total" || category === "Voted Sub-Total";
+};
 
 export default function VoteStatusSummaryTable({
   title,
@@ -58,15 +57,14 @@ export default function VoteStatusSummaryTable({
           <Skeleton variant="rectangular" height={200} />
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  const isNonDtcTable = title.includes('Non-DTC')
+  const isNonDtcTable = title.includes("Non-DTC");
 
   // Calculate totals for percentage calculations
-  const totalShares = data.find((row) => row.category === 'Grand Total')?.shares ?? 0
-  const totalShareholders =
-    data.find((row) => row.category === 'Grand Total')?.shareholders ?? 0
+  const totalShares = data.find((row) => row.category === "Grand Total")?.shares ?? 0;
+  const totalShareholders = data.find((row) => row.category === "Grand Total")?.shareholders ?? 0;
 
   return (
     <Card>
@@ -96,11 +94,11 @@ export default function VoteStatusSummaryTable({
             </TableHead>
             <TableBody>
               {data.map((row, index) => {
-                const isSource = isSourceRow(row.category)
-                const isTotal = isTotalRow(row.category)
+                const isSource = isSourceRow(row.category);
+                const isTotal = isTotalRow(row.category);
                 const shareholderPct =
-                  totalShareholders > 0 ? (row.shareholders / totalShareholders) * 100 : 0
-                const sharesPct = totalShares > 0 ? (row.shares / totalShares) * 100 : 0
+                  totalShareholders > 0 ? (row.shareholders / totalShareholders) * 100 : 0;
+                const sharesPct = totalShares > 0 ? (row.shares / totalShares) * 100 : 0;
 
                 return (
                   <TableRow
@@ -108,45 +106,45 @@ export default function VoteStatusSummaryTable({
                     sx={(theme) => ({
                       ...(isTotal && {
                         bgcolor: theme.vars.palette.dataGridPagination.backgroundFill,
-                        fontWeight: 'bold',
+                        fontWeight: "bold",
                       }),
                     })}
                   >
                     <TableCell
                       sx={{
                         ...(isSource && { pl: 4 }),
-                        ...(isTotal && { fontWeight: 'bold' }),
+                        ...(isTotal && { fontWeight: "bold" }),
                       }}
                     >
                       {row.category}
                     </TableCell>
-                    <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
+                    <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
                       {formatNumber(row.shareholders)}
                     </TableCell>
                     {isNonDtcTable && (
-                      <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
-                        {isTotal && row.category === 'Grand Total'
-                          ? '-'
+                      <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                        {isTotal && row.category === "Grand Total"
+                          ? "-"
                           : `${shareholderPct.toFixed(2)}%`}
                       </TableCell>
                     )}
-                    <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
+                    <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
                       {formatNumber(row.shares)}
                     </TableCell>
                     {isNonDtcTable && (
-                      <TableCell align="right" sx={isTotal ? { fontWeight: 'bold' } : {}}>
-                        {isTotal && row.category === 'Grand Total'
-                          ? '-'
+                      <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                        {isTotal && row.category === "Grand Total"
+                          ? "-"
                           : `${sharesPct.toFixed(2)}%`}
                       </TableCell>
                     )}
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>
         </TableContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

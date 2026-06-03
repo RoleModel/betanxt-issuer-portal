@@ -1,20 +1,20 @@
-import { useCallback } from 'react'
+import { useCallback } from "react";
 
-import buildApiClient from '@/domain-models/apiClient'
+import type { components } from "@/types/api";
 
-import type { components } from '@/types/api'
-import { calculateOverallCompletion } from '@/utils/taskControl'
+import buildApiClient from "@/domain-models/apiClient";
+import { calculateOverallCompletion } from "@/utils/taskControl";
 
-type Task = components['schemas']['Task']
+type Task = components["schemas"]["Task"];
 
 interface Meeting {
-  id?: string
+  id?: string;
 }
 
 interface UseMeetingCompletionProps {
-  currentMeeting: Meeting | null
-  tasks: Task[]
-  refetch: () => void
+  currentMeeting: Meeting | null;
+  tasks: Task[];
+  refetch: () => void;
 }
 
 export const useMeetingCompletion = ({
@@ -23,30 +23,30 @@ export const useMeetingCompletion = ({
   refetch,
 }: UseMeetingCompletionProps) => {
   const updateMeetingCompletion = useCallback(async () => {
-    if (!currentMeeting?.id) return
+    if (!currentMeeting?.id) return;
 
     try {
-      const client = await buildApiClient()
+      const client = await buildApiClient();
 
       // Refetch tasks to get latest statuses
-      refetch()
+      refetch();
 
       // Calculate overall completion
-      const overallCompletion = calculateOverallCompletion(tasks)
+      const overallCompletion = calculateOverallCompletion(tasks);
 
       // Update meeting completion percentage
-      await client.PUT('/meetings/{meetingId}', {
+      await client.PUT("/meetings/{meetingId}", {
         params: {
           path: { meetingId: currentMeeting.id },
         },
         body: {
           overallCompletion: overallCompletion,
         },
-      })
-    } catch (_error) {
+      });
+    } catch {
       // Non-fatal error
     }
-  }, [currentMeeting, tasks, refetch])
+  }, [currentMeeting, tasks, refetch]);
 
-  return { updateMeetingCompletion }
-}
+  return { updateMeetingCompletion };
+};

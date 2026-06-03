@@ -15,7 +15,8 @@ import type {
   LoginUserRequest,
   LogoutUser200Response,
   User,
-} from '../models/index'
+} from "../models/index";
+
 import {
   LoginUser200ResponseFromJSON,
   LoginUser200ResponseToJSON,
@@ -25,11 +26,11 @@ import {
   LogoutUser200ResponseToJSON,
   UserFromJSON,
   UserToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface LoginUserOperationRequest {
-  loginUserRequest: LoginUserRequest
+  loginUserRequest: LoginUserRequest;
 }
 
 /**
@@ -40,44 +41,42 @@ export class AuthenticationApi extends runtime.BaseAPI {
    * Get current user profile
    */
   async getCurrentUserRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<User>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/auth/me`
+    let urlPath = `/auth/me`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => UserFromJSON(jsonValue))
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserFromJSON(jsonValue));
   }
 
   /**
    * Get current user profile
    */
-  async getCurrentUser(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<User> {
-    const response = await this.getCurrentUserRaw(initOverrides)
-    return await response.value()
+  async getCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<User> {
+    const response = await this.getCurrentUserRaw(initOverrides);
+    return await response.value();
   }
 
   /**
@@ -85,37 +84,37 @@ export class AuthenticationApi extends runtime.BaseAPI {
    */
   async loginUserRaw(
     requestParameters: LoginUserOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<LoginUser200Response>> {
-    if (requestParameters['loginUserRequest'] == null) {
+    if (requestParameters["loginUserRequest"] == null) {
       throw new runtime.RequiredError(
-        'loginUserRequest',
-        'Required parameter "loginUserRequest" was null or undefined when calling loginUser().'
-      )
+        "loginUserRequest",
+        'Required parameter "loginUserRequest" was null or undefined when calling loginUser().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
-    let urlPath = `/auth/login`
+    let urlPath = `/auth/login`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: LoginUserRequestToJSON(requestParameters['loginUserRequest']),
+        body: LoginUserRequestToJSON(requestParameters["loginUserRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      LoginUser200ResponseFromJSON(jsonValue)
-    )
+      LoginUser200ResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -123,55 +122,55 @@ export class AuthenticationApi extends runtime.BaseAPI {
    */
   async loginUser(
     requestParameters: LoginUserOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<LoginUser200Response> {
-    const response = await this.loginUserRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.loginUserRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
    * User logout
    */
   async logoutUserRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<LogoutUser200Response>> {
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/auth/logout`
+    let urlPath = `/auth/logout`;
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      LogoutUser200ResponseFromJSON(jsonValue)
-    )
+      LogoutUser200ResponseFromJSON(jsonValue),
+    );
   }
 
   /**
    * User logout
    */
   async logoutUser(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<LogoutUser200Response> {
-    const response = await this.logoutUserRaw(initOverrides)
-    return await response.value()
+    const response = await this.logoutUserRaw(initOverrides);
+    return await response.value();
   }
 }

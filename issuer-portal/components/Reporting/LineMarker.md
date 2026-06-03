@@ -14,18 +14,17 @@ A custom marker component for MUI X Charts based on the `LineMarker.svg` design.
 ### Basic Usage
 
 ```tsx
-import { createLineMarkerElement } from './LineMarker'
+import { createLineMarkerElement } from "./LineMarker";
 
 // In your chart component
-
-;<MarkPlot
+<MarkPlot
   slots={{
     mark: createLineMarkerElement({
-      color: 'var(--mui-palette-chartSeries-3-main)',
+      color: "var(--mui-palette-chartSeries-3-main)",
       size: 20,
     }),
   }}
-/>
+/>;
 ```
 
 ### With VotingPerformanceChart

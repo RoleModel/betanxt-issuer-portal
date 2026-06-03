@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import React from 'react'
+import { Box } from "@mui/material";
+import React from "react";
 
-import { Box } from '@mui/material'
-
-import { MeetingProvider } from '@/contexts/MeetingContext'
+import { MeetingProvider } from "@/contexts/MeetingContext";
 
 // Reporting layout with navigation
 export default function ReportingLayout({ children }: { children: React.ReactNode }) {
@@ -12,5 +11,5 @@ export default function ReportingLayout({ children }: { children: React.ReactNod
     <MeetingProvider>
       <Box sx={{ flexGrow: 1, flex: 1 }}>{children}</Box>
     </MeetingProvider>
-  )
+  );
 }

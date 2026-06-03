@@ -1,8 +1,4 @@
-'use client'
-
-import NextLink from 'next/link'
-import { useParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -19,130 +15,133 @@ import {
   TableRow,
   TableSortLabel,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import NextLink from "next/link";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-import CusipValue from '@/components/ui/CusipValue'
-import StatusChip from '@/components/ui/StatusChip'
+import type { components } from "@/domain-models/generated-schema";
 
-import buildApiClient from '@/domain-models/apiClient'
-import type { components } from '@/domain-models/generated-schema'
+import CusipValue from "@/components/ui/CusipValue";
+import StatusChip from "@/components/ui/StatusChip";
+import buildApiClient from "@/domain-models/apiClient";
 
-type Meeting = components['schemas']['Meeting']
+type Meeting = components["schemas"]["Meeting"];
 
 interface MeetingData extends Meeting {
-  daysUntilMeeting: number
+  daysUntilMeeting: number;
 }
 
-type Order = 'asc' | 'desc'
-type OrderBy = keyof MeetingData
+type Order = "asc" | "desc";
+type OrderBy = keyof MeetingData;
 
 export default function MeetingsPage() {
-  const params = useParams()
-  const clientTicker = params.clientTicker as string
-  const [meetings, setMeetings] = useState<MeetingData[]>([])
-  const [order, setOrder] = useState<Order>('asc')
-  const [orderBy, setOrderBy] = useState<OrderBy>('meetingDate')
+  const params = useParams();
+  const clientTicker = params.clientTicker as string;
+  const [meetings, setMeetings] = useState<MeetingData[]>([]);
+  const [order, setOrder] = useState<Order>("asc");
+  const [orderBy, setOrderBy] = useState<OrderBy>("meetingDate");
 
   useEffect(() => {
-    void fetchMeetings()
+    void fetchMeetings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const fetchMeetings = async () => {
     try {
       // Fetch active and upcoming meetings using openapi-fetch
-      const apiClient = await buildApiClient()
-      const result = await apiClient.GET('/meetings', {
+      const apiClient = await buildApiClient();
+      const result = await apiClient.GET("/meetings", {
         params: {
           query: {
             ticker: clientTicker,
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
         },
-      })
+      });
 
-      const { data, error } = result
+      const { data, error } = result;
 
       if (!data) {
         if (error) {
-          throw new Error('Failed to fetch meetings')
+          throw new Error("Failed to fetch meetings");
         }
-        throw new Error('No data returned from API')
+        throw new Error("No data returned from API");
       }
 
-      const meetingsData = data as Meeting[]
+      const meetingsData = data as Meeting[];
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
-        const meetingDate = new Date(meeting.meetingDate ?? '')
-        const today = new Date()
+        const meetingDate = new Date(meeting.meetingDate ?? "");
+        const today = new Date();
         const daysUntilMeeting = Math.ceil(
-          (meetingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        )
+          (meetingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
         return {
           ...meeting,
           daysUntilMeeting,
-        }
-      })
+        };
+      });
 
-      setMeetings(meetingsWithData)
+      setMeetings(meetingsWithData);
     } catch (error) {
-      console.error('Error fetching meetings:', error)
-      setMeetings([])
+      console.error("Error fetching meetings:", error);
+      setMeetings([]);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return ''
+    if (!dateString) return "";
     try {
-      const dateParts = dateString.split('-')
-      if (dateParts.length !== 3) return 'Invalid Date'
-      const [year, month, day] = dateParts.map((part) => parseInt(part))
-      const date = new Date(year, month - 1, day)
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      const dateParts = dateString.split("-");
+      if (dateParts.length !== 3) return "Invalid Date";
+      const [year, month, day] = dateParts.map((part) => parseInt(part));
+      const date = new Date(year, month - 1, day);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
     } catch (error) {
-      console.warn('Error parsing date:', dateString, error)
-      return 'Invalid Date'
+      console.warn("Error parsing date:", dateString, error);
+      return "Invalid Date";
     }
-  }
+  };
 
   const handleRequestSort = (property: OrderBy) => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
 
   const sortedMeetings = React.useMemo(() => {
     return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy] as string
-      let compareB: string | number = b[orderBy] as string
+      let compareA: string | number = a[orderBy] as string;
+      let compareB: string | number = b[orderBy] as string;
 
       // Handle date sorting
-      if (orderBy === 'meetingDate') {
-        compareA = new Date(compareA).getTime()
-        compareB = new Date(compareB).getTime()
+      if (orderBy === "meetingDate") {
+        compareA = new Date(compareA).getTime();
+        compareB = new Date(compareB).getTime();
       }
 
       // Handle numeric sorting
-      if (typeof compareA === 'number' && typeof compareB === 'number') {
-        return order === 'asc' ? compareA - compareB : compareB - compareA
+      if (typeof compareA === "number" && typeof compareB === "number") {
+        return order === "asc" ? compareA - compareB : compareB - compareA;
       }
 
       // Handle string sorting
-      if (typeof compareA === 'string' && typeof compareB === 'string') {
-        return order === 'asc'
+      if (typeof compareA === "string" && typeof compareB === "string") {
+        return order === "asc"
           ? compareA.localeCompare(compareB)
-          : compareB.localeCompare(compareA)
+          : compareB.localeCompare(compareA);
       }
 
-      return 0
-    })
-  }, [meetings, order, orderBy])
+      return 0;
+    });
+  }, [meetings, order, orderBy]);
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -155,27 +154,27 @@ export default function MeetingsPage() {
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>
                     <TableSortLabel
-                      active={orderBy === 'title'}
-                      direction={orderBy === 'title' ? order : 'asc'}
-                      onClick={() => handleRequestSort('title')}
+                      active={orderBy === "title"}
+                      direction={orderBy === "title" ? order : "asc"}
+                      onClick={() => handleRequestSort("title")}
                     >
                       Meeting
                     </TableSortLabel>
                   </TableCell>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>
                     <TableSortLabel
-                      active={orderBy === 'cusip'}
-                      direction={orderBy === 'cusip' ? order : 'asc'}
-                      onClick={() => handleRequestSort('cusip')}
+                      active={orderBy === "cusip"}
+                      direction={orderBy === "cusip" ? order : "asc"}
+                      onClick={() => handleRequestSort("cusip")}
                     >
                       CUSIP
                     </TableSortLabel>
                   </TableCell>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>
                     <TableSortLabel
-                      active={orderBy === 'meetingDate'}
-                      direction={orderBy === 'meetingDate' ? order : 'asc'}
-                      onClick={() => handleRequestSort('meetingDate')}
+                      active={orderBy === "meetingDate"}
+                      direction={orderBy === "meetingDate" ? order : "asc"}
+                      onClick={() => handleRequestSort("meetingDate")}
                     >
                       Date
                     </TableSortLabel>
@@ -203,7 +202,7 @@ export default function MeetingsPage() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3">
-                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : 'TBD'}
+                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : "TBD"}
                       </Typography>
                       {meeting.daysUntilMeeting > 0 && (
                         <Typography variant="caption" color="text.secondary">
@@ -212,10 +211,10 @@ export default function MeetingsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <StatusChip status={meeting.status ?? 'ACTIVE'} size="small" />
+                      <StatusChip status={meeting.status ?? "ACTIVE"} size="small" />
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Box sx={{ display: "flex", gap: 1 }}>
                         <Button
                           variant="outlined"
                           size="small"
@@ -241,12 +240,12 @@ export default function MeetingsPage() {
           </TableContainer>
 
           {meetings.length === 0 && (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Box sx={{ p: 4, textAlign: "center" }}>
               <Typography color="text.secondary">No active meetings found.</Typography>
             </Box>
           )}
         </CardContent>
       </Card>
     </Box>
-  )
+  );
 }

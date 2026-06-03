@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,163 +23,161 @@ export interface CreatePositionRequest {
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  meetingId: string
+  meetingId: string;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  cusip: string
+  cusip: string;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  accountType: string
+  accountType: string;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  setKey: string
+  setKey: string;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  name: string
+  name: string;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  accountNumber?: string | null
+  accountNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  controlNumber?: string | null
+  controlNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  voteStatus: CreatePositionRequestVoteStatusEnum
+  voteStatus: CreatePositionRequestVoteStatusEnum;
   /**
    *
    * @type {number}
    * @memberof CreatePositionRequest
    */
-  shares: number
+  shares: number;
   /**
    *
    * @type {number}
    * @memberof CreatePositionRequest
    */
-  sharesVoted?: number
+  sharesVoted?: number;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  source?: CreatePositionRequestSourceEnum | null
+  source?: CreatePositionRequestSourceEnum | null;
   /**
    *
    * @type {string}
    * @memberof CreatePositionRequest
    */
-  dateVoted?: string | null
+  dateVoted?: string | null;
 }
 
 /**
  * @export
  */
 export const CreatePositionRequestVoteStatusEnum = {
-  Voted: 'Voted',
-  Unvoted: 'Unvoted',
-} as const
+  Voted: "Voted",
+  Unvoted: "Unvoted",
+} as const;
 export type CreatePositionRequestVoteStatusEnum =
-  (typeof CreatePositionRequestVoteStatusEnum)[keyof typeof CreatePositionRequestVoteStatusEnum]
+  (typeof CreatePositionRequestVoteStatusEnum)[keyof typeof CreatePositionRequestVoteStatusEnum];
 
 /**
  * @export
  */
 export const CreatePositionRequestSourceEnum = {
-  Web: 'WEB',
-  Print: 'PRINT',
-  Ivr: 'IVR',
-} as const
+  Web: "WEB",
+  Print: "PRINT",
+  Ivr: "IVR",
+} as const;
 export type CreatePositionRequestSourceEnum =
-  (typeof CreatePositionRequestSourceEnum)[keyof typeof CreatePositionRequestSourceEnum]
+  (typeof CreatePositionRequestSourceEnum)[keyof typeof CreatePositionRequestSourceEnum];
 
 /**
  * Check if a given object implements the CreatePositionRequest interface.
  */
-export function instanceOfCreatePositionRequest(
-  value: object
-): value is CreatePositionRequest {
-  if (!('meetingId' in value) || value['meetingId'] === undefined) return false
-  if (!('cusip' in value) || value['cusip'] === undefined) return false
-  if (!('accountType' in value) || value['accountType'] === undefined) return false
-  if (!('setKey' in value) || value['setKey'] === undefined) return false
-  if (!('name' in value) || value['name'] === undefined) return false
-  if (!('voteStatus' in value) || value['voteStatus'] === undefined) return false
-  if (!('shares' in value) || value['shares'] === undefined) return false
-  return true
+export function instanceOfCreatePositionRequest(value: object): value is CreatePositionRequest {
+  if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
+  if (!("cusip" in value) || value["cusip"] === undefined) return false;
+  if (!("accountType" in value) || value["accountType"] === undefined) return false;
+  if (!("setKey" in value) || value["setKey"] === undefined) return false;
+  if (!("name" in value) || value["name"] === undefined) return false;
+  if (!("voteStatus" in value) || value["voteStatus"] === undefined) return false;
+  if (!("shares" in value) || value["shares"] === undefined) return false;
+  return true;
 }
 
 export function CreatePositionRequestFromJSON(json: any): CreatePositionRequest {
-  return CreatePositionRequestFromJSONTyped(json, false)
+  return CreatePositionRequestFromJSONTyped(json, false);
 }
 
 export function CreatePositionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CreatePositionRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    meetingId: json['meetingId'],
-    cusip: json['cusip'],
-    accountType: json['accountType'],
-    setKey: json['setKey'],
-    name: json['name'],
-    accountNumber: json['accountNumber'] == null ? undefined : json['accountNumber'],
-    controlNumber: json['controlNumber'] == null ? undefined : json['controlNumber'],
-    voteStatus: json['voteStatus'],
-    shares: json['shares'],
-    sharesVoted: json['sharesVoted'] == null ? undefined : json['sharesVoted'],
-    source: json['source'] == null ? undefined : json['source'],
-    dateVoted: json['dateVoted'] == null ? undefined : json['dateVoted'],
-  }
+    meetingId: json["meetingId"],
+    cusip: json["cusip"],
+    accountType: json["accountType"],
+    setKey: json["setKey"],
+    name: json["name"],
+    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    voteStatus: json["voteStatus"],
+    shares: json["shares"],
+    sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
+    source: json["source"] == null ? undefined : json["source"],
+    dateVoted: json["dateVoted"] == null ? undefined : json["dateVoted"],
+  };
 }
 
 export function CreatePositionRequestToJSON(json: any): CreatePositionRequest {
-  return CreatePositionRequestToJSONTyped(json, false)
+  return CreatePositionRequestToJSONTyped(json, false);
 }
 
 export function CreatePositionRequestToJSONTyped(
   value?: CreatePositionRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    meetingId: value['meetingId'],
-    cusip: value['cusip'],
-    accountType: value['accountType'],
-    setKey: value['setKey'],
-    name: value['name'],
-    accountNumber: value['accountNumber'],
-    controlNumber: value['controlNumber'],
-    voteStatus: value['voteStatus'],
-    shares: value['shares'],
-    sharesVoted: value['sharesVoted'],
-    source: value['source'],
-    dateVoted: value['dateVoted'],
-  }
+    meetingId: value["meetingId"],
+    cusip: value["cusip"],
+    accountType: value["accountType"],
+    setKey: value["setKey"],
+    name: value["name"],
+    accountNumber: value["accountNumber"],
+    controlNumber: value["controlNumber"],
+    voteStatus: value["voteStatus"],
+    shares: value["shares"],
+    sharesVoted: value["sharesVoted"],
+    source: value["source"],
+    dateVoted: value["dateVoted"],
+  };
 }

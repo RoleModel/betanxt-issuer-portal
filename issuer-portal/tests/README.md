@@ -79,20 +79,20 @@ npm run test notifications.spec.ts --debug
 Example:
 
 ```typescript
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-import { loginAs } from '../helpers/auth'
+import { loginAs } from "../helpers/auth";
 
-test.describe('Feature Name', () => {
+test.describe("Feature Name", () => {
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'mike')
-  })
+    await loginAs(page, "mike");
+  });
 
-  test('should do something', async ({ page }) => {
+  test("should do something", async ({ page }) => {
     // Your test code here
-    await expect(page.locator('selector')).toBeVisible()
-  })
-})
+    await expect(page.locator("selector")).toBeVisible();
+  });
+});
 ```
 
 ## Best Practices

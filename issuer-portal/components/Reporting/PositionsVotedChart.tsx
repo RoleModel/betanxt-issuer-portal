@@ -1,6 +1,4 @@
-'use client'
-
-import React, { useState } from 'react'
+"use client";
 
 import {
   Box,
@@ -11,56 +9,57 @@ import {
   MenuItem,
   Select,
   Stack,
-} from '@mui/material'
-import { PieChart } from '@mui/x-charts/PieChart'
+} from "@mui/material";
+import { PieChart } from "@mui/x-charts/PieChart";
+import React, { useState } from "react";
 
-import PieCenterLabel from './PieChartCenterLabel'
+import PieCenterLabel from "./PieChartCenterLabel";
 
 interface PositionsVotedData {
   registered: {
-    voted: number
-    notVoted: number
-  }
+    voted: number;
+    notVoted: number;
+  };
   beneficial: {
-    voted: number
-    notVoted: number
-  }
+    voted: number;
+    notVoted: number;
+  };
 }
 
 interface PositionsVotedChartProps {
-  meetingId?: string
-  setKeys?: string[]
-  data?: Record<string, PositionsVotedData>
-  loading?: boolean
+  meetingId?: string;
+  setKeys?: string[];
+  data?: Record<string, PositionsVotedData>;
+  loading?: boolean;
 }
 
 interface DonutChartProps {
-  data: { id: string; label: string; value: number; color: string }[]
-  centerValue: number
-  centerLabel: string
+  data: { id: string; label: string; value: number; color: string }[];
+  centerValue: number;
+  centerLabel: string;
 }
 
 function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
   return (
     <Box>
-      <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
         <PieChart
           series={[
             {
               data,
               innerRadius: 75,
               outerRadius: 100,
-              highlightScope: { fade: 'global', highlight: 'item' },
+              highlightScope: { fade: "global", highlight: "item" },
             },
           ]}
           width={300}
           height={200}
           slotProps={{
             legend: {
-              direction: 'horizontal',
+              direction: "horizontal",
               position: {
-                vertical: 'bottom',
-                horizontal: 'center',
+                vertical: "bottom",
+                horizontal: "center",
               },
             },
           }}
@@ -81,20 +80,17 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
         </PieChart>
       </Box>
     </Box>
-  )
+  );
 }
 
-export default function PositionsVotedChart({
-  setKeys = [],
-  data = {},
-}: PositionsVotedChartProps) {
-  const [selectedSetKey, setSelectedSetKey] = useState('')
+export default function PositionsVotedChart({ setKeys = [], data = {} }: PositionsVotedChartProps) {
+  const [selectedSetKey, setSelectedSetKey] = useState("");
 
   React.useEffect(() => {
     if (setKeys.length > 0 && !selectedSetKey) {
-      setSelectedSetKey(setKeys[0])
+      setSelectedSetKey(setKeys[0]);
     }
-  }, [setKeys, selectedSetKey])
+  }, [setKeys, selectedSetKey]);
 
   const selectedData =
     selectedSetKey && data[selectedSetKey]
@@ -102,55 +98,55 @@ export default function PositionsVotedChart({
       : {
           registered: { voted: 0, notVoted: 0 },
           beneficial: { voted: 0, notVoted: 0 },
-        }
+        };
 
   // Calculate totals and percentages
-  const totalRegistered = selectedData.registered.voted + selectedData.registered.notVoted
-  const totalBeneficial = selectedData.beneficial.voted + selectedData.beneficial.notVoted
+  const totalRegistered = selectedData.registered.voted + selectedData.registered.notVoted;
+  const totalBeneficial = selectedData.beneficial.voted + selectedData.beneficial.notVoted;
 
   const registeredVotedPercentage =
-    totalRegistered > 0 ? (selectedData.registered.voted / totalRegistered) * 100 : 0
+    totalRegistered > 0 ? (selectedData.registered.voted / totalRegistered) * 100 : 0;
   const beneficialVotedPercentage =
-    totalBeneficial > 0 ? (selectedData.beneficial.voted / totalBeneficial) * 100 : 0
+    totalBeneficial > 0 ? (selectedData.beneficial.voted / totalBeneficial) * 100 : 0;
 
   const registeredData = [
     {
-      id: 'voted',
+      id: "voted",
       label: `Voted (${registeredVotedPercentage.toFixed(2)}%)`,
       value: selectedData.registered.voted,
-      color: 'var(--mui-palette-chartSeries-1-main)',
+      color: "var(--mui-palette-chartSeries-1-main)",
     },
     {
-      id: 'not-voted',
+      id: "not-voted",
       label: `Unvoted (${(100 - registeredVotedPercentage).toFixed(2)}%)`,
       value: selectedData.registered.notVoted,
-      color: 'var(--mui-palette-chartSeries-4-main)',
+      color: "var(--mui-palette-chartSeries-4-main)",
     },
-  ]
+  ];
 
   const beneficialData = [
     {
-      id: 'voted',
+      id: "voted",
       label: `Voted (${beneficialVotedPercentage.toFixed(2)}%)`,
       value: selectedData.beneficial.voted,
-      color: 'var(--mui-palette-chartSeries-1-main)',
+      color: "var(--mui-palette-chartSeries-1-main)",
     },
     {
-      id: 'not-voted',
+      id: "not-voted",
       label: `Unvoted (${(100 - beneficialVotedPercentage).toFixed(2)}%)`,
       value: selectedData.beneficial.notVoted,
-      color: 'var(--mui-palette-chartSeries-4-main)',
+      color: "var(--mui-palette-chartSeries-4-main)",
     },
-  ]
+  ];
 
   return (
-    <Card sx={{ flex: '1 0 auto' }}>
+    <Card sx={{ flex: "1 0 auto" }}>
       <CardHeader
         title="Positions Voted"
         action={
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
-              value={selectedSetKey ?? ''}
+              value={selectedSetKey ?? ""}
               onChange={(e) => setSelectedSetKey(e.target.value)}
               displayEmpty
             >
@@ -171,8 +167,8 @@ export default function PositionsVotedChart({
       />
       <CardContent>
         <Stack
-          direction={{ xs: 'column', sm: 'column', md: 'column', lg: 'row' }}
-          justifyContent={'center'}
+          direction={{ xs: "column", sm: "column", md: "column", lg: "row" }}
+          justifyContent={"center"}
           spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart
@@ -189,5 +185,5 @@ export default function PositionsVotedChart({
         </Stack>
       </CardContent>
     </Card>
-  )
+  );
 }

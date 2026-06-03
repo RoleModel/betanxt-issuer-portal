@@ -1,3 +1,5 @@
+import type { Clients } from "./Clients";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Clients } from './Clients'
+import { mapValues } from "../runtime";
 import {
   ClientsFromJSON,
   ClientsFromJSONTyped,
   ClientsToJSON,
   ClientsToJSONTyped,
-} from './Clients'
+} from "./Clients";
 
 /**
  *
@@ -30,82 +31,82 @@ export interface Account {
    * @type {string}
    * @memberof Account
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Account
    */
-  name?: string
+  name?: string;
   /**
    *
    * @type {string}
    * @memberof Account
    */
-  primaryContact?: string
+  primaryContact?: string;
   /**
    * The client this account belongs to
    * @type {string}
    * @memberof Account
    */
-  clientId?: string
+  clientId?: string;
   /**
    *
    * @type {Date}
    * @memberof Account
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Clients}
    * @memberof Account
    */
-  client?: Clients
+  client?: Clients;
 }
 
 /**
  * Check if a given object implements the Account interface.
  */
 export function instanceOfAccount(value: object): value is Account {
-  return true
+  return true;
 }
 
 export function AccountFromJSON(json: any): Account {
-  return AccountFromJSONTyped(json, false)
+  return AccountFromJSONTyped(json, false);
 }
 
 export function AccountFromJSONTyped(json: any, ignoreDiscriminator: boolean): Account {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    name: json['name'] == null ? undefined : json['name'],
-    primaryContact: json['primaryContact'] == null ? undefined : json['primaryContact'],
-    clientId: json['clientId'] == null ? undefined : json['clientId'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    client: json['client'] == null ? undefined : ClientsFromJSON(json['client']),
-  }
+    id: json["id"] == null ? undefined : json["id"],
+    name: json["name"] == null ? undefined : json["name"],
+    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    clientId: json["clientId"] == null ? undefined : json["clientId"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    client: json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
+  };
 }
 
 export function AccountToJSON(json: any): Account {
-  return AccountToJSONTyped(json, false)
+  return AccountToJSONTyped(json, false);
 }
 
 export function AccountToJSONTyped(
   value?: Account | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    name: value['name'],
-    primaryContact: value['primaryContact'],
-    clientId: value['clientId'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    client: ClientsToJSON(value['client']),
-  }
+    id: value["id"],
+    name: value["name"],
+    primaryContact: value["primaryContact"],
+    clientId: value["clientId"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    client: ClientsToJSON(value["client"]),
+  };
 }

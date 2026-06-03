@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  * Non-DTC shareholder vote status breakdown
@@ -23,149 +23,143 @@ export interface TabulationReportNonDtcVoteStatus {
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  unvotedShareholders?: number
+  unvotedShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  unvotedShares?: number
+  unvotedShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  printShareholders?: number
+  printShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  printShares?: number
+  printShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  ivrShareholders?: number
+  ivrShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  ivrShares?: number
+  ivrShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  webShareholders?: number
+  webShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  webShares?: number
+  webShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  votedSubtotalShareholders?: number
+  votedSubtotalShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  votedSubtotalShares?: number
+  votedSubtotalShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  grandTotalShareholders?: number
+  grandTotalShareholders?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportNonDtcVoteStatus
    */
-  grandTotalShares?: number
+  grandTotalShares?: number;
 }
 
 /**
  * Check if a given object implements the TabulationReportNonDtcVoteStatus interface.
  */
 export function instanceOfTabulationReportNonDtcVoteStatus(
-  value: object
+  value: object,
 ): value is TabulationReportNonDtcVoteStatus {
-  return true
+  return true;
 }
 
 export function TabulationReportNonDtcVoteStatusFromJSON(
-  json: any
+  json: any,
 ): TabulationReportNonDtcVoteStatus {
-  return TabulationReportNonDtcVoteStatusFromJSONTyped(json, false)
+  return TabulationReportNonDtcVoteStatusFromJSONTyped(json, false);
 }
 
 export function TabulationReportNonDtcVoteStatusFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): TabulationReportNonDtcVoteStatus {
   if (json == null) {
-    return json
+    return json;
   }
   return {
     unvotedShareholders:
-      json['unvotedShareholders'] == null ? undefined : json['unvotedShareholders'],
-    unvotedShares: json['unvotedShares'] == null ? undefined : json['unvotedShares'],
-    printShareholders:
-      json['printShareholders'] == null ? undefined : json['printShareholders'],
-    printShares: json['printShares'] == null ? undefined : json['printShares'],
-    ivrShareholders:
-      json['ivrShareholders'] == null ? undefined : json['ivrShareholders'],
-    ivrShares: json['ivrShares'] == null ? undefined : json['ivrShares'],
-    webShareholders:
-      json['webShareholders'] == null ? undefined : json['webShareholders'],
-    webShares: json['webShares'] == null ? undefined : json['webShares'],
+      json["unvotedShareholders"] == null ? undefined : json["unvotedShareholders"],
+    unvotedShares: json["unvotedShares"] == null ? undefined : json["unvotedShares"],
+    printShareholders: json["printShareholders"] == null ? undefined : json["printShareholders"],
+    printShares: json["printShares"] == null ? undefined : json["printShares"],
+    ivrShareholders: json["ivrShareholders"] == null ? undefined : json["ivrShareholders"],
+    ivrShares: json["ivrShares"] == null ? undefined : json["ivrShares"],
+    webShareholders: json["webShareholders"] == null ? undefined : json["webShareholders"],
+    webShares: json["webShares"] == null ? undefined : json["webShares"],
     votedSubtotalShareholders:
-      json['votedSubtotalShareholders'] == null
-        ? undefined
-        : json['votedSubtotalShareholders'],
+      json["votedSubtotalShareholders"] == null ? undefined : json["votedSubtotalShareholders"],
     votedSubtotalShares:
-      json['votedSubtotalShares'] == null ? undefined : json['votedSubtotalShares'],
+      json["votedSubtotalShares"] == null ? undefined : json["votedSubtotalShares"],
     grandTotalShareholders:
-      json['grandTotalShareholders'] == null ? undefined : json['grandTotalShareholders'],
-    grandTotalShares:
-      json['grandTotalShares'] == null ? undefined : json['grandTotalShares'],
-  }
+      json["grandTotalShareholders"] == null ? undefined : json["grandTotalShareholders"],
+    grandTotalShares: json["grandTotalShares"] == null ? undefined : json["grandTotalShares"],
+  };
 }
 
 export function TabulationReportNonDtcVoteStatusToJSON(
-  json: any
+  json: any,
 ): TabulationReportNonDtcVoteStatus {
-  return TabulationReportNonDtcVoteStatusToJSONTyped(json, false)
+  return TabulationReportNonDtcVoteStatusToJSONTyped(json, false);
 }
 
 export function TabulationReportNonDtcVoteStatusToJSONTyped(
   value?: TabulationReportNonDtcVoteStatus | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    unvotedShareholders: value['unvotedShareholders'],
-    unvotedShares: value['unvotedShares'],
-    printShareholders: value['printShareholders'],
-    printShares: value['printShares'],
-    ivrShareholders: value['ivrShareholders'],
-    ivrShares: value['ivrShares'],
-    webShareholders: value['webShareholders'],
-    webShares: value['webShares'],
-    votedSubtotalShareholders: value['votedSubtotalShareholders'],
-    votedSubtotalShares: value['votedSubtotalShares'],
-    grandTotalShareholders: value['grandTotalShareholders'],
-    grandTotalShares: value['grandTotalShares'],
-  }
+    unvotedShareholders: value["unvotedShareholders"],
+    unvotedShares: value["unvotedShares"],
+    printShareholders: value["printShareholders"],
+    printShares: value["printShares"],
+    ivrShareholders: value["ivrShareholders"],
+    ivrShares: value["ivrShares"],
+    webShareholders: value["webShareholders"],
+    webShares: value["webShares"],
+    votedSubtotalShareholders: value["votedSubtotalShareholders"],
+    votedSubtotalShares: value["votedSubtotalShares"],
+    grandTotalShareholders: value["grandTotalShareholders"],
+    grandTotalShares: value["grandTotalShares"],
+  };
 }

@@ -1,25 +1,24 @@
-'use client'
-
-import React from 'react'
+"use client";
 
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Close as CloseIcon,
-} from '@mui/icons-material'
-import { Box, IconButton, Typography } from '@mui/material'
+} from "@mui/icons-material";
+import { Box, IconButton, Typography } from "@mui/material";
+import React from "react";
 
 interface DrawerHeaderProps {
-  title: string
-  subtitle?: string
-  onClose: () => void
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
   navigation?: {
-    current: number
-    total: number
-    onPrevious: () => void
-    onNext: () => void
-  }
-  color?: string
+    current: number;
+    total: number;
+    onPrevious: () => void;
+    onNext: () => void;
+  };
+  color?: string;
 }
 
 const DrawerHeader: React.FC<DrawerHeaderProps> = ({
@@ -39,21 +38,21 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
       {/* Main header with title and close button */}
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           p: 2,
           height: 60,
         }}
       >
-        <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 500 }}>
+        <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 500 }}>
           {title}
         </Typography>
         <IconButton
           size="small"
           onClick={onClose}
           aria-label="Close drawer"
-          sx={{ color: 'inherit' }}
+          sx={{ color: "inherit" }}
         >
           <CloseIcon />
         </IconButton>
@@ -63,9 +62,9 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
       {navigation && (
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'start',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "start",
             px: 1,
             height: 40,
           }}
@@ -75,12 +74,12 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
             disabled={navigation.current <= 1}
             onClick={navigation.onPrevious}
             aria-label="Go to previous phase"
-            sx={{ color: 'inherit', opacity: navigation.current <= 1 ? 0.5 : 1 }}
+            sx={{ color: "inherit", opacity: navigation.current <= 1 ? 0.5 : 1 }}
           >
             <ChevronLeftIcon />
           </IconButton>
 
-          <Typography variant="caption" sx={{ color: 'inherit', fontSize: '12px' }}>
+          <Typography variant="caption" sx={{ color: "inherit", fontSize: "12px" }}>
             {subtitle ?? `Phase ${navigation.current} of ${navigation.total}`}
           </Typography>
 
@@ -90,7 +89,7 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
             onClick={navigation.onNext}
             aria-label="Go to next phase"
             sx={{
-              color: 'inherit',
+              color: "inherit",
               opacity: navigation.current >= navigation.total ? 0.5 : 1,
             }}
           >
@@ -99,7 +98,7 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
         </Box>
       )}
     </Box>
-  )
-}
+  );
+};
 
-export default DrawerHeader
+export default DrawerHeader;

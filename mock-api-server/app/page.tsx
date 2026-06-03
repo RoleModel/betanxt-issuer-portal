@@ -2,7 +2,7 @@
 // Since this is an API-only server, we redirect to the API documentation
 export default function HomePage(): JSX.Element {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
+    <div style={{ padding: "2rem", fontFamily: "system-ui" }}>
       <h1>Mock API Server</h1>
       <p>This is an API-only server. Available endpoints:</p>
       <ul>
@@ -15,5 +15,5 @@ export default function HomePage(): JSX.Element {
       </ul>
       <p>For full API documentation, please check the OpenAPI specification.</p>
     </div>
-  )
+  );
 }

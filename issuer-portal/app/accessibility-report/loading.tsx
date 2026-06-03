@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   Box,
   Card,
@@ -9,7 +7,8 @@ import {
   Skeleton,
   Stack,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
 const AccessibilityReportLoading: React.FC = () => {
   return (
@@ -22,7 +21,7 @@ const AccessibilityReportLoading: React.FC = () => {
         </Box>
 
         {/* Summary Cards */}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
           {[1, 2, 3, 4].map((index) => (
             <Card key={index} sx={{ flex: 1 }}>
               <CardContent>
@@ -67,7 +66,7 @@ const AccessibilityReportLoading: React.FC = () => {
         </Paper>
       </Stack>
     </Container>
-  )
-}
+  );
+};
 
-export default AccessibilityReportLoading
+export default AccessibilityReportLoading;

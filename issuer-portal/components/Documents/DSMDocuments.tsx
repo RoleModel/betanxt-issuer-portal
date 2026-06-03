@@ -1,8 +1,6 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { FileUploadOutlined } from '@mui/icons-material'
+import { FileUploadOutlined } from "@mui/icons-material";
 import {
   Button,
   Card,
@@ -18,39 +16,34 @@ import {
   TablePaginationActions,
   TableRow,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import React from "react";
 
-import SrOnlyTableCaption from '@/components/ui/SROnlyTableCaption'
-import StatusChip from '@/components/ui/StatusChip'
+import type { components } from "@/domain-models/generated-schema";
 
-import type { components } from '@/domain-models/generated-schema'
+import SrOnlyTableCaption from "@/components/ui/SROnlyTableCaption";
+import StatusChip from "@/components/ui/StatusChip";
+import { formatDate } from "@/lib/formats";
+import { getDocumentActionLabel } from "@/utils/documentUtils";
 
-import { formatDate } from '@/lib/formats'
-import { getDocumentActionLabel } from '@/utils/documentUtils'
-
-type ApiDocument = components['schemas']['Document']
+type ApiDocument = components["schemas"]["Document"];
 // Extend with local placeholder status for UI only
-type Document = Omit<ApiDocument, 'status'> & {
-  status?: ApiDocument['status'] | 'NOT_UPLOADED'
-}
+type Document = Omit<ApiDocument, "status"> & {
+  status?: ApiDocument["status"] | "NOT_UPLOADED";
+};
 
 interface DSMDocumentsProps {
-  dsmDocuments: Document[]
-  dsmPage: number
-  dsmRowsPerPage: number
-  dsmEmptyRows: number
-  dsmProgress: { uploaded: number; totalRequired: number; percentage: number }
-  onUpload: () => void
-  onPageChange: (
-    _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => void
-  onRowsPerPageChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void
-  onOpenDocument: (doc: Document) => void
-  onOpenUploadFor: (doc: Document) => void
-  placeholders?: { id: string; title: string }[]
+  dsmDocuments: Document[];
+  dsmPage: number;
+  dsmRowsPerPage: number;
+  dsmEmptyRows: number;
+  dsmProgress: { uploaded: number; totalRequired: number; percentage: number };
+  onUpload: () => void;
+  onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
+  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onOpenDocument: (doc: Document) => void;
+  onOpenUploadFor: (doc: Document) => void;
+  placeholders?: { id: string; title: string }[];
 }
 
 export default function DSMDocuments(props: DSMDocumentsProps) {
@@ -66,68 +59,60 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
     onOpenDocument,
     onOpenUploadFor,
     placeholders = [],
-  } = props
+  } = props;
 
   console.log(
-    '[DSMDocuments] Received dsmDocuments:',
+    "[DSMDocuments] Received dsmDocuments:",
     dsmDocuments.length,
-    dsmDocuments.map((d) => ({ title: d.title, type: d.type }))
-  )
+    dsmDocuments.map((d) => ({ title: d.title, type: d.type })),
+  );
 
   // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
-  const mergedRows: Document[] = []
+  const mergedRows: Document[] = [];
 
   // Create a map of uploaded documents by title for easy lookup
-  const uploadedDocsByTitle = new Map(
-    dsmDocuments.map((doc) => [doc.title?.toLowerCase(), doc])
-  )
+  const uploadedDocsByTitle = new Map(dsmDocuments.map((doc) => [doc.title?.toLowerCase(), doc]));
 
   // For each placeholder, either show the real document or the placeholder
   placeholders.forEach((placeholder) => {
     // Try exact match first
-    let realDoc = uploadedDocsByTitle.get(placeholder.title.toLowerCase())
+    let realDoc = uploadedDocsByTitle.get(placeholder.title.toLowerCase());
 
     // If no exact match and placeholder is "Static Slide or Presentation",
     // look for documents containing "presentation"
-    if (!realDoc && placeholder.title.toLowerCase() === 'static slide or presentation') {
-      realDoc = dsmDocuments.find((doc) =>
-        doc.title?.toLowerCase().includes('presentation')
-      )
+    if (!realDoc && placeholder.title.toLowerCase() === "static slide or presentation") {
+      realDoc = dsmDocuments.find((doc) => doc.title?.toLowerCase().includes("presentation"));
     }
 
     if (realDoc) {
-      mergedRows.push(realDoc)
+      mergedRows.push(realDoc);
     } else {
       mergedRows.push({
         id: placeholder.id,
         title: placeholder.title,
-        status: 'NOT_UPLOADED',
+        status: "NOT_UPLOADED",
         // Minimal required optional API fields left undefined intentionally
-      })
+      });
     }
-  })
+  });
 
   // Add any DSM documents that don't match placeholders
   dsmDocuments.forEach((doc) => {
     const matchesPlaceholder = placeholders.some(
-      (p) => p.title.toLowerCase() === doc.title?.toLowerCase()
-    )
+      (p) => p.title.toLowerCase() === doc.title?.toLowerCase(),
+    );
     if (!matchesPlaceholder) {
-      mergedRows.push(doc)
+      mergedRows.push(doc);
     }
-  })
+  });
 
   return (
     <Card>
       <CardHeader
-        title={' Digital Shareholder Meeting Documents'}
+        title={" Digital Shareholder Meeting Documents"}
         subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
         action={
-          <Button
-            variant="contained"
-            onClick={onUpload}
-            startIcon={<FileUploadOutlined />}
-          >
+          <Button variant="contained" onClick={onUpload} startIcon={<FileUploadOutlined />}>
             Upload
           </Button>
         }
@@ -151,13 +136,13 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
               {(dsmRowsPerPage > 0
                 ? mergedRows.slice(
                     dsmPage * dsmRowsPerPage,
-                    dsmPage * dsmRowsPerPage + dsmRowsPerPage
+                    dsmPage * dsmRowsPerPage + dsmRowsPerPage,
                   )
                 : mergedRows
               ).map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell size="small">
-                    <Typography>{doc.title ?? 'Untitled Document'}</Typography>
+                    <Typography>{doc.title ?? "Untitled Document"}</Typography>
                   </TableCell>
                   <TableCell size="small">
                     <Typography variant="caption" color="text.secondary">
@@ -165,14 +150,14 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                         ? formatDate(doc.updatedAt)
                         : doc.createdAt
                           ? formatDate(doc.createdAt)
-                          : '—'}
+                          : "—"}
                     </Typography>
                   </TableCell>
                   <TableCell size="small">
                     <StatusChip
                       status={
-                        doc.status === 'NOT_UPLOADED' || (!doc.filePath && !doc.status)
-                          ? 'NOT_UPLOADED'
+                        doc.status === "NOT_UPLOADED" || (!doc.filePath && !doc.status)
+                          ? "NOT_UPLOADED"
                           : (doc.status ?? null)
                       }
                     />
@@ -182,11 +167,11 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                       variant="text"
                       data-testid={`dsm-document-action-${doc.id}`}
                       onClick={() => {
-                        const hasFile = !!doc.filePath
-                        if (!hasFile || doc.status === 'NOT_UPLOADED') {
-                          onOpenUploadFor(doc)
+                        const hasFile = !!doc.filePath;
+                        if (!hasFile || doc.status === "NOT_UPLOADED") {
+                          onOpenUploadFor(doc);
                         } else {
-                          onOpenDocument(doc)
+                          onOpenDocument(doc);
                         }
                       }}
                     >
@@ -208,7 +193,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
             <TableFooter>
               <TableRow>
                 <TablePagination
-                  rowsPerPageOptions={[6, 10, 25, { label: 'All', value: -1 }]}
+                  rowsPerPageOptions={[6, 10, 25, { label: "All", value: -1 }]}
                   colSpan={5}
                   count={mergedRows.length}
                   rowsPerPage={dsmRowsPerPage}
@@ -216,7 +201,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                   slotProps={{
                     select: {
                       inputProps: {
-                        'aria-label': 'rows per page',
+                        "aria-label": "rows per page",
                       },
                       native: true,
                     },
@@ -231,5 +216,5 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
         </TableContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

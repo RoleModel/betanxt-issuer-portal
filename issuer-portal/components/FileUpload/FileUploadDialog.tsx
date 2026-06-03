@@ -1,6 +1,4 @@
-import React, { useState } from 'react'
-
-import CloseIcon from '@mui/icons-material/Close'
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Alert,
   Box,
@@ -12,26 +10,28 @@ import {
   IconButton,
   Stack,
   TextField,
-} from '@mui/material'
+} from "@mui/material";
+import React, { useState } from "react";
 
-import BNFileUpload from './BNFileUpload'
-import type { DSMDocumentOption, UploadFile } from './types'
+import type { DSMDocumentOption, UploadFile } from "./types";
+
+import BNFileUpload from "./BNFileUpload";
 
 interface FileUploadDialogProps {
-  open: boolean
-  onClose: () => void
-  onUpload: (files: File[], associations?: Record<string, string>) => void
-  onUploadSuccess?: () => void
+  open: boolean;
+  onClose: () => void;
+  onUpload: (files: File[], associations?: Record<string, string>) => void;
+  onUploadSuccess?: () => void;
   onUploadWithNotes?: (
     files: File[],
     associations?: Record<string, string>,
-    description?: string
-  ) => void
-  meetingId?: string
-  documentType?: string
-  isDragging?: boolean
-  dsmDocumentOptions?: DSMDocumentOption[]
-  preSelectedDocumentId?: string
+    description?: string,
+  ) => void;
+  meetingId?: string;
+  documentType?: string;
+  isDragging?: boolean;
+  dsmDocumentOptions?: DSMDocumentOption[];
+  preSelectedDocumentId?: string;
 }
 
 const FileUploadDialog = ({
@@ -41,107 +41,102 @@ const FileUploadDialog = ({
   onUploadSuccess,
   onUploadWithNotes,
   // meetingId,
-  documentType = 'dsm-document',
+  documentType = "dsm-document",
   // isDragging,
   dsmDocumentOptions = [],
   preSelectedDocumentId,
 }: FileUploadDialogProps) => {
-  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>({})
-  const [description, setDescription] = useState('')
+  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>({});
+  const [description, setDescription] = useState("");
 
   const handleClose = () => {
-    setUploadFiles([])
-    setUploadError(null)
-    setIsUploading(false)
-    setFileAssociations({})
-    onClose()
-  }
+    setUploadFiles([]);
+    setUploadError(null);
+    setIsUploading(false);
+    setFileAssociations({});
+    onClose();
+  };
 
   const handleFilesSelected = (_files: File[]) => {
     // Files are automatically added to the upload component's state
-  }
+  };
 
   const handleFileRemove = (fileId: string) => {
     // Remove association when file is removed
     setFileAssociations((prev) => {
-      const newAssociations = { ...prev }
-      delete newAssociations[fileId]
-      return newAssociations
-    })
-  }
+      const newAssociations = { ...prev };
+      delete newAssociations[fileId];
+      return newAssociations;
+    });
+  };
 
   const handleFileAssociationChange = (fileId: string, documentId: string) => {
     setFileAssociations((prev) => ({
       ...prev,
       [fileId]: documentId,
-    }))
-  }
+    }));
+  };
 
   const handleUpload = async (_files: File[]) => {
     // This is called by BNFileUpload component to handle the actual upload
     // The parent component should handle the real upload logic
-    return Promise.resolve()
-  }
+    return Promise.resolve();
+  };
 
   const handleSubmit = () => {
-    const completedFiles = uploadFiles.filter((f) => f.status === 'complete')
-    const filesToUpload = completedFiles.map((f) => f.file)
+    const completedFiles = uploadFiles.filter((f) => f.status === "complete");
+    const filesToUpload = completedFiles.map((f) => f.file);
 
     // Build associations map using file identifiers (name-size)
-    const associations: Record<string, string> = {}
+    const associations: Record<string, string> = {};
     completedFiles.forEach((uploadFile) => {
-      const fileKey = `${uploadFile.file.name}-${uploadFile.file.size}`
+      const fileKey = `${uploadFile.file.name}-${uploadFile.file.size}`;
       // If there's a preSelectedDocumentId, use it for all files
       if (preSelectedDocumentId) {
-        associations[fileKey] = preSelectedDocumentId
+        associations[fileKey] = preSelectedDocumentId;
       } else if (fileAssociations[uploadFile.id]) {
-        associations[fileKey] = fileAssociations[uploadFile.id]
+        associations[fileKey] = fileAssociations[uploadFile.id];
       }
-    })
+    });
 
     if (filesToUpload.length > 0) {
-      setIsUploading(true)
+      setIsUploading(true);
       try {
         if (onUploadWithNotes) {
-          onUploadWithNotes(filesToUpload, associations, description)
+          onUploadWithNotes(filesToUpload, associations, description);
         } else {
-          onUpload(filesToUpload, associations)
+          onUpload(filesToUpload, associations);
         }
 
         // Call success callback if provided
-        onUploadSuccess?.()
+        onUploadSuccess?.();
 
-        setDescription('')
-        handleClose()
+        setDescription("");
+        handleClose();
       } catch (error) {
-        console.error('Submit error:', error)
-        setIsUploading(false)
+        console.error("Submit error:", error);
+        setIsUploading(false);
         // Keep dialog open on error so user can see the error message
       }
     }
-  }
+  };
 
   // We'll track the file state changes from the upload component
   const handleFileStateChange = (files: UploadFile[]) => {
-    setUploadFiles(files)
-  }
+    setUploadFiles(files);
+  };
 
-  const hasCompletedFiles = uploadFiles.some((f) => f.status === 'complete')
+  const hasCompletedFiles = uploadFiles.some((f) => f.status === "complete");
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Upload Document
-          <IconButton
-            aria-label="Close dialog"
-            onClick={handleClose}
-            size="medium"
-            sx={{ p: 1 }}
-          >
+          <IconButton aria-label="Close dialog" onClick={handleClose} size="medium" sx={{ p: 1 }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -166,9 +161,9 @@ const FileUploadDialog = ({
         <BNFileUpload
           maxFiles={5}
           acceptedFileTypes={
-            documentType === 'digital-shareholder-meeting'
-              ? ['.csv', '.xlsx', '.xls']
-              : ['.doc', '.docx', '.pdf', '.ppt', '.pptx', '.csv']
+            documentType === "digital-shareholder-meeting"
+              ? [".csv", ".xlsx", ".xls"]
+              : [".doc", ".docx", ".pdf", ".ppt", ".pptx", ".csv"]
           }
           onFilesSelected={handleFilesSelected}
           onFileRemove={handleFileRemove}
@@ -190,11 +185,11 @@ const FileUploadDialog = ({
           disabled={!hasCompletedFiles || isUploading}
           onClick={handleSubmit}
         >
-          {isUploading ? 'Uploading...' : 'Submit'}
+          {isUploading ? "Uploading..." : "Submit"}
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
-export default FileUploadDialog
+export default FileUploadDialog;

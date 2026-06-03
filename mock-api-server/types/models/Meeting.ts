@@ -1,3 +1,6 @@
+import type { Clients } from "./Clients";
+import type { MeetingStatus } from "./MeetingStatus";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Clients } from './Clients'
+import { mapValues } from "../runtime";
 import {
   ClientsFromJSON,
   ClientsFromJSONTyped,
   ClientsToJSON,
   ClientsToJSONTyped,
-} from './Clients'
-import type { MeetingStatus } from './MeetingStatus'
+} from "./Clients";
 import {
   MeetingStatusFromJSON,
   MeetingStatusFromJSONTyped,
   MeetingStatusToJSON,
   MeetingStatusToJSONTyped,
-} from './MeetingStatus'
+} from "./MeetingStatus";
 
 /**
  *
@@ -37,326 +38,315 @@ export interface Meeting {
    * @type {string}
    * @memberof Meeting
    */
-  id?: string
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  title?: string
+  title?: string;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  cusip?: string
+  cusip?: string;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  ticker?: string
+  ticker?: string;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  preFilingDate?: Date | null
+  preFilingDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  filingDate?: Date | null
+  filingDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  brokerSearchDate?: Date | null
+  brokerSearchDate?: Date | null;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  recordDate?: Date
+  recordDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  mailingDate?: Date
+  mailingDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  meetingDate?: Date
+  meetingDate?: Date;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  cutoffDate?: Date | null
+  cutoffDate?: Date | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  meetingType?: string
+  meetingType?: string;
   /**
    *
    * @type {number}
    * @memberof Meeting
    */
-  meetingYear?: number
+  meetingYear?: number;
   /**
    *
    * @type {MeetingStatus}
    * @memberof Meeting
    */
-  status?: MeetingStatus
+  status?: MeetingStatus;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  currentPhase?: string
+  currentPhase?: string;
   /**
    *
    * @type {number}
    * @memberof Meeting
    */
-  overallCompletion?: number
+  overallCompletion?: number;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  distributionType?: string
+  distributionType?: string;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  transferAgent?: string
+  transferAgent?: string;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  employeeStockPlans?: string | null
+  employeeStockPlans?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  planAdministrator?: string | null
+  planAdministrator?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  planAdministratorContact?: string | null
+  planAdministratorContact?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  planAdministratorContactEmail?: string | null
+  planAdministratorContactEmail?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  solicitor?: string | null
+  solicitor?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  solicitorEmail?: string | null
+  solicitorEmail?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  inspector?: string | null
+  inspector?: string | null;
   /**
    * IVR dial-in voting number (e.g., "1-800-555-VOTE")
    * @type {string}
    * @memberof Meeting
    */
-  ivrDialInNumber?: string | null
+  ivrDialInNumber?: string | null;
   /**
    *
    * @type {string}
    * @memberof Meeting
    */
-  totalSharesOutstanding?: string
+  totalSharesOutstanding?: string;
   /**
    *
    * @type {number}
    * @memberof Meeting
    */
-  quorumRequirement?: number
+  quorumRequirement?: number;
   /**
    * The client this meeting belongs to
    * @type {string}
    * @memberof Meeting
    */
-  clientId?: string
+  clientId?: string;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  createdAt?: Date
+  createdAt?: Date;
   /**
    *
    * @type {Date}
    * @memberof Meeting
    */
-  updatedAt?: Date
+  updatedAt?: Date;
   /**
    *
    * @type {Clients}
    * @memberof Meeting
    */
-  client?: Clients
+  client?: Clients;
 }
 
 /**
  * Check if a given object implements the Meeting interface.
  */
 export function instanceOfMeeting(value: object): value is Meeting {
-  return true
+  return true;
 }
 
 export function MeetingFromJSON(json: any): Meeting {
-  return MeetingFromJSONTyped(json, false)
+  return MeetingFromJSONTyped(json, false);
 }
 
 export function MeetingFromJSONTyped(json: any, ignoreDiscriminator: boolean): Meeting {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
-    title: json['title'] == null ? undefined : json['title'],
-    cusip: json['cusip'] == null ? undefined : json['cusip'],
-    ticker: json['ticker'] == null ? undefined : json['ticker'],
-    preFilingDate:
-      json['preFilingDate'] == null ? undefined : new Date(json['preFilingDate']),
-    filingDate: json['filingDate'] == null ? undefined : new Date(json['filingDate']),
+    id: json["id"] == null ? undefined : json["id"],
+    title: json["title"] == null ? undefined : json["title"],
+    cusip: json["cusip"] == null ? undefined : json["cusip"],
+    ticker: json["ticker"] == null ? undefined : json["ticker"],
+    preFilingDate: json["preFilingDate"] == null ? undefined : new Date(json["preFilingDate"]),
+    filingDate: json["filingDate"] == null ? undefined : new Date(json["filingDate"]),
     brokerSearchDate:
-      json['brokerSearchDate'] == null ? undefined : new Date(json['brokerSearchDate']),
-    recordDate: json['recordDate'] == null ? undefined : new Date(json['recordDate']),
-    mailingDate: json['mailingDate'] == null ? undefined : new Date(json['mailingDate']),
-    meetingDate: json['meetingDate'] == null ? undefined : new Date(json['meetingDate']),
-    cutoffDate: json['cutoffDate'] == null ? undefined : new Date(json['cutoffDate']),
-    meetingType: json['meetingType'] == null ? undefined : json['meetingType'],
-    meetingYear: json['meetingYear'] == null ? undefined : json['meetingYear'],
-    status: json['status'] == null ? undefined : MeetingStatusFromJSON(json['status']),
-    currentPhase: json['currentPhase'] == null ? undefined : json['currentPhase'],
-    overallCompletion:
-      json['overallCompletion'] == null ? undefined : json['overallCompletion'],
-    distributionType:
-      json['distributionType'] == null ? undefined : json['distributionType'],
-    transferAgent: json['transferAgent'] == null ? undefined : json['transferAgent'],
-    employeeStockPlans:
-      json['employeeStockPlans'] == null ? undefined : json['employeeStockPlans'],
-    planAdministrator:
-      json['planAdministrator'] == null ? undefined : json['planAdministrator'],
+      json["brokerSearchDate"] == null ? undefined : new Date(json["brokerSearchDate"]),
+    recordDate: json["recordDate"] == null ? undefined : new Date(json["recordDate"]),
+    mailingDate: json["mailingDate"] == null ? undefined : new Date(json["mailingDate"]),
+    meetingDate: json["meetingDate"] == null ? undefined : new Date(json["meetingDate"]),
+    cutoffDate: json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
+    meetingType: json["meetingType"] == null ? undefined : json["meetingType"],
+    meetingYear: json["meetingYear"] == null ? undefined : json["meetingYear"],
+    status: json["status"] == null ? undefined : MeetingStatusFromJSON(json["status"]),
+    currentPhase: json["currentPhase"] == null ? undefined : json["currentPhase"],
+    overallCompletion: json["overallCompletion"] == null ? undefined : json["overallCompletion"],
+    distributionType: json["distributionType"] == null ? undefined : json["distributionType"],
+    transferAgent: json["transferAgent"] == null ? undefined : json["transferAgent"],
+    employeeStockPlans: json["employeeStockPlans"] == null ? undefined : json["employeeStockPlans"],
+    planAdministrator: json["planAdministrator"] == null ? undefined : json["planAdministrator"],
     planAdministratorContact:
-      json['planAdministratorContact'] == null
-        ? undefined
-        : json['planAdministratorContact'],
+      json["planAdministratorContact"] == null ? undefined : json["planAdministratorContact"],
     planAdministratorContactEmail:
-      json['planAdministratorContactEmail'] == null
+      json["planAdministratorContactEmail"] == null
         ? undefined
-        : json['planAdministratorContactEmail'],
-    solicitor: json['solicitor'] == null ? undefined : json['solicitor'],
-    solicitorEmail: json['solicitorEmail'] == null ? undefined : json['solicitorEmail'],
-    inspector: json['inspector'] == null ? undefined : json['inspector'],
-    ivrDialInNumber:
-      json['ivrDialInNumber'] == null ? undefined : json['ivrDialInNumber'],
+        : json["planAdministratorContactEmail"],
+    solicitor: json["solicitor"] == null ? undefined : json["solicitor"],
+    solicitorEmail: json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
+    inspector: json["inspector"] == null ? undefined : json["inspector"],
+    ivrDialInNumber: json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
     totalSharesOutstanding:
-      json['totalSharesOutstanding'] == null ? undefined : json['totalSharesOutstanding'],
-    quorumRequirement:
-      json['quorumRequirement'] == null ? undefined : json['quorumRequirement'],
-    clientId: json['clientId'] == null ? undefined : json['clientId'],
-    createdAt: json['createdAt'] == null ? undefined : new Date(json['createdAt']),
-    updatedAt: json['updatedAt'] == null ? undefined : new Date(json['updatedAt']),
-    client: json['client'] == null ? undefined : ClientsFromJSON(json['client']),
-  }
+      json["totalSharesOutstanding"] == null ? undefined : json["totalSharesOutstanding"],
+    quorumRequirement: json["quorumRequirement"] == null ? undefined : json["quorumRequirement"],
+    clientId: json["clientId"] == null ? undefined : json["clientId"],
+    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    client: json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
+  };
 }
 
 export function MeetingToJSON(json: any): Meeting {
-  return MeetingToJSONTyped(json, false)
+  return MeetingToJSONTyped(json, false);
 }
 
 export function MeetingToJSONTyped(
   value?: Meeting | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    id: value['id'],
-    title: value['title'],
-    cusip: value['cusip'],
-    ticker: value['ticker'],
+    id: value["id"],
+    title: value["title"],
+    cusip: value["cusip"],
+    ticker: value["ticker"],
     preFilingDate:
-      value['preFilingDate'] === null
+      value["preFilingDate"] === null
         ? null
-        : (value['preFilingDate'] as any)?.toISOString().substring(0, 10),
+        : (value["preFilingDate"] as any)?.toISOString().substring(0, 10),
     filingDate:
-      value['filingDate'] === null
+      value["filingDate"] === null
         ? null
-        : (value['filingDate'] as any)?.toISOString().substring(0, 10),
+        : (value["filingDate"] as any)?.toISOString().substring(0, 10),
     brokerSearchDate:
-      value['brokerSearchDate'] === null
+      value["brokerSearchDate"] === null
         ? null
-        : (value['brokerSearchDate'] as any)?.toISOString().substring(0, 10),
+        : (value["brokerSearchDate"] as any)?.toISOString().substring(0, 10),
     recordDate:
-      value['recordDate'] == null
-        ? undefined
-        : value['recordDate'].toISOString().substring(0, 10),
+      value["recordDate"] == null ? undefined : value["recordDate"].toISOString().substring(0, 10),
     mailingDate:
-      value['mailingDate'] == null
+      value["mailingDate"] == null
         ? undefined
-        : value['mailingDate'].toISOString().substring(0, 10),
+        : value["mailingDate"].toISOString().substring(0, 10),
     meetingDate:
-      value['meetingDate'] == null
+      value["meetingDate"] == null
         ? undefined
-        : value['meetingDate'].toISOString().substring(0, 10),
+        : value["meetingDate"].toISOString().substring(0, 10),
     cutoffDate:
-      value['cutoffDate'] === null
+      value["cutoffDate"] === null
         ? null
-        : (value['cutoffDate'] as any)?.toISOString().substring(0, 10),
-    meetingType: value['meetingType'],
-    meetingYear: value['meetingYear'],
-    status: MeetingStatusToJSON(value['status']),
-    currentPhase: value['currentPhase'],
-    overallCompletion: value['overallCompletion'],
-    distributionType: value['distributionType'],
-    transferAgent: value['transferAgent'],
-    employeeStockPlans: value['employeeStockPlans'],
-    planAdministrator: value['planAdministrator'],
-    planAdministratorContact: value['planAdministratorContact'],
-    planAdministratorContactEmail: value['planAdministratorContactEmail'],
-    solicitor: value['solicitor'],
-    solicitorEmail: value['solicitorEmail'],
-    inspector: value['inspector'],
-    ivrDialInNumber: value['ivrDialInNumber'],
-    totalSharesOutstanding: value['totalSharesOutstanding'],
-    quorumRequirement: value['quorumRequirement'],
-    clientId: value['clientId'],
-    createdAt: value['createdAt'] == null ? undefined : value['createdAt'].toISOString(),
-    updatedAt: value['updatedAt'] == null ? undefined : value['updatedAt'].toISOString(),
-    client: ClientsToJSON(value['client']),
-  }
+        : (value["cutoffDate"] as any)?.toISOString().substring(0, 10),
+    meetingType: value["meetingType"],
+    meetingYear: value["meetingYear"],
+    status: MeetingStatusToJSON(value["status"]),
+    currentPhase: value["currentPhase"],
+    overallCompletion: value["overallCompletion"],
+    distributionType: value["distributionType"],
+    transferAgent: value["transferAgent"],
+    employeeStockPlans: value["employeeStockPlans"],
+    planAdministrator: value["planAdministrator"],
+    planAdministratorContact: value["planAdministratorContact"],
+    planAdministratorContactEmail: value["planAdministratorContactEmail"],
+    solicitor: value["solicitor"],
+    solicitorEmail: value["solicitorEmail"],
+    inspector: value["inspector"],
+    ivrDialInNumber: value["ivrDialInNumber"],
+    totalSharesOutstanding: value["totalSharesOutstanding"],
+    quorumRequirement: value["quorumRequirement"],
+    clientId: value["clientId"],
+    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    client: ClientsToJSON(value["client"]),
+  };
 }

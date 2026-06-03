@@ -2,401 +2,385 @@
 
 // API document statuses (see generated-schema.ts)
 export type DocumentStatus =
-  | 'DRAFT'
-  | 'AWAITING_DRAFT'
-  | 'AWAITING_REVIEW'
-  | 'APPROVED'
-  | 'UPLOADED'
-  | 'IN_PROGRESS'
-  | 'SIGNED'
-  | 'AUTHORIZED'
-  | 'COMPLETED'
+  | "DRAFT"
+  | "AWAITING_DRAFT"
+  | "AWAITING_REVIEW"
+  | "APPROVED"
+  | "UPLOADED"
+  | "IN_PROGRESS"
+  | "SIGNED"
+  | "AUTHORIZED"
+  | "COMPLETED";
 
 // Extended status used only client-side for placeholder DSM documents that have no file yet.
-export type ExtendedDocumentStatus = DocumentStatus | 'NOT_UPLOADED'
+export type ExtendedDocumentStatus = DocumentStatus | "NOT_UPLOADED";
 
 // Export an ordered array of the valid document status values for reuse (e.g. UI helpers)
 export const DOCUMENT_STATUS_VALUES: DocumentStatus[] = [
-  'DRAFT',
-  'AWAITING_DRAFT',
-  'AWAITING_REVIEW',
-  'APPROVED',
-  'UPLOADED',
-  'IN_PROGRESS',
-  'SIGNED',
-  'AUTHORIZED',
-  'COMPLETED',
-]
+  "DRAFT",
+  "AWAITING_DRAFT",
+  "AWAITING_REVIEW",
+  "APPROVED",
+  "UPLOADED",
+  "IN_PROGRESS",
+  "SIGNED",
+  "AUTHORIZED",
+  "COMPLETED",
+];
 
 // Include extended placeholder statuses separately so we don't leak them into persistence logic.
 export const EXTENDED_DOCUMENT_STATUS_VALUES: ExtendedDocumentStatus[] = [
   ...DOCUMENT_STATUS_VALUES,
-  'NOT_UPLOADED',
-]
+  "NOT_UPLOADED",
+];
 
 export interface Document {
-  id: string
-  name: string
-  type: string
-  status: ExtendedDocumentStatus
-  size: number
-  uploadedAt: string
-  url?: string
+  id: string;
+  name: string;
+  type: string;
+  status: ExtendedDocumentStatus;
+  size: number;
+  uploadedAt: string;
+  url?: string;
 }
 
 export interface DocumentSignature {
-  id: string
-  documentId: string
-  signerName: string
-  signerEmail: string
-  signedAt: string
-  status: 'pending' | 'signed'
+  id: string;
+  documentId: string;
+  signerName: string;
+  signerEmail: string;
+  signedAt: string;
+  status: "pending" | "signed";
   position: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface DocumentHistoryEntry {
-  id: string
-  documentId: string
-  action: string
-  userId: string
-  userName: string
-  timestamp: string
-  details?: Record<string, unknown>
+  id: string;
+  documentId: string;
+  action: string;
+  userId: string;
+  userName: string;
+  timestamp: string;
+  details?: Record<string, unknown>;
 }
 
 export interface DocumentWithHistory extends Document {
-  history: DocumentHistoryEntry[]
+  history: DocumentHistoryEntry[];
 }
 
 // Format file size in bytes to human readable string
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0) return "0 Bytes";
 
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 // Get file extension from filename
 export function getFileExtension(filename: string): string {
-  return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2)
+  return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }
 
 // Check if file type is supported
 export function isSupportedFileType(filename: string): boolean {
-  const supportedTypes = [
-    'pdf',
-    'doc',
-    'docx',
-    'xls',
-    'xlsx',
-    'ppt',
-    'pptx',
-    'csv',
-    'txt',
-  ]
-  const extension = getFileExtension(filename).toLowerCase()
-  return supportedTypes.includes(extension)
+  const supportedTypes = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "csv", "txt"];
+  const extension = getFileExtension(filename).toLowerCase();
+  return supportedTypes.includes(extension);
 }
 
 // Generate a unique document ID
 export function generateDocumentId(): string {
-  return `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 // Validate document signature position
 export function validateSignaturePosition(
   position: { x: number; y: number; width: number; height: number },
   pageWidth: number,
-  pageHeight: number
+  pageHeight: number,
 ): boolean {
   return (
     position.x >= 0 &&
     position.y >= 0 &&
     position.x + position.width <= pageWidth &&
     position.y + position.height <= pageHeight
-  )
+  );
 }
 
 // Calculate signature area in pixels
 export function calculateSignatureArea(position: {
-  x: number
-  y: number
-  width: number
-  height: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }): number {
-  return position.width * position.height
+  return position.width * position.height;
 }
 
 // Upload document to Supabase storage
 export async function uploadDocument(
   file: File,
   meetingId?: string,
-  documentType: 'dsm' | 'regular' = 'regular'
+  documentType: "dsm" | "regular" = "regular",
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
     if (!isSupportedFileType(file.name)) {
-      return { data: null, error: 'File type not supported' }
+      return { data: null, error: "File type not supported" };
     }
 
     // Import storage utility dynamically to avoid SSR issues
-    const { uploadFileToStorage, createStorageFolder } = await import('./supabaseStorage')
+    const { uploadFileToStorage, createStorageFolder } = await import("./supabaseStorage");
 
     // Create folder path if meetingId is provided
-    const folder = meetingId ? createStorageFolder(meetingId, documentType) : undefined
+    const folder = meetingId ? createStorageFolder(meetingId, documentType) : undefined;
 
     // Upload to Supabase storage
-    const uploadResult = await uploadFileToStorage(file, folder)
+    const uploadResult = await uploadFileToStorage(file, folder);
 
     if (uploadResult.error ?? !uploadResult.data) {
-      return { data: null, error: uploadResult.error ?? 'Upload failed' }
+      return { data: null, error: uploadResult.error ?? "Upload failed" };
     }
 
     const document: Document = {
       id: generateDocumentId(),
       name: file.name,
       type: getFileExtension(file.name),
-      status: 'DRAFT',
+      status: "DRAFT",
       size: file.size,
       uploadedAt: new Date().toISOString(),
       url: uploadResult.data.publicUrl ?? uploadResult.data.fullPath,
-    }
+    };
 
-    return { data: document, error: null }
+    return { data: document, error: null };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to upload document',
-    }
+      error: error instanceof Error ? error.message : "Failed to upload document",
+    };
   }
 }
 
 // Delete document from storage
 export async function deleteDocument(
   documentId: string,
-  storagePath?: string
+  storagePath?: string,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
     if (storagePath) {
       // Import storage utility dynamically to avoid SSR issues
-      const { deleteFileFromStorage } = await import('./supabaseStorage')
+      const { deleteFileFromStorage } = await import("./supabaseStorage");
 
-      const result = await deleteFileFromStorage(storagePath)
+      const result = await deleteFileFromStorage(storagePath);
       if (result.error) {
-        return { success: false, error: result.error }
+        return { success: false, error: result.error };
       }
     }
 
     // Here you would also delete from your database
     // For now, just simulate success
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete document',
-    }
+      error: error instanceof Error ? error.message : "Failed to delete document",
+    };
   }
 }
 
 // Get document status color for UI
 export function getDocumentStatusColor(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case 'NOT_UPLOADED':
-      return 'grey'
-    case 'DRAFT':
-    case 'AWAITING_DRAFT':
-      return 'grey'
-    case 'AWAITING_REVIEW':
-      return 'warning'
-    case 'APPROVED':
-    case 'AUTHORIZED':
-      return 'primary'
-    case 'UPLOADED':
-    case 'IN_PROGRESS':
-      return 'info'
-    case 'SIGNED':
-      return 'secondary'
-    case 'COMPLETED':
-      return 'success'
+    case "NOT_UPLOADED":
+      return "grey";
+    case "DRAFT":
+    case "AWAITING_DRAFT":
+      return "grey";
+    case "AWAITING_REVIEW":
+      return "warning";
+    case "APPROVED":
+    case "AUTHORIZED":
+      return "primary";
+    case "UPLOADED":
+    case "IN_PROGRESS":
+      return "info";
+    case "SIGNED":
+      return "secondary";
+    case "COMPLETED":
+      return "success";
     default:
-      return 'default'
+      return "default";
   }
 }
 
 export function getDocumentStatusLabel(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case 'NOT_UPLOADED':
-      return 'Not Uploaded'
-    case 'DRAFT':
-      return 'Draft'
-    case 'AWAITING_DRAFT':
-      return 'Awaiting Draft'
-    case 'AWAITING_REVIEW':
-      return 'Awaiting Review'
-    case 'APPROVED':
-      return 'Approved'
-    case 'UPLOADED':
-      return 'Uploaded'
-    case 'IN_PROGRESS':
-      return 'In Progress'
-    case 'SIGNED':
-      return 'Signed'
-    case 'AUTHORIZED':
-      return 'Authorized'
-    case 'COMPLETED':
-      return 'Completed'
+    case "NOT_UPLOADED":
+      return "Not Uploaded";
+    case "DRAFT":
+      return "Draft";
+    case "AWAITING_DRAFT":
+      return "Awaiting Draft";
+    case "AWAITING_REVIEW":
+      return "Awaiting Review";
+    case "APPROVED":
+      return "Approved";
+    case "UPLOADED":
+      return "Uploaded";
+    case "IN_PROGRESS":
+      return "In Progress";
+    case "SIGNED":
+      return "Signed";
+    case "AUTHORIZED":
+      return "Authorized";
+    case "COMPLETED":
+      return "Completed";
     default:
-      return 'Unknown'
+      return "Unknown";
   }
 }
 
 export function getDocumentActionLabel(doc: {
-  status?: ExtendedDocumentStatus
-  url?: string
-  filePath?: string
+  status?: ExtendedDocumentStatus;
+  url?: string;
+  filePath?: string;
 }): string {
-  const hasFile = !!(doc.url ?? doc.filePath)
-  if (doc.status === 'NOT_UPLOADED') return 'Upload'
-  if (!hasFile) return 'Upload'
-  if (doc.status === 'AWAITING_REVIEW') return 'Review'
-  return 'View'
+  const hasFile = !!(doc.url ?? doc.filePath);
+  if (doc.status === "NOT_UPLOADED") return "Upload";
+  if (!hasFile) return "Upload";
+  if (doc.status === "AWAITING_REVIEW") return "Review";
+  return "View";
 }
 
 // Build a public URL for a stored document path (Supabase storage)
 export function getStoragePublicUrl(filePath: string): string {
   // If already a full URL, return as-is
-  if (/^https?:\/\//i.test(filePath)) return filePath
+  if (/^https?:\/\//i.test(filePath)) return filePath;
 
   // If it's a data URI (base64), return as-is
-  if (filePath.startsWith('data:')) return filePath
+  if (filePath.startsWith("data:")) return filePath;
 
   // If this is a Next/Supabase storage relative path, prefix with base URL and return
-  if (filePath.startsWith('/storage/v1/object/')) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321'
-    return `${supabaseUrl}${filePath}`
+  if (filePath.startsWith("/storage/v1/object/")) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+    return `${supabaseUrl}${filePath}`;
   }
-  if (filePath.startsWith('storage/v1/object/')) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321'
-    return `${supabaseUrl}/${filePath}`
+  if (filePath.startsWith("storage/v1/object/")) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+    return `${supabaseUrl}/${filePath}`;
   }
 
   // Get the base Supabase URL from environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
   // Strip leading slashes and /documents/ prefix if present
-  let normalized = filePath.replace(/^\/+/, '')
-  if (normalized.startsWith('documents/')) {
-    normalized = normalized.substring('documents/'.length)
+  let normalized = filePath.replace(/^\/+/, "");
+  if (normalized.startsWith("documents/")) {
+    normalized = normalized.substring("documents/".length);
   }
 
   // Always ensure path is under the 'documents/' bucket
-  const withBucket = `documents/${normalized}`
+  const withBucket = `documents/${normalized}`;
 
   // Build the public object URL (not the S3 proxy) so it works in browsers
-  return `${supabaseUrl}/storage/v1/object/public/${withBucket}`
+  return `${supabaseUrl}/storage/v1/object/public/${withBucket}`;
 }
 
 // Simple URL detector used by UI code
 export function isStorageUrl(pathOrUrl: string): boolean {
-  return (
-    /^https?:\/\//i.test(pathOrUrl) || pathOrUrl.startsWith('/storage/v1/object/public/')
-  )
+  return /^https?:\/\//i.test(pathOrUrl) || pathOrUrl.startsWith("/storage/v1/object/public/");
 }
 
 // Fetch DSM documents for a meeting (category = 'DSM')
 export async function fetchDSMDocuments(
-  meetingId: string
+  meetingId: string,
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
   // Helper to map raw rows to DocumentWithHistory
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
-      const row = rowRaw as Record<string, unknown>
+      const row = rowRaw as Record<string, unknown>;
       const rowId =
-        typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
-      const historyRaw = row.history
+        typeof row.id === "string" ? row.id : `doc_${Math.random().toString(36).slice(2)}`;
+      const historyRaw = row.history;
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter(
-              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
-            )
+            .filter((h): h is Record<string, unknown> => typeof h === "object" && h !== null)
             .map((h) => ({
               id:
-                typeof h.id === 'string'
+                typeof h.id === "string"
                   ? h.id
                   : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
-              action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
+              documentId: typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
+              action: typeof h.action === "string" ? h.action : "UNKNOWN",
               userId:
-                typeof h.userId === 'string'
+                typeof h.userId === "string"
                   ? h.userId
-                  : typeof h.user_id === 'string'
+                  : typeof h.user_id === "string"
                     ? h.user_id
-                    : '',
+                    : "",
               userName:
-                typeof h.userName === 'string'
+                typeof h.userName === "string"
                   ? h.userName
-                  : typeof h.user_name === 'string'
+                  : typeof h.user_name === "string"
                     ? h.user_name
-                    : typeof h.user === 'string'
+                    : typeof h.user === "string"
                       ? h.user
-                      : 'Unknown User',
+                      : "Unknown User",
               timestamp:
-                typeof h.timestamp === 'string'
+                typeof h.timestamp === "string"
                   ? h.timestamp
-                  : typeof h.created_at === 'string'
+                  : typeof h.created_at === "string"
                     ? h.created_at
                     : new Date().toISOString(),
               details:
-                typeof h.details === 'object' && h.details !== null
+                typeof h.details === "object" && h.details !== null
                   ? (h.details as Record<string, unknown>)
                   : undefined,
             }))
-        : []
+        : [];
       return {
         id: rowId,
-        name: typeof row.title === 'string' ? row.title : 'Untitled',
-        type: String((row.type as string) ?? (row.file_type as string) ?? 'pdf'),
-        status: (typeof row.status === 'string' ? row.status : 'DRAFT') as DocumentStatus,
+        name: typeof row.title === "string" ? row.title : "Untitled",
+        type: String((row.type as string) ?? (row.file_type as string) ?? "pdf"),
+        status: (typeof row.status === "string" ? row.status : "DRAFT") as DocumentStatus,
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
           (row.updated_at as string) ??
           (row.created_at as string) ??
           new Date().toISOString(),
-        url: typeof row.file_path === 'string' ? row.file_path : undefined,
+        url: typeof row.file_path === "string" ? row.file_path : undefined,
         history: historyArray,
-      }
-    })
+      };
+    });
   try {
     // Try OpenAPI client first
-    const { apiClient } = await import('../domain-models/api/client')
+    const { apiClient } = await import("../domain-models/api/client");
     // Using defined path: GET /meetings/{meetingId}/documents with query params
-    const resp = await apiClient.GET('/meetings/{meetingId}/documents', {
-      params: { path: { meetingId }, query: { type: 'digital-shareholder-meeting' } },
-    })
+    const resp = await apiClient.GET("/meetings/{meetingId}/documents", {
+      params: { path: { meetingId }, query: { type: "digital-shareholder-meeting" } },
+    });
     if (!resp.error && resp.data) {
       // Assume API already returns proper shape; minimally adapt
       const adapted = Array.isArray(resp.data)
         ? resp.data.map((d) => {
-            const r = d as Record<string, unknown>
+            const r = d as Record<string, unknown>;
             return {
               id: String(r.id),
               name:
-                typeof r.title === 'string'
+                typeof r.title === "string"
                   ? r.title
-                  : typeof r.name === 'string'
+                  : typeof r.name === "string"
                     ? r.name
-                    : 'Untitled',
-              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string'
-                ? r.status
-                : 'DRAFT') as DocumentStatus,
+                    : "Untitled",
+              type: String((r.type as string) ?? (r.fileType as string) ?? "pdf"),
+              status: (typeof r.status === "string" ? r.status : "DRAFT") as DocumentStatus,
               size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
               uploadedAt:
                 (r.uploadedDate as string) ??
@@ -407,123 +391,117 @@ export async function fetchDSMDocuments(
                 (r.created_at as string) ??
                 new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history)
-                ? (r.history as DocumentHistoryEntry[])
-                : [],
-            }
+              history: Array.isArray(r.history) ? (r.history as DocumentHistoryEntry[]) : [],
+            };
           })
-        : []
-      return { data: adapted, error: null }
+        : [];
+      return { data: adapted, error: null };
     }
   } catch {
     // API call failed, fall back to direct Supabase query
   }
   try {
     // Fallback: direct Supabase query (legacy path)
-    const { supabase } = await import('./supabaseStorage')
+    const { supabase } = await import("./supabaseStorage");
     const { data, error } = await supabase
-      .from('document')
+      .from("document")
       .select(
-        'id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history'
+        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history",
       )
-      .eq('meeting_id', meetingId)
-      .like('type', '%DSM%')
-      .order('updated_at', { ascending: false })
-    if (error) return { data: null, error: error.message }
-    if (!data) return { data: [], error: null }
-    return { data: mapRows(data as unknown[]), error: null }
+      .eq("meeting_id", meetingId)
+      .like("type", "%DSM%")
+      .order("updated_at", { ascending: false });
+    if (error) return { data: null, error: error.message };
+    if (!data) return { data: [], error: null };
+    return { data: mapRows(data), error: null };
   } catch (e) {
     return {
       data: null,
-      error: e instanceof Error ? e.message : 'Failed to fetch DSM documents',
-    }
+      error: e instanceof Error ? e.message : "Failed to fetch DSM documents",
+    };
   }
 }
 
 // Fetch non-DSM (regular) documents for a meeting
 export async function fetchRegularDocuments(
-  meetingId: string
+  meetingId: string,
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
-      const row = rowRaw as Record<string, unknown>
+      const row = rowRaw as Record<string, unknown>;
       const rowId =
-        typeof row.id === 'string' ? row.id : `doc_${Math.random().toString(36).slice(2)}`
-      const historyRaw = row.history
+        typeof row.id === "string" ? row.id : `doc_${Math.random().toString(36).slice(2)}`;
+      const historyRaw = row.history;
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter(
-              (h): h is Record<string, unknown> => typeof h === 'object' && h !== null
-            )
+            .filter((h): h is Record<string, unknown> => typeof h === "object" && h !== null)
             .map((h) => ({
               id:
-                typeof h.id === 'string'
+                typeof h.id === "string"
                   ? h.id
                   : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === 'string' ? h.documentId : (rowId ?? ''),
-              action: typeof h.action === 'string' ? h.action : 'UNKNOWN',
+              documentId: typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
+              action: typeof h.action === "string" ? h.action : "UNKNOWN",
               userId:
-                typeof h.userId === 'string'
+                typeof h.userId === "string"
                   ? h.userId
-                  : typeof h.user_id === 'string'
+                  : typeof h.user_id === "string"
                     ? h.user_id
-                    : '',
+                    : "",
               userName:
-                typeof h.userName === 'string'
+                typeof h.userName === "string"
                   ? h.userName
-                  : typeof h.user_name === 'string'
+                  : typeof h.user_name === "string"
                     ? h.user_name
-                    : typeof h.user === 'string'
+                    : typeof h.user === "string"
                       ? h.user
-                      : 'Unknown User',
+                      : "Unknown User",
               timestamp:
-                typeof h.timestamp === 'string'
+                typeof h.timestamp === "string"
                   ? h.timestamp
-                  : typeof h.created_at === 'string'
+                  : typeof h.created_at === "string"
                     ? h.created_at
                     : new Date().toISOString(),
               details:
-                typeof h.details === 'object' && h.details !== null
+                typeof h.details === "object" && h.details !== null
                   ? (h.details as Record<string, unknown>)
                   : undefined,
             }))
-        : []
+        : [];
       return {
         id: rowId,
-        name: typeof row.title === 'string' ? row.title : 'Untitled',
-        type: String((row.type as string) ?? (row.file_type as string) ?? 'pdf'),
-        status: (typeof row.status === 'string' ? row.status : 'DRAFT') as DocumentStatus,
+        name: typeof row.title === "string" ? row.title : "Untitled",
+        type: String((row.type as string) ?? (row.file_type as string) ?? "pdf"),
+        status: (typeof row.status === "string" ? row.status : "DRAFT") as DocumentStatus,
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
           (row.updated_at as string) ??
           (row.created_at as string) ??
           new Date().toISOString(),
-        url: typeof row.file_path === 'string' ? row.file_path : undefined,
+        url: typeof row.file_path === "string" ? row.file_path : undefined,
         history: historyArray,
-      }
-    })
+      };
+    });
   try {
-    const { apiClient } = await import('../domain-models/api/client')
-    const resp = await apiClient.GET('/meetings/{meetingId}/documents', {
+    const { apiClient } = await import("../domain-models/api/client");
+    const resp = await apiClient.GET("/meetings/{meetingId}/documents", {
       params: { path: { meetingId } },
-    })
+    });
     if (!resp.error && resp.data) {
       const adapted = Array.isArray(resp.data)
         ? resp.data.map((d) => {
-            const r = d as Record<string, unknown>
+            const r = d as Record<string, unknown>;
             return {
               id: String(r.id),
               name:
-                typeof r.title === 'string'
+                typeof r.title === "string"
                   ? r.title
-                  : typeof r.name === 'string'
+                  : typeof r.name === "string"
                     ? r.name
-                    : 'Untitled',
-              type: String((r.type as string) ?? (r.fileType as string) ?? 'pdf'),
-              status: (typeof r.status === 'string'
-                ? r.status
-                : 'DRAFT') as DocumentStatus,
+                    : "Untitled",
+              type: String((r.type as string) ?? (r.fileType as string) ?? "pdf"),
+              status: (typeof r.status === "string" ? r.status : "DRAFT") as DocumentStatus,
               size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
               uploadedAt:
                 (r.uploadedDate as string) ??
@@ -534,68 +512,64 @@ export async function fetchRegularDocuments(
                 (r.created_at as string) ??
                 new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history)
-                ? (r.history as DocumentHistoryEntry[])
-                : [],
-            }
+              history: Array.isArray(r.history) ? (r.history as DocumentHistoryEntry[]) : [],
+            };
           })
-        : []
-      return { data: adapted, error: null }
+        : [];
+      return { data: adapted, error: null };
     }
   } catch {
     // API call failed, fall back to direct Supabase query
   }
   try {
-    const { supabase } = await import('./supabaseStorage')
+    const { supabase } = await import("./supabaseStorage");
     const { data, error } = await supabase
-      .from('document')
+      .from("document")
       .select(
-        'id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history'
+        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history",
       )
-      .eq('meeting_id', meetingId)
-      .order('updated_at', { ascending: false })
-    if (error) return { data: null, error: error.message }
-    if (!data) return { data: [], error: null }
-    return { data: mapRows(data as unknown[]), error: null }
+      .eq("meeting_id", meetingId)
+      .order("updated_at", { ascending: false });
+    if (error) return { data: null, error: error.message };
+    if (!data) return { data: [], error: null };
+    return { data: mapRows(data), error: null };
   } catch (e) {
     return {
       data: null,
-      error: e instanceof Error ? e.message : 'Failed to fetch regular documents',
-    }
+      error: e instanceof Error ? e.message : "Failed to fetch regular documents",
+    };
   }
 }
 
 // Update document status in persistence layer
 export async function updateDocumentStatus(
   documentId: string,
-  status: Document['status']
+  status: Document["status"],
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
     // Never attempt to persist placeholder status
-    const persistStatus: DocumentStatus = status === 'NOT_UPLOADED' ? 'DRAFT' : status
+    const persistStatus: DocumentStatus = status === "NOT_UPLOADED" ? "DRAFT" : status;
     // Attempt OpenAPI call first
     try {
-      const { apiClient } = await import('../domain-models/api/client')
+      const { apiClient } = await import("../domain-models/api/client");
       // PUT /documents/{id}
-      const resp = await apiClient.PUT('/documents/{id}', {
+      const resp = await apiClient.PUT("/documents/{id}", {
         params: { path: { id: documentId } },
         body: { status: persistStatus },
-      })
+      });
       if (!resp.error && resp.data) {
-        const d = resp.data as Record<string, unknown>
+        const d = resp.data as Record<string, unknown>;
         return {
           data: {
-            id: typeof d.id === 'string' ? d.id : documentId,
+            id: typeof d.id === "string" ? d.id : documentId,
             name:
-              typeof d.title === 'string'
+              typeof d.title === "string"
                 ? d.title
-                : typeof d.name === 'string'
+                : typeof d.name === "string"
                   ? d.name
-                  : 'Untitled',
-            type: String((d.type as string) ?? (d.fileType as string) ?? 'pdf'),
-            status: (typeof d.status === 'string'
-              ? d.status
-              : persistStatus) as DocumentStatus,
+                  : "Untitled",
+            type: String((d.type as string) ?? (d.fileType as string) ?? "pdf"),
+            status: (typeof d.status === "string" ? d.status : persistStatus) as DocumentStatus,
             size: Number((d.fileSize as number) ?? (d.file_size as number) ?? 0),
             uploadedAt:
               (d.uploadedDate as string) ??
@@ -608,56 +582,50 @@ export async function updateDocumentStatus(
             url: (d.filePath as string) ?? (d.file_path as string),
           },
           error: null,
-        }
+        };
       }
     } catch {
       // API call failed, fall back to direct Supabase update
     }
-    const { supabase } = await import('./supabaseStorage')
+    const { supabase } = await import("./supabaseStorage");
     const { data, error } = await supabase
-      .from('document')
+      .from("document")
       .update({ status: persistStatus })
-      .eq('id', documentId)
+      .eq("id", documentId)
       .select(
-        'id,title,type,status,file_size,file_type,file_path,updated_at,created_at,uploaded_date'
+        "id,title,type,status,file_size,file_type,file_path,updated_at,created_at,uploaded_date",
       )
-      .single()
+      .single();
     if (error) {
-      return { data: null, error: error.message }
+      return { data: null, error: error.message };
     }
 
     if (!data) {
-      return { data: null, error: 'Failed to update document status' }
+      return { data: null, error: "Failed to update document status" };
     }
 
-    const d = data as Record<string, unknown>
+    const d = data as Record<string, unknown>;
     return {
       data: {
-        id: typeof d.id === 'string' ? d.id : documentId,
+        id: typeof d.id === "string" ? d.id : documentId,
         name:
-          typeof d.title === 'string'
-            ? d.title
-            : typeof d.name === 'string'
-              ? d.name
-              : 'Untitled',
-        type: String((d.type as string) ?? (d.file_type as string) ?? 'pdf'),
-        status: (typeof d.status === 'string'
-          ? d.status
-          : persistStatus) as DocumentStatus,
+          typeof d.title === "string" ? d.title : typeof d.name === "string" ? d.name : "Untitled",
+        type: String((d.type as string) ?? (d.file_type as string) ?? "pdf"),
+        status: (typeof d.status === "string" ? d.status : persistStatus) as DocumentStatus,
         size: Number(d.file_size ?? 0),
         uploadedAt:
           (d.uploaded_date as string) ??
           (d.updated_at as string) ??
           (d.created_at as string) ??
           new Date().toISOString(),
-        url: typeof d.file_path === 'string' ? d.file_path : undefined,
+        url: typeof d.file_path === "string" ? d.file_path : undefined,
       },
       error: null,
-    }
+    };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to update document status',
-    }
+      error: error instanceof Error ? error.message : "Failed to update document status",
+    };
   }
 }

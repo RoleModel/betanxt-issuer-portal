@@ -1,3 +1,5 @@
+import type { Account } from "./Account";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,14 +12,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Account } from './Account'
+import { mapValues } from "../runtime";
 import {
   AccountFromJSON,
   AccountFromJSONTyped,
   AccountToJSON,
   AccountToJSONTyped,
-} from './Account'
+} from "./Account";
 
 /**
  *
@@ -30,61 +31,57 @@ export interface ListUserAccounts200Response {
    * @type {Array<Account>}
    * @memberof ListUserAccounts200Response
    */
-  accounts: Array<Account>
+  accounts: Array<Account>;
   /**
    * Total number of accounts
    * @type {number}
    * @memberof ListUserAccounts200Response
    */
-  total: number
+  total: number;
 }
 
 /**
  * Check if a given object implements the ListUserAccounts200Response interface.
  */
 export function instanceOfListUserAccounts200Response(
-  value: object
+  value: object,
 ): value is ListUserAccounts200Response {
-  if (!('accounts' in value) || value['accounts'] === undefined) return false
-  if (!('total' in value) || value['total'] === undefined) return false
-  return true
+  if (!("accounts" in value) || value["accounts"] === undefined) return false;
+  if (!("total" in value) || value["total"] === undefined) return false;
+  return true;
 }
 
-export function ListUserAccounts200ResponseFromJSON(
-  json: any
-): ListUserAccounts200Response {
-  return ListUserAccounts200ResponseFromJSONTyped(json, false)
+export function ListUserAccounts200ResponseFromJSON(json: any): ListUserAccounts200Response {
+  return ListUserAccounts200ResponseFromJSONTyped(json, false);
 }
 
 export function ListUserAccounts200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): ListUserAccounts200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    accounts: (json['accounts'] as Array<any>).map(AccountFromJSON),
-    total: json['total'],
-  }
+    accounts: (json["accounts"] as Array<any>).map(AccountFromJSON),
+    total: json["total"],
+  };
 }
 
-export function ListUserAccounts200ResponseToJSON(
-  json: any
-): ListUserAccounts200Response {
-  return ListUserAccounts200ResponseToJSONTyped(json, false)
+export function ListUserAccounts200ResponseToJSON(json: any): ListUserAccounts200Response {
+  return ListUserAccounts200ResponseToJSONTyped(json, false);
 }
 
 export function ListUserAccounts200ResponseToJSONTyped(
   value?: ListUserAccounts200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    accounts: (value['accounts'] as Array<any>).map(AccountToJSON),
-    total: value['total'],
-  }
+    accounts: (value["accounts"] as Array<any>).map(AccountToJSON),
+    total: value["total"],
+  };
 }

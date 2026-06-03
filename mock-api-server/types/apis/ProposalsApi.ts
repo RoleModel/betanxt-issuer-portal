@@ -10,11 +10,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type {
-  CreateProposalRequest,
-  Proposal,
-  UpdateProposalRequest,
-} from '../models/index'
+import type { CreateProposalRequest, Proposal, UpdateProposalRequest } from "../models/index";
+
 import {
   CreateProposalRequestFromJSON,
   CreateProposalRequestToJSON,
@@ -22,26 +19,26 @@ import {
   ProposalToJSON,
   UpdateProposalRequestFromJSON,
   UpdateProposalRequestToJSON,
-} from '../models/index'
-import * as runtime from '../runtime'
+} from "../models/index";
+import * as runtime from "../runtime";
 
 export interface CreateProposalOperationRequest {
-  meetingId: string
-  createProposalRequest: CreateProposalRequest
+  meetingId: string;
+  createProposalRequest: CreateProposalRequest;
 }
 
 export interface GetProposalByIdRequest {
-  id: string
+  id: string;
 }
 
 export interface ListProposalsRequest {
-  meetingId: string
-  proposalType?: string
+  meetingId: string;
+  proposalType?: string;
 }
 
 export interface UpdateProposalOperationRequest {
-  id: string
-  updateProposalRequest: UpdateProposalRequest
+  id: string;
+  updateProposalRequest: UpdateProposalRequest;
 }
 
 /**
@@ -53,57 +50,55 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async createProposalRaw(
     requestParameters: CreateProposalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Proposal>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling createProposal().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling createProposal().',
+      );
     }
 
-    if (requestParameters['createProposalRequest'] == null) {
+    if (requestParameters["createProposalRequest"] == null) {
       throw new runtime.RequiredError(
-        'createProposalRequest',
-        'Required parameter "createProposalRequest" was null or undefined when calling createProposal().'
-      )
+        "createProposalRequest",
+        'Required parameter "createProposalRequest" was null or undefined when calling createProposal().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/proposals`
+    let urlPath = `/meetings/{meetingId}/proposals`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'POST',
+        method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreateProposalRequestToJSON(requestParameters['createProposalRequest']),
+        body: CreateProposalRequestToJSON(requestParameters["createProposalRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ProposalFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => ProposalFromJSON(jsonValue));
   }
 
   /**
@@ -111,10 +106,10 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async createProposal(
     requestParameters: CreateProposalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Proposal> {
-    const response = await this.createProposalRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.createProposalRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -122,47 +117,42 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async getProposalByIdRaw(
     requestParameters: GetProposalByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Proposal>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling getProposalById().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling getProposalById().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/proposals/{id}`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/proposals/{id}`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ProposalFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => ProposalFromJSON(jsonValue));
   }
 
   /**
@@ -170,10 +160,10 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async getProposalById(
     requestParameters: GetProposalByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Proposal> {
-    const response = await this.getProposalByIdRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.getProposalByIdRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -181,51 +171,49 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async listProposalsRaw(
     requestParameters: ListProposalsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Array<Proposal>>> {
-    if (requestParameters['meetingId'] == null) {
+    if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
-        'meetingId',
-        'Required parameter "meetingId" was null or undefined when calling listProposals().'
-      )
+        "meetingId",
+        'Required parameter "meetingId" was null or undefined when calling listProposals().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    if (requestParameters['proposalType'] != null) {
-      queryParameters['proposalType'] = requestParameters['proposalType']
+    if (requestParameters["proposalType"] != null) {
+      queryParameters["proposalType"] = requestParameters["proposalType"];
     }
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/meetings/{meetingId}/proposals`
+    let urlPath = `/meetings/{meetingId}/proposals`;
     urlPath = urlPath.replace(
-      `{${'meetingId'}}`,
-      encodeURIComponent(String(requestParameters['meetingId']))
-    )
+      `{${"meetingId"}}`,
+      encodeURIComponent(String(requestParameters["meetingId"])),
+    );
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'GET',
+        method: "GET",
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(ProposalFromJSON)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ProposalFromJSON));
   }
 
   /**
@@ -233,10 +221,10 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async listProposals(
     requestParameters: ListProposalsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<Proposal>> {
-    const response = await this.listProposalsRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.listProposalsRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -244,57 +232,52 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async updateProposalRaw(
     requestParameters: UpdateProposalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<Proposal>> {
-    if (requestParameters['id'] == null) {
+    if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling updateProposal().'
-      )
+        "id",
+        'Required parameter "id" was null or undefined when calling updateProposal().',
+      );
     }
 
-    if (requestParameters['updateProposalRequest'] == null) {
+    if (requestParameters["updateProposalRequest"] == null) {
       throw new runtime.RequiredError(
-        'updateProposalRequest',
-        'Required parameter "updateProposalRequest" was null or undefined when calling updateProposal().'
-      )
+        "updateProposalRequest",
+        'Required parameter "updateProposalRequest" was null or undefined when calling updateProposal().',
+      );
     }
 
-    const queryParameters: any = {}
+    const queryParameters: any = {};
 
-    const headerParameters: runtime.HTTPHeaders = {}
+    const headerParameters: runtime.HTTPHeaders = {};
 
-    headerParameters['Content-Type'] = 'application/json'
+    headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken
-      const tokenString = await token('bearerAuth', [])
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
 
       if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
 
-    let urlPath = `/proposals/{id}`
-    urlPath = urlPath.replace(
-      `{${'id'}}`,
-      encodeURIComponent(String(requestParameters['id']))
-    )
+    let urlPath = `/proposals/{id}`;
+    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
 
     const response = await this.request(
       {
         path: urlPath,
-        method: 'PUT',
+        method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdateProposalRequestToJSON(requestParameters['updateProposalRequest']),
+        body: UpdateProposalRequestToJSON(requestParameters["updateProposalRequest"]),
       },
-      initOverrides
-    )
+      initOverrides,
+    );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ProposalFromJSON(jsonValue)
-    )
+    return new runtime.JSONApiResponse(response, (jsonValue) => ProposalFromJSON(jsonValue));
   }
 
   /**
@@ -302,9 +285,9 @@ export class ProposalsApi extends runtime.BaseAPI {
    */
   async updateProposal(
     requestParameters: UpdateProposalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Proposal> {
-    const response = await this.updateProposalRaw(requestParameters, initOverrides)
-    return await response.value()
+    const response = await this.updateProposalRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

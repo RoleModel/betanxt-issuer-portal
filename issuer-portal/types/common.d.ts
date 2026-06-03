@@ -5,28 +5,28 @@
 
 // Calendar types for Calendar components
 export interface CalendarDate {
-  date: Date
-  isCurrentMonth: boolean
-  tasks: Task[]
-  keyDates: KeyDate[]
+  date: Date;
+  isCurrentMonth: boolean;
+  tasks: Task[];
+  keyDates: KeyDate[];
 }
 
 export interface CalendarWeek {
-  days: CalendarDate[]
+  days: CalendarDate[];
 }
 
 export interface CalendarMonth {
-  year: number
-  month: Date
-  weeks: CalendarWeek[]
-  monthName: string
+  year: number;
+  month: Date;
+  weeks: CalendarWeek[];
+  monthName: string;
 }
 
 // UI Context Menu types
 export interface ContextMenuPosition {
-  x: number
-  y: number
+  x: number;
+  y: number;
 }
 
 // Re-export core domain types from API namespace
-export type { Task, KeyDate, Document, Meeting, Proposal, Phase } from './api'
+export type { Task, KeyDate, Document, Meeting, Proposal, Phase } from "./api";

@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,75 +23,75 @@ export interface TabulationReportShareRangePerformanceInner {
    * @type {string}
    * @memberof TabulationReportShareRangePerformanceInner
    */
-  rangeLabel?: string
+  rangeLabel?: string;
   /**
    *
    * @type {number}
    * @memberof TabulationReportShareRangePerformanceInner
    */
-  positionCount?: number
+  positionCount?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportShareRangePerformanceInner
    */
-  totalShares?: number
+  totalShares?: number;
   /**
    *
    * @type {number}
    * @memberof TabulationReportShareRangePerformanceInner
    */
-  percentVoted?: number
+  percentVoted?: number;
 }
 
 /**
  * Check if a given object implements the TabulationReportShareRangePerformanceInner interface.
  */
 export function instanceOfTabulationReportShareRangePerformanceInner(
-  value: object
+  value: object,
 ): value is TabulationReportShareRangePerformanceInner {
-  return true
+  return true;
 }
 
 export function TabulationReportShareRangePerformanceInnerFromJSON(
-  json: any
+  json: any,
 ): TabulationReportShareRangePerformanceInner {
-  return TabulationReportShareRangePerformanceInnerFromJSONTyped(json, false)
+  return TabulationReportShareRangePerformanceInnerFromJSONTyped(json, false);
 }
 
 export function TabulationReportShareRangePerformanceInnerFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): TabulationReportShareRangePerformanceInner {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    rangeLabel: json['rangeLabel'] == null ? undefined : json['rangeLabel'],
-    positionCount: json['positionCount'] == null ? undefined : json['positionCount'],
-    totalShares: json['totalShares'] == null ? undefined : json['totalShares'],
-    percentVoted: json['percentVoted'] == null ? undefined : json['percentVoted'],
-  }
+    rangeLabel: json["rangeLabel"] == null ? undefined : json["rangeLabel"],
+    positionCount: json["positionCount"] == null ? undefined : json["positionCount"],
+    totalShares: json["totalShares"] == null ? undefined : json["totalShares"],
+    percentVoted: json["percentVoted"] == null ? undefined : json["percentVoted"],
+  };
 }
 
 export function TabulationReportShareRangePerformanceInnerToJSON(
-  json: any
+  json: any,
 ): TabulationReportShareRangePerformanceInner {
-  return TabulationReportShareRangePerformanceInnerToJSONTyped(json, false)
+  return TabulationReportShareRangePerformanceInnerToJSONTyped(json, false);
 }
 
 export function TabulationReportShareRangePerformanceInnerToJSONTyped(
   value?: TabulationReportShareRangePerformanceInner | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    rangeLabel: value['rangeLabel'],
-    positionCount: value['positionCount'],
-    totalShares: value['totalShares'],
-    percentVoted: value['percentVoted'],
-  }
+    rangeLabel: value["rangeLabel"],
+    positionCount: value["positionCount"],
+    totalShares: value["totalShares"],
+    percentVoted: value["percentVoted"],
+  };
 }

@@ -1,9 +1,8 @@
 // Lightweight shared loading fallback component
-'use client'
+"use client";
 
-import React from 'react'
-
-import { Box, LinearProgress } from '@mui/material'
+import { Box, LinearProgress } from "@mui/material";
+import React from "react";
 
 // Lightweight shared loading fallback component
 
@@ -31,8 +30,8 @@ import { Box, LinearProgress } from '@mui/material'
 
 export default function Loading() {
   return (
-    <Box sx={{ width: '100%', py: 2 }}>
+    <Box sx={{ width: "100%", py: 2 }}>
       <LinearProgress />
     </Box>
-  )
+  );
 }

@@ -1,61 +1,45 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import React, { Suspense } from 'react'
+import { Box, Button, Card, CardContent, CardHeader, Grid, Skeleton, Stack } from "@mui/material";
+import dynamic from "next/dynamic";
+import React, { Suspense } from "react";
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  Skeleton,
-  Stack,
-} from '@mui/material'
+import type { Meeting } from "@/types/api-exports";
 
-import DigitalShareholderMeetingCard from '@/components/Meeting/DigitalShareholderMeetingCard'
+import DigitalShareholderMeetingCard from "@/components/Meeting/DigitalShareholderMeetingCard";
+import { useVotingTabulation } from "@/hooks/useVotingTabulation";
 
-import { useVotingTabulation } from '@/hooks/useVotingTabulation'
-import type { Meeting } from '@/types/api-exports'
-
-import KeyDatesCard from './KeyDatesCard'
+import KeyDatesCard from "./KeyDatesCard";
 
 // Dynamic imports for heavy components
-const VotingTabulationTable = dynamic(
-  () => import('@/components/Meeting/VotingTabulationTable'),
-  {
-    loading: () => <Skeleton variant="rectangular" height={400} />,
-    ssr: false,
-  }
-)
+const VotingTabulationTable = dynamic(() => import("@/components/Meeting/VotingTabulationTable"), {
+  loading: () => <Skeleton variant="rectangular" height={400} />,
+  ssr: false,
+});
 
-const MeetingRolesCard = dynamic(() => import('@/components/Meeting/MeetingRolesCard'), {
+const MeetingRolesCard = dynamic(() => import("@/components/Meeting/MeetingRolesCard"), {
   loading: () => <Skeleton variant="rectangular" height={300} />,
   ssr: false,
-})
+});
 
-const FeatureTile = dynamic(() => import('@/components/FeatureTile'), {
+const FeatureTile = dynamic(() => import("@/components/FeatureTile"), {
   loading: () => <Skeleton variant="rectangular" height={300} />,
   ssr: false,
-})
+});
 
-const SharesVotedChart = dynamic(() => import('@/components/Meeting/SharesVotedChart'), {
+const SharesVotedChart = dynamic(() => import("@/components/Meeting/SharesVotedChart"), {
   loading: () => <Skeleton variant="rectangular" height={300} />,
   ssr: false,
-})
+});
 
 interface Phase6LayoutProps {
-  meetingId?: string
-  meeting?: Meeting
-  phase?: number
+  meetingId?: string;
+  meeting?: Meeting;
+  phase?: number;
 }
 
-export default React.memo(function Phase6Layout({
-  meetingId,
-  meeting,
-}: Phase6LayoutProps) {
-  const { proposals, loading: votingLoading } = useVotingTabulation(meetingId)
+export default React.memo(function Phase6Layout({ meetingId, meeting }: Phase6LayoutProps) {
+  const { proposals, loading: votingLoading } = useVotingTabulation(meetingId);
 
   return (
     <Box display="flex" flexDirection="column" gap={3}>
@@ -80,7 +64,7 @@ export default React.memo(function Phase6Layout({
           <MeetingRolesCard meetingId={meetingId} />
         </Grid>
       </Grid>
-      <Grid container spacing={{ xs: 2, md: 3 }} direction={{ sm: 'column', md: 'row' }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} direction={{ sm: "column", md: "row" }}>
         <Grid size={{ sm: 12, md: 6, lg: 6 }}>
           <FeatureTile
             title="Official Master Tabulation Total"
@@ -108,7 +92,7 @@ export default React.memo(function Phase6Layout({
                   onClick={() => {
                     // Event handler intentionally empty - button is disabled
                   }}
-                  sx={{ textTransform: 'none' }}
+                  sx={{ textTransform: "none" }}
                 >
                   View Tabulation
                 </Button>
@@ -128,7 +112,7 @@ export default React.memo(function Phase6Layout({
           alignSelf="flex-start"
         >
           <Grid size={{ xs: 12, sm: 6, md: 12 }}>
-            <Stack direction={{ sm: 'row', lg: 'column' }} spacing={2} useFlexGap={true}>
+            <Stack direction={{ sm: "row", lg: "column" }} spacing={2} useFlexGap={true}>
               <FeatureTile
                 title="Registered Holder Mailing Affidavit"
                 titleVariant="h2"
@@ -159,5 +143,5 @@ export default React.memo(function Phase6Layout({
         </Grid>
       </Grid>
     </Box>
-  )
-})
+  );
+});

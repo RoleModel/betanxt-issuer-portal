@@ -24,39 +24,39 @@ This is a Turborepo workspace with two main applications:
 
 ### Development
 
-- `npm run dev` - Start both applications in development mode
-- `npm run build` - Build frontend application (issuer-portal only)
-- `npm run build:all` - Build both applications (frontend + backend)
-- `npm run lint` - Lint all workspaces with auto-fix
-- `npm run lint:strict` - Lint with strict rules (no auto-fix)
-- `npm run test` - Run Playwright tests across workspaces
-- `npm run format` - Format code with Prettier
-- `npm run clean` - Clean build artifacts in both workspaces
-- `npm run clean:all` - Deep clean (removes node_modules, .next, .turbo)
+- `pnpm dev` - Start both applications in development mode
+- `pnpm build` - Build frontend application (issuer-portal only)
+- `pnpm build:all` - Build both applications (frontend + backend)
+- `pnpm lint` - Lint all workspaces with auto-fix
+- `pnpm lint:strict` - Lint with strict rules (no auto-fix)
+- `pnpm test` - Run Playwright tests across workspaces
+- `pnpm format` - Format code with Prettier
+- `pnpm clean` - Clean build artifacts in both workspaces
+- `pnpm clean:all` - Deep clean (removes node_modules, .next, .turbo)
 
 ### Database Operations (from mock-api-server/)
 
-- `npm run supabase:start` - Start local Supabase instance
-- `npm run supabase:stop` - Stop local Supabase instance
-- `npm run supabase:reset` - Reset database with fresh schema and seed data
+- `pnpm run supabase:start` - Start local Supabase instance
+- `pnpm run supabase:stop` - Stop local Supabase instance
+- `pnpm run supabase:reset` - Reset database with fresh schema and seed data
 - `supabase db reset --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` - Direct database reset
-- `npm run generate:seeds` - Generate fresh seed data from TypeScript
-- `npm run seed:documents` - Upload document files from /data directories to Supabase storage
-- `npm run seed:documents:clean` - Clean all documents then upload fresh files
-- `npm run generate:db-types` - Generate TypeScript types from database schema
-- `npm run full-reset` - Complete reset: schema → seeds → database → types → documents
-- `npm run seed:reset` - Generate seeds, reset database, clean and reseed documents
-- `npm run setup:storage` - Ensure documents bucket exists in Supabase storage
+- `pnpm run generate:seeds` - Generate fresh seed data from TypeScript
+- `pnpm run seed:documents` - Upload document files from /data directories to Supabase storage
+- `pnpm run seed:documents:clean` - Clean all documents then upload fresh files
+- `pnpm run generate:db-types` - Generate TypeScript types from database schema
+- `pnpm run full-reset` - Complete reset: schema → seeds → database → types → documents
+- `pnpm run seed:reset` - Generate seeds, reset database, clean and reseed documents
+- `pnpm run setup:storage` - Ensure documents bucket exists in Supabase storage
 
 ### Schema-Driven Development Workflow
 
 **CRITICAL**: Always follow this exact flow when making API/data changes:
 
 1. **Update OpenAPI spec**: Edit `mock-api-server/openapi-schema/openapi.yaml`
-2. **Generate database schema**: `npm run generate:postgres-schema` (creates SQL migrations)
-3. **Generate seed data** (optional): `npm run generate:seeds` (creates seed.sql)
+2. **Generate database schema**: `pnpm run generate:postgres-schema` (creates SQL migrations)
+3. **Generate seed data** (optional): `pnpm run generate:seeds` (creates seed.sql)
 4. **Reset database**: `supabase db reset` (applies migrations and seeds)
-5. **Generate types**: `npm run generate:db-types` && `npm run generate:api-types`
+5. **Generate types**: `pnpm run generate:db-types` && `pnpm run generate:api-types`
 6. **MANUALLY update domain transforms**: Update `mock-api-server/domain-models/api/*.ts` to handle snake_case→camelCase conversions for new fields
 
 **Common Pitfall**: Missing step 6 causes silent data loss. Every new OpenAPI field must appear in:
@@ -70,12 +70,12 @@ This is a Turborepo workspace with two main applications:
 
 From mock-api-server workspace:
 
-- `npm run test` - Run all Playwright tests
-- `npm run test:ui` - Run tests with Playwright UI
-- `npm run test:unit` - Unit tests only
-- `npm run test:integration` - Integration tests only
-- `npm run test:e2e` - End-to-end tests only
-- `npm run test:ts` - Type check without emitting files
+- `pnpm run test` - Run all Playwright tests
+- `pnpm run test:ui` - Run tests with Playwright UI
+- `pnpm run test:unit` - Unit tests only
+- `pnpm run test:integration` - Integration tests only
+- `pnpm run test:e2e` - End-to-end tests only
+- `pnpm run test:ts` - Type check without emitting files
 
 ## Architecture
 
@@ -153,20 +153,20 @@ From mock-api-server workspace:
 ```typescript
 // Third-party modules
 // Design system imports
-import { Component } from '@rolemodel/betanxt-design-system'
-import React from 'react'
+import { Component } from "@rolemodel/betanxt-design-system";
+import React from "react";
 
 // MUI imports
-import { Button } from '@mui/material'
+import { Button } from "@mui/material";
 
 // Local component imports
-import { Header } from '@/components/Header'
+import { Header } from "@/components/Header";
 
 // Domain model imports
-import { User } from '@/domain-models/User'
+import { User } from "@/domain-models/User";
 
 // Relative imports
-import './styles.css'
+import "./styles.css";
 ```
 
 ## Development Constraints
@@ -212,10 +212,10 @@ import './styles.css'
 
 ## Local Development Setup
 
-1. **Install dependencies**: `npm install` (from root)
-2. **Start Supabase**: `cd mock-api-server && npm run supabase:start`
-3. **Set up database**: `npm run full-reset` (from mock-api-server/)
-4. **Start applications**: `npm run dev` (from root)
+1. **Install dependencies**: `pnpm install` (from root)
+2. **Start Supabase**: `cd mock-api-server && pnpm run supabase:start`
+3. **Set up database**: `pnpm run full-reset` (from mock-api-server/)
+4. **Start applications**: `pnpm dev` (from root)
 
 ### Ports
 
@@ -349,9 +349,9 @@ import './styles.css'
 
 ---
 
-**Node Version**: 22.0.0+ (enforced via engines, backend requires >=22.20.0)
-**Package Manager**: npm 10.9.3
-**Last Updated**: October 10, 2025
+**Node Version**: 24.0.0+ (enforced via engines)
+**Package Manager**: pnpm 11.5.1
+**Last Updated**: June 2, 2026
 
 - Do not use 'any' type assertions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won't type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.

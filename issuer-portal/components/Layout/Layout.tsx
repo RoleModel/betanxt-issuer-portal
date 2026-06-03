@@ -1,49 +1,44 @@
-'use client'
+"use client";
 
-import { BNAppFooter } from '@rolemodel/betanxt-design-system/components/BNAppFooter'
-import type {} from '@rolemodel/betanxt-design-system/themes/mui-type-customizations'
-import type { User } from 'next-auth'
-import { useSession } from 'next-auth/react'
-import type { PropsWithChildren } from 'react'
-import React, { Suspense, useMemo, useState } from 'react'
+import type {} from "@rolemodel/betanxt-design-system/themes/mui-type-customizations";
+import type { User } from "next-auth";
+import type { PropsWithChildren } from "react";
 
-import { CloseOutlined, SupportAgentOutlined } from '@mui/icons-material'
-import { Alert, Box, Snackbar, Stack } from '@mui/material'
+import { CloseOutlined, SupportAgentOutlined } from "@mui/icons-material";
+import { Alert, Box, Snackbar, Stack } from "@mui/material";
+import { BNAppFooter } from "@rolemodel/betanxt-design-system/components/BNAppFooter";
+import { useSession } from "next-auth/react";
+import React, { Suspense, useMemo, useState } from "react";
 
-import { ResetDemoDataDialog } from '@/components/Dialogs/ResetDemoDataDialog'
-import { InfoDialog } from '@/components/InfoDialog'
-import { BNAppBarClient } from '@/components/Navigation/AppBar'
-import { EventTabs } from '@/components/Navigation/EventTabs'
-import IssuerSpeedDial from '@/components/SpeedDial'
-import SupportContactsPopover from '@/components/SupportContactsPopover'
+import { ResetDemoDataDialog } from "@/components/Dialogs/ResetDemoDataDialog";
+import { InfoDialog } from "@/components/InfoDialog";
+import { BNAppBarClient } from "@/components/Navigation/AppBar";
+import { EventTabs } from "@/components/Navigation/EventTabs";
+import IssuerSpeedDial from "@/components/SpeedDial";
+import SupportContactsPopover from "@/components/SupportContactsPopover";
+import { useChatbotContext } from "@/contexts/ChatbotContext";
+import { useClient } from "@/contexts/ClientContext";
 
-import { useChatbotContext } from '@/contexts/ChatbotContext'
-import { useClient } from '@/contexts/ClientContext'
-
-import Loading from '../../app/loading'
+import Loading from "../../app/loading";
 
 interface LayoutProps {
-  activeNavLinkTitle?: string
-  appSwitcher?: boolean
-  apps?: string
-  navBar?: boolean
-  eventTabs?: boolean
+  activeNavLinkTitle?: string;
+  appSwitcher?: boolean;
+  apps?: string;
+  navBar?: boolean;
+  eventTabs?: boolean;
 }
 
-function Layout({
-  children,
-  navBar = true,
-  eventTabs = false,
-}: PropsWithChildren<LayoutProps>) {
-  const [open, setOpen] = React.useState(false)
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
-  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false)
-  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
+function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildren<LayoutProps>) {
+  const [open, setOpen] = React.useState(false);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = React.useState(false);
   const [phaseCompleteSnackbar, setPhaseCompleteSnackbar] = useState({
     open: false,
-    message: '',
-  })
-  const { openChatbot } = useChatbotContext()
+    message: "",
+  });
+  const { openChatbot } = useChatbotContext();
 
   // Expose snackbar handler globally for phase completion
   React.useEffect(() => {
@@ -51,109 +46,106 @@ function Layout({
       setPhaseCompleteSnackbar({
         open: true,
         message: event.detail.message,
-      })
-    }
+      });
+    };
 
     window.addEventListener(
-      'phaseComplete' as keyof WindowEventMap,
-      handlePhaseComplete as EventListener
-    )
+      "phaseComplete" as keyof WindowEventMap,
+      handlePhaseComplete as EventListener,
+    );
 
     return () => {
       window.removeEventListener(
-        'phaseComplete' as keyof WindowEventMap,
-        handlePhaseComplete as EventListener
-      )
-    }
-  }, [])
+        "phaseComplete" as keyof WindowEventMap,
+        handlePhaseComplete as EventListener,
+      );
+    };
+  }, []);
 
   React.useEffect(() => {
     const handleOpenSupportContacts = () => {
-      const speedDialElement = document.querySelector('[aria-label="Support Contacts"]')
+      const speedDialElement = document.querySelector('[aria-label="Support Contacts"]');
       if (speedDialElement instanceof HTMLElement) {
-        setAnchorEl(speedDialElement)
+        setAnchorEl(speedDialElement);
       }
-      setOpen(true)
-    }
+      setOpen(true);
+    };
 
-    window.addEventListener('chatbot:open-support-contacts', handleOpenSupportContacts)
+    window.addEventListener("chatbot:open-support-contacts", handleOpenSupportContacts);
 
     return () => {
-      window.removeEventListener(
-        'chatbot:open-support-contacts',
-        handleOpenSupportContacts
-      )
-    }
-  }, [])
+      window.removeEventListener("chatbot:open-support-contacts", handleOpenSupportContacts);
+    };
+  }, []);
 
   const handleAssistantClick = () => {
-    openChatbot()
-  }
+    openChatbot();
+  };
 
   const handleGlossaryClick = () => {
-    setInfoDialogOpen(true)
-  }
+    setInfoDialogOpen(true);
+  };
 
   const handleInfoDialogClose = () => {
-    setInfoDialogOpen(false)
-  }
+    setInfoDialogOpen(false);
+  };
 
   const handleContactsClick = () => {
     // Find the SpeedDial element to use as anchor
-    const speedDialElement = document.querySelector('[aria-label="Support Contacts"]')
+    const speedDialElement = document.querySelector('[aria-label="Support Contacts"]');
     if (speedDialElement instanceof HTMLElement) {
-      setAnchorEl(speedDialElement)
+      setAnchorEl(speedDialElement);
     }
-    setOpen(true)
-  }
+    setOpen(true);
+  };
 
   const handleResetClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setResetDialogOpen(true)
-  }
+    e.preventDefault();
+    setResetDialogOpen(true);
+  };
 
   const handleResetDialogClose = () => {
-    setResetDialogOpen(false)
-  }
-  const { data: session } = useSession()
-  const { currentClient } = useClient()
+    setResetDialogOpen(false);
+  };
+  const { data: session } = useSession();
+  const { currentClient } = useClient();
 
   // Create effective user object with current client from context
   const effectiveUser = useMemo(() => {
     const user =
       session?.user ??
-      (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
-        ? ({ name: 'Development', email: 'developer@example.com' } as User)
-        : null)
-    if (!user) return user
+      (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true"
+        ? ({ name: "Development", email: "developer@example.com" } as User)
+        : null);
+    if (!user) return user;
     return {
       ...user,
       client: currentClient,
-    }
-  }, [session?.user, currentClient])
+    };
+  }, [session?.user, currentClient]);
 
   // Map NextAuth User to BNAppBarClient's expected user shape
   interface BNUser {
-    id: string
-    name?: string | null
-    email?: string | null
-    image?: string | null
-    username?: string
-    type?: string
-    accountId?: string
-    client?: { id: number; name: string }
-    roles?: string[]
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    username?: string;
+    type?: string;
+    accountId?: string;
+    client?: { id: number; name: string };
+    roles?: string[];
   }
 
   const bnUser = useMemo<BNUser | undefined>(() => {
-    if (!effectiveUser) return undefined
-    const u = effectiveUser as unknown as Record<string, unknown>
-    const id = typeof u.id === 'string' ? u.id : 'dev'
-    const username = typeof u.username === 'string' ? u.username : undefined
-    const type = typeof u.type === 'string' ? u.type : undefined
-    const accountId = typeof u.accountId === 'string' ? u.accountId : undefined
-    const roles = Array.isArray(u.roles) ? (u.roles as string[]) : undefined
-    const userImage = (effectiveUser as User).image ?? null
+    if (!effectiveUser) return undefined;
+    const u = effectiveUser as unknown as Record<string, unknown>;
+    const id = typeof u.id === "string" ? u.id : "dev";
+    const username = typeof u.username === "string" ? u.username : undefined;
+    const type = typeof u.type === "string" ? u.type : undefined;
+    const accountId = typeof u.accountId === "string" ? u.accountId : undefined;
+    const roles = Array.isArray(u.roles) ? (u.roles as string[]) : undefined;
+    const userImage = (effectiveUser as User).image ?? null;
     return {
       id,
       name: (effectiveUser as User).name ?? null,
@@ -163,12 +155,12 @@ function Layout({
       type,
       accountId,
       roles,
-    }
-  }, [effectiveUser])
+    };
+  }, [effectiveUser]);
 
   return (
     <Suspense fallback={<Loading />}>
-      <Stack sx={{ minHeight: '100vh' }}>
+      <Stack sx={{ minHeight: "100vh" }}>
         {navBar && (
           <Box
             sx={{
@@ -203,32 +195,27 @@ function Layout({
           open={open}
           anchorEl={anchorEl}
           onClose={() => {
-            setOpen(false)
-            setAnchorEl(null)
+            setOpen(false);
+            setAnchorEl(null);
           }}
         />
-        <InfoDialog
-          open={infoDialogOpen}
-          onClose={handleInfoDialogClose}
-          term=""
-          definition=""
-        />
+        <InfoDialog open={infoDialogOpen} onClose={handleInfoDialogClose} term="" definition="" />
         <ResetDemoDataDialog open={resetDialogOpen} onClose={handleResetDialogClose} />
 
         {/* Global Phase Completion Snackbar */}
         <Snackbar
           open={phaseCompleteSnackbar.open}
           autoHideDuration={6000}
-          onClose={() => setPhaseCompleteSnackbar({ open: false, message: '' })}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          onClose={() => setPhaseCompleteSnackbar({ open: false, message: "" })}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
-            onClose={() => setPhaseCompleteSnackbar({ open: false, message: '' })}
+            onClose={() => setPhaseCompleteSnackbar({ open: false, message: "" })}
             severity="success"
             sx={{
-              width: '100%',
-              minWidth: '400px',
-              maxWidth: '600px',
+              width: "100%",
+              minWidth: "400px",
+              maxWidth: "600px",
               boxShadow: 3,
             }}
           >
@@ -239,19 +226,19 @@ function Layout({
         <Box
           sx={{ flexShrink: 0 }}
           onClick={(e) => {
-            const target = e.target as HTMLElement
-            if (target.textContent === 'Reset') {
-              handleResetClick(e)
+            const target = e.target as HTMLElement;
+            if (target.textContent === "Reset") {
+              handleResetClick(e);
             }
           }}
         >
           <BNAppFooter
             links={
-              bnUser?.type === 'ADMIN' || bnUser?.type === 'RELATIONSHIP_MANAGER'
+              bnUser?.type === "ADMIN" || bnUser?.type === "RELATIONSHIP_MANAGER"
                 ? [
                     {
-                      label: 'Reset',
-                      href: '#reset-demo',
+                      label: "Reset",
+                      href: "#reset-demo",
                     },
                   ]
                 : []
@@ -260,7 +247,7 @@ function Layout({
         </Box>
       </Stack>
     </Suspense>
-  )
+  );
 }
 
-export default Layout
+export default Layout;

@@ -1,25 +1,24 @@
-'use client'
+"use client";
 
-import React from 'react'
-
-import { PlayArrow } from '@mui/icons-material'
-import { Box, Typography } from '@mui/material'
+import { PlayArrow } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
+import React from "react";
 
 interface VideoThumbnailProps {
-  title: string
-  description?: string
-  seriesNumber?: string
-  thumbnail?: string
-  duration?: string
-  onClick?: () => void
-  isActive?: boolean
-  isPlaying?: boolean
+  title: string;
+  description?: string;
+  seriesNumber?: string;
+  thumbnail?: string;
+  duration?: string;
+  onClick?: () => void;
+  isActive?: boolean;
+  isPlaying?: boolean;
 }
 
 export default function VideoThumbnail({
   title,
   description,
-  seriesNumber = '#1',
+  seriesNumber = "#1",
   thumbnail,
   duration,
   onClick,
@@ -31,31 +30,31 @@ export default function VideoThumbnail({
       className="video-list-item"
       onClick={onClick}
       sx={{
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         gap: 2,
         p: 1,
         borderRadius: 1,
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: onClick ? "pointer" : "default",
         backgroundColor: isActive
           ? (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / 0.08)`
-          : 'transparent',
-        '&:hover': onClick
+          : "transparent",
+        "&:hover": onClick
           ? {
               backgroundColor: (theme) => theme.vars.palette.action.hover,
             }
           : undefined,
-        transition: 'all 0.2s ease-in-out',
+        transition: "all 0.2s ease-in-out",
       }}
-      role={onClick ? 'button' : 'presentation'}
+      role={onClick ? "button" : "presentation"}
       aria-label={onClick ? `Play ${title}` : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
         onClick
           ? (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                onClick()
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick();
               }
             }
           : undefined
@@ -65,30 +64,29 @@ export default function VideoThumbnail({
       <Box
         className="video-thumbnail"
         sx={{
-          position: 'relative',
+          position: "relative",
           width: 160,
           height: 90,
           borderRadius: 1,
-          overflow: 'hidden',
+          overflow: "hidden",
           flexShrink: 0,
           backgroundColor: (theme) => theme.vars.palette.grey[100],
           backgroundImage: thumbnail
             ? `url(${thumbnail})`
-            : 'linear-gradient(135deg, #032f3f 0%, #307987 100%)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+            : "linear-gradient(135deg, #032f3f 0%, #307987 100%)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {/* Background overlay */}
         <Box
           sx={{
-            position: 'absolute',
+            position: "absolute",
             inset: 0,
-            background:
-              'linear-gradient(to bottom, transparent 20%, rgba(3, 47, 63, 0.6) 100%)',
+            background: "linear-gradient(to bottom, transparent 20%, rgba(3, 47, 63, 0.6) 100%)",
           }}
         />
 
@@ -96,7 +94,7 @@ export default function VideoThumbnail({
         <Box
           className="video-series-badge"
           sx={(theme) => ({
-            position: 'absolute',
+            position: "absolute",
             top: 6.58,
             right: 8.22,
             backgroundColor: theme.vars.palette.primary.dark,
@@ -104,9 +102,9 @@ export default function VideoThumbnail({
             px: theme.spacing(1),
             py: theme.spacing(1),
             zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1.403px',
+            display: "flex",
+            alignItems: "center",
+            gap: "1.403px",
           })}
         >
           <Typography
@@ -125,7 +123,7 @@ export default function VideoThumbnail({
         {duration && (
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               bottom: 4,
               right: 4,
               backgroundColor: (theme) => theme.vars.palette.primary.dark,
@@ -153,23 +151,23 @@ export default function VideoThumbnail({
         {!isPlaying && (
           <Box
             sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
               zIndex: 2,
               backgroundColor: (theme) => theme.vars.palette.background.default,
-              borderRadius: '50%',
+              borderRadius: "50%",
               width: 40,
               height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease-in-out',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease-in-out",
               ...(onClick && {
-                '&:hover': {
+                "&:hover": {
                   backgroundColor: (theme) => theme.vars.palette.common.white,
-                  transform: 'translate(-50%, -50%) scale(1.1)',
+                  transform: "translate(-50%, -50%) scale(1.1)",
                 },
               }),
             }}
@@ -199,11 +197,11 @@ export default function VideoThumbnail({
             fontWeight: 500,
             fontSize: 14,
             mb: description ? 0.5 : 0,
-            display: '-webkit-box',
-            WebkitBoxOrient: 'vertical',
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
             WebkitLineClamp: 2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {title}
@@ -212,11 +210,11 @@ export default function VideoThumbnail({
           <Typography
             variant="body3"
             sx={{
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
               WebkitLineClamp: 2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
             {description}
@@ -224,5 +222,5 @@ export default function VideoThumbnail({
         )}
       </Box>
     </Box>
-  )
+  );
 }

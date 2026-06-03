@@ -10,7 +10,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
+import { mapValues } from "../runtime";
 
 /**
  *
@@ -23,76 +23,76 @@ export interface CastVoteRequest {
    * @type {string}
    * @memberof CastVoteRequest
    */
-  proposalId: string
+  proposalId: string;
   /**
    *
    * @type {string}
    * @memberof CastVoteRequest
    */
-  vote: CastVoteRequestVoteEnum
+  vote: CastVoteRequestVoteEnum;
   /**
    *
    * @type {string}
    * @memberof CastVoteRequest
    */
-  sharesVoting: string
+  sharesVoting: string;
 }
 
 /**
  * @export
  */
 export const CastVoteRequestVoteEnum = {
-  For: 'FOR',
-  Against: 'AGAINST',
-  Abstain: 'ABSTAIN',
-  Withhold: 'WITHHOLD',
-} as const
+  For: "FOR",
+  Against: "AGAINST",
+  Abstain: "ABSTAIN",
+  Withhold: "WITHHOLD",
+} as const;
 export type CastVoteRequestVoteEnum =
-  (typeof CastVoteRequestVoteEnum)[keyof typeof CastVoteRequestVoteEnum]
+  (typeof CastVoteRequestVoteEnum)[keyof typeof CastVoteRequestVoteEnum];
 
 /**
  * Check if a given object implements the CastVoteRequest interface.
  */
 export function instanceOfCastVoteRequest(value: object): value is CastVoteRequest {
-  if (!('proposalId' in value) || value['proposalId'] === undefined) return false
-  if (!('vote' in value) || value['vote'] === undefined) return false
-  if (!('sharesVoting' in value) || value['sharesVoting'] === undefined) return false
-  return true
+  if (!("proposalId" in value) || value["proposalId"] === undefined) return false;
+  if (!("vote" in value) || value["vote"] === undefined) return false;
+  if (!("sharesVoting" in value) || value["sharesVoting"] === undefined) return false;
+  return true;
 }
 
 export function CastVoteRequestFromJSON(json: any): CastVoteRequest {
-  return CastVoteRequestFromJSONTyped(json, false)
+  return CastVoteRequestFromJSONTyped(json, false);
 }
 
 export function CastVoteRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): CastVoteRequest {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    proposalId: json['proposalId'],
-    vote: json['vote'],
-    sharesVoting: json['sharesVoting'],
-  }
+    proposalId: json["proposalId"],
+    vote: json["vote"],
+    sharesVoting: json["sharesVoting"],
+  };
 }
 
 export function CastVoteRequestToJSON(json: any): CastVoteRequest {
-  return CastVoteRequestToJSONTyped(json, false)
+  return CastVoteRequestToJSONTyped(json, false);
 }
 
 export function CastVoteRequestToJSONTyped(
   value?: CastVoteRequest | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    proposalId: value['proposalId'],
-    vote: value['vote'],
-    sharesVoting: value['sharesVoting'],
-  }
+    proposalId: value["proposalId"],
+    vote: value["vote"],
+    sharesVoting: value["sharesVoting"],
+  };
 }

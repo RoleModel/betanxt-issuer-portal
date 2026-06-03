@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Document,
@@ -9,84 +9,84 @@ import {
   Text,
   View,
   pdf,
-} from '@react-pdf/renderer'
-import React from 'react'
+} from "@react-pdf/renderer";
+import React from "react";
 
 // Register Roboto font
 Font.register({
-  family: 'Roboto',
+  family: "Roboto",
   fonts: [
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-300-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-300-normal.woff",
       fontWeight: 300,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-400-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-400-normal.woff",
       fontWeight: 400,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-500-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-500-normal.woff",
       fontWeight: 500,
     },
     {
-      src: 'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-700-normal.woff',
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-700-normal.woff",
       fontWeight: 700,
     },
   ],
-})
+});
 
 interface ProposalVote {
-  proposalNumber: string
-  title: string
-  directorName?: string
-  voteFor: number
-  voteAgainst: number
-  voteAbstain: number
-  percentFor: number
-  percentAgainst: number
-  percentAbstain: number
-  percentOfOutstanding: number
-  percentOfProposalVotes: number
+  proposalNumber: string;
+  title: string;
+  directorName?: string;
+  voteFor: number;
+  voteAgainst: number;
+  voteAbstain: number;
+  percentFor: number;
+  percentAgainst: number;
+  percentAbstain: number;
+  percentOfOutstanding: number;
+  percentOfProposalVotes: number;
 }
 
 interface TabulationData {
-  companyName: string
-  meetingType: string
-  meetingDate: string
-  recordDate: string
-  totalOutstanding: number
-  votesRepresentedForQuorum: number
-  quorumPercentage: number
-  quorumRequirement: string
-  votesOverUnderQuorum: number
-  cusipList: string
-  brokerNonVote: number
-  proposals: ProposalVote[]
-  reportTitle?: string // Optional custom title (Preliminary vs Final)
+  companyName: string;
+  meetingType: string;
+  meetingDate: string;
+  recordDate: string;
+  totalOutstanding: number;
+  votesRepresentedForQuorum: number;
+  quorumPercentage: number;
+  quorumRequirement: string;
+  votesOverUnderQuorum: number;
+  cusipList: string;
+  brokerNonVote: number;
+  proposals: ProposalVote[];
+  reportTitle?: string; // Optional custom title (Preliminary vs Final)
 }
 
 interface ExportOptions {
-  tabulationData: TabulationData
-  clientTicker?: string
+  tabulationData: TabulationData;
+  clientTicker?: string;
 }
 
 // Create styles matching the Figma design
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
     padding: 30,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     fontSize: 8,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
-    alignItems: 'center',
+    alignItems: "center",
     paddingBottom: 12,
     borderBottomWidth: 2,
-    borderBottomColor: '#000000',
+    borderBottomColor: "#000000",
   },
   clientLogo: {
     width: 50,
@@ -102,15 +102,15 @@ const styles = StyleSheet.create({
     height: 14,
   },
   logoGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   titleSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 4,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   titleLeft: {
     flex: 1,
@@ -119,196 +119,196 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 700,
     marginBottom: 4,
-    fontFamily: 'Roboto',
-    textAlign: 'center',
+    fontFamily: "Roboto",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 8,
-    fontFamily: 'Roboto',
-    color: '#666666',
-    textAlign: 'center',
+    fontFamily: "Roboto",
+    color: "#666666",
+    textAlign: "center",
   },
   infoSection: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
+    flexDirection: "column",
+    alignItems: "flex-end",
   },
   infoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 2,
     gap: 8,
   },
   infoCell: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   infoLabel: {
     fontSize: 8,
     fontWeight: 400,
-    fontFamily: 'Roboto',
-    color: '#1f1e1c',
+    fontFamily: "Roboto",
+    color: "#1f1e1c",
   },
   infoValue: {
     fontSize: 8,
     fontWeight: 400,
-    fontFamily: 'Roboto',
-    color: '#1f1e1c',
+    fontFamily: "Roboto",
+    color: "#1f1e1c",
   },
   cusipRow: {
     paddingVertical: 4,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: "#f5f5f5",
   },
   cusipText: {
     fontSize: 7,
-    fontFamily: 'Roboto',
-    color: '#1f1e1c',
+    fontFamily: "Roboto",
+    color: "#1f1e1c",
   },
   proposalSection: {
     marginTop: 4,
   },
   tableContainer: {
     borderWidth: 0.5,
-    borderColor: '#333333',
+    borderColor: "#333333",
     marginTop: 8,
   },
   tableHeader: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: "#333333",
   },
   proposalHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#1F487D',
+    flexDirection: "row",
+    backgroundColor: "#1F487D",
     paddingVertical: 4,
     paddingHorizontal: 6,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    justifyContent: "flex-start",
+    alignItems: "center",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: "#333333",
   },
   proposalTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 2,
     paddingVertical: 4,
   },
   proposalSubheader: {
-    flexDirection: 'row',
-    backgroundColor: '#1F487D',
+    flexDirection: "row",
+    backgroundColor: "#1F487D",
     paddingVertical: 3,
     paddingHorizontal: 6,
-    alignItems: 'center',
+    alignItems: "center",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: "#333333",
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 0,
     paddingHorizontal: 0,
-    backgroundColor: '#A3E1EA',
+    backgroundColor: "#A3E1EA",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: "#333333",
   },
   tableRowAlt: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 0,
     paddingHorizontal: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: "#333333",
   },
   headerCell: {
     fontSize: 7,
     fontWeight: 700,
-    fontFamily: 'Roboto',
-    color: '#000000',
-    textAlign: 'left',
+    fontFamily: "Roboto",
+    color: "#000000",
+    textAlign: "left",
     paddingHorizontal: 4,
     paddingVertical: 4,
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   },
   cellBold: {
     fontSize: 7,
     fontWeight: 700,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     paddingHorizontal: 4,
     paddingVertical: 4,
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   },
   cell: {
-    flex: '1 0 auto',
+    flex: "1 0 auto",
     fontSize: 7,
     fontWeight: 400,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     paddingHorizontal: 4,
     paddingVertical: 4,
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   },
   cellRight: {
-    textAlign: 'right',
+    textAlign: "right",
   },
   cellLeft: {
-    textAlign: 'left',
+    textAlign: "left",
   },
   // Column widths - updated to match image layout with borders
-  firstCol: { width: '14.5%', minWidth: 100 },
-  colVoteSubmitted: { width: '14.5%', minWidth: 95 },
-  colAsPercentOS: { width: '14.5%', minWidth: 75, textAlign: 'right' },
-  colAsPercentTotal: { width: '14.5%', minWidth: 80, textAlign: 'right' },
-  colAsPercentProposal: { width: '14.5%', minWidth: 90, textAlign: 'right' },
-  colAsPercentExcluding: { width: '14.5%', minWidth: 110, textAlign: 'right' },
-  colBrokerNonVote: { width: '14.5%', minWidth: 90, textAlign: 'right' },
-  emptyCell: { backgroundColor: 'rgba(0, 0, 0, 0.05)' },
+  firstCol: { width: "14.5%", minWidth: 100 },
+  colVoteSubmitted: { width: "14.5%", minWidth: 95 },
+  colAsPercentOS: { width: "14.5%", minWidth: 75, textAlign: "right" },
+  colAsPercentTotal: { width: "14.5%", minWidth: 80, textAlign: "right" },
+  colAsPercentProposal: { width: "14.5%", minWidth: 90, textAlign: "right" },
+  colAsPercentExcluding: { width: "14.5%", minWidth: 110, textAlign: "right" },
+  colBrokerNonVote: { width: "14.5%", minWidth: 90, textAlign: "right" },
+  emptyCell: { backgroundColor: "rgba(0, 0, 0, 0.05)" },
   fallbackLogo: {
     fontSize: 12,
     fontWeight: 700,
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
   },
   betanxtText: {
     fontSize: 16,
     fontWeight: 700,
-    color: '#0D6580',
-    fontFamily: 'Roboto',
+    color: "#0D6580",
+    fontFamily: "Roboto",
   },
   pageNumber: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30,
     right: 36,
     fontSize: 7,
-    fontFamily: 'Roboto',
-    color: '#1f1e1c',
+    fontFamily: "Roboto",
+    color: "#1f1e1c",
   },
-})
+});
 
 // Format number with thousand separators and decimals
 const formatNumber = (num: number, decimals = 2): string => {
-  return num.toLocaleString('en-US', {
+  return num.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  })
-}
+  });
+};
 
 // Format date
 const formatDate = (date: string): string => {
-  if (!date) return ''
-  return new Date(date).toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
+  if (!date) return "";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
 
 // Format percentage
 const formatPercent = (value: number): string => {
-  return `${value.toFixed(2)}%`
-}
+  return `${value.toFixed(2)}%`;
+};
 
 interface TabulationPDFDocumentProps {
-  tabulationData: TabulationData
-  clientTicker?: string
-  clientLogoUrl?: string
-  betanxtLogoUrl?: string
+  tabulationData: TabulationData;
+  clientTicker?: string;
+  clientLogoUrl?: string;
+  betanxtLogoUrl?: string;
 }
 
 // Tabulation PDF Document Component
@@ -331,7 +331,7 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
     cusipList,
     brokerNonVote,
     proposals,
-  } = tabulationData
+  } = tabulationData;
 
   return (
     <Document>
@@ -343,21 +343,21 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
               <PDFImage style={styles.clientLogo} src={clientLogoUrl} />
             ) : (
               <Text style={styles.fallbackLogo}>
-                {clientTicker ? `${clientTicker} Logo` : 'Client Logo'}
+                {clientTicker ? `${clientTicker} Logo` : "Client Logo"}
               </Text>
             )}
           </View>
-          <View style={{ marginBottom: 8, textAlign: 'center' }}>
+          <View style={{ marginBottom: 8, textAlign: "center" }}>
             <Text style={styles.title}>US TABULATION PROPOSAL REPORT</Text>
             <Text style={styles.subtitle}>
-              Run Date:{' '}
-              {new Date().toLocaleString('en-US', {
-                month: 'numeric',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                second: '2-digit',
+              Run Date:{" "}
+              {new Date().toLocaleString("en-US", {
+                month: "numeric",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit",
                 hour12: true,
               })}
             </Text>
@@ -374,67 +374,59 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
         {/* Meeting Information Table - 5 rows, 4 columns */}
         <View style={{ fontSize: 8 }}>
           {/* Row 1 */}
-          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-            <Text style={[styles.infoLabel, { width: '15%' }]}>Company Name:</Text>
-            <Text style={[styles.infoValue, { width: '35%' }]}>{companyName}</Text>
-            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>
+          <View style={{ flexDirection: "row", marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: "15%" }]}>Company Name:</Text>
+            <Text style={[styles.infoValue, { width: "35%" }]}>{companyName}</Text>
+            <Text style={[styles.infoLabel, { width: "35%", textAlign: "right" }]}>
               Total Outstanding:
             </Text>
-            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>
+            <Text style={[styles.infoValue, { width: "15%", textAlign: "right" }]}>
               {formatNumber(totalOutstanding)}
             </Text>
           </View>
 
           {/* Row 2 */}
-          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-            <Text style={[styles.infoLabel, { width: '15%' }]}>Type:</Text>
-            <Text style={[styles.infoValue, { width: '35%' }]}>{meetingType}</Text>
-            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>
+          <View style={{ flexDirection: "row", marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: "15%" }]}>Type:</Text>
+            <Text style={[styles.infoValue, { width: "35%" }]}>{meetingType}</Text>
+            <Text style={[styles.infoLabel, { width: "35%", textAlign: "right" }]}>
               Votes Represented for Quorum:
             </Text>
-            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>
+            <Text style={[styles.infoValue, { width: "15%", textAlign: "right" }]}>
               {formatNumber(votesRepresentedForQuorum)}
             </Text>
           </View>
 
           {/* Row 3 */}
-          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-            <Text style={[styles.infoLabel, { width: '15%' }]}>Meeting Date:</Text>
-            <Text style={[styles.infoValue, { width: '35%' }]}>
-              {formatDate(meetingDate)}
-            </Text>
-            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>
-              Quorum:
-            </Text>
-            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>
+          <View style={{ flexDirection: "row", marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: "15%" }]}>Meeting Date:</Text>
+            <Text style={[styles.infoValue, { width: "35%" }]}>{formatDate(meetingDate)}</Text>
+            <Text style={[styles.infoLabel, { width: "35%", textAlign: "right" }]}>Quorum:</Text>
+            <Text style={[styles.infoValue, { width: "15%", textAlign: "right" }]}>
               {formatPercent(quorumPercentage)}
             </Text>
           </View>
 
           {/* Row 4 */}
-          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-            <Text style={[styles.infoLabel, { width: '15%' }]}>Record Date:</Text>
-            <Text style={[styles.infoValue, { width: '35%' }]}>
-              {formatDate(recordDate)}
-            </Text>
-            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>
+          <View style={{ flexDirection: "row", marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: "15%" }]}>Record Date:</Text>
+            <Text style={[styles.infoValue, { width: "35%" }]}>{formatDate(recordDate)}</Text>
+            <Text style={[styles.infoLabel, { width: "35%", textAlign: "right" }]}>
               % Needed for Quorum:
             </Text>
-            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>
+            <Text style={[styles.infoValue, { width: "15%", textAlign: "right" }]}>
               {quorumRequirement} + 1 Vote
             </Text>
           </View>
 
           {/* Row 5 */}
-          <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-            <Text style={[styles.infoLabel, { width: '15%' }]}>
-              CUSIP(s) (multiplier):
-            </Text>
-            <Text style={[styles.infoValue, { width: '35%' }]}>{cusipList ?? 'N/A'}</Text>
-            <Text style={[styles.infoLabel, { width: '35%', textAlign: 'right' }]}>
+          <View style={{ flexDirection: "row", marginBottom: 2 }}>
+            <Text style={[styles.infoLabel, { width: "15%" }]}>CUSIP(s) (multiplier):</Text>
+            <Text style={[styles.infoValue, { width: "35%" }]}>{cusipList ?? "N/A"}</Text>
+            <Text style={[styles.infoLabel, { width: "35%", textAlign: "right" }]}>
               Votes over / (under) Quorum:
             </Text>
-            <Text style={[styles.infoValue, { width: '15%', textAlign: 'right' }]}>
+            <Text style={[styles.infoValue, { width: "15%", textAlign: "right" }]}>
               {formatNumber(votesOverUnderQuorum)}
             </Text>
           </View>
@@ -448,8 +440,8 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
           {proposals && proposals.length > 0 ? (
             (() => {
               // Group proposals by type
-              const directorProposals = proposals.filter((p) => p.directorName)
-              const otherProposals = proposals.filter((p) => !p.directorName)
+              const directorProposals = proposals.filter((p) => p.directorName);
+              const otherProposals = proposals.filter((p) => !p.directorName);
 
               return (
                 <>
@@ -457,8 +449,8 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     <View style={styles.proposalSection}>
                       {directorProposals.map((proposal, index) => {
                         const totalVotes =
-                          proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain
-                        const excludingAbstain = proposal.voteFor + proposal.voteAgainst
+                          proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain;
+                        const excludingAbstain = proposal.voteFor + proposal.voteAgainst;
                         return (
                           <View
                             key={`director-${index}`}
@@ -466,15 +458,11 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                             wrap={false}
                           >
                             <View style={styles.proposalHeader}>
-                              <Text style={[styles.cellBold, { color: '#ffffff' }]}>
+                              <Text style={[styles.cellBold, { color: "#ffffff" }]}>
                                 Proposal {proposal.proposalNumber}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cellBold,
-                                  styles.cellLeft,
-                                  { color: '#ffffff' },
-                                ]}
+                                style={[styles.cellBold, styles.cellLeft, { color: "#ffffff" }]}
                               >
                                 {proposal.directorName}
                               </Text>
@@ -491,11 +479,7 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                 VOTES Submitted
                               </Text>
                               <Text
-                                style={[
-                                  styles.headerCell,
-                                  styles.colAsPercentOS,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.headerCell, styles.colAsPercentOS, styles.cellRight]}
                               >
                                 As % of O/S
                               </Text>
@@ -524,7 +508,7 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                   styles.cellRight,
                                 ]}
                               >
-                                As % of Proposal Votes{'\n'}(Excluding Withhold/Abstain)
+                                As % of Proposal Votes{"\n"}(Excluding Withhold/Abstain)
                               </Text>
                               <Text
                                 style={[
@@ -539,42 +523,22 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                             <View style={styles.tableRow}>
                               <Text style={[styles.cellBold, styles.firstCol]}>For</Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colVoteSubmitted,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}
                               >
                                 {formatNumber(proposal.voteFor)}
                               </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteFor / totalOutstanding) * 100)}
+                              </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentOS,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}
                               >
                                 {formatPercent(
-                                  (proposal.voteFor / totalOutstanding) * 100
+                                  (proposal.voteFor / votesRepresentedForQuorum) * 100,
                                 )}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentTotal,
-                                  styles.cellRight,
-                                ]}
-                              >
-                                {formatPercent(
-                                  (proposal.voteFor / votesRepresentedForQuorum) * 100
-                                )}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentProposal,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                               >
                                 {formatPercent(proposal.percentFor)}
                               </Text>
@@ -585,61 +549,33 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                   styles.cellRight,
                                 ]}
                               >
-                                {formatPercent(
-                                  (proposal.voteFor / excludingAbstain) * 100
-                                )}
+                                {formatPercent((proposal.voteFor / excludingAbstain) * 100)}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colBrokerNonVote,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]}
                               >
                                 {formatNumber(brokerNonVote)}
                               </Text>
                             </View>
                             <View style={styles.tableRowAlt}>
-                              <Text style={[styles.cellBold, styles.firstCol]}>
-                                Against
-                              </Text>
+                              <Text style={[styles.cellBold, styles.firstCol]}>Against</Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colVoteSubmitted,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}
                               >
                                 {formatNumber(proposal.voteAgainst)}
                               </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteAgainst / totalOutstanding) * 100)}
+                              </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentOS,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}
                               >
                                 {formatPercent(
-                                  (proposal.voteAgainst / totalOutstanding) * 100
+                                  (proposal.voteAgainst / votesRepresentedForQuorum) * 100,
                                 )}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentTotal,
-                                  styles.cellRight,
-                                ]}
-                              >
-                                {formatPercent(
-                                  (proposal.voteAgainst / votesRepresentedForQuorum) * 100
-                                )}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentProposal,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                               >
                                 {formatPercent(proposal.percentAgainst)}
                               </Text>
@@ -650,9 +586,7 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                   styles.cellRight,
                                 ]}
                               >
-                                {formatPercent(
-                                  (proposal.voteAgainst / excludingAbstain) * 100
-                                )}
+                                {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
                               </Text>
                               <Text
                                 style={[
@@ -668,42 +602,22 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                 Withhold/Abstain
                               </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colVoteSubmitted,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}
                               >
                                 {formatNumber(proposal.voteAbstain)}
                               </Text>
+                              <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                                {formatPercent((proposal.voteAbstain / totalOutstanding) * 100)}
+                              </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentOS,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}
                               >
                                 {formatPercent(
-                                  (proposal.voteAbstain / totalOutstanding) * 100
+                                  (proposal.voteAbstain / votesRepresentedForQuorum) * 100,
                                 )}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentTotal,
-                                  styles.cellRight,
-                                ]}
-                              >
-                                {formatPercent(
-                                  (proposal.voteAbstain / votesRepresentedForQuorum) * 100
-                                )}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.cell,
-                                  styles.colAsPercentProposal,
-                                  styles.cellRight,
-                                ]}
+                                style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                               >
                                 {formatPercent(proposal.percentAbstain)}
                               </Text>
@@ -724,31 +638,15 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                 ]}
                               />
                             </View>
-                            <View
-                              style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}
-                            >
+                            <View style={[styles.tableRow, { backgroundColor: "#FFFFFF" }]}>
+                              <Text style={[styles.cellBold, styles.firstCol, styles.emptyCell]} />
                               <Text
-                                style={[
-                                  styles.cellBold,
-                                  styles.firstCol,
-                                  styles.emptyCell,
-                                ]}
-                              />
-                              <Text
-                                style={[
-                                  styles.cellBold,
-                                  styles.cellRight,
-                                  styles.colVoteSubmitted,
-                                ]}
+                                style={[styles.cellBold, styles.cellRight, styles.colVoteSubmitted]}
                               >
                                 {formatNumber(totalVotes)}
                               </Text>
                               <Text
-                                style={[
-                                  styles.cellBold,
-                                  styles.colAsPercentOS,
-                                  styles.emptyCell,
-                                ]}
+                                style={[styles.cellBold, styles.colAsPercentOS, styles.emptyCell]}
                               />
                               <Text
                                 style={[
@@ -772,15 +670,11 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                                 ]}
                               />
                               <Text
-                                style={[
-                                  styles.cellBold,
-                                  styles.colBrokerNonVote,
-                                  styles.emptyCell,
-                                ]}
+                                style={[styles.cellBold, styles.colBrokerNonVote, styles.emptyCell]}
                               />
                             </View>
                           </View>
-                        )
+                        );
                       })}
                     </View>
                   )}
@@ -788,8 +682,8 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                   {/* Other Proposals */}
                   {otherProposals.map((proposal, proposalIndex) => {
                     const totalVotes =
-                      proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain
-                    const excludingAbstain = proposal.voteFor + proposal.voteAgainst
+                      proposal.voteFor + proposal.voteAgainst + proposal.voteAbstain;
+                    const excludingAbstain = proposal.voteFor + proposal.voteAgainst;
 
                     return (
                       <View
@@ -799,16 +693,10 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                       >
                         {/* Proposal Header */}
                         <View style={styles.proposalHeader}>
-                          <Text style={[styles.cellBold, { color: '#ffffff' }]}>
+                          <Text style={[styles.cellBold, { color: "#ffffff" }]}>
                             Proposal {proposal.proposalNumber}
                           </Text>
-                          <Text
-                            style={[
-                              styles.cellBold,
-                              styles.cellLeft,
-                              { color: '#ffffff' },
-                            ]}
-                          >
+                          <Text style={[styles.cellBold, styles.cellLeft, { color: "#ffffff" }]}>
                             {proposal.title}
                           </Text>
                         </View>
@@ -817,29 +705,17 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                         <View style={styles.tableHeader}>
                           <View style={styles.firstCol} />
                           <Text
-                            style={[
-                              styles.headerCell,
-                              styles.colVoteSubmitted,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.headerCell, styles.colVoteSubmitted, styles.cellRight]}
                           >
                             VOTES Submitted
                           </Text>
                           <Text
-                            style={[
-                              styles.headerCell,
-                              styles.colAsPercentOS,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.headerCell, styles.colAsPercentOS, styles.cellRight]}
                           >
                             As % of O/S
                           </Text>
                           <Text
-                            style={[
-                              styles.headerCell,
-                              styles.colAsPercentTotal,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.headerCell, styles.colAsPercentTotal, styles.cellRight]}
                           >
                             As % TOTAL Voted
                           </Text>
@@ -859,14 +735,10 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                               styles.cellRight,
                             ]}
                           >
-                            As % of Proposal Votes{'\n'}(Excluding Withhold/Abstain)
+                            As % of Proposal Votes{"\n"}(Excluding Withhold/Abstain)
                           </Text>
                           <Text
-                            style={[
-                              styles.headerCell,
-                              styles.colBrokerNonVote,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.headerCell, styles.colBrokerNonVote, styles.cellRight]}
                           >
                             Broker Non Vote
                           </Text>
@@ -874,110 +746,54 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
 
                         {/* For Row */}
                         <View style={styles.tableRow}>
-                          <Text style={[styles.cellBold, { width: '15%' }]}>For</Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colVoteSubmitted,
-                              styles.cellRight,
-                            ]}
-                          >
+                          <Text style={[styles.cellBold, { width: "15%" }]}>For</Text>
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteFor)}
                           </Text>
-                          <Text
-                            style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}
-                          >
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
                             {formatPercent((proposal.voteFor / totalOutstanding) * 100)}
                           </Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentTotal,
-                              styles.cellRight,
-                            ]}
-                          >
-                            {formatPercent(
-                              (proposal.voteFor / votesRepresentedForQuorum) * 100
-                            )}
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
+                            {formatPercent((proposal.voteFor / votesRepresentedForQuorum) * 100)}
                           </Text>
                           <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentProposal,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                           >
                             {formatPercent(proposal.percentFor)}
                           </Text>
                           <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentExcluding,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}
                           >
                             {formatPercent((proposal.voteFor / excludingAbstain) * 100)}
                           </Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colBrokerNonVote,
-                              styles.cellRight,
-                            ]}
-                          >
+                          <Text style={[styles.cell, styles.colBrokerNonVote, styles.cellRight]}>
                             {formatNumber(brokerNonVote)}
                           </Text>
                         </View>
 
                         {/* Against Row */}
                         <View style={styles.tableRowAlt}>
-                          <Text style={[styles.cellBold, { width: '15%' }]}>Against</Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colVoteSubmitted,
-                              styles.cellRight,
-                            ]}
-                          >
+                          <Text style={[styles.cellBold, { width: "15%" }]}>Against</Text>
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteAgainst)}
                           </Text>
-                          <Text
-                            style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}
-                          >
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                            {formatPercent((proposal.voteAgainst / totalOutstanding) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
                             {formatPercent(
-                              (proposal.voteAgainst / totalOutstanding) * 100
+                              (proposal.voteAgainst / votesRepresentedForQuorum) * 100,
                             )}
                           </Text>
                           <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentTotal,
-                              styles.cellRight,
-                            ]}
-                          >
-                            {formatPercent(
-                              (proposal.voteAgainst / votesRepresentedForQuorum) * 100
-                            )}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentProposal,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                           >
                             {formatPercent(proposal.percentAgainst)}
                           </Text>
                           <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentExcluding,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.cell, styles.colAsPercentExcluding, styles.cellRight]}
                           >
-                            {formatPercent(
-                              (proposal.voteAgainst / excludingAbstain) * 100
-                            )}
+                            {formatPercent((proposal.voteAgainst / excludingAbstain) * 100)}
                           </Text>
                           <Text
                             style={[
@@ -992,39 +808,19 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                         {/* Abstain Row */}
                         <View style={styles.tableRow}>
                           <Text style={[styles.cellBold, styles.firstCol]}>Abstain</Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colVoteSubmitted,
-                              styles.cellRight,
-                            ]}
-                          >
+                          <Text style={[styles.cell, styles.colVoteSubmitted, styles.cellRight]}>
                             {formatNumber(proposal.voteAbstain)}
                           </Text>
-                          <Text
-                            style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}
-                          >
+                          <Text style={[styles.cell, styles.colAsPercentOS, styles.cellRight]}>
+                            {formatPercent((proposal.voteAbstain / totalOutstanding) * 100)}
+                          </Text>
+                          <Text style={[styles.cell, styles.colAsPercentTotal, styles.cellRight]}>
                             {formatPercent(
-                              (proposal.voteAbstain / totalOutstanding) * 100
+                              (proposal.voteAbstain / votesRepresentedForQuorum) * 100,
                             )}
                           </Text>
                           <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentTotal,
-                              styles.cellRight,
-                            ]}
-                          >
-                            {formatPercent(
-                              (proposal.voteAbstain / votesRepresentedForQuorum) * 100
-                            )}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              styles.colAsPercentProposal,
-                              styles.cellRight,
-                            ]}
+                            style={[styles.cell, styles.colAsPercentProposal, styles.cellRight]}
                           >
                             {formatPercent(proposal.percentAbstain)}
                           </Text>
@@ -1045,39 +841,21 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                             ]}
                           />
                         </View>
-                        <View style={[styles.tableRow, { backgroundColor: '#FFFFFF' }]}>
+                        <View style={[styles.tableRow, { backgroundColor: "#FFFFFF" }]}>
+                          <Text style={[styles.cellBold, styles.firstCol, styles.emptyCell]} />
                           <Text
-                            style={[styles.cellBold, styles.firstCol, styles.emptyCell]}
-                          />
-                          <Text
-                            style={[
-                              styles.cellBold,
-                              styles.cellRight,
-                              styles.colVoteSubmitted,
-                            ]}
+                            style={[styles.cellBold, styles.cellRight, styles.colVoteSubmitted]}
                           >
                             {formatNumber(totalVotes)}
                           </Text>
                           <Text
-                            style={[
-                              styles.cellBold,
-                              styles.colAsPercentOS,
-                              styles.emptyCell,
-                            ]}
+                            style={[styles.cellBold, styles.colAsPercentOS, styles.emptyCell]}
                           />
                           <Text
-                            style={[
-                              styles.cellBold,
-                              styles.colAsPercentTotal,
-                              styles.emptyCell,
-                            ]}
+                            style={[styles.cellBold, styles.colAsPercentTotal, styles.emptyCell]}
                           />
                           <Text
-                            style={[
-                              styles.cellBold,
-                              styles.colAsPercentProposal,
-                              styles.emptyCell,
-                            ]}
+                            style={[styles.cellBold, styles.colAsPercentProposal, styles.emptyCell]}
                           />
                           <Text
                             style={[
@@ -1087,18 +865,14 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                             ]}
                           />
                           <Text
-                            style={[
-                              styles.cellBold,
-                              styles.colBrokerNonVote,
-                              styles.emptyCell,
-                            ]}
+                            style={[styles.cellBold, styles.colBrokerNonVote, styles.emptyCell]}
                           />
                         </View>
                       </View>
-                    )
+                    );
                   })}
                 </>
-              )
+              );
             })()
           ) : (
             <View style={styles.tableRow}>
@@ -1111,57 +885,57 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
         <Text style={styles.pageNumber}>Page 1 of 2</Text>
       </Page>
     </Document>
-  )
-}
+  );
+};
 
 // Helper function to convert image URL to base64
 async function imageUrlToBase64(url: string): Promise<string | undefined> {
   try {
-    const response = await fetch(url)
+    const response = await fetch(url);
     if (!response.ok) {
-      console.error(`Failed to fetch image: ${url} - Status: ${response.status}`)
-      return undefined
+      console.error(`Failed to fetch image: ${url} - Status: ${response.status}`);
+      return undefined;
     }
-    const blob = await response.blob()
+    const blob = await response.blob();
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string
-        if (result?.startsWith('data:')) {
-          resolve(result)
+        const result = reader.result as string;
+        if (result?.startsWith("data:")) {
+          resolve(result);
         } else {
-          console.error('Invalid base64 result for:', url)
-          resolve(undefined)
+          console.error("Invalid base64 result for:", url);
+          resolve(undefined);
         }
-      }
+      };
       reader.onerror = () => {
-        console.error('FileReader error for:', url)
-        reject(new Error('Failed to read file'))
-      }
-      reader.readAsDataURL(blob)
-    })
+        console.error("FileReader error for:", url);
+        reject(new Error("Failed to read file"));
+      };
+      reader.readAsDataURL(blob);
+    });
   } catch (error) {
-    console.error('Failed to convert image to base64:', url, error)
-    return undefined
+    console.error("Failed to convert image to base64:", url, error);
+    return undefined;
   }
 }
 
 // Main export function
 export async function exportTabulationPdf(options: ExportOptions) {
-  const { tabulationData, clientTicker } = options
+  const { tabulationData, clientTicker } = options;
 
   try {
     // Use absolute URLs for production compatibility
     const baseUrl =
-      typeof window !== 'undefined'
+      typeof window !== "undefined"
         ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     // Convert images to base64 for PDF generation
     const clientLogoUrl = clientTicker
       ? await imageUrlToBase64(`${baseUrl}/logos/${clientTicker.toUpperCase()}_logo.png`)
-      : undefined
-    const betanxtLogoUrl = await imageUrlToBase64(`${baseUrl}/images/betanxt-logo.png`)
+      : undefined;
+    const betanxtLogoUrl = await imageUrlToBase64(`${baseUrl}/images/betanxt-logo.png`);
 
     // Generate the PDF
     const pdfBlob = await pdf(
@@ -1170,23 +944,23 @@ export async function exportTabulationPdf(options: ExportOptions) {
         clientTicker={clientTicker}
         clientLogoUrl={clientLogoUrl}
         betanxtLogoUrl={betanxtLogoUrl}
-      />
-    ).toBlob()
+      />,
+    ).toBlob();
 
     // Create download link and trigger download
-    const url = URL.createObjectURL(pdfBlob)
-    const link = document.createElement('a')
-    const fileName = `${tabulationData.companyName.replace(/\s+/g, '_')}_Tabulation_Report_${
-      new Date().toISOString().split('T')[0]
-    }.pdf`
-    link.href = url
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement("a");
+    const fileName = `${tabulationData.companyName.replace(/\s+/g, "_")}_Tabulation_Report_${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Error generating PDF:', error)
-    throw error
+    console.error("Error generating PDF:", error);
+    throw error;
   }
 }

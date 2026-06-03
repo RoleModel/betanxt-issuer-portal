@@ -7,12 +7,12 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-} from '@mui/material'
+} from "@mui/material";
 
 interface SkeletonTableProps {
-  count?: number
-  rows?: number
-  columns?: number
+  count?: number;
+  rows?: number;
+  columns?: number;
 }
 
 export default function SkeletonTable({ rows = 4, columns = 2 }: SkeletonTableProps) {
@@ -35,5 +35,5 @@ export default function SkeletonTable({ rows = 4, columns = 2 }: SkeletonTablePr
         </Table>
       </TableContainer>
     </Card>
-  )
+  );
 }

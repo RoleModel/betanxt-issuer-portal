@@ -1,3 +1,6 @@
+import type { Notification } from "./Notification";
+import type { Pagination } from "./Pagination";
+
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -10,21 +13,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { mapValues } from '../runtime'
-import type { Notification } from './Notification'
+import { mapValues } from "../runtime";
 import {
   NotificationFromJSON,
   NotificationFromJSONTyped,
   NotificationToJSON,
   NotificationToJSONTyped,
-} from './Notification'
-import type { Pagination } from './Pagination'
+} from "./Notification";
 import {
   PaginationFromJSON,
   PaginationFromJSONTyped,
   PaginationToJSON,
   PaginationToJSONTyped,
-} from './Pagination'
+} from "./Pagination";
 
 /**
  *
@@ -37,66 +38,55 @@ export interface ListNotifications200Response {
    * @type {Array<Notification>}
    * @memberof ListNotifications200Response
    */
-  data?: Array<Notification>
+  data?: Array<Notification>;
   /**
    *
    * @type {Pagination}
    * @memberof ListNotifications200Response
    */
-  pagination?: Pagination
+  pagination?: Pagination;
 }
 
 /**
  * Check if a given object implements the ListNotifications200Response interface.
  */
 export function instanceOfListNotifications200Response(
-  value: object
+  value: object,
 ): value is ListNotifications200Response {
-  return true
+  return true;
 }
 
-export function ListNotifications200ResponseFromJSON(
-  json: any
-): ListNotifications200Response {
-  return ListNotifications200ResponseFromJSONTyped(json, false)
+export function ListNotifications200ResponseFromJSON(json: any): ListNotifications200Response {
+  return ListNotifications200ResponseFromJSONTyped(json, false);
 }
 
 export function ListNotifications200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean
+  ignoreDiscriminator: boolean,
 ): ListNotifications200Response {
   if (json == null) {
-    return json
+    return json;
   }
   return {
-    data:
-      json['data'] == null
-        ? undefined
-        : (json['data'] as Array<any>).map(NotificationFromJSON),
-    pagination:
-      json['pagination'] == null ? undefined : PaginationFromJSON(json['pagination']),
-  }
+    data: json["data"] == null ? undefined : (json["data"] as Array<any>).map(NotificationFromJSON),
+    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+  };
 }
 
-export function ListNotifications200ResponseToJSON(
-  json: any
-): ListNotifications200Response {
-  return ListNotifications200ResponseToJSONTyped(json, false)
+export function ListNotifications200ResponseToJSON(json: any): ListNotifications200Response {
+  return ListNotifications200ResponseToJSONTyped(json, false);
 }
 
 export function ListNotifications200ResponseToJSONTyped(
   value?: ListNotifications200Response | null,
-  ignoreDiscriminator: boolean = false
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
-    return value
+    return value;
   }
 
   return {
-    data:
-      value['data'] == null
-        ? undefined
-        : (value['data'] as Array<any>).map(NotificationToJSON),
-    pagination: PaginationToJSON(value['pagination']),
-  }
+    data: value["data"] == null ? undefined : (value["data"] as Array<any>).map(NotificationToJSON),
+    pagination: PaginationToJSON(value["pagination"]),
+  };
 }
