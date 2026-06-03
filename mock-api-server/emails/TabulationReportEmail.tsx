@@ -77,6 +77,7 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
         backgroundColor: isEven ? COLORS.white : "#F9FAFB",
         padding: "16px 32px",
         borderBottom: `1px solid ${COLORS.border}`,
+        borderInline: "1px solid #CCCCCC",
       }}
     >
       {/* Proposal header */}

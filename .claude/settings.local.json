@@ -8,7 +8,8 @@
       "Bash(supabase db reset --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres)",
       "Bash(vercel env *)",
       "Bash(vercel teams *)",
-      "Bash(pnpm lint *)"
+      "Bash(pnpm lint *)",
+      "Bash(pnpm run *)"
     ]
   }
 }

@@ -95,8 +95,13 @@ function EventSwitchButton({ userType }: { userType: string }) {
       }
     }
 
-    return [...byTicker.values()].sort((a, b) => a.event.localeCompare(b.event));
-  }, [events]);
+    const all = [...byTicker.values()].sort((a, b) => a.event.localeCompare(b.event));
+    // CSM: only show assigned clients in the list — the Autocomplete handles covering others
+    if (isCsm && assignedTickers) {
+      return all.filter((opt) => assignedTickers.has(opt.clientTicker.toUpperCase()));
+    }
+    return all;
+  }, [events, isCsm, assignedTickers]);
 
   // Try to match the current meeting from the URL path
   const currentEvent = useMemo(() => {
@@ -145,13 +150,12 @@ function EventSwitchButton({ userType }: { userType: string }) {
   }, [currentClientOption, currentClient]);
 
   // For CSM: detect when the displayed client is outside assigned clientTickers.
-  // urlTicker is used as a guard — if the URL is an assigned client we're never "covering",
-  // even if displayedClient hasn't updated yet (stale context after navigation).
   const isCovering = useMemo(() => {
-    if (!isCsm || !displayedClient || !assignedTickers) return false;
-    if (urlTicker && assignedTickers.has(urlTicker.toUpperCase())) return false;
-    return !assignedTickers.has(displayedClient.ticker.toUpperCase());
-  }, [isCsm, displayedClient, assignedTickers, urlTicker]);
+    if (!isCsm || !assignedTickers) return false;
+    const ticker = (urlTicker ?? displayedClient?.ticker ?? "").toUpperCase();
+    if (!ticker) return false;
+    return !assignedTickers.has(ticker);
+  }, [isCsm, assignedTickers, urlTicker, displayedClient]);
 
   // CSM needs the switcher on /events (backup client search); others show brand only there
   const hasDropdown = !isOnEventsPage || isCsm;

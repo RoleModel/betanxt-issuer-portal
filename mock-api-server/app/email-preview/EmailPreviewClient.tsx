@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type TemplateKey = "tabulation-daily-report" | "document-update-notification";
 type SendStatus = "idle" | "sending" | "success" | "error";
@@ -227,7 +227,7 @@ export function EmailPreviewClient() {
             type="email"
             placeholder="recipient@example.com"
             value={toEmail}
-            onChange={(e) => setToEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setToEmail(e.target.value)}
             onKeyDown={handleKeyDown}
             style={{
               padding: "6px 12px",
