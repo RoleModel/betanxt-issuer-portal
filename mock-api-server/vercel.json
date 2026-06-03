@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd .. && npm_config_verify_dependencies_policy_before_install=false pnpm install --frozen-lockfile",
+  "installCommand": "cd .. && npm_config_minimum_release_age=0 pnpm install --frozen-lockfile",
   "buildCommand": "turbo run build --filter=mock-api-server",
   "outputDirectory": ".next",
   "framework": "nextjs",
