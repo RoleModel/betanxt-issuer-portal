@@ -1,6 +1,6 @@
 {
   "buildCommand": "turbo run build --filter=issuer-portal",
-  "installCommand": "pnpm install --config.verify-dependencies-policy-before-install=false",
+  "installCommand": "npm_config_verify_dependencies_policy_before_install=false pnpm install",
   "outputDirectory": "issuer-portal/.next",
   "framework": "nextjs",
   "ignoreCommand": "npx turbo-ignore"
