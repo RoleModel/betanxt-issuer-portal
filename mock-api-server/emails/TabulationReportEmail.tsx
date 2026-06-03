@@ -261,7 +261,6 @@ export function TabulationReportEmail({
         style={{
           maxWidth: CONTAINER_WIDTH,
           margin: "0 auto",
-          border: "1px solid #CCCCCC",
         }}
       >
         {/* Header */}
@@ -302,6 +301,7 @@ export function TabulationReportEmail({
           style={{
             backgroundColor:
               daysUntilMeeting <= 3 ? "#FEF2F2" : daysUntilMeeting <= 7 ? "#FFFBEB" : "#EFF6FF",
+            borderInline: "1px solid #CCCCCC",
             borderBottom: `1px solid ${daysUntilMeeting <= 3 ? "#FECACA" : daysUntilMeeting <= 7 ? "#FDE68A" : "#BFDBFE"}`,
             padding: "10px 32px",
           }}
@@ -321,7 +321,13 @@ export function TabulationReportEmail({
         </Section>
 
         {/* Greeting */}
-        <Section style={{ backgroundColor: COLORS.white, padding: "24px 32px 0" }}>
+        <Section
+          style={{
+            backgroundColor: COLORS.white,
+            padding: "24px 32px 0",
+            borderInline: "1px solid #CCCCCC",
+          }}
+        >
           <Text
             style={{
               fontFamily: FONTS.sans,
@@ -347,7 +353,13 @@ export function TabulationReportEmail({
         </Section>
 
         {/* Quorum status */}
-        <Section style={{ backgroundColor: COLORS.white, padding: "20px 32px" }}>
+        <Section
+          style={{
+            backgroundColor: COLORS.white,
+            padding: "20px 32px",
+            borderInline: "1px solid #CCCCCC",
+          }}
+        >
           <div
             style={{
               border: `1px solid ${quorumMet ? "#447A44" : "#FEE2E2"}`,
@@ -456,6 +468,7 @@ export function TabulationReportEmail({
             padding: "10px 32px",
             borderTop: `1px solid ${COLORS.border}`,
             borderBottom: `1px solid ${COLORS.border}`,
+            borderInline: "1px solid #CCCCCC",
           }}
         >
           <Text
@@ -486,6 +499,7 @@ export function TabulationReportEmail({
             backgroundColor: COLORS.white,
             padding: "24px 32px",
             textAlign: "center",
+            borderInline: "1px solid #CCCCCC",
           }}
         >
           <Text
@@ -522,6 +536,7 @@ export function TabulationReportEmail({
           style={{
             backgroundColor: "#F9FAFB",
             borderTop: `1px solid ${COLORS.border}`,
+            borderInline: "1px solid #CCCCCC",
             padding: "12px 32px",
           }}
         >

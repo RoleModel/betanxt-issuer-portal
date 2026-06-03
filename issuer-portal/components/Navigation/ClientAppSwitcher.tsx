@@ -145,14 +145,13 @@ function EventSwitchButton({ userType }: { userType: string }) {
   }, [currentClientOption, currentClient]);
 
   // For CSM: detect when the displayed client is outside assigned clientTickers.
-  // Use urlTicker as the ground truth (the actual page being viewed) and fall back to
-  // displayedClient only when there's no ticker in the URL (e.g. on /events after a switch).
+  // urlTicker is used as a guard — if the URL is an assigned client we're never "covering",
+  // even if displayedClient hasn't updated yet (stale context after navigation).
   const isCovering = useMemo(() => {
-    if (!isCsm || !assignedTickers) return false;
-    const activeTicker = (urlTicker ?? displayedClient?.ticker ?? "").toUpperCase();
-    if (!activeTicker) return false;
-    return !assignedTickers.has(activeTicker);
-  }, [isCsm, assignedTickers, urlTicker, displayedClient]);
+    if (!isCsm || !displayedClient || !assignedTickers) return false;
+    if (urlTicker && assignedTickers.has(urlTicker.toUpperCase())) return false;
+    return !assignedTickers.has(displayedClient.ticker.toUpperCase());
+  }, [isCsm, displayedClient, assignedTickers, urlTicker]);
 
   // CSM needs the switcher on /events (backup client search); others show brand only there
   const hasDropdown = !isOnEventsPage || isCsm;
