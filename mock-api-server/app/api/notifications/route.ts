@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import type { components } from "@/types/api";
 
 import { handleCors, withCors } from "@/utils/cors";
+import { getMeetingIdsForTicker, resolveNotificationUserId } from "@/utils/resolveNotificationUser";
 import { supabase } from "@/utils/supabase/client";
 
 type CreateNotificationInput = components["schemas"]["CreateNotificationInput"];
@@ -16,6 +17,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const meetingId = searchParams.get("meetingId");
     const type = searchParams.get("type");
     const userId = searchParams.get("userId");
+    const username = searchParams.get("username");
+
+    const resolvedUserId = await resolveNotificationUserId(userId, username);
 
     let query = supabase
       .from("notification")
@@ -26,11 +30,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     type NotificationType = "info" | "warning" | "error" | "success";
     const validQueryTypes: NotificationType[] = ["info", "warning", "error", "success"];
 
-    if (userId) query = query.eq("user_id", userId);
+    if (resolvedUserId) query = query.eq("user_id", resolvedUserId);
     if (meetingId) query = query.eq("meeting_id", meetingId);
     if (type && validQueryTypes.includes(type as NotificationType))
       query = query.eq("type", type as NotificationType);
-    if (clientTicker) query = query.ilike("action_url", `%/${clientTicker}/%`);
+
+    if (clientTicker) {
+      const meetingIds = await getMeetingIdsForTicker(clientTicker);
+      const normalizedTicker = clientTicker.trim().toUpperCase();
+      if (meetingIds.length > 0) {
+        query = query.in("meeting_id", meetingIds);
+      } else {
+        query = query.ilike("action_url", `%/${normalizedTicker}/%`);
+      }
+    }
 
     const { data, error } = await query;
 

@@ -1209,6 +1209,15 @@ export const seedConfig = {
       email: "sarah.johnson@betanxt.com",
       type: "RELATIONSHIP_MANAGER",
     },
+    /** Must match issuer-portal/auth.ts mockUsers["csm.user"].id */
+    csm: {
+      id: "h7c1628g-65hc-1ji7-h74i-9e66i1596kgh",
+      username: "csm.user",
+      firstName: "Casey",
+      lastName: "Smith",
+      email: "csm.user@betanxt.com",
+      type: "CSM",
+    },
     issuerUsers: [
       {
         username: "mike.chen",

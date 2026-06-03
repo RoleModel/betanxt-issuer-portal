@@ -1203,6 +1203,20 @@ const main = async () => {
       `${sqlValue(relationshipManagerAccountId)});`,
   );
 
+  const csmUserId = seedConfig.users.csm.id;
+  const csmPassword = copycat.password("csm-password");
+  sqlStatements.push(
+    `INSERT INTO "user"(id, username, first_name, last_name, email, password, type, account_id) VALUES (` +
+      `${sqlValue(csmUserId)}, ` +
+      `${sqlValue(seedConfig.users.csm.username)}, ` +
+      `${sqlValue(seedConfig.users.csm.firstName)}, ` +
+      `${sqlValue(seedConfig.users.csm.lastName)}, ` +
+      `${sqlValue(seedConfig.users.csm.email)}, ` +
+      `${sqlValue(csmPassword)}, ` +
+      `${sqlValue(seedConfig.users.csm.type)}, ` +
+      `${sqlValue(null)});`,
+  );
+
   // Insert issuer users
   const userIds: string[] = [];
   seedConfig.users.issuerUsers.forEach((user, index) => {
@@ -4130,10 +4144,7 @@ SELECT
     );
     if (!meetingId) return;
 
-    // Find a CSM user to assign the notification to (relationship manager at index 0, or first user)
-    const firstUser = seedConfig.users[0];
-    if (!firstUser) return;
-    const userId = firstUser.id;
+    const userId = seedConfig.users.csm.id;
 
     // Seed 3 past mock deliveries for the last 3 days
     for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {

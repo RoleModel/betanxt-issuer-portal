@@ -74,7 +74,7 @@ function computeNextScheduled(
 
 export function TabulationDistributionDrawer({
   meetingId,
-  clientTicker: _clientTicker,
+  clientTicker,
   initialDistribution,
   meetingDate,
 }: TabulationDistributionDrawerProps) {
@@ -148,6 +148,7 @@ export function TabulationDistributionDrawer({
       const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
       const params = new URLSearchParams({ force: "true", meetingId });
       if (session?.user?.id) params.set("userId", session.user.id);
+      if (session?.user?.username) params.set("username", session.user.username);
       const res = await fetch(`${apiBase}/cron/tabulation-distribute?${params.toString()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -175,7 +176,10 @@ export function TabulationDistributionDrawer({
             ok: true,
             message: `Distributed: ${notifCount} in-app notification${notifCount !== 1 ? "s" : ""} sent${emailCount > 0 ? `, ${emailCount} email${emailCount !== 1 ? "s" : ""} sent` : ""}.`,
           });
-          await fetchNotifications();
+          await fetchNotifications({
+            ticker: clientTicker ?? undefined,
+            meetingId,
+          });
         }
       } else {
         setNotifResult({
@@ -192,7 +196,7 @@ export function TabulationDistributionDrawer({
       setSendingNotif(false);
       setTimeout(() => setNotifResult(null), 8000);
     }
-  }, [meetingId, fetchNotifications]);
+  }, [meetingId, clientTicker, fetchNotifications, session?.user?.id, session?.user?.username]);
 
   const handleToggleEnabled = useCallback(() => {
     const next = { ...distribution, enabled: !distribution.enabled };

@@ -2353,6 +2353,12 @@ paths:
           description: Filter notifications by user ID (scopes results to a specific user)
           schema:
             type: string
+        - name: username
+          in: query
+          description: Resolve user by username when the session user ID is not seeded in the database
+          schema:
+            type: string
+            example: "csm.user"
         - name: ticker
           in: query
           description: Filter notifications by client ticker

@@ -9,6 +9,7 @@ import type { Database } from "@/utils/supabase/database.types";
 
 import { getEmailService } from "@/lib/email/EmailService";
 import { handleCors, withCors } from "@/utils/cors";
+import { resolveNotificationUserId } from "@/utils/resolveNotificationUser";
 import { supabase } from "@/utils/supabase/client";
 
 export const runtime = "nodejs";
@@ -82,11 +83,12 @@ function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistri
 async function getNotificationUserIds(
   meeting: Pick<MeetingRow, "client_id" | "ticker">,
   requestingUserId?: string,
+  requestingUsername?: string,
 ): Promise<string[]> {
   const ids = new Set<string>();
 
-  // Always include the user who triggered the distribution
-  if (requestingUserId) ids.add(requestingUserId);
+  const resolvedRequesterId = await resolveNotificationUserId(requestingUserId, requestingUsername);
+  if (resolvedRequesterId) ids.add(resolvedRequesterId);
 
   const clientId = meeting.client_id;
 
@@ -208,6 +210,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   const force = url.searchParams.get("force") === "true";
   const forceMeetingId = url.searchParams.get("meetingId");
   const requestingUserId = url.searchParams.get("userId") ?? undefined;
+  const requestingUsername = url.searchParams.get("username") ?? undefined;
 
   const results: TabulationDistributeMeetingResult[] = [];
   const today = getDistributionDate();
@@ -289,7 +292,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      const userIds = await getNotificationUserIds(meeting, requestingUserId);
+      const userIds = await getNotificationUserIds(meeting, requestingUserId, requestingUsername);
 
       const daysUntil = Math.ceil(
         (new Date(meetingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
@@ -309,9 +312,14 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       }));
 
       let notificationsCreated = 0;
+      let notificationError: string | undefined;
       if (notificationRows.length > 0) {
         const { error: insertError } = await supabase.from("notification").insert(notificationRows);
-        if (!insertError) notificationsCreated = notificationRows.length;
+        if (!insertError) {
+          notificationsCreated = notificationRows.length;
+        } else {
+          notificationError = insertError.message;
+        }
       }
 
       const recipients = dist.recipients ?? [];
@@ -366,6 +374,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         notificationsCreated,
         emailsSent,
         emailRecipients: recipients,
+        ...(notificationError
+          ? { skipped: `notification insert failed: ${notificationError}` }
+          : {}),
       });
     }
 

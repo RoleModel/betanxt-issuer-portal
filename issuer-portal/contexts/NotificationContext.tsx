@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import type { components } from "@/types/api";
@@ -23,14 +24,24 @@ const getApiErrorMessage = (err: unknown, fallback: string): string => {
   return fallback;
 };
 
+interface FetchNotificationsOptions {
+  ticker?: string;
+  meetingId?: string;
+}
+
 interface NotificationContextType {
   notifications: DbNotification[];
   unreadCount: number;
   loading: boolean;
   error: string | null;
-  fetchNotifications: () => Promise<void>;
+  fetchNotifications: (options?: FetchNotificationsOptions) => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+}
+
+function extractTickerFromPathname(pathname: string): string | null {
+  const match = /^\/([A-Z]{2,5})\//.exec(pathname);
+  return match?.[1] ?? null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -84,49 +95,58 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<DbNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pathname = usePathname();
   const { currentClient } = useClient();
   const { data: session } = useSession();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchNotifications = useCallback(
+    async (options?: FetchNotificationsOptions) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      // Only fetch if we have a current client and a logged-in user
-      if (!currentClient?.ticker || !session?.user?.id) {
-        setNotifications([]);
-        setLoading(false);
-        return;
-      }
+        const ticker =
+          options?.ticker ?? currentClient?.ticker ?? extractTickerFromPathname(pathname) ?? null;
+        const userId = session?.user?.id;
+        const username = session?.user?.username;
 
-      const apiClient = await buildApiClient();
-      const { data, error } = await apiClient.GET("/notifications", {
-        params: {
-          query: {
-            userId: session.user.id,
-            ticker: currentClient.ticker,
+        if (!ticker || (!userId && !username)) {
+          setNotifications([]);
+          setLoading(false);
+          return;
+        }
+
+        const apiClient = await buildApiClient();
+        const { data, error } = await apiClient.GET("/notifications", {
+          params: {
+            query: {
+              userId,
+              username,
+              ticker,
+              meetingId: options?.meetingId,
+            },
           },
-        },
-      });
+        });
 
-      if (error || !data) {
-        setError(getApiErrorMessage(error, "Failed to fetch notifications"));
+        if (error || !data) {
+          setError(getApiErrorMessage(error, "Failed to fetch notifications"));
+          setNotifications([]);
+          return;
+        }
+
+        const dbNotifications = Array.isArray(data) ? (data as DbNotification[]) : [];
+        setNotifications(withFallbackNotifications(ticker, dbNotifications));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch notifications");
         setNotifications([]);
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      const dbNotifications = Array.isArray(data) ? (data as DbNotification[]) : [];
-      setNotifications(withFallbackNotifications(currentClient.ticker, dbNotifications));
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch notifications");
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentClient?.ticker, session?.user?.id]);
+    },
+    [currentClient?.ticker, pathname, session?.user?.id, session?.user?.username],
+  );
 
   const markAsRead = useCallback(
     async (notificationId: string) => {
