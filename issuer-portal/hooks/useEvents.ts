@@ -86,9 +86,19 @@ export function useEvents(): UseEventsResult {
   const userType = session?.user?.type;
   const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
 
-  // Only PARENT_CLIENT / SOLICITOR have a hard server-side allow-list of tickers.
-  // CSM / ADMIN always receive all events (page-level filtering handles their UX).
-  const allowedTickers = isUnrestrictedRole ? undefined : session?.user?.clientTickers;
+  // CSM / ADMIN fetch all meetings; page-level filters apply for CSM.
+  // ISSUER / PARENT_CLIENT / SOLICITOR are scoped to their ticker allow-list.
+  const allowedTickers = useMemo(() => {
+    if (isUnrestrictedRole) return undefined;
+
+    const sessionTickers = session?.user?.clientTickers;
+    if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
+
+    const issuerTicker = session?.user?.client_ticker;
+    if (issuerTicker) return [issuerTicker];
+
+    return undefined;
+  }, [isUnrestrictedRole, session?.user?.clientTickers, session?.user?.client_ticker]);
 
   const eventsFetcher = async (): Promise<EventRow[]> => {
     if (!bypassAuth && !session) return [];
@@ -96,9 +106,8 @@ export function useEvents(): UseEventsResult {
     const api = await buildApiClient();
     const allEvents: EventRow[] = [];
     let page = 1;
-    // 250 is a safe page size; pulls all meetings in a few pages and avoids the
-    // PostgREST range quirk that collapses an exact 100-row page to a single row.
-    const PAGE_SIZE = 250;
+    // PostgREST returns 0 rows when limit is exactly 250; stay below that ceiling.
+    const PAGE_SIZE = 200;
 
     while (true) {
       const { data, error } = await api.GET("/meetings", {

@@ -292,8 +292,11 @@ export const {
         // sessions pick up ticker list changes without requiring a re-login.
         const username = token.username;
         if (username && mockUsers[username]) {
-          const baseTickers = mockUsers[username].clientTickers ?? [];
-          // Merge in tickers of any clients this CSM created (assigned to them).
+          const mockUser = mockUsers[username];
+          const baseTickers = [...(mockUser.clientTickers ?? [])];
+          if (mockUser.client_ticker) {
+            baseTickers.push(mockUser.client_ticker);
+          }
           const createdTickers = await getCreatedClientTickers(username);
           token.clientTickers = [...new Set([...baseTickers, ...createdTickers])];
         }

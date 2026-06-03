@@ -200,10 +200,13 @@ export async function listMeetings(
       query = query.gte("meeting_date", startDate).lte("meeting_date", endDate);
     }
 
+    // PostgREST returns empty results when range length is exactly 250.
+    const safeLimit = limit !== undefined ? Math.min(Math.max(limit, 1), 249) : undefined;
+
     // Apply pagination
-    if (page && limit) {
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
+    if (page && safeLimit) {
+      const from = (page - 1) * safeLimit;
+      const to = from + safeLimit - 1;
       query = query.range(from, to);
     }
 
@@ -253,7 +256,7 @@ export async function listMeetings(
         meetings,
         pagination: {
           page: page || 1,
-          limit: limit || meetings.length,
+          limit: safeLimit ?? limit ?? meetings.length,
           // Use the exact count from Supabase so pagination loops fetch all pages correctly
           total: count ?? meetings.length,
         },

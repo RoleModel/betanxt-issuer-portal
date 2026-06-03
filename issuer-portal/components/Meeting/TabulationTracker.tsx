@@ -412,7 +412,7 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
           params: {
             query: {
               ticker: currentMeeting.ticker,
-              limit: 250,
+              limit: 200,
             },
           },
         })) as {
