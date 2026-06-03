@@ -41,8 +41,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Check if user can access a specific client
   const canAccessClient = useCallback(
     (clientId: string): boolean => {
-      if (isIssuerUser(session?.user)) {
-        const userTicker = session.user.client_ticker;
+      const sessionUser = session?.user;
+      if (isIssuerUser(sessionUser)) {
+        const userTicker = sessionUser?.client_ticker;
         if (!userTicker) return false;
 
         const issuerClient = clients.find((client) => client.ticker === userTicker);
@@ -133,8 +134,9 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // Issuers are single-client: always bind context to their ticker (never URL/localStorage).
-        if (isIssuerUser(session?.user)) {
-          const issuerTicker = session.user.client_ticker;
+        const sessionUser = session?.user;
+        if (isIssuerUser(sessionUser)) {
+          const issuerTicker = sessionUser?.client_ticker;
           const issuerClient = issuerTicker
             ? (clients.find((client) => client.ticker === issuerTicker) ?? null)
             : null;

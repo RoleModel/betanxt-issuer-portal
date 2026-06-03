@@ -3439,6 +3439,8 @@ export interface operations {
       query?: {
         /** @description Filter notifications by user ID (scopes results to a specific user) */
         userId?: string;
+        /** @description Resolve user by username when session user ID is not in the database */
+        username?: string;
         /** @description Filter notifications by client ticker */
         ticker?: string;
         /** @description Filter notifications by meeting ID */
