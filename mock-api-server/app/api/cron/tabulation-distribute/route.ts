@@ -15,11 +15,41 @@ export const runtime = "nodejs";
 
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 type MeetingRow = Database["public"]["Tables"]["meeting"]["Row"];
+type NotificationInsert = Database["public"]["Tables"]["notification"]["Insert"];
 type TabulationDistributeResult = components["schemas"]["TabulationDistributeResult"];
 type TabulationDistributeMeetingResult = components["schemas"]["TabulationDistributeMeetingResult"];
 
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
+const DISTRIBUTION_TIME_ZONE = "America/Chicago";
+const SCHEDULED_DISTRIBUTION_HOUR = 8;
+
+function getDistributionDate(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: DISTRIBUTION_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
+  const month = parts.find((part) => part.type === "month")?.value ?? "00";
+  const day = parts.find((part) => part.type === "day")?.value ?? "00";
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDistributionHour(date = new Date()): number {
+  const hour = new Intl.DateTimeFormat("en-US", {
+    timeZone: DISTRIBUTION_TIME_ZONE,
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const value = hour.find((part) => part.type === "hour")?.value;
+  return value ? Number(value) : -1;
+}
+
+function isScheduledDistributionHour(): boolean {
+  return getDistributionHour() === SCHEDULED_DISTRIBUTION_HOUR;
 }
 
 function isInWindow(meetingDateStr: string, startOffsetDays: number): boolean {
@@ -34,7 +64,7 @@ function isInWindow(meetingDateStr: string, startOffsetDays: number): boolean {
 
 function alreadySentToday(lastSentAt: string | null | undefined): boolean {
   if (!lastSentAt) return false;
-  return lastSentAt.slice(0, 10) === todayUtc();
+  return getDistributionDate(new Date(lastSentAt)) === getDistributionDate();
 }
 
 function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistribution | null {
@@ -49,28 +79,39 @@ function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistri
   };
 }
 
-async function getUsersForTicker(ticker: string, requestingUserId?: string): Promise<string[]> {
+async function getNotificationUserIds(
+  meeting: Pick<MeetingRow, "client_id" | "ticker">,
+  requestingUserId?: string,
+): Promise<string[]> {
   const ids = new Set<string>();
 
   // Always include the user who triggered the distribution
   if (requestingUserId) ids.add(requestingUserId);
 
-  try {
-    // clients (plural) → account → user, using separate queries since no FK relationships defined
-    const { data: clientData } = await supabase
-      .from("clients")
-      .select("id")
-      .eq("ticker", ticker)
-      .limit(1)
-      .single();
+  const clientId = meeting.client_id;
 
-    if (clientData?.id) {
+  try {
+    let resolvedClientId = clientId;
+    if (!resolvedClientId && meeting.ticker) {
+      const { data: clientData } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("ticker", meeting.ticker)
+        .limit(1)
+        .single();
+      resolvedClientId = clientData?.id ?? null;
+    }
+
+    if (resolvedClientId) {
       const { data: accounts } = await supabase
         .from("account")
-        .select("id")
-        .eq("client_id", clientData.id);
+        .select("id, primary_contact")
+        .eq("client_id", resolvedClientId);
 
       const accountIds = (accounts ?? []).map((a) => a.id).filter(Boolean) as string[];
+      for (const account of accounts ?? []) {
+        if (account.primary_contact) ids.add(account.primary_contact);
+      }
 
       if (accountIds.length > 0) {
         const { data: users } = await supabase
@@ -169,13 +210,26 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   const requestingUserId = url.searchParams.get("userId") ?? undefined;
 
   const results: TabulationDistributeMeetingResult[] = [];
-  const today = todayUtc();
+  const today = getDistributionDate();
+
+  if (!force && !isScheduledDistributionHour()) {
+    return withCors(
+      NextResponse.json({
+        ok: true,
+        date: today,
+        processed: 0,
+        skipped: 0,
+        results,
+        message: `Scheduled distribution only runs at ${SCHEDULED_DISTRIBUTION_HOUR}:00 ${DISTRIBUTION_TIME_ZONE}`,
+      }),
+    );
+  }
 
   try {
     let query = supabase
       .from("meeting")
       .select(
-        "id, ticker, meeting_date, tabulation_distribution, title, meeting_type, total_shares_outstanding, quorum_requirement",
+        "id, ticker, client_id, meeting_date, tabulation_distribution, title, meeting_type, total_shares_outstanding, quorum_requirement",
       );
 
     if (forceMeetingId) query = query.eq("id", forceMeetingId);
@@ -235,13 +289,13 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      const userIds = await getUsersForTicker(ticker, requestingUserId);
+      const userIds = await getNotificationUserIds(meeting, requestingUserId);
 
       const daysUntil = Math.ceil(
         (new Date(meetingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
       );
       const actionUrl = `/${ticker}/meeting/${meetingId}/tabulation`;
-      const notificationRows = userIds.map((userId) => ({
+      const notificationRows: NotificationInsert[] = userIds.map((userId) => ({
         id: randomUUID(),
         user_id: userId,
         meeting_id: meetingId,

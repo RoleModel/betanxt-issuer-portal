@@ -122,7 +122,7 @@ export function EventTabs() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const userType = session?.user?.type ?? "PARENT_CLIENT";
   const isCSM = userType === "CSM";
 
@@ -150,6 +150,11 @@ export function EventTabs() {
   // client's tabs should render. Guards against showing the previously-viewed
   // client's meetings while the new client's data is still loading after a switch.
   const urlTicker = /^\/([A-Za-z]{2,5})\//.exec(pathname)?.[1]?.toUpperCase();
+  const isClientResolving =
+    sessionStatus === "loading" ||
+    clientLoading ||
+    !currentClient ||
+    Boolean(urlTicker && currentClient.ticker !== urlTicker);
   // Only consider meetings that belong to the client in the URL. Stale meetings
   // from a prior client are filtered out until the correct ones load.
   const scopedMeetings = useMemo(
@@ -676,6 +681,34 @@ export function EventTabs() {
           <Typography color="error" variant="body3">
             Error loading client data: {clientError}
           </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
+  if (isClientResolving) {
+    return (
+      <Box component="nav" aria-label="Meeting navigation loading">
+        <Paper
+          square
+          sx={{
+            borderBottom: "1px solid",
+            borderColor: "var(--mui-palette-divider)",
+            boxShadow: "none",
+            backgroundColor: "var(--mui-palette-appBarSecondary-defaultFill)",
+            minHeight: 96,
+            position: "relative",
+          }}
+        >
+          <LinearProgress
+            sx={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 2,
+            }}
+          />
         </Paper>
       </Box>
     );

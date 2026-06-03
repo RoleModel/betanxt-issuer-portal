@@ -59,6 +59,7 @@ async function pushStorageToRemote() {
     "elvn-annual-meeting-2025",
     "payc-annual-meeting-2025",
     "wen-annual-meeting-2025",
+    "foc-annual-meeting-2025",
     "wwd-annual-meeting-2025",
   ];
 

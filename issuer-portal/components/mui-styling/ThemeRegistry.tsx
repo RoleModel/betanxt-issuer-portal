@@ -14,7 +14,6 @@ import {
   createClientTheme as createThemeOptions,
   dfinThemeOptions,
   morrowSodaliThemeOptions,
-  wendysThemeOptions,
 } from "./theme";
 
 const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//;
@@ -22,7 +21,6 @@ const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//;
 const userTypeBrandTicker: Record<string, string> = {
   PARENT_CLIENT: "DFIN",
   SOLICITOR: "MRSO",
-  CSM: "WEN",
 };
 
 const multiClientUserTypes = new Set(["PARENT_CLIENT", "SOLICITOR", "CSM"]);
@@ -41,7 +39,6 @@ function getThemeOptions(tick: string): ReturnType<typeof createClientTheme> {
 const brandThemeForUserType: Record<string, ReturnType<typeof createClientTheme>> = {
   PARENT_CLIENT: dfinThemeOptions,
   SOLICITOR: morrowSodaliThemeOptions,
-  CSM: wendysThemeOptions,
 };
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
@@ -77,7 +74,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     // Use client ticker if available, otherwise fall back to user-type brand
     const effectiveTicker = ticker ?? (userType ? userTypeBrandTicker[userType] : undefined);
 
-    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : wendysThemeOptions);
+    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : dfinThemeOptions);
   }, [ticker, userType, urlTicker]);
 
   return (
@@ -90,7 +87,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
 
 export const useClientTicker = () => {
   const { currentClient } = useClient();
-  return currentClient?.ticker ?? "WEN";
+  return currentClient?.ticker ?? "DFIN";
 };
 
 export { useTheme } from "@mui/material/styles";

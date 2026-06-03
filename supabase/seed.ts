@@ -211,6 +211,176 @@ const calculateParticipationTarget = (
   return clamp(base, 0.25, 0.5);
 };
 
+function appendWenStyleAnnualVoteOverrides(
+  sqlStatements: string[],
+  meetingTickerSlug: string,
+): void {
+  const meeting2026 = `${meetingTickerSlug}-annual-meeting-2026`;
+  const meeting2025 = `${meetingTickerSlug}-annual-meeting-2025`;
+  const totalShares2026 = 190466246;
+  const totalShares2025 = 190446246;
+
+  sqlStatements.push(`
+UPDATE tabulation_report
+SET
+  positions_voted = '{"voted": 127, "unvoted": 5550, "totalShares": ${totalShares2026}, "votedShares": 5624687}'::jsonb,
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+WHERE meeting_id = '${meeting2026}';`);
+
+  sqlStatements.push(`
+UPDATE tabulation_report
+SET
+  positions_voted = '{"voted": 46, "unvoted": 0, "totalShares": ${totalShares2025}, "votedShares": 2564849}'::jsonb,
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+WHERE meeting_id = '${meeting2025}';`);
+
+  sqlStatements.push(`
+UPDATE position SET vote_status = 'Voted', shares_voted = 2052355, source = 'WEB', date_voted = '04/30/2026 09:15AM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'WELLINGTON MANAGEMENT';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 1670944, source = 'WEB', date_voted = '04/28/2026 10:42AM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'T. ROWE PRICE';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 1107909, source = 'WEB', date_voted = '05/01/2026 02:31PM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'BANK OF AMERICA CORP';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 272436, source = 'PRINT', date_voted = '04/25/2026 11:00AM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'SEAMUS DANIEL III';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 268803, source = 'WEB', date_voted = '04/29/2026 03:17PM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'IUDICIT CAPITAL CORP';
+
+UPDATE position SET vote_status = 'Voted', shares_voted = 252240, source = 'WEB', date_voted = '04/27/2026 08:54AM', updated_at = NOW()
+WHERE meeting_id = '${meeting2026}' AND name = 'TORUM CAPITAL LLC';
+
+DELETE FROM position_vote
+WHERE proposal_id IN (
+  SELECT id FROM proposal WHERE meeting_id = '${meeting2026}'
+);
+
+INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
+SELECT
+  gen_random_uuid(),
+  pos.id,
+  prop.id,
+  CASE
+    WHEN prop.proposal_type = 'Shareholder Proposal' AND pos.name = 'SEAMUS DANIEL III' THEN 'ABSTAIN'
+    WHEN prop.proposal_type = 'Shareholder Proposal' THEN 'AGAINST'
+    ELSE 'FOR'
+  END,
+  pos.shares_voted::text,
+  NOW()
+FROM position pos
+CROSS JOIN proposal prop
+WHERE pos.meeting_id = '${meeting2026}'
+  AND pos.name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
+  AND prop.meeting_id = '${meeting2026}';
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = '${meeting2026}' AND ROUND(proposal_number::numeric, 2) = 1.02)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = '${meeting2026}' AND name = 'TORUM CAPITAL LLC');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = '${meeting2026}' AND ROUND(proposal_number::numeric, 2) = 1.03)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = '${meeting2026}' AND name = 'SEAMUS DANIEL III');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = '${meeting2026}' AND ROUND(proposal_number::numeric, 2) = 1.05)
+  AND position_id IN (SELECT id FROM position WHERE meeting_id = '${meeting2026}' AND name IN ('IUDICIT CAPITAL CORP','TORUM CAPITAL LLC'));
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = '${meeting2026}' AND ROUND(proposal_number::numeric, 2) = 1.07)
+  AND position_id = (SELECT id FROM position WHERE meeting_id = '${meeting2026}' AND name = 'T. ROWE PRICE');
+
+UPDATE position_vote SET vote = 'AGAINST'
+WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = '${meeting2026}' AND ROUND(proposal_number::numeric, 2) = 1.08)
+  AND position_id IN (SELECT id FROM position WHERE meeting_id = '${meeting2026}' AND name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE'));
+
+UPDATE proposal p SET
+  total_votes_for      = agg.total_for,
+  total_votes_against  = agg.total_against,
+  total_votes_abstain  = agg.total_abstain,
+  total_shares_eligible = ${totalShares2026},
+  for_percentage       = ROUND((agg.total_for     / ${totalShares2026}.0) * 100, 4),
+  against_percentage   = ROUND((agg.total_against / ${totalShares2026}.0) * 100, 4),
+  abstain_percentage   = ROUND((agg.total_abstain / ${totalShares2026}.0) * 100, 4),
+  participation_rate   = ROUND(((agg.total_for + agg.total_against + agg.total_abstain) / ${totalShares2026}.0) * 100, 4),
+  final_result         = 'PENDING',
+  voting_completed     = false,
+  voting_completed_at  = NULL,
+  updated_at           = NOW()
+FROM (
+  SELECT pv.proposal_id,
+    SUM(CASE WHEN pv.vote = 'FOR'     THEN pv.shares_voting::numeric ELSE 0 END) AS total_for,
+    SUM(CASE WHEN pv.vote = 'AGAINST' THEN pv.shares_voting::numeric ELSE 0 END) AS total_against,
+    SUM(CASE WHEN pv.vote = 'ABSTAIN' THEN pv.shares_voting::numeric ELSE 0 END) AS total_abstain
+  FROM position_vote pv
+  JOIN proposal pr ON pr.id = pv.proposal_id
+  WHERE pr.meeting_id = '${meeting2026}'
+  GROUP BY pv.proposal_id
+) agg
+WHERE p.id = agg.proposal_id AND p.meeting_id = '${meeting2026}';
+`);
+}
+
+function appendFocPositionsClonedFromWen(sqlStatements: string[]): void {
+  sqlStatements.push("-- FOC positions cloned from WEN (wendys_positions CSV no longer available)");
+  sqlStatements.push("DELETE FROM position WHERE meeting_id LIKE 'foc-%';");
+  sqlStatements.push(`
+INSERT INTO "position"(
+  id, meeting_id, cusip, account_type, set_key, name, account_number, account_email,
+  vote_status, control_number, shares, shares_voted, source, date_voted, created_at, updated_at
+)
+SELECT
+  gen_random_uuid(),
+  REPLACE(wen.meeting_id, 'wen-', 'foc-'),
+  wen.cusip,
+  wen.account_type,
+  wen.set_key,
+  wen.name,
+  wen.account_number,
+  wen.account_email,
+  wen.vote_status,
+  wen.control_number,
+  wen.shares,
+  wen.shares_voted,
+  wen.source,
+  wen.date_voted,
+  wen.created_at,
+  wen.updated_at
+FROM "position" wen
+WHERE wen.meeting_id LIKE 'wen-%';`);
+}
+
+function appendFocPositionVotesClonedFromWen(sqlStatements: string[]): void {
+  sqlStatements.push("-- FOC position_vote rows cloned from WEN");
+  sqlStatements.push(`
+DELETE FROM position_vote
+WHERE proposal_id IN (SELECT id FROM proposal WHERE meeting_id LIKE 'foc-%');`);
+  sqlStatements.push(`
+INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
+SELECT
+  gen_random_uuid(),
+  foc_pos.id,
+  foc_prop.id,
+  wv.vote,
+  wv.shares_voting,
+  NOW()
+FROM position_vote wv
+INNER JOIN position wen_pos ON wen_pos.id = wv.position_id
+INNER JOIN position foc_pos
+  ON foc_pos.meeting_id = REPLACE(wen_pos.meeting_id, 'wen-', 'foc-')
+  AND foc_pos.name = wen_pos.name
+  AND foc_pos.control_number = wen_pos.control_number
+INNER JOIN proposal wen_prop ON wen_prop.id = wv.proposal_id
+INNER JOIN proposal foc_prop
+  ON foc_prop.meeting_id = REPLACE(wen_prop.meeting_id, 'wen-', 'foc-')
+  AND foc_prop.proposal_number IS NOT DISTINCT FROM wen_prop.proposal_number
+WHERE wen_pos.meeting_id LIKE 'wen-%';`);
+}
+
 // Function to generate proposal results based on meeting year and type
 const generateProposalResults = (
   proposalType: string,
@@ -537,27 +707,32 @@ const main = async () => {
 
   // Legacy CSV loading removed - now using CSVProcessor for all companies
 
+  const wendysMailingTotals = {
+    Totals: {
+      Accounts: 5677,
+      Positions: 5677,
+      Retransmissions: 0,
+    },
+    "Mail Positions": {
+      Fullset: 33,
+      NAA: 164,
+      "Courtesy/Other": 0,
+    },
+    "Suppressed Positions": {
+      Electronic: 5316,
+      Household: 5,
+      Managed: 100,
+      Canceled: 0,
+    },
+  };
+
   // Load company positions data for mailing records
-  const companyPositions: Record<string, { Active?: any }> = {
+  const companyPositions: Record<string, { Active?: typeof wendysMailingTotals }> = {
     wendys: {
-      Active: {
-        Totals: {
-          Accounts: 5677,
-          Positions: 5677,
-          Retransmissions: 0,
-        },
-        "Mail Positions": {
-          Fullset: 33,
-          NAA: 164,
-          "Courtesy/Other": 0,
-        },
-        "Suppressed Positions": {
-          Electronic: 5316,
-          Household: 5,
-          Managed: 100,
-          Canceled: 0,
-        },
-      },
+      Active: wendysMailingTotals,
+    },
+    foc: {
+      Active: wendysMailingTotals,
     },
     paycom: {
       Active: {
@@ -826,8 +1001,23 @@ const main = async () => {
   };
   const companyCsvDataMap: Record<string, CompanyCsvData> = {};
 
-  // Store existing loaded data in map
-  if (wendysData) companyCsvDataMap["WEN"] = wendysData;
+  function cloneCompanyCsvData(source: CompanyCsvData): CompanyCsvData {
+    return {
+      meetingInfo: source.meetingInfo,
+      proposals: source.proposals.map((proposal) => ({ ...proposal })),
+      positions: source.positions.map((position) => ({ ...position })),
+      voteStatusSummary: source.voteStatusSummary
+        ? structuredClone(source.voteStatusSummary)
+        : null,
+    };
+  }
+
+  // Store existing loaded data in map (FOC mirrors WEN CSV data)
+  if (wendysData) {
+    companyCsvDataMap["WEN"] = wendysData;
+    companyCsvDataMap["FOC"] = cloneCompanyCsvData(wendysData);
+    console.error(`Cloned Wendy's CSV data for FOC (${wendysData.proposals.length} proposals)`);
+  }
   if (enlivenData) companyCsvDataMap["ELVN"] = enlivenData;
   if (paycomData) companyCsvDataMap["PAYC"] = paycomData;
   if (woodwardData) companyCsvDataMap["WWD"] = woodwardData;
@@ -1054,7 +1244,7 @@ const main = async () => {
     ELVN: { meetingDate: "2025-06-24", recordDate: "2025-04-25" },
     JPMR: { meetingDate: "2025-04-15", recordDate: "2025-02-14" },
     WAL: { meetingDate: "2025-04-17", recordDate: "2025-02-16" },
-    FOC: { meetingDate: "2025-04-17", recordDate: "2025-02-16" },
+    FOC: { meetingDate: "2025-05-21", recordDate: "2025-03-24" },
     ILG: { meetingDate: "2025-04-22", recordDate: "2025-02-21" },
     PHX: { meetingDate: "2025-04-24", recordDate: "2025-02-23" },
     ETWO: { meetingDate: "2025-04-29", recordDate: "2025-02-28" },
@@ -1112,7 +1302,7 @@ const main = async () => {
     PAYC: { meetingDate: "2026-05-04", recordDate: "2026-03-11" },
     WWD: { meetingDate: "2026-04-15", recordDate: "2026-02-16" },
     ELVN: { meetingDate: "2026-06-10", recordDate: "2026-04-13" },
-    FOC: { meetingDate: "2026-07-15", recordDate: "2026-05-16" },
+    FOC: { meetingDate: "2026-05-20", recordDate: "2026-03-23" },
     JPMR: { meetingDate: "2026-04-14", recordDate: "2026-02-13" },
     WAL: { meetingDate: "2026-04-16", recordDate: "2026-02-15" },
     ILG: { meetingDate: "2026-04-21", recordDate: "2026-02-20" },
@@ -1261,6 +1451,11 @@ const main = async () => {
         meetingToClient[meetingId] = client;
         meetingToDate[meetingId] = meetingDate;
 
+        const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker);
+        if (!account) {
+          throw new Error(`No account found for client ticker: ${client.ticker}`);
+        }
+
         const currentPhase = "phase" in meeting ? meeting.phase : 8;
         // Mark meetings from 2024 and earlier as COMPLETE for reporting
         const isPastMeeting = yearConfig.year <= 2024;
@@ -1286,12 +1481,6 @@ const main = async () => {
         }
 
         meetingPhaseMap[meetingId] = currentPhase;
-
-        // Find corresponding account for this client
-        const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker);
-        if (!account) {
-          throw new Error(`No account found for client ticker: ${client.ticker}`);
-        }
 
         const totalSharesOutstanding = Number(account.totalSharesOutstanding ?? 0);
         meetingShareBase[meetingId] = totalSharesOutstanding;
@@ -1463,6 +1652,7 @@ const main = async () => {
       let companyKey;
       switch (ticker) {
         case "WEN":
+        case "FOC":
           companyKey = "wendys";
           break;
         case "PAYC":
@@ -1488,12 +1678,12 @@ const main = async () => {
           const meetingClient = meetingToClient[meetingId];
           const year = parseInt(meetingId.split("-").slice(-1)[0]);
           const isSpecialMeeting = meetingId.includes("special-meeting");
-          // Include 2025 and before, 2026 special meetings, or WEN 2026 annual meeting
+          // Include 2025 and before, 2026 special meetings, or WEN/FOC 2026 annual meetings
           return (
             meetingClient?.ticker === ticker &&
             (year <= 2025 ||
               (year === 2026 && isSpecialMeeting) ||
-              (year === 2026 && ticker === "WEN"))
+              (year === 2026 && (ticker === "WEN" || ticker === "FOC")))
           );
         });
 
@@ -2874,6 +3064,11 @@ const main = async () => {
       return; // Skip if account not found
     }
 
+    // FOC uses WEN position rows cloned in SQL after this loop
+    if (client.ticker === "FOC") {
+      return;
+    }
+
     // Extract year from meetingId (format: meeting-type-YEAR)
     const meetingYear = meetingId.split("-").slice(-1)[0];
     const isSpecialMeeting = meetingId.includes("special");
@@ -3336,6 +3531,7 @@ const main = async () => {
     }
   });
 
+  appendFocPositionsClonedFromWen(sqlStatements);
   sqlStatements.push("");
 
   // Generate position votes
@@ -3434,6 +3630,7 @@ const main = async () => {
     `-- Generated ${totalVotes} position votes for ${positionIds.length} positions`,
   );
 
+  appendFocPositionVotesClonedFromWen(sqlStatements);
   sqlStatements.push("");
 
   // Generate DSM documents for 2025 meetings
@@ -3819,123 +4016,9 @@ SELECT
     }
   });
 
-  // Override tabulation report positions_voted for WEN meetings with accurate share counts
-  // WEN 2026 (active, phase 1): 2.95% voted — 5,624,687 of 190,466,246 total shares
-  sqlStatements.push(`
-UPDATE tabulation_report
-SET
-  positions_voted = '{"voted": 127, "unvoted": 5550, "totalShares": 190466246, "votedShares": 5624687}'::jsonb,
-  last_calculated_at = NOW(),
-  updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026';`);
-
-  // WEN 2025 (complete, previous year): 2,564,849 of 190,446,246 total shares voted
-  sqlStatements.push(`
-UPDATE tabulation_report
-SET
-  positions_voted = '{"voted": 46, "unvoted": 0, "totalShares": 190446246, "votedShares": 2564849}'::jsonb,
-  last_calculated_at = NOW(),
-  updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2025';`);
-
-  // WEN 2026 — seed actual voted positions and per-proposal position_vote records
-  // 6 positions totaling 5,624,687 shares (2.95% of 190,466,246)
-  sqlStatements.push(`
-UPDATE position SET vote_status = 'Voted', shares_voted = 2052355, source = 'WEB', date_voted = '04/30/2026 09:15AM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'WELLINGTON MANAGEMENT';
-
-UPDATE position SET vote_status = 'Voted', shares_voted = 1670944, source = 'WEB', date_voted = '04/28/2026 10:42AM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'T. ROWE PRICE';
-
-UPDATE position SET vote_status = 'Voted', shares_voted = 1107909, source = 'WEB', date_voted = '05/01/2026 02:31PM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'BANK OF AMERICA CORP';
-
-UPDATE position SET vote_status = 'Voted', shares_voted = 272436, source = 'PRINT', date_voted = '04/25/2026 11:00AM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'SEAMUS DANIEL III';
-
-UPDATE position SET vote_status = 'Voted', shares_voted = 268803, source = 'WEB', date_voted = '04/29/2026 03:17PM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'IUDICIT CAPITAL CORP';
-
-UPDATE position SET vote_status = 'Voted', shares_voted = 252240, source = 'WEB', date_voted = '04/27/2026 08:54AM', updated_at = NOW()
-WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'TORUM CAPITAL LLC';
-
--- Remove ALL position_vote records for WEN 2026 proposals (including spurious WITHHOLD votes
--- that the seed generator adds for unvoted positions), then rebuild from scratch.
-DELETE FROM position_vote
-WHERE proposal_id IN (
-  SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026'
-);
-
-INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
-SELECT
-  gen_random_uuid(),
-  pos.id,
-  prop.id,
-  CASE
-    WHEN prop.proposal_type = 'Shareholder Proposal' AND pos.name = 'SEAMUS DANIEL III' THEN 'ABSTAIN'
-    WHEN prop.proposal_type = 'Shareholder Proposal' THEN 'AGAINST'
-    ELSE 'FOR'
-  END,
-  pos.shares_voted::text,
-  NOW()
-FROM position pos
-CROSS JOIN proposal prop
-WHERE pos.meeting_id = 'wen-annual-meeting-2026'
-  AND pos.name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE','BANK OF AMERICA CORP','SEAMUS DANIEL III','IUDICIT CAPITAL CORP','TORUM CAPITAL LLC')
-  AND prop.meeting_id = 'wen-annual-meeting-2026';
-
--- Director vote variation: specific institutional holders oppose specific directors
--- 1.02 Peter W. May      — TORUM opposes (overboarding)
--- 1.03 Matthew H. Peltz  — SEAMUS opposes (governance)
--- 1.05 Caruso-Cabrera     — IUDICIT + TORUM oppose (audit committee)
--- 1.07 Richard H. Gomez  — T. ROWE opposes (compensation)
--- 1.08 M. Mathews-Spradlin — WELLINGTON + T. ROWE oppose (pay concern)
-UPDATE position_vote SET vote = 'AGAINST'
-WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.02)
-  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'TORUM CAPITAL LLC');
-
-UPDATE position_vote SET vote = 'AGAINST'
-WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.03)
-  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'SEAMUS DANIEL III');
-
-UPDATE position_vote SET vote = 'AGAINST'
-WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.05)
-  AND position_id IN (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name IN ('IUDICIT CAPITAL CORP','TORUM CAPITAL LLC'));
-
-UPDATE position_vote SET vote = 'AGAINST'
-WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.07)
-  AND position_id = (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name = 'T. ROWE PRICE');
-
-UPDATE position_vote SET vote = 'AGAINST'
-WHERE proposal_id = (SELECT id FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' AND ROUND(proposal_number::numeric, 2) = 1.08)
-  AND position_id IN (SELECT id FROM position WHERE meeting_id = 'wen-annual-meeting-2026' AND name IN ('WELLINGTON MANAGEMENT','T. ROWE PRICE'));
-
--- Recalculate all proposal totals from actual position_vote records
-UPDATE proposal p SET
-  total_votes_for      = agg.total_for,
-  total_votes_against  = agg.total_against,
-  total_votes_abstain  = agg.total_abstain,
-  total_shares_eligible = 190466246,
-  for_percentage       = ROUND((agg.total_for     / 190466246.0) * 100, 4),
-  against_percentage   = ROUND((agg.total_against / 190466246.0) * 100, 4),
-  abstain_percentage   = ROUND((agg.total_abstain / 190466246.0) * 100, 4),
-  participation_rate   = ROUND(((agg.total_for + agg.total_against + agg.total_abstain) / 190466246.0) * 100, 4),
-  final_result         = 'PENDING',
-  voting_completed     = false,
-  voting_completed_at  = NULL,
-  updated_at           = NOW()
-FROM (
-  SELECT pv.proposal_id,
-    SUM(CASE WHEN pv.vote = 'FOR'     THEN pv.shares_voting::numeric ELSE 0 END) AS total_for,
-    SUM(CASE WHEN pv.vote = 'AGAINST' THEN pv.shares_voting::numeric ELSE 0 END) AS total_against,
-    SUM(CASE WHEN pv.vote = 'ABSTAIN' THEN pv.shares_voting::numeric ELSE 0 END) AS total_abstain
-  FROM position_vote pv
-  JOIN proposal pr ON pr.id = pv.proposal_id
-  WHERE pr.meeting_id = 'wen-annual-meeting-2026'
-  GROUP BY pv.proposal_id
-) agg
-WHERE p.id = agg.proposal_id AND p.meeting_id = 'wen-annual-meeting-2026';
-`);
+  // WEN + FOC: mirror Wendy's tabulation, voted positions, and director variation
+  appendWenStyleAnnualVoteOverrides(sqlStatements, "wen");
+  appendWenStyleAnnualVoteOverrides(sqlStatements, "foc");
 
   sqlStatements.push("");
 

@@ -461,7 +461,7 @@ Set these environment variables on the Vercel project that deploys `mock-api-ser
 - `PORTAL_BASE_URL`
 - `CRON_SECRET` if using the scheduled tabulation distribution cron
 
-The cron job in `vercel.json` calls `GET /api/cron/tabulation-distribute` daily at 8:00 UTC. The route also supports `POST` for the manual send-now flow in the issuer portal.
+The cron job in `vercel.json` calls `GET /api/cron/tabulation-distribute` hourly. The route only sends during the 8:00 AM America/Chicago hour so delivery stays aligned across daylight saving time changes. The route also supports `POST` for the manual send-now flow in the issuer portal.
 
 ### Send API shape
 

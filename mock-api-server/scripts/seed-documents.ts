@@ -38,6 +38,11 @@ const clientMapping = {
     meetingId: "wen-annual-meeting-2025",
     meetingDate: "2025-05-21",
   },
+  focalpoint: {
+    ticker: "FOC",
+    meetingId: "foc-annual-meeting-2025",
+    meetingDate: "2025-05-21",
+  },
   woodward: {
     ticker: "WWD",
     meetingId: "wwd-annual-meeting-2025",
@@ -331,8 +336,9 @@ async function uploadDocument(
   }
 }
 
-async function uploadClientDocuments(clientKey: string): Promise<number> {
-  const dataDir = join(process.cwd(), "..", "data", clientKey);
+async function uploadClientDocuments(clientKey: string, sourceDataKey?: string): Promise<number> {
+  const dataKey = sourceDataKey ?? clientKey;
+  const dataDir = join(process.cwd(), "..", "data", dataKey);
 
   // Check if directory exists
   if (!existsSync(dataDir)) {
@@ -456,7 +462,8 @@ async function main() {
   // Upload documents from data directories
   let totalUploaded = 0;
   for (const clientKey of Object.keys(clientMapping)) {
-    const count = await uploadClientDocuments(clientKey);
+    const sourceDataKey = clientKey === "focalpoint" ? "wendys" : undefined;
+    const count = await uploadClientDocuments(clientKey, sourceDataKey);
     totalUploaded += count;
   }
 

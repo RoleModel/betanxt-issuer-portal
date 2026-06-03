@@ -157,6 +157,7 @@ const mockUsers: Record<
     // Assigned portfolio for this CSM — events list defaults to these clients only
     clientTickers: [
       "WEN", // Wendy's International, Inc.
+      "FOC", // FocalPoint (Wendy's clone demo)
       "PAYC", // Paycom Software, Inc.
       "WWD", // Woodward, Inc.
       "ELVN", // Enliven Therapeutics, Inc.

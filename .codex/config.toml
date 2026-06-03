@@ -1,0 +1,13 @@
+[mcp_servers.figma-dev-mode-mcp-server]
+url = "http://127.0.0.1:3845/mcp"
+
+[mcp_servers.mui-mcp]
+args = ["-y", "@mui/mcp@latest"]
+command = "npx"
+
+[mcp_servers.supabase]
+args = ["-y", "@supabase/mcp-server-supabase", "--read-only", "--project-ref=vfgjzlcakdrpsbzuqklz"]
+command = "npx"
+
+[mcp_servers.supabase.env]
+SUPABASE_ACCESS_TOKEN = "sbp_41777623df247da5ca87204a58dde8c629fdaab3"

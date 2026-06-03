@@ -22,7 +22,8 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
   const { clients, loading: clientsLoading, error: clientsError } = useClients();
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
@@ -39,7 +40,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Check if user can access a specific client
   const canAccessClient = useCallback(
     (clientId: string): boolean => {
-      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+      if (bypassAuth) {
         return true; // Auth bypass allows access to all clients
       }
 
@@ -81,6 +82,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return userAccountId === targetClient.id || session?.user?.type === "RELATIONSHIP_MANAGER";
     },
     [
+      bypassAuth,
       session?.user?.account_id,
       session?.user?.client_ticker,
       session?.user?.type,
@@ -96,7 +98,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setLoading(true);
         setError(null);
 
+        if (!bypassAuth && sessionStatus === "loading") {
+          setCurrentClient(null);
+          setLoading(true);
+          return;
+        }
+
         if (clients.length === 0) {
+          setCurrentClient(null);
           setLoading(false);
           return;
         }
@@ -115,7 +124,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           targetClient = clients.find((client) => client.ticker === tickerFromURL) ?? null;
 
           // If URL specifies a client, use it and update localStorage
-          if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+          if (targetClient && bypassAuth) {
             try {
               if (typeof window !== "undefined") {
                 localStorage.setItem("selectedClient", JSON.stringify({ id: targetClient.id }));
@@ -127,7 +136,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // 2. If no URL client, check localStorage for manually selected client
-        if (!targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+        if (!targetClient && bypassAuth) {
           try {
             const selectedClientStr =
               typeof window !== "undefined" ? localStorage.getItem("selectedClient") : null;
@@ -141,7 +150,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // 3. For authenticated users, check access to URL client
-        if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH !== "true") {
+        if (targetClient && !bypassAuth) {
           if (!canAccessClient(targetClient.id)) {
             setError(`Access denied to ${targetClient.company_name ?? targetClient.short_name}`);
             setLoading(false);
@@ -149,15 +158,20 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
 
-        // 3. Fallback to first available client
+        // 4. Fallback only after auth has resolved. For single-client users,
+        // prefer the session ticker instead of briefly showing the first client.
         if (!targetClient && !tickerFromURL && clients.length > 0) {
-          targetClient = clients[0];
+          const userTicker = session?.user?.client_ticker ?? session?.user?.clientTickers?.[0];
+          targetClient =
+            (userTicker ? clients.find((client) => client.ticker === userTicker) : null) ??
+            clients[0] ??
+            null;
         }
 
         setCurrentClient(targetClient);
 
         // Update localStorage if in auth bypass mode
-        if (targetClient && process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+        if (targetClient && bypassAuth) {
           localStorage.setItem(
             "selectedClient",
             JSON.stringify({
@@ -182,10 +196,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     pathname,
     clients,
     clientsLoading,
+    sessionStatus,
     session?.user?.accountId,
+    session?.user?.client_ticker,
+    session?.user?.clientTickers,
     isUserSwitching,
     extractTickerFromURL,
     canAccessClient,
+    bypassAuth,
   ]);
 
   // Handle client switching
@@ -286,17 +304,20 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentClient((prev) => (prev ? { ...prev, enabledFeatures: features } : prev));
   }, []);
 
+  const isSessionLoading = !bypassAuth && sessionStatus === "loading";
+  const isLoading = loading || clientsLoading || isSessionLoading;
+
   return (
     <ClientContext.Provider
       value={{
         currentClient,
         availableClients: clients,
-        loading: loading || clientsLoading,
+        loading: isLoading,
         error: error ?? clientsError,
         switchClient,
         canAccessClient,
         updateCurrentClientFeatures,
-        isHydrated: !loading && !clientsLoading && !!currentClient,
+        isHydrated: !isLoading && !!currentClient,
       }}
     >
       {children}
