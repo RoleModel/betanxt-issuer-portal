@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
+    "axe-core": "~4.11.1",
     "@playwright/test": "^1.36.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^24.0.0",
