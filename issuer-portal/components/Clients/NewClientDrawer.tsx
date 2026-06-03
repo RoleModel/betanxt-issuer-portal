@@ -23,6 +23,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useSession } from "next-auth/react";
 import React, { useCallback, useRef, useState } from "react";
 
 import buildApiClient from "@/domain-models/apiClient";
@@ -158,6 +159,7 @@ function ColorField({
 }
 
 export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerProps) {
+  const { data: session, update: updateSession } = useSession();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -241,6 +243,7 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
           logoUrl,
           primaryColor: brandingForm.primaryColor,
           secondaryColor: brandingForm.secondaryColor,
+          createdBy: session?.user?.username ?? undefined,
           isActive: true,
           enabledFeatures: [
             "documents",
@@ -257,7 +260,8 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
         throw new Error(getApiErrorMessage(clientError, "Failed to create client"));
       }
 
-      const clientId = clientData.id ?? "";
+      const rawId = (clientData as { id?: unknown }).id;
+      const clientId = typeof rawId === "string" ? rawId : "";
       if (!clientId) {
         throw new Error("Failed to create client: missing client id");
       }
@@ -302,6 +306,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
       if (meetingError) {
         throw new Error(getApiErrorMessage(meetingError, "Failed to create meeting"));
       }
+
+      // Refresh the session so the JWT picks up the newly-assigned client ticker
+      await updateSession();
 
       setDone(true);
       onCreated?.();

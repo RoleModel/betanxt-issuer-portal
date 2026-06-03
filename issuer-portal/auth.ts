@@ -168,6 +168,27 @@ const mockUsers: Record<
   },
 };
 
+/**
+ * Returns the tickers of all clients created by (assigned to) the given CSM username.
+ * Reads from the `clients.created_by` column. Failures are non-fatal — returns [].
+ */
+async function getCreatedClientTickers(username: string): Promise<string[]> {
+  try {
+    const { getServerSupabase } = await import("@/lib/serverSupabase");
+    const supabase = getServerSupabase();
+    const { data, error } = await supabase
+      .from("clients")
+      .select("ticker")
+      .eq("created_by", username);
+    if (error || !data) return [];
+    return data
+      .map((row) => (typeof row.ticker === "string" ? row.ticker : null))
+      .filter((t): t is string => Boolean(t));
+  } catch {
+    return [];
+  }
+}
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -254,7 +275,6 @@ export const {
     signIn: "/login",
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/require-await
     async jwt({ token, user, trigger, session: updateData }) {
       try {
         if (user) {
@@ -271,7 +291,10 @@ export const {
         // sessions pick up ticker list changes without requiring a re-login.
         const username = token.username;
         if (username && mockUsers[username]) {
-          token.clientTickers = mockUsers[username].clientTickers;
+          const baseTickers = mockUsers[username].clientTickers ?? [];
+          // Merge in tickers of any clients this CSM created (assigned to them).
+          const createdTickers = await getCreatedClientTickers(username);
+          token.clientTickers = [...new Set([...baseTickers, ...createdTickers])];
         }
 
         if (trigger === "update" && updateData) {

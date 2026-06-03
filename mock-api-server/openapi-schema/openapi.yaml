@@ -2624,6 +2624,10 @@ components:
           nullable: true
           description: Secondary brand color as a hex string (e.g. #E8A020)
           example: "#E8A020"
+        createdBy:
+          type: string
+          nullable: true
+          description: Username of the CSM who created this client (for assignment)
         enabledFeatures:
           type: array
           items:
@@ -3471,6 +3475,10 @@ components:
           type: string
           nullable: true
           description: Secondary brand color as a hex string (e.g. #E8A020)
+        createdBy:
+          type: string
+          nullable: true
+          description: Username of the CSM who created this client (for assignment)
         enabledFeatures:
           type: array
           items:

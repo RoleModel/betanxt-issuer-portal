@@ -191,14 +191,6 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Handle client switching
   const switchClient = (client: Client) => {
     try {
-      console.log("🔄 switchClient called with:", {
-        id: client.id,
-        ticker: client.ticker,
-        name: client.name,
-        company_name: client.company_name,
-        short_name: client.short_name,
-      });
-
       if (!canAccessClient(client.id)) {
         setError(`Access denied to ${client.company_name ?? client.short_name}`);
         return;
@@ -218,7 +210,6 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       );
 
       // Update current client state immediately
-      console.log("🔄 Setting current client to:", client.ticker);
       setCurrentClient(client);
 
       // Navigate to the equivalent page for the selected client using ticker-based routing

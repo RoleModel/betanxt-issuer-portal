@@ -172,7 +172,14 @@ export async function listMeetings(
   ApiResponse<{ meetings?: Meeting[]; pagination?: components["schemas"]["Pagination"] }>
 > {
   try {
-    let query = supabase.from("meeting").select("*", { count: "exact" });
+    // Explicit, stable ordering is required for range-based pagination to be
+    // deterministic. Without it, PostgREST range queries can return inconsistent
+    // row counts (notably an exact page size of 100 collapsing to a single row).
+    let query = supabase
+      .from("meeting")
+      .select("*", { count: "exact" })
+      .order("meeting_date", { ascending: false })
+      .order("id", { ascending: true });
 
     // Apply filters
     if (filters?.clientId) {

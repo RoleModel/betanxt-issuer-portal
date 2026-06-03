@@ -96,10 +96,13 @@ export function useEvents(): UseEventsResult {
     const api = await buildApiClient();
     const allEvents: EventRow[] = [];
     let page = 1;
+    // 250 is a safe page size; pulls all meetings in a few pages and avoids the
+    // PostgREST range quirk that collapses an exact 100-row page to a single row.
+    const PAGE_SIZE = 250;
 
     while (true) {
       const { data, error } = await api.GET("/meetings", {
-        params: { query: { page, limit: 100 } },
+        params: { query: { page, limit: PAGE_SIZE } },
       });
 
       if (error || !data) break;
@@ -120,7 +123,7 @@ export function useEvents(): UseEventsResult {
       const paginationRecord = asRecord(dataRecord.pagination);
       const totalCount = typeof paginationRecord?.total === "number" ? paginationRecord.total : 0;
 
-      if (meetings.length < 100 || allEvents.length >= totalCount) break;
+      if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) break;
       page++;
     }
 

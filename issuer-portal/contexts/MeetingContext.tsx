@@ -1,7 +1,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type { components } from "@/types/api";
 import type { KeyDate, Position, Task } from "@/types/api-exports";
@@ -347,10 +355,21 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
     }
   }, [currentMeeting?.id]);
 
-  // Auto-fetch meetings when component mounts or ticker changes
+  // Auto-fetch meetings when component mounts or ticker changes.
+  // When the ticker changes, clear the previous client's meetings immediately so
+  // no consumer (e.g. EventTabs) renders the prior client's data during the switch.
+  const loadedTickerRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     const ticker = getTickerFromURL();
     if (ticker) {
+      if (
+        loadedTickerRef.current &&
+        loadedTickerRef.current.toUpperCase() !== ticker.toUpperCase()
+      ) {
+        setMeetings([]);
+        setCurrentMeeting(null);
+      }
+      loadedTickerRef.current = ticker;
       void refreshMeetings(ticker);
     }
   }, [refreshMeetings, getTickerFromURL]);

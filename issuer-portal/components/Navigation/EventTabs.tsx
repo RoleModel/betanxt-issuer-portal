@@ -146,7 +146,21 @@ export function EventTabs() {
   const { isEnabled } = useClientFeatures();
   const theme = useTheme();
   const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1];
-  const currentMeeting = activeMeeting || meetings.find((m) => m.id === meetingIdFromUrl);
+  // The ticker the URL is currently pointing at — the source of truth for which
+  // client's tabs should render. Guards against showing the previously-viewed
+  // client's meetings while the new client's data is still loading after a switch.
+  const urlTicker = /^\/([A-Za-z]{2,5})\//.exec(pathname)?.[1]?.toUpperCase();
+  // Only consider meetings that belong to the client in the URL. Stale meetings
+  // from a prior client are filtered out until the correct ones load.
+  const scopedMeetings = useMemo(
+    () =>
+      urlTicker ? meetings.filter((m) => (m.ticker ?? "").toUpperCase() === urlTicker) : meetings,
+    [meetings, urlTicker],
+  );
+  const currentMeeting =
+    (activeMeeting && (!urlTicker || (activeMeeting.ticker ?? "").toUpperCase() === urlTicker)
+      ? activeMeeting
+      : null) || scopedMeetings.find((m) => m.id === meetingIdFromUrl);
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // (Optimization) Memoize current phase parsing
@@ -237,7 +251,7 @@ export function EventTabs() {
     tab: MeetingTab;
     src: components["schemas"]["Meeting"];
   }[] = useMemo(() => {
-    const meetingsArray = meetings || [];
+    const meetingsArray = scopedMeetings;
     const completedMeeting = currentMeeting?.status === "COMPLETE" ? currentMeeting : null;
     if (completedMeeting) {
       return [
@@ -257,7 +271,7 @@ export function EventTabs() {
       return dateA - dateB;
     });
     return activeMeetings.map((m) => ({ tab: mapToMeetingTab(m), src: m }));
-  }, [meetings, currentMeeting, mapToMeetingTab]);
+  }, [scopedMeetings, currentMeeting, mapToMeetingTab]);
 
   // Sync activeMeetingTab with current meeting
   useEffect(() => {

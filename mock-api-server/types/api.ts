@@ -948,6 +948,8 @@ export interface components {
        * @example #E8A020
        */
       secondaryColor?: string | null;
+      /** @description Username of the CSM who created this client (for assignment) */
+      createdBy?: string | null;
       /**
        * @description Feature modules enabled for this client
        * @example [
@@ -1584,6 +1586,8 @@ export interface components {
       primaryColor?: string | null;
       /** @description Secondary brand color as a hex string (e.g. */
       secondaryColor?: string | null;
+      /** @description Username of the CSM who created this client (for assignment) */
+      createdBy?: string | null;
       /**
        * @description Feature modules enabled for this client
        * @default [

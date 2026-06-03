@@ -33,6 +33,7 @@ interface ClientRow {
   logo_url?: string | null;
   primary_color?: string | null;
   secondary_color?: string | null;
+  created_by?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   enabled_features?: unknown;
@@ -54,6 +55,7 @@ function transformClient(row: ClientRow): Client {
     logoUrl: row.logo_url ?? undefined,
     primaryColor: row.primary_color ?? undefined,
     secondaryColor: row.secondary_color ?? undefined,
+    createdBy: row.created_by ?? undefined,
     createdAt: row.created_at ?? undefined,
     updatedAt: row.updated_at ?? undefined,
     enabledFeatures: Array.isArray(row.enabled_features)
@@ -104,21 +106,24 @@ export async function createClient(clientData: CreateClientRequest): Promise<Api
   if (clientData.logoUrl !== undefined) dbInsert.logo_url = clientData.logoUrl;
   if (clientData.primaryColor !== undefined) dbInsert.primary_color = clientData.primaryColor;
   if (clientData.secondaryColor !== undefined) dbInsert.secondary_color = clientData.secondaryColor;
+  if (clientData.createdBy !== undefined) dbInsert.created_by = clientData.createdBy;
   if (clientData.enabledFeatures !== undefined)
     dbInsert.enabled_features = clientData.enabledFeatures;
 
   const { data, error } = await supabase.from("clients").insert(dbInsert).select().single();
 
-  // If the branding columns don't exist yet (migration not applied), retry without them
+  // If new optional columns don't exist yet (migration not applied), retry without them
   if (
     error?.message?.includes("column") &&
     (dbInsert.logo_url !== undefined ||
       dbInsert.primary_color !== undefined ||
-      dbInsert.secondary_color !== undefined)
+      dbInsert.secondary_color !== undefined ||
+      dbInsert.created_by !== undefined)
   ) {
     delete dbInsert.logo_url;
     delete dbInsert.primary_color;
     delete dbInsert.secondary_color;
+    delete dbInsert.created_by;
     const { data: data2, error: error2 } = await supabase
       .from("clients")
       .insert(dbInsert)
