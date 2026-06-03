@@ -49,15 +49,37 @@ function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistri
   };
 }
 
-async function getUsersForTicker(ticker: string): Promise<string[]> {
-  const { data } = await supabase
-    .from("notification")
-    .select("user_id")
-    .ilike("action_url", `%/${ticker}/%`);
+async function getUsersForTicker(ticker: string, requestingUserId?: string): Promise<string[]> {
+  // Find users linked to accounts associated with this client ticker
+  const { data: clientData } = await supabase
+    .from("client")
+    .select("id")
+    .eq("ticker", ticker)
+    .limit(1)
+    .single();
 
-  if (!data) return [];
-  const ids = data.map((r) => r.user_id).filter((id): id is string => Boolean(id));
-  return [...new Set(ids)];
+  const ids = new Set<string>();
+
+  if (clientData?.id) {
+    const { data: accountData } = await supabase
+      .from("account")
+      .select("users:user(id)")
+      .eq("client_id", clientData.id);
+
+    for (const account of accountData ?? []) {
+      const users = account.users as { id: string }[] | { id: string } | null;
+      if (Array.isArray(users)) {
+        for (const u of users) if (u.id) ids.add(u.id);
+      } else if (users?.id) {
+        ids.add(users.id);
+      }
+    }
+  }
+
+  // Always include the user who triggered the distribution
+  if (requestingUserId) ids.add(requestingUserId);
+
+  return [...ids];
 }
 
 interface MeetingEmailData {
@@ -136,6 +158,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   const url = new URL(request.url);
   const force = url.searchParams.get("force") === "true";
   const forceMeetingId = url.searchParams.get("meetingId");
+  const requestingUserId = url.searchParams.get("userId") ?? undefined;
 
   const results: TabulationDistributeMeetingResult[] = [];
   const today = todayUtc();
@@ -204,7 +227,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      const userIds = await getUsersForTicker(ticker);
+      const userIds = await getUsersForTicker(ticker, requestingUserId);
 
       const daysUntil = Math.ceil(
         (new Date(meetingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),

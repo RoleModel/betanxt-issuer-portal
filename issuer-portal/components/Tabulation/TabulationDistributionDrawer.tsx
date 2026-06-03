@@ -147,6 +147,7 @@ export function TabulationDistributionDrawer({
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
       const params = new URLSearchParams({ force: "true", meetingId });
+      if (session?.user?.id) params.set("userId", session.user.id);
       const res = await fetch(`${apiBase}/cron/tabulation-distribute?${params.toString()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
