@@ -50,34 +50,42 @@ function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistri
 }
 
 async function getUsersForTicker(ticker: string, requestingUserId?: string): Promise<string[]> {
-  // Find users linked to accounts associated with this client ticker
-  const { data: clientData } = await supabase
-    .from("client")
-    .select("id")
-    .eq("ticker", ticker)
-    .limit(1)
-    .single();
-
   const ids = new Set<string>();
-
-  if (clientData?.id) {
-    const { data: accountData } = await supabase
-      .from("account")
-      .select("users:user(id)")
-      .eq("client_id", clientData.id);
-
-    for (const account of accountData ?? []) {
-      const users = account.users as { id: string }[] | { id: string } | null;
-      if (Array.isArray(users)) {
-        for (const u of users) if (u.id) ids.add(u.id);
-      } else if (users?.id) {
-        ids.add(users.id);
-      }
-    }
-  }
 
   // Always include the user who triggered the distribution
   if (requestingUserId) ids.add(requestingUserId);
+
+  try {
+    // clients (plural) → account → user, using separate queries since no FK relationships defined
+    const { data: clientData } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("ticker", ticker)
+      .limit(1)
+      .single();
+
+    if (clientData?.id) {
+      const { data: accounts } = await supabase
+        .from("account")
+        .select("id")
+        .eq("client_id", clientData.id);
+
+      const accountIds = (accounts ?? []).map((a) => a.id).filter(Boolean) as string[];
+
+      if (accountIds.length > 0) {
+        const { data: users } = await supabase
+          .from("user")
+          .select("id")
+          .in("account_id", accountIds);
+
+        for (const u of users ?? []) {
+          if (u.id) ids.add(u.id);
+        }
+      }
+    }
+  } catch {
+    // Non-fatal — requestingUserId still ensures the triggering user is notified
+  }
 
   return [...ids];
 }
