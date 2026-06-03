@@ -377,10 +377,10 @@ The main send endpoint is `POST /api/emails/send`. It is intentionally disabled 
 
 ### Templates
 
-| Template key                     | Component                                | Purpose                                                      |
-| -------------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
-| `document-update-notification`   | `emails/DocumentUpdateNotification.tsx`  | Notifies an issuer account when a workflow document changes. |
-| `tabulation-daily-report`        | `emails/TabulationReportEmail.tsx`       | Sends a daily tabulation progress summary before a meeting.  |
+| Template key                   | Component                               | Purpose                                                      |
+| ------------------------------ | --------------------------------------- | ------------------------------------------------------------ |
+| `document-update-notification` | `emails/DocumentUpdateNotification.tsx` | Notifies an issuer account when a workflow document changes. |
+| `tabulation-daily-report`      | `emails/TabulationReportEmail.tsx`      | Sends a daily tabulation progress summary before a meeting.  |
 
 Each template has:
 
@@ -418,10 +418,10 @@ This opens the React Email preview app on `http://localhost:3030`.
 
 The provider is selected in `lib/email/EmailService.ts`.
 
-| Mode     | Required environment variables                                | Behavior                                                                 |
-| -------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `noop`   | None                                                          | Local fallback. Renders HTML to a temp file and logs a preview URL.      |
-| `resend` | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`       | Sends with Resend using rendered HTML and plain-text output.             |
+| Mode     | Required environment variables                                    | Behavior                                                                  |
+| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `noop`   | None                                                              | Local fallback. Renders HTML to a temp file and logs a preview URL.       |
+| `resend` | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`           | Sends with Resend using rendered HTML and plain-text output.              |
 | `smtp`   | `EMAIL_PROVIDER=smtp`, `EMAIL_SMTP_HOST`, SMTP auth, `EMAIL_FROM` | Sends with Nodemailer and verifies the SMTP connection on initialization. |
 
 Example `.env.local` for SMTP/Gmail:

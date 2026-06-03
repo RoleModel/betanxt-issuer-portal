@@ -1313,6 +1313,35 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+    delete:
+      operationId: deleteDocument
+      summary: Delete document
+      tags: [Documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /documents/{id}/download:
     get:
       operationId: downloadDocument
@@ -2973,6 +3002,7 @@ components:
           nullable: true
         history:
           type: object
+          additionalProperties: true
           nullable: true
         approvedBy:
           type: string

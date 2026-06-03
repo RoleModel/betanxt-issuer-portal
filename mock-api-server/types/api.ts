@@ -395,7 +395,8 @@ export interface paths {
     /** Update document */
     put: operations["updateDocument"];
     post?: never;
-    delete?: never;
+    /** Delete document */
+    delete: operations["deleteDocument"];
     options?: never;
     head?: never;
     patch?: never;
@@ -1234,7 +1235,9 @@ export interface components {
       inProgressDate?: string | null;
       /** Format: date-time */
       deadline?: string | null;
-      history?: Record<string, never> | null;
+      history?: {
+        [key: string]: unknown;
+      } | null;
       /** @description User who approved the document */
       approvedBy?: string | null;
       /**
@@ -3437,6 +3440,34 @@ export interface operations {
       404: components["responses"]["NotFound"];
     };
   };
+  deleteDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Document deleted successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @example true */
+            success?: boolean;
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
+      403: components["responses"]["Forbidden"];
+      404: components["responses"]["NotFound"];
+    };
+  };
   downloadDocument: {
     parameters: {
       query?: never;
@@ -4317,6 +4348,8 @@ export interface operations {
   listNotifications: {
     parameters: {
       query?: {
+        /** @description Filter notifications by user ID (scopes results to a specific user) */
+        userId?: string;
         /** @description Filter notifications by client ticker */
         ticker?: string;
         /** @description Filter notifications by meeting ID */

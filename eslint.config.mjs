@@ -30,6 +30,7 @@ export default [
       "**/components.ts",
       "**/openapi-typescript-codegen/**",
       "**/generated-schema.ts",
+      "**/domain-models/api/generated.ts",
       "**/api-schema-types.ts",
       "**/types/api.ts",
       "**/*.min.js",

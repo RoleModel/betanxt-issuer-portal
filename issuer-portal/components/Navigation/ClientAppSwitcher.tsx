@@ -126,11 +126,29 @@ function EventSwitchButton({ userType }: { userType: string }) {
     return USER_TYPE_BRAND_LABELS[userType] ?? "Select Client";
   }, [currentClientOption, userType, isCsm, currentClient]);
 
-  // For CSM: detect when active client is outside assigned clientTickers
+  const displayedClient = useMemo(() => {
+    if (currentClientOption) {
+      return {
+        name: currentClientOption.event,
+        ticker: currentClientOption.clientTicker,
+      };
+    }
+
+    if (currentClient) {
+      return {
+        name: currentClient.short_name ?? currentClient.company_name ?? currentClient.ticker,
+        ticker: currentClient.ticker,
+      };
+    }
+
+    return null;
+  }, [currentClientOption, currentClient]);
+
+  // For CSM: detect when the displayed client is outside assigned clientTickers.
   const isCovering = useMemo(() => {
-    if (!isCsm || !currentClient || !assignedTickers) return false;
-    return !assignedTickers.has(currentClient.ticker.toUpperCase());
-  }, [isCsm, currentClient, assignedTickers]);
+    if (!isCsm || !displayedClient || !assignedTickers) return false;
+    return !assignedTickers.has(displayedClient.ticker.toUpperCase());
+  }, [isCsm, displayedClient, assignedTickers]);
 
   // CSM needs the switcher on /events (backup client search); others show brand only there
   const hasDropdown = !isOnEventsPage || isCsm;
@@ -193,9 +211,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
   };
 
   const coveringChip =
-    isCovering && currentClient ? (
+    isCovering && displayedClient ? (
       <Chip
-        label={`Covering for ${currentClient.short_name ?? currentClient.company_name}`}
+        label={`Covering for ${displayedClient.name}`}
         color="warning"
         size="small"
         variant="outlined"
