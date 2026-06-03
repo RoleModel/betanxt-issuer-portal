@@ -73,8 +73,8 @@ const TABULATION_FIXTURE = {
 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  if (process.env.VERCEL_ENV === "production") {
-    return withCors(NextResponse.json({ error: "Not available in production" }, { status: 404 }));
+  if (process.env.ENABLE_EMAIL_PREVIEW !== "true") {
+    return withCors(NextResponse.json({ error: "Not available" }, { status: 404 }));
   }
 
   const { searchParams } = new URL(request.url);
