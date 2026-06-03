@@ -1,6 +1,6 @@
 {
   "buildCommand": "turbo run build --filter=issuer-portal",
-  "installCommand": "npm_config_minimum_release_age=0 pnpm install",
+  "installCommand": "pnpm install",
   "outputDirectory": "issuer-portal/.next",
   "framework": "nextjs",
   "ignoreCommand": "npx turbo-ignore"
