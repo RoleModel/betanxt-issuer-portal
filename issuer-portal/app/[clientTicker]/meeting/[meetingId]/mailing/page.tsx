@@ -168,7 +168,7 @@ export default function MailingPage() {
                           alignItems: "flex-start",
                           "& .MuiBox-root ": {
                             paddingTop: 0,
-                            alignItems: "flex-start",
+                            alignItems: "start",
                           },
                         }}
                       />
