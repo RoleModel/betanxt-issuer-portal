@@ -1,6 +1,5 @@
 "use client";
 
-import { EmailOutlined, MarkEmailUnreadTwoTone } from "@mui/icons-material";
 import {
   Box,
   Card,
@@ -169,7 +168,6 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                         >
                           <Chip
                             size="small"
-                            icon={<EmailOutlined />}
                             label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
                             color={job.fullSetFulfillmentRequests ? "primary" : "default"}
                             variant={"outlined"}
@@ -187,7 +185,6 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                         >
                           <Chip
                             size="small"
-                            icon={<MarkEmailUnreadTwoTone />}
                             label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
                             color={job.electronicFulfillmentRequests ? "default" : "default"}
                             variant={"outlined"}

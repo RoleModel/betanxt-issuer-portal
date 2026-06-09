@@ -137,7 +137,7 @@ export default function MailingPage() {
                         titleVariant="h4"
                         bodyVariant="body3"
                         title={"12"}
-                        subtitle="Bounceback Emails"
+                        subtitle="Bounceback"
                         gutterBottom={false}
                         height="90px"
                         variant="base"
