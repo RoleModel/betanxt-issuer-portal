@@ -186,7 +186,13 @@ export function EmailPreviewClient() {
       >
         {/* Left: title + template switcher */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-          <span style={{ color: "rgba(255,255,255,0.9)", fontSize: "13px", fontWeight: "600" }}>
+          <span
+            style={{
+              color: "rgba(255,255,255,0.9)",
+              fontSize: "13px",
+              fontWeight: "600",
+            }}
+          >
             Email Preview
           </span>
           <div style={{ display: "flex", gap: "6px" }}>
@@ -309,7 +315,12 @@ export function EmailPreviewClient() {
         >
           {loading && (
             <div
-              style={{ padding: "64px", textAlign: "center", color: "#9CA3AF", fontSize: "14px" }}
+              style={{
+                padding: "64px",
+                textAlign: "center",
+                color: "#9CA3AF",
+                fontSize: "14px",
+              }}
             >
               Loading preview…
             </div>

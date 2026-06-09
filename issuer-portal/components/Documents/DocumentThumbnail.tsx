@@ -132,12 +132,12 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
 
     const loadPDFComponents = async () => {
       try {
-        // Dynamically import react-pdf components
+        // Dynamically import react-pdf components.
+        // Pin the worker to the exact pdfjs version the API ships — a version
+        // mismatch makes pdf.js throw and the thumbnail silently falls back to
+        // the file-type icon instead of rendering a preview.
         const { pdfjs } = await import("react-pdf");
-        pdfjs.GlobalWorkerOptions.workerSrc =
-          process.env.NODE_ENV === "development"
-            ? "/images/pdf.worker.min.js"
-            : `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+        pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
         const pdfComponents = await import("react-pdf");
 

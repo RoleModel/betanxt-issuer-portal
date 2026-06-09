@@ -22,7 +22,8 @@ const PDFPreview = dynamic(
   () =>
     import("react-pdf").then((mod) => {
       if (typeof window !== "undefined" && !workerInitialized) {
-        mod.pdfjs.GlobalWorkerOptions.workerSrc = "/images/pdf.worker.min.js";
+        // Pin to the exact pdfjs version to avoid worker/API version mismatch.
+        mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
         workerInitialized = true;
       }
 

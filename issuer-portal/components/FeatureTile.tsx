@@ -17,10 +17,12 @@ interface FeatureTileProps {
   icon?: React.ReactNode;
   iconSize?: "24px" | "32px" | "48px" | "64px" | "96px";
   titleVariant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  bodyVariant?: "body1" | "body2" | "body3";
   variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
   onClick?: () => void;
   href?: string;
   flex?: boolean;
+  gutterBottom?: boolean;
   height?: string;
   sx?: SxProps;
   fileUrl?: string;
@@ -37,9 +39,12 @@ export function FeatureTile({
   icon,
   iconSize = "48px",
   titleVariant = "h1",
+  bodyVariant = "body1",
   variant = "default",
+  gutterBottom = true,
   onClick,
   href,
+  sx,
   brandFont = false,
   children,
 }: FeatureTileProps) {
@@ -88,6 +93,7 @@ export function FeatureTile({
   };
 
   const variantColors = getVariantColors(variant);
+  const isInteractive = Boolean(href || onClick);
 
   const CardContent = (
     <Card
@@ -99,20 +105,21 @@ export function FeatureTile({
           position: "relative",
           flex: flex ? "1 0 0%" : "0 0 auto",
           flexDirection: "column",
-          height: height ?? undefined,
+          ...(height ? { height } : {}),
           background: variantColors.background,
           backgroundColor: variantColors.background,
           color: variantColors.color,
           pt: 2,
-          cursor: href || onClick ? "pointer" : "default",
+          cursor: isInteractive ? "pointer" : "default",
           transition:
             "transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-          "&:hover":
-            href || onClick
-              ? {
+          ...(isInteractive
+            ? {
+                "&:hover": {
                   transform: "translateY(-2px)",
-                }
-              : undefined,
+                },
+              }
+            : {}),
         },
         (theme) =>
           theme.applyStyles("dark", {
@@ -120,6 +127,7 @@ export function FeatureTile({
             backgroundColor: variantColors.backgroundDark,
             color: variantColors.colorDark,
           }),
+        ...(sx ? (Array.isArray(sx) ? sx : [sx]) : []),
       ]}
       onClick={onClick && !href ? onClick : undefined}
     >
@@ -167,7 +175,7 @@ export function FeatureTile({
         <Typography
           component="h2"
           variant={titleVariant}
-          gutterBottom
+          gutterBottom={gutterBottom}
           sx={[
             {
               fontFamily: brandFont ? "var(--font-tungsten)" : "var(--font-roboto-condensed)",
@@ -184,7 +192,7 @@ export function FeatureTile({
         </Typography>
         {subtitle && (
           <Typography
-            variant="body1"
+            variant={bodyVariant}
             sx={(theme) => ({
               color: theme.vars.palette.primary.main,
               fontWeight: 600,

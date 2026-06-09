@@ -32,7 +32,7 @@ export default function NotFound() {
             left: "50%",
             position: "absolute",
             top: "50%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-75%, -50%)",
             width: "100%",
             zIndex: 0,
           },

@@ -1,12 +1,21 @@
 "use client";
 
-import { Card, CardContent, Container, LinearProgress, Skeleton, Stack } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Container,
+  LinearProgress,
+  Skeleton,
+  Stack,
+} from "@mui/material";
 import Grid from "@mui/material/Grid";
 import React, { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
 import FeatureTile from "@/components/FeatureTile";
+import AdditionalMailingSummaryCard from "@/components/Meeting/AdditionalMailingSummaryCard";
 import MailingDataCard from "@/components/Meeting/MailingDataCard";
 import MailingTimelineCard from "@/components/Meeting/MailingTimelineCard";
 import { useMeeting } from "@/contexts/MeetingContext";
@@ -53,6 +62,7 @@ export default function MailingPage() {
         <Grid size={{ xs: 12, md: 12, lg: 9 }}>
           <Stack spacing={2}>
             <Card>
+              <CardHeader title="Primary Mailing Summary" />
               <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, md: 4 }}>
@@ -95,18 +105,100 @@ export default function MailingPage() {
               </CardContent>
             </Card>
             <MailingDataCard meetingId={meetingId} />
+            <AdditionalMailingSummaryCard ticker={currentMeeting?.ticker} />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 12, lg: 3 }}>
-          <MailingTimelineCard
-            currentStatus={
-              currentMeeting?.mailingStatus as
-                | React.ComponentProps<typeof MailingTimelineCard>["currentStatus"]
-                | undefined
-            }
-            statusDate={currentMeeting?.updatedAt}
-            meetingId={meetingId}
-          />
+          <Stack direction="column" spacing={2}>
+            <MailingTimelineCard
+              currentStatus={
+                currentMeeting?.mailingStatus as
+                  | React.ComponentProps<typeof MailingTimelineCard>["currentStatus"]
+                  | undefined
+              }
+              statusDate={currentMeeting?.updatedAt}
+              meetingId={meetingId}
+            />
+            <Card>
+              <CardHeader
+                title="Fullfillment Requests"
+                slotProps={{ title: { variant: "h4" } }}
+                sx={{
+                  paddingBottom: 0,
+                }}
+              />
+              <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Grid container spacing={2}>
+                  <Stack direction="column" width="100%" useFlexGap={true} spacing={1}>
+                    {mailingLoading ? (
+                      <Skeleton variant="rounded" height={80} />
+                    ) : (
+                      <FeatureTile
+                        titleVariant="h4"
+                        bodyVariant="body3"
+                        title={"12"}
+                        subtitle="Full Set"
+                        gutterBottom={false}
+                        height="90px"
+                        variant="base"
+                        sx={{
+                          paddingTop: 2,
+                          alignItems: "flex-start",
+                          "& .MuiBox-root ": {
+                            paddingTop: 0,
+                            alignItems: "flex-start",
+                          },
+                        }}
+                      />
+                    )}
+
+                    {mailingLoading ? (
+                      <Skeleton variant="rounded" height={80} />
+                    ) : (
+                      <FeatureTile
+                        titleVariant="h4"
+                        bodyVariant="body3"
+                        title={"10"}
+                        subtitle="NAA"
+                        gutterBottom={false}
+                        height="90px"
+                        variant="base"
+                        sx={{
+                          paddingTop: 2,
+                          alignItems: "flex-start",
+                          "& .MuiBox-root ": {
+                            paddingTop: 0,
+                            alignItems: "flex-start",
+                          },
+                        }}
+                      />
+                    )}
+                    {mailingLoading ? (
+                      <Skeleton variant="rounded" height={80} />
+                    ) : (
+                      <FeatureTile
+                        titleVariant="h4"
+                        bodyVariant="body3"
+                        title={"3,500"}
+                        subtitle="Electronic"
+                        gutterBottom={false}
+                        variant="base"
+                        height="90px"
+                        sx={{
+                          paddingTop: 2,
+                          alignItems: "flex-start",
+                          "& .MuiBox-root ": {
+                            paddingTop: 0,
+                            alignItems: "flex-start",
+                          },
+                        }}
+                      />
+                    )}
+                  </Stack>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Stack>
         </Grid>
       </Grid>
     </Container>

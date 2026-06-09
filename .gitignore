@@ -38,3 +38,4 @@ mock-api-server/.DS_Store
 .augment/rules/byterover-rules.md
 .playwright-cli/
 mock-api-server/.DS_Store
+docs/Proxy Card Design Client.pdf

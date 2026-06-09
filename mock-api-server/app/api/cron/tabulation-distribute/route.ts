@@ -362,7 +362,10 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         }
       }
 
-      const updatedDist: TabulationDistribution = { ...dist, lastSentAt: new Date().toISOString() };
+      const updatedDist: TabulationDistribution = {
+        ...dist,
+        lastSentAt: new Date().toISOString(),
+      };
       await supabase
         .from("meeting")
         .update({ tabulation_distribution: JSON.parse(JSON.stringify(updatedDist)) })
