@@ -1,12 +1,13 @@
 "use client";
 
-import { MailOutline } from "@mui/icons-material";
+import { EmailOutlined, MarkEmailUnreadTwoTone } from "@mui/icons-material";
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
   Chip,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -37,6 +38,8 @@ export interface FollowUpJob {
   pdfUrl?: string;
   /** Count of ad-hoc / email fulfillment requests (the "Q") tied to this job */
   fulfillmentRequests?: number;
+  fullSetFulfillmentRequests?: number;
+  electronicFulfillmentRequests?: number;
 }
 
 interface AdditionalMailingSummaryCardProps {
@@ -58,6 +61,8 @@ const buildMockJobs = (ticker: string): FollowUpJob[] => {
       positions: 1240,
       pdfUrl: `${base}/fw1-reminder-unvoted.pdf`,
       fulfillmentRequests: 30000,
+      fullSetFulfillmentRequests: 17000,
+      electronicFulfillmentRequests: 23000,
     },
     {
       id: "fw-2",
@@ -66,6 +71,8 @@ const buildMockJobs = (ticker: string): FollowUpJob[] => {
       positions: 318,
       pdfUrl: `${base}/fw2-supplemental-proxy.pdf`,
       fulfillmentRequests: 3450,
+      fullSetFulfillmentRequests: 450,
+      electronicFulfillmentRequests: 2600,
     },
     {
       id: "fw-3",
@@ -74,6 +81,8 @@ const buildMockJobs = (ticker: string): FollowUpJob[] => {
       positions: 904,
       pdfUrl: `${base}/fw3-second-reminder-retail.pdf`,
       fulfillmentRequests: 4045,
+      fullSetFulfillmentRequests: 345,
+      electronicFulfillmentRequests: 2500,
     },
   ];
 };
@@ -120,7 +129,7 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                     Positions
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                    Shares
+                    Full Set / Electronic
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -148,23 +157,44 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                     </TableCell>
 
                     <TableCell align="right">
-                      <Tooltip
-                        title={
-                          job.fulfillmentRequests
-                            ? `${job.fulfillmentRequests} ad-hoc / email fulfillment request${
-                                job.fulfillmentRequests === 1 ? "" : "s"
-                              }`
-                            : "No fulfillment requests"
-                        }
-                      >
-                        <Chip
-                          size="small"
-                          label={formatNumber(job.fulfillmentRequests)}
-                          color={job.fulfillmentRequests ? "secondary" : "default"}
-                          variant={job.fulfillmentRequests ? "filled" : "outlined"}
-                          sx={{ px: 1 }}
-                        />
-                      </Tooltip>
+                      <Stack direction="column" alignItems="end" spacing={1}>
+                        <Tooltip
+                          title={
+                            job.fullSetFulfillmentRequests
+                              ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
+                                  job.fullSetFulfillmentRequests === 1 ? "" : "s"
+                                }`
+                              : "No full set fulfillment requests"
+                          }
+                        >
+                          <Chip
+                            size="small"
+                            icon={<EmailOutlined />}
+                            label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
+                            color={job.fullSetFulfillmentRequests ? "primary" : "default"}
+                            variant={"outlined"}
+                            sx={{ px: 1 }}
+                          />
+                        </Tooltip>
+                        <Tooltip
+                          title={
+                            job.electronicFulfillmentRequests
+                              ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
+                                  job.electronicFulfillmentRequests === 1 ? "" : "s"
+                                }`
+                              : "No electronic fulfillment requests"
+                          }
+                        >
+                          <Chip
+                            size="small"
+                            icon={<MarkEmailUnreadTwoTone />}
+                            label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
+                            color={job.electronicFulfillmentRequests ? "default" : "default"}
+                            variant={"outlined"}
+                            sx={{ px: 1 }}
+                          />
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}

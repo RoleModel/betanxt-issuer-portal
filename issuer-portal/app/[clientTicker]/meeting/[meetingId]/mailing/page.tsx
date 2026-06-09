@@ -137,7 +137,7 @@ export default function MailingPage() {
                         titleVariant="h4"
                         bodyVariant="body3"
                         title={"12"}
-                        subtitle="Full Set"
+                        subtitle="Bounceback Emails"
                         gutterBottom={false}
                         height="90px"
                         variant="base"
@@ -159,31 +159,10 @@ export default function MailingPage() {
                         titleVariant="h4"
                         bodyVariant="body3"
                         title={"10"}
-                        subtitle="NAA"
+                        subtitle="Adhoc"
                         gutterBottom={false}
                         height="90px"
                         variant="base"
-                        sx={{
-                          paddingTop: 2,
-                          alignItems: "flex-start",
-                          "& .MuiBox-root ": {
-                            paddingTop: 0,
-                            alignItems: "flex-start",
-                          },
-                        }}
-                      />
-                    )}
-                    {mailingLoading ? (
-                      <Skeleton variant="rounded" height={80} />
-                    ) : (
-                      <FeatureTile
-                        titleVariant="h4"
-                        bodyVariant="body3"
-                        title={"3,500"}
-                        subtitle="Electronic"
-                        gutterBottom={false}
-                        variant="base"
-                        height="90px"
                         sx={{
                           paddingTop: 2,
                           alignItems: "flex-start",
