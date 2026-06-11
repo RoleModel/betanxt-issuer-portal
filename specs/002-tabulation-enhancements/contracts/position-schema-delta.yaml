@@ -1,0 +1,35 @@
+# Contract delta: Position schema additions
+# Apply to mock-api-server/openapi-schema/openapi.yaml → components.schemas.Position.properties
+# Then run the schema-first pipeline (generate:postgres-schema → seeds → db reset → types → manual transforms).
+
+Position:
+  properties:
+    holderCategory:
+      type: string
+      enum: [REGISTERED, PLAN, BENEFICIAL, NOBO]
+      description: >
+        Holder population classification. Replaces inference from accountType.
+        REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
+      example: REGISTERED
+    state:
+      type: string
+      nullable: true
+      maxLength: 2
+      description: US state code of the holder's address; null when unknown.
+      example: NC
+    country:
+      type: string
+      nullable: true
+      maxLength: 2
+      description: ISO 3166-1 alpha-2 country code; defaults to US in seed data.
+      example: US
+
+# Affected endpoints (response shape only — no new endpoints):
+#   GET /positions                      → Position[] includes new fields
+#   GET /positions?meetingId={id}       → same
+#
+# Contract expectations (tests in mock-api-server/tests/):
+#   1. GET /positions?meetingId=... returns holderCategory for every row,
+#      value within the enum.
+#   2. state is either a 2-char string or null (never empty string).
+#   3. Legacy consumers unaffected: existing fields unchanged.

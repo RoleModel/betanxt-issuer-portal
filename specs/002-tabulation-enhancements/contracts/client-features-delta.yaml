@@ -1,0 +1,31 @@
+# Contract delta: Client.enabledFeatures gains "nobo" key
+# Apply to mock-api-server/openapi-schema/openapi.yaml → components.schemas.Client
+
+Client:
+  properties:
+    enabledFeatures:
+      type: array
+      items:
+        type: string
+        enum:
+          - documents
+          - mailing
+          - tabulation
+          - reports
+          - fileTransfer
+          - agenda
+          - nobo # NEW — present when Engage functionality is active for the client
+      description: >
+        Feature keys controlling portal surface visibility. "nobo" gates the
+        NOBO meeting tab and optional NOBO inclusion in the geographic heat map.
+
+# Frontend mirror:
+#   issuer-portal/hooks/useClients.ts → ClientFeatureKey union adds "nobo"
+#   issuer-portal/components/Navigation/EventTabs.tsx → new tab { label: "NOBO",
+#     route: "/nobo", featureGate: "nobo" }
+#
+# Contract expectations:
+#   1. GET /clients returns enabledFeatures containing "nobo" for Engage-enabled
+#      seed clients (e.g. WEN, FOC) and omitting it for others.
+#   2. Clients without "nobo" must not render the NOBO tab (UI contract,
+#      verified by Playwright e2e).

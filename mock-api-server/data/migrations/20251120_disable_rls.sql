@@ -1,2 +1,0 @@
--- Intentionally empty. Contents moved to 20260512202153_disable_rls.sql
--- to ensure it runs after the initial schema is created.

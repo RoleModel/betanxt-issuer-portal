@@ -13,13 +13,19 @@ import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
+/**
+ * Tabulation tab for a meeting. Feeds the insight cards from a single
+ * {@link useTabulationInsights} fetch: the registered-only voting method
+ * counts go to `VotingActivityCard` and the full proposal list goes to
+ * `SharesVotedCard` for its per-proposal selector (both replacing the former
+ * aggregate voting summary).
+ */
 export default function TabulationPage() {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
   const {
     proposals,
     filteredPositions,
-    summary,
     quorumGauge,
     filters,
     setFilters,
@@ -27,6 +33,7 @@ export default function TabulationPage() {
     setKeys,
     directors,
     beneficialVsRegistered,
+    registeredVotingMethods,
     loading: tabulationLoading,
     meetingTitle,
     clientTicker,
@@ -55,7 +62,7 @@ export default function TabulationPage() {
             <Grid size={{ sm: 5, md: 2, lg: 1 }}>
               <VotingActivityCard
                 meetingId={meetingId}
-                votingSummaryOverride={summary}
+                registeredVotingMethodsOverride={registeredVotingMethods}
                 loadingOverride={tabulationLoading}
               />
             </Grid>
@@ -69,7 +76,7 @@ export default function TabulationPage() {
             <Grid size={{ sm: 5, md: 3, lg: 1 }}>
               <SharesVotedCard
                 meetingId={meetingId}
-                votingSummaryOverride={summary}
+                proposalsOverride={proposals}
                 loading={tabulationLoading}
               />
             </Grid>

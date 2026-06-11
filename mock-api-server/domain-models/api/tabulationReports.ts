@@ -32,6 +32,9 @@ interface BrokerVotingEntry {
   sharesAbstain: number;
 }
 
+/** Broker vote entries keyed by proposal slot (proposal1, proposal2, ...). */
+type BrokerVotingByProposal = Record<string, BrokerVotingEntry[]>;
+
 interface ShareRangePerformanceEntry {
   rangeLabel: string;
   positionCount: number;
@@ -82,7 +85,7 @@ export interface TabulationReport {
   id: string;
   meetingId: string;
   setKeys: string[];
-  brokerVoting: BrokerVotingEntry[];
+  brokerVoting: BrokerVotingByProposal;
   shareRangePerformance: ShareRangePerformanceEntry[];
   nonDtcVoteStatus: NonDtcVoteStatus;
   dtcVoteStatus: DtcVoteStatus;
@@ -161,14 +164,7 @@ function toIsoString(value: string): string {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString();
 }
 
-function normalizeBrokerVoting(field: unknown): BrokerVotingEntry[] {
-  const parsed = parseJsonField<unknown>(field, []);
-  const rawEntries = Array.isArray(parsed)
-    ? parsed
-    : isRecord(parsed)
-      ? Object.values(parsed).flatMap((value) => (Array.isArray(value) ? value : []))
-      : [];
-
+function normalizeBrokerVotingEntries(rawEntries: unknown[]): BrokerVotingEntry[] {
   return rawEntries.reduce<BrokerVotingEntry[]>((entries, entry) => {
     if (!isRecord(entry)) {
       return entries;
@@ -184,6 +180,38 @@ function normalizeBrokerVoting(field: unknown): BrokerVotingEntry[] {
 
     return entries;
   }, []);
+}
+
+/**
+ * Preserve the per-proposal keying stored in the broker_voting JSONB column
+ * ({ proposal1: [...], proposal2: [...] }) so the frontend can map each entry
+ * list onto the meeting's proposals. Legacy flat arrays are exposed under a
+ * single "proposal1" key.
+ */
+function normalizeBrokerVoting(field: unknown): BrokerVotingByProposal {
+  const parsed = parseJsonField<unknown>(field, {});
+
+  if (Array.isArray(parsed)) {
+    const entries = normalizeBrokerVotingEntries(parsed);
+    return entries.length > 0 ? { proposal1: entries } : {};
+  }
+
+  if (!isRecord(parsed)) {
+    return {};
+  }
+
+  return Object.entries(parsed).reduce<BrokerVotingByProposal>((result, [proposalKey, value]) => {
+    if (!Array.isArray(value)) {
+      return result;
+    }
+
+    const entries = normalizeBrokerVotingEntries(value);
+    if (entries.length > 0) {
+      result[proposalKey] = entries;
+    }
+
+    return result;
+  }, {});
 }
 
 function normalizeShareRangePerformance(field: unknown): ShareRangePerformanceEntry[] {

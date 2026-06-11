@@ -2,7 +2,7 @@
 import { copycat } from "@snaplet/copycat";
 import { existsSync } from "fs";
 import { DateTime } from "luxon";
-import path from "path";
+import * as path from "path";
 import { fileURLToPath } from "url";
 
 import { CSVProcessor } from "../mock-api-server/csv-processor";
@@ -705,7 +705,34 @@ const main = async () => {
 
   // Legacy CSV loading removed - now using CSVProcessor for all companies
 
-  const wendysMailingTotals = {
+  /**
+   * Mailing summary totals for one company, mirroring the section/row labels
+   * of the legacy mailing summary so seeded `mailing` records render the same
+   * categories the UI expects. Keys are display labels; optional members are
+   * categories that not every company reports.
+   */
+  interface MailingTotals {
+    Totals: {
+      Accounts: number;
+      Positions: number;
+      Retransmissions?: number;
+      Rollups?: number;
+    };
+    "Mail Positions": {
+      Fullset: number;
+      NAA: number;
+      "Courtesy/Other"?: number;
+    };
+    "Suppressed Positions": {
+      Electronic: number;
+      Household: number;
+      Managed?: number;
+      Consolidated?: number;
+      Canceled: number;
+    };
+  }
+
+  const wendysMailingTotals: MailingTotals = {
     Totals: {
       Accounts: 5677,
       Positions: 5677,
@@ -725,7 +752,7 @@ const main = async () => {
   };
 
   // Load company positions data for mailing records
-  const companyPositions: Record<string, { Active?: typeof wendysMailingTotals }> = {
+  const companyPositions: Record<string, { Active?: MailingTotals }> = {
     wendys: {
       Active: wendysMailingTotals,
     },
@@ -1099,10 +1126,16 @@ const main = async () => {
     clientIds[client.ticker] = clientId;
 
     // All features enabled by default; disable fileTransfer for demo client (index 0)
-    const enabledFeatures =
+    const baseFeatures =
       index === 0
         ? ["documents", "mailing", "tabulation", "reports", "agenda"]
         : ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"];
+    // Engage-enabled clients additionally get the NOBO module, which gates the
+    // NOBO positions page and report surfaces (002-tabulation-enhancements R7)
+    const engageTickers = ["WEN", "FOC"];
+    const enabledFeatures = engageTickers.includes(client.ticker.toUpperCase())
+      ? [...baseFeatures, "nobo"]
+      : baseFeatures;
     sqlStatements.push(
       `INSERT INTO clients(id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, enabled_features, created_at) VALUES (` +
         `${sqlValue(clientId)}, ` +
@@ -3115,7 +3148,7 @@ const main = async () => {
         }
 
         // Generate email for account (30% have emails)
-        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 });
+        const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
         const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
 
         sqlStatements.push(
@@ -3193,9 +3226,7 @@ const main = async () => {
                 const accountNumber = `NDTC${String(i + 1).padStart(6, "0")}`;
 
                 // Generate email for account (30% have emails)
-                const hasEmail = copycat.bool(`has-email-${positionId}`, {
-                  likelihood: 0.3,
-                });
+                const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
                 const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
 
                 const meetingDateString = meetingToDate[meetingId];
@@ -3289,9 +3320,7 @@ const main = async () => {
           : null;
 
       // Generate email for CEDE account (30% have emails)
-      const cedeHasEmail = copycat.bool(`has-email-${cedePositionId}`, {
-        likelihood: 0.3,
-      });
+      const cedeHasEmail = copycat.int(`has-email-${cedePositionId}`, { min: 0, max: 99 }) < 30;
       const cedeAccountEmail = cedeHasEmail ? copycat.email(`email-${cedePositionId}`) : null;
 
       // Generate account number for CEDE & CO position
@@ -3505,7 +3534,7 @@ const main = async () => {
         const controlNumber = String(p + 1).padStart(8, "0");
 
         // Generate email for registered account (30% have emails)
-        const hasEmail = copycat.bool(`has-email-${positionId}`, { likelihood: 0.3 });
+        const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
         const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
 
         sqlStatements.push(
@@ -4171,9 +4200,151 @@ SELECT
 
   sqlStatements.push("");
 
+  // 002-tabulation-enhancements: holder population + geography enrichment
+  appendHolderEnrichment(sqlStatements);
+
+  sqlStatements.push("");
+
   // Output all SQL statements
   console.log(sqlStatements.join("\n"));
 };
+
+/**
+ * Appends the 002-tabulation-enhancements holder-enrichment SQL to the seed
+ * output. Runs as deterministic SQL over the already-inserted positions so it
+ * covers every position-insert site without touching each generator. Three
+ * statements, in order:
+ *
+ * 1. NOBO position generation — 40 unvoted, beneficial NOBO holder rows per
+ *    meeting for every client, with ids, account/control numbers, and share
+ *    counts derived from md5 hashes of the meeting id so reseeding reproduces
+ *    identical data. Rows exist for all clients so toggling the `nobo`
+ *    feature flag on at runtime immediately surfaces data; they stay
+ *    invisible while the flag is off.
+ * 2. holder_category backfill — rows without a category are split
+ *    deterministically by an md5 bucket of the position id: 55% REGISTERED /
+ *    15% PLAN / 30% BENEFICIAL, while DTC/CDS omnibus rows always stay
+ *    REGISTERED to match the legacy accountType convention.
+ * 3. Geography backfill — state/country assigned from a weighted md5 bucket
+ *    skewed toward NC/NY/CA/TX, with ~4% international holders and ~6% left
+ *    NULL to exercise the "unknown" rendering path.
+ *
+ * @param sqlStatements - Seed SQL accumulator the statements are pushed onto
+ */
+function appendHolderEnrichment(sqlStatements: string[]): void {
+  sqlStatements.push("-- 002-tabulation-enhancements: holder population + geography enrichment");
+
+  // NOBO positions for every client (gated by the runtime `nobo` feature flag),
+  // cloned per meeting metadata. 40 unvoted beneficial NOBO holders per
+  // meeting, deterministic ids/shares.
+  const noboNames = [
+    "MARGARET HOLLOWAY",
+    "RAYMOND OKAFOR",
+    "DANIELLE BRANDT",
+    "PETER ASHFORD",
+    "LUCIA MARCHETTI",
+    "HENRY DUVAL",
+    "GRACE LINDQVIST",
+    "OMAR HADDAD",
+    "JUDITH PEMBERTON",
+    "VICTOR SANTANA",
+    "ELAINE MCALLISTER",
+    "FRANKLIN OYELARAN",
+    "NORA KAVANAGH",
+    "DOUGLAS WHITFIELD",
+    "PRIYA RAGHAVAN",
+    "STANLEY KOWALCZYK",
+    "BEATRICE LANGFORD",
+    "MARCUS THIBODEAUX",
+    "HELEN ARMITAGE",
+    "GORDON FAIRBANKS",
+  ];
+  const noboNamesSql = noboNames.map((n) => `'${n}'`).join(",");
+
+  sqlStatements.push(`
+INSERT INTO "position"(
+  id, meeting_id, cusip, account_type, set_key, name, account_number, account_email,
+  vote_status, control_number, shares, shares_voted, source, date_voted,
+  holder_category, created_at, updated_at)
+SELECT
+  md5(m.meeting_id || '-nobo-' || gs.i),
+  m.meeting_id,
+  m.cusip,
+  'Non-DTC',
+  m.set_key,
+  (ARRAY[${noboNamesSql}])[1 + mod(gs.i - 1, ${noboNames.length})]
+    || CASE WHEN gs.i > ${noboNames.length} THEN ' TR' ELSE '' END,
+  'NOBO' || lpad(gs.i::text, 6, '0'),
+  NULL,
+  'Unvoted',
+  'NB' || lpad(gs.i::text, 6, '0'),
+  (250 + mod(('x' || substr(md5(m.meeting_id || '-nobo-shares-' || gs.i), 1, 6))::bit(24)::int, 24750))::numeric,
+  0,
+  NULL,
+  NULL,
+  'NOBO',
+  m.created_at,
+  m.created_at
+FROM (
+  SELECT DISTINCT ON (meeting_id) meeting_id, cusip, set_key, created_at
+  FROM "position"
+  ORDER BY meeting_id, id
+) m
+CROSS JOIN generate_series(1, 40) AS gs(i);`);
+
+  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED to match the
+  // legacy accountType convention; individual holders split deterministically
+  // 55% REGISTERED / 15% PLAN / 30% BENEFICIAL so every population has data.
+  sqlStatements.push(`
+UPDATE "position"
+SET holder_category = CASE
+  WHEN account_type = 'DTC/CDS' THEN 'REGISTERED'::position_holder_category
+  WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 55
+    THEN 'REGISTERED'::position_holder_category
+  WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 70
+    THEN 'PLAN'::position_holder_category
+  ELSE 'BENEFICIAL'::position_holder_category
+END
+WHERE holder_category IS NULL;`);
+
+  // Geography: deterministic weighted state distribution (skew NC/NY/CA/TX),
+  // ~4% international, ~6% unknown (state and country left NULL).
+  sqlStatements.push(`
+UPDATE "position"
+SET
+  state = CASE
+    WHEN bucket.b >= 96 THEN NULL
+    WHEN bucket.b >= 90 THEN NULL
+    WHEN bucket.b >= 87 THEN 'WA'
+    WHEN bucket.b >= 84 THEN 'CO'
+    WHEN bucket.b >= 81 THEN 'MN'
+    WHEN bucket.b >= 78 THEN 'MI'
+    WHEN bucket.b >= 74 THEN 'VA'
+    WHEN bucket.b >= 70 THEN 'GA'
+    WHEN bucket.b >= 66 THEN 'MA'
+    WHEN bucket.b >= 61 THEN 'NJ'
+    WHEN bucket.b >= 56 THEN 'OH'
+    WHEN bucket.b >= 51 THEN 'PA'
+    WHEN bucket.b >= 45 THEN 'IL'
+    WHEN bucket.b >= 38 THEN 'FL'
+    WHEN bucket.b >= 30 THEN 'TX'
+    WHEN bucket.b >= 20 THEN 'NY'
+    WHEN bucket.b >= 10 THEN 'CA'
+    ELSE 'NC'
+  END,
+  country = CASE
+    WHEN bucket.b >= 96 THEN NULL
+    WHEN bucket.b >= 90 THEN (ARRAY['GB','CA','DE','JP','AU','CH'])[1 + mod(bucket.b, 6)]
+    ELSE 'US'
+  END
+FROM (
+  SELECT id AS pid, mod(('x' || substr(md5(id || '-geo'), 1, 6))::bit(24)::int, 100) AS b
+  FROM "position"
+) bucket
+WHERE "position".id = bucket.pid
+  AND "position".state IS NULL
+  AND "position".country IS NULL;`);
+}
 
 // Execute seed generation
 main();

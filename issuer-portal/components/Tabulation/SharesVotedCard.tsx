@@ -1,25 +1,31 @@
 "use client";
 
-import type { VotingSummary } from "@/types/phases";
+import type { ProposalVoting } from "@/types/phases";
 
 import SharesVotedChart from "@/components/Meeting/SharesVotedChart";
 
 interface SharesVotedCardProps {
   meetingId: string;
   loading?: boolean;
-  votingSummaryOverride?: VotingSummary | null;
+  /** Pre-fetched proposals forwarded to the chart's proposal selector, avoiding a duplicate fetch. */
+  proposalsOverride?: ProposalVoting[];
 }
 
+/**
+ * Tabulation-page wrapper around {@link SharesVotedChart}, which renders the
+ * per-proposal shares-voted donut with its proposal selector. Exists so the
+ * page can pass its already-fetched proposals straight through.
+ */
 export default function SharesVotedCard({
   meetingId,
   loading,
-  votingSummaryOverride,
+  proposalsOverride,
 }: SharesVotedCardProps) {
   return (
     <SharesVotedChart
       meetingId={meetingId}
       loading={loading}
-      votingSummaryOverride={votingSummaryOverride}
+      proposalsOverride={proposalsOverride}
     />
   );
 }

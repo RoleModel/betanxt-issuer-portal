@@ -7,6 +7,12 @@ import type { ProposalVoting, VotingSummary } from "@/types/phases";
 import type { QuorumGaugeViewModel } from "@/utils/quorum";
 
 import buildApiClient from "@/domain-models/apiClient";
+import {
+  type HolderCategory,
+  getHolderTypeFromCategory,
+  isRegisteredOnlyHolder,
+  normalizeHolderCategory,
+} from "@/utils/holderCategory";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
@@ -14,6 +20,8 @@ export interface TabulationPosition {
   id: string;
   cusip: string;
   accountType: string;
+  /** Normalized holder category; null when the API record carried no recognizable value (legacy data). */
+  holderCategory: HolderCategory | null;
   setKey: string;
   name: string;
   accountNumber: string;
@@ -25,6 +33,10 @@ export interface TabulationPosition {
   source: string;
   dateVoted: string | null;
   sentBy: string | null;
+  /** US state code for geographic distribution; null when unknown. */
+  state: string | null;
+  /** Country code for geographic distribution; null when unknown. */
+  country: string | null;
 }
 
 interface PositionVoteRecord {
@@ -91,6 +103,13 @@ interface BeneficialRegisteredBreakdown {
   registered: number;
 }
 
+/** Vote counts per voting channel (WEB / PRINT / IVR sources). */
+export interface VotingMethodCounts {
+  web: number;
+  paper: number;
+  phone: number;
+}
+
 interface TabulationInsightsResult {
   loading: boolean;
   proposals: ProposalVoting[];
@@ -103,6 +122,8 @@ interface TabulationInsightsResult {
   setKeys: string[];
   directors: DirectorOption[];
   beneficialVsRegistered: BeneficialRegisteredBreakdown;
+  /** Voting-method counts restricted to REGISTERED holders (Voting Activity chart, FR-001/FR-002). */
+  registeredVotingMethods: VotingMethodCounts;
   meetingTitle: string;
   clientTicker: string;
 }
@@ -149,6 +170,11 @@ const toNullableString = (value: unknown): string | null => {
   return parsed || null;
 };
 
+/**
+ * Converts a raw `/positions` API record (snake_case or camelCase) into a
+ * {@link TabulationPosition}, normalizing holderCategory to one of the known
+ * categories (or null) and surfacing state/country for geographic features.
+ */
 const normalizePosition = (value: unknown): TabulationPosition | null => {
   const record = asRecord(value);
   if (!record) return null;
@@ -157,6 +183,7 @@ const normalizePosition = (value: unknown): TabulationPosition | null => {
     id: toStringValue(record.id),
     cusip: toStringValue(record.cusip),
     accountType: toStringValue(record.account_type ?? record.accountType),
+    holderCategory: normalizeHolderCategory(record.holder_category ?? record.holderCategory),
     setKey: toStringValue(record.set_key ?? record.setKey),
     name: toStringValue(record.name),
     accountNumber: toStringValue(record.account_number ?? record.accountNumber),
@@ -168,6 +195,8 @@ const normalizePosition = (value: unknown): TabulationPosition | null => {
     source: toStringValue(record.source ?? record.votingSource),
     dateVoted: toNullableString(record.date_voted ?? record.dateVoted),
     sentBy: toNullableString(record.sent_by ?? record.sentBy),
+    state: toNullableString(record.state),
+    country: toNullableString(record.country),
   };
 };
 
@@ -240,8 +269,13 @@ const buildProposalVoting = (
   };
 };
 
+/**
+ * Maps a position to the broad registered/beneficial split used by holder-type
+ * filters: REGISTERED and PLAN count as registered, BENEFICIAL and NOBO as
+ * beneficial, with the legacy accountType fallback when holderCategory is null.
+ */
 const getHolderType = (position: TabulationPosition): "beneficial" | "registered" => {
-  return position.accountType === "DTC/CDS" ? "registered" : "beneficial";
+  return getHolderTypeFromCategory(position.holderCategory, position.accountType);
 };
 
 const buildVotingSummary = (params: {
@@ -716,6 +750,19 @@ export function useTabulationInsights(
     [filteredPositions],
   );
 
+  // Registered-only (PLAN excluded) voting methods for the Voting Activity chart (FR-001/FR-002)
+  const registeredVotingMethods = React.useMemo(() => {
+    const registeredPositions = filteredPositions.filter((position) =>
+      isRegisteredOnlyHolder(position.holderCategory, position.accountType),
+    );
+
+    return {
+      web: registeredPositions.filter((position) => position.source === "WEB").length,
+      paper: registeredPositions.filter((position) => position.source === "PRINT").length,
+      phone: registeredPositions.filter((position) => position.source === "IVR").length,
+    };
+  }, [filteredPositions]);
+
   return {
     loading,
     proposals: proposalsForDisplay,
@@ -728,6 +775,7 @@ export function useTabulationInsights(
     setKeys,
     directors,
     beneficialVsRegistered,
+    registeredVotingMethods,
     meetingTitle,
     clientTicker,
   };

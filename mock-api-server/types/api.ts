@@ -951,7 +951,7 @@ export interface components {
       /** @description Username of the CSM who created this client (for assignment) */
       createdBy?: string | null;
       /**
-       * @description Feature modules enabled for this client
+       * @description Feature modules enabled for this client. "nobo" is present when Engage functionality is active.
        * @example [
        *       "documents",
        *       "mailing",
@@ -968,6 +968,7 @@ export interface components {
         | "reports"
         | "fileTransfer"
         | "agenda"
+        | "nobo"
       )[];
       /** Format: date-time */
       createdAt?: string;
@@ -1338,6 +1339,22 @@ export interface components {
       /** @enum {string|null} */
       source?: "WEB" | "PRINT" | "IVR" | null;
       dateVoted?: string | null;
+      /**
+       * @description Holder population classification. REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
+       * @example REGISTERED
+       * @enum {string|null}
+       */
+      holderCategory?: "REGISTERED" | "PLAN" | "BENEFICIAL" | "NOBO" | null;
+      /**
+       * @description US state code of the holder's address; null when unknown.
+       * @example NC
+       */
+      state?: string | null;
+      /**
+       * @description ISO 3166-1 alpha-2 country code.
+       * @example US
+       */
+      country?: string | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -1606,6 +1623,7 @@ export interface components {
         | "reports"
         | "fileTransfer"
         | "agenda"
+        | "nobo"
       )[];
     };
     UpdateClientRequest: {
@@ -1642,7 +1660,7 @@ export interface components {
       primaryColor?: string | null;
       /** @description Secondary brand color as a hex string (e.g. */
       secondaryColor?: string | null;
-      /** @description Feature modules enabled for this client */
+      /** @description Feature modules enabled for this client. "nobo" is present when Engage functionality is active. */
       enabledFeatures?: (
         | "documents"
         | "mailing"
@@ -1650,6 +1668,7 @@ export interface components {
         | "reports"
         | "fileTransfer"
         | "agenda"
+        | "nobo"
       )[];
     };
     CreateUserRequest: {
@@ -2143,13 +2162,15 @@ export interface components {
       meetingId: string;
       /** @description Unique set keys from position records */
       setKeys?: string[];
-      /** @description Top 6 brokers by total shares */
+      /** @description Top brokers by total shares, keyed by proposal (e.g. proposal1, proposal2) */
       brokerVoting?: {
-        broker?: string;
-        sharesFor?: number;
-        sharesAgainst?: number;
-        sharesAbstain?: number;
-      }[];
+        [key: string]: {
+          broker?: string;
+          sharesFor?: number;
+          sharesAgainst?: number;
+          sharesAbstain?: number;
+        }[];
+      };
       /** @description Performance metrics across 18 share ranges */
       shareRangePerformance?: {
         rangeLabel?: string;
@@ -4378,6 +4399,8 @@ export interface operations {
       query?: {
         /** @description Filter notifications by user ID (scopes results to a specific user) */
         userId?: string;
+        /** @description Resolve user by username when the session user ID is not seeded in the database */
+        username?: string;
         /** @description Filter notifications by client ticker */
         ticker?: string;
         /** @description Filter notifications by meeting ID */

@@ -45,7 +45,13 @@ interface MeetingTab {
   client: string;
 }
 
-type FeatureGate = "agenda" | "mailing" | "tabulation" | "reports" | null;
+/**
+ * Client feature key a navigation tab is gated behind, or `null` for tabs
+ * that are always visible (the dashboard). Gated tabs — including the NOBO
+ * tab — are filtered out of the rendered tab list whenever the client's
+ * matching feature flag is disabled.
+ */
+type FeatureGate = "agenda" | "mailing" | "tabulation" | "reports" | "nobo" | null;
 
 const ALL_NAVIGATION_TABS = (currentPhase: number) => [
   {
@@ -57,6 +63,7 @@ const ALL_NAVIGATION_TABS = (currentPhase: number) => [
   { label: "Mailing", route: "/mailing", featureGate: "mailing" as FeatureGate },
   { label: "Tabulation", route: "/tabulation", featureGate: "tabulation" as FeatureGate },
   { label: "Reports", route: "/reports", featureGate: "reports" as FeatureGate },
+  { label: "NOBO", route: "/nobo", featureGate: "nobo" as FeatureGate },
 ];
 
 const getNavigationTabs = (currentPhase: number) => ALL_NAVIGATION_TABS(currentPhase);

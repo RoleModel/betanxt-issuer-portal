@@ -101,7 +101,7 @@ export default function BrokerVotingChart({
           >
             {proposals.map((proposal) => (
               <MenuItem key={proposal.id} value={proposal.id}>
-                {proposal.proposalNumber} - {proposal.proposalTitle}
+                {proposal.proposalNumber}
               </MenuItem>
             ))}
           </TextField>

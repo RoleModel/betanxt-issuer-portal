@@ -48,9 +48,19 @@ interface AdditionalMailingSummaryCardProps {
   loading?: boolean;
 }
 
-// Prototype mock follow-up jobs. The themed proxy/document PDFs are generated
-// per client by scripts/generate-mock-mailing-pdfs.ts into /public/mock-mailings/{TICKER}.
-const buildMockJobs = (ticker: string): FollowUpJob[] => {
+/**
+ * Builds the prototype mock follow-up jobs for a client. The themed
+ * proxy/document PDFs are generated per client by
+ * scripts/generate-mock-mailing-pdfs.ts into /public/mock-mailings/{TICKER}.
+ *
+ * Exported so reporting surfaces (e.g. the quorum timeline's follow-up
+ * milestones) can reuse the same follow-up mailing data source until a real
+ * endpoint exists.
+ *
+ * @param ticker - Client ticker; selects the per-client mock PDF directory
+ * @returns Mock follow-up mailing jobs with sent dates and PDF URLs
+ */
+export const buildMockFollowUpJobs = (ticker: string): FollowUpJob[] => {
   const base = `/mock-mailings/${ticker.toUpperCase()}`;
   return [
     {
@@ -94,7 +104,7 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
   jobs,
 }) => {
   const [activeJob, setActiveJob] = useState<FollowUpJob | null>(null);
-  const resolvedJobs = jobs ?? buildMockJobs(ticker || "WEN");
+  const resolvedJobs = jobs ?? buildMockFollowUpJobs(ticker || "WEN");
 
   if (resolvedJobs.length === 0) {
     return (

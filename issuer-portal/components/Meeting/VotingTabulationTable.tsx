@@ -25,6 +25,11 @@ interface VotingTabulationTableProps {
   loading?: boolean;
 }
 
+/**
+ * Per-proposal voting results table showing the For / Against / Abstain share
+ * buckets with percentages. The aggregate "Total Votes" column was removed in
+ * favor of the per-bucket breakdown (002-tabulation-enhancements).
+ */
 export default function VotingTabulationTable({
   proposals,
   loading = false,
@@ -35,39 +40,13 @@ export default function VotingTabulationTable({
     return `${percentage.toFixed(2)}%`;
   };
 
-  const formatCount = (count?: number) => {
-    if (typeof count !== "number" || !Number.isFinite(count)) {
-      return "—";
-    }
-
-    return count.toLocaleString("en-US");
-  };
-
-  const getTotalVotes = (proposal: ProposalVoting): number | undefined => {
-    const totalFromCounts = proposal.voteCounts?.total;
-    if (typeof totalFromCounts === "number" && Number.isFinite(totalFromCounts)) {
-      return totalFromCounts;
-    }
-
-    const totalFromShareBuckets =
-      proposal.votingResults.for.shares +
-      proposal.votingResults.against.shares +
-      proposal.votingResults.abstain.shares;
-
-    if (!Number.isFinite(totalFromShareBuckets)) {
-      return undefined;
-    }
-
-    return Math.round(totalFromShareBuckets);
-  };
-
   // Get appropriate headers based on proposal types in this table
   const votingLabels = getTabulationHeaders(proposals, currentMeeting?.ticker);
 
   if (loading) {
     return (
       <TableContainer>
-        <SkeletonTable rows={4} columns={6} />
+        <SkeletonTable rows={4} columns={5} />
       </TableContainer>
     );
   }
@@ -83,7 +62,6 @@ export default function VotingTabulationTable({
             <TableCell align="right">{votingLabels.for}</TableCell>
             <TableCell align="right">{votingLabels.against}</TableCell>
             <TableCell align="right">{votingLabels.abstain}</TableCell>
-            <TableCell align="right">Total Votes</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -141,12 +119,6 @@ export default function VotingTabulationTable({
                     value={proposal.votingResults.abstain.percentage}
                   />
                 </Box>
-              </TableCell>
-
-              <TableCell align="right">
-                <Typography variant="body3" sx={{ fontWeight: "medium" }}>
-                  {formatCount(getTotalVotes(proposal))}
-                </Typography>
               </TableCell>
             </TableRow>
           ))}
