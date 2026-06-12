@@ -3851,21 +3851,24 @@ VALUES (
     ${sqlValue(tabulationId)},
     ${sqlValue(meetingId)},
     (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
-    jsonb_build_object(
-        'proposal1', jsonb_build_array(
-            jsonb_build_object('broker', 'Charles Schwab', 'for', 1500000, 'against', 75000, 'abstain', 25000),
-            jsonb_build_object('broker', 'BlackRock', 'for', 250000, 'against', 15000, 'abstain', 5000),
-            jsonb_build_object('broker', 'Vanguard', 'for', 180000, 'against', 12000, 'abstain', 8000),
-            jsonb_build_object('broker', 'State Street', 'for', 95000, 'against', 8000, 'abstain', 2000),
-            jsonb_build_object('broker', 'Fidelity', 'for', 75000, 'against', 5000, 'abstain', 1500)
-        ),
-        'proposal2', jsonb_build_array(
-            jsonb_build_object('broker', 'Charles Schwab', 'for', 1450000, 'against', 120000, 'abstain', 30000),
-            jsonb_build_object('broker', 'BlackRock', 'for', 240000, 'against', 25000, 'abstain', 5000),
-            jsonb_build_object('broker', 'Vanguard', 'for', 170000, 'against', 22000, 'abstain', 8000),
-            jsonb_build_object('broker', 'State Street', 'for', 88000, 'against', 15000, 'abstain', 2000),
-            jsonb_build_object('broker', 'Fidelity', 'for', 70000, 'against', 8000, 'abstain', 2000)
-        )
+    -- Broker voting keyed per proposal (proposal1..proposalN by proposal_number
+    -- order) so the chart has data for every proposal, not just the first two.
+    (
+        SELECT COALESCE(jsonb_object_agg('proposal' || p.rn, b.brokers), '{}'::jsonb)
+        FROM (
+            SELECT ROW_NUMBER() OVER (ORDER BY proposal_number::numeric, id) AS rn
+            FROM proposal
+            WHERE meeting_id = ${sqlValue(meetingId)}
+        ) p
+        CROSS JOIN LATERAL (
+            SELECT jsonb_build_array(
+                jsonb_build_object('broker', 'Charles Schwab', 'for', GREATEST(1500000 - (p.rn - 1) * 52000, 150000), 'against', 75000 + (p.rn - 1) * 41000, 'abstain', 25000 + (p.rn - 1) * 4000),
+                jsonb_build_object('broker', 'BlackRock', 'for', GREATEST(250000 - (p.rn - 1) * 9000, 25000), 'against', 15000 + (p.rn - 1) * 8000, 'abstain', 5000 + (p.rn - 1) * 1000),
+                jsonb_build_object('broker', 'Vanguard', 'for', GREATEST(180000 - (p.rn - 1) * 8000, 18000), 'against', 12000 + (p.rn - 1) * 7000, 'abstain', 8000),
+                jsonb_build_object('broker', 'State Street', 'for', GREATEST(95000 - (p.rn - 1) * 6000, 10000), 'against', 8000 + (p.rn - 1) * 5000, 'abstain', 2000 + (p.rn - 1) * 500),
+                jsonb_build_object('broker', 'Fidelity', 'for', GREATEST(75000 - (p.rn - 1) * 4000, 8000), 'against', 5000 + (p.rn - 1) * 2500, 'abstain', 1500 + (p.rn - 1) * 500)
+            ) AS brokers
+        ) b
     ),
     (
         SELECT COALESCE(jsonb_agg(
@@ -3961,21 +3964,24 @@ SELECT
     ${sqlValue(tabulationId)},
     ${sqlValue(meetingId)},
     (SELECT COALESCE(json_agg(DISTINCT set_key ORDER BY set_key), '[]'::json) FROM position WHERE meeting_id = ${sqlValue(meetingId)} AND set_key IS NOT NULL),
-    jsonb_build_object(
-        'proposal1', jsonb_build_array(
-            jsonb_build_object('broker', 'Charles Schwab', 'for', 1200000, 'against', 85000, 'abstain', 15000),
-            jsonb_build_object('broker', 'BlackRock', 'for', 200000, 'against', 18000, 'abstain', 7000),
-            jsonb_build_object('broker', 'Vanguard', 'for', 150000, 'against', 15000, 'abstain', 10000),
-            jsonb_build_object('broker', 'State Street', 'for', 85000, 'against', 10000, 'abstain', 3000),
-            jsonb_build_object('broker', 'Fidelity', 'for', 65000, 'against', 6000, 'abstain', 2000)
-        ),
-        'proposal2', jsonb_build_array(
-            jsonb_build_object('broker', 'Charles Schwab', 'for', 1150000, 'against', 135000, 'abstain', 15000),
-            jsonb_build_object('broker', 'BlackRock', 'for', 190000, 'against', 30000, 'abstain', 5000),
-            jsonb_build_object('broker', 'Vanguard', 'for', 140000, 'against', 25000, 'abstain', 10000),
-            jsonb_build_object('broker', 'State Street', 'for', 80000, 'against', 18000, 'abstain', 5000),
-            jsonb_build_object('broker', 'Fidelity', 'for', 62000, 'against', 9000, 'abstain', 2000)
-        )
+    -- Broker voting keyed per proposal (proposal1..proposalN by proposal_number
+    -- order) so the chart has data for every proposal, not just the first two.
+    (
+        SELECT COALESCE(jsonb_object_agg('proposal' || p.rn, b.brokers), '{}'::jsonb)
+        FROM (
+            SELECT ROW_NUMBER() OVER (ORDER BY proposal_number::numeric, id) AS rn
+            FROM proposal
+            WHERE meeting_id = ${sqlValue(meetingId)}
+        ) p
+        CROSS JOIN LATERAL (
+            SELECT jsonb_build_array(
+                jsonb_build_object('broker', 'Charles Schwab', 'for', GREATEST(1200000 - (p.rn - 1) * 48000, 120000), 'against', 85000 + (p.rn - 1) * 38000, 'abstain', 15000 + (p.rn - 1) * 3000),
+                jsonb_build_object('broker', 'BlackRock', 'for', GREATEST(200000 - (p.rn - 1) * 8000, 20000), 'against', 18000 + (p.rn - 1) * 7000, 'abstain', 7000 + (p.rn - 1) * 1000),
+                jsonb_build_object('broker', 'Vanguard', 'for', GREATEST(150000 - (p.rn - 1) * 7000, 15000), 'against', 15000 + (p.rn - 1) * 6000, 'abstain', 10000),
+                jsonb_build_object('broker', 'State Street', 'for', GREATEST(85000 - (p.rn - 1) * 5000, 9000), 'against', 10000 + (p.rn - 1) * 4500, 'abstain', 3000 + (p.rn - 1) * 500),
+                jsonb_build_object('broker', 'Fidelity', 'for', GREATEST(65000 - (p.rn - 1) * 3500, 7000), 'against', 6000 + (p.rn - 1) * 2200, 'abstain', 2000 + (p.rn - 1) * 400)
+            ) AS brokers
+        ) b
     ),
     (
         SELECT COALESCE(jsonb_agg(
