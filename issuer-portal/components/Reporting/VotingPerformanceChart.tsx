@@ -40,9 +40,14 @@ interface ShareRangeData {
 
 interface VotingPerformanceChartProps {
   meetingId?: string;
+  /** Optional card subheader, e.g. the currently selected event. */
+  subheader?: string;
 }
 
-export default function VotingPerformanceChart({ meetingId }: VotingPerformanceChartProps) {
+export default function VotingPerformanceChart({
+  meetingId,
+  subheader,
+}: VotingPerformanceChartProps) {
   const [data, setData] = useState<ShareRangeData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -134,7 +139,7 @@ export default function VotingPerformanceChart({ meetingId }: VotingPerformanceC
   if (data.length === 0) {
     return (
       <Card>
-        <CardHeader title="Voting Performance By Share Range" />
+        <CardHeader title="Voting Performance By Share Range" subheader={subheader} />
         <CardContent>
           <EmptyState
             title="No voting performance data available"
@@ -174,7 +179,7 @@ export default function VotingPerformanceChart({ meetingId }: VotingPerformanceC
 
   return (
     <Card sx={{ height: "100%" }}>
-      <CardHeader title="Voting Performance By Share Range" />
+      <CardHeader title="Voting Performance By Share Range" subheader={subheader} />
       <CardContent>
         <ChartDataProvider
           series={[

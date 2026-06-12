@@ -27,6 +27,8 @@ interface BrokerVotingChartProps {
   proposals?: Proposal[];
   brokerData?: Record<string, BrokerVotingData[]>;
   loading?: boolean;
+  /** Optional card subheader, e.g. the currently selected event. */
+  subheader?: string;
 }
 
 export default function BrokerVotingChart({
@@ -34,6 +36,7 @@ export default function BrokerVotingChart({
   proposals = [],
   brokerData = {},
   loading = false,
+  subheader,
 }: BrokerVotingChartProps) {
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
@@ -90,6 +93,7 @@ export default function BrokerVotingChart({
     <Card sx={{ height: "100%" }}>
       <CardHeader
         title="Broker Voting by Proposal"
+        subheader={subheader}
         action={
           <TextField
             select

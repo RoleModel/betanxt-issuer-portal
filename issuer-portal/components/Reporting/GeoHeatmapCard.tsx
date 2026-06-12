@@ -41,6 +41,8 @@ interface PopulationState {
 interface GeoHeatmapCardProps {
   /** Meeting whose positions are aggregated; no data is shown when omitted. */
   meetingId?: string;
+  /** Card subheader; defaults to the chart description when unset. */
+  subheader?: string;
 }
 
 const METRIC_LABELS: Record<GeoMetric, string> = {
@@ -115,7 +117,10 @@ const getCategoryMetricValue = (
  * Renders a skeleton while loading, the fetch error when one occurs, and an
  * empty state when no positions match the selected populations.
  */
-export function GeoHeatmapCard({ meetingId }: GeoHeatmapCardProps) {
+export function GeoHeatmapCard({
+  meetingId,
+  subheader = "Holder locations by US state, with international and unknown buckets",
+}: GeoHeatmapCardProps) {
   const { mode, systemMode } = useColorScheme();
   const { isEnabled } = useClientFeatures();
   const hasNoboFeature = isEnabled("nobo");
@@ -210,10 +215,7 @@ export function GeoHeatmapCard({ meetingId }: GeoHeatmapCardProps) {
 
   return (
     <Card>
-      <CardHeader
-        title="Geographic Distribution"
-        subheader="Holder locations by US state, with international and unknown buckets"
-      />
+      <CardHeader title="Geographic Distribution" subheader={subheader} />
       <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Stack
           direction={{ xs: "column", md: "row" }}

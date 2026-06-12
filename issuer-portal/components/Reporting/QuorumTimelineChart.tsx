@@ -27,6 +27,8 @@ interface QuorumTimelineChartProps {
   loading?: boolean;
   /** Optional header action node (e.g. an event selector). */
   action?: React.ReactNode;
+  /** Card subheader; defaults to the chart description when unset. */
+  subheader?: string;
 }
 
 const formatAxisDate = (date: Date): string =>
@@ -50,6 +52,7 @@ export function QuorumTimelineChart({
   quorumRequirementPercent,
   loading = false,
   action,
+  subheader = "Cumulative shares voted from mail date through the vote deadline",
 }: QuorumTimelineChartProps) {
   const theme = useTheme();
 
@@ -74,11 +77,7 @@ export function QuorumTimelineChart({
 
   return (
     <Card sx={{ height: "100%" }}>
-      <CardHeader
-        title="Quorum Timeline"
-        subheader="Cumulative shares voted from mail date through the vote deadline"
-        action={action}
-      />
+      <CardHeader title="Quorum Timeline" subheader={subheader} action={action} />
       <CardContent>
         {!hasVotes ? (
           <EmptyState

@@ -68,7 +68,7 @@ export default function ReportingPage() {
   const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
   const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? [];
   const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? [];
-  const availableMeetings = reportingData?.availableMeetings ?? [];
+  const availableMeetings = useMemo(() => reportingData?.availableMeetings ?? [], [reportingData]);
   const positions = useMemo(() => reportingData?.positions ?? [], [reportingData]);
   const proposals = useMemo(() => reportingData?.proposals ?? [], [reportingData]);
 
@@ -77,6 +77,14 @@ export default function ReportingPage() {
     () => reportingData?.meetings.find((m) => m.id === effectiveMeetingId) ?? null,
     [reportingData, effectiveMeetingId],
   );
+
+  // Mirrors the event selector's option label so each analytics card can show
+  // which meeting it is scoped to in its subheader.
+  const selectedMeetingLabel = useMemo(() => {
+    const meeting = availableMeetings.find((m) => m.id === effectiveMeetingId);
+    if (!meeting) return "";
+    return meeting.year ? `${meeting.title} - ${meeting.year}` : meeting.title;
+  }, [availableMeetings, effectiveMeetingId]);
 
   const { brokerVotingByProposal, loading: reportsLoading } = useReports(
     effectiveMeetingId || undefined,
@@ -247,12 +255,16 @@ export default function ReportingPage() {
             proposals={brokerChartProposals}
             brokerData={brokerVotingByProposal}
             loading={loading || reportsLoading}
+            subheader={selectedMeetingLabel}
           />
         </Grid>
 
         <Grid size={{ xs: 12, lg: 6 }}>
           {effectiveMeetingId ? (
-            <VotingPerformanceChart meetingId={effectiveMeetingId} />
+            <VotingPerformanceChart
+              meetingId={effectiveMeetingId}
+              subheader={selectedMeetingLabel}
+            />
           ) : (
             <ChartSkeleton />
           )}
@@ -264,11 +276,15 @@ export default function ReportingPage() {
             milestones={quorumTimelineMilestones}
             quorumRequirementPercent={selectedMeeting?.quorumRequirement ?? null}
             loading={loading}
+            subheader={selectedMeetingLabel || undefined}
           />
         </Grid>
         {hasNoboFeature && (
           <Grid size={{ xs: 12, lg: 6 }}>
-            <GeoHeatmapCard meetingId={effectiveMeetingId || undefined} />
+            <GeoHeatmapCard
+              meetingId={effectiveMeetingId || undefined}
+              subheader={selectedMeetingLabel || undefined}
+            />
           </Grid>
         )}
 
@@ -277,6 +293,7 @@ export default function ReportingPage() {
             meetingId={effectiveMeetingId || undefined}
             setKeys={positionsVotedSetKeys}
             data={positionsVotedBySet}
+            subheader={selectedMeetingLabel}
           />
         </Grid>
 
