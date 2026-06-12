@@ -94,7 +94,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                           variant="text"
                           color="info"
                           component={Link}
-                          href={`/clients/${clientTicker}/events/${row.meetingId}`}
+                          href={`/${clientTicker}/meeting/${row.meetingId}`}
                         >
                           {displayTitle}
                         </Button>
