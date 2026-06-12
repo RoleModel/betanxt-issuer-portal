@@ -173,7 +173,7 @@ export default function VotingPerformanceChart({ meetingId }: VotingPerformanceC
   ];
 
   return (
-    <Card>
+    <Card sx={{ height: "100%" }}>
       <CardHeader title="Voting Performance By Share Range" />
       <CardContent>
         <ChartDataProvider

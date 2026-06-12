@@ -68,6 +68,11 @@ import React, { useState } from "react";
  * Provides controls for switching between month and list views
  */
 
+/**
+ * CalendarHeader component with view toggle, filters, and search functionality
+ * Provides controls for switching between month and list views
+ */
+
 export type CalendarViewType = "month" | "list";
 
 interface CalendarHeaderProps {

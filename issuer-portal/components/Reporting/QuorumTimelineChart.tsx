@@ -62,9 +62,9 @@ export function QuorumTimelineChart({
   const quorumLabel = `Quorum (${formatQuorumRequirementPercentLabel(quorumRequirementPercent)})`;
 
   const milestoneColors: Record<QuorumMilestoneKind, string> = {
-    mail: theme.palette.info.main,
-    followUp: theme.palette.warning.main,
-    deadline: theme.palette.error.main,
+    mail: theme.vars.palette.info.dark,
+    followUp: theme.vars.palette.warning.main,
+    deadline: theme.vars.palette.error.main,
   };
 
   const dates = points.map((point) => point.date);
@@ -120,7 +120,7 @@ export function QuorumTimelineChart({
                 },
               },
             ]}
-            height={420}
+            height={480}
             margin={{ left: 10, right: 30, top: 40, bottom: 10 }}
             grid={{ horizontal: true }}
             slotProps={{
@@ -130,7 +130,7 @@ export function QuorumTimelineChart({
               },
             }}
             sx={{
-              "& .MuiAreaElement-root": { opacity: 0.15 },
+              "& .MuiAreaElement-root": { opacity: 0.1 },
             }}
           >
             {milestones.map((milestone) => (
@@ -154,11 +154,11 @@ export function QuorumTimelineChart({
               label={quorumLabel}
               labelAlign="end"
               lineStyle={{
-                stroke: theme.palette.text.secondary,
+                stroke: theme.vars.palette.text.primary,
                 strokeDasharray: "2 4",
               }}
               labelStyle={{
-                fill: theme.palette.text.secondary,
+                fill: theme.vars.palette.text.secondary,
                 fontSize: 11,
               }}
             />

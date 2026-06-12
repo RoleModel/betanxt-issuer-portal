@@ -51,7 +51,7 @@ interface AdditionalMailingSummaryCardProps {
 /**
  * Builds the prototype mock follow-up jobs for a client. The themed
  * proxy/document PDFs are generated per client by
- * scripts/generate-mock-mailing-pdfs.ts into /public/mock-mailings/{TICKER}.
+ * scripts/generate-mock-mailing-pdfs.tsx into /public/mock-mailings/{TICKER}.
  *
  * Exported so reporting surfaces (e.g. the quorum timeline's follow-up
  * milestones) can reuse the same follow-up mailing data source until a real

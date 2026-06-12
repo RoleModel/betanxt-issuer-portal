@@ -13,7 +13,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
-import { alpha, useColorScheme } from "@mui/material/styles";
+import { alpha, useColorScheme, useTheme } from "@mui/material/styles";
 import { Heatmap } from "@mui/x-charts-pro/Heatmap";
 import { type MouseEvent, useMemo, useState } from "react";
 
@@ -119,7 +119,7 @@ export function GeoHeatmapCard({ meetingId }: GeoHeatmapCardProps) {
   const { mode, systemMode } = useColorScheme();
   const { isEnabled } = useClientFeatures();
   const hasNoboFeature = isEnabled("nobo");
-
+  const theme = useTheme();
   const [metric, setMetric] = useState<GeoMetric>("shareholders");
   const [populations, setPopulations] = useState<PopulationState>(DEFAULT_POPULATIONS);
 
@@ -192,7 +192,7 @@ export function GeoHeatmapCard({ meetingId }: GeoHeatmapCardProps) {
   const resolvedMode = mode === "system" ? systemMode : mode;
   const isDark = resolvedMode === "dark";
   // Design system chart series 0 (NXT Blue) drives the heat ramp.
-  const heatColor = "#0d569a";
+  const heatColor = theme.palette.primary.main;
   const colorRange: [string, string] = isDark
     ? [alpha(heatColor, 0.52), heatColor]
     : [alpha(heatColor, 0.03), heatColor];

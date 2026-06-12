@@ -3,7 +3,7 @@
 import { Box, Typography } from "@mui/material";
 import {
   BarPlot,
-  ChartDataProvider,
+  ChartsDataProvider,
   ChartsGrid,
   ChartsSurface,
   ChartsTooltip,
@@ -81,7 +81,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   const yAxisMax = Math.ceil(maxTotalShares / 1000000) * 1000000;
 
   return (
-    <ChartDataProvider
+    <ChartsDataProvider
       // The configuration of the chart - stacked bars for Registered and Beneficial
       series={[
         // Registered shares
@@ -160,7 +160,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
       <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
         <CustomLegend items={legendItems} />
       </Box>
-    </ChartDataProvider>
+    </ChartsDataProvider>
   );
 };
 

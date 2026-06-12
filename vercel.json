@@ -3,5 +3,6 @@
   "installCommand": "pnpm install",
   "outputDirectory": "issuer-portal/.next",
   "framework": "nextjs",
-  "ignoreCommand": "npx turbo-ignore"
+  "ignoreCommand": "npx turbo-ignore",
+  "relatedProjects": ["prj_Xb95beJFoLe5trcUmwKuZTcg8hmW"]
 }

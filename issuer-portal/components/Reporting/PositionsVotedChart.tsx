@@ -140,7 +140,7 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
   ];
 
   return (
-    <Card sx={{ flex: "1 0 auto" }}>
+    <Card sx={{ flex: "1 0 auto", height: "100%" }}>
       <CardHeader
         title="Positions Voted"
         action={
@@ -165,10 +165,11 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
           </FormControl>
         }
       />
-      <CardContent>
+      <CardContent sx={{ height: "100%" }}>
         <Stack
-          direction={{ xs: "column", sm: "column", md: "column", lg: "row" }}
+          direction={{ xs: "column", sm: "column", md: "row", lg: "row" }}
           justifyContent={"center"}
+          alignItems={"center"}
           spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart

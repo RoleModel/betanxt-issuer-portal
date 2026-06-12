@@ -15,6 +15,11 @@ const CACHE_TTL = {
   long: 300, // rarely-changing: clients, accounts, users
 } as const;
 
+// In development the Next.js data cache survives reseeds and serves stale
+// rows (stale-while-revalidate), which makes charts render pre-reseed data on
+// first load. Bypass the cache entirely outside production.
+const isProduction = process.env.NODE_ENV === "production";
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
@@ -25,10 +30,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, 
       const method = (options.method ?? "GET").toUpperCase();
       // Only cache read operations — Next.js data cache deduplicates identical
       // in-flight requests and revalidates on the given interval.
-      if (method === "GET" || method === "HEAD") {
+      if (isProduction && (method === "GET" || method === "HEAD")) {
         return fetch(url, { ...options, next: { revalidate: CACHE_TTL.short } });
       }
-      // Mutations must never be served from cache.
+      // Mutations (and all dev reads) must never be served from cache.
       return fetch(url, { ...options, cache: "no-store" });
     },
   },

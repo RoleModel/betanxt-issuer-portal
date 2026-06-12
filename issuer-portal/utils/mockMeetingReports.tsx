@@ -6,6 +6,8 @@ import * as XLSX from "xlsx";
 
 import { createSeededRandom, hashString } from "@/utils/deterministicSeed";
 import {
+  ReportMetaGrid,
+  ReportPageNumber,
   ReportPdfHeader,
   downloadBlob,
   formatReportDate,
@@ -304,51 +306,59 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
 }) => {
   const { reportName, companyName, clientTicker, meetingType, meetingDate } = options;
   const columnWidth = { width: `${100 / table.columns.length}%` };
+  // Right-align columns whose every value is numeric (counts, shares, etc.).
+  const numericColumns = table.columns.map(
+    (_, columnIndex) =>
+      table.rows.length > 0 && table.rows.every((row) => typeof row[columnIndex] === "number"),
+  );
 
   return (
     <Document>
       <Page size="LETTER" style={reportStyles.page}>
         <ReportPdfHeader
           reportTitle={reportName}
+          subtitle={meetingType}
           clientTicker={clientTicker}
           clientLogoUrl={clientLogoUrl}
           betanxtLogoUrl={betanxtLogoUrl}
         />
 
-        <View style={reportStyles.metaSection}>
-          <View style={reportStyles.metaRow}>
-            <Text style={reportStyles.metaLabel}>Company Name:</Text>
-            <Text style={reportStyles.metaValue}>{companyName}</Text>
-            {meetingType ? (
-              <>
-                <Text style={reportStyles.metaLabel}>Meeting Type:</Text>
-                <Text style={reportStyles.metaValue}>{meetingType}</Text>
-              </>
-            ) : null}
-            {meetingDate ? (
-              <>
-                <Text style={reportStyles.metaLabel}>Meeting Date:</Text>
-                <Text style={reportStyles.metaValue}>{formatReportDate(meetingDate)}</Text>
-              </>
-            ) : null}
-          </View>
-        </View>
+        <ReportMetaGrid
+          items={[
+            { label: "Company Name:", value: companyName },
+            ...(meetingDate
+              ? [{ label: "Meeting Date:", value: formatReportDate(meetingDate) }]
+              : []),
+            ...(meetingType ? [{ label: "Meeting Type:", value: meetingType }] : []),
+          ]}
+        />
 
         <View style={reportStyles.tableContainer}>
           <View style={reportStyles.tableHeaderRow}>
-            {table.columns.map((column) => (
-              <Text key={column} style={[reportStyles.headerCell, columnWidth]}>
+            {table.columns.map((column, columnIndex) => (
+              <Text
+                key={column}
+                style={[
+                  reportStyles.headerCell,
+                  columnWidth,
+                  ...(numericColumns[columnIndex] ? [reportStyles.cellRight] : []),
+                ]}
+              >
                 {column}
               </Text>
             ))}
           </View>
           {table.rows.map((row, rowIndex) => (
-            <View
-              key={rowIndex}
-              style={rowIndex % 2 === 0 ? reportStyles.tableRow : reportStyles.tableRowAlt}
-            >
+            <View key={rowIndex} style={reportStyles.tableRow}>
               {row.map((value, cellIndex) => (
-                <Text key={cellIndex} style={[reportStyles.cell, columnWidth]}>
+                <Text
+                  key={cellIndex}
+                  style={[
+                    reportStyles.cell,
+                    columnWidth,
+                    ...(numericColumns[cellIndex] ? [reportStyles.cellRight] : []),
+                  ]}
+                >
                   {typeof value === "number" ? value.toLocaleString("en-US") : value}
                 </Text>
               ))}
@@ -359,6 +369,8 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
         <Text style={reportStyles.footnote}>
           System-generated report. Figures shown are representative for this meeting.
         </Text>
+
+        <ReportPageNumber />
       </Page>
     </Document>
   );

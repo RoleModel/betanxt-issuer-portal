@@ -5,6 +5,8 @@ import React from "react";
 
 import { createSeededRandom, hashString } from "@/utils/deterministicSeed";
 import {
+  ReportMetaGrid,
+  ReportPageNumber,
   ReportPdfHeader,
   downloadBlob,
   formatReportDate,
@@ -155,31 +157,22 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
       <Page size="LETTER" style={reportStyles.page}>
         <ReportPdfHeader
           reportTitle="Broker Breakout Report"
+          subtitle={meetingType}
           clientTicker={clientTicker}
           clientLogoUrl={clientLogoUrl}
           betanxtLogoUrl={betanxtLogoUrl}
         />
 
-        <View style={reportStyles.metaSection}>
-          <View style={reportStyles.metaRow}>
-            <Text style={reportStyles.metaLabel}>Company Name:</Text>
-            <Text style={reportStyles.metaValue}>{companyName}</Text>
-            {meetingType ? (
-              <>
-                <Text style={reportStyles.metaLabel}>Meeting Type:</Text>
-                <Text style={reportStyles.metaValue}>{meetingType}</Text>
-              </>
-            ) : null}
-            {meetingDate ? (
-              <>
-                <Text style={reportStyles.metaLabel}>Meeting Date:</Text>
-                <Text style={reportStyles.metaValue}>{formatReportDate(meetingDate)}</Text>
-              </>
-            ) : null}
-            <Text style={reportStyles.metaLabel}>Brokers:</Text>
-            <Text style={reportStyles.metaValue}>{formatReportNumber(rows.length)}</Text>
-          </View>
-        </View>
+        <ReportMetaGrid
+          items={[
+            { label: "Company Name:", value: companyName },
+            ...(meetingDate
+              ? [{ label: "Meeting Date:", value: formatReportDate(meetingDate) }]
+              : []),
+            ...(meetingType ? [{ label: "Meeting Type:", value: meetingType }] : []),
+            { label: "Brokers:", value: formatReportNumber(rows.length) },
+          ]}
+        />
 
         <View style={reportStyles.tableContainer}>
           <View style={reportStyles.tableHeaderRow}>
@@ -211,11 +204,8 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
               </Text>
             </View>
           ) : (
-            rows.map((row, index) => (
-              <View
-                key={row.brokerName}
-                style={index % 2 === 0 ? reportStyles.tableRow : reportStyles.tableRowAlt}
-              >
+            rows.map((row) => (
+              <View key={row.brokerName} style={reportStyles.tableRow}>
                 <Text style={[reportStyles.cell, columnWidths.broker]}>{row.brokerName}</Text>
                 <Text style={[reportStyles.cell, columnWidths.positions, reportStyles.cellRight]}>
                   {formatReportNumber(row.positionsHeld)}
@@ -266,6 +256,8 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
           Positions Held and Shares Held are estimated from broker-level voted shares reported on
           the meeting tabulation.
         </Text>
+
+        <ReportPageNumber />
       </Page>
     </Document>
   );

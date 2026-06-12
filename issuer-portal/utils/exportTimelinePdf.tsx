@@ -1,41 +1,16 @@
-import {
-  Document,
-  Font,
-  Image as PDFImage,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  pdf,
-} from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import React from "react";
 
 import type { KeyDate, Task } from "@/types/api-exports";
 
 import { shiftWeekendToMonday } from "@/components/Calendar/CalendarUtils";
-
-// Register Roboto font
-Font.register({
-  family: "Roboto",
-  fonts: [
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-300-normal.woff",
-      fontWeight: 300,
-    },
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-400-normal.woff",
-      fontWeight: 400,
-    },
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-500-normal.woff",
-      fontWeight: 500,
-    },
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.8/files/roboto-latin-700-normal.woff",
-      fontWeight: 700,
-    },
-  ],
-});
+import {
+  ReportPageNumber,
+  ReportPdfHeader,
+  downloadBlob,
+  reportStyles,
+  resolveReportLogos,
+} from "@/utils/reportPdfTheme";
 
 interface CombinedItem {
   type: "task" | "keyDate";
@@ -77,46 +52,15 @@ function hexToRgb(hex: string): string {
   return "rgb(0, 0, 0)";
 }
 
-// Create styles
+// Timeline-specific styles layered on the shared report theme
 const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-    padding: 30,
-    fontFamily: "Roboto",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-    alignItems: "center",
-  },
-  logo: {
-    width: 60,
-    height: 60,
-  },
-  betanxtLogo: {
-    width: 86,
-    height: 18.6,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 700,
-    marginBottom: 8,
-    fontFamily: "Roboto",
-  },
-  subtitle: {
-    fontSize: 12,
-    marginBottom: 20,
-    fontFamily: "Roboto",
-  },
   phaseSection: {
-    marginBottom: 15,
+    marginTop: 14,
   },
   phaseHeader: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: 700,
-    marginBottom: 5,
+    marginBottom: 4,
     fontFamily: "Roboto",
   },
   table: {
@@ -124,48 +68,41 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    minHeight: 24,
+    minHeight: 20,
     alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E4E4E4",
   },
   keyDateRow: {
-    backgroundColor: "rgba(204, 229, 255, 0.5)",
-    borderLeftWidth: 3,
+    backgroundColor: "#F3F3F3",
+    borderLeftWidth: 2,
     borderLeftColor: "#016397",
     paddingLeft: 8,
   },
   taskRow: {
     backgroundColor: "#FFFFFF",
-    borderLeftWidth: 3,
+    borderLeftWidth: 2,
     paddingLeft: 8,
   },
   taskCell: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 8,
     paddingVertical: 4,
     paddingRight: 8,
     fontFamily: "Roboto",
+    color: "#1F1E1C",
   },
   dateCell: {
     width: 80,
-    fontSize: 10,
+    fontSize: 8,
     textAlign: "right",
     paddingVertical: 4,
     paddingRight: 8,
     fontFamily: "Roboto",
+    color: "#1F1E1C",
   },
   boldText: {
     fontWeight: 700,
-  },
-  fallbackLogo: {
-    fontSize: 12,
-    fontWeight: 700,
-    fontFamily: "Roboto",
-  },
-  betanxtText: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: "#0D6580",
-    fontFamily: "Roboto",
   },
 });
 
@@ -304,30 +241,14 @@ const TimelinePDFDocument = ({
 
   return (
     <Document>
-      <Page size="LETTER" style={styles.page}>
-        {/* Header with logos */}
-        <View style={styles.header}>
-          <View>
-            {clientLogoUrl ? (
-              <PDFImage style={styles.logo} src={clientLogoUrl} />
-            ) : (
-              <Text style={styles.fallbackLogo}>
-                {clientTicker ? `${clientTicker} Logo` : "Client Logo"}
-              </Text>
-            )}
-          </View>
-          <View>
-            {betanxtLogoUrl ? (
-              <PDFImage style={styles.betanxtLogo} src={betanxtLogoUrl} />
-            ) : (
-              <Text style={styles.betanxtText}>BetaNXT</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>Meeting Schedule</Text>
-        <Text style={styles.subtitle}>{meetingTitle}</Text>
+      <Page size="LETTER" style={reportStyles.page}>
+        <ReportPdfHeader
+          reportTitle="Meeting Schedule"
+          subtitle={meetingTitle}
+          clientTicker={clientTicker}
+          clientLogoUrl={clientLogoUrl}
+          betanxtLogoUrl={betanxtLogoUrl}
+        />
 
         {/* Phase Tables */}
         {Array.from({ length: 8 }, (_, i) => i + 1).map((phase) => {
@@ -376,6 +297,8 @@ const TimelinePDFDocument = ({
             </View>
           );
         })}
+
+        <ReportPageNumber />
       </Page>
     </Document>
   );
@@ -386,14 +309,9 @@ export async function exportTimelineToPdf(options: ExportOptions) {
   const { tasks, keyDates, meetingTitle, selectedPhase = "all", clientTicker } = options;
 
   try {
-    // Use direct image URLs (no base64 conversion needed)
-    const clientLogoUrl = clientTicker
-      ? `/logos/${clientTicker.toUpperCase()}_logo.png`
-      : undefined;
-    const betanxtLogoUrl = "/images/betanxt-logo.png";
+    const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(clientTicker);
 
-    // Create the PDF document
-    const doc = (
+    const pdfBlob = await pdf(
       <TimelinePDFDocument
         tasks={tasks}
         keyDates={keyDates}
@@ -402,25 +320,13 @@ export async function exportTimelineToPdf(options: ExportOptions) {
         clientTicker={clientTicker}
         clientLogoUrl={clientLogoUrl}
         betanxtLogoUrl={betanxtLogoUrl}
-      />
-    );
+      />,
+    ).toBlob();
 
-    // Generate PDF blob
-    const pdfBlob = await pdf(doc).toBlob();
-
-    // Create download link
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${meetingTitle.replace(/\s+/g, "_")}_Timeline_${new Date().toISOString().split("T")[0]}.pdf`;
-
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Cleanup
-    URL.revokeObjectURL(url);
+    const fileName = `${meetingTitle.replace(/\s+/g, "_")}_Timeline_${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+    downloadBlob(pdfBlob, fileName);
   } catch (error) {
     console.error("Error exporting PDF:", error);
     throw error;

@@ -106,8 +106,10 @@ const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([_key, meetingId]:
 
 function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
   if (Array.isArray(brokerVoting)) {
+    // Legacy flat array: expose under "proposal1" so BrokerVotingChart's
+    // proposal<N> key mapping can still render it against older API builds.
     const normalized = _normalizeBrokerVotingEntries(brokerVoting);
-    return normalized.length > 0 ? { summary: normalized } : {};
+    return normalized.length > 0 ? { proposal1: normalized } : {};
   }
 
   if (!brokerVoting || typeof brokerVoting !== "object") {

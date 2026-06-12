@@ -180,7 +180,7 @@ export default function ReportingPage() {
       >
         {availableMeetings.map((meeting) => (
           <MenuItem key={meeting.id} value={meeting.id}>
-            {meeting.title}
+            {meeting.year ? `${meeting.title} - ${meeting.year}` : meeting.title}
           </MenuItem>
         ))}
       </TextField>
@@ -258,7 +258,7 @@ export default function ReportingPage() {
           )}
         </Grid>
 
-        <Grid size={hasNoboFeature ? 6 : 12}>
+        <Grid size={{ xs: 12, lg: hasNoboFeature ? 6 : 12 }}>
           <QuorumTimelineChart
             points={quorumTimelinePoints}
             milestones={quorumTimelineMilestones}
@@ -267,7 +267,7 @@ export default function ReportingPage() {
           />
         </Grid>
         {hasNoboFeature && (
-          <Grid size={6}>
+          <Grid size={{ xs: 12, lg: 6 }}>
             <GeoHeatmapCard meetingId={effectiveMeetingId || undefined} />
           </Grid>
         )}

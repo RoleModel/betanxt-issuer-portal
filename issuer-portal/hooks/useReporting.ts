@@ -27,7 +27,7 @@ interface ReportingData {
   mappedAuditComplianceData: MappedAuditComplianceData[];
   mappedQuorumPerformanceData: QuorumData[];
   availableDirectors: string[];
-  availableMeetings: { id: string; title: string }[];
+  availableMeetings: { id: string; title: string; year: number | null }[];
 }
 
 interface DirectorPerformanceData {
@@ -296,6 +296,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
   const availableMeetings = completedMeetings.map((m) => ({
     id: m.id ?? "",
     title: m.title ?? "Untitled Meeting",
+    year: m.meetingYear ?? (m.meetingDate ? new Date(m.meetingDate).getFullYear() : null),
   }));
 
   const result = {

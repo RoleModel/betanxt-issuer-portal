@@ -327,7 +327,7 @@ function EventSwitchButton({ userType }: { userType: string }) {
                     },
                     paper: {
                       sx: {
-                        backgroundColor: (theme) => theme.vars?.palette?.secondary.main,
+                        background: (theme) => theme.vars?.palette?.secondary?.main,
                         color: (theme) => theme.vars?.palette?.secondary?.contrastText,
                         "& .MuiAutocomplete-noOptions": {
                           color: (theme) => theme.vars?.palette?.appSwitcher?.contrastText,
