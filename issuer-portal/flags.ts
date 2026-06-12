@@ -5,24 +5,22 @@ import { dedupe, flag } from "flags/next";
 
 /**
  * Entities used for flag targeting rules in the Vercel Flags dashboard.
- * The dashboard rule builder only supports the `user` and `team` dimensions,
- * so the active client (issuer) is exposed as the team — rules target
- * `Team id` with ticker values (e.g. WEN, FOC, PAYC, ELVN).
+ * Matches the custom `client` entity (attribute `ticker`) defined in the
+ * Flags settings — rules target `client.ticker` (e.g. WEN, FOC, PAYC, ELVN).
  */
 interface FlagEntities {
-  team?: { id: string; name: string };
+  client?: { ticker: string };
 }
 
 /**
  * The portal is client-rendered, so flags are evaluated through
  * `/api/feature-flags`. The browser sends the active client's ticker in the
- * `x-client-ticker` header, which becomes the `team` entity for targeting.
+ * `x-client-ticker` header, which becomes the `client` entity for targeting.
  */
 const identify = dedupe(({ headers }: { headers: ReadonlyHeaders }): FlagEntities => {
   const ticker = headers.get("x-client-ticker");
   if (!ticker) return {};
-  const normalized = ticker.toUpperCase();
-  return { team: { id: normalized, name: normalized } };
+  return { client: { ticker: ticker.toUpperCase() } };
 });
 
 /**
@@ -31,8 +29,8 @@ const identify = dedupe(({ headers }: { headers: ReadonlyHeaders }): FlagEntitie
  * Managed in the Vercel Flags dashboard:
  * https://vercel.com/rolemodel-software/issuer-portal/flag/enable-nobo
  *
- * Targeting: rules on `Team id` (the client ticker) control which issuers
- * see Engage functionality (currently WEN, FOC, PAYC, ELVN).
+ * Targeting: rules on `client.ticker` control which issuers see Engage
+ * functionality (currently WEN, FOC, PAYC, ELVN).
  */
 export const enableNoboFlag = flag<boolean, FlagEntities>({
   key: "enable-nobo",
