@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5";
-  };
   public: {
     Tables: {
       account: {
@@ -668,9 +663,11 @@ export type Database = {
           account_number: string | null;
           account_type: string | null;
           control_number: string | null;
+          country: string | null;
           created_at: string | null;
           cusip: string | null;
           date_voted: string | null;
+          holder_category: Database["public"]["Enums"]["position_holder_category"] | null;
           id: string | null;
           meeting_id: string | null;
           name: string | null;
@@ -678,6 +675,7 @@ export type Database = {
           shares: number | null;
           shares_voted: number | null;
           source: Database["public"]["Enums"]["position_source"] | null;
+          state: string | null;
           updated_at: string | null;
           vote_status: Database["public"]["Enums"]["position_vote_status"] | null;
         };
@@ -686,9 +684,11 @@ export type Database = {
           account_number?: string | null;
           account_type?: string | null;
           control_number?: string | null;
+          country?: string | null;
           created_at?: string | null;
           cusip?: string | null;
           date_voted?: string | null;
+          holder_category?: Database["public"]["Enums"]["position_holder_category"] | null;
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
@@ -696,6 +696,7 @@ export type Database = {
           shares?: number | null;
           shares_voted?: number | null;
           source?: Database["public"]["Enums"]["position_source"] | null;
+          state?: string | null;
           updated_at?: string | null;
           vote_status?: Database["public"]["Enums"]["position_vote_status"] | null;
         };
@@ -704,9 +705,11 @@ export type Database = {
           account_number?: string | null;
           account_type?: string | null;
           control_number?: string | null;
+          country?: string | null;
           created_at?: string | null;
           cusip?: string | null;
           date_voted?: string | null;
+          holder_category?: Database["public"]["Enums"]["position_holder_category"] | null;
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
@@ -714,6 +717,7 @@ export type Database = {
           shares?: number | null;
           shares_voted?: number | null;
           source?: Database["public"]["Enums"]["position_source"] | null;
+          state?: string | null;
           updated_at?: string | null;
           vote_status?: Database["public"]["Enums"]["position_vote_status"] | null;
         };
@@ -1039,6 +1043,8 @@ export type Database = {
         | "Guest"
         | "Proxy"
         | "Other";
+      create_notification_input_priority: "low" | "medium" | "high" | "critical";
+      create_notification_input_type: "info" | "warning" | "error" | "success";
       create_position_request_source: "WEB" | "PRINT" | "IVR";
       create_position_request_vote_status: "Voted" | "Unvoted";
       digital_shareholder_meeting_registrant_type: "Shareholder" | "Guest" | "Proxy" | "Other";
@@ -1062,6 +1068,7 @@ export type Database = {
         | "DELETED";
       notification_priority: "low" | "medium" | "high" | "critical";
       notification_type: "info" | "warning" | "error" | "success";
+      position_holder_category: "REGISTERED" | "PLAN" | "BENEFICIAL" | "NOBO";
       position_source: "WEB" | "PRINT" | "IVR";
       position_vote_status: "Voted" | "Unvoted";
       proposal_final_result: "PASSED" | "FAILED" | "PENDING";
@@ -1212,6 +1219,8 @@ export const Constants = {
         "Proxy",
         "Other",
       ],
+      create_notification_input_priority: ["low", "medium", "high", "critical"],
+      create_notification_input_type: ["info", "warning", "error", "success"],
       create_position_request_source: ["WEB", "PRINT", "IVR"],
       create_position_request_vote_status: ["Voted", "Unvoted"],
       digital_shareholder_meeting_registrant_type: ["Shareholder", "Guest", "Proxy", "Other"],
@@ -1237,6 +1246,7 @@ export const Constants = {
       ],
       notification_priority: ["low", "medium", "high", "critical"],
       notification_type: ["info", "warning", "error", "success"],
+      position_holder_category: ["REGISTERED", "PLAN", "BENEFICIAL", "NOBO"],
       position_source: ["WEB", "PRINT", "IVR"],
       position_vote_status: ["Voted", "Unvoted"],
       proposal_final_result: ["PASSED", "FAILED", "PENDING"],

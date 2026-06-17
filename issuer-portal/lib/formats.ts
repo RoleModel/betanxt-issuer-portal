@@ -1,4 +1,6 @@
-const parseDisplayDate = (dateInput: string | Date): Date => {
+// Parses date-only strings (YYYY-MM-DD) as local dates instead of UTC midnight,
+// which would shift the displayed day backwards in US timezones.
+export const parseDisplayDate = (dateInput: string | Date): Date => {
   if (dateInput instanceof Date) return dateInput;
 
   const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateInput);

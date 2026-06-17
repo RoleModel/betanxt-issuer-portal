@@ -39,6 +39,15 @@ interface ClientRow {
   enabled_features?: unknown;
 }
 
+/**
+ * Transforms a snake_case `clients` row into the camelCase OpenAPI `Clients`
+ * shape. `enabledFeatures` is narrowed to the feature-flag union — which now
+ * includes `"nobo"` for Engage-enabled clients (002-tabulation-enhancements)
+ * — and left `undefined` when the column is not a JSON array.
+ *
+ * @param row - Raw Supabase client row
+ * @returns The API-shaped client
+ */
 function transformClient(row: ClientRow): Client {
   return {
     id: row.id,
@@ -66,6 +75,7 @@ function transformClient(row: ClientRow): Client {
           | "reports"
           | "fileTransfer"
           | "agenda"
+          | "nobo"
         )[])
       : undefined,
   };

@@ -5,6 +5,11 @@ import useSWR from "swr";
 import type { ProposalVoting, VotingSummary } from "@/types/phases";
 
 import buildApiClient from "@/domain-models/apiClient";
+import {
+  type HolderCategory,
+  isRegisteredOnlyHolder,
+  normalizeHolderCategory,
+} from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 // Type for normalized position with guaranteed fields
@@ -14,6 +19,16 @@ export interface NormalizedPosition {
   shares: number;
   sharesVoted: number;
   votingSource?: string;
+  accountType: string;
+  /** Normalized holder category; null when the API record carried no recognizable value (legacy data). */
+  holderCategory: HolderCategory | null;
+}
+
+/** Vote counts per voting channel (WEB / PRINT / IVR), restricted to REGISTERED holders. */
+export interface RegisteredVotingMethods {
+  web: number;
+  paper: number;
+  phone: number;
 }
 
 // Type for normalized proposal
@@ -56,7 +71,11 @@ async function fetchPositionVotesForMeeting(meetingId: string): Promise<unknown[
   return asArray(data);
 }
 
-// Normalize position data to ensure consistent fields
+/**
+ * Normalizes a raw position record (snake_case or camelCase) into a
+ * {@link NormalizedPosition}, including the holderCategory used for the
+ * registered-only Voting Activity breakdown.
+ */
 function normalizePosition(position: unknown): NormalizedPosition | null {
   if (!position) return null;
 
@@ -73,6 +92,8 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
       asString(record.voting_source) ||
       asString(record.source) ||
       undefined,
+    accountType: asString(record.accountType) || asString(record.account_type) || "",
+    holderCategory: normalizeHolderCategory(record.holderCategory ?? record.holder_category),
   };
 }
 
@@ -122,6 +143,8 @@ function normalizePositionVote(positionVote: unknown): NormalizedPositionVote | 
 export interface UseVotingTabulationResult {
   proposals: ProposalVoting[];
   votingSummary: VotingSummary | null;
+  /** Voting-method counts for REGISTERED holders only (Voting Activity chart, FR-001/FR-002); null until data loads. */
+  registeredVotingMethods: RegisteredVotingMethods | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -241,6 +264,16 @@ const fetchVotingData = async (meetingId: string) => {
   const webVotes = positions.filter((p) => p.votingSource === "WEB").length;
   const paperVotes = positions.filter((p) => p.votingSource === "PRINT").length;
   const phoneVotes = positions.filter((p) => p.votingSource === "IVR").length;
+
+  // Registered-only voting methods (FR-001/FR-002 — Voting Activity chart)
+  const registeredPositions = positions.filter((p) =>
+    isRegisteredOnlyHolder(p.holderCategory, p.accountType),
+  );
+  const registeredVotingMethods: RegisteredVotingMethods = {
+    web: registeredPositions.filter((p) => p.votingSource === "WEB").length,
+    paper: registeredPositions.filter((p) => p.votingSource === "PRINT").length,
+    phone: registeredPositions.filter((p) => p.votingSource === "IVR").length,
+  };
 
   // Calculate real voting breakdown by aggregating all proposals
   let totalForShares = 0;
@@ -370,6 +403,7 @@ const fetchVotingData = async (meetingId: string) => {
   return {
     proposals: sortedProposals,
     votingSummary: summary,
+    registeredVotingMethods,
     previousYearsPercentages,
   };
 };
@@ -418,6 +452,7 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
   return {
     proposals: data?.proposals || [],
     votingSummary: data?.votingSummary || null,
+    registeredVotingMethods: data?.registeredVotingMethods || null,
     loading: isLoading,
     error: error ? error.message : null,
     refetch: () => void mutate(),

@@ -23,6 +23,7 @@
 -- DROP TABLE IF EXISTS public.create_comment_request;
 -- DROP TABLE IF EXISTS public.create_digital_shareholder_meeting_request;
 -- DROP TABLE IF EXISTS public.create_meeting_request;
+-- DROP TABLE IF EXISTS public.create_notification_input;
 -- DROP TABLE IF EXISTS public.create_phase_request;
 -- DROP TABLE IF EXISTS public.create_phase_request_key_dates;
 -- DROP TABLE IF EXISTS public.create_position_request;
@@ -30,6 +31,7 @@
 -- DROP TABLE IF EXISTS public.create_task_request;
 -- DROP TABLE IF EXISTS public.create_user_request;
 -- DROP TABLE IF EXISTS public.dsm_config;
+-- DROP TABLE IF EXISTS public.delete_document_200_response;
 -- DROP TABLE IF EXISTS public.delete_user_avatar_200_response;
 -- DROP TABLE IF EXISTS public.digital_shareholder_meeting;
 -- DROP TABLE IF EXISTS public."document";
@@ -41,7 +43,6 @@
 -- DROP TABLE IF EXISTS public.list_accounts_200_response;
 -- DROP TABLE IF EXISTS public.list_clients_200_response;
 -- DROP TABLE IF EXISTS public.list_meetings_200_response;
--- DROP TABLE IF EXISTS public.list_notifications_200_response;
 -- DROP TABLE IF EXISTS public.list_user_accounts_200_response;
 -- DROP TABLE IF EXISTS public.login_user_200_response;
 -- DROP TABLE IF EXISTS public.login_user_request;
@@ -57,6 +58,9 @@
 -- DROP TABLE IF EXISTS public.proposal;
 -- DROP TABLE IF EXISTS public.sign_form_digital_request;
 -- DROP TABLE IF EXISTS public.signature;
+-- DROP TABLE IF EXISTS public.tabulation_distribute_meeting_result;
+-- DROP TABLE IF EXISTS public.tabulation_distribute_result;
+-- DROP TABLE IF EXISTS public.tabulation_distribution;
 -- DROP TABLE IF EXISTS public.tabulation_report;
 -- DROP TABLE IF EXISTS public.tabulation_report_broker_voting_inner;
 -- DROP TABLE IF EXISTS public.tabulation_report_dtc_vote_status;
@@ -84,6 +88,8 @@
 -- DROP TYPE IF EXISTS add_document_event_request_event_type;
 -- DROP TYPE IF EXISTS cast_vote_request_vote;
 -- DROP TYPE IF EXISTS create_digital_shareholder_meeting_request_registrant_type;
+-- DROP TYPE IF EXISTS create_notification_input_type;
+-- DROP TYPE IF EXISTS create_notification_input_priority;
 -- DROP TYPE IF EXISTS create_position_request_vote_status;
 -- DROP TYPE IF EXISTS create_position_request_source;
 -- DROP TYPE IF EXISTS digital_shareholder_meeting_registrant_type;
@@ -93,6 +99,7 @@
 -- DROP TYPE IF EXISTS notification_priority;
 -- DROP TYPE IF EXISTS position_vote_status;
 -- DROP TYPE IF EXISTS position_source;
+-- DROP TYPE IF EXISTS position_holder_category;
 -- DROP TYPE IF EXISTS proposal_final_result;
 -- DROP TYPE IF EXISTS update_position_request_vote_status;
 -- DROP TYPE IF EXISTS update_position_request_source;
@@ -106,6 +113,8 @@
 CREATE TYPE add_document_event_request_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'NOT_UPLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
 CREATE TYPE cast_vote_request_vote AS ENUM('FOR', 'AGAINST', 'ABSTAIN', 'WITHHOLD');
 CREATE TYPE create_digital_shareholder_meeting_request_registrant_type AS ENUM('Shareholder', 'Guest', 'Proxy', 'Other');
+CREATE TYPE create_notification_input_type AS ENUM('info', 'warning', 'error', 'success');
+CREATE TYPE create_notification_input_priority AS ENUM('low', 'medium', 'high', 'critical');
 CREATE TYPE create_position_request_vote_status AS ENUM('Voted', 'Unvoted');
 CREATE TYPE create_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
 CREATE TYPE digital_shareholder_meeting_registrant_type AS ENUM('Shareholder', 'Guest', 'Proxy', 'Other');
@@ -115,6 +124,7 @@ CREATE TYPE notification_type AS ENUM('info', 'warning', 'error', 'success');
 CREATE TYPE notification_priority AS ENUM('low', 'medium', 'high', 'critical');
 CREATE TYPE position_vote_status AS ENUM('Voted', 'Unvoted');
 CREATE TYPE position_source AS ENUM('WEB', 'PRINT', 'IVR');
+CREATE TYPE position_holder_category AS ENUM('REGISTERED', 'PLAN', 'BENEFICIAL', 'NOBO');
 CREATE TYPE proposal_final_result AS ENUM('PASSED', 'FAILED', 'PENDING');
 CREATE TYPE update_position_request_vote_status AS ENUM('Voted', 'Unvoted');
 CREATE TYPE update_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
@@ -186,6 +196,11 @@ CREATE TABLE IF NOT EXISTS public.clients (
     primary_contact_email TEXT DEFAULT NULL,
     is_active BOOLEAN DEFAULT 'true',
     branding_id INTEGER DEFAULT NULL,
+    logo_url TEXT DEFAULT NULL,
+    primary_color TEXT DEFAULT NULL,
+    secondary_color TEXT DEFAULT NULL,
+    created_by TEXT DEFAULT NULL,
+    enabled_features JSON DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL
 );
@@ -200,6 +215,11 @@ COMMENT ON COLUMN clients.primary_contact IS 'Primary contact person. Original p
 COMMENT ON COLUMN clients.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
 COMMENT ON COLUMN clients.is_active IS 'Whether the client is active. Original param name - isActive.';
 COMMENT ON COLUMN clients.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
+COMMENT ON COLUMN clients.logo_url IS 'URL of the client&#39;s logo image. Original param name - logoUrl.';
+COMMENT ON COLUMN clients.primary_color IS 'Primary brand color as a hex string (e.g.. Original param name - primaryColor.';
+COMMENT ON COLUMN clients.secondary_color IS 'Secondary brand color as a hex string (e.g.. Original param name - secondaryColor.';
+COMMENT ON COLUMN clients.created_by IS 'Username of the CSM who created this client (for assignment). Original param name - createdBy.';
+COMMENT ON COLUMN clients.enabled_features IS 'Feature modules enabled for this client. \&quot;nobo\&quot; is present when Engage functionality is active.. Original param name - enabledFeatures.';
 COMMENT ON COLUMN clients.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN clients.updated_at IS 'Original param name - updatedAt.';
 
@@ -264,7 +284,12 @@ CREATE TABLE IF NOT EXISTS public.create_client_request (
     primary_contact VARCHAR(100) DEFAULT NULL,
     primary_contact_email TEXT DEFAULT NULL,
     is_active BOOLEAN DEFAULT 'true',
-    branding_id INTEGER DEFAULT NULL
+    branding_id INTEGER DEFAULT NULL,
+    logo_url TEXT DEFAULT NULL,
+    primary_color TEXT DEFAULT NULL,
+    secondary_color TEXT DEFAULT NULL,
+    created_by TEXT DEFAULT NULL,
+    enabled_features JSON
 );
 COMMENT ON TABLE create_client_request IS 'Original model name - CreateClientRequest.';
 COMMENT ON COLUMN create_client_request.ticker IS 'Unique ticker symbol for the client';
@@ -277,6 +302,11 @@ COMMENT ON COLUMN create_client_request.primary_contact IS 'Primary contact pers
 COMMENT ON COLUMN create_client_request.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
 COMMENT ON COLUMN create_client_request.is_active IS 'Whether the client is active. Original param name - isActive.';
 COMMENT ON COLUMN create_client_request.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
+COMMENT ON COLUMN create_client_request.logo_url IS 'URL of the client&#39;s logo image. Original param name - logoUrl.';
+COMMENT ON COLUMN create_client_request.primary_color IS 'Primary brand color as a hex string (e.g.. Original param name - primaryColor.';
+COMMENT ON COLUMN create_client_request.secondary_color IS 'Secondary brand color as a hex string (e.g.. Original param name - secondaryColor.';
+COMMENT ON COLUMN create_client_request.created_by IS 'Username of the CSM who created this client (for assignment). Original param name - createdBy.';
+COMMENT ON COLUMN create_client_request.enabled_features IS 'Feature modules enabled for this client. Original param name - enabledFeatures.';
 
 --
 -- Table 'create_comment_request' generated from model 'CreateCommentRequest'
@@ -352,6 +382,25 @@ COMMENT ON COLUMN create_meeting_request.total_shares_outstanding IS 'Original p
 COMMENT ON COLUMN create_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';
 COMMENT ON COLUMN create_meeting_request.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
 COMMENT ON COLUMN create_meeting_request.mailing_status IS 'Current status of the mailing process. Original param name - mailingStatus.';
+
+--
+-- Table 'create_notification_input' generated from model 'CreateNotificationInput'
+--
+CREATE TABLE IF NOT EXISTS public.create_notification_input (
+    user_id TEXT NOT NULL,
+    meeting_id TEXT DEFAULT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    "type" create_notification_input_type DEFAULT 'info',
+    priority create_notification_input_priority DEFAULT 'medium',
+    action_url TEXT DEFAULT NULL
+);
+COMMENT ON TABLE create_notification_input IS 'Original model name - CreateNotificationInput.';
+COMMENT ON COLUMN create_notification_input.user_id IS 'ID of the user to notify. Original param name - userId.';
+COMMENT ON COLUMN create_notification_input.meeting_id IS 'Meeting the notification relates to. Original param name - meetingId.';
+COMMENT ON COLUMN create_notification_input.title IS 'Short notification title';
+COMMENT ON COLUMN create_notification_input.message IS 'Full notification message body';
+COMMENT ON COLUMN create_notification_input.action_url IS 'URL to navigate to when the notification is clicked. Original param name - actionUrl.';
 
 --
 -- Table 'create_phase_request' generated from model 'CreatePhaseRequest'
@@ -523,6 +572,14 @@ COMMENT ON COLUMN dsm_config.speaker_list_doc_id IS 'Original param name - speak
 COMMENT ON COLUMN dsm_config.guest_link_registration_doc_id IS 'Original param name - guestLinkRegistrationDocId.';
 COMMENT ON COLUMN dsm_config.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN dsm_config.updated_at IS 'Original param name - updatedAt.';
+
+--
+-- Table 'delete_document_200_response' generated from model 'deleteDocumentUnderscore200Underscoreresponse'
+--
+CREATE TABLE IF NOT EXISTS public.delete_document_200_response (
+    success BOOLEAN DEFAULT NULL
+);
+COMMENT ON TABLE delete_document_200_response IS 'Original model name - deleteDocument_200_response.';
 
 --
 -- Table 'delete_user_avatar_200_response' generated from model 'deleteUserAvatarUnderscore200Underscoreresponse'
@@ -715,15 +772,6 @@ CREATE TABLE IF NOT EXISTS public.list_meetings_200_response (
 COMMENT ON TABLE list_meetings_200_response IS 'Original model name - listMeetings_200_response.';
 
 --
--- Table 'list_notifications_200_response' generated from model 'listNotificationsUnderscore200Underscoreresponse'
---
-CREATE TABLE IF NOT EXISTS public.list_notifications_200_response (
-    "data" JSON DEFAULT NULL,
-    pagination TEXT DEFAULT NULL
-);
-COMMENT ON TABLE list_notifications_200_response IS 'Original model name - listNotifications_200_response.';
-
---
 -- Table 'list_user_accounts_200_response' generated from model 'listUserAccountsUnderscore200Underscoreresponse'
 --
 CREATE TABLE IF NOT EXISTS public.list_user_accounts_200_response (
@@ -836,6 +884,7 @@ CREATE TABLE IF NOT EXISTS public.meeting (
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
+    tabulation_distribution TEXT DEFAULT NULL,
     client TEXT DEFAULT NULL
 );
 COMMENT ON TABLE meeting IS 'Original model name - Meeting.';
@@ -866,6 +915,7 @@ COMMENT ON COLUMN meeting.mailing_status IS 'Current status of the mailing proce
 COMMENT ON COLUMN meeting.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
 COMMENT ON COLUMN meeting.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN meeting.updated_at IS 'Original param name - updatedAt.';
+COMMENT ON COLUMN meeting.tabulation_distribution IS 'Original param name - tabulationDistribution.';
 
 --
 -- Table 'notification' generated from model 'Notification'
@@ -957,6 +1007,9 @@ CREATE TABLE IF NOT EXISTS public."position" (
     shares_voted DECIMAL(20, 9) DEFAULT NULL,
     "source" position_source DEFAULT NULL,
     date_voted TEXT DEFAULT NULL,
+    holder_category position_holder_category DEFAULT NULL,
+    "state" VARCHAR(2) DEFAULT NULL,
+    country VARCHAR(2) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL
 );
@@ -969,6 +1022,9 @@ COMMENT ON COLUMN "position".control_number IS 'Original param name - controlNum
 COMMENT ON COLUMN "position".vote_status IS 'Original param name - voteStatus.';
 COMMENT ON COLUMN "position".shares_voted IS 'Original param name - sharesVoted.';
 COMMENT ON COLUMN "position".date_voted IS 'Original param name - dateVoted.';
+COMMENT ON COLUMN "position".holder_category IS 'Holder population classification. REGISTERED maps from legacy accountType \&quot;DTC/CDS\&quot;; BENEFICIAL from \&quot;Non-DTC\&quot;.. Original param name - holderCategory.';
+COMMENT ON COLUMN "position"."state" IS 'US state code of the holder&#39;s address; null when unknown.';
+COMMENT ON COLUMN "position".country IS 'ISO 3166-1 alpha-2 country code.';
 COMMENT ON COLUMN "position".created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN "position".updated_at IS 'Original param name - updatedAt.';
 
@@ -1084,6 +1140,53 @@ COMMENT ON COLUMN signature.y_position IS 'Original param name - yPosition.';
 COMMENT ON COLUMN signature.signature_type IS 'Original param name - signatureType.';
 COMMENT ON COLUMN signature.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN signature.updated_at IS 'Original param name - updatedAt.';
+
+--
+-- Table 'tabulation_distribute_meeting_result' generated from model 'TabulationDistributeMeetingResult'
+--
+CREATE TABLE IF NOT EXISTS public.tabulation_distribute_meeting_result (
+    meeting_id TEXT DEFAULT NULL,
+    ticker TEXT DEFAULT NULL,
+    notifications_created INTEGER DEFAULT NULL,
+    emails_sent INTEGER DEFAULT NULL,
+    email_recipients JSON DEFAULT NULL,
+    skipped TEXT DEFAULT NULL,
+    "error" TEXT DEFAULT NULL
+);
+COMMENT ON TABLE tabulation_distribute_meeting_result IS 'Original model name - TabulationDistributeMeetingResult.';
+COMMENT ON COLUMN tabulation_distribute_meeting_result.meeting_id IS 'Original param name - meetingId.';
+COMMENT ON COLUMN tabulation_distribute_meeting_result.notifications_created IS 'Original param name - notificationsCreated.';
+COMMENT ON COLUMN tabulation_distribute_meeting_result.emails_sent IS 'Original param name - emailsSent.';
+COMMENT ON COLUMN tabulation_distribute_meeting_result.email_recipients IS 'Original param name - emailRecipients.';
+
+--
+-- Table 'tabulation_distribute_result' generated from model 'TabulationDistributeResult'
+--
+CREATE TABLE IF NOT EXISTS public.tabulation_distribute_result (
+    ok BOOLEAN DEFAULT NULL,
+    "date" DATE DEFAULT NULL,
+    processed INTEGER DEFAULT NULL,
+    skipped INTEGER DEFAULT NULL,
+    results JSON DEFAULT NULL
+);
+COMMENT ON TABLE tabulation_distribute_result IS 'Original model name - TabulationDistributeResult.';
+
+--
+-- Table 'tabulation_distribution' generated from model 'TabulationDistribution'
+--
+CREATE TABLE IF NOT EXISTS public.tabulation_distribution (
+    enabled BOOLEAN DEFAULT 'false',
+    start_offset_days INTEGER DEFAULT 15,
+    recipients JSON DEFAULT NULL,
+    last_sent_at TIMESTAMP DEFAULT NULL,
+    next_scheduled_at TIMESTAMP DEFAULT NULL
+);
+COMMENT ON TABLE tabulation_distribution IS 'Original model name - TabulationDistribution.';
+COMMENT ON COLUMN tabulation_distribution.enabled IS 'Whether auto-delivery of daily tabulation reports is enabled';
+COMMENT ON COLUMN tabulation_distribution.start_offset_days IS 'How many days before meeting date to start delivering reports. Original param name - startOffsetDays.';
+COMMENT ON COLUMN tabulation_distribution.recipients IS 'Email addresses to receive daily tabulation reports';
+COMMENT ON COLUMN tabulation_distribution.last_sent_at IS 'Timestamp of the last automated delivery. Original param name - lastSentAt.';
+COMMENT ON COLUMN tabulation_distribution.next_scheduled_at IS 'Computed next delivery timestamp (prototype display only). Original param name - nextScheduledAt.';
 
 --
 -- Table 'tabulation_report' generated from model 'TabulationReport'
@@ -1281,7 +1384,11 @@ CREATE TABLE IF NOT EXISTS public.update_client_request (
     primary_contact VARCHAR(100) DEFAULT NULL,
     primary_contact_email TEXT DEFAULT NULL,
     is_active BOOLEAN DEFAULT NULL,
-    branding_id INTEGER DEFAULT NULL
+    branding_id INTEGER DEFAULT NULL,
+    logo_url TEXT DEFAULT NULL,
+    primary_color TEXT DEFAULT NULL,
+    secondary_color TEXT DEFAULT NULL,
+    enabled_features JSON DEFAULT NULL
 );
 COMMENT ON TABLE update_client_request IS 'Original model name - UpdateClientRequest.';
 COMMENT ON COLUMN update_client_request.company_name IS 'Full legal name of the company. Original param name - companyName.';
@@ -1293,6 +1400,10 @@ COMMENT ON COLUMN update_client_request.primary_contact IS 'Primary contact pers
 COMMENT ON COLUMN update_client_request.primary_contact_email IS 'Primary contact email. Original param name - primaryContactEmail.';
 COMMENT ON COLUMN update_client_request.is_active IS 'Whether the client is active. Original param name - isActive.';
 COMMENT ON COLUMN update_client_request.branding_id IS 'Unique branding identifier for document hosting site URLs. Original param name - brandingId.';
+COMMENT ON COLUMN update_client_request.logo_url IS 'URL of the client&#39;s logo image. Original param name - logoUrl.';
+COMMENT ON COLUMN update_client_request.primary_color IS 'Primary brand color as a hex string (e.g.. Original param name - primaryColor.';
+COMMENT ON COLUMN update_client_request.secondary_color IS 'Secondary brand color as a hex string (e.g.. Original param name - secondaryColor.';
+COMMENT ON COLUMN update_client_request.enabled_features IS 'Feature modules enabled for this client. \&quot;nobo\&quot; is present when Engage functionality is active.. Original param name - enabledFeatures.';
 
 --
 -- Table 'update_document_request' generated from model 'UpdateDocumentRequest'
@@ -1310,6 +1421,7 @@ COMMENT ON TABLE update_document_request IS 'Original model name - UpdateDocumen
 CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     title VARCHAR(200) DEFAULT NULL,
     cusip TEXT DEFAULT NULL,
+    broker_search_date DATE DEFAULT NULL,
     record_date DATE DEFAULT NULL,
     mailing_date DATE DEFAULT NULL,
     meeting_date DATE DEFAULT NULL,
@@ -1331,9 +1443,11 @@ CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     total_shares_outstanding TEXT DEFAULT NULL,
     quorum_requirement DECIMAL(20, 9) DEFAULT NULL,
     broker_non_vote DECIMAL(20, 9) DEFAULT NULL,
-    mailing_status TEXT DEFAULT NULL
+    mailing_status TEXT DEFAULT NULL,
+    tabulation_distribution TEXT DEFAULT NULL
 );
 COMMENT ON TABLE update_meeting_request IS 'Original model name - UpdateMeetingRequest.';
+COMMENT ON COLUMN update_meeting_request.broker_search_date IS 'Original param name - brokerSearchDate.';
 COMMENT ON COLUMN update_meeting_request.record_date IS 'Original param name - recordDate.';
 COMMENT ON COLUMN update_meeting_request.mailing_date IS 'Original param name - mailingDate.';
 COMMENT ON COLUMN update_meeting_request.meeting_date IS 'Original param name - meetingDate.';
@@ -1354,6 +1468,7 @@ COMMENT ON COLUMN update_meeting_request.total_shares_outstanding IS 'Original p
 COMMENT ON COLUMN update_meeting_request.quorum_requirement IS 'Original param name - quorumRequirement.';
 COMMENT ON COLUMN update_meeting_request.broker_non_vote IS 'Total broker non-votes for this meeting. Original param name - brokerNonVote.';
 COMMENT ON COLUMN update_meeting_request.mailing_status IS 'Current status of the mailing process. Original param name - mailingStatus.';
+COMMENT ON COLUMN update_meeting_request.tabulation_distribution IS 'Original param name - tabulationDistribution.';
 
 --
 -- Table 'update_phase_request' generated from model 'UpdatePhaseRequest'
@@ -1494,4 +1609,3 @@ COMMENT ON COLUMN "user".last_name IS 'Original param name - lastName.';
 COMMENT ON COLUMN "user"."password" IS 'Legacy password field for seed data - not used with NextAuth';
 COMMENT ON COLUMN "user".account_id IS 'Original param name - accountId.';
 COMMENT ON COLUMN "user".avatar_url IS 'URL of the user&#39;s profile photo stored in Supabase Storage';
-

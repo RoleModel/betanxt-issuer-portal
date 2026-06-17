@@ -11,7 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import PieCenterLabel from "./PieChartCenterLabel";
 
@@ -31,6 +31,8 @@ interface PositionsVotedChartProps {
   setKeys?: string[];
   data?: Record<string, PositionsVotedData>;
   loading?: boolean;
+  /** Optional card subheader, e.g. the currently selected event. */
+  subheader?: string;
 }
 
 interface DonutChartProps {
@@ -83,18 +85,22 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
   );
 }
 
-export default function PositionsVotedChart({ setKeys = [], data = {} }: PositionsVotedChartProps) {
+export default function PositionsVotedChart({
+  setKeys = [],
+  data = {},
+  subheader,
+}: PositionsVotedChartProps) {
   const [selectedSetKey, setSelectedSetKey] = useState("");
 
-  React.useEffect(() => {
-    if (setKeys.length > 0 && !selectedSetKey) {
-      setSelectedSetKey(setKeys[0]);
-    }
-  }, [setKeys, selectedSetKey]);
+  // Derive the rendered key instead of syncing state via effects: fall back to
+  // the first set whenever nothing is selected yet or the previous selection
+  // belongs to another meeting, so the chart is populated on first load and
+  // after event switches.
+  const effectiveSetKey = setKeys.includes(selectedSetKey) ? selectedSetKey : (setKeys[0] ?? "");
 
   const selectedData =
-    selectedSetKey && data[selectedSetKey]
-      ? data[selectedSetKey]
+    effectiveSetKey && data[effectiveSetKey]
+      ? data[effectiveSetKey]
       : {
           registered: { voted: 0, notVoted: 0 },
           beneficial: { voted: 0, notVoted: 0 },
@@ -140,13 +146,14 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
   ];
 
   return (
-    <Card sx={{ flex: "1 0 auto" }}>
+    <Card sx={{ flex: "1 0 auto", height: "100%" }}>
       <CardHeader
         title="Positions Voted"
+        subheader={subheader}
         action={
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
-              value={selectedSetKey ?? ""}
+              value={effectiveSetKey}
               onChange={(e) => setSelectedSetKey(e.target.value)}
               displayEmpty
             >
@@ -165,10 +172,11 @@ export default function PositionsVotedChart({ setKeys = [], data = {} }: Positio
           </FormControl>
         }
       />
-      <CardContent>
+      <CardContent sx={{ height: "100%" }}>
         <Stack
-          direction={{ xs: "column", sm: "column", md: "column", lg: "row" }}
+          direction={{ xs: "column", sm: "column", md: "row", lg: "row" }}
           justifyContent={"center"}
+          alignItems={"center"}
           spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart

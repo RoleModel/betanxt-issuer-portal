@@ -4,6 +4,7 @@ import type { Viewport } from "next";
 
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import { LicenseInfo } from "@mui/x-license";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Agentation } from "agentation";
@@ -16,9 +17,12 @@ import RootLayoutClient from "@/components/Layout/RootLayoutClient";
 import SWRProvider from "@/components/Layout/SWRProvider";
 import GlobalStyle from "@/components/mui-styling/GlobalStyles";
 import ThemeRegistry from "@/components/mui-styling/ThemeRegistry";
+import MuiXLicense from "@/components/MuiXLicense";
 import { ChatbotProvider } from "@/contexts/ChatbotContext";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+
+LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_MUI_XGRID_LICENSE ?? "");
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
@@ -69,7 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {process.env.NODE_ENV === "development" && (
-          // eslint-disable-next-line @next/next/no-sync-scripts
           <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
         )}
       </head>
@@ -83,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <ChatbotProvider>
                     <ThemeRegistry>
                       <GlobalStyle />
+                      <MuiXLicense />
                       <RootLayoutClient>{children}</RootLayoutClient>
                     </ThemeRegistry>
                   </ChatbotProvider>

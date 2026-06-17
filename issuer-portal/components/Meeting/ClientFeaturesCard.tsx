@@ -2,25 +2,51 @@
 
 import { Alert, Card, CardContent, CardHeader, Chip, CircularProgress, Stack } from "@mui/material";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSWRConfig } from "swr";
 
 import { useClient } from "@/contexts/ClientContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { ALL_FEATURE_KEYS, type ClientFeatureKey } from "@/hooks/useClients";
-import { FEATURE_LABELS } from "@/utils/clientFeatures";
+import { ALL_FEATURE_KEYS, type ClientFeatureKey, DEFAULT_FEATURE_KEYS } from "@/hooks/useClients";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { FEATURE_KEYS, FEATURE_LABELS } from "@/utils/clientFeatures";
 
 interface ClientFeaturesCardProps {
   clientTicker: string;
 }
 
+/**
+ * CSM/Admin-only card of toggleable feature chips that control which
+ * navigation tabs (Agenda, Mailing, Tabulation, Reports, NOBO, …) are visible
+ * for a client. Renders nothing for non-CSM users.
+ *
+ * Local state initialises to {@link DEFAULT_FEATURE_KEYS} (rather than all
+ * features) until the client's saved selection loads, so gated features like
+ * NOBO never flash on by default. Chip toggles save optimistically: the chip
+ * flips immediately, the client context is patched so `EventTabs` updates
+ * without waiting on SWR revalidation, and the previous selection is restored
+ * if the PUT fails.
+ */
 export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
   const { data: session } = useSession();
   const { currentClient, updateCurrentClientFeatures } = useClient();
   const { mutate } = useSWRConfig();
+  // The event manager lives outside [clientTicker] routes, so pass the
+  // meeting's ticker explicitly for per-client flag targeting.
+  const { flags } = useFeatureFlags(clientTicker);
   const isCSM = session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
 
-  const [enabledFeatures, setEnabledFeatures] = useState<ClientFeatureKey[]>(ALL_FEATURE_KEYS);
+  // The NOBO chip is gated behind the Vercel `enable-nobo` flag — when the
+  // flag is off, CSMs cannot toggle NOBO per client at all.
+  const visibleFeatureKeys = useMemo(
+    () =>
+      flags.enableNobo
+        ? ALL_FEATURE_KEYS
+        : ALL_FEATURE_KEYS.filter((feature) => feature !== FEATURE_KEYS.nobo),
+    [flags.enableNobo],
+  );
+
+  const [enabledFeatures, setEnabledFeatures] = useState<ClientFeatureKey[]>(DEFAULT_FEATURE_KEYS);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -89,7 +115,7 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
       />
       <CardContent>
         <Stack direction="row" flexWrap="wrap" gap={0.75} mb={2}>
-          {ALL_FEATURE_KEYS.map((feature) => {
+          {visibleFeatureKeys.map((feature) => {
             const isEnabled = enabledFeatures.includes(feature);
             return (
               <Chip

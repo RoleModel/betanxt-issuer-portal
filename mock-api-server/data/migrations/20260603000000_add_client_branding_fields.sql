@@ -1,4 +1,0 @@
-ALTER TABLE clients
-  ADD COLUMN IF NOT EXISTS logo_url TEXT,
-  ADD COLUMN IF NOT EXISTS primary_color TEXT,
-  ADD COLUMN IF NOT EXISTS secondary_color TEXT;

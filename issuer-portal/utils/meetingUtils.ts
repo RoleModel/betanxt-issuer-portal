@@ -1,4 +1,5 @@
 // Meeting utility functions
+import { parseDisplayDate } from "@/lib/formats";
 
 export interface MeetingPhase {
   id: string;
@@ -67,7 +68,9 @@ export function formatMeetingDate(dateString?: string): string {
   if (!dateString) return "Date TBD";
 
   try {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const date = parseDisplayDate(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",

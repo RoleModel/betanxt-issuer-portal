@@ -126,6 +126,24 @@ export const loadClientLogoAsPngBase64 = async (opts: {
   return await blobToDataUrl(await (await fetch(defaultPng)).blob());
 };
 
+/**
+ * Fetches an image URL and returns it as a PNG data URL, rasterizing SVG (or
+ * any non-PNG format) via canvas. Returns `undefined` instead of falling back
+ * when the image cannot be fetched or converted.
+ */
+export const loadImageAsPngDataUrl = async (url: string): Promise<string | undefined> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return undefined;
+
+    const blob = await res.blob();
+    if (blob.type === "image/png") return await blobToDataUrl(blob);
+    return await rasterizeImageToPng(blob);
+  } catch {
+    return undefined;
+  }
+};
+
 const blobToDataUrl = (blob: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();

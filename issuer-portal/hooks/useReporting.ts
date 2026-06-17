@@ -27,7 +27,7 @@ interface ReportingData {
   mappedAuditComplianceData: MappedAuditComplianceData[];
   mappedQuorumPerformanceData: QuorumData[];
   availableDirectors: string[];
-  availableMeetings: { id: string; title: string }[];
+  availableMeetings: { id: string; title: string; year: number | null }[];
 }
 
 interface DirectorPerformanceData {
@@ -38,6 +38,11 @@ interface DirectorPerformanceData {
   totalVotes: number;
 }
 
+/**
+ * Voting-method distribution across all positions. Early/Late timing
+ * percentages were intentionally removed (002-tabulation-enhancements) —
+ * the breakdown is by channel only.
+ */
 interface ParticipationData {
   webVoting: number;
   printVoting: number;
@@ -82,8 +87,6 @@ interface QuorumData {
   quorumMet: boolean;
   participationRate: number;
   daysToQuorum: number | null;
-  earlyVotesPct: number;
-  lateVotesPct: number;
 }
 
 // UI-specific mapped data interfaces
@@ -293,6 +296,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
   const availableMeetings = completedMeetings.map((m) => ({
     id: m.id ?? "",
     title: m.title ?? "Untitled Meeting",
+    year: m.meetingYear ?? (m.meetingDate ? new Date(m.meetingDate).getFullYear() : null),
   }));
 
   const result = {
@@ -387,6 +391,13 @@ function extractDirectorNameFromTitle(title: string): string | null {
   return null;
 }
 
+/**
+ * Counts positions per voting channel (WEB / PRINT / IVR, defaulting unknown
+ * sources to WEB). Early/Late vote-timing splits are no longer computed.
+ *
+ * @param positions - All positions across the reported meetings
+ * @returns Per-channel vote counts and the overall total
+ */
 function calculateParticipationData(positions: Position[]): ParticipationData {
   const votingMethods = positions.reduce(
     (acc, position) => {
@@ -601,36 +612,6 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
       }
     }
 
-    // Calculate early and late vote percentages
-    let earlyVotesPct = 0;
-    let lateVotesPct = 0;
-    if (datedVotes.length > 0 && meeting.meetingDate && totalSharesOutstandingNum > 0) {
-      const firstVoteDate = datedVotes[0].date;
-      const meetingDate = new Date(meeting.meetingDate);
-
-      // Early votes: first 7 days after first vote
-      const earlyEndDate = new Date(firstVoteDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-      // Late votes: last 7 days before meeting
-      const lateStartDate = new Date(meetingDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      const earlyShares = datedVotes
-        .filter((v) => v.date <= earlyEndDate)
-        .reduce((s, v) => s + v.shares, 0);
-
-      const lateShares = datedVotes
-        .filter((v) => v.date >= lateStartDate && v.date <= meetingDate)
-        .reduce((s, v) => s + v.shares, 0);
-
-      earlyVotesPct = (earlyShares / totalSharesOutstandingNum) * 100;
-      lateVotesPct = (lateShares / totalSharesOutstandingNum) * 100;
-
-      // Debug logging for annual meetings
-      if (meeting.id?.includes("annual-meeting")) {
-        // Debug data would go here if needed
-      }
-    }
-
     return {
       meetingId: meeting.id ?? "",
       meetingTitle: meeting.title ?? "Untitled Meeting",
@@ -639,8 +620,6 @@ function calculateQuorumData(meetings: Meeting[], positions: Position[]): Quorum
       quorumMet: actualShares >= requiredShares,
       participationRate,
       daysToQuorum,
-      earlyVotesPct,
-      lateVotesPct,
     };
   });
 }

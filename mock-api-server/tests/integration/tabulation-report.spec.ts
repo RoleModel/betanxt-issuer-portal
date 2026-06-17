@@ -250,7 +250,12 @@ test.describe("Tabulation Report API", () => {
       expect(typeof data.id).toBe("string");
       expect(typeof data.meetingId).toBe("string");
       expect(Array.isArray(data.setKeys)).toBe(true);
-      expect(Array.isArray(data.brokerVoting)).toBe(true);
+      // brokerVoting is keyed by proposal (proposal1, proposal2, ...) with arrays of broker entries
+      expect(typeof data.brokerVoting).toBe("object");
+      expect(Array.isArray(data.brokerVoting)).toBe(false);
+      for (const entries of Object.values(data.brokerVoting)) {
+        expect(Array.isArray(entries)).toBe(true);
+      }
       expect(Array.isArray(data.shareRangePerformance)).toBe(true);
 
       // Complex nested objects

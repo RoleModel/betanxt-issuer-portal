@@ -9,14 +9,21 @@ import { clientsSWRConfig } from "@/lib/swr-config";
 import { isIssuerUser } from "@/utils/isIssuerUser";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
+/**
+ * A toggleable portal feature that can be enabled or disabled per client.
+ * Drives which event tabs render (see `useClientFeatures`); `nobo` gates the
+ * NOBO positions page.
+ */
 export type ClientFeatureKey =
   | "documents"
   | "mailing"
   | "tabulation"
   | "reports"
   | "fileTransfer"
-  | "agenda";
+  | "agenda"
+  | "nobo";
 
+/** Every known feature key, including opt-in upsell features like `nobo`. */
 export const ALL_FEATURE_KEYS: ClientFeatureKey[] = [
   "documents",
   "mailing",
@@ -24,7 +31,16 @@ export const ALL_FEATURE_KEYS: ClientFeatureKey[] = [
   "reports",
   "fileTransfer",
   "agenda",
+  "nobo",
 ];
+
+/**
+ * Features enabled when a client has no explicit enabledFeatures value.
+ * NOBO is an upsell (Engage) feature and must be opted into per client.
+ */
+export const DEFAULT_FEATURE_KEYS: ClientFeatureKey[] = ALL_FEATURE_KEYS.filter(
+  (key) => key !== "nobo",
+);
 
 export interface Client {
   id: string;
@@ -136,10 +152,12 @@ const normalizeClient = (raw: unknown): Client | null => {
     phase,
     meeting_id: asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
     accounts,
+    // A stored array (even empty) is admin intent and is preserved as-is;
+    // only a missing/null column falls back to the defaults (NOBO off).
     enabledFeatures: (() => {
       const raw = record.enabledFeatures ?? record.enabled_features;
       if (Array.isArray(raw)) return raw as ClientFeatureKey[];
-      return ALL_FEATURE_KEYS;
+      return DEFAULT_FEATURE_KEYS;
     })(),
   };
 };

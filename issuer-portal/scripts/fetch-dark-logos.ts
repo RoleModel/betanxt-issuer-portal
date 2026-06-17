@@ -7,7 +7,7 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { brandConfigs, type BrandConfig } from "../utils/brandConfig";
+import { type BrandConfig, brandConfigs } from "../utils/brandConfig";
 import {
   BRANDFETCH_API_KEY,
   darkAssetPublicPath,

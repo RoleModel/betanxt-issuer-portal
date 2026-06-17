@@ -2645,7 +2645,8 @@ components:
               - reports
               - fileTransfer
               - agenda
-          description: Feature modules enabled for this client
+              - nobo
+          description: Feature modules enabled for this client. "nobo" is present when Engage functionality is active.
           example: ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"]
         createdAt:
           type: string
@@ -3142,6 +3143,24 @@ components:
         dateVoted:
           type: string
           nullable: true
+        holderCategory:
+          type: string
+          nullable: true
+          enum: [REGISTERED, PLAN, BENEFICIAL, NOBO]
+          description: Holder population classification. REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
+          example: "REGISTERED"
+        state:
+          type: string
+          nullable: true
+          maxLength: 2
+          description: US state code of the holder's address; null when unknown.
+          example: "NC"
+        country:
+          type: string
+          nullable: true
+          maxLength: 2
+          description: ISO 3166-1 alpha-2 country code.
+          example: "US"
         createdAt:
           type: string
           format: date-time
@@ -3489,7 +3508,7 @@ components:
           type: array
           items:
             type: string
-            enum: [documents, mailing, tabulation, reports, fileTransfer, agenda]
+            enum: [documents, mailing, tabulation, reports, fileTransfer, agenda, nobo]
           description: Feature modules enabled for this client
           default: [documents, mailing, tabulation, reports, fileTransfer, agenda]
 
@@ -3557,7 +3576,8 @@ components:
               - reports
               - fileTransfer
               - agenda
-          description: Feature modules enabled for this client
+              - nobo
+          description: Feature modules enabled for this client. "nobo" is present when Engage functionality is active.
 
     CreateUserRequest:
       type: object
@@ -4447,20 +4467,22 @@ components:
           description: Unique set keys from position records
           x-sql-type: TEXT[]
         brokerVoting:
-          type: array
-          description: Top 6 brokers by total shares
+          type: object
+          description: Top brokers by total shares, keyed by proposal (e.g. proposal1, proposal2)
           x-sql-type: JSONB
-          items:
-            type: object
-            properties:
-              broker:
-                type: string
-              sharesFor:
-                type: number
-              sharesAgainst:
-                type: number
-              sharesAbstain:
-                type: number
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                broker:
+                  type: string
+                sharesFor:
+                  type: number
+                sharesAgainst:
+                  type: number
+                sharesAbstain:
+                  type: number
         shareRangePerformance:
           type: array
           description: Performance metrics across 18 share ranges

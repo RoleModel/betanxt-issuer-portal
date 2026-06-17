@@ -62,7 +62,7 @@ export default function MailingPage() {
         <Grid size={{ xs: 12, md: 12, lg: 9 }}>
           <Stack spacing={2}>
             <Card>
-              <CardHeader title="Primary Mailing Summary" />
+              <CardHeader title="Primary Mailing Summary" sx={{ paddingBottom: 0 }} />
               <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, md: 4 }}>

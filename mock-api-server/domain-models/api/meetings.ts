@@ -35,6 +35,10 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 // Transform raw Supabase client row (snake_case) to the camelCase OpenAPI shape.
 // The `clients` secondary query returns snake_case keys; this ensures the API
 // response always matches the `Clients` schema regardless of how the data arrived.
+// `enabledFeatures` accepts either key style and is narrowed to the feature-flag
+// union, which now includes "nobo" for Engage-enabled clients
+// (002-tabulation-enhancements); when neither key holds an array it defaults to
+// every feature except "nobo".
 function transformClientSummary(raw: unknown): Meeting["client"] {
   if (typeof raw !== "object" || raw === null) return undefined;
   const c = raw as Record<string, unknown>;
@@ -85,6 +89,7 @@ function transformClientSummary(raw: unknown): Meeting["client"] {
           | "reports"
           | "fileTransfer"
           | "agenda"
+          | "nobo"
         )[])
       : Array.isArray(c.enabled_features)
         ? (c.enabled_features as (
@@ -94,6 +99,7 @@ function transformClientSummary(raw: unknown): Meeting["client"] {
             | "reports"
             | "fileTransfer"
             | "agenda"
+            | "nobo"
           )[])
         : ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"],
     createdAt: typeof c.createdAt === "string" ? c.createdAt : undefined,

@@ -27,7 +27,18 @@ interface ApiResponse<T> {
   };
 }
 
-// Transform snake_case database fields to camelCase API fields
+/**
+ * Transforms a snake_case `position` database row into the camelCase OpenAPI
+ * `Position` shape.
+ *
+ * The holder-enrichment fields added for 002-tabulation-enhancements
+ * (`holderCategory`, `state`, `country`) are passed through as-is — including
+ * `null` — because the API schema models them as nullable, letting clients
+ * distinguish "unknown" from absent.
+ *
+ * @param dbPosition - Raw Supabase position row
+ * @returns The API-shaped position
+ */
 function transformPosition(dbPosition: PositionRow): Position {
   return {
     id: dbPosition.id ?? "",
@@ -43,11 +54,22 @@ function transformPosition(dbPosition: PositionRow): Position {
     sharesVoted: nullToUndefined(dbPosition.shares_voted),
     source: nullToUndefined(dbPosition.source),
     dateVoted: nullToUndefined(dbPosition.date_voted),
+    holderCategory: dbPosition.holder_category,
+    state: dbPosition.state,
+    country: dbPosition.country,
     createdAt: nullToUndefined(dbPosition.created_at),
     updatedAt: nullToUndefined(dbPosition.updated_at),
   };
 }
 
+/**
+ * Lists positions with optional meeting/vote-status filters, pagination, and
+ * ordering. Rows are mapped through {@link transformPosition}, so responses
+ * include the holder-category and geography enrichment fields.
+ *
+ * @param params - Optional filters and pagination (defaults to the first 1000 rows)
+ * @returns `{ positions }` wrapped in the standard API response envelope
+ */
 export async function listPositions(params?: {
   meetingId?: string;
   cusip?: string;

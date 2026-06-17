@@ -26,8 +26,6 @@ interface QuorumData {
   quorumMet: boolean;
   participationRate: number;
   daysToQuorum: number | null;
-  earlyVotesPct: number;
-  lateVotesPct: number;
 }
 
 interface QuorumPerformanceTableProps {
@@ -37,6 +35,12 @@ interface QuorumPerformanceTableProps {
   clientTicker?: string;
 }
 
+/**
+ * Per-event quorum performance table: Days to Quorum, Participation %, and
+ * whether quorum was met. The Early Votes % / Late Votes % columns were
+ * replaced by these in 002-tabulation-enhancements. Event titles link to the
+ * event page when a `clientTicker` is provided.
+ */
 const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
   data,
   loading = false,
@@ -74,8 +78,8 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                 <TableCell padding="none" align="right">
                   Days to Quorum
                 </TableCell>
-                <TableCell align="right">Early Votes %</TableCell>
-                <TableCell align="right">Late Votes % (1 wk)</TableCell>
+                <TableCell align="right">Participation %</TableCell>
+                <TableCell align="right">Quorum Met</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -90,7 +94,7 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                           variant="text"
                           color="info"
                           component={Link}
-                          href={`/clients/${clientTicker}/events/${row.meetingId}`}
+                          href={`/${clientTicker}/meeting/${row.meetingId}`}
                         >
                           {displayTitle}
                         </Button>
@@ -104,10 +108,10 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
                       {row.daysToQuorum ?? "--"}
                     </TableCell>
                     <TableCell size="small" align="right">
-                      {row.earlyVotesPct.toFixed(1)}%
+                      {row.participationRate.toFixed(1)}%
                     </TableCell>
                     <TableCell size="small" align="right">
-                      {row.lateVotesPct.toFixed(1)}%
+                      {row.quorumMet ? "Yes" : "No"}
                     </TableCell>
                   </TableRow>
                 );

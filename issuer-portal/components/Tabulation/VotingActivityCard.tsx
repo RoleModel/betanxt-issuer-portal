@@ -1,32 +1,36 @@
 "use client";
 
-import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Skeleton, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import React, { useMemo } from "react";
 
-import type { VotingSummary } from "@/types/phases";
-
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { type RegisteredVotingMethods, useVotingTabulation } from "@/hooks/useVotingTabulation";
 
 interface VotingActivityCardProps {
   meetingId: string;
-  votingSummaryOverride?: VotingSummary | null;
+  /** Pre-computed registered-holder method counts to render instead of fetching by `meetingId`. */
+  registeredVotingMethodsOverride?: RegisteredVotingMethods | null;
   loadingOverride?: boolean;
 }
 
+/**
+ * Donut chart of vote submissions by method (Web / Print / IVR) scoped to
+ * Registered Holders only — beneficial votes are excluded upstream by
+ * {@link useVotingTabulation}, and the header/empty state call out the
+ * registered-only scope. Zero-count methods are omitted from the chart.
+ */
 export default function VotingActivityCard({
   meetingId,
-  votingSummaryOverride,
+  registeredVotingMethodsOverride,
   loadingOverride = false,
 }: VotingActivityCardProps) {
-  const { votingSummary, loading } = useVotingTabulation(meetingId);
-  const resolvedSummary = votingSummaryOverride ?? votingSummary;
+  const { registeredVotingMethods, loading } = useVotingTabulation(meetingId);
+  const resolvedMethods = registeredVotingMethodsOverride ?? registeredVotingMethods;
 
   const votingMethodsData = useMemo(() => {
-    if (!resolvedSummary) return [];
+    if (!resolvedMethods) return [];
 
-    // Build array of voting methods from actual API data
     const methods: {
       id: string;
       label: string;
@@ -34,39 +38,35 @@ export default function VotingActivityCard({
       color: string;
     }[] = [];
 
-    // Add web votes if present
-    if (resolvedSummary.votingMethods.web > 0) {
+    if (resolvedMethods.web > 0) {
       methods.push({
         id: "web",
         label: "Web",
-        value: resolvedSummary.votingMethods.web,
+        value: resolvedMethods.web,
         color: "var(--mui-palette-chartSeries-0-main)",
       });
     }
 
-    // Add print votes if present (labeled as "Print" to match CSV data)
-    if (resolvedSummary.votingMethods.paper > 0) {
+    if (resolvedMethods.paper > 0) {
       methods.push({
         id: "print",
         label: "Print",
-        value: resolvedSummary.votingMethods.paper,
+        value: resolvedMethods.paper,
         color: "var(--mui-palette-chartSeries-1-main)",
       });
     }
 
-    // Add IVR votes if present (labeled as "IVR" to match CSV data)
-    if (resolvedSummary.votingMethods.phone > 0) {
+    if (resolvedMethods.phone > 0) {
       methods.push({
         id: "ivr",
         label: "IVR",
-        value: resolvedSummary.votingMethods.phone,
+        value: resolvedMethods.phone,
         color: "var(--mui-palette-chartSeries-2-main)",
       });
     }
 
-    // Return the methods array (already filtered for values > 0)
     return methods;
-  }, [resolvedSummary]);
+  }, [resolvedMethods]);
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0);
 
@@ -77,7 +77,14 @@ export default function VotingActivityCard({
 
   return (
     <Card sx={{ flex: 1, height: "100%" }}>
-      <CardHeader title="Voting Activity" />
+      <CardHeader
+        title="Voting Activity — Registered Holders"
+        subheader={
+          <Typography variant="caption" color="text.secondary">
+            Reflects Registered Holder voting only
+          </Typography>
+        }
+      />
       <CardContent>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={250} />
@@ -91,7 +98,7 @@ export default function VotingActivityCard({
               color: "text.secondary",
             }}
           >
-            No voting activity data available
+            No Registered Holder voting activity available
           </Box>
         ) : (
           <Box
@@ -125,7 +132,7 @@ export default function VotingActivityCard({
               <PieCenterLabel
                 data={{
                   total,
-                  label: "Votes",
+                  label: "Registered Votes",
                   sliceData: pieChartData,
                 }}
               />

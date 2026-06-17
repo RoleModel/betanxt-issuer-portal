@@ -12,14 +12,14 @@ repos:
     hooks:
       - id: eslint
         name: eslint
-        entry: pnpm exec eslint --no-warn-ignored
+        entry: pnpm exec eslint --fix --no-warn-ignored
         language: system
         files: \.(js|jsx|ts|tsx)$
         exclude: ^(\.agents|\.claude|studio-tandra-peters)/
         pass_filenames: true
       - id: oxfmt
         name: oxfmt
-        entry: pnpm run fmt:check
+        entry: pnpm run fmt
         language: system
         files: \.(js|jsx|ts|tsx)$
         pass_filenames: true

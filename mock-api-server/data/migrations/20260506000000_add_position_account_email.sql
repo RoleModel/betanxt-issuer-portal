@@ -1,2 +1,0 @@
--- Intentionally empty. Contents moved to 20260512202154_post_schema_alterations.sql
--- to ensure it runs after the initial schema is created.
