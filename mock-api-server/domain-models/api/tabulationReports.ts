@@ -329,9 +329,16 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
     nonDtcVotedShares: normalizedReport.nonDtcVoteStatus.votedSubtotalShares,
     nonDtcUnvotedShares: normalizedReport.nonDtcVoteStatus.unvotedShares,
   };
-  normalizedReport.positionsVoted.votedShares =
+
+  // Keep the voted-share total from `positions_voted` when the detailed vote
+  // distribution is stale or partially empty in the seed data.
+  const derivedVotedShares =
     normalizedReport.voteDistribution.dtcVotedShares +
     normalizedReport.voteDistribution.nonDtcVotedShares;
+  normalizedReport.positionsVoted.votedShares = Math.max(
+    normalizedReport.positionsVoted.votedShares,
+    derivedVotedShares,
+  );
 
   return normalizedReport;
 }
