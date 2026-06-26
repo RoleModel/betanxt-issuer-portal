@@ -266,8 +266,8 @@ const fetchVotingData = async (meetingId: string) => {
   const phoneVotes = positions.filter((p) => p.votingSource === "IVR").length;
 
   // Registered-only voting methods (FR-001/FR-002 — Voting Activity chart)
-  const registeredPositions = positions.filter((p) =>
-    isRegisteredOnlyHolder(p.holderCategory, p.accountType),
+  const registeredPositions = positions.filter(
+    (p) => isRegisteredOnlyHolder(p.holderCategory, p.accountType) && p.voteStatus === "Voted",
   );
   const registeredVotingMethods: RegisteredVotingMethods = {
     web: registeredPositions.filter((p) => p.votingSource === "WEB").length,

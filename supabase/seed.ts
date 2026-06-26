@@ -1401,6 +1401,24 @@ const main = async () => {
     ADPT: { meetingDate: "2026-06-09", recordDate: "2026-04-10" },
   };
 
+  const real2026JulyMeetings: Record<string, { meetingDate: string; recordDate: string }> =
+    Object.fromEntries(
+      Object.entries(real2026Meetings).map(([ticker, dates]) => {
+        const originalMeetingDate = DateTime.fromISO(dates.meetingDate);
+        const julyMeetingDate = originalMeetingDate.set({ month: 7 });
+        const meetingShiftDays = Math.round(julyMeetingDate.diff(originalMeetingDate, "days").days);
+        const julyRecordDate = DateTime.fromISO(dates.recordDate).plus({ days: meetingShiftDays });
+
+        return [
+          ticker,
+          {
+            meetingDate: julyMeetingDate.toISODate() || julyMeetingDate.toFormat("yyyy-MM-dd"),
+            recordDate: julyRecordDate.toISODate() || julyRecordDate.toFormat("yyyy-MM-dd"),
+          },
+        ];
+      }),
+    ) as Record<string, { meetingDate: string; recordDate: string }>;
+
   // 2 meetings per year: Annual + Special for 2022-2026
   const meetingsByYear = [
     {
@@ -1448,7 +1466,7 @@ const main = async () => {
 
         if ("useRealDates" in meeting && meeting.useRealDates) {
           // Use real CSV-based dates for 2025 and 2026
-          const realDataSource = yearConfig.year === 2026 ? real2026Meetings : real2025Meetings;
+          const realDataSource = yearConfig.year === 2026 ? real2026JulyMeetings : real2025Meetings;
           const realData = realDataSource[client.ticker];
 
           if (realData) {
