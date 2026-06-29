@@ -229,7 +229,16 @@ WHERE meeting_id = '${meeting2026}';`);
   sqlStatements.push(`
 UPDATE tabulation_report
 SET
-  positions_voted = '{"voted": 46, "unvoted": 0, "totalShares": ${totalShares2025}, "votedShares": 2564849}'::jsonb,
+  positions_voted = (
+    SELECT jsonb_build_object(
+      'voted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Voted'), 0),
+      'unvoted', COALESCE(COUNT(*) FILTER (WHERE vote_status = 'Unvoted'), 0),
+      'totalShares', ${totalShares2025},
+      'votedShares', COALESCE(SUM(CASE WHEN vote_status = 'Voted' THEN shares_voted ELSE 0 END), 0)
+    )
+    FROM position
+    WHERE meeting_id = '${meeting2025}'
+  ),
   last_calculated_at = NOW(),
   updated_at = NOW()
 WHERE meeting_id = '${meeting2025}';`);
@@ -2587,6 +2596,13 @@ const main = async () => {
   // Generate proposals with all fields
   sqlStatements.push("-- Insert proposals");
   const proposalIds: string[] = [];
+  const proposalIdsByMeeting: Record<string, string[]> = {};
+
+  const registerProposalId = (meetingId: string, proposalId: string) => {
+    proposalIds.push(proposalId);
+    proposalIdsByMeeting[meetingId] ??= [];
+    proposalIdsByMeeting[meetingId].push(proposalId);
+  };
 
   meetingIds.forEach((meetingId, meetingIndex) => {
     const client = meetingToClient[meetingId];
@@ -2741,7 +2757,7 @@ const main = async () => {
         const cleanTitle = proposal.title.replace(/^\d+\.\d+\s+/, "");
 
         const proposalId = copycat.uuid(`proposal-${meetingId}-${parseFloat(proposal.number)}`);
-        proposalIds.push(proposalId);
+        registerProposalId(meetingId, proposalId);
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split("-").slice(-1)[0];
@@ -2819,7 +2835,7 @@ const main = async () => {
       } else if (hasCsvData) {
         // For non-director CSV proposals (any company with CSV data)
         const proposalId = copycat.uuid(`proposal-${meetingId}-${parseFloat(proposal.number)}`);
-        proposalIds.push(proposalId);
+        registerProposalId(meetingId, proposalId);
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split("-").slice(-1)[0];
@@ -2906,7 +2922,7 @@ const main = async () => {
 
         directors.forEach((director, dirIndex) => {
           const proposalId = copycat.uuid(`proposal-${meetingId}-1${dirIndex}`);
-          proposalIds.push(proposalId);
+          registerProposalId(meetingId, proposalId);
 
           // Generate results for each director
           const meetingPhase = meetingPhaseMap[meetingId] ?? 1;
@@ -2960,7 +2976,7 @@ const main = async () => {
         });
       } else if (!hasCsvData && hasCsvProposals) {
         const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + 1}`);
-        proposalIds.push(proposalId);
+        registerProposalId(meetingId, proposalId);
 
         // For director elections, extract director name from title
         let directorName: string | null = null;
@@ -3022,7 +3038,7 @@ const main = async () => {
       } else if (!hasCsvData) {
         // For companies without CSV data — non-director synthetic proposals
         const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + directors.length}`);
-        proposalIds.push(proposalId);
+        registerProposalId(meetingId, proposalId);
 
         const frequencyOptions =
           proposal.type === "Say on Pay Frequency"
@@ -3153,6 +3169,7 @@ const main = async () => {
         positionToMeetingMap[positionId] = meetingId;
 
         // For Phase 1-5, override vote status to Unvoted
+        const normalizedAccountType = normalizeAccountType(position.accountType);
         let voteStatus = position.voteStatus ?? "Unvoted";
         let sharesVoted = position.sharesVoted ?? 0;
         let source = position.source;
@@ -3177,7 +3194,7 @@ const main = async () => {
             `${sqlValue(positionId)}, ` +
             `${sqlValue(meetingId)}, ` +
             `${sqlValue(position.cusip)}, ` +
-            `${sqlValue(normalizeAccountType(position.accountType))}, ` +
+            `${sqlValue(normalizedAccountType)}, ` +
             `${sqlValue(position.setKey)}, ` +
             `${sqlValue(position.name)}, ` +
             `${position.accountNumber ? sqlValue(position.accountNumber) : sqlValue("CSV" + String(index + 1).padStart(6, "0"))}, ` +
@@ -3191,6 +3208,12 @@ const main = async () => {
             `${sqlValue(createdAt)}, ` +
             `${sqlValue(createdAt)});`,
         );
+
+        positionVoteMeta[positionId] = {
+          meetingId,
+          shares: position.shares,
+          sharesVoted: voteStatus === "Voted" ? sharesVoted : 0,
+        };
       });
 
       // Generate Non-DTC positions from vote status summary if available
@@ -3599,16 +3622,7 @@ const main = async () => {
   // Create a mapping from meetingId to proposalIds for efficient lookup
   const meetingToProposalsMap: Record<string, string[]> = {};
   meetingIds.forEach((meetingId) => {
-    meetingToProposalsMap[meetingId] = [];
-  });
-
-  // Group proposals by meeting based on the generation pattern
-  let proposalIndex = 0;
-  meetingIds.forEach((meetingId) => {
-    // Each meeting has ~6 proposals (3 directors + 3 other proposals)
-    const proposalsForMeeting = proposalIds.slice(proposalIndex, proposalIndex + 6);
-    meetingToProposalsMap[meetingId] = proposalsForMeeting;
-    proposalIndex += 6;
+    meetingToProposalsMap[meetingId] = proposalIdsByMeeting[meetingId] ?? [];
   });
 
   let totalVotes = 0;
@@ -4323,6 +4337,10 @@ CROSS JOIN generate_series(1, 40) AS gs(i);`);
 UPDATE "position"
 SET holder_category = CASE
   WHEN account_type = 'DTC/CDS' THEN 'REGISTERED'::position_holder_category
+  WHEN account_number LIKE 'ACC%' OR account_number LIKE 'CSV%'
+    THEN 'REGISTERED'::position_holder_category
+  WHEN account_number LIKE 'NDTC%'
+    THEN 'BENEFICIAL'::position_holder_category
   WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 55
     THEN 'REGISTERED'::position_holder_category
   WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 70

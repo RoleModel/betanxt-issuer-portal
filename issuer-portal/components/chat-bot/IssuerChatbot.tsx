@@ -44,6 +44,24 @@ interface StoredConversation {
 }
 
 const STORAGE_KEY = "chatbot-conversations";
+const MAX_MESSAGES_PER_REQUEST = 10;
+
+const toRequestMessage = (message: UIMessage): UIMessage => {
+  const textContent = getMessageContent(message);
+
+  return {
+    id: message.id,
+    role: message.role,
+    parts: textContent
+      ? [
+          {
+            type: "text",
+            text: textContent,
+          },
+        ]
+      : [],
+  };
+};
 
 const getMessageContent = (message: UIMessage): string => {
   return message.parts
@@ -91,6 +109,16 @@ export default function IssuerChatbot() {
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
+      prepareSendMessagesRequest: ({ messages: pendingMessages, body, headers, credentials }) => {
+        return {
+          body: {
+            ...body,
+            messages: pendingMessages.slice(-MAX_MESSAGES_PER_REQUEST).map(toRequestMessage),
+          },
+          headers,
+          credentials,
+        };
+      },
     }),
   });
   const { executeAction, isEnabled, isOpen, closeChatbot } = useChatbotContext();

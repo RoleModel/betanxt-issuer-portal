@@ -741,11 +741,15 @@ export function useTabulationInsights(
   const beneficialVsRegistered = React.useMemo(
     () => ({
       beneficial: filteredPositions
-        .filter((position) => getHolderType(position) === "beneficial")
-        .reduce((sum, position) => sum + position.shares, 0),
+        .filter(
+          (position) => getHolderType(position) === "beneficial" && position.voteStatus === "Voted",
+        )
+        .reduce((sum, position) => sum + position.sharesVoted, 0),
       registered: filteredPositions
-        .filter((position) => getHolderType(position) === "registered")
-        .reduce((sum, position) => sum + position.shares, 0),
+        .filter(
+          (position) => getHolderType(position) === "registered" && position.voteStatus === "Voted",
+        )
+        .reduce((sum, position) => sum + position.sharesVoted, 0),
     }),
     [filteredPositions],
   );

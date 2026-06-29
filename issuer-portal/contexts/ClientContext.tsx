@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
+import { clearSessionCache } from "@/domain-models/apiClient";
 import { type Client, type ClientFeatureKey, useClients } from "@/hooks/useClients";
 import { isIssuerUser } from "@/utils/isIssuerUser";
 
@@ -31,6 +32,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUserSwitching, setIsUserSwitching] = useState(false);
+
+  useEffect(() => {
+    clearSessionCache();
+  }, [session?.user?.id, sessionStatus]);
 
   // Extract client from ticker-based URL structure
   const extractTickerFromURL = useCallback((currentPathname: string): string | null => {

@@ -98,6 +98,7 @@ interface ChatAccessContext {
 const INTERNAL_PATH_REGEX = /^\/(?!\/).*/;
 const TICKER_PATH_REGEX = /^\/([A-Za-z]{2,5})(?:\/|$)/;
 const MAX_QUERY_LIMIT = 25;
+const MAX_CONTEXT_MESSAGES = 10;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 const getCurrentPath = (request: Request): string => {
@@ -540,6 +541,25 @@ const getMessageText = (message: UIMessage): string => {
     .trim();
 };
 
+const sanitizeMessagesForModel = (messages: UIMessage[]): UIMessage[] => {
+  return messages.slice(-MAX_CONTEXT_MESSAGES).map((message) => {
+    const text = getMessageText(message);
+
+    return {
+      id: message.id,
+      role: message.role,
+      parts: text
+        ? [
+            {
+              type: "text" as const,
+              text,
+            },
+          ]
+        : [],
+    };
+  });
+};
+
 const getFallbackAssistantReply = (messages: UIMessage[], currentPath: string): string => {
   const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
 
@@ -650,12 +670,16 @@ const buildChatModel = () => {
 
 const tryHandleMeetingOverviewPrompt = async ({
   messages,
+  sanitizedMessages,
   accessContext,
 }: {
   messages: UIMessage[];
+  sanitizedMessages: UIMessage[];
   accessContext: ChatAccessContext;
 }): Promise<Response | null> => {
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
+  const latestUserMessage = [...sanitizedMessages]
+    .reverse()
+    .find((message) => message.role === "user");
 
   if (!latestUserMessage) {
     return null;
@@ -750,12 +774,16 @@ const tryHandleMeetingOverviewPrompt = async ({
 
 const tryHandleDirectorSlatePrompt = async ({
   messages,
+  sanitizedMessages,
   accessContext,
 }: {
   messages: UIMessage[];
+  sanitizedMessages: UIMessage[];
   accessContext: ChatAccessContext;
 }): Promise<Response | null> => {
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
+  const latestUserMessage = [...sanitizedMessages]
+    .reverse()
+    .find((message) => message.role === "user");
 
   if (!latestUserMessage) {
     return null;
@@ -1171,12 +1199,21 @@ export async function POST(request: Request) {
       return new Response("Ask a question to get started.", { status: 400 });
     }
 
+    const sanitizedMessages = sanitizeMessagesForModel(messages).filter(
+      (message) => message.parts.length > 0,
+    );
+
+    if (sanitizedMessages.length === 0) {
+      return new Response("Ask a question to get started.", { status: 400 });
+    }
+
     const currentPath = getCurrentPath(request);
     const accessContext = await getChatAccessContext(currentPath);
     const model = buildChatModel();
 
     const deterministicMeetingResponse = await tryHandleMeetingOverviewPrompt({
       messages,
+      sanitizedMessages,
       accessContext,
     });
 
@@ -1186,6 +1223,7 @@ export async function POST(request: Request) {
 
     const deterministicDirectorSlateResponse = await tryHandleDirectorSlatePrompt({
       messages,
+      sanitizedMessages,
       accessContext,
     });
 
@@ -1328,7 +1366,7 @@ export async function POST(request: Request) {
     const result = streamText({
       model,
       stopWhen: stepCountIs(4),
-      messages: await convertToModelMessages(messages),
+      messages: await convertToModelMessages(sanitizedMessages),
       tools,
       system: `You are the BetaNXT Issuer Portal assistant. You help users navigate the issuer portal, answer questions with portal data, and access support.
 

@@ -30,17 +30,26 @@ interface SessionCacheEntry {
 
 let sessionCache: SessionCacheEntry | null = null;
 const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes - longer cache to reduce API calls
+const EMPTY_SESSION_CACHE_TTL = 1000; // 1 second - avoids pinning a pre-login null session
 
 const getCachedSession = async (): Promise<Session | null> => {
   // Check if we have a valid cached session
-  if (sessionCache && Date.now() - sessionCache.timestamp < SESSION_CACHE_TTL) {
+  if (
+    sessionCache &&
+    Date.now() - sessionCache.timestamp <
+      (sessionCache.session ? SESSION_CACHE_TTL : EMPTY_SESSION_CACHE_TTL)
+  ) {
     return sessionCache.session;
   }
 
   // Fetch fresh session
   try {
     const session = await getSession();
-    sessionCache = { session, timestamp: Date.now() };
+    if (session) {
+      sessionCache = { session, timestamp: Date.now() };
+    } else {
+      sessionCache = { session: null, timestamp: Date.now() };
+    }
     return session;
   } catch (error) {
     console.error("Failed to retrieve session in buildApiClient", error);

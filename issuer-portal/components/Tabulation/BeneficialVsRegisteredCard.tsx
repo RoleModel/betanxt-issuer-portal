@@ -15,6 +15,7 @@ interface Position {
   accountType: string;
   voteStatus: string;
   shares: number;
+  sharesVoted: number;
 }
 
 interface BeneficialVsRegisteredCardProps {
@@ -55,6 +56,7 @@ const normalizePosition = (value: unknown): Position | null => {
     accountType: toStringValue(record.account_type ?? record.accountType),
     voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
     shares: toFiniteNumber(record.shares),
+    sharesVoted: toFiniteNumber(record.shares_voted ?? record.sharesVoted),
   };
 };
 
@@ -135,13 +137,13 @@ export default function BeneficialVsRegisteredCard({
     // Based on wendys_non_dtc_vote_status.csv
     const beneficialVoted = positions
       .filter((p) => p.accountType === "Non-DTC" && p.voteStatus === "Voted")
-      .reduce((sum, p) => sum + p.shares, 0);
+      .reduce((sum, p) => sum + p.sharesVoted, 0);
 
     // Registered = DTC/CDS (registered holders/participants)
     // Based on wendys_dtc_vote_status.csv
     const registeredVoted = positions
       .filter((p) => p.accountType === "DTC/CDS" && p.voteStatus === "Voted")
-      .reduce((sum, p) => sum + p.shares, 0);
+      .reduce((sum, p) => sum + p.sharesVoted, 0);
 
     return {
       beneficial: beneficialVoted,
