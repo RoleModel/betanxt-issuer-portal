@@ -4,28 +4,16 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect, useMemo } from "react";
 
-import EmptyState from "@/components/EmptyState";
 import DownloadReportsTable from "@/components/Reporting/DownloadReportsTable";
 import TabulationReportCard from "@/components/Reporting/TabulationReportCard";
 import VoteDistributionChart from "@/components/Reporting/VoteDistributionChart";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { usePhases } from "@/hooks/usePhases";
 import { useReports } from "@/hooks/useReports";
-import { friendlyDate } from "@/utils/dateUtils";
-
-const parsePhaseNumber = (phaseLabel?: string | null): number | null => {
-  if (!phaseLabel) return null;
-  const match = /(\d+)/.exec(phaseLabel);
-  if (!match) return null;
-  const num = Number(match[1]);
-  return Number.isFinite(num) ? num : null;
-};
 
 export default function ReportsPage() {
   const { currentMeeting, positions, positionsLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
-  const { phases } = usePhases(meetingId);
   const { voteDistribution, loading: reportsLoading } = useReports(meetingId);
 
   // Fetch proposals for the meeting (reserved for future use)
@@ -47,29 +35,6 @@ export default function ReportsPage() {
 
     void fetchProposals();
   }, [meetingId]);
-
-  const currentPhaseLabel = useMemo(() => {
-    if (!currentMeeting || typeof currentMeeting !== "object") return undefined;
-    if ("currentPhase" in currentMeeting) {
-      const val = (currentMeeting as Record<string, unknown>).currentPhase;
-      return typeof val === "string" ? val : undefined;
-    }
-    return undefined;
-  }, [currentMeeting]);
-
-  const currentPhaseNumber = useMemo(() => {
-    const fromLabel = parsePhaseNumber(currentPhaseLabel);
-    if (fromLabel) return fromLabel;
-    if (phases.length > 0) {
-      return phases.reduce((m, p) => (p.orderIndex > m ? p.orderIndex : m), 0) || null;
-    }
-    return null;
-  }, [currentPhaseLabel, phases]);
-
-  const phaseIsSevenOrGreater = (currentPhaseNumber ?? 0) >= 7;
-
-  const meetingDateStr = currentMeeting?.meetingDate;
-  const friendlyMeetingDate = meetingDateStr ? friendlyDate(meetingDateStr) : "TBD";
 
   const resolvedVoteDistribution = useMemo(() => {
     if (voteDistribution.length > 0) {
@@ -127,19 +92,8 @@ export default function ReportsPage() {
     ].filter((item) => item.value > 0);
   }, [positions, voteDistribution]);
 
-  // Show empty state only if phase is determined to be less than 7
-  // Don't show it while loading (phases.length === 0 could mean loading or no phases)
-  if (currentPhaseNumber !== null && !phaseIsSevenOrGreater) {
-    return (
-      <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-        <EmptyState
-          title="Reports"
-          description={`Reports will be available starting on ${friendlyMeetingDate}.`}
-        />
-      </Container>
-    );
-  }
-
+  // The static list of reports is always shown, even before the meeting when
+  // there is nothing to download yet (MED-1525). Reports generate on demand.
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
       <Grid container spacing={{ xs: 2, md: 3 }}>

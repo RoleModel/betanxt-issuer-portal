@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { enableNoboFlag } from "@/flags";
+import { configureDistributionFlag, enableNoboFlag } from "@/flags";
 
 /**
  * Exposes server-evaluated Vercel Flags to the client-rendered app.
@@ -9,7 +9,10 @@ import { enableNoboFlag } from "@/flags";
  * flags directly.
  */
 export async function GET() {
-  const enableNobo = await enableNoboFlag();
+  const [enableNobo, configureDistribution] = await Promise.all([
+    enableNoboFlag(),
+    configureDistributionFlag(),
+  ]);
 
-  return NextResponse.json({ enableNobo });
+  return NextResponse.json({ enableNobo, configureDistribution });
 }
