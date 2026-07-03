@@ -30,4 +30,4 @@ We hold ourselves to the same standard of integrity we bring to every campaign. 
 
 ---
 
-*This page is sample content produced for demonstration purposes on the BetaNXT Issuer Portal.*
+_This page is sample content produced for demonstration purposes on the BetaNXT Issuer Portal._

@@ -110,10 +110,5 @@
       "Bash(grep -E \"\\\\.npmrc$\")"
     ]
   },
-  "enabledMcpjsonServers": [
-    "tessl",
-    "supabase",
-    "mui-mcp",
-    "figma-dev-mode-mcp-server"
-  ]
+  "enabledMcpjsonServers": ["tessl", "supabase", "mui-mcp", "figma-dev-mode-mcp-server"]
 }
