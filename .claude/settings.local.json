@@ -90,7 +90,22 @@
       "Bash(pdftoppm -png -r 70 -f 1 -l 1 public/mock-mailings/PAYC/fw1-reminder-unvoted.pdf /tmp/payc)",
       "Bash(curl -s -o /dev/null -w \"WEN: %{http_code}\\\\n\" \"http://localhost:3000/mock-mailings/WEN/fw1-reminder-unvoted.pdf\")",
       "Bash(curl -s -o /dev/null -w \"PAYC: %{http_code}\\\\n\" \"http://localhost:3000/mock-mailings/PAYC/fw1-reminder-unvoted.pdf\")",
-      "Bash(curl -s -o /dev/null -w \"ELVN: %{http_code}\\\\n\" \"http://localhost:3000/mock-mailings/ELVN/fw1-reminder-unvoted.pdf\")"
+      "Bash(curl -s -o /dev/null -w \"ELVN: %{http_code}\\\\n\" \"http://localhost:3000/mock-mailings/ELVN/fw1-reminder-unvoted.pdf\")",
+      "Bash(curl -s -m 25 -w \"\\\\nHTTP %{http_code}\\\\n\" \"https://bn-mock-api-server.vercel.app/api/meetings?page=1&limit=5\")",
+      "Bash(curl -s -m 20 -w \"\\\\nHTTP %{http_code}\\\\n\" \"https://bn-mock-api-server.vercel.app/api/clients?limit=3\")",
+      "Bash(curl -s -m 25 \"https://bn-mock-api-server.vercel.app/api/meetings?page=1&limit=3\")",
+      "Bash(curl -s -m 25 \"https://bn-mock-api-server.vercel.app/api/clients?limit=3\")",
+      "Bash(curl -s -m 25 \"https://bn-mock-api-server.vercel.app/api/clients?limit=3&_cb=$\\(date +%s\\)\" -H \"Cache-Control: no-cache\")",
+      "Bash(npx eslint *)",
+      "Bash(pnpm dev *)",
+      "Bash(ps -p 61242 -o pid,command)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "tessl",
+    "supabase",
+    "mui-mcp",
+    "figma-dev-mode-mcp-server"
+  ]
 }
