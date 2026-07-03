@@ -105,7 +105,9 @@
       "Bash(curl -s http://localhost:3000/.well-known/vercel/flags)",
       "Bash(sed -E 's#\\(_authToken=\\)\\(\\\\$\\\\{[^}]+\\\\}\\).*#\\\\1\\\\2  [ENV-REF ok]#; s#\\(_authToken=\\)\\(ghp_|github_pat_\\).*#\\\\1<LITERAL TOKEN prefix: \\\\2...>#')",
       "Bash(git check-ignore *)",
-      "Bash(grep -E \"\\(^|/\\)\\\\.npmrc$\")"
+      "Bash(grep -E \"\\(^|/\\)\\\\.npmrc$\")",
+      "Bash(git ls-tree *)",
+      "Bash(grep -E \"\\\\.npmrc$\")"
     ]
   },
   "enabledMcpjsonServers": [
