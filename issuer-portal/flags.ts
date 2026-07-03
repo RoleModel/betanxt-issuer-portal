@@ -56,14 +56,9 @@ export const enableNoboFlag = flag<boolean, FlagEntities>({
  * Targeting: rules on `team.ticker` control which issuers can configure
  * automated tabulation distribution.
  */
-export const configureDistributionFlag = flag<boolean, FlagEntities>({
+export const configureDistributionFlag = flag({
   key: "configure-distribution",
-  description: "Enable the Configure Distribution feature (Phase 2)",
   defaultValue: false,
-  options: [
-    { value: false, label: "Off" },
-    { value: true, label: "On" },
-  ],
-  identify,
   adapter: vercelAdapter(),
+  identify,
 });

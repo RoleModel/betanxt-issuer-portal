@@ -99,7 +99,10 @@
       "Bash(npx eslint *)",
       "Bash(pnpm dev *)",
       "Bash(ps -p 61242 -o pid,command)",
-      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)"
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(curl -s -H \"x-client-ticker: WEN\" http://localhost:3002/api/feature-flags)",
+      "Bash(curl -s -H \"x-client-ticker: WEN\" http://localhost:3000/api/feature-flags)",
+      "Bash(curl -s http://localhost:3000/.well-known/vercel/flags)"
     ]
   },
   "enabledMcpjsonServers": [

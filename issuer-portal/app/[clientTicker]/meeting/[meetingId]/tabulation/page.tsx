@@ -11,6 +11,7 @@ import { TabulationDistributionDrawer } from "@/components/Tabulation/Tabulation
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
 import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
 import { useMeeting } from "@/contexts/MeetingContext";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 /**
@@ -20,9 +21,13 @@ import { useTabulationInsights } from "@/hooks/useTabulationInsights";
  * `SharesVotedCard` for its per-proposal selector (both replacing the former
  * aggregate voting summary).
  */
+
 export default function TabulationPage() {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
+  const { flags } = useFeatureFlags();
+  const showConfiguration = flags.configureDistribution;
+
   const {
     proposals,
     filteredPositions,
@@ -47,12 +52,14 @@ export default function TabulationPage() {
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
       <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={12}>
-          <TabulationDistributionDrawer
-            meetingId={meetingId}
-            clientTicker={clientTicker}
-            initialDistribution={currentMeeting?.tabulationDistribution ?? undefined}
-            meetingDate={currentMeeting?.meetingDate}
-          />
+          {showConfiguration ? (
+            <TabulationDistributionDrawer
+              meetingId={meetingId}
+              clientTicker={clientTicker}
+              initialDistribution={currentMeeting?.tabulationDistribution ?? undefined}
+              meetingDate={currentMeeting?.meetingDate}
+            />
+          ) : null}
         </Grid>
         <Grid size={12}>
           <Grid container columns={{ sm: 5, md: 6, lg: 5 }} spacing={{ xs: 2, md: 3 }}>
