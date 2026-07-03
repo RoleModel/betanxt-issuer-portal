@@ -156,4 +156,15 @@ export default [
       "@typescript-eslint/require-await": "off",
     },
   },
+
+  // Portable client-theming library (published to npm) — held to a stricter bar
+  // than app code since it ships to external consumers.
+  {
+    files: ["client-theming/src/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/consistent-type-imports": "error",
+    },
+  },
 ];

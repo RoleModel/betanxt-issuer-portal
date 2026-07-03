@@ -1,0 +1,10 @@
+# Local secrets — never commit. Keep .env.example (the template) tracked.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build output (if a build step is added later)
+dist/
+*.tsbuildinfo
+node_modules/

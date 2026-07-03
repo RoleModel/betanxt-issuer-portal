@@ -107,8 +107,31 @@
       "Bash(git check-ignore *)",
       "Bash(grep -E \"\\(^|/\\)\\\\.npmrc$\")",
       "Bash(git ls-tree *)",
-      "Bash(grep -E \"\\\\.npmrc$\")"
+      "Bash(grep -E \"\\\\.npmrc$\")",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(ls -d node_modules/@mui/material issuer-portal/node_modules/@mui/material)",
+      "Bash(ls -d node_modules/@types/node issuer-portal/node_modules/@types/node)",
+      "Bash(ls -d node_modules/typescript issuer-portal/node_modules/typescript)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(echo \"eslint exit=$?\")",
+      "Bash(git remote *)",
+      "Bash(npm --version)",
+      "Bash(perl -pi -e 's/\\\\@betanxt\\\\/client-theming/\\\\@rolemodel\\\\/client-theming/g' README.md)",
+      "Bash(echo \"ESLINT_EXIT=$?\")",
+      "Bash(../node_modules/.bin/tsc -p tsconfig.build.json)",
+      "Bash(echo \"BUILD_EXIT=$?\")",
+      "Bash(perl -0pi -e 's/\\(\\(?:from|import\\)\\\\s+\\)\"\\(\\\\.\\\\.?\\\\/[^\"]+?\\)\\(?<!\\\\.js\\)\"/$1\"$2.js\"/g' src/index.ts src/*/index.ts src/*/*.ts)",
+      "Bash(../node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"tc=$?\")",
+      "Bash(echo \"build=$?\")",
+      "Bash(echo \"lint=$?\")",
+      "Bash(node --input-type=module -e ' *)"
     ]
   },
-  "enabledMcpjsonServers": ["tessl", "supabase", "mui-mcp", "figma-dev-mode-mcp-server"]
+  "enabledMcpjsonServers": [
+    "tessl",
+    "supabase",
+    "mui-mcp",
+    "figma-dev-mode-mcp-server"
+  ]
 }
