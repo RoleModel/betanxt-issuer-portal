@@ -1,5 +1,5 @@
 {
-  "$schema": "https://v2-9-10.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-2.turborepo.dev/schema.json",
   "globalDependencies": ["**/.env.*local"],
   "tasks": {
     "build": {
@@ -28,6 +28,8 @@
         "POSTGRES_USER",
         "POSTGRES_HOST",
         "POSTGRES_PASSWORD",
+        "NEXT_PUBLIC_MUI_X_LICENSE",
+        "FLAGS_SECRET",
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
         "VERCEL_DEPLOY_HOOK_URL",

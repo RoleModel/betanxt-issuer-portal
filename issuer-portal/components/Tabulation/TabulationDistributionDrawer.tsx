@@ -30,6 +30,7 @@ import type { components } from "@/domain-models/generated-schema";
 import DrawerHeader from "@/components/Drawers/shared/DrawerHeader";
 import { useNotifications } from "@/contexts/NotificationContext";
 import buildApiClient from "@/domain-models/apiClient";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 
@@ -79,6 +80,7 @@ export function TabulationDistributionDrawer({
   meetingDate,
 }: TabulationDistributionDrawerProps) {
   const { data: session } = useSession();
+  const { flags } = useFeatureFlags(clientTicker ?? undefined);
   const isCSM = session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
   const [open, setOpen] = useState(false);
   const [distribution, setDistribution] = useState<TabulationDistribution>(() => ({
@@ -253,7 +255,7 @@ export function TabulationDistributionDrawer({
   const isActive = distribution.enabled && !!computedNext;
   const recipientCount = (distribution.recipients ?? []).length;
 
-  if (!isCSM) return null;
+  if (!isCSM || !flags.configureDistribution) return null;
 
   return (
     <>

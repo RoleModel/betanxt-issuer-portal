@@ -45,3 +45,20 @@ export const enableNoboFlag = flag<boolean, FlagEntities>({
   identify,
   adapter: vercelAdapter(),
 });
+
+/**
+ * Enable the Configure Distribution feature (automated daily tabulation
+ * report delivery). Phase 2 functionality — off for the MVP.
+ *
+ * Managed in the Vercel Flags dashboard:
+ * https://vercel.com/rolemodel-software/issuer-portal/flag/configure-distribution
+ *
+ * Targeting: rules on `team.ticker` control which issuers can configure
+ * automated tabulation distribution.
+ */
+export const configureDistributionFlag = flag({
+  key: "configure-distribution",
+  defaultValue: false,
+  adapter: vercelAdapter(),
+  identify,
+});

@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { BNAppSwitcher } from "@rolemodel/betanxt-design-system/components/BNAppSwitcher";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { Suspense, useMemo, useState } from "react";
@@ -30,10 +29,6 @@ const USER_TYPE_BRAND_LABELS: Record<string, string> = {
   SOLICITOR: "Morrow Sodali",
   CSM: "BetaNXT",
 };
-
-interface ClientAppSwitcherProps {
-  currentAppTitle?: string;
-}
 
 /**
  * Switch button for PARENT_CLIENT / SOLICITOR / CSM users.
@@ -538,7 +533,7 @@ function SwitchButton() {
   );
 }
 
-export function ClientAppSwitcher({ currentAppTitle = "Issuer Portal" }: ClientAppSwitcherProps) {
+export function ClientAppSwitcher() {
   return (
     <Box
       sx={(theme) => ({
@@ -551,9 +546,6 @@ export function ClientAppSwitcher({ currentAppTitle = "Issuer Portal" }: ClientA
       })}
     >
       <SwitchButton />
-      <BNAppSwitcher currentAppName={currentAppTitle}>
-        <BNAppSwitcher.Item name="Issuer Portal" component="a" href="/" />
-      </BNAppSwitcher>
     </Box>
   );
 }

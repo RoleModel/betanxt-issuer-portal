@@ -154,7 +154,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       <BNAppBar {...appBarProps}>
         {props.appSwitcher && (
           <Box aria-label="Client and Application Switcher" role="complementary">
-            <ClientAppSwitcher currentAppTitle="Issuer Portal" />
+            <ClientAppSwitcher />
           </Box>
         )}
       </BNAppBar>

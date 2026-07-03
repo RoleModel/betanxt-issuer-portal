@@ -7,6 +7,11 @@ import { useClient } from "@/contexts/ClientContext";
 interface FeatureFlags {
   /** Vercel `enable-nobo` flag — gates NOBO/Engage functionality per client. */
   enableNobo: boolean;
+  /**
+   * Vercel `configure-distribution` flag — gates the Configure Distribution
+   * feature (automated daily tabulation delivery). Phase 2, off for MVP.
+   */
+  configureDistribution: boolean;
 }
 
 interface UseFeatureFlagsResult {
@@ -16,6 +21,7 @@ interface UseFeatureFlagsResult {
 
 const DEFAULT_FLAGS: FeatureFlags = {
   enableNobo: false,
+  configureDistribution: false,
 };
 
 async function fetchFeatureFlags(ticker: string | null): Promise<FeatureFlags> {
@@ -27,6 +33,7 @@ async function fetchFeatureFlags(ticker: string | null): Promise<FeatureFlags> {
   const data = (await response.json()) as Partial<FeatureFlags>;
   return {
     enableNobo: data.enableNobo === true,
+    configureDistribution: data.configureDistribution === true,
   };
 }
 
