@@ -5,8 +5,8 @@ import { LicenseInfo } from "@mui/x-license";
 // Registered at module scope so the key is set before any MUI X Pro component
 // (e.g. the geographic heatmap) renders. Skipped when the env var is absent,
 // in which case Pro components show MUI's unlicensed watermark.
-if (process.env.NEXT_PUBLIC_MUI_XGRID_LICENSE) {
-  LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_MUI_XGRID_LICENSE);
+if (process.env.NEXT_PUBLIC_MUI_X_LICENSE) {
+  LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_MUI_X_LICENSE);
 }
 
 /**
