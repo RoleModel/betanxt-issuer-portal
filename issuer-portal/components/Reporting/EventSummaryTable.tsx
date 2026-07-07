@@ -90,7 +90,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                 {/* <TableCell>Inspector</TableCell> */}
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Broker Search Date</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Record Date</TableCell>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Filing Date</TableCell>
+                {/* <TableCell sx={{ whiteSpace: "nowrap" }}>Filing Date</TableCell> */}
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Mailing Date</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Mailing Method</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Voting Cutoff</TableCell>
@@ -136,7 +136,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                         })
                       : "--"}
                   </TableCell>
-                  <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
+                  {/* <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
                     {row.filingDate
                       ? new Date(row.filingDate).toLocaleDateString("en-US", {
                           month: "2-digit",
@@ -144,7 +144,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                           year: "numeric",
                         })
                       : "--"}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
                     {row.mailingDate
                       ? new Date(row.mailingDate).toLocaleDateString("en-US", {
