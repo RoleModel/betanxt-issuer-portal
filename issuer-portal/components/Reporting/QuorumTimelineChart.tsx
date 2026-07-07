@@ -214,7 +214,7 @@ export function QuorumTimelineChart({
                 },
               },
             ]}
-            height={480}
+            height={340}
             margin={{ left: 10, right: 40, top: 40, bottom: 10 }}
             grid={{ horizontal: true }}
             slotProps={{

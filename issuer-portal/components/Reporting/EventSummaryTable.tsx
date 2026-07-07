@@ -87,7 +87,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
               <TableRow>
                 <TableCell>Event</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Meeting Type</TableCell>
-                <TableCell>Inspector</TableCell>
+                {/* <TableCell>Inspector</TableCell> */}
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Broker Search Date</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Record Date</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Filing Date</TableCell>
@@ -115,9 +115,9 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                     )}
                   </TableCell>
                   <TableCell size="small">{row.meetingType}</TableCell>
-                  <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
+                  {/* <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
                     {row.inspector || "--"}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
                     {row.brokerSearchDate
                       ? new Date(row.brokerSearchDate).toLocaleDateString("en-US", {

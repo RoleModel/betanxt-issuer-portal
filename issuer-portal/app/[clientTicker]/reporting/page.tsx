@@ -28,6 +28,7 @@ import { QuorumTimelineChart } from "@/components/Reporting/QuorumTimelineChart"
 import VotingPerformanceChart from "@/components/Reporting/VotingPerformanceChart";
 import YearOverYearChart from "@/components/Reporting/YearOverYearChart";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { useQuorumTimeline } from "@/hooks/useQuorumTimeline";
 import { useReporting } from "@/hooks/useReporting";
 import { useReports } from "@/hooks/useReports";
@@ -222,55 +223,6 @@ export default function ReportingPage() {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 6 }}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <QuorumPerformanceTable
-              data={mappedQuorumPerformanceData}
-              clientTicker={clientTicker}
-              loading={loading}
-            />
-          </Suspense>
-        </Grid>
-
-        <Grid size={12}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 2,
-              mt: 1,
-            }}
-          >
-            <Typography variant="pageTitle" component="h2">
-              Analytics
-            </Typography>
-            {meetingSelect}
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <BrokerVotingChart
-            meetingId={effectiveMeetingId || undefined}
-            proposals={brokerChartProposals}
-            brokerData={brokerVotingByProposal}
-            loading={loading || reportsLoading}
-            subheader={selectedMeetingLabel}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          {effectiveMeetingId ? (
-            <VotingPerformanceChart
-              meetingId={effectiveMeetingId}
-              subheader={selectedMeetingLabel}
-            />
-          ) : (
-            <ChartSkeleton />
-          )}
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: hasNoboFeature ? 6 : 12 }}>
           <QuorumTimelineChart
             points={quorumTimelinePoints}
             milestones={quorumTimelineMilestones}
@@ -280,40 +232,81 @@ export default function ReportingPage() {
           />
         </Grid>
         {hasNoboFeature && (
-          <Grid size={{ xs: 12, lg: 6 }}>
-            <GeoHeatmapCard
-              meetingId={effectiveMeetingId || undefined}
-              subheader={selectedMeetingLabel || undefined}
-            />
-          </Grid>
+          <>
+            <Grid size={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 2,
+                  mt: 1,
+                }}
+              >
+                <Typography variant="pageTitle" component="h2">
+                  Analytics
+                </Typography>
+                {meetingSelect}
+              </Box>
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <BrokerVotingChart
+                meetingId={effectiveMeetingId || undefined}
+                proposals={brokerChartProposals}
+                brokerData={brokerVotingByProposal}
+                loading={loading || reportsLoading}
+                subheader={selectedMeetingLabel}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 6 }}>
+              {effectiveMeetingId ? (
+                <VotingPerformanceChart
+                  meetingId={effectiveMeetingId}
+                  subheader={selectedMeetingLabel}
+                />
+              ) : (
+                <ChartSkeleton />
+              )}
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <GeoHeatmapCard
+                meetingId={effectiveMeetingId || undefined}
+                subheader={selectedMeetingLabel || undefined}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <PositionsVotedChart
+                meetingId={effectiveMeetingId || undefined}
+                setKeys={positionsVotedSetKeys}
+                data={positionsVotedBySet}
+                subheader={selectedMeetingLabel}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 6 }}>
+              <Card sx={{ height: "100%" }}>
+                <CardHeader
+                  title="Participation by Year"
+                  subheader="Average participation rate across completed events"
+                />
+                <CardContent>
+                  <ParticipationChart data={participationChartData} loading={loading} />
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={12}>
+              <Suspense fallback={<ChartSkeleton />}>
+                <ProposalPerformanceTable data={mappedProposalPerformanceData} />
+              </Suspense>
+            </Grid>
+          </>
         )}
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <PositionsVotedChart
-            meetingId={effectiveMeetingId || undefined}
-            setKeys={positionsVotedSetKeys}
-            data={positionsVotedBySet}
-            subheader={selectedMeetingLabel}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <Card sx={{ height: "100%" }}>
-            <CardHeader
-              title="Participation by Year"
-              subheader="Average participation rate across completed events"
-            />
-            <CardContent>
-              <ParticipationChart data={participationChartData} loading={loading} />
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={12}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <ProposalPerformanceTable data={mappedProposalPerformanceData} />
-          </Suspense>
-        </Grid>
       </Grid>
     </Container>
   );
