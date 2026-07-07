@@ -125,7 +125,23 @@
       "Bash(echo \"tc=$?\")",
       "Bash(echo \"build=$?\")",
       "Bash(echo \"lint=$?\")",
-      "Bash(node --input-type=module -e ' *)"
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(gh auth *)",
+      "Bash(npm view *)",
+      "Bash(perl -pi -e 's{github\\\\.com/RoleModel/betanxt-issuer-portal/tree/main/client-theming}{github.com/RoleModel/client-theming}g' README.md)",
+      "Bash([ -e \"$DEST\" ])",
+      "Bash(exit 1)",
+      "Bash(mkdir -p /Users/dallas/Development/betanxt/client-theming)",
+      "Bash(rsync -a --exclude dist --exclude node_modules /Users/dallas/Development/betanxt/betanxt-issuer-portal/client-theming/ /Users/dallas/Development/betanxt/client-theming/)",
+      "Read(//Users/dallas/Development/betanxt/**)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(echo \"typecheck=$?\")",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"^\\(dist|node_modules\\)/|\\\\.env$\")",
+      "Bash(git commit -q -m ' *)",
+      "Bash(gh repo *)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -1,6 +1,6 @@
 {
   "name": "@rolemodel/client-theming",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Portable per-client branding: Brandfetch integration, brand registry, and contrast-aware MUI theme generation.",
   "license": "MIT",
   "author": "RoleModel Software",
@@ -8,12 +8,11 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RoleModel/betanxt-issuer-portal.git",
-    "directory": "client-theming"
+    "url": "git+https://github.com/RoleModel/client-theming.git"
   },
-  "homepage": "https://github.com/RoleModel/betanxt-issuer-portal/tree/main/client-theming#readme",
+  "homepage": "https://github.com/RoleModel/client-theming#readme",
   "bugs": {
-    "url": "https://github.com/RoleModel/betanxt-issuer-portal/issues"
+    "url": "https://github.com/RoleModel/client-theming/issues"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
