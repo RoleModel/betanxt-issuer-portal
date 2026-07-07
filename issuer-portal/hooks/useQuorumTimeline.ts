@@ -12,6 +12,12 @@ import { useMemo } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
+import {
+  classifyMailingDistribution,
+  computeRecommendedMailByDate,
+  mailingDistributionShortLabel,
+} from "@/utils/dateUtils";
+
 type Meeting = components["schemas"]["Meeting"];
 type Position = components["schemas"]["Position"];
 
@@ -113,14 +119,29 @@ export function useQuorumTimeline({
       return { points: [], milestones: [] };
     }
 
-    const mailDate = parseDateOnly(meeting.mailingDate);
-    const deadlineDate = parseDateOnly(meeting.cutoffDate ?? meeting.meetingDate);
+    const meetingDate = parseDateOnly(meeting.meetingDate);
+    const distribution = classifyMailingDistribution(meeting.distributionType);
+    // The mail date is driven by the distribution rules (N&A = 40 calendar days
+    // before the meeting, adjusted off weekends; Full Set = 15 calendar days),
+    // falling back to the meeting's stored mailing date when unclassifiable.
+    const mailDate =
+      meetingDate && distribution
+        ? computeRecommendedMailByDate(meetingDate, distribution).date
+        : parseDateOnly(meeting.mailingDate);
+    // Anchor the end of the timeline on the meeting date so the mail date reads
+    // exactly N days ahead of the meeting (e.g. N&A = 40). Fall back to the
+    // cutoff date only when the meeting date is unavailable.
+    const deadlineDate = meetingDate ?? parseDateOnly(meeting.cutoffDate);
     const totalOutstanding = toFiniteNumber(String(meeting.totalSharesOutstanding ?? ""));
 
     const milestones: QuorumTimelineMilestone[] = [];
     if (mailDate) {
-      milestones.push({ label: "Mail Date", date: mailDate, kind: "mail" });
+      const mailLabel = distribution
+        ? `Mail Date · ${mailingDistributionShortLabel(distribution)}`
+        : "Mail Date";
+      milestones.push({ label: mailLabel, date: mailDate, kind: "mail" });
     }
+
     followUpMailings.forEach((mailing) => {
       const date = parseDateOnly(mailing.date);
       if (!date) return;
@@ -130,7 +151,7 @@ export function useQuorumTimeline({
     });
     if (deadlineDate) {
       milestones.push({
-        label: "Meeting / Vote Deadline",
+        label: "Meeting Date",
         date: deadlineDate,
         kind: "deadline",
       });

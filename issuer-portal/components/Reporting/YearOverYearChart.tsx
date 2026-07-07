@@ -54,17 +54,17 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
   const legendItems = [
     {
       label: "Registered",
-      color: "var(--mui-palette-chartSeries-1-main)",
+      color: "var(--mui-palette-primary-main)",
       type: "bar" as const,
     },
     {
       label: "Beneficial",
-      color: "var(--mui-palette-chartSeries-4-main)",
+      color: "var(--mui-palette-secondary-main)",
       type: "bar" as const,
     },
     {
       label: "Participation %",
-      color: "var(--mui-palette-chartSeries-8-main)",
+      color: "var(--mui-palette-info-main)",
       type: "line" as const,
     },
   ];
@@ -89,7 +89,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: "bar",
           data: registeredShares,
           label: "Registered",
-          color: "var(--mui-palette-chartSeries-1-main)",
+          color: "var(--mui-palette-primary-main)",
           yAxisId: "leftAxis",
           stack: "shares",
         },
@@ -98,7 +98,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: "bar",
           data: beneficialShares,
           label: "Beneficial",
-          color: "var(--mui-palette-chartSeries-4-main)",
+          color: "var(--mui-palette-secondary-main)",
           yAxisId: "leftAxis",
           stack: "shares",
         },
@@ -106,7 +106,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: "line",
           data: participationRates,
           label: "Participation %",
-          color: "var(--mui-palette-chartSeries-8-main)",
+          color: "var(--mui-palette-info-main)",
           curve: "catmullRom",
           showMark: false,
           yAxisId: "rightAxis",

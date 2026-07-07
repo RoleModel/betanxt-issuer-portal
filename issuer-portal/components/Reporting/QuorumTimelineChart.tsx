@@ -156,12 +156,12 @@ export function QuorumTimelineChart({
 
   const milestoneColors: Record<QuorumMilestoneKind, string> = {
     mail: theme.vars.palette.info.dark,
-    followUp: theme.vars.palette.warning.main,
+    followUp: theme.vars.palette.secondary.main,
     deadline: theme.vars.palette.error.main,
   };
   const milestoneTextColors: Record<QuorumMilestoneKind, string> = {
     mail: theme.vars.palette.info.contrastText,
-    followUp: theme.vars.palette.warning.contrastText,
+    followUp: theme.vars.palette.secondary.contrastText,
     deadline: theme.vars.palette.error.contrastText,
   };
 
