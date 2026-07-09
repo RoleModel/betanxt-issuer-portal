@@ -1340,6 +1340,12 @@ export interface components {
       source?: "WEB" | "PRINT" | "IVR" | null;
       dateVoted?: string | null;
       /**
+       * @description Delivery method used to send voting materials to the holder. Derived from whether the account has an email on file (EMAIL) or not (MAIL).
+       * @example MAIL
+       * @enum {string|null}
+       */
+      sentBy?: "MAIL" | "EMAIL" | null;
+      /**
        * @description Holder population classification. REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
        * @example REGISTERED
        * @enum {string|null}

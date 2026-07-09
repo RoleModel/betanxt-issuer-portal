@@ -254,7 +254,7 @@ export default function PositionsTable({ positions, loading = false }: Positions
                       <NoWrapTableCell>{position.source}</NoWrapTableCell>
                       <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
                       <TableCell align="right">
-                        {position.sentBy ? (
+                        {position.sentBy === "EMAIL" ? (
                           <MailOutlineIcon fontSize="small" />
                         ) : (
                           <InsertDriveFileOutlinedIcon fontSize="small" />

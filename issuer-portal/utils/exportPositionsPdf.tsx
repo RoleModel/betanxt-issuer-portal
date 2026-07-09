@@ -181,7 +181,7 @@ const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
                 {formatDate(position.dateVoted)}
               </Text>
               <Text style={[reportStyles.cell, columnWidths.sentBy, reportStyles.cellRight]}>
-                {position.sentBy ? "Email" : "Mail"}
+                {position.sentBy === "EMAIL" ? "Email" : "Mail"}
               </Text>
             </View>
           ))}

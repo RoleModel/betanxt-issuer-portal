@@ -54,6 +54,7 @@ function transformPosition(dbPosition: PositionRow): Position {
     sharesVoted: nullToUndefined(dbPosition.shares_voted),
     source: nullToUndefined(dbPosition.source),
     dateVoted: nullToUndefined(dbPosition.date_voted),
+    sentBy: dbPosition.account_email ? "EMAIL" : "MAIL",
     holderCategory: dbPosition.holder_category,
     state: dbPosition.state,
     country: dbPosition.country,

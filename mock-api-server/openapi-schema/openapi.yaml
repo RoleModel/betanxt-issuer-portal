@@ -3143,6 +3143,12 @@ components:
         dateVoted:
           type: string
           nullable: true
+        sentBy:
+          type: string
+          nullable: true
+          enum: [MAIL, EMAIL]
+          description: Delivery method used to send voting materials to the holder. Derived from whether the account has an email on file (EMAIL) or not (MAIL).
+          example: "MAIL"
         holderCategory:
           type: string
           nullable: true

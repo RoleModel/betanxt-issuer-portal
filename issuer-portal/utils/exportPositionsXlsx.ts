@@ -89,7 +89,7 @@ export function exportPositionsToXlsx(options: ExportOptions): void {
     p.voteStatus,
     p.source,
     formatDateYMD(p.dateVoted),
-    p.sentBy ? "Email" : "Mail",
+    p.sentBy === "EMAIL" ? "Email" : "Mail",
   ]);
 
   const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
