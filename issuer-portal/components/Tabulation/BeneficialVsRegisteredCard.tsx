@@ -180,8 +180,8 @@ export default function BeneficialVsRegisteredCard({
                   barLabel: "value",
                 },
               ]}
-              height={300}
-              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              height={350}
+              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
               hideLegend={true}
               slots={{ barLabel: CustomBarLabel }}
               yAxis={[
